@@ -398,6 +398,18 @@ func (lt *opsworksLayerType) Create(d *schema.ResourceData, client *opsworks.Ops
 
 	log.Printf("[DEBUG] Creating OpsWorks layer: %s", d.Id())
 
+	ecsCluster := aws.String(d.Get("ecs_cluster_arn").(string))
+	if ecsCluster != nil && *ecsCluster != "" {
+		log.Printf("[DEBUG] Attaching ECS Cluster: %s", *ecsCluster)
+		_, err := client.RegisterEcsCluster(&opsworks.RegisterEcsClusterInput{
+			EcsClusterArn: ecsCluster,
+			StackId:       req.StackId,
+		})
+		if err != nil {
+			return err
+		}
+	}
+
 	resp, err := client.CreateLayer(req)
 	if err != nil {
 		return err
@@ -496,6 +508,34 @@ func (lt *opsworksLayerType) Update(d *schema.ResourceData, client *opsworks.Ops
 		}
 	}
 
+	if d.HasChange("ecs_cluster_arn") {
+		stackID := aws.String(d.Get("stack_id").(string))
+		ecso, ecsn := d.GetChange("ecs_cluster_arn")
+		ecsClusterOld := aws.String(ecso.(string))
+		ecsClusterNew := aws.String(ecsn.(string))
+
+		if ecsClusterOld != nil && *ecsClusterOld != "" {
+			log.Printf("[DEBUG] Dettaching ecs cluster: %s", *ecsClusterOld)
+			_, err := client.DeregisterEcsCluster(&opsworks.DeregisterEcsClusterInput{
+				EcsClusterArn: ecsClusterOld,
+			})
+
+			if err != nil {
+				return err
+			}
+		}
+
+		if ecsClusterNew != nil && *ecsClusterNew != "" {
+			log.Printf("[DEBUG] Attaching ECS Cluster: %s", *ecsClusterNew)
+			_, err := client.RegisterEcsCluster(&opsworks.RegisterEcsClusterInput{
+				EcsClusterArn: ecsClusterNew,
+				StackId:       stackID,
+			})
+			if err != nil {
+				return err
+			}
+		}
+	}
 	_, err = client.UpdateLayer(req)
 	if err != nil {
 		return err
@@ -521,7 +561,21 @@ func (lt *opsworksLayerType) Delete(d *schema.ResourceData, client *opsworks.Ops
 	log.Printf("[DEBUG] Deleting OpsWorks layer: %s", d.Id())
 
 	_, err := client.DeleteLayer(req)
-	return err
+	if err != nil {
+		return err
+	}
+
+	ecsCluster := aws.String(d.Get("ecs_cluster_arn").(string))
+	if ecsCluster != nil && *ecsCluster != "" {
+		log.Printf("[DEBUG] Attaching ECS Cluster: %s", *ecsCluster)
+		_, err := client.DeregisterEcsCluster(&opsworks.DeregisterEcsClusterInput{
+			EcsClusterArn: ecsCluster,
+		})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (lt *opsworksLayerType) AttributeMap(d *schema.ResourceData) (map[string]*string, error) {
