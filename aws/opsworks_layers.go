@@ -400,6 +400,7 @@ func (lt *opsworksLayerType) Create(d *schema.ResourceData, client *opsworks.Ops
 
 	ecsCluster := aws.String(d.Get("ecs_cluster_arn").(string))
 	if ecsCluster != nil && *ecsCluster != "" {
+		//Need to attach the ECS Cluster to the stack before creating the layer
 		log.Printf("[DEBUG] Attaching ECS Cluster: %s", *ecsCluster)
 		_, err := client.RegisterEcsCluster(&opsworks.RegisterEcsClusterInput{
 			EcsClusterArn: ecsCluster,
@@ -497,7 +498,7 @@ func (lt *opsworksLayerType) Update(d *schema.ResourceData, client *opsworks.Ops
 		}
 
 		if loadBalancerNew != nil && *loadBalancerNew != "" {
-			log.Printf("[DEBUG] Attaching load balancer: %s", *loadBalancerNew)
+			log.Printf("[DEBUG] Dettaching load balancer: %s", *loadBalancerNew)
 			_, err := client.AttachElasticLoadBalancer(&opsworks.AttachElasticLoadBalancerInput{
 				ElasticLoadBalancerName: loadBalancerNew,
 				LayerId:                 aws.String(d.Id()),
