@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/servicediscovery"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -30,6 +31,11 @@ func resourceAwsServiceDiscoveryService() *schema.Resource {
 			"description": {
 				Type:     schema.TypeString,
 				Optional: true,
+			},
+			"force_destroy": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
 			},
 			"dns_config": {
 				Type:     schema.TypeList,
@@ -216,9 +222,33 @@ func resourceAwsServiceDiscoveryServiceDelete(d *schema.ResourceData, meta inter
 		Id: aws.String(d.Id()),
 	}
 
+	if d.Get("force_destroy").(bool) {
+		result, err := conn.ListInstances(&servicediscovery.ListInstancesInput{ServiceId: aws.String(d.Id())})
+		if err != nil {
+			return err
+		}
+
+		instances := result.Instances
+		for _, instance := range instances {
+			_, err := conn.DeregisterInstance(&servicediscovery.DeregisterInstanceInput{InstanceId: instance.Id, ServiceId: aws.String(d.Id())})
+			if err != nil {
+				sderr, ok := err.(awserr.Error)
+				if ok && sderr.Code() != "DuplicateRequest" && sderr.Code() != "InstanceNotFound" {
+					return err
+				}
+			}
+		}
+	}
+
 	_, err := conn.DeleteService(input)
 	if err != nil {
-		return err
+		sderr, ok := err.(awserr.Error)
+		if ok && sderr.Code() == "ResourceInUse" {
+			// this line recurses until all instances are deregistered or an error is returned
+			resourceAwsServiceDiscoveryServiceDelete(d, meta)
+		} else {
+			return err
+		}
 	}
 
 	return nil

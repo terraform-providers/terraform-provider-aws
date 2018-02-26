@@ -221,6 +221,8 @@ resource "aws_service_discovery_service" "test" {
     }
     routing_policy = "WEIGHTED"
   }
+
+  force_destroy = true
   health_check_config {
     failure_threshold = %d
     resource_path = "%s"

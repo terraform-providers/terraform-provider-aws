@@ -67,6 +67,7 @@ The following arguments are supported:
 * `description` - (Optional) The description of the service.
 * `dns_config` - (Required) A complex type that contains information about the resource record sets that you want Amazon Route 53 to create when you register an instance.
 * `health_check_config` - (Optional) A complex type that contains settings for an optional health check. Only for Public DNS namespaces.
+* `force_destroy` - (Optional, Default:false ) A boolean that indicates all instances should be deleted from the service so that the service can be destroyed without error. These instances are not recoverable.
 
 ### dns_config
 
