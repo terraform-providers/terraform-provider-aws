@@ -4719,6 +4719,35 @@ func expandLaunchTemplateSpecification(specs []interface{}) (*autoscaling.Launch
 	return result, nil
 }
 
+func expandEc2LaunchTemplateSpecification(specs []interface{}) (*ec2.LaunchTemplateSpecification, error) {
+	if len(specs) < 1 {
+		return nil, nil
+	}
+
+	spec := specs[0].(map[string]interface{})
+
+	idValue, idOk := spec["id"]
+	nameValue, nameOk := spec["name"]
+
+	if idValue == "" && nameValue == "" {
+		return nil, fmt.Errorf("One of `id` or `name` must be set for `launch_template`")
+	}
+
+	result := &ec2.LaunchTemplateSpecification{}
+
+	if idOk && idValue != "" {
+		result.LaunchTemplateId = aws.String(idValue.(string))
+	} else if nameOk && nameValue != "" {
+		result.LaunchTemplateName = aws.String(nameValue.(string))
+	}
+
+	if v, ok := spec["version"]; ok && v != "" {
+		result.Version = aws.String(v.(string))
+	}
+
+	return result, nil
+}
+
 func flattenLaunchTemplateSpecification(lt *autoscaling.LaunchTemplateSpecification) []map[string]interface{} {
 	if lt == nil {
 		return []map[string]interface{}{}

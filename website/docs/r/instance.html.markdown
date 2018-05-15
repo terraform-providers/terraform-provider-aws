@@ -50,7 +50,7 @@ resource "aws_instance" "web" {
 
 The following arguments are supported:
 
-* `ami` - (Required) The AMI to use for the instance.
+* `ami` - (Optional) The AMI to use for the instance. Must be set here or in Launch Template.
 * `availability_zone` - (Optional) The AZ to start the instance in.
 * `placement_group` - (Optional) The Placement Group to start the instance in.
 * `tenancy` - (Optional) The tenancy of the instance (if the instance is running in a VPC). An instance with a tenancy of dedicated runs on single-tenant hardware. The host tenancy is not supported for the import-instance command.
@@ -73,9 +73,11 @@ The following arguments are supported:
 instance. Amazon defaults this to `stop` for EBS-backed instances and
 `terminate` for instance-store instances. Cannot be set on instance-store
 instances. See [Shutdown Behavior](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/terminating-instances.html#Using_ChangingInstanceInitiatedShutdownBehavior) for more information.
-* `instance_type` - (Required) The type of instance to start. Updates to this field will trigger a stop/start of the EC2 instance.
+* `instance_type` - (Optional) The type of instance to start. Can be set here or
+  in Launch Template. If type is not set here or in provided `launch_template` instance type will
+  default to `m1.small`. Updates to this field will trigger a stop/start of the EC2
+  instance.
 * `key_name` - (Optional) The key name of the Key Pair to use for the instance; which can be managed using [the `aws_key_pair` resource](key_pair.html).
-
 * `get_password_data` - (Optional) If true, wait for password data to become available and retrieve it. Useful for getting the administrator password for instances running Microsoft Windows. The password data is exported to the `password_data` attribute. See [GetPasswordData](https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_GetPasswordData.html) for more information.
 * `monitoring` - (Optional) If true, the launched EC2 instance will have detailed monitoring enabled. (Available since v0.6.0)
 * `security_groups` - (Optional, EC2-Classic and default VPC only) A list of security group names (EC2-Classic) or IDs (default VPC) to associate with.
@@ -106,6 +108,8 @@ instances. See [Shutdown Behavior](https://docs.aws.amazon.com/AWSEC2/latest/Use
 * `network_interface` - (Optional) Customize network interfaces to be attached at instance boot time. See [Network Interfaces](#network-interfaces) below for more details.
 * `credit_specification` - (Optional) Customize the credit specification of the instance. See [Credit Specification](#credit-specification) below for more details.
 * `hibernation` - (Optional) If true, the launched EC2 instance will support hibernation.
+* `launch_template` - (Optional) Launch template specification to use to launch instances.
+  See [Launch Template Specification](#launch-template-specification) below for more details.
 
 ### Timeouts
 
@@ -241,6 +245,19 @@ resource "aws_instance" "foo" {
   }
 }
 ```
+
+### Launch Template Specification
+
+-> **Note:** Launch Template parameters will be used only once during instance creation. If you want to update existing instance you need to change parameters
+directly. Updating Launch Template specification will force a new instance.
+
+Any other instance parameters that you specify will override the same parameters in the launch template.
+
+The `launch_template` block supports the following:
+
+* `id` - The ID of the launch template. Conflicts with `name`.
+* `name` - The name of the launch template. Conflicts with `id`.
+* `version` - Template version. Can be version number, `$Latest` or `$Default`. (Default: `$Default`).
 
 ## Attributes Reference
 
