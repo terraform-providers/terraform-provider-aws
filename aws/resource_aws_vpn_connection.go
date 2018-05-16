@@ -461,7 +461,6 @@ func resourceAwsVpnConnectionDelete(d *schema.ResourceData, meta interface{}) er
 	})
 	if err != nil {
 		if ec2err, ok := err.(awserr.Error); ok && ec2err.Code() == "InvalidVpnConnectionID.NotFound" {
-			d.SetId("")
 			return nil
 		} else {
 			log.Printf("[ERROR] Error deleting VPN connection: %s", err)

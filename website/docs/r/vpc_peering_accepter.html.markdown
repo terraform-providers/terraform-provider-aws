@@ -110,3 +110,9 @@ private IP addresses when queried from instances in a peer VPC.
 with the peer VPC over the VPC Peering Connection.
 * `allow_vpc_to_remote_classic_link` - Indicates whether a local VPC can communicate with a ClassicLink
 connection in the peer VPC over the VPC Peering Connection.
+
+## Attributes Reference
+
+The following attributes are exported:
+
+* `id` - The ID of the VPC Peering Connection.

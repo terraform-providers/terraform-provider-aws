@@ -1,6 +1,7 @@
 package aws
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"regexp"
@@ -34,6 +35,10 @@ func testSweepDbOptionGroups(region string) error {
 	opts := rds.DescribeOptionGroupsInput{}
 	resp, err := conn.DescribeOptionGroups(&opts)
 	if err != nil {
+		if testSweepSkipSweepError(err) {
+			log.Printf("[WARN] Skipping RDS DB Option Group sweep for %s: %s", region, err)
+			return nil
+		}
 		return fmt.Errorf("error describing DB Option Groups in Sweeper: %s", err)
 	}
 
@@ -262,6 +267,42 @@ func TestAccAWSDBOptionGroup_sqlServerOptionsUpdate(t *testing.T) {
 	})
 }
 
+func TestAccAWSDBOptionGroup_OracleOptionsUpdate(t *testing.T) {
+	var v rds.OptionGroup
+	rName := fmt.Sprintf("option-group-test-terraform-%s", acctest.RandString(5))
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSDBOptionGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSDBOptionGroupOracleEEOptionSettings(rName, "12.1.0.4.v1"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSDBOptionGroupExists("aws_db_option_group.bar", &v),
+					resource.TestCheckResourceAttr(
+						"aws_db_option_group.bar", "name", rName),
+					resource.TestCheckResourceAttr(
+						"aws_db_option_group.bar", "option.#", "1"),
+					testAccCheckAWSDBOptionGroupOptionVersionAttribute(&v, "12.1.0.4.v1"),
+				),
+			},
+
+			{
+				Config: testAccAWSDBOptionGroupOracleEEOptionSettings(rName, "12.1.0.5.v1"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSDBOptionGroupExists("aws_db_option_group.bar", &v),
+					resource.TestCheckResourceAttr(
+						"aws_db_option_group.bar", "name", rName),
+					resource.TestCheckResourceAttr(
+						"aws_db_option_group.bar", "option.#", "1"),
+					testAccCheckAWSDBOptionGroupOptionVersionAttribute(&v, "12.1.0.5.v1"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAWSDBOptionGroup_multipleOptions(t *testing.T) {
 	var v rds.OptionGroup
 	rName := fmt.Sprintf("option-group-test-terraform-%s", acctest.RandString(5))
@@ -300,6 +341,22 @@ func testAccCheckAWSDBOptionGroupAttributes(v *rds.OptionGroup) resource.TestChe
 			return fmt.Errorf("bad option_group_description: %#v", *v.OptionGroupDescription)
 		}
 
+		return nil
+	}
+}
+
+func testAccCheckAWSDBOptionGroupOptionVersionAttribute(optionGroup *rds.OptionGroup, optionVersion string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		if optionGroup == nil {
+			return errors.New("Option Group does not exist")
+		}
+		if len(optionGroup.Options) == 0 {
+			return errors.New("Option Group does not have any options")
+		}
+		foundOptionVersion := aws.StringValue(optionGroup.Options[0].OptionVersion)
+		if foundOptionVersion != optionVersion {
+			return fmt.Errorf("Expected option version %q and received %q", optionVersion, foundOptionVersion)
+		}
 		return nil
 	}
 }
@@ -491,6 +548,44 @@ resource "aws_db_option_group" "bar" {
   }
 }
 `, r)
+}
+
+func testAccAWSDBOptionGroupOracleEEOptionSettings(r, optionVersion string) string {
+	return fmt.Sprintf(`
+resource "aws_security_group" "foo" {
+  name = "%[1]s"
+}
+
+resource "aws_db_option_group" "bar" {
+  name                     = "%[1]s"
+  option_group_description = "Test option group for terraform issue 748"
+  engine_name              = "oracle-ee"
+  major_engine_version     = "12.1"
+
+  option {
+    option_name = "OEM_AGENT"
+    port        = "3872"
+    version     = "%[2]s"
+
+    vpc_security_group_memberships = ["${aws_security_group.foo.id}"]
+
+    option_settings {
+      name  = "OMS_PORT"
+      value = "4903"
+    }
+
+    option_settings {
+      name  = "OMS_HOST"
+      value = "oem.host.value"
+    }
+
+    option_settings {
+      name  = "AGENT_REGISTRATION_PASSWORD"
+      value = "password"
+    }
+  }
+}
+`, r, optionVersion)
 }
 
 func testAccAWSDBOptionGroupMultipleOptions(r string) string {

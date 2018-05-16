@@ -145,7 +145,7 @@ resource "aws_subnet" "test" {
   cidr_block = "172.16.0.0/24"
   vpc_id     = "${aws_vpc.test.id}"
   tags {
-    Name = "terraform-testacc-data-source"
+    Name = "tf-acc-route-table-data-source"
   }
 }
 

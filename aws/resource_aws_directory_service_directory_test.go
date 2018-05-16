@@ -353,11 +353,17 @@ resource "aws_subnet" "foo" {
   vpc_id = "${aws_vpc.main.id}"
   availability_zone = "us-west-2a"
   cidr_block = "10.0.1.0/24"
+  tags {
+    Name = "tf-acc-directory-service-directory-foo"
+  }
 }
 resource "aws_subnet" "bar" {
   vpc_id = "${aws_vpc.main.id}"
   availability_zone = "us-west-2b"
   cidr_block = "10.0.2.0/24"
+  tags {
+    Name = "tf-acc-directory-service-directory-bar"
+  }
 }
 `
 
@@ -389,11 +395,17 @@ resource "aws_subnet" "foo" {
   vpc_id = "${aws_vpc.main.id}"
   availability_zone = "us-west-2a"
   cidr_block = "10.0.1.0/24"
+  tags {
+    Name = "tf-acc-directory-service-directory-tags-foo"
+  }
 }
 resource "aws_subnet" "bar" {
   vpc_id = "${aws_vpc.main.id}"
   availability_zone = "us-west-2b"
   cidr_block = "10.0.2.0/24"
+  tags {
+    Name = "tf-acc-directory-service-directory-tags-bar"
+  }
 }
 `
 
@@ -434,11 +446,17 @@ resource "aws_subnet" "foo" {
   vpc_id = "${aws_vpc.main.id}"
   availability_zone = "us-west-2a"
   cidr_block = "10.0.1.0/24"
+  tags {
+    Name = "tf-acc-directory-service-directory-connector-foo"
+  }
 }
 resource "aws_subnet" "bar" {
   vpc_id = "${aws_vpc.main.id}"
   availability_zone = "us-west-2b"
   cidr_block = "10.0.2.0/24"
+  tags {
+    Name = "tf-acc-directory-service-directory-connector-bar"
+  }
 }
 `
 
@@ -465,11 +483,17 @@ resource "aws_subnet" "foo" {
   vpc_id = "${aws_vpc.main.id}"
   availability_zone = "us-west-2a"
   cidr_block = "10.0.1.0/24"
+  tags {
+    Name = "tf-acc-directory-service-directory-microsoft-foo"
+  }
 }
 resource "aws_subnet" "bar" {
   vpc_id = "${aws_vpc.main.id}"
   availability_zone = "us-west-2b"
   cidr_block = "10.0.2.0/24"
+  tags {
+    Name = "tf-acc-directory-service-directory-microsoft-bar"
+  }
 }
 `
 
@@ -497,11 +521,17 @@ resource "aws_subnet" "foo" {
   vpc_id = "${aws_vpc.main.id}"
   availability_zone = "us-west-2a"
   cidr_block = "10.0.1.0/24"
+  tags {
+    Name = "tf-acc-directory-service-directory-microsoft-foo"
+  }
 }
 resource "aws_subnet" "bar" {
   vpc_id = "${aws_vpc.main.id}"
   availability_zone = "us-west-2b"
   cidr_block = "10.0.2.0/24"
+  tags {
+    Name = "tf-acc-directory-service-directory-microsoft-bar"
+  }
 }
 `
 
@@ -530,11 +560,17 @@ resource "aws_subnet" "foo" {
   vpc_id = "${aws_vpc.main.id}"
   availability_zone = "us-west-2a"
   cidr_block = "10.0.1.0/24"
+  tags {
+    Name = "tf-acc-directory-service-directory-with-alias-foo"
+  }
 }
 resource "aws_subnet" "bar" {
   vpc_id = "${aws_vpc.main.id}"
   availability_zone = "us-west-2b"
   cidr_block = "10.0.2.0/24"
+  tags {
+    Name = "tf-acc-directory-service-directory-with-alias-bar"
+  }
 }
 `, randomInteger)
 
@@ -563,11 +599,17 @@ resource "aws_subnet" "foo" {
   vpc_id = "${aws_vpc.main.id}"
   availability_zone = "us-west-2a"
   cidr_block = "10.0.1.0/24"
+  tags {
+    Name = "tf-acc-directory-service-directory-with-sso-foo"
+  }
 }
 resource "aws_subnet" "bar" {
   vpc_id = "${aws_vpc.main.id}"
   availability_zone = "us-west-2b"
   cidr_block = "10.0.2.0/24"
+  tags {
+    Name = "tf-acc-directory-service-directory-with-sso-bar"
+  }
 }
 `, randomInteger)
 
@@ -596,10 +638,16 @@ resource "aws_subnet" "foo" {
   vpc_id = "${aws_vpc.main.id}"
   availability_zone = "us-west-2a"
   cidr_block = "10.0.1.0/24"
+  tags {
+    Name = "tf-acc-directory-service-directory-with-sso-foo"
+  }
 }
 resource "aws_subnet" "bar" {
   vpc_id = "${aws_vpc.main.id}"
   availability_zone = "us-west-2b"
   cidr_block = "10.0.2.0/24"
+  tags {
+    Name = "tf-acc-directory-service-directory-with-sso-bar"
+  }
 }
 `, randomInteger)

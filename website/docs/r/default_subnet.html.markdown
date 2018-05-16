@@ -13,7 +13,7 @@ in the current region.
 
 The `aws_default_subnet` behaves differently from normal resources, in that
 Terraform does not _create_ this resource, but instead "adopts" it
-into management. 
+into management.
 
 ## Example Usage
 
@@ -33,9 +33,12 @@ resource "aws_default_subnet" "default_az1" {
 
 The arguments of an `aws_default_subnet` differ from `aws_subnet` resources.
 Namely, the `availability_zone` argument is required and the `vpc_id`, `cidr_block`, `ipv6_cidr_block`,
-`map_public_ip_on_launch` and `assign_ipv6_address_on_creation` arguments are computed.
-The following arguments are still supported: 
+and `assign_ipv6_address_on_creation` arguments are computed.
+The following arguments are still supported:
 
+* `map_public_ip_on_launch` -  (Optional) Specify true to indicate
+    that instances launched into the subnet should be assigned
+    a public IP address.
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ### Removing `aws_default_subnet` from your configuration

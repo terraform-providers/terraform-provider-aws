@@ -1012,6 +1012,9 @@ resource "aws_subnet" "tf-acc" {
   vpc_id = "${aws_vpc.tf-acc.id}"
   cidr_block = "${aws_vpc.tf-acc.cidr_block}"
   availability_zone = "us-west-2a"
+  tags {
+    Name = "tf-acc-opsworks-stack-vpc-create"
+  }
 }
 resource "aws_opsworks_stack" "tf-acc" {
   name = "%s"
@@ -1106,6 +1109,9 @@ resource "aws_subnet" "tf-acc" {
   vpc_id = "${aws_vpc.tf-acc.id}"
   cidr_block = "${aws_vpc.tf-acc.cidr_block}"
   availability_zone = "us-west-2a"
+  tags {
+    Name = "tf-acc-opsworks-stack-vpc-update"
+  }
 }
 resource "aws_opsworks_stack" "tf-acc" {
   name = "%s"

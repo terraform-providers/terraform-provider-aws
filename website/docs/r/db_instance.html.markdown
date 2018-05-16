@@ -29,6 +29,11 @@ server reboots. See the AWS Docs on [RDS Maintenance][2] for more information.
 the raw state as plain-text. [Read more about sensitive data in
 state](/docs/state/sensitive-data.html).
 
+## RDS Instance Class Types
+Amazon RDS supports three types of instance classes: Standard, Memory Optimized,
+and Burstable Performance. For more information please read the AWS RDS documentation
+about [DB Instance Class Types](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.DBInstanceClass.html)
+
 ## Example Usage
 
 ```hcl
@@ -36,13 +41,12 @@ resource "aws_db_instance" "default" {
   allocated_storage    = 10
   storage_type         = "gp2"
   engine               = "mysql"
-  engine_version       = "5.6.17"
-  instance_class       = "db.t1.micro"
+  engine_version       = "5.7"
+  instance_class       = "db.t2.micro"
   name                 = "mydb"
   username             = "foo"
-  password             = "bar"
-  db_subnet_group_name = "my_database_subnet_group"
-  parameter_group_name = "default.mysql5.6"
+  password             = "foobarbaz"
+  parameter_group_name = "default.mysql5.7"
 }
 ```
 
@@ -80,12 +84,20 @@ for more information.
 * `copy_tags_to_snapshot` – (Optional, boolean) On delete, copy all Instance
 `tags` to the final snapshot (if `final_snapshot_identifier` is specified).
 Default is `false`.
-* `db_subnet_group_name` - (Optional) Name of DB subnet group. DB instance will
+* `db_subnet_group_name` - (Optional) Name of [DB subnet group](/docs/providers/aws/r/db_subnet_group.html). DB instance will
 be created in the VPC associated with the DB subnet group. If unspecified, will
-be created in the `default` VPC, or in EC2 Classic, if available.
+be created in the `default` VPC, or in EC2 Classic, if available. When working
+with read replicas, it needs to be specified only if the source database
+specifies an instance in another AWS Region. See [DBSubnetGroupName in API
+action CreateDBInstanceReadReplica](https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_CreateDBInstanceReadReplica.html)
+for additonal read replica contraints.
+* `enabled_cloudwatch_logs_exports` - (Optional) Name list of enable log type for exporting to cloudwatch logs. If omitted, any logs will not be exported to cloudwatch logs.
+   Either of the following is supported: `audit`, `error`, `general`, `slowquery`.
 * `engine` - (Required unless a `snapshot_identifier` or `replicate_source_db`
-is provided) The database engine to use.
-* `engine_version` - (Optional) The engine version to use.
+is provided) The database engine to use.  For supported values, see the Engine parameter in [API action CreateDBInstance](https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_CreateDBInstance.html).
+* `engine_version` - (Optional) The engine version to use. If `auto_minor_version_upgrade`
+is enabled, you can provide a prefix of the version such as `5.7` (for `5.7.10`) and
+this attribute will ignore differences in the patch version automatically (e.g. `5.7.17`).
 * `final_snapshot_identifier` - (Optional) The name of your final DB snapshot
 when this DB instance is deleted. If omitted, no final snapshot will be made.
 * `iam_database_authentication_enabled` - (Optional) Specifies whether or
@@ -129,9 +141,10 @@ logs, and it will be stored in the state file.
 accessible. Default is `false`.
 * `replicate_source_db` - (Optional) Specifies that this resource is a Replicate
 database, and to use this value as the source database. This correlates to the
-`identifier` of another Amazon RDS Database to replicate. See [DB Instance
-Replication][1] and [Working with PostgreSQL and MySQL Read
-Replicas](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_ReadRepl.html)
+`identifier` of another Amazon RDS Database to replicate. Note that if you are
+creating a cross-region replica of an encrypted database you will also need to
+specify a `kms_key_id`. See [DB Instance Replication][1] and [Working with
+PostgreSQL and MySQL Read Replicas](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_ReadRepl.html)
 for more information on using Replication.
 * `security_group_names` - (Optional/Deprecated) List of DB Security Groups to
 associate. Only used for [DB Instances on the _EC2-Classic_
@@ -145,7 +158,9 @@ is `false`.
 database from a snapshot. This correlates to the snapshot ID you'd find in the
 RDS console, e.g: rds:production-2015-06-26-06-05.
 * `storage_encrypted` - (Optional) Specifies whether the DB instance is
-encrypted. The default is `false` if not specified.
+encrypted. Note that if you are creating a cross-region read replica this field
+is ignored and you should instead declare `kms_key_id` with a valid ARN. The
+default is `false` if not specified.
 * `storage_type` - (Optional) One of "standard" (magnetic), "gp2" (general
 purpose SSD), or "io1" (provisioned IOPS SSD). The default is "io1" if `iops` is
 specified, "standard" if not. Note that this behaviour is different from the AWS
@@ -160,10 +175,35 @@ for more information.
 is provided) Username for the master DB user.
 * `vpc_security_group_ids` - (Optional) List of VPC security groups to
 associate.
+* `s3_import` - (Optional) Restore from a Percona Xtrabackup in S3.  See [Importing Data into an Amazon RDS MySQL DB Instance](http://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/MySQL.Procedural.Importing.html)
 
 ~> **NOTE:** Removing the `replicate_source_db` attribute from an existing RDS
 Replicate database managed by Terraform will promote the database to a fully
 standalone database.
+
+### S3 Import Options
+
+Full details on the core parameters and impacts are in the API Docs: [RestoreDBInstanceFromS3](http://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_RestoreDBInstanceFromS3.html).  Sample 
+
+```hcl
+resource "aws_db_instance" "db" {
+  s3_import {
+    source_engine = "mysql"
+    source_engine_version = "5.6"
+    bucket_name = "mybucket"
+    bucket_prefix = "backups"
+    ingestion_role = "arn:aws:iam::1234567890:role/role-xtrabackup-rds-restore"
+  }
+}
+```
+
+* `bucket_name` - (Required) The bucket name where your backup is stored
+* `bucket_prefix` - (Optional) Can be blank, but is the path to your backup
+* `ingestion_role` - (Required) Role applied to load the data.
+* `source_engine` - (Required, as of Feb 2018 only 'mysql' supported) Source engine for the backup
+* `source_engine_version` - (Required, as of Feb 2018 only '5.6' supported) Version of the source engine used to make the backup
+
+This will not recreate the resource if the S3 object changes in some way.  It's only used to initialize the database
 
 ### Timeouts
 

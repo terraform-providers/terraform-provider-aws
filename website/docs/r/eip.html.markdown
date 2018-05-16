@@ -111,6 +111,13 @@ The following additional attributes are exported:
 * `instance` - Contains the ID of the attached instance.
 * `network_interface` - Contains the ID of the attached network interface.
 
+## Timeouts
+`aws_eip` provides the following [Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+
+- `read` - (Default `15 minutes`) How long to wait querying for information about EIPs.
+- `update` - (Default `5 minutes`) How long to wait for an EIP to be updated.
+- `delete` - (Default `3 minutes`) How long to wait for an EIP to be deleted.
+
 ## Import
 
 EIPs in a VPC can be imported using their Allocation ID, e.g.

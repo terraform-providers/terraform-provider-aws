@@ -17,8 +17,9 @@ func TestAccDataSourceAwsRoute53Zone(t *testing.T) {
 	privateDomain := fmt.Sprintf("test.acc-%d.", rInt)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckRoute53ZoneDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAwsRoute53ZoneConfig(rInt),
@@ -54,15 +55,15 @@ func testAccDataSourceAwsRoute53ZoneCheck(rsName, dsName, zName string) resource
 
 		attr := rs.Primary.Attributes
 		if attr["id"] != hostedZone.Primary.Attributes["id"] {
-			return fmt.Errorf(
-				"id is %s; want %s",
-				attr["id"],
-				hostedZone.Primary.Attributes["id"],
-			)
+			return fmt.Errorf("Route53 Zone id is %s; want %s", attr["id"], hostedZone.Primary.Attributes["id"])
 		}
 
 		if attr["name"] != zName {
 			return fmt.Errorf("Route53 Zone name is %q; want %q", attr["name"], zName)
+		}
+
+		if attr["private_zone"] == "false" && len(attr["name_servers"]) == 0 {
+			return fmt.Errorf("Route53 Zone %s has no name_servers", zName)
 		}
 
 		return nil

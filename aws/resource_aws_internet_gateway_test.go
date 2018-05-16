@@ -2,6 +2,7 @@ package aws
 
 import (
 	"fmt"
+	"log"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -10,6 +11,58 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 )
+
+func init() {
+	resource.AddTestSweepers("aws_internet_gateway", &resource.Sweeper{
+		Name: "aws_internet_gateway",
+		F:    testSweepInternetGateways,
+	})
+}
+
+func testSweepInternetGateways(region string) error {
+	client, err := sharedClientForRegion(region)
+	if err != nil {
+		return fmt.Errorf("error getting client: %s", err)
+	}
+	conn := client.(*AWSClient).ec2conn
+
+	req := &ec2.DescribeInternetGatewaysInput{
+		Filters: []*ec2.Filter{
+			{
+				Name: aws.String("tag-value"),
+				Values: []*string{
+					aws.String("terraform-testacc-*"),
+				},
+			},
+		},
+	}
+	resp, err := conn.DescribeInternetGateways(req)
+	if err != nil {
+		if testSweepSkipSweepError(err) {
+			log.Printf("[WARN] Skipping Internet Gateway sweep for %s: %s", region, err)
+			return nil
+		}
+		return fmt.Errorf("Error describing Internet Gateways: %s", err)
+	}
+
+	if len(resp.InternetGateways) == 0 {
+		log.Print("[DEBUG] No AWS Internet Gateways to sweep")
+		return nil
+	}
+
+	for _, internetGateway := range resp.InternetGateways {
+		_, err := conn.DeleteInternetGateway(&ec2.DeleteInternetGatewayInput{
+			InternetGatewayId: internetGateway.InternetGatewayId,
+		})
+		if err != nil {
+			return fmt.Errorf(
+				"Error deleting Internet Gateway (%s): %s",
+				*internetGateway.InternetGatewayId, err)
+		}
+	}
+
+	return nil
+}
 
 func TestAccAWSInternetGateway_basic(t *testing.T) {
 	var v, v2 ec2.InternetGateway
@@ -102,6 +155,7 @@ func TestAccAWSInternetGateway_tags(t *testing.T) {
 				Config: testAccCheckInternetGatewayConfigTags,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckInternetGatewayExists("aws_internet_gateway.foo", &v),
+					testAccCheckTags(&v.Tags, "Name", "terraform-testacc-internet-gateway-tags"),
 					testAccCheckTags(&v.Tags, "foo", "bar"),
 				),
 			},
@@ -110,6 +164,7 @@ func TestAccAWSInternetGateway_tags(t *testing.T) {
 				Config: testAccCheckInternetGatewayConfigTagsUpdate,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckInternetGatewayExists("aws_internet_gateway.foo", &v),
+					testAccCheckTags(&v.Tags, "Name", "terraform-testacc-internet-gateway-tags"),
 					testAccCheckTags(&v.Tags, "foo", ""),
 					testAccCheckTags(&v.Tags, "bar", "baz"),
 				),
@@ -198,6 +253,9 @@ resource "aws_vpc" "foo" {
 
 resource "aws_internet_gateway" "foo" {
 	vpc_id = "${aws_vpc.foo.id}"
+	tags {
+		Name = "terraform-testacc-internet-gateway"
+	}
 }
 `
 
@@ -218,6 +276,9 @@ resource "aws_vpc" "bar" {
 
 resource "aws_internet_gateway" "foo" {
 	vpc_id = "${aws_vpc.bar.id}"
+	tags {
+		Name = "terraform-testacc-internet-gateway-change-vpc-other"
+	}
 }
 `
 
@@ -232,6 +293,7 @@ resource "aws_vpc" "foo" {
 resource "aws_internet_gateway" "foo" {
 	vpc_id = "${aws_vpc.foo.id}"
 	tags {
+		Name = "terraform-testacc-internet-gateway-tags"
 		foo = "bar"
 	}
 }
@@ -248,6 +310,7 @@ resource "aws_vpc" "foo" {
 resource "aws_internet_gateway" "foo" {
 	vpc_id = "${aws_vpc.foo.id}"
 	tags {
+		Name = "terraform-testacc-internet-gateway-tags"
 		bar = "baz"
 	}
 }

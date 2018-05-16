@@ -30,6 +30,12 @@ func testSweepDAXClusters(region string) error {
 
 	resp, err := conn.DescribeClusters(&dax.DescribeClustersInput{})
 	if err != nil {
+		// GovCloud (with no DAX support) has an endpoint that responds with:
+		// InvalidParameterValueException: Access Denied to API Version: DAX_V3
+		if testSweepSkipSweepError(err) || isAWSErr(err, "InvalidParameterValueException", "Access Denied to API Version: DAX_V3") {
+			log.Printf("[WARN] Skipping DAX Cluster sweep for %s: %s", region, err)
+			return nil
+		}
 		return fmt.Errorf("Error retrieving DAX clusters: %s", err)
 	}
 

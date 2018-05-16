@@ -311,6 +311,9 @@ resource "aws_subnet" "foo" {
     vpc_id = "${aws_vpc.foo.id}"
     cidr_block = "172.16.10.0/24"
     availability_zone = "us-west-2a"
+    tags {
+        Name = "tf-acc-network-interface"
+    }
 }
 
 resource "aws_security_group" "foo" {
@@ -350,6 +353,9 @@ resource "aws_subnet" "foo" {
     vpc_id = "${aws_vpc.foo.id}"
     cidr_block = "172.16.10.0/24"
     availability_zone = "us-west-2a"
+    tags {
+        Name = "tf-acc-network-interface-update-desc"
+    }
 }
 
 resource "aws_security_group" "foo" {
@@ -389,6 +395,9 @@ resource "aws_subnet" "foo" {
     vpc_id = "${aws_vpc.foo.id}"
     cidr_block = "172.16.10.0/24"
     availability_zone = "us-west-2a"
+    tags {
+        Name = "tf-acc-network-interface-w-source-dest-check"
+    }
 }
 
 resource "aws_network_interface" "bar" {
@@ -411,6 +420,9 @@ resource "aws_subnet" "foo" {
     vpc_id = "${aws_vpc.foo.id}"
     cidr_block = "172.16.10.0/24"
     availability_zone = "us-west-2a"
+    tags {
+        Name = "tf-acc-network-interface-w-no-private-ips"
+    }
 }
 
 resource "aws_network_interface" "bar" {
@@ -433,7 +445,7 @@ resource "aws_subnet" "foo" {
     cidr_block = "172.16.10.0/24"
     availability_zone = "us-west-2a"
         tags {
-            Name = "tf-foo-eni-test"
+            Name = "tf-acc-network-interface-w-attachment-foo"
         }
 }
 
@@ -442,7 +454,7 @@ resource "aws_subnet" "bar" {
     cidr_block = "172.16.11.0/24"
     availability_zone = "us-west-2a"
         tags {
-            Name = "tf-bar-eni-test"
+            Name = "tf-acc-network-interface-w-attachment-bar"
         }
 }
 
@@ -491,7 +503,7 @@ resource "aws_subnet" "foo" {
     cidr_block = "172.16.10.0/24"
     availability_zone = "us-west-2a"
     tags {
-        Name = "tf-eni-test"
+        Name = "tf-acc-network-interface-external-attachment-foo"
     }
 }
 
@@ -500,7 +512,7 @@ resource "aws_subnet" "bar" {
     cidr_block = "172.16.11.0/24"
     availability_zone = "us-west-2a"
     tags {
-        Name = "tf-eni-test"
+        Name = "tf-acc-network-interface-external-attachment-bar"
     }
 }
 

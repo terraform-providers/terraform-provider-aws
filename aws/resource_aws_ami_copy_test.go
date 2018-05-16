@@ -170,6 +170,9 @@ resource "aws_vpc" "foo" {
 resource "aws_subnet" "foo" {
 	cidr_block = "10.1.1.0/24"
 	vpc_id = "${aws_vpc.foo.id}"
+	tags {
+		Name = "tf-acc-ami-copy"
+	}
 }
 
 resource "aws_instance" "test" {

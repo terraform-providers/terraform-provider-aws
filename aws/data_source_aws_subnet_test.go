@@ -113,7 +113,7 @@ func testAccDataSourceAwsSubnetCheck(name string, rInt int) resource.TestCheckFu
 		if attr["availability_zone"] != "us-west-2a" {
 			return fmt.Errorf("bad availability_zone %s", attr["availability_zone"])
 		}
-		if attr["tags.Name"] != fmt.Sprintf("terraform-testacc-subnet-data-source-%d", rInt) {
+		if attr["tags.Name"] != "tf-acc-subnet-data-source" {
 			return fmt.Errorf("bad Name tag %s", attr["tags.Name"])
 		}
 
@@ -123,54 +123,50 @@ func testAccDataSourceAwsSubnetCheck(name string, rInt int) resource.TestCheckFu
 
 func testAccDataSourceAwsSubnetConfig(rInt int) string {
 	return fmt.Sprintf(`
-		provider "aws" {
-		  region = "us-west-2"
-		}
+resource "aws_vpc" "test" {
+  cidr_block = "172.%d.0.0/16"
 
-		resource "aws_vpc" "test" {
-		  cidr_block = "172.%d.0.0/16"
+  tags {
+    Name = "terraform-testacc-subnet-data-source"
+  }
+}
 
-		  tags {
-		    Name = "terraform-testacc-subnet-data-source"
-		  }
-		}
+resource "aws_subnet" "test" {
+  vpc_id            = "${aws_vpc.test.id}"
+  cidr_block        = "172.%d.123.0/24"
+  availability_zone = "us-west-2a"
 
-		resource "aws_subnet" "test" {
-		  vpc_id            = "${aws_vpc.test.id}"
-		  cidr_block        = "172.%d.123.0/24"
-		  availability_zone = "us-west-2a"
-
-		  tags {
-		    Name = "terraform-testacc-subnet-data-source-%d"
-		  }
-		}
+  tags {
+    Name = "tf-acc-subnet-data-source"
+  }
+}
 
 
-		data "aws_subnet" "by_id" {
-		  id = "${aws_subnet.test.id}"
-		}
+data "aws_subnet" "by_id" {
+  id = "${aws_subnet.test.id}"
+}
 
-		data "aws_subnet" "by_cidr" {
-		  cidr_block = "${aws_subnet.test.cidr_block}"
-		}
+data "aws_subnet" "by_cidr" {
+  cidr_block = "${aws_subnet.test.cidr_block}"
+}
 
-		data "aws_subnet" "by_tag" {
-		  tags {
-		    Name = "${aws_subnet.test.tags["Name"]}"
-		  }
-		}
+data "aws_subnet" "by_tag" {
+  tags {
+    Name = "${aws_subnet.test.tags["Name"]}"
+  }
+}
 
-		data "aws_subnet" "by_vpc" {
-		  vpc_id = "${aws_subnet.test.vpc_id}"
-		}
+data "aws_subnet" "by_vpc" {
+  vpc_id = "${aws_subnet.test.vpc_id}"
+}
 
-		data "aws_subnet" "by_filter" {
-		  filter {
-		    name = "vpc-id"
-		    values = ["${aws_subnet.test.vpc_id}"]
-		  }
-		}
-		`, rInt, rInt, rInt)
+data "aws_subnet" "by_filter" {
+  filter {
+    name = "vpc-id"
+    values = ["${aws_subnet.test.vpc_id}"]
+  }
+}
+`, rInt, rInt)
 }
 
 func testAccDataSourceAwsSubnetConfigIpv6(rInt int) string {
@@ -191,10 +187,10 @@ resource "aws_subnet" "test" {
   ipv6_cidr_block = "${cidrsubnet(aws_vpc.test.ipv6_cidr_block, 8, 1)}"
 
   tags {
-    Name = "terraform-testacc-subnet-data-sourceipv6-%d"
+    Name = "tf-acc-subnet-data-source-ipv6"
   }
 }
-`, rInt, rInt, rInt)
+`, rInt, rInt)
 }
 
 func testAccDataSourceAwsSubnetConfigIpv6WithDataSourceFilter(rInt int) string {
@@ -215,7 +211,7 @@ resource "aws_subnet" "test" {
   ipv6_cidr_block = "${cidrsubnet(aws_vpc.test.ipv6_cidr_block, 8, 1)}"
 
   tags {
-    Name = "terraform-testacc-subnet-data-sourceipv6-%d"
+    Name = "tf-acc-subnet-data-source-ipv6-with-ds-filter"
   }
 }
 
@@ -225,7 +221,7 @@ data "aws_subnet" "by_ipv6_cidr" {
     values = ["${aws_subnet.test.ipv6_cidr_block}"]
   }
 }
-`, rInt, rInt, rInt)
+`, rInt, rInt)
 }
 
 func testAccDataSourceAwsSubnetConfigIpv6WithDataSourceIpv6CidrBlock(rInt int) string {
@@ -246,12 +242,12 @@ resource "aws_subnet" "test" {
   ipv6_cidr_block = "${cidrsubnet(aws_vpc.test.ipv6_cidr_block, 8, 1)}"
 
   tags {
-    Name = "terraform-testacc-subnet-data-sourceipv6-%d"
+    Name = "tf-acc-subnet-data-source-ipv6-cidr-block"
   }
 }
 
 data "aws_subnet" "by_ipv6_cidr" {
   ipv6_cidr_block = "${aws_subnet.test.ipv6_cidr_block}"
 }
-`, rInt, rInt, rInt)
+`, rInt, rInt)
 }

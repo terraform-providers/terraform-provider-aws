@@ -81,6 +81,10 @@ func testSweepMqBrokers(region string) error {
 		MaxResults: aws.Int64(100),
 	})
 	if err != nil {
+		if testSweepSkipSweepError(err) {
+			log.Printf("[WARN] Skipping MQ Broker sweep for %s: %s", region, err)
+			return nil
+		}
 		return fmt.Errorf("Error listing MQ brokers: %s", err)
 	}
 
@@ -678,7 +682,7 @@ resource "aws_subnet" "private" {
   availability_zone = "${data.aws_availability_zones.available.names[count.index]}"
   vpc_id = "${aws_vpc.main.id}"
   tags {
-    Name = "TfAccTest-MqBroker"
+    Name = "tf-acc-mq-broker-all-fields-custom-vpc-${count.index}"
   }
 }
 

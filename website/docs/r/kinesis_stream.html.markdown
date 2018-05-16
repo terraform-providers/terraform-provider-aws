@@ -38,7 +38,7 @@ The following arguments are supported:
 
 * `name` - (Required) A name to identify the stream. This is unique to the
 AWS account and region the Stream is created in.
-* `shard_count` – (Required) The number of shards that the stream will use.
+* `shard_count` – (Required) The number of shards that the stream will use.
 Amazon has guidlines for specifying the Stream size that should be referenced
 when creating a Kinesis stream. See [Amazon Kinesis Streams][2] for more.
 * `retention_period` - (Optional) Length of time data records are accessible after they are added to the stream. The maximum value of a stream's retention period is 168 hours. Minimum value is 24. Default is 24.

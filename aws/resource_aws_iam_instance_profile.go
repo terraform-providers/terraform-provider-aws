@@ -295,7 +295,7 @@ func resourceAwsIamInstanceProfileDelete(d *schema.ResourceData, meta interface{
 	if err != nil {
 		return fmt.Errorf("Error deleting IAM instance profile %s: %s", d.Id(), err)
 	}
-	d.SetId("")
+
 	return nil
 }
 

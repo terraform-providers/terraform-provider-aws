@@ -23,20 +23,22 @@ resource "aws_spot_fleet_request" "cheap_compute" {
   valid_until         = "2019-11-04T20:44:20Z"
 
   launch_specification {
-    instance_type     = "m4.10xlarge"
-    ami               = "ami-1234"
-    spot_price        = "2.793"
-    placement_tenancy = "dedicated"
+    instance_type             = "m4.10xlarge"
+    ami                       = "ami-1234"
+    spot_price                = "2.793"
+    placement_tenancy         = "dedicated"
+    iam_instance_profile_arn  = "${aws_iam_instance_profile.example.arn}"
   }
 
   launch_specification {
-    instance_type     = "m4.4xlarge"
-    ami               = "ami-5678"
-    key_name          = "my-key"
-    spot_price        = "1.117"
-    availability_zone = "us-west-1a"
-    subnet_id         = "subnet-1234"
-    weighted_capacity = 35
+    instance_type             = "m4.4xlarge"
+    ami                       = "ami-5678"
+    key_name                  = "my-key"
+    spot_price                = "1.117"
+    iam_instance_profile_arn  = "${aws_iam_instance_profile.example.arn}"
+    availability_zone         = "us-west-1a"
+    subnet_id                 = "subnet-1234"
+    weighted_capacity         = 35
 
     root_block_device {
       volume_size = "300"
@@ -95,9 +97,10 @@ across different markets and instance types.
     **Note:** This takes in similar but not
     identical inputs as [`aws_instance`](instance.html).  There are limitations on
     what you can specify. See the list of officially supported inputs in the
-    [reference documentation](http://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_SpotFleetLaunchSpecification.html). Any normal [`aws_instance`](instance.html) parameter that corresponds to those inputs may be used.
+    [reference documentation](http://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_SpotFleetLaunchSpecification.html). Any normal [`aws_instance`](instance.html) parameter that corresponds to those inputs may be used and it have
+    a additional parameter `iam_instance_profile_arn` takes `aws_iam_instance_profile` attribute `arn` as input.
 
-* `spot_price` - (Required) The bid price per unit hour.
+* `spot_price` - (Optional; Default: On-demand price) The maximum bid price per unit hour.
 * `wait_for_fulfillment` - (Optional; Default: false) If set, Terraform will
   wait for the Spot Request to be fulfilled, and will throw an error if the
   timeout of 10m is reached.
@@ -115,15 +118,18 @@ lowestPrice.
 * `instance_interruption_behavior` - (Optional) Indicates whether a Spot
   instance stops or terminates when it is interrupted. Default is
   `terminate`.
-* `valid_until` - The end date and time of the request, in UTC ISO8601 format
-  (for example, YYYY-MM-DDTHH:MM:SSZ). At this point, no new Spot instance
-requests are placed or enabled to fulfill the request. Defaults to 24 hours.
+* `valid_until` - (Optional) The end date and time of the request, in UTC [RFC3339](https://tools.ietf.org/html/rfc3339#section-5.8) format(for example, YYYY-MM-DDTHH:MM:SSZ). At this point, no new Spot instance requests are placed or enabled to fulfill the request. Defaults to 24 hours.
+* `valid_from` - (Optional) The start date and time of the request, in UTC [RFC3339](https://tools.ietf.org/html/rfc3339#section-5.8) format(for example, YYYY-MM-DDTHH:MM:SSZ). The default is to start fulfilling the request immediately.
+* `load_balancers` (Optional) A list of elastic load balancer names to add to the Spot fleet.
+* `target_group_arns` (Optional) A list of `aws_alb_target_group` ARNs, for use with
+Application Load Balancing.
 
 ### Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
 * `create` - (Defaults to 10 mins) Used when requesting the spot instance (only valid if `wait_for_fulfillment = true`)
+* `delete` - (Defaults to 5 mins) Used when destroying the spot instance
 
 ## Attributes Reference
 

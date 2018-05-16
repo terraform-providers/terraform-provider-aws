@@ -107,6 +107,7 @@ resource "aws_cognito_user_pool" "pool" {
     pre_authentication             = "${aws_lambda_function.main.arn}"
     pre_sign_up                    = "${aws_lambda_function.main.arn}"
     pre_token_generation           = "${aws_lambda_function.main.arn}"
+    user_migration                 = "${aws_lambda_function.main.arn}"
     verify_auth_challenge_response = "${aws_lambda_function.main.arn}"
   }
 

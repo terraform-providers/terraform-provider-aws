@@ -54,6 +54,120 @@ resource "aws_kinesis_stream" "test_stream" {
 }
 ```
 
+## Example SSM Document Usage
+
+```
+data "aws_iam_policy_document" "ssm_lifecycle_trust" {
+  statement {
+    actions = ["sts:AssumeRole"]
+
+    principals {
+      type        = "Service"
+      identifiers = ["events.amazonaws.com"]
+    }
+  }
+}
+
+data "aws_iam_policy_document" "ssm_lifecycle" {
+  statement {
+    effect    = "Allow"
+    actions   = ["ssm:SendCommand"]
+    resources = ["arn:aws:ec2:eu-west-1:1234567890:instance/*"]
+
+    condition {
+      test     = "StringEquals"
+      variable = "ec2:ResourceTag/Terminate"
+      values   = ["*"]
+    }
+  }
+
+  statement {
+    effect    = "Allow"
+    actions   = ["ssm:SendCommand"]
+    resources = ["${aws_ssm_document.stop_instance.arn}"]
+  }
+}
+
+resource "aws_iam_role" "ssm_lifecycle" {
+  name               = "SSMLifecycle"
+  assume_role_policy = "${data.aws_iam_policy_document.ssm_lifecycle_trust.json}"
+}
+
+resource "aws_iam_policy" "ssm_lifecycle" {
+  name   = "SSMLifecycle"
+  policy = "${data.aws_iam_policy_document.ssm_lifecycle.json}"
+}
+
+resource "aws_ssm_document" "stop_instance" {
+  name          = "stop_instance"
+  document_type = "Command"
+
+  content = <<DOC
+  {
+    "schemaVersion": "1.2",
+    "description": "Stop an instance",
+    "parameters": {
+
+    },
+    "runtimeConfig": {
+      "aws:runShellScript": {
+        "properties": [
+          {
+            "id": "0.aws:runShellScript",
+            "runCommand": ["halt"]
+          }
+        ]
+      }
+    }
+  }
+DOC
+}
+
+resource "aws_cloudwatch_event_rule" "stop_instances" {
+  name                = "StopInstance"
+  description         = "Stop instances nightly"
+  schedule_expression = "cron(0 0 * * ? *)"
+}
+
+resource "aws_cloudwatch_event_target" "stop_instances" {
+  target_id = "StopInstance"
+  arn       = "${aws_ssm_document.stop_instance.arn}"
+  rule      = "${aws_cloudwatch_event_rule.stop_instances.name}"
+  role_arn  = "${aws_iam_role.ssm_lifecycle.arn}"
+
+  run_command_targets {
+    key    = "tag:Terminate"
+    values = ["midnight"]
+  }
+}
+
+```
+
+## Example RunCommand Usage
+
+```
+
+resource "aws_cloudwatch_event_rule" "stop_instances" {
+  name                = "StopInstance"
+  description         = "Stop instances nightly"
+  schedule_expression = "cron(0 0 * * ? *)"
+}
+
+resource "aws_cloudwatch_event_target" "stop_instances" {
+  target_id = "StopInstance"
+  arn       = "arn:aws:ssm:${var.aws_region}::document/AWS-RunShellScript"
+  input     = "{\"commands\":[\"halt\"]}"
+  rule      = "${aws_cloudwatch_event_rule.stop_instances.name}"
+  role_arn  = "${aws_iam_role.ssm_lifecycle.arn}"
+
+  run_command_targets {
+    key    = "tag:Terminate"
+    values = ["midnight"]
+  }
+}
+
+```
+
 ## Argument Reference
 
 -> **Note:** `input` and `input_path` are mutually exclusive options.
@@ -75,6 +189,9 @@ The following arguments are supported:
 * `role_arn` - (Optional) The Amazon Resource Name (ARN) of the IAM role to be used for this target when the rule is triggered. Required if `ecs_target` is used.
 * `run_command_targets` - (Optional) Parameters used when you are using the rule to invoke Amazon EC2 Run Command. Documented below. A maximum of 5 are allowed.
 * `ecs_target` - (Optional) Parameters used when you are using the rule to invoke Amazon ECS Task. Documented below. A maximum of 1 are allowed.
+* `batch_target` - (Optional) Parameters used when you are using the rule to invoke an Amazon Batch Job. Documented below. A maximum of 1 are allowed.
+* `kinesis_target` - (Optional) Parameters used when you are using the rule to invoke an Amazon Kinesis Stream. Documented below. A maximum of 1 are allowed.
+* `sqs_target` - (Optional) Parameters used when you are using the rule to invoke an Amazon SQS Queue. Documented below. A maximum of 1 are allowed.
 * `input_transformer` - (Optional) Parameters used when you are providing a custom input to a target based on certain event data.
 
 `run_command_targets` support the following:
@@ -86,6 +203,21 @@ The following arguments are supported:
 
 * `task_count` - (Optional) The number of tasks to create based on the TaskDefinition. The default is 1.
 * `task_definition_arn` - (Required) The ARN of the task definition to use if the event target is an Amazon ECS cluster.
+
+`batch_target` support the following:
+
+* `job_definition` - (Required) The ARN or name of the job definition to use if the event target is an AWS Batch job. This job definition must already exist.
+* `job_name` - (Required) The name to use for this execution of the job, if the target is an AWS Batch job.
+* `array_size` - (Optional) The size of the array, if this is an array batch job. Valid values are integers between 2 and 10,000.
+* `job_attempts` - (Optional) The number of times to attempt to retry, if the job fails. Valid values are 1 to 10.
+
+`kinesis_target` support the following:
+
+* `partition_key_path` - (Optional) The JSON path to be extracted from the event and used as the partition key.
+
+`sqs_target` support the following:
+
+* `message_group_id` - (Optional) The FIFO message group ID to use as the target.
 
 `input_transformer` support the following:
 

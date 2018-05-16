@@ -8,29 +8,53 @@ description: |-
 
 # aws_elasticache_cluster
 
-Provides an ElastiCache Cluster resource.
+Provides an ElastiCache Cluster resource, which manages a Memcached cluster or Redis instance.
+For working with Redis (Cluster Mode Enabled) replication groups, see the
+[`aws_elasticache_replication_group` resource](/docs/providers/aws/r/elasticache_replication_group.html).
 
-Changes to a Cache Cluster can occur when you manually change a
-parameter, such as `node_type`, and are reflected in the next maintenance
-window. Because of this, Terraform may report a difference in its planning
-phase because a modification has not yet taken place. You can use the
-`apply_immediately` flag to instruct the service to apply the change immediately
-(see documentation below).
-
-~> **Note:** using `apply_immediately` can result in a
-brief downtime as the server reboots. See the AWS Docs on
-[Modifying an ElastiCache Cache Cluster][2] for more information.
+~> **Note:** When you change an attribute, such as `node_type`, by default
+it is applied in the next maintenance window. Because of this, Terraform may report
+a difference in its planning phase because the actual modification has not yet taken
+place. You can use the `apply_immediately` flag to instruct the service to apply the
+change immediately. Using `apply_immediately` can result in a brief downtime as the server reboots.
+See the AWS Docs on [Modifying an ElastiCache Cache Cluster][2] for more information.
 
 ## Example Usage
 
+### Memcached Cluster
+
 ```hcl
-resource "aws_elasticache_cluster" "bar" {
+resource "aws_elasticache_cluster" "example" {
   cluster_id           = "cluster-example"
   engine               = "memcached"
-  node_type            = "cache.t2.micro"
-  port                 = 11211
-  num_cache_nodes      = 1
+  node_type            = "cache.m3.medium"
+  num_cache_nodes      = 2
   parameter_group_name = "default.memcached1.4"
+  port                 = 11211
+}
+```
+
+### Redis Instance
+
+```hcl
+resource "aws_elasticache_cluster" "example" {
+  cluster_id           = "cluster-example"
+  engine               = "redis"
+  node_type            = "cache.m3.medium"
+  num_cache_nodes      = 1
+  parameter_group_name = "default.redis3.2"
+  port                 = 6379
+}
+```
+
+### Redis Cluster Mode Disabled Read Replica Instance
+
+These inherit their settings from the replication group.
+
+```hcl
+resource "aws_elasticache_cluster" "replica" {
+  cluster_id           = "cluster-example"
+  replication_group_id = "${aws_elasticache_replication_group.example.id}"
 }
 ```
 
@@ -41,31 +65,32 @@ The following arguments are supported:
 * `cluster_id` – (Required) Group identifier. ElastiCache converts
   this name to lowercase
 
-* `engine` – (Required) Name of the cache engine to be used for this cache cluster.
+* `replication_group_id` - (Optional) The ID of the replication group to which this cluster should belong. If this parameter is specified, the cluster is added to the specified replication group as a read replica; otherwise, the cluster is a standalone primary that is not part of any replication group.
+
+* `engine` – (Required unless `replication_group_id` is provided) Name of the cache engine to be used for this cache cluster.
  Valid values for this parameter are `memcached` or `redis`
 
 * `engine_version` – (Optional) Version number of the cache engine to be used.
 See [Selecting a Cache Engine and Version](https://docs.aws.amazon.com/AmazonElastiCache/latest/UserGuide/SelectEngine.html)
 in the AWS Documentation center for supported versions
 
-* `maintenance_window` – (Optional) Specifies the weekly time range for when maintenance
+* `maintenance_window` – (Optional) Specifies the weekly time range for when maintenance
 on the cache cluster is performed. The format is `ddd:hh24:mi-ddd:hh24:mi` (24H Clock UTC).
 The minimum maintenance window is a 60 minute period. Example: `sun:05:00-sun:09:00`
 
-* `node_type` – (Required) The compute and memory capacity of the nodes. See
+* `node_type` – (Required unless `replication_group_id` is provided) The compute and memory capacity of the nodes. See
 [Available Cache Node Types](https://aws.amazon.com/elasticache/details#Available_Cache_Node_Types) for
 supported node types
 
-* `num_cache_nodes` – (Required) The initial number of cache nodes that the
+* `num_cache_nodes` – (Required unless `replication_group_id` is provided) The initial number of cache nodes that the
 cache cluster will have. For Redis, this value must be 1. For Memcache, this
 value must be between 1 and 20. If this number is reduced on subsequent runs,
 the highest numbered nodes will be removed.
 
-* `parameter_group_name` – (Required) Name of the parameter group to associate
+* `parameter_group_name` – (Required unless `replication_group_id` is provided) Name of the parameter group to associate
 with this cache cluster
 
-* `port` – (Required) The port number on which each of the cache nodes will
-accept connections. For Memcache the default is 11211, and for Redis the default port is 6379.
+* `port` – (Optional) The port number on which each of the cache nodes will accept connections. For Memcache the default is 11211, and for Redis the default port is 6379. Cannot be provided with `replication_group_id`.
 
 * `subnet_group_name` – (Optional, VPC only) Name of the subnet group to be used
 for the cache cluster.
@@ -81,7 +106,7 @@ names to associate with this cache cluster
      `false`. See [Amazon ElastiCache Documentation for more information.][1]
      (Available since v0.6.0)
 
-* `snapshot_arns` – (Optional) A single-element string list containing an
+* `snapshot_arns` – (Optional) A single-element string list containing an
 Amazon Resource Name (ARN) of a Redis RDB snapshot file stored in Amazon S3.
 Example: `arn:aws:s3:::my_bucket/snapshot1.rdb`
 
@@ -96,7 +121,7 @@ SnapshotRetentionLimit to 5, then a snapshot that was taken today will be retain
 before being deleted. If the value of SnapshotRetentionLimit is set to zero (0), backups are turned off.
 Please note that setting a `snapshot_retention_limit` is not supported on cache.t1.micro or cache.t2.* cache nodes
 
-* `notification_topic_arn` – (Optional) An Amazon Resource Name (ARN) of an
+* `notification_topic_arn` – (Optional) An Amazon Resource Name (ARN) of an
 SNS topic to send ElastiCache notifications to. Example:
 `arn:aws:sns:us-east-1:012345678999:my_sns_topic`
 
@@ -108,11 +133,9 @@ SNS topic to send ElastiCache notifications to. Example:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource
 
-~> **NOTE:** Snapshotting functionality is not compatible with t2 instance types.
-
 ## Attributes Reference
 
-The following attributes are exported:
+The following additional attributes are exported:
 
 * `cache_nodes` - List of node objects including `id`, `address`, `port` and `availability_zone`.
    Referenceable e.g. as `${aws_elasticache_cluster.bar.cache_nodes.0.address}`

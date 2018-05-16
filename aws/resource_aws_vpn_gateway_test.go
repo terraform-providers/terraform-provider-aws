@@ -40,6 +40,10 @@ func testSweepVPNGateways(region string) error {
 	}
 	resp, err := conn.DescribeVpnGateways(req)
 	if err != nil {
+		if testSweepSkipSweepError(err) {
+			log.Printf("[WARN] Skipping EC2 VPN Gateway sweep for %s: %s", region, err)
+			return nil
+		}
 		return fmt.Errorf("Error describing VPN Gateways: %s", err)
 	}
 

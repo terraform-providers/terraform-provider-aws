@@ -78,7 +78,7 @@ resource "aws_rds_cluster" "postgresql" {
 ## Argument Reference
 
 For more detailed documentation about each argument, refer to
-the [AWS official documentation](https://docs.aws.amazon.com/AmazonRDS/latest/CommandLineReference/CLIReference-cmd-ModifyDBInstance.html).
+the [AWS official documentation](https://docs.aws.amazon.com/cli/latest/reference/rds/create-db-cluster.html).
 
 The following arguments are supported:
 
@@ -94,16 +94,17 @@ The following arguments are supported:
 * `skip_final_snapshot` - (Optional) Determines whether a final DB snapshot is created before the DB cluster is deleted. If true is specified, no DB snapshot is created. If false is specified, a DB snapshot is created before the DB cluster is deleted, using the value from `final_snapshot_identifier`. Default is `false`.
 * `availability_zones` - (Optional) A list of EC2 Availability Zones that
   instances in the DB cluster can be created in
-* `backup_retention_period` - (Optional) The days to retain backups for. Default
-1
+* `backtrack_window` - (Optional) The target backtrack window, in seconds. Only available for `aurora` or `aurora-mysql` engines. To disable backtracking, set this value to `0`. Defaults to `0`. Must be between `0` and `259200` (72 hours)
+* `backup_retention_period` - (Optional) The days to retain backups for. Default `1`
 * `preferred_backup_window` - (Optional) The daily time range during which automated backups are created if automated backups are enabled using the BackupRetentionPeriod parameter.Time in UTC
 Default: A 30-minute window selected at random from an 8-hour block of time per region. e.g. 04:00-09:00
 * `preferred_maintenance_window` - (Optional) The weekly time range during which system maintenance can occur, in (UTC) e.g. wed:04:00-wed:04:30
 * `port` - (Optional) The port on which the DB accepts connections
 * `vpc_security_group_ids` - (Optional) List of VPC security groups to associate
   with the Cluster
-* `snapshot_identifier` - (Optional) Specifies whether or not to create this cluster from a snapshot. This correlates to the snapshot ID you'd find in the RDS console, e.g: rds:production-2015-06-26-06-05.
+* `snapshot_identifier` - (Optional) Specifies whether or not to create this cluster from a snapshot. You can use either the name or ARN when specifying a DB cluster snapshot, or the ARN when specifying a DB snapshot.
 * `storage_encrypted` - (Optional) Specifies whether the DB cluster is encrypted. The default is `false` if not specified.
+* `replication_source_identifier` - (Optional) ARN of a source DB cluster or DB instance if this DB cluster is to be created as a Read Replica.
 * `apply_immediately` - (Optional) Specifies whether any cluster modifications
      are applied immediately, or during the next maintenance window. Default is
      `false`. See [Amazon RDS Documentation for more information.](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Overview.DBInstance.Modifying.html)
@@ -112,9 +113,35 @@ Default: A 30-minute window selected at random from an 8-hour block of time per 
 * `kms_key_id` - (Optional) The ARN for the KMS encryption key. When specifying `kms_key_id`, `storage_encrypted` needs to be set to true.
 * `iam_roles` - (Optional) A List of ARNs for the IAM roles to associate to the RDS Cluster.
 * `iam_database_authentication_enabled` - (Optional) Specifies whether or mappings of AWS Identity and Access Management (IAM) accounts to database accounts is enabled.
-* `engine` - (Optional) The name of the database engine to be used for this DB cluster. Defaults to `aurora`.
+* `engine` - (Optional) The name of the database engine to be used for this DB cluster. Defaults to `aurora`. Valid Values: aurora,aurora-mysql,aurora-postgresql
 * `engine_version` - (Optional) The database engine version.
+* `source_region` - (Optional) The source region for an encrypted replica DB cluster.
 
+### S3 Import Options
+
+Full details on the core parameters and impacts are in the API Docs: [RestoreDBClusterFromS3](https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_RestoreDBClusterFromS3.html).  Requires that the S3 bucket be in the same region as the RDS cluster you're trying to create.  Sample 
+
+```hcl
+resource "aws_rds_cluster" "db" {
+  engine = "aurora"
+
+  s3_import {
+    source_engine = "mysql"
+    source_engine_version = "5.6"
+    bucket_name = "mybucket"
+    bucket_prefix = "backups"
+    ingestion_role = "arn:aws:iam::1234567890:role/role-xtrabackup-rds-restore"
+  }
+}
+```
+
+* `bucket_name` - (Required) The bucket name where your backup is stored
+* `bucket_prefix` - (Optional) Can be blank, but is the path to your backup
+* `ingestion_role` - (Required) Role applied to load the data.
+* `source_engine` - (Required) Source engine for the backup
+* `source_engine_version` - (Required) Version of the source engine used to make the backup
+
+This will not recreate the resource if the S3 object changes in some way.  It's only used to initialize the database.  This only works currently with the aurora engine.  See AWS for currently supported engines and options.  [Aurora S3 Migration Docs](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/AuroraMySQL.Migrating.ExtMySQL.html#AuroraMySQL.Migrating.ExtMySQL.S3)
 
 ## Attributes Reference
 
@@ -123,11 +150,11 @@ The following attributes are exported:
 * `id` - The RDS Cluster Identifier
 * `cluster_identifier` - The RDS Cluster Identifier
 * `cluster_resource_id` - The RDS Cluster Resource ID
-* `cluster_members` – List of RDS Instances that are a part of this cluster
+* `cluster_members` – List of RDS Instances that are a part of this cluster
 * `allocated_storage` - The amount of allocated storage
 * `availability_zones` - The availability zone of the instance
 * `backup_retention_period` - The backup retention period
-* `preferred_backup_window` - The backup window
+* `preferred_backup_window` - The daily time range during which the backups happen
 * `preferred_maintenance_window` - The maintenance window
 * `endpoint` - The DNS address of the RDS instance
 * `reader_endpoint` - A read-only endpoint for the Aurora cluster, automatically
@@ -140,8 +167,7 @@ load-balanced across replicas
 * `status` - The RDS instance status
 * `master_username` - The master username for the database
 * `storage_encrypted` - Specifies whether the DB cluster is encrypted
-* `preferred_backup_window` - The daily time range during which the backups happen
-* `replication_source_identifier` - ARN  of the source DB cluster if this DB cluster is created as a Read Replica.
+* `replication_source_identifier` - ARN of the source DB cluster or DB instance if this DB cluster is created as a Read Replica.
 * `hosted_zone_id` - The Route53 Hosted Zone ID of the endpoint
 
 [1]: https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Overview.Replication.html

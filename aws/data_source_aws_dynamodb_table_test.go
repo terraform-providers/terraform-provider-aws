@@ -28,6 +28,7 @@ func TestAccDataSourceAwsDynamoDbTable_basic(t *testing.T) {
 					resource.TestCheckResourceAttr("data.aws_dynamodb_table.dynamodb_table_test", "tags.%", "2"),
 					resource.TestCheckResourceAttr("data.aws_dynamodb_table.dynamodb_table_test", "tags.Name", "dynamodb-table-1"),
 					resource.TestCheckResourceAttr("data.aws_dynamodb_table.dynamodb_table_test", "tags.Environment", "test"),
+					resource.TestCheckResourceAttr("data.aws_dynamodb_table.dynamodb_table_test", "server_side_encryption.#", "0"),
 				),
 			},
 		},
@@ -41,22 +42,22 @@ func testAccDataSourceAwsDynamoDbTableConfigBasic(tableName string) string {
   write_capacity = 20
   hash_key       = "UserId"
   range_key      = "GameTitle"
-	
+
   attribute {
     name = "UserId"
     type = "S"
   }
-	
+
   attribute {
     name = "GameTitle"
     type = "S"
   }
-	
+
   attribute {
     name = "TopScore"
     type = "N"
   }
-	
+
   global_secondary_index {
     name               = "GameTitleIndex"
     hash_key           = "GameTitle"
@@ -66,7 +67,7 @@ func testAccDataSourceAwsDynamoDbTableConfigBasic(tableName string) string {
     projection_type    = "INCLUDE"
     non_key_attributes = ["UserId"]
   }
-	
+
   tags {
     Name        = "dynamodb-table-1"
     Environment = "test"

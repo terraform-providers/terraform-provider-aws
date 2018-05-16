@@ -122,7 +122,7 @@ resource "aws_subnet" "test_subnet" {
     cidr_block = "10.0.1.0/24"
 
     tags {
-        Name = "tf-flow-test"
+        Name = "tf-acc-flow-log-basic"
     }
 }
 
@@ -181,7 +181,7 @@ resource "aws_subnet" "test_subnet" {
     cidr_block = "10.0.1.0/24"
 
     tags {
-        Name = "tf-flow-test"
+        Name = "tf-acc-flow-log-subnet"
     }
 }
 

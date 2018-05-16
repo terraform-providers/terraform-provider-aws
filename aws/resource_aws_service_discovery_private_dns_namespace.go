@@ -127,6 +127,5 @@ func resourceAwsServiceDiscoveryPrivateDnsNamespaceDelete(d *schema.ResourceData
 		return err
 	}
 
-	d.SetId("")
 	return nil
 }

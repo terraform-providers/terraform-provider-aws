@@ -34,6 +34,7 @@ resource "aws_elb" "elb" {
 ## Argument Reference
 
 * `name_prefix` - prefix of cert to filter by
+* `path_prefix` - prefix of path to filter by
 * `name` - exact name of the cert to lookup
 * `latest` - sort results by expiration date. returns the certificate with expiration date in furthest in the future.
 
@@ -50,5 +51,3 @@ resource "aws_elb" "elb" {
 
 The terraform import function will read in certificate body, certificate chain (if it exists), id, name, path, and arn. 
 It will not retrieve the private key which is not available through the AWS API.   
-
- 

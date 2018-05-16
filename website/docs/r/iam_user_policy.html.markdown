@@ -55,4 +55,13 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-This resource has no attributes.
+* `id` - The user policy ID, in the form of `user_name:user_policy_name`.
+* `name` - The name of the policy (always set).
+
+## Import
+
+IAM User Policies can be imported using the `user_name:user_policy_name`, e.g.
+
+```
+$ terraform import aws_iam_user_policy.mypolicy user_of_mypolicy_name:mypolicy_name
+```

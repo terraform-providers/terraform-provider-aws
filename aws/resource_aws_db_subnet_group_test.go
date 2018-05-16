@@ -219,7 +219,7 @@ resource "aws_subnet" "foo" {
 	availability_zone = "us-west-2a"
 	vpc_id = "${aws_vpc.foo.id}"
 	tags {
-		Name = "tf-dbsubnet-test-1"
+		Name = "tf-acc-db-subnet-group-1"
 	}
 }
 
@@ -228,7 +228,7 @@ resource "aws_subnet" "bar" {
 	availability_zone = "us-west-2b"
 	vpc_id = "${aws_vpc.foo.id}"
 	tags {
-		Name = "tf-dbsubnet-test-2"
+		Name = "tf-acc-db-subnet-group-2"
 	}
 }
 
@@ -255,7 +255,7 @@ resource "aws_subnet" "foo" {
 	availability_zone = "us-west-2a"
 	vpc_id = "${aws_vpc.foo.id}"
 	tags {
-		Name = "tf-dbsubnet-test-1"
+		Name = "tf-acc-db-subnet-group-1"
 	}
 }
 
@@ -264,7 +264,7 @@ resource "aws_subnet" "bar" {
 	availability_zone = "us-west-2b"
 	vpc_id = "${aws_vpc.foo.id}"
 	tags {
-		Name = "tf-dbsubnet-test-2"
+		Name = "tf-acc-db-subnet-group-2"
 	}
 }
 
@@ -290,12 +290,18 @@ resource "aws_subnet" "a" {
 	vpc_id = "${aws_vpc.test.id}"
 	cidr_block = "10.1.1.0/24"
 	availability_zone = "us-west-2a"
+	tags {
+		Name = "tf-acc-db-subnet-group-name-prefix-a"
+	}
 }
 
 resource "aws_subnet" "b" {
 	vpc_id = "${aws_vpc.test.id}"
 	cidr_block = "10.1.2.0/24"
 	availability_zone = "us-west-2b"
+	tags {
+		Name = "tf-acc-db-subnet-group-name-prefix-b"
+	}
 }
 
 resource "aws_db_subnet_group" "test" {
@@ -315,12 +321,18 @@ resource "aws_subnet" "a" {
 	vpc_id = "${aws_vpc.test.id}"
 	cidr_block = "10.1.1.0/24"
 	availability_zone = "us-west-2a"
+	tags {
+		Name = "tf-acc-db-subnet-group-generated-name-a"
+	}
 }
 
 resource "aws_subnet" "b" {
 	vpc_id = "${aws_vpc.test.id}"
 	cidr_block = "10.1.2.0/24"
 	availability_zone = "us-west-2b"
+	tags {
+		Name = "tf-acc-db-subnet-group-generated-name-a"
+	}
 }
 
 resource "aws_db_subnet_group" "test" {
@@ -339,12 +351,18 @@ resource "aws_subnet" "frontend" {
     vpc_id = "${aws_vpc.main.id}"
     availability_zone = "us-west-2b"
     cidr_block = "192.168.1.0/24"
+    tags {
+        Name = "tf-acc-db-subnet-group-w-underscores-etc-front"
+    }
 }
 
 resource "aws_subnet" "backend" {
     vpc_id = "${aws_vpc.main.id}"
     availability_zone = "us-west-2c"
     cidr_block = "192.168.2.0/24"
+    tags {
+        Name = "tf-acc-db-subnet-group-w-underscores-etc-back"
+    }
 }
 
 resource "aws_db_subnet_group" "underscores" {

@@ -1,7 +1,7 @@
 ---
 layout: "aws"
 page_title: "AWS: aws_cognito_user_pool_client"
-side_bar_current: "docs-aws-resource-cognito-user-pool-client"
+sidebar_current: "docs-aws-resource-cognito-user-pool-client"
 description: |-
   Provides a Cognito User Pool Client resource.
 ---
@@ -48,7 +48,7 @@ The following arguments are supported:
 
 * `allowed_oauth_flows` - (Optional) List of allowed OAuth flows (code, implicit, client_credentials).
 * `allowed_oauth_flows_user_pool_client` - (Optional) Whether the client is allowed to follow the OAuth protocol when interacting with Cognito user pools.
-* `allowed_oauth_scopes` - (Optional) List of allowed OAuth scopes (phone, email, openid, Cognito).
+* `allowed_oauth_scopes` - (Optional) List of allowed OAuth scopes (phone, email, openid, profile, and aws.cognito.signin.user.admin).
 * `callback_urls` - (Optional) List of allowed callback URLs for the identity providers.
 * `default_redirect_uri` - (Optional) The default redirect URI. Must be in the list of callback URLs.
 * `explicit_auth_flows` - (Optional) List of authentication flows (ADMIN_NO_SRP_AUTH, CUSTOM_AUTH_FLOW_ONLY, USER_PASSWORD_AUTH).

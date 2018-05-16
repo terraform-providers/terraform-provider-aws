@@ -130,6 +130,71 @@ POLICY
 }
 ```
 
+## VPC Link
+
+```hcl
+variable "name" {}
+variable "subnet_id" {}
+
+resource "aws_lb" "test" {
+  name               = "${var.name}"
+  internal           = true
+  load_balancer_type = "network"
+  subnets            = ["${var.subnet_id}"]
+}
+
+resource "aws_api_gateway_vpc_link" "test" {
+  name        = "${var.name}"
+  target_arns = ["${aws_lb.test.arn}"]
+}
+
+resource "aws_api_gateway_rest_api" "test" {
+  name = "${var.name}"
+}
+
+resource "aws_api_gateway_resource" "test" {
+  rest_api_id = "${aws_api_gateway_rest_api.test.id}"
+  parent_id   = "${aws_api_gateway_rest_api.test.root_resource_id}"
+  path_part   = "test"
+}
+
+resource "aws_api_gateway_method" "test" {
+  rest_api_id   = "${aws_api_gateway_rest_api.test.id}"
+  resource_id   = "${aws_api_gateway_resource.test.id}"
+  http_method   = "GET"
+  authorization = "NONE"
+
+  request_models = {
+    "application/json" = "Error"
+  }
+}
+
+resource "aws_api_gateway_integration" "test" {
+  rest_api_id = "${aws_api_gateway_rest_api.test.id}"
+  resource_id = "${aws_api_gateway_resource.test.id}"
+  http_method = "${aws_api_gateway_method.test.http_method}"
+
+  request_templates = {
+    "application/json" = ""
+    "application/xml"  = "#set($inputRoot = $input.path('$'))\n{ }"
+  }
+
+  request_parameters = {
+    "integration.request.header.X-Authorization" = "'static'"
+    "integration.request.header.X-Foo"           = "'Bar'"
+  }
+
+  type                    = "HTTP"
+  uri                     = "https://www.google.de"
+  integration_http_method = "GET"
+  passthrough_behavior    = "WHEN_NO_MATCH"
+  content_handling        = "CONVERT_TO_TEXT"
+
+  connection_type = "VPC_LINK"
+  connection_id   = "${aws_api_gateway_vpc_link.test.id}"
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -143,7 +208,9 @@ The following arguments are supported:
   **Required** if `type` is `AWS`, `AWS_PROXY`, `HTTP` or `HTTP_PROXY`.
   Not all methods are compatible with all `AWS` integrations.
   e.g. Lambda function [can only be invoked](https://github.com/awslabs/aws-apigateway-importer/issues/9#issuecomment-129651005) via `POST`.
-* `type` - (Required) The integration input's [type](https://docs.aws.amazon.com/apigateway/api-reference/resource/integration/). Valid values are `HTTP` (for HTTP backends), `MOCK` (not calling any real backend), `AWS` (for AWS services), `AWS_PROXY` (for Lambda proxy integration) and `HTTP_PROXY` (for HTTP proxy integration).
+* `type` - (Required) The integration input's [type](https://docs.aws.amazon.com/apigateway/api-reference/resource/integration/). Valid values are `HTTP` (for HTTP backends), `MOCK` (not calling any real backend), `AWS` (for AWS services), `AWS_PROXY` (for Lambda proxy integration) and `HTTP_PROXY` (for HTTP proxy integration). An `HTTP` or `HTTP_PROXY` integration with a `connection_type` of `VPC_LINK` is referred to as a private integration and uses a VpcLink to connect API Gateway to a network load balancer of a VPC.
+* `connection_type` - (Optional) The integration input's [connectionType](https://docs.aws.amazon.com/apigateway/api-reference/resource/integration/#connectionType). Valid values are `INTERNET` (default for connections through the public routable internet), and `VPC_LINK` (for private connections between API Gateway and a network load balancer in a VPC).
+* `connection_id` - (Optional) The id of the VpcLink used for the integration. **Required** if `connection_type` is `VPC_LINK`
 * `uri` - (Optional) The input's URI (HTTP, AWS). **Required** if `type` is `HTTP` or `AWS`.
   For HTTP integrations, the URI must be a fully formed, encoded HTTP(S) URL according to the RFC-3986 specification . For AWS integrations, the URI should be of the form `arn:aws:apigateway:{region}:{subdomain.service|service}:{path|action}/{service_api}`. `region`, `subdomain` and `service` are used to determine the right endpoint.
   e.g. `arn:aws:apigateway:eu-west-1:lambda:path/2015-03-31/functions/arn:aws:lambda:eu-west-1:012345678901:function:my-func/invocations`
@@ -153,6 +220,6 @@ The following arguments are supported:
   For example: `request_parameters = { "integration.request.header.X-Some-Other-Header" = "method.request.header.X-Some-Header" }`
 * `passthrough_behavior` - (Optional) The integration passthrough behavior (`WHEN_NO_MATCH`, `WHEN_NO_TEMPLATES`, `NEVER`).  **Required** if `request_templates` is used.
 * `cache_key_parameters` - (Optional) A list of cache key parameters for the integration.
-* `cache_key_namespace` - (Optional) The integration's cache namespace.
+* `cache_namespace` - (Optional) The integration's cache namespace.
 * `request_parameters_in_json` - **Deprecated**, use `request_parameters` instead.
 * `content_handling` - (Optional) Specifies how to handle request payload content type conversions. Supported values are `CONVERT_TO_BINARY` and `CONVERT_TO_TEXT`. If this property is not defined, the request payload will be passed through from the method request to integration request without modification, provided that the passthroughBehaviors is configured to support payload pass-through.

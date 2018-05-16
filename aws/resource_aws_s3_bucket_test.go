@@ -192,34 +192,6 @@ func TestAccAWSS3Bucket_RequestPayer(t *testing.T) {
 	})
 }
 
-func TestResourceAWSS3BucketRequestPayer_validation(t *testing.T) {
-	_, errors := validateS3BucketRequestPayerType("incorrect", "request_payer")
-	if len(errors) == 0 {
-		t.Fatalf("Expected to trigger a validation error")
-	}
-
-	var testCases = []struct {
-		Value    string
-		ErrCount int
-	}{
-		{
-			Value:    "Requester",
-			ErrCount: 0,
-		},
-		{
-			Value:    "BucketOwner",
-			ErrCount: 0,
-		},
-	}
-
-	for _, tc := range testCases {
-		_, errors := validateS3BucketRequestPayerType(tc.Value, "request_payer")
-		if len(errors) != tc.ErrCount {
-			t.Fatalf("Expected not to trigger a validation error")
-		}
-	}
-}
-
 func TestAccAWSS3Bucket_Policy(t *testing.T) {
 	rInt := acctest.RandInt()
 
@@ -615,6 +587,32 @@ func TestAccAWSS3Bucket_Cors(t *testing.T) {
 			},
 		},
 	})
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSS3BucketDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSS3BucketConfigWithCORSEmptyOrigin(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSS3BucketExists("aws_s3_bucket.bucket"),
+					testAccCheckAWSS3BucketCors(
+						"aws_s3_bucket.bucket",
+						[]*s3.CORSRule{
+							{
+								AllowedHeaders: []*string{aws.String("*")},
+								AllowedMethods: []*string{aws.String("PUT"), aws.String("POST")},
+								AllowedOrigins: []*string{aws.String("")},
+								ExposeHeaders:  []*string{aws.String("x-amz-server-side-encryption"), aws.String("ETag")},
+								MaxAgeSeconds:  aws.Int64(3000),
+							},
+						},
+					),
+				),
+			},
+		},
+	})
 }
 
 func TestAccAWSS3Bucket_Logging(t *testing.T) {
@@ -664,11 +662,17 @@ func TestAccAWSS3Bucket_Lifecycle(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"aws_s3_bucket.bucket", "lifecycle_rule.0.transition.2000431762.storage_class", "STANDARD_IA"),
 					resource.TestCheckResourceAttr(
-						"aws_s3_bucket.bucket", "lifecycle_rule.0.transition.6450812.date", ""),
+						"aws_s3_bucket.bucket", "lifecycle_rule.0.transition.3008443917.date", ""),
 					resource.TestCheckResourceAttr(
-						"aws_s3_bucket.bucket", "lifecycle_rule.0.transition.6450812.days", "60"),
+						"aws_s3_bucket.bucket", "lifecycle_rule.0.transition.3008443917.days", "60"),
 					resource.TestCheckResourceAttr(
-						"aws_s3_bucket.bucket", "lifecycle_rule.0.transition.6450812.storage_class", "GLACIER"),
+						"aws_s3_bucket.bucket", "lifecycle_rule.0.transition.3008443917.storage_class", "ONEZONE_IA"),
+					resource.TestCheckResourceAttr(
+						"aws_s3_bucket.bucket", "lifecycle_rule.0.transition.2476382906.date", ""),
+					resource.TestCheckResourceAttr(
+						"aws_s3_bucket.bucket", "lifecycle_rule.0.transition.2476382906.days", "90"),
+					resource.TestCheckResourceAttr(
+						"aws_s3_bucket.bucket", "lifecycle_rule.0.transition.2476382906.storage_class", "GLACIER"),
 					resource.TestCheckResourceAttr(
 						"aws_s3_bucket.bucket", "lifecycle_rule.1.id", "id2"),
 					resource.TestCheckResourceAttr(
@@ -731,6 +735,39 @@ func TestAccAWSS3Bucket_Lifecycle(t *testing.T) {
 						"aws_s3_bucket.bucket", "lifecycle_rule.2.noncurrent_version_transition.3732708140.days", "0"),
 					resource.TestCheckResourceAttr(
 						"aws_s3_bucket.bucket", "lifecycle_rule.2.noncurrent_version_transition.3732708140.storage_class", "GLACIER"),
+				),
+			},
+			{
+				Config: testAccAWSS3BucketConfig(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSS3BucketExists("aws_s3_bucket.bucket"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSS3Bucket_LifecycleExpireMarkerOnly(t *testing.T) {
+	rInt := acctest.RandInt()
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSS3BucketDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSS3BucketConfigWithLifecycleExpireMarker(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSS3BucketExists("aws_s3_bucket.bucket"),
+					resource.TestCheckResourceAttr(
+						"aws_s3_bucket.bucket", "lifecycle_rule.0.id", "id1"),
+					resource.TestCheckResourceAttr(
+						"aws_s3_bucket.bucket", "lifecycle_rule.0.prefix", "path1/"),
+					resource.TestCheckResourceAttr(
+						"aws_s3_bucket.bucket", "lifecycle_rule.0.expiration.3591068768.days", "0"),
+					resource.TestCheckResourceAttr(
+						"aws_s3_bucket.bucket", "lifecycle_rule.0.expiration.3591068768.date", ""),
+					resource.TestCheckResourceAttr(
+						"aws_s3_bucket.bucket", "lifecycle_rule.0.expiration.3591068768.expired_object_delete_marker", "true"),
 				),
 			},
 			{
@@ -1217,6 +1254,10 @@ func testAccCheckAWSS3BucketLogging(n, b, p string) resource.TestCheckFunc {
 			return fmt.Errorf("GetBucketLogging error: %v", err)
 		}
 
+		if out.LoggingEnabled == nil {
+			return fmt.Errorf("logging not enabled for bucket: %s", rs.Primary.ID)
+		}
+
 		tb, _ := s.RootModule().Resources[b]
 
 		if v := out.LoggingEnabled.TargetBucket; v == nil {
@@ -1649,6 +1690,22 @@ resource "aws_s3_bucket" "bucket" {
 `, randInt)
 }
 
+func testAccAWSS3BucketConfigWithCORSEmptyOrigin(randInt int) string {
+	return fmt.Sprintf(`
+resource "aws_s3_bucket" "bucket" {
+	bucket = "tf-test-bucket-%d"
+	acl = "public-read"
+	cors_rule {
+			allowed_headers = ["*"]
+			allowed_methods = ["PUT","POST"]
+			allowed_origins = [""]
+			expose_headers = ["x-amz-server-side-encryption","ETag"]
+			max_age_seconds = 3000
+	}
+}
+`, randInt)
+}
+
 var testAccAWSS3BucketConfigWithAcl = `
 resource "aws_s3_bucket" "bucket" {
 	bucket = "tf-test-bucket-%d"
@@ -1698,8 +1755,14 @@ resource "aws_s3_bucket" "bucket" {
 			days = 30
 			storage_class = "STANDARD_IA"
 		}
+
 		transition {
 			days = 60
+			storage_class = "ONEZONE_IA"
+		}
+
+		transition {
+			days = 90
 			storage_class = "GLACIER"
 		}
 	}
@@ -1734,6 +1797,24 @@ resource "aws_s3_bucket" "bucket" {
 
 		expiration {
 			date = "2016-01-12"
+		}
+	}
+}
+`, randInt)
+}
+
+func testAccAWSS3BucketConfigWithLifecycleExpireMarker(randInt int) string {
+	return fmt.Sprintf(`
+resource "aws_s3_bucket" "bucket" {
+	bucket = "tf-test-bucket-%d"
+	acl = "private"
+	lifecycle_rule {
+		id = "id1"
+		prefix = "path1/"
+		enabled = true
+
+		expiration {
+			expired_object_delete_marker = "true"
 		}
 	}
 }

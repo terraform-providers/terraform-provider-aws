@@ -85,5 +85,5 @@ The following attributes are exported:
 * `type` - The type of rule, `ingress` or `egress`
 * `from_port` - The start port (or ICMP type number if protocol is "icmp")
 * `to_port` - The end port (or ICMP code if protocol is "icmp")
-* `protocol` – The protocol used
-* `description` – Description of the rule
+* `protocol` – The protocol used
+* `description` – Description of the rule

@@ -28,6 +28,10 @@ func testSweepLambdaFunctions(region string) error {
 
 	resp, err := lambdaconn.ListFunctions(&lambda.ListFunctionsInput{})
 	if err != nil {
+		if testSweepSkipSweepError(err) {
+			log.Printf("[WARN] Skipping Lambda Function sweep for %s: %s", region, err)
+			return nil
+		}
 		return fmt.Errorf("Error retrieving Lambda functions: %s", err)
 	}
 

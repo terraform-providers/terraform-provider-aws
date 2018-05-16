@@ -146,3 +146,17 @@ func testAccCheckWithProviders(f func(*terraform.State, *schema.Provider) error,
 		return nil
 	}
 }
+
+// Check sweeper API call error for reasons to skip sweeping
+// These include missing API endpoints and unsupported API calls
+func testSweepSkipSweepError(err error) bool {
+	// Ignore missing API endpoints
+	if isAWSErr(err, "RequestError", "send request failed") {
+		return true
+	}
+	// Ignore unsupported API calls
+	if isAWSErr(err, "UnsupportedOperation", "") {
+		return true
+	}
+	return false
+}

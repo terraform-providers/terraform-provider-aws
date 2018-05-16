@@ -1,7 +1,7 @@
 ---
 layout: "aws"
 page_title: "AWS: aws_s3_bucket_metric"
-side_bar_current: "docs-aws-resource-s3-bucket-metric"
+sidebar_current: "docs-aws-resource-s3-bucket-metric"
 description: |-
   Provides a S3 bucket metrics configuration resource.
 ---

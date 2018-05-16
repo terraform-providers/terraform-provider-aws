@@ -15,11 +15,11 @@ Use this data source to get information about a DB Snapshot for use when provisi
 ## Example Usage
 
 ```hcl
-resource "aws_db_instance" "default" {
+resource "aws_db_instance" "prod" {
   allocated_storage    = 10
   engine               = "mysql"
   engine_version       = "5.6.17"
-  instance_class       = "db.t1.micro"
+  instance_class       = "db.t2.micro"
   name                 = "mydb"
   username             = "foo"
   password             = "bar"
@@ -27,9 +27,19 @@ resource "aws_db_instance" "default" {
   parameter_group_name = "default.mysql5.6"
 }
 
-data "aws_db_snapshot" "db_snapshot" {
-    most_recent = true
-    db_instance_identifier = "${aws_db_instance.default.identifier}"
+data "aws_db_snapshot" "latest_prod_snapshot" {
+  db_instance_identifier = "${aws_db_instance.prod.id}"
+  most_recent = true
+}
+
+# Use the latest production snapshot to create a dev instance.
+resource "aws_db_instance" "dev" {
+  instance_class      = "db.t2.micro"
+  name                = "mydbdev"
+  snapshot_identifier = "${data.aws_db_snapshot.latest_prod_snapshot.id}"
+  lifecycle {
+    ignore_changes = ["snapshot_identifier"]
+  }
 }
 ```
 
@@ -44,15 +54,15 @@ recent Snapshot.
 
 * `db_snapshot_identifier` - (Optional) Returns information on a specific snapshot_id.
 
-* `snapshot_type` - (Optional) The type of snapshots to be returned. If you don't specify a SnapshotType 
-value, then both automated and manual snapshots are returned. Shared and public DB snapshots are not 
+* `snapshot_type` - (Optional) The type of snapshots to be returned. If you don't specify a SnapshotType
+value, then both automated and manual snapshots are returned. Shared and public DB snapshots are not
 included in the returned results by default. Possible values are, `automated`, `manual`, `shared` and `public`.
 
-* `include_shared` - (Optional) Set this value to true to include shared manual DB snapshots from other 
-AWS accounts that this AWS account has been given permission to copy or restore, otherwise set this value to false. 
+* `include_shared` - (Optional) Set this value to true to include shared manual DB snapshots from other
+AWS accounts that this AWS account has been given permission to copy or restore, otherwise set this value to false.
 The default is `false`.
 
-* `include_public` - (Optional) Set this value to true to include manual DB snapshots that are public and can be 
+* `include_public` - (Optional) Set this value to true to include manual DB snapshots that are public and can be
 copied or restored by any AWS account, otherwise set this value to false. The default is `false`.
 
 

@@ -2,8 +2,11 @@ package aws
 
 import (
 	"fmt"
+	"log"
 	"regexp"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/batch"
@@ -11,6 +14,66 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 )
+
+func init() {
+	resource.AddTestSweepers("aws_batch_compute_environment", &resource.Sweeper{
+		Name: "aws_batch_compute_environment",
+		Dependencies: []string{
+			"aws_batch_job_queue",
+		},
+		F: testSweepBatchComputeEnvironments,
+	})
+}
+
+func testSweepBatchComputeEnvironments(region string) error {
+	client, err := sharedClientForRegion(region)
+	if err != nil {
+		return fmt.Errorf("error getting client: %s", err)
+	}
+	conn := client.(*AWSClient).batchconn
+
+	prefixes := []string{
+		"tf_acc",
+	}
+
+	out, err := conn.DescribeComputeEnvironments(&batch.DescribeComputeEnvironmentsInput{})
+	if err != nil {
+		if testSweepSkipSweepError(err) {
+			log.Printf("[WARN] Skipping Batch Compute Environment sweep for %s: %s", region, err)
+			return nil
+		}
+		return fmt.Errorf("Error retrieving Batch Compute Environments: %s", err)
+	}
+	for _, computeEnvironment := range out.ComputeEnvironments {
+		name := computeEnvironment.ComputeEnvironmentName
+		skip := true
+		for _, prefix := range prefixes {
+			if strings.HasPrefix(*name, prefix) {
+				skip = false
+				break
+			}
+		}
+		if skip {
+			log.Printf("[INFO] Skipping Batch Compute Environment: %s", *name)
+			continue
+		}
+
+		log.Printf("[INFO] Disabling Batch Compute Environment: %s", *name)
+		err := disableBatchComputeEnvironment(*name, 20*time.Minute, conn)
+		if err != nil {
+			log.Printf("[ERROR] Failed to disable Batch Compute Environment %s: %s", *name, err)
+			continue
+		}
+
+		log.Printf("[INFO] Deleting Batch Compute Environment: %s", *name)
+		err = deleteBatchComputeEnvironment(*name, 20*time.Minute, conn)
+		if err != nil {
+			log.Printf("[ERROR] Failed to delete Batch Compute Environment %s: %s", *name, err)
+		}
+	}
+
+	return nil
+}
 
 func TestAccAWSBatchComputeEnvironment_createEc2(t *testing.T) {
 	rInt := acctest.RandInt()
@@ -217,6 +280,32 @@ func TestAccAWSBatchComputeEnvironment_createSpotWithoutBidPercentage(t *testing
 	})
 }
 
+func TestAccAWSBatchComputeEnvironment_updateState(t *testing.T) {
+	rInt := acctest.RandInt()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckBatchComputeEnvironmentDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSBatchComputeEnvironmentConfigEC2UpdateState(rInt, batch.CEStateEnabled),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsBatchComputeEnvironmentExists(),
+					resource.TestCheckResourceAttr("aws_batch_compute_environment.ec2", "state", batch.CEStateEnabled),
+				),
+			},
+			{
+				Config: testAccAWSBatchComputeEnvironmentConfigEC2UpdateState(rInt, batch.CEStateDisabled),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsBatchComputeEnvironmentExists(),
+					resource.TestCheckResourceAttr("aws_batch_compute_environment.ec2", "state", batch.CEStateDisabled),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckBatchComputeEnvironmentDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*AWSClient).batchconn
 
@@ -373,6 +462,9 @@ resource "aws_vpc" "test_acc" {
 resource "aws_subnet" "test_acc" {
   vpc_id = "${aws_vpc.test_acc.id}"
   cidr_block = "10.1.1.0/24"
+  tags {
+    Name = "tf-acc-batch-compute-environment"
+  }
 }
 `, rInt, rInt, rInt, rInt, rInt)
 }
@@ -426,7 +518,7 @@ resource "aws_batch_compute_environment" "ec2" {
     }
   }
   service_role = "${aws_iam_role.aws_batch_service_role.arn}"
-  type = "MANAGED"
+	type = "MANAGED"
   depends_on = ["aws_iam_role_policy_attachment.aws_batch_service_role"]
 }
 `, rInt)
@@ -522,6 +614,33 @@ resource "aws_batch_compute_environment" "ec2" {
   depends_on = ["aws_iam_role_policy_attachment.aws_batch_service_role"]
 }
 `, rInt)
+}
+
+func testAccAWSBatchComputeEnvironmentConfigEC2UpdateState(rInt int, state string) string {
+	return testAccAWSBatchComputeEnvironmentConfigBase(rInt) + fmt.Sprintf(`
+resource "aws_batch_compute_environment" "ec2" {
+  compute_environment_name = "tf_acc_test_%d"
+  compute_resources {
+    instance_role = "${aws_iam_instance_profile.ecs_instance_role.arn}"
+    instance_type = [
+      "c4.large",
+    ]
+    max_vcpus = 16
+    min_vcpus = 0
+    security_group_ids = [
+      "${aws_security_group.test_acc.id}"
+    ]
+    subnets = [
+      "${aws_subnet.test_acc.id}"
+    ]
+    type = "EC2"
+  }
+  service_role = "${aws_iam_role.aws_batch_service_role.arn}"
+  type = "MANAGED"
+  state = "%s"
+  depends_on = ["aws_iam_role_policy_attachment.aws_batch_service_role"]
+}
+`, rInt, state)
 }
 
 func testAccAWSBatchComputeEnvironmentConfigEC2UpdateComputeEnvironmentName(rInt int) string {

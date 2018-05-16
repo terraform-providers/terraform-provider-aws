@@ -63,6 +63,7 @@ func TestAccAWSEcsTaskDefinition_withScratchVolume(t *testing.T) {
 // Regression for https://github.com/hashicorp/terraform/issues/2694
 func TestAccAWSEcsTaskDefinition_withEcsService(t *testing.T) {
 	var def ecs.TaskDefinition
+	var service ecs.Service
 
 	rString := acctest.RandString(8)
 	clusterName := fmt.Sprintf("tf_acc_cluster_with_ecs_service_%s", rString)
@@ -78,14 +79,14 @@ func TestAccAWSEcsTaskDefinition_withEcsService(t *testing.T) {
 				Config: testAccAWSEcsTaskDefinitionWithEcsService(clusterName, svcName, tdName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSEcsTaskDefinitionExists("aws_ecs_task_definition.sleep", &def),
-					testAccCheckAWSEcsServiceExists("aws_ecs_service.sleep-svc"),
+					testAccCheckAWSEcsServiceExists("aws_ecs_service.sleep-svc", &service),
 				),
 			},
 			{
 				Config: testAccAWSEcsTaskDefinitionWithEcsServiceModified(clusterName, svcName, tdName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSEcsTaskDefinitionExists("aws_ecs_task_definition.sleep", &def),
-					testAccCheckAWSEcsServiceExists("aws_ecs_service.sleep-svc"),
+					testAccCheckAWSEcsServiceExists("aws_ecs_service.sleep-svc", &service),
 				),
 			},
 		},

@@ -95,7 +95,6 @@ func resourceAwsMediaStoreContainerDelete(d *schema.ResourceData, meta interface
 	_, err := conn.DeleteContainer(input)
 	if err != nil {
 		if isAWSErr(err, mediastore.ErrCodeContainerNotFoundException, "") {
-			d.SetId("")
 			return nil
 		}
 		return err
@@ -118,7 +117,6 @@ func resourceAwsMediaStoreContainerDelete(d *schema.ResourceData, meta interface
 		return err
 	}
 
-	d.SetId("")
 	return nil
 }
 

@@ -240,7 +240,7 @@ resource "aws_subnet" "foo" {
 	availability_zone = "us-west-2a"
 	vpc_id = "${aws_vpc.foo.id}"
 	tags {
-		Name = "tf-dbsubnet-test-1"
+		Name = "tf-acc-redshift-subnet-group-foo"
 	}
 }
 
@@ -249,7 +249,7 @@ resource "aws_subnet" "bar" {
 	availability_zone = "us-west-2b"
 	vpc_id = "${aws_vpc.foo.id}"
 	tags {
-		Name = "tf-dbsubnet-test-2"
+		Name = "tf-acc-redshift-subnet-group-bar"
 	}
 }
 
@@ -275,7 +275,7 @@ resource "aws_subnet" "foo" {
 	availability_zone = "us-west-2a"
 	vpc_id = "${aws_vpc.foo.id}"
 	tags {
-		Name = "tf-dbsubnet-test-1"
+		Name = "tf-acc-redshift-subnet-group-upd-description-foo"
 	}
 }
 
@@ -284,7 +284,7 @@ resource "aws_subnet" "bar" {
 	availability_zone = "us-west-2b"
 	vpc_id = "${aws_vpc.foo.id}"
 	tags {
-		Name = "tf-dbsubnet-test-2"
+		Name = "tf-acc-redshift-subnet-group-upd-description-bar"
 	}
 }
 
@@ -310,7 +310,7 @@ resource "aws_subnet" "foo" {
 	availability_zone = "us-west-2a"
 	vpc_id = "${aws_vpc.foo.id}"
 	tags {
-		Name = "tf-dbsubnet-test-1"
+		Name = "tf-acc-redshift-subnet-group-with-tags-foo"
 	}
 }
 
@@ -319,7 +319,7 @@ resource "aws_subnet" "bar" {
 	availability_zone = "us-west-2b"
 	vpc_id = "${aws_vpc.foo.id}"
 	tags {
-		Name = "tf-dbsubnet-test-2"
+		Name = "tf-acc-redshift-subnet-group-with-tags-bar"
 	}
 }
 
@@ -347,7 +347,7 @@ resource "aws_subnet" "foo" {
 	availability_zone = "us-west-2a"
 	vpc_id = "${aws_vpc.foo.id}"
 	tags {
-		Name = "tf-dbsubnet-test-1"
+		Name = "tf-acc-redshift-subnet-group-with-tags-foo"
 	}
 }
 
@@ -356,7 +356,7 @@ resource "aws_subnet" "bar" {
 	availability_zone = "us-west-2b"
 	vpc_id = "${aws_vpc.foo.id}"
 	tags {
-		Name = "tf-dbsubnet-test-2"
+		Name = "tf-acc-redshift-subnet-group-with-tags-bar"
 	}
 }
 
@@ -386,7 +386,7 @@ resource "aws_subnet" "foo" {
 	availability_zone = "us-west-2a"
 	vpc_id = "${aws_vpc.foo.id}"
 	tags {
-		Name = "tf-dbsubnet-test-1"
+		Name = "tf-acc-redshift-subnet-group-upd-subnet-ids-foo"
 	}
 }
 
@@ -395,7 +395,7 @@ resource "aws_subnet" "bar" {
 	availability_zone = "us-west-2b"
 	vpc_id = "${aws_vpc.foo.id}"
 	tags {
-		Name = "tf-dbsubnet-test-2"
+		Name = "tf-acc-redshift-subnet-group-upd-subnet-ids-bar"
 	}
 }
 
@@ -404,7 +404,7 @@ resource "aws_subnet" "foobar" {
 	availability_zone = "us-west-2c"
 	vpc_id = "${aws_vpc.foo.id}"
 	tags {
-		Name = "tf-dbsubnet-test-3"
+		Name = "tf-acc-redshift-subnet-group-upd-subnet-ids-foobar"
 	}
 }
 

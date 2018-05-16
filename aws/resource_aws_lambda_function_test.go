@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/lambda"
@@ -287,7 +288,7 @@ func TestAccAWSLambdaFunction_versioned(t *testing.T) {
 		CheckDestroy: testAccCheckLambdaFunctionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSLambdaConfigVersioned(funcName, policyName, roleName, sgName),
+				Config: testAccAWSLambdaConfigVersioned("test-fixtures/lambdatest.zip", funcName, policyName, roleName, sgName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsLambdaFunctionExists("aws_lambda_function.lambda_function_test", funcName, &conf),
 					testAccCheckAwsLambdaFunctionName(&conf, funcName),
@@ -296,6 +297,58 @@ func TestAccAWSLambdaFunction_versioned(t *testing.T) {
 						regexp.MustCompile("^[0-9]+$")),
 					resource.TestMatchResourceAttr("aws_lambda_function.lambda_function_test", "qualified_arn",
 						regexp.MustCompile(":"+funcName+":[0-9]+$")),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSLambdaFunction_versionedUpdate(t *testing.T) {
+	var conf lambda.GetFunctionOutput
+
+	path, zipFile, err := createTempFile("lambda_localUpdate")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.Remove(path)
+
+	rString := acctest.RandString(8)
+	funcName := fmt.Sprintf("tf_acc_lambda_func_versioned_%s", rString)
+	policyName := fmt.Sprintf("tf_acc_policy_lambda_func_versioned_%s", rString)
+	roleName := fmt.Sprintf("tf_acc_role_lambda_func_versioned_%s", rString)
+	sgName := fmt.Sprintf("tf_acc_sg_lambda_func_versioned_%s", rString)
+
+	var timeBeforeUpdate time.Time
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckLambdaFunctionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSLambdaConfigVersioned("test-fixtures/lambdatest.zip", funcName, policyName, roleName, sgName),
+			},
+			{
+				PreConfig: func() {
+					testAccCreateZipFromFiles(map[string]string{"test-fixtures/lambda_func_modified.js": "lambda.js"}, zipFile)
+					timeBeforeUpdate = time.Now()
+				},
+				Config: testAccAWSLambdaConfigVersioned(path, funcName, policyName, roleName, sgName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsLambdaFunctionExists("aws_lambda_function.lambda_function_test", funcName, &conf),
+					testAccCheckAwsLambdaFunctionName(&conf, funcName),
+					testAccCheckAwsLambdaFunctionArnHasSuffix(&conf, ":"+funcName),
+					resource.TestMatchResourceAttr("aws_lambda_function.lambda_function_test", "version",
+						regexp.MustCompile("^2$")),
+					resource.TestMatchResourceAttr("data.template_file.function_version", "rendered",
+						regexp.MustCompile("^2$")),
+					resource.TestMatchResourceAttr("aws_lambda_function.lambda_function_test", "qualified_arn",
+						regexp.MustCompile(":"+funcName+":[0-9]+$")),
+					resource.TestMatchResourceAttr("data.template_file.qualified_arn", "rendered",
+						regexp.MustCompile(fmt.Sprintf(":function:%s:2$", funcName))),
+					func(s *terraform.State) error {
+						return testAccCheckAttributeIsDateAfter(s, "data.template_file.last_modified", "rendered", timeBeforeUpdate)
+					},
 				),
 			},
 		},
@@ -331,6 +384,20 @@ func TestAccAWSLambdaFunction_DeadLetterConfig(t *testing.T) {
 						}
 						return nil
 					},
+				),
+			},
+			// Ensure configuration can be imported
+			{
+				ResourceName:            "aws_lambda_function.lambda_function_test",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"filename", "publish"},
+			},
+			// Ensure configuration can be removed
+			{
+				Config: testAccAWSLambdaConfigBasic(funcName, policyName, roleName, sgName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsLambdaFunctionExists("aws_lambda_function.lambda_function_test", funcName, &conf),
 				),
 			},
 		},
@@ -572,6 +639,8 @@ func TestAccAWSLambdaFunction_localUpdate(t *testing.T) {
 	funcName := fmt.Sprintf("tf_acc_lambda_func_local_upd_%s", rString)
 	roleName := fmt.Sprintf("tf_acc_role_lambda_func_local_upd_%s", rString)
 
+	var timeBeforeUpdate time.Time
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -592,6 +661,7 @@ func TestAccAWSLambdaFunction_localUpdate(t *testing.T) {
 			{
 				PreConfig: func() {
 					testAccCreateZipFromFiles(map[string]string{"test-fixtures/lambda_func_modified.js": "lambda.js"}, zipFile)
+					timeBeforeUpdate = time.Now()
 				},
 				Config: genAWSLambdaFunctionConfig_local(path, roleName, funcName),
 				Check: resource.ComposeTestCheckFunc(
@@ -599,6 +669,9 @@ func TestAccAWSLambdaFunction_localUpdate(t *testing.T) {
 					testAccCheckAwsLambdaFunctionName(&conf, funcName),
 					testAccCheckAwsLambdaFunctionArnHasSuffix(&conf, funcName),
 					testAccCheckAwsLambdaSourceCodeHash(&conf, "0tdaP9H9hsk9c2CycSwOG/sa/x5JyAmSYunA/ce99Pg="),
+					func(s *terraform.State) error {
+						return testAccCheckAttributeIsDateAfter(s, "data.template_file.last_modified", "rendered", timeBeforeUpdate)
+					},
 				),
 			},
 		},
@@ -1050,6 +1123,30 @@ func testAccCheckAwsLambdaSourceCodeHash(function *lambda.GetFunctionOutput, exp
 	}
 }
 
+func testAccCheckAttributeIsDateAfter(s *terraform.State, name string, key string, before time.Time) error {
+	rs, ok := s.RootModule().Resources[name]
+	if !ok {
+		return fmt.Errorf("Resource %s not found", name)
+	}
+
+	v, ok := rs.Primary.Attributes[key]
+	if !ok {
+		return fmt.Errorf("%s: Attribute '%s' not found", name, key)
+	}
+
+	const ISO8601UTC = "2006-01-02T15:04:05Z0700"
+	timeValue, err := time.Parse(ISO8601UTC, v)
+	if err != nil {
+		return err
+	}
+
+	if !before.Before(timeValue) {
+		return fmt.Errorf("Expected time attribute %s.%s with value %s was not before %s", name, key, v, before.Format(ISO8601UTC))
+	}
+
+	return nil
+}
+
 func testAccCreateZipFromFiles(files map[string]string, zipFile *os.File) error {
 	zipFile.Truncate(0)
 	zipFile.Seek(0, 0)
@@ -1177,7 +1274,7 @@ resource "aws_subnet" "subnet_for_lambda" {
     cidr_block = "10.0.1.0/24"
 
     tags {
-        Name = "lambda"
+        Name = "tf-acc-lambda-function-1"
     }
 }
 
@@ -1387,17 +1484,41 @@ resource "aws_lambda_function" "lambda_function_test" {
 `, keyDesc, funcName)
 }
 
-func testAccAWSLambdaConfigVersioned(funcName, policyName, roleName, sgName string) string {
+func testAccAWSLambdaConfigVersioned(fileName, funcName, policyName, roleName, sgName string) string {
 	return fmt.Sprintf(baseAccAWSLambdaConfig(policyName, roleName, sgName)+`
 resource "aws_lambda_function" "lambda_function_test" {
-    filename = "test-fixtures/lambdatest.zip"
+    filename = "%s"
     function_name = "%s"
     publish = true
     role = "${aws_iam_role.iam_for_lambda.arn}"
     handler = "exports.example"
     runtime = "nodejs4.3"
 }
-`, funcName)
+
+data "template_file" "function_version" {
+  template = "$${function_version}"
+
+  vars {
+    function_version = "${aws_lambda_function.lambda_function_test.version}"
+  }
+}
+
+data "template_file" "last_modified" {
+  template = "$${last_modified}"
+
+  vars {
+    last_modified = "${aws_lambda_function.lambda_function_test.last_modified}"
+  }
+}
+
+data "template_file" "qualified_arn" {
+  template = "$${qualified_arn}"
+
+  vars {
+    qualified_arn = "${aws_lambda_function.lambda_function_test.qualified_arn}"
+  }
+}
+`, fileName, funcName)
 }
 
 func testAccAWSLambdaConfigWithTracingConfig(funcName, policyName, roleName, sgName string) string {
@@ -1533,7 +1654,7 @@ resource "aws_subnet" "subnet_for_lambda_2" {
     cidr_block = "10.0.2.0/24"
 
     tags {
-        Name = "lambda"
+        Name = "tf-acc-lambda-function-2"
     }
 }
 
@@ -1723,6 +1844,15 @@ resource "aws_lambda_function" "lambda_function_local" {
     handler = "exports.example"
     runtime = "nodejs4.3"
 }
+
+data "template_file" "last_modified" {
+  template = "$${last_modified}"
+
+  vars {
+    last_modified = "${aws_lambda_function.lambda_function_local.last_modified}"
+  }
+}
+
 `, roleName, filePath, filePath, funcName)
 }
 

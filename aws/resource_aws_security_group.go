@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/terraform/helper/hashcode"
@@ -27,6 +28,11 @@ func resourceAwsSecurityGroup() *schema.Resource {
 			State: resourceAwsSecurityGroupImportState,
 		},
 
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(10 * time.Minute),
+			Delete: schema.DefaultTimeout(10 * time.Minute),
+		},
+
 		SchemaVersion: 1,
 		MigrateState:  resourceAwsSecurityGroupMigrateState,
 
@@ -37,43 +43,22 @@ func resourceAwsSecurityGroup() *schema.Resource {
 				Computed:      true,
 				ForceNew:      true,
 				ConflictsWith: []string{"name_prefix"},
-				ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-					value := v.(string)
-					if len(value) > 255 {
-						errors = append(errors, fmt.Errorf(
-							"%q cannot be longer than 255 characters", k))
-					}
-					return
-				},
+				ValidateFunc:  validateMaxLength(255),
 			},
 
 			"name_prefix": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
-				ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-					value := v.(string)
-					if len(value) > 100 {
-						errors = append(errors, fmt.Errorf(
-							"%q cannot be longer than 100 characters, name is limited to 255", k))
-					}
-					return
-				},
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validateMaxLength(100),
 			},
 
 			"description": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  "Managed by Terraform",
-				ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-					value := v.(string)
-					if len(value) > 255 {
-						errors = append(errors, fmt.Errorf(
-							"%q cannot be longer than 255 characters", k))
-					}
-					return
-				},
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      "Managed by Terraform",
+				ValidateFunc: validateMaxLength(255),
 			},
 
 			"vpc_id": {
@@ -215,6 +200,11 @@ func resourceAwsSecurityGroup() *schema.Resource {
 				Set: resourceAwsSecurityGroupRuleHash,
 			},
 
+			"arn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"owner_id": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -267,17 +257,7 @@ func resourceAwsSecurityGroupCreate(d *schema.ResourceData, meta interface{}) er
 	log.Printf("[INFO] Security Group ID: %s", d.Id())
 
 	// Wait for the security group to truly exist
-	log.Printf(
-		"[DEBUG] Waiting for Security Group (%s) to exist",
-		d.Id())
-	stateConf := &resource.StateChangeConf{
-		Pending: []string{""},
-		Target:  []string{"exists"},
-		Refresh: SGStateRefreshFunc(conn, d.Id()),
-		Timeout: 10 * time.Minute,
-	}
-
-	resp, err := stateConf.WaitForState()
+	resp, err := waitForSgToExist(conn, d.Id(), d.Timeout(schema.TimeoutCreate))
 	if err != nil {
 		return fmt.Errorf(
 			"Error waiting for Security Group (%s) to become available: %s",
@@ -352,11 +332,20 @@ func resourceAwsSecurityGroupCreate(d *schema.ResourceData, meta interface{}) er
 func resourceAwsSecurityGroupRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
 
-	sgRaw, _, err := SGStateRefreshFunc(conn, d.Id())()
+	var sgRaw interface{}
+	var err error
+	if d.IsNewResource() {
+		sgRaw, err = waitForSgToExist(conn, d.Id(), d.Timeout(schema.TimeoutRead))
+	} else {
+		sgRaw, _, err = SGStateRefreshFunc(conn, d.Id())()
+	}
+
 	if err != nil {
 		return err
 	}
+
 	if sgRaw == nil {
+		log.Printf("[WARN] Security group (%s) not found, removing from state", d.Id())
 		d.SetId("")
 		return nil
 	}
@@ -374,6 +363,15 @@ func resourceAwsSecurityGroupRead(d *schema.ResourceData, meta interface{}) erro
 	ingressRules := matchRules("ingress", localIngressRules, remoteIngressRules)
 	egressRules := matchRules("egress", localEgressRules, remoteEgressRules)
 
+	sgArn := arn.ARN{
+		AccountID: aws.StringValue(sg.OwnerId),
+		Partition: meta.(*AWSClient).partition,
+		Region:    meta.(*AWSClient).region,
+		Resource:  fmt.Sprintf("security-group/%s", aws.StringValue(sg.GroupId)),
+		Service:   ec2.ServiceName,
+	}
+
+	d.Set("arn", sgArn.String())
 	d.Set("description", sg.Description)
 	d.Set("name", sg.GroupName)
 	d.Set("vpc_id", sg.VpcId)
@@ -394,11 +392,19 @@ func resourceAwsSecurityGroupRead(d *schema.ResourceData, meta interface{}) erro
 func resourceAwsSecurityGroupUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
 
-	sgRaw, _, err := SGStateRefreshFunc(conn, d.Id())()
+	var sgRaw interface{}
+	var err error
+	if d.IsNewResource() {
+		sgRaw, err = waitForSgToExist(conn, d.Id(), d.Timeout(schema.TimeoutRead))
+	} else {
+		sgRaw, _, err = SGStateRefreshFunc(conn, d.Id())()
+	}
+
 	if err != nil {
 		return err
 	}
 	if sgRaw == nil {
+		log.Printf("[WARN] Security group (%s) not found, removing from state", d.Id())
 		d.SetId("")
 		return nil
 	}
@@ -443,7 +449,7 @@ func resourceAwsSecurityGroupDelete(d *schema.ResourceData, meta interface{}) er
 		}
 	}
 
-	return resource.Retry(5*time.Minute, func() *resource.RetryError {
+	return resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
 		_, err := conn.DeleteSecurityGroup(&ec2.DeleteSecurityGroupInput{
 			GroupId: aws.String(d.Id()),
 		})
@@ -584,122 +590,83 @@ func resourceAwsSecurityGroupRuleHash(v interface{}) int {
 func resourceAwsSecurityGroupIPPermGather(groupId string, permissions []*ec2.IpPermission, ownerId *string) []map[string]interface{} {
 	ruleMap := make(map[string]map[string]interface{})
 	for _, perm := range permissions {
-		var fromPort, toPort int64
-		if v := perm.FromPort; v != nil {
-			fromPort = *v
-		}
-		if v := perm.ToPort; v != nil {
-			toPort = *v
-		}
-
-		k := fmt.Sprintf("%s-%d-%d", *perm.IpProtocol, fromPort, toPort)
-		m, ok := ruleMap[k]
-		if !ok {
-			m = make(map[string]interface{})
-			ruleMap[k] = m
-		}
-
-		m["from_port"] = fromPort
-		m["to_port"] = toPort
-		m["protocol"] = *perm.IpProtocol
-
-		var description string
-
 		if len(perm.IpRanges) > 0 {
-			raw, ok := m["cidr_blocks"]
-			if !ok {
-				raw = make([]string, 0, len(perm.IpRanges))
-			}
-			list := raw.([]string)
-
 			for _, ip := range perm.IpRanges {
-				list = append(list, *ip.CidrIp)
-
 				desc := aws.StringValue(ip.Description)
-				if desc != "" {
-					description = desc
-				}
-			}
 
-			m["cidr_blocks"] = list
+				rule := initSecurityGroupRule(ruleMap, perm, desc)
+
+				raw, ok := rule["cidr_blocks"]
+				if !ok {
+					raw = make([]string, 0)
+				}
+				list := raw.([]string)
+
+				rule["cidr_blocks"] = append(list, *ip.CidrIp)
+			}
 		}
 
 		if len(perm.Ipv6Ranges) > 0 {
-			raw, ok := m["ipv6_cidr_blocks"]
-			if !ok {
-				raw = make([]string, 0, len(perm.Ipv6Ranges))
-			}
-			list := raw.([]string)
-
 			for _, ip := range perm.Ipv6Ranges {
-				list = append(list, *ip.CidrIpv6)
-
 				desc := aws.StringValue(ip.Description)
-				if desc != "" {
-					description = desc
-				}
-			}
 
-			m["ipv6_cidr_blocks"] = list
+				rule := initSecurityGroupRule(ruleMap, perm, desc)
+
+				raw, ok := rule["ipv6_cidr_blocks"]
+				if !ok {
+					raw = make([]string, 0)
+				}
+				list := raw.([]string)
+
+				rule["ipv6_cidr_blocks"] = append(list, *ip.CidrIpv6)
+			}
 		}
 
 		if len(perm.PrefixListIds) > 0 {
-			raw, ok := m["prefix_list_ids"]
-			if !ok {
-				raw = make([]string, 0, len(perm.PrefixListIds))
-			}
-			list := raw.([]string)
-
 			for _, pl := range perm.PrefixListIds {
-				list = append(list, *pl.PrefixListId)
-
 				desc := aws.StringValue(pl.Description)
-				if desc != "" {
-					description = desc
-				}
-			}
 
-			m["prefix_list_ids"] = list
+				rule := initSecurityGroupRule(ruleMap, perm, desc)
+
+				raw, ok := rule["prefix_list_ids"]
+				if !ok {
+					raw = make([]string, 0)
+				}
+				list := raw.([]string)
+
+				rule["prefix_list_ids"] = append(list, *pl.PrefixListId)
+			}
 		}
 
 		groups := flattenSecurityGroups(perm.UserIdGroupPairs, ownerId)
-		for i, g := range groups {
-			if *g.GroupId == groupId {
-				groups[i], groups = groups[len(groups)-1], groups[:len(groups)-1]
-				m["self"] = true
-
-				desc := aws.StringValue(g.Description)
-				if desc != "" {
-					description = desc
-				}
-			}
-		}
-
 		if len(groups) > 0 {
-			raw, ok := m["security_groups"]
-			if !ok {
-				raw = schema.NewSet(schema.HashString, nil)
-			}
-			list := raw.(*schema.Set)
-
 			for _, g := range groups {
+				desc := aws.StringValue(g.Description)
+
+				rule := initSecurityGroupRule(ruleMap, perm, desc)
+
+				if *g.GroupId == groupId {
+					rule["self"] = true
+					continue
+				}
+
+				raw, ok := rule["security_groups"]
+				if !ok {
+					raw = schema.NewSet(schema.HashString, nil)
+				}
+				list := raw.(*schema.Set)
+
 				if g.GroupName != nil {
 					list.Add(*g.GroupName)
 				} else {
 					list.Add(*g.GroupId)
 				}
-
-				desc := aws.StringValue(g.Description)
-				if desc != "" {
-					description = desc
-				}
+				rule["security_groups"] = list
 			}
-
-			m["security_groups"] = list
 		}
 
-		m["description"] = description
 	}
+
 	rules := make([]map[string]interface{}, 0, len(ruleMap))
 	for _, m := range ruleMap {
 		rules = append(rules, m)
@@ -839,6 +806,18 @@ func SGStateRefreshFunc(conn *ec2.EC2, id string) resource.StateRefreshFunc {
 		group := resp.SecurityGroups[0]
 		return group, "exists", nil
 	}
+}
+
+func waitForSgToExist(conn *ec2.EC2, id string, timeout time.Duration) (interface{}, error) {
+	log.Printf("[DEBUG] Waiting for Security Group (%s) to exist", id)
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{""},
+		Target:  []string{"exists"},
+		Refresh: SGStateRefreshFunc(conn, id),
+		Timeout: timeout,
+	}
+
+	return stateConf.WaitForState()
 }
 
 // matchRules receives the group id, type of rules, and the local / remote maps
@@ -1281,7 +1260,7 @@ func deleteLingeringLambdaENIs(conn *ec2.EC2, d *schema.ResourceData) error {
 				Pending: []string{"true"},
 				Target:  []string{"false"},
 				Refresh: networkInterfaceAttachedRefreshFunc(conn, *eni.NetworkInterfaceId),
-				Timeout: 10 * time.Minute,
+				Timeout: d.Timeout(schema.TimeoutDelete),
 			}
 			if _, err := stateConf.WaitForState(); err != nil {
 				return fmt.Errorf(
@@ -1320,4 +1299,28 @@ func networkInterfaceAttachedRefreshFunc(conn *ec2.EC2, id string) resource.Stat
 		log.Printf("[DEBUG] ENI %s has attachment state %s", id, hasAttachment)
 		return eni, hasAttachment, nil
 	}
+}
+
+func initSecurityGroupRule(ruleMap map[string]map[string]interface{}, perm *ec2.IpPermission, desc string) map[string]interface{} {
+	var fromPort, toPort int64
+	if v := perm.FromPort; v != nil {
+		fromPort = *v
+	}
+	if v := perm.ToPort; v != nil {
+		toPort = *v
+	}
+	k := fmt.Sprintf("%s-%d-%d-%s", *perm.IpProtocol, fromPort, toPort, desc)
+	rule, ok := ruleMap[k]
+	if !ok {
+		rule = make(map[string]interface{})
+		ruleMap[k] = rule
+	}
+	rule["protocol"] = *perm.IpProtocol
+	rule["from_port"] = fromPort
+	rule["to_port"] = toPort
+	if desc != "" {
+		rule["description"] = desc
+	}
+
+	return rule
 }

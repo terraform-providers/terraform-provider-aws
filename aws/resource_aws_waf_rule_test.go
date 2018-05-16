@@ -137,6 +137,34 @@ func TestAccAWSWafRule_changePredicates(t *testing.T) {
 	})
 }
 
+func TestAccAWSWafRule_geoMatchSetPredicate(t *testing.T) {
+	var geoMatchSet waf.GeoMatchSet
+
+	var v waf.Rule
+	var idx int
+	ruleName := fmt.Sprintf("wafrule%s", acctest.RandString(5))
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSWafRuleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSWafRuleConfig_geoMatchSetPredicate(ruleName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSWafGeoMatchSetExists("aws_waf_geo_match_set.geo_match_set", &geoMatchSet),
+					testAccCheckAWSWafRuleExists("aws_waf_rule.wafrule", &v),
+					resource.TestCheckResourceAttr("aws_waf_rule.wafrule", "name", ruleName),
+					resource.TestCheckResourceAttr("aws_waf_rule.wafrule", "predicates.#", "1"),
+					computeWafRulePredicateWithGeoMatchSet(&geoMatchSet, true, "GeoMatch", &idx),
+					testCheckResourceAttrWithIndexesAddr("aws_waf_rule.wafrule", "predicates.%d.negated", &idx, "true"),
+					testCheckResourceAttrWithIndexesAddr("aws_waf_rule.wafrule", "predicates.%d.type", &idx, "GeoMatch"),
+				),
+			},
+		},
+	})
+}
+
 // computeWafRulePredicateWithIpSet calculates index
 // which isn't static because dataId is generated as part of the test
 func computeWafRulePredicateWithIpSet(ipSet *waf.IPSet, negated bool, pType string, idx *int) resource.TestCheckFunc {
@@ -164,6 +192,25 @@ func computeWafRulePredicateWithByteMatchSet(set *waf.ByteMatchSet, negated bool
 
 		m := map[string]interface{}{
 			"data_id": *set.ByteMatchSetId,
+			"negated": negated,
+			"type":    pType,
+		}
+
+		f := schema.HashResource(predicateResource)
+		*idx = f(m)
+
+		return nil
+	}
+}
+
+// computeWafRulePredicateWithGeoMatchSet calculates index
+// which isn't static because dataId is generated as part of the test
+func computeWafRulePredicateWithGeoMatchSet(set *waf.GeoMatchSet, negated bool, pType string, idx *int) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		predicateResource := resourceAwsWafRule().Schema["predicates"].Elem.(*schema.Resource)
+
+		m := map[string]interface{}{
+			"data_id": *set.GeoMatchSetId,
 			"negated": negated,
 			"type":    pType,
 		}
@@ -392,4 +439,25 @@ resource "aws_waf_rule" "wafrule" {
   name = "%s"
   metric_name = "%s"
 }`, name, name)
+}
+
+func testAccAWSWafRuleConfig_geoMatchSetPredicate(name string) string {
+	return fmt.Sprintf(`
+resource "aws_waf_geo_match_set" "geo_match_set" {
+  name = "%s"
+  geo_match_constraint {
+    type  = "Country"
+    value	= "US"
+  }
+}
+
+resource "aws_waf_rule" "wafrule" {
+  name = "%s"
+  metric_name = "%s"
+  predicates {
+    data_id = "${aws_waf_geo_match_set.geo_match_set.id}"
+    negated = true
+    type = "GeoMatch"
+  }
+}`, name, name, name)
 }

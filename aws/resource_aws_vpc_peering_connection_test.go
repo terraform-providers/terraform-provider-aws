@@ -358,171 +358,171 @@ func TestAccAWSVPCPeeringConnection_region(t *testing.T) {
 
 const testAccVpcPeeringConfig = `
 resource "aws_vpc" "foo" {
-	cidr_block = "10.0.0.0/16"
-	tags {
-		Name = "terraform-testacc-vpc-peering-conn-foo"
-	}
+  cidr_block = "10.0.0.0/16"
+  tags {
+    Name = "terraform-testacc-vpc-peering-conn-foo"
+  }
 }
 
 resource "aws_vpc" "bar" {
-	cidr_block = "10.1.0.0/16"
-	tags {
-		Name = "terraform-testacc-vpc-peering-conn-bar"
-	}
+  cidr_block = "10.1.0.0/16"
+  tags {
+    Name = "terraform-testacc-vpc-peering-conn-bar"
+  }
 }
 
 resource "aws_vpc_peering_connection" "foo" {
-	vpc_id = "${aws_vpc.foo.id}"
-	peer_vpc_id = "${aws_vpc.bar.id}"
-	auto_accept = true
+  vpc_id = "${aws_vpc.foo.id}"
+  peer_vpc_id = "${aws_vpc.bar.id}"
+  auto_accept = true
 }
 `
 
 const testAccVpcPeeringConfigTags = `
 resource "aws_vpc" "foo" {
-	cidr_block = "10.0.0.0/16"
-	tags {
-		Name = "terraform-testacc-vpc-peering-conn-tags-foo"
-	}
+  cidr_block = "10.0.0.0/16"
+  tags {
+    Name = "terraform-testacc-vpc-peering-conn-tags-foo"
+  }
 }
 
 resource "aws_vpc" "bar" {
-	cidr_block = "10.1.0.0/16"
-	tags {
-		Name = "terraform-testacc-vpc-peering-conn-tags-bar"
-	}
+  cidr_block = "10.1.0.0/16"
+  tags {
+    Name = "terraform-testacc-vpc-peering-conn-tags-bar"
+  }
 }
 
 resource "aws_vpc_peering_connection" "foo" {
-	vpc_id = "${aws_vpc.foo.id}"
-	peer_vpc_id = "${aws_vpc.bar.id}"
-	auto_accept = true
-	tags {
-		foo = "bar"
-	}
+  vpc_id = "${aws_vpc.foo.id}"
+  peer_vpc_id = "${aws_vpc.bar.id}"
+  auto_accept = true
+  tags {
+    foo = "bar"
+  }
 }
 `
 
 const testAccVpcPeeringConfigOptions = `
 resource "aws_vpc" "foo" {
-	cidr_block = "10.0.0.0/16"
-	tags {
-		Name = "terraform-testacc-vpc-peering-conn-options-foo"
-	}
+  cidr_block = "10.0.0.0/16"
+  tags {
+    Name = "terraform-testacc-vpc-peering-conn-options-foo"
+  }
 }
 
 resource "aws_vpc" "bar" {
-	cidr_block = "10.1.0.0/16"
-	enable_dns_hostnames = true
-	tags {
-		Name = "terraform-testacc-vpc-peering-conn-options-bar"
-	}
+  cidr_block = "10.1.0.0/16"
+  enable_dns_hostnames = true
+  tags {
+    Name = "terraform-testacc-vpc-peering-conn-options-bar"
+  }
 }
 
 resource "aws_vpc_peering_connection" "foo" {
-	vpc_id = "${aws_vpc.foo.id}"
-	peer_vpc_id = "${aws_vpc.bar.id}"
-	auto_accept = true
+  vpc_id = "${aws_vpc.foo.id}"
+  peer_vpc_id = "${aws_vpc.bar.id}"
+  auto_accept = true
 
-	accepter {
-		allow_remote_vpc_dns_resolution = true
-	}
+  accepter {
+    allow_remote_vpc_dns_resolution = true
+  }
 
-	requester {
-		allow_vpc_to_remote_classic_link = true
-		allow_classic_link_to_remote_vpc = true
-	}
+  requester {
+    allow_vpc_to_remote_classic_link = true
+    allow_classic_link_to_remote_vpc = true
+  }
 }
 `
 
 const testAccVpcPeeringConfigFailedState = `
 resource "aws_vpc" "foo" {
-	cidr_block = "10.0.0.0/16"
-	tags {
-		Name = "terraform-testacc-vpc-peering-conn-failed-state-foo"
-	}
+  cidr_block = "10.0.0.0/16"
+  tags {
+    Name = "terraform-testacc-vpc-peering-conn-failed-state-foo"
+  }
 }
 
 resource "aws_vpc" "bar" {
-	cidr_block = "10.0.0.0/16"
-	tags {
-		Name = "terraform-testacc-vpc-peering-conn-failed-state-bar"
-	}
+  cidr_block = "10.0.0.0/16"
+  tags {
+    Name = "terraform-testacc-vpc-peering-conn-failed-state-bar"
+  }
 }
 
 resource "aws_vpc_peering_connection" "foo" {
-	vpc_id = "${aws_vpc.foo.id}"
-	peer_vpc_id = "${aws_vpc.bar.id}"
+  vpc_id = "${aws_vpc.foo.id}"
+  peer_vpc_id = "${aws_vpc.bar.id}"
 }
 `
 
 const testAccVpcPeeringConfigRegionAutoAccept = `
 provider "aws" {
-	alias = "main"
+  alias = "main"
   region = "us-west-2"
 }
 
 provider "aws" {
-	alias = "peer"
+  alias = "peer"
   region = "us-east-1"
 }
 
 resource "aws_vpc" "foo" {
-	provider = "aws.main"
-	cidr_block = "10.0.0.0/16"
-	tags {
-		Name = "terraform-testacc-vpc-peering-conn-region-auto-accept-foo"
-	}
+  provider = "aws.main"
+  cidr_block = "10.0.0.0/16"
+  tags {
+    Name = "terraform-testacc-vpc-peering-conn-region-auto-accept-foo"
+  }
 }
 
 resource "aws_vpc" "bar" {
-	provider = "aws.peer"
-	cidr_block = "10.1.0.0/16"
-	tags {
-		Name = "terraform-testacc-vpc-peering-conn-region-auto-accept-bar"
-	}
+  provider = "aws.peer"
+  cidr_block = "10.1.0.0/16"
+  tags {
+    Name = "terraform-testacc-vpc-peering-conn-region-auto-accept-bar"
+  }
 }
 
 resource "aws_vpc_peering_connection" "foo" {
-	provider = "aws.main"
-	vpc_id = "${aws_vpc.foo.id}"
-	peer_vpc_id = "${aws_vpc.bar.id}"
-	peer_region = "us-east-1"
-	auto_accept = true
+  provider = "aws.main"
+  vpc_id = "${aws_vpc.foo.id}"
+  peer_vpc_id = "${aws_vpc.bar.id}"
+  peer_region = "us-east-1"
+  auto_accept = true
 }
 `
 
 const testAccVpcPeeringConfigRegion = `
 provider "aws" {
-	alias = "main"
+  alias = "main"
   region = "us-west-2"
 }
 
 provider "aws" {
-	alias = "peer"
+  alias = "peer"
   region = "us-east-1"
 }
 
 resource "aws_vpc" "foo" {
-	provider = "aws.main"
-	cidr_block = "10.0.0.0/16"
-	tags {
-		Name = "terraform-testacc-vpc-peering-conn-region-foo"
-	}
+  provider = "aws.main"
+  cidr_block = "10.0.0.0/16"
+  tags {
+    Name = "terraform-testacc-vpc-peering-conn-region-foo"
+  }
 }
 
 resource "aws_vpc" "bar" {
-	provider = "aws.peer"
-	cidr_block = "10.1.0.0/16"
-	tags {
-		Name = "terraform-testacc-vpc-peering-conn-region-bar"
-	}
+  provider = "aws.peer"
+  cidr_block = "10.1.0.0/16"
+  tags {
+    Name = "terraform-testacc-vpc-peering-conn-region-bar"
+  }
 }
 
 resource "aws_vpc_peering_connection" "foo" {
-	provider = "aws.main"
-	vpc_id = "${aws_vpc.foo.id}"
-	peer_vpc_id = "${aws_vpc.bar.id}"
-	peer_region = "us-east-1"
+  provider = "aws.main"
+  vpc_id = "${aws_vpc.foo.id}"
+  peer_vpc_id = "${aws_vpc.bar.id}"
+  peer_region = "us-east-1"
 }
 `

@@ -119,6 +119,11 @@ resource "aws_s3_bucket" "bucket" {
     }
 
     transition {
+      days = 15
+      storage_class = "ONEZONE_IA"
+    }
+
+    transition {
       days          = 30
       storage_class = "STANDARD_IA"
     }
@@ -385,7 +390,7 @@ The `transition` object supports the following
 
 * `date` (Optional) Specifies the date after which you want the corresponding action to take effect.
 * `days` (Optional) Specifies the number of days after object creation when the specific rule action takes effect.
-* `storage_class` (Required) Specifies the Amazon S3 storage class to which you want the object to transition. Can be `STANDARD_IA` or `GLACIER`.
+* `storage_class` (Required) Specifies the Amazon S3 storage class to which you want the object to transition. Can be `ONEZONE_IA`, `STANDARD_IA`, or `GLACIER`.
 
 The `noncurrent_version_expiration` object supports the following
 
@@ -394,7 +399,7 @@ The `noncurrent_version_expiration` object supports the following
 The `noncurrent_version_transition` object supports the following
 
 * `days` (Required) Specifies the number of days an object is noncurrent object versions expire.
-* `storage_class` (Required) Specifies the Amazon S3 storage class to which you want the noncurrent versions object to transition. Can be `STANDARD_IA` or `GLACIER`.
+* `storage_class` (Required) Specifies the Amazon S3 storage class to which you want the noncurrent versions object to transition. Can be `ONEZONE_IA`, `STANDARD_IA`, or `GLACIER`.
 
 The `replication_configuration` object supports the following:
 

@@ -74,3 +74,11 @@ block with a /56 prefix length for the VPC was assigned
 
 
 [1]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/vpc-classiclink.html
+
+## Import
+
+Default VPCs can be imported using the `vpc id`, e.g.
+
+```
+$ terraform import aws_default_vpc.default vpc-a01106c2
+```

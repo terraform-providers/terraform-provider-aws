@@ -49,6 +49,8 @@ The following arguments are supported:
   See [IAM Identifiers](https://docs.aws.amazon.com/IAM/latest/UserGuide/Using_Identifiers.html) for more information.
 * `description` - (Optional) The description of the role.
 
+* `max_session_duration` - (Optional) The maximum session duration (in seconds) that you want to set for the specified role. If you do not specify a value for this setting, the default maximum of one hour is applied. This setting can have a value from 1 hour to 12 hours.
+
 ## Attributes Reference
 
 The following attributes are exported:

@@ -2,17 +2,20 @@ package aws
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/apigateway"
+	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 )
 
 func TestAccAWSAPIGatewayStage_basic(t *testing.T) {
 	var conf apigateway.Stage
+	rName := acctest.RandString(5)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -20,29 +23,97 @@ func TestAccAWSAPIGatewayStage_basic(t *testing.T) {
 		CheckDestroy: testAccCheckAWSAPIGatewayStageDestroy,
 		Steps: []resource.TestStep{
 			resource.TestStep{
-				Config: testAccAWSAPIGatewayStageConfig_basic(),
+				Config: testAccAWSAPIGatewayStageConfig_basic(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSAPIGatewayStageExists("aws_api_gateway_stage.test", &conf),
 					resource.TestCheckResourceAttr("aws_api_gateway_stage.test", "stage_name", "prod"),
 					resource.TestCheckResourceAttr("aws_api_gateway_stage.test", "cache_cluster_enabled", "true"),
 					resource.TestCheckResourceAttr("aws_api_gateway_stage.test", "cache_cluster_size", "0.5"),
+					resource.TestCheckResourceAttr("aws_api_gateway_stage.test", "tags.%", "1"),
+					resource.TestCheckResourceAttrSet("aws_api_gateway_stage.test", "execution_arn"),
+					resource.TestCheckResourceAttrSet("aws_api_gateway_stage.test", "invoke_url"),
 				),
 			},
 			resource.TestStep{
-				Config: testAccAWSAPIGatewayStageConfig_updated(),
+				Config: testAccAWSAPIGatewayStageConfig_updated(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSAPIGatewayStageExists("aws_api_gateway_stage.test", &conf),
 					resource.TestCheckResourceAttr("aws_api_gateway_stage.test", "stage_name", "prod"),
 					resource.TestCheckResourceAttr("aws_api_gateway_stage.test", "cache_cluster_enabled", "false"),
+					resource.TestCheckResourceAttr("aws_api_gateway_stage.test", "tags.%", "2"),
 				),
 			},
 			resource.TestStep{
-				Config: testAccAWSAPIGatewayStageConfig_basic(),
+				Config: testAccAWSAPIGatewayStageConfig_basic(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSAPIGatewayStageExists("aws_api_gateway_stage.test", &conf),
 					resource.TestCheckResourceAttr("aws_api_gateway_stage.test", "stage_name", "prod"),
 					resource.TestCheckResourceAttr("aws_api_gateway_stage.test", "cache_cluster_enabled", "true"),
 					resource.TestCheckResourceAttr("aws_api_gateway_stage.test", "cache_cluster_size", "0.5"),
+					resource.TestCheckResourceAttr("aws_api_gateway_stage.test", "tags.%", "1"),
+					resource.TestCheckResourceAttrSet("aws_api_gateway_stage.test", "execution_arn"),
+					resource.TestCheckResourceAttrSet("aws_api_gateway_stage.test", "invoke_url"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSAPIGatewayStage_accessLogSettings(t *testing.T) {
+	var conf apigateway.Stage
+	rName := acctest.RandString(5)
+	logGroupArnRegex := regexp.MustCompile(fmt.Sprintf("^arn:[^:]+:logs:[^:]+:[^:]+:log-group:foo-bar-%s$", rName))
+	clf := `$context.identity.sourceIp $context.identity.caller $context.identity.user [$context.requestTime] "$context.httpMethod $context.resourcePath $context.protocol" $context.status $context.responseLength $context.requestId`
+	json := `{ "requestId":"$context.requestId", "ip": "$context.identity.sourceIp", "caller":"$context.identity.caller", "user":"$context.identity.user", "requestTime":"$context.requestTime", "httpMethod":"$context.httpMethod", "resourcePath":"$context.resourcePath", "status":"$context.status", "protocol":"$context.protocol", "responseLength":"$context.responseLength" }`
+	xml := `<request id="$context.requestId"> <ip>$context.identity.sourceIp</ip> <caller>$context.identity.caller</caller> <user>$context.identity.user</user> <requestTime>$context.requestTime</requestTime> <httpMethod>$context.httpMethod</httpMethod> <resourcePath>$context.resourcePath</resourcePath> <status>$context.status</status> <protocol>$context.protocol</protocol> <responseLength>$context.responseLength</responseLength> </request>`
+	csv := `$context.identity.sourceIp,$context.identity.caller,$context.identity.user,$context.requestTime,$context.httpMethod,$context.resourcePath,$context.protocol,$context.status,$context.responseLength,$context.requestId`
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAPIGatewayStageDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSAPIGatewayStageConfig_accessLogSettings(rName, clf),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAPIGatewayStageExists("aws_api_gateway_stage.test", &conf),
+					resource.TestCheckResourceAttr("aws_api_gateway_stage.test", "access_log_settings.#", "1"),
+					resource.TestMatchResourceAttr("aws_api_gateway_stage.test", "access_log_settings.0.destination_arn", logGroupArnRegex),
+					resource.TestCheckResourceAttr("aws_api_gateway_stage.test", "access_log_settings.0.format", clf),
+				),
+			},
+			{
+				Config: testAccAWSAPIGatewayStageConfig_accessLogSettings(rName, json),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAPIGatewayStageExists("aws_api_gateway_stage.test", &conf),
+					resource.TestCheckResourceAttr("aws_api_gateway_stage.test", "access_log_settings.#", "1"),
+					resource.TestMatchResourceAttr("aws_api_gateway_stage.test", "access_log_settings.0.destination_arn", logGroupArnRegex),
+					resource.TestCheckResourceAttr("aws_api_gateway_stage.test", "access_log_settings.0.format", json),
+				),
+			},
+			{
+				Config: testAccAWSAPIGatewayStageConfig_accessLogSettings(rName, xml),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAPIGatewayStageExists("aws_api_gateway_stage.test", &conf),
+					resource.TestCheckResourceAttr("aws_api_gateway_stage.test", "access_log_settings.#", "1"),
+					resource.TestMatchResourceAttr("aws_api_gateway_stage.test", "access_log_settings.0.destination_arn", logGroupArnRegex),
+					resource.TestCheckResourceAttr("aws_api_gateway_stage.test", "access_log_settings.0.format", xml),
+				),
+			},
+			{
+				Config: testAccAWSAPIGatewayStageConfig_accessLogSettings(rName, csv),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAPIGatewayStageExists("aws_api_gateway_stage.test", &conf),
+					resource.TestCheckResourceAttr("aws_api_gateway_stage.test", "access_log_settings.#", "1"),
+					resource.TestMatchResourceAttr("aws_api_gateway_stage.test", "access_log_settings.0.destination_arn", logGroupArnRegex),
+					resource.TestCheckResourceAttr("aws_api_gateway_stage.test", "access_log_settings.0.format", csv),
+				),
+			},
+			{
+				Config: testAccAWSAPIGatewayStageConfig_basic(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAPIGatewayStageExists("aws_api_gateway_stage.test", &conf),
+					resource.TestCheckResourceAttr("aws_api_gateway_stage.test", "access_log_settings.#", "0"),
 				),
 			},
 		},
@@ -108,9 +179,10 @@ func testAccCheckAWSAPIGatewayStageDestroy(s *terraform.State) error {
 	return nil
 }
 
-const testAccAWSAPIGatewayStageConfig_base = `
+func testAccAWSAPIGatewayStageConfig_base(rName string) string {
+	return fmt.Sprintf(`
 resource "aws_api_gateway_rest_api" "test" {
-  name = "tf-acc-test"
+  name = "tf-acc-test-%s"
 }
 
 resource "aws_api_gateway_resource" "test" {
@@ -161,10 +233,11 @@ resource "aws_api_gateway_deployment" "dev" {
     "a" = "2"
   }
 }
-`
+`, rName)
+}
 
-func testAccAWSAPIGatewayStageConfig_basic() string {
-	return testAccAWSAPIGatewayStageConfig_base + `
+func testAccAWSAPIGatewayStageConfig_basic(rName string) string {
+	return testAccAWSAPIGatewayStageConfig_base(rName) + `
 resource "aws_api_gateway_stage" "test" {
   rest_api_id = "${aws_api_gateway_rest_api.test.id}"
   stage_name = "prod"
@@ -175,12 +248,15 @@ resource "aws_api_gateway_stage" "test" {
     one = "1"
     two = "2"
   }
+  tags {
+    Name = "tf-test"
+  }
 }
 `
 }
 
-func testAccAWSAPIGatewayStageConfig_updated() string {
-	return testAccAWSAPIGatewayStageConfig_base + `
+func testAccAWSAPIGatewayStageConfig_updated(rName string) string {
+	return testAccAWSAPIGatewayStageConfig_base(rName) + `
 resource "aws_api_gateway_stage" "test" {
   rest_api_id = "${aws_api_gateway_rest_api.test.id}"
   stage_name = "prod"
@@ -191,6 +267,37 @@ resource "aws_api_gateway_stage" "test" {
     one = "1"
     three = "3"
   }
+  tags {
+    Name = "tf-test"
+    ExtraName = "tf-test"
+  }
 }
 `
+}
+
+func testAccAWSAPIGatewayStageConfig_accessLogSettings(rName string, format string) string {
+	return testAccAWSAPIGatewayStageConfig_base(rName) + fmt.Sprintf(`
+resource "aws_cloudwatch_log_group" "test" {
+  name = "foo-bar-%s"
+}
+
+resource "aws_api_gateway_stage" "test" {
+  rest_api_id = "${aws_api_gateway_rest_api.test.id}"
+  stage_name = "prod"
+  deployment_id = "${aws_api_gateway_deployment.dev.id}"
+  cache_cluster_enabled = true
+  cache_cluster_size = "0.5"
+  variables {
+    one = "1"
+    two = "2"
+  }
+  tags {
+    Name = "tf-test"
+	}
+  access_log_settings {
+    destination_arn = "${aws_cloudwatch_log_group.test.arn}"
+    format = %q
+  }
+}
+`, rName, format)
 }

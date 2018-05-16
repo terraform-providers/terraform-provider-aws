@@ -1,7 +1,9 @@
 package aws
 
 import (
+	"fmt"
 	"log"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cognitoidentityprovider"
@@ -18,7 +20,7 @@ func resourceAwsCognitoUserPoolClient() *schema.Resource {
 		Delete: resourceAwsCognitoUserPoolClientDelete,
 
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			State: resourceAwsCognitoUserPoolClientImport,
 		},
 
 		// https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_CreateUserPoolClient.html
@@ -78,7 +80,7 @@ func resourceAwsCognitoUserPoolClient() *schema.Resource {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Default:      30,
-				ValidateFunc: validateIntegerInRange(0, 3650),
+				ValidateFunc: validation.IntBetween(0, 3650),
 			},
 
 			"allowed_oauth_flows": {
@@ -103,8 +105,13 @@ func resourceAwsCognitoUserPoolClient() *schema.Resource {
 			"allowed_oauth_scopes": {
 				Type:     schema.TypeSet,
 				Optional: true,
+				MaxItems: 25,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
+					// https://docs.aws.amazon.com/cognito/latest/developerguide/authorization-endpoint.html
+					// System reserved scopes are openid, email, phone, profile, and aws.cognito.signin.user.admin.
+					// https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_CreateUserPoolClient.html#CognitoUserPools-CreateUserPoolClient-request-AllowedOAuthScopes
+					// Constraints seem like to be designed for custom scopes which are not supported yet?
 				},
 			},
 
@@ -292,7 +299,7 @@ func resourceAwsCognitoUserPoolClientUpdate(d *schema.ResourceData, meta interfa
 	}
 
 	if d.HasChange("callback_urls") {
-		params.ReadAttributes = expandStringList(d.Get("callback_urls").([]interface{}))
+		params.CallbackURLs = expandStringList(d.Get("callback_urls").([]interface{}))
 	}
 
 	if d.HasChange("default_redirect_uri") {
@@ -334,4 +341,17 @@ func resourceAwsCognitoUserPoolClientDelete(d *schema.ResourceData, meta interfa
 	}
 
 	return nil
+}
+
+func resourceAwsCognitoUserPoolClientImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	if len(strings.Split(d.Id(), "/")) != 2 || len(d.Id()) < 3 {
+		return []*schema.ResourceData{}, fmt.Errorf("[ERR] Wrong format of resource: %s. Please follow 'user-pool-id/client-id'", d.Id())
+	}
+	userPoolId := strings.Split(d.Id(), "/")[0]
+	clientId := strings.Split(d.Id(), "/")[1]
+	d.SetId(clientId)
+	d.Set("user_pool_id", userPoolId)
+	log.Printf("[DEBUG] Importing client %s for user pool %s", clientId, userPoolId)
+
+	return []*schema.ResourceData{d}, nil
 }

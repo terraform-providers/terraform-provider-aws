@@ -62,23 +62,24 @@ resource "aws_s3_bucket_object" "examplebucket_object" {
 
 ## Argument Reference
 
--> **Note:** If you specify `content_encoding` you are responsible for encoding the body appropriately (i.e. `source` and `content` both expect already encoded/compressed bytes)
+-> **Note:** If you specify `content_encoding` you are responsible for encoding the body appropriately. `source`, `content`, and `content_base64` all expect already encoded/compressed bytes.
 
 The following arguments are supported:
 
 * `bucket` - (Required) The name of the bucket to put the file in.
 * `key` - (Required) The name of the object once it is in the bucket.
-* `source` - (Required) The path to the source file being uploaded to the bucket.
-* `content` - (Required unless `source` given) The literal content being uploaded to the bucket.
+* `source` - (Required unless `content` or `content_base64` is set) The path to a file that will be read and uploaded as raw bytes for the object content.
+* `content` - (Required unless `source` or `content_base64` is set) Literal string value to use as the object content, which will be uploaded as UTF-8-encoded text.
+* `content_base64` - (Required unless `source` or `content` is set) Base64-encoded data that will be decoded and uploaded as raw bytes for the object content. This allows safely uploading non-UTF8 binary data, but is recommended only for small content such as the result of the `gzipbase64` function with small text strings. For larger objects, use `source` to stream the content from a disk file.
 * `acl` - (Optional) The [canned ACL](https://docs.aws.amazon.com/AmazonS3/latest/dev/acl-overview.html#canned-acl) to apply. Defaults to "private".
 * `cache_control` - (Optional) Specifies caching behavior along the request/reply chain Read [w3c cache_control](http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9) for further details.
-* `content_disposition` - (Optional) Specifies presentational information for the object. Read [wc3 content_disposition](http://www.w3.org/Protocols/rfc2616/rfc2616-sec19.html#sec19.5.1) for further information.
+* `content_disposition` - (Optional) Specifies presentational information for the object. Read [w3c content_disposition](http://www.w3.org/Protocols/rfc2616/rfc2616-sec19.html#sec19.5.1) for further information.
 * `content_encoding` - (Optional) Specifies what content encodings have been applied to the object and thus what decoding mechanisms must be applied to obtain the media-type referenced by the Content-Type header field. Read [w3c content encoding](http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.11) for further information.
 * `content_language` - (Optional) The language the content is in e.g. en-US or en-GB.
 * `content_type` - (Optional) A standard MIME type describing the format of the object data, e.g. application/octet-stream. All Valid MIME Types are valid for this input.
 * `website_redirect` - (Optional) Specifies a target URL for [website redirect](http://docs.aws.amazon.com/AmazonS3/latest/dev/how-to-page-redirect.html).
 * `storage_class` - (Optional) Specifies the desired [Storage Class](http://docs.aws.amazon.com/AmazonS3/latest/dev/storage-class-intro.html)
-for the object. Can be either "`STANDARD`", "`REDUCED_REDUNDANCY`", or "`STANDARD_IA`". Defaults to "`STANDARD`".
+for the object. Can be either "`STANDARD`", "`REDUCED_REDUNDANCY`", "`ONEZONE_IA`", or "`STANDARD_IA`". Defaults to "`STANDARD`".
 * `etag` - (Optional) Used to trigger updates. The only meaningful value is `${md5(file("path/to/file"))}`.
 This attribute is not compatible with `kms_key_id`.
 * `server_side_encryption` - (Optional) Specifies server-side encryption of the object in S3. Valid values are "`AES256`" and "`aws:kms`".

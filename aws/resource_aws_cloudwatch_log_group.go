@@ -267,8 +267,6 @@ func resourceAwsCloudWatchLogGroupDelete(d *schema.ResourceData, meta interface{
 	}
 	log.Println("[INFO] CloudWatch Log Group deleted")
 
-	d.SetId("")
-
 	return nil
 }
 

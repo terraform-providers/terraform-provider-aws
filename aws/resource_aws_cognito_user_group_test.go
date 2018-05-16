@@ -75,6 +75,33 @@ func TestAccAWSCognitoUserGroup_complex(t *testing.T) {
 	})
 }
 
+func TestAccAWSCognitoUserGroup_RoleArn(t *testing.T) {
+	rName := acctest.RandomWithPrefix("tf-acc")
+	resourceName := "aws_cognito_user_group.main"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSCognitoUserGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSCognitoUserGroupConfig_RoleArn(rName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSCognitoUserGroupExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "role_arn"),
+				),
+			},
+			{
+				Config: testAccAWSCognitoUserGroupConfig_RoleArn_Updated(rName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSCognitoUserGroupExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "role_arn"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAWSCognitoUserGroup_importBasic(t *testing.T) {
 	resourceName := "aws_cognito_user_group.main"
 	poolName := fmt.Sprintf("tf-acc-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
@@ -217,4 +244,70 @@ resource "aws_cognito_user_group" "main" {
   role_arn     = "${aws_iam_role.group_role.arn}"
 }
 `, poolName, groupName, groupName, groupDescription, precedence)
+}
+
+func testAccAWSCognitoUserGroupConfig_RoleArn(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_cognito_user_pool" "main" {
+  name = "%[1]s"
+}
+
+resource "aws_iam_role" "group_role" {
+  name = "%[1]s"
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "",
+      "Effect": "Allow",
+      "Principal": {
+        "Federated": "cognito-identity.amazonaws.com"
+      },
+      "Action": "sts:AssumeRoleWithWebIdentity"
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_cognito_user_group" "main" {
+  name         = "%[1]s"
+  user_pool_id = "${aws_cognito_user_pool.main.id}"
+  role_arn     = "${aws_iam_role.group_role.arn}"
+}
+`, rName)
+}
+
+func testAccAWSCognitoUserGroupConfig_RoleArn_Updated(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_cognito_user_pool" "main" {
+  name = "%[1]s"
+}
+
+resource "aws_iam_role" "group_role_updated" {
+  name = "%[1]s-updated"
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "",
+      "Effect": "Allow",
+      "Principal": {
+        "Federated": "cognito-identity.amazonaws.com"
+      },
+      "Action": "sts:AssumeRoleWithWebIdentity"
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_cognito_user_group" "main" {
+  name         = "%[1]s"
+  user_pool_id = "${aws_cognito_user_pool.main.id}"
+  role_arn     = "${aws_iam_role.group_role_updated.arn}"
+}
+`, rName)
 }

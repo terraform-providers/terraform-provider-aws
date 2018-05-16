@@ -2,7 +2,9 @@ package aws
 
 import (
 	"fmt"
+	"log"
 	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -12,6 +14,63 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 )
+
+func init() {
+	resource.AddTestSweepers("aws_elasticsearch_domain", &resource.Sweeper{
+		Name: "aws_elasticsearch_domain",
+		F:    testSweepElasticSearchDomains,
+	})
+}
+
+func testSweepElasticSearchDomains(region string) error {
+	client, err := sharedClientForRegion(region)
+	if err != nil {
+		return fmt.Errorf("error getting client: %s", err)
+	}
+	conn := client.(*AWSClient).esconn
+
+	prefixes := []string{
+		"tf-test-",
+		"tf-acc-test-",
+	}
+
+	out, err := conn.ListDomainNames(&elasticsearch.ListDomainNamesInput{})
+	if err != nil {
+		if testSweepSkipSweepError(err) {
+			log.Printf("[WARN] Skipping Elasticsearch Domain sweep for %s: %s", region, err)
+			return nil
+		}
+		return fmt.Errorf("Error retrieving Elasticsearch Domains: %s", err)
+	}
+	for _, domain := range out.DomainNames {
+		skip := true
+		for _, prefix := range prefixes {
+			if strings.HasPrefix(*domain.DomainName, prefix) {
+				skip = false
+				break
+			}
+		}
+		if skip {
+			log.Printf("[INFO] Skipping Elasticsearch Domain: %s", *domain.DomainName)
+			continue
+		}
+		log.Printf("[INFO] Deleting Elasticsearch Domain: %s", *domain.DomainName)
+
+		_, err := conn.DeleteElasticsearchDomain(&elasticsearch.DeleteElasticsearchDomainInput{
+			DomainName: domain.DomainName,
+		})
+		if err != nil {
+			log.Printf("[ERROR] Failed to delete Elasticsearch Domain %s: %s", *domain.DomainName, err)
+			continue
+		}
+		err = resourceAwsElasticSearchDomainDeleteWaiter(*domain.DomainName, conn)
+		if err != nil {
+			log.Printf("[ERROR] Failed to wait for deletion of Elasticsearch Domain %s: %s", *domain.DomainName, err)
+		}
+	}
+
+	return nil
+}
 
 func TestAccAWSElasticSearchDomain_basic(t *testing.T) {
 	var domain elasticsearch.ElasticsearchDomainStatus
@@ -669,12 +728,18 @@ resource "aws_subnet" "first" {
   vpc_id            = "${aws_vpc.elasticsearch_in_vpc.id}"
   availability_zone = "${data.aws_availability_zones.available.names[0]}"
   cidr_block        = "192.168.0.0/24"
+  tags {
+    Name = "tf-acc-elasticsearch-domain-in-vpc-first"
+  }
 }
 
 resource "aws_subnet" "second" {
   vpc_id            = "${aws_vpc.elasticsearch_in_vpc.id}"
   availability_zone = "${data.aws_availability_zones.available.names[1]}"
   cidr_block        = "192.168.1.0/24"
+  tags {
+    Name = "tf-acc-elasticsearch-domain-in-vpc-second"
+  }
 }
 
 resource "aws_security_group" "first" {
@@ -732,24 +797,36 @@ resource "aws_subnet" "az1_first" {
   vpc_id            = "${aws_vpc.elasticsearch_in_vpc.id}"
   availability_zone = "${data.aws_availability_zones.available.names[0]}"
   cidr_block        = "192.168.0.0/24"
+  tags {
+    Name = "tf-acc-elasticsearch-domain-in-vpc-update-az1-first"
+  }
 }
 
 resource "aws_subnet" "az2_first" {
   vpc_id            = "${aws_vpc.elasticsearch_in_vpc.id}"
   availability_zone = "${data.aws_availability_zones.available.names[1]}"
   cidr_block        = "192.168.1.0/24"
+  tags {
+    Name = "tf-acc-elasticsearch-domain-in-vpc-update-az2-first"
+  }
 }
 
 resource "aws_subnet" "az1_second" {
   vpc_id            = "${aws_vpc.elasticsearch_in_vpc.id}"
   availability_zone = "${data.aws_availability_zones.available.names[0]}"
   cidr_block        = "192.168.2.0/24"
+  tags {
+    Name = "tf-acc-elasticsearch-domain-in-vpc-update-az1-second"
+  }
 }
 
 resource "aws_subnet" "az2_second" {
   vpc_id            = "${aws_vpc.elasticsearch_in_vpc.id}"
   availability_zone = "${data.aws_availability_zones.available.names[1]}"
   cidr_block        = "192.168.3.0/24"
+  tags {
+    Name = "tf-acc-elasticsearch-domain-in-vpc-update-az2-second"
+  }
 }
 
 resource "aws_security_group" "first" {
@@ -798,12 +875,18 @@ resource "aws_subnet" "first" {
   vpc_id            = "${aws_vpc.elasticsearch_in_vpc.id}"
   availability_zone = "${data.aws_availability_zones.available.names[0]}"
   cidr_block        = "192.168.0.0/24"
+  tags {
+    Name = "tf-acc-elasticsearch-domain-internet-to-vpc-endpoint-first"
+  }
 }
 
 resource "aws_subnet" "second" {
   vpc_id            = "${aws_vpc.elasticsearch_in_vpc.id}"
   availability_zone = "${data.aws_availability_zones.available.names[1]}"
   cidr_block        = "192.168.1.0/24"
+  tags {
+    Name = "tf-acc-elasticsearch-domain-internet-to-vpc-endpoint-second"
+  }
 }
 
 resource "aws_security_group" "first" {

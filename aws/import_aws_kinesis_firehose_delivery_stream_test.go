@@ -2,6 +2,7 @@ package aws
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
@@ -32,6 +33,19 @@ func TestAccAWSKinesisFirehoseDeliveryStream_importBasic(t *testing.T) {
 				ResourceName:      resName,
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+			// Ensure we properly error on malformed import IDs
+			{
+				ResourceName:  resName,
+				ImportState:   true,
+				ImportStateId: "just-a-name",
+				ExpectError:   regexp.MustCompile(`Expected ID in format`),
+			},
+			{
+				ResourceName:  resName,
+				ImportState:   true,
+				ImportStateId: "arn:aws:firehose:us-east-1:123456789012:missing-slash",
+				ExpectError:   regexp.MustCompile(`Expected ID in format`),
 			},
 		},
 	})

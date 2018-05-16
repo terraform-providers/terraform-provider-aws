@@ -80,7 +80,7 @@ resource "aws_subnet" "tf_test_subnet" {
   map_public_ip_on_launch = true
 
   tags {
-    Name = "tf-rt-import-test"
+    Name = "tf-acc-route-table-import-complex-default"
   }
 }
 
@@ -93,7 +93,7 @@ resource "aws_internet_gateway" "gw" {
   vpc_id = "${aws_vpc.default.id}"
 
   tags {
-    Name = "tf-rt-import-test"
+    Name = "terraform-testacc-route-table-import-complex-default"
   }
 }
 
@@ -105,6 +105,10 @@ resource "aws_nat_gateway" "nat" {
   count         = "${length(split(",", var.private_subnet_cidrs))}"
   allocation_id = "${element(aws_eip.nat.*.id, count.index)}"
   subnet_id     = "${aws_subnet.tf_test_subnet.id}"
+
+  tags {
+    Name = "terraform-testacc-route-table-import-complex-default"
+  }
 }
 
 resource "aws_route_table" "mod" {
@@ -150,7 +154,7 @@ resource "aws_internet_gateway" "ogw" {
   vpc_id = "${aws_vpc.bar.id}"
 
   tags {
-    Name = "tf-rt-import-test"
+    Name = "terraform-testacc-route-table-import-complex-bar"
   }
 }
 

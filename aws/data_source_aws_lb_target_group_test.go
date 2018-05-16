@@ -189,7 +189,7 @@ resource "aws_subnet" "alb_test" {
   availability_zone       = "${element(data.aws_availability_zones.available.names, count.index)}"
 
   tags {
-    TestName = "TestAccDataSourceAWSALBTargetGroup_basic"
+    Name = "tf-acc-lb-data-source-target-group-basic"
   }
 }
 
@@ -297,7 +297,7 @@ resource "aws_subnet" "alb_test" {
   availability_zone       = "${element(data.aws_availability_zones.available.names, count.index)}"
 
   tags {
-    TestName = "TestAccDataSourceAWSALBTargetGroup_basic"
+    Name = "tf-acc-lb-data-source-target-group-bc"
   }
 }
 

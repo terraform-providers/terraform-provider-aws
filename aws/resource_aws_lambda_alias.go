@@ -34,6 +34,7 @@ func resourceAwsLambdaAlias() *schema.Resource {
 			"name": &schema.Schema{
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 			"arn": &schema.Schema{
 				Type:     schema.TypeString,
@@ -117,8 +118,6 @@ func resourceAwsLambdaAliasDelete(d *schema.ResourceData, meta interface{}) erro
 	if err != nil {
 		return fmt.Errorf("Error deleting Lambda alias: %s", err)
 	}
-
-	d.SetId("")
 
 	return nil
 }

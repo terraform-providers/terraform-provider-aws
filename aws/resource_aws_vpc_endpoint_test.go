@@ -304,6 +304,9 @@ resource "aws_vpc" "foo" {
 resource "aws_subnet" "foo" {
   vpc_id = "${aws_vpc.foo.id}"
   cidr_block = "10.0.1.0/24"
+  tags {
+    Name = "tf-acc-vpc-endpoint-gw-w-route-table-and-policy"
+  }
 }
 
 resource "aws_vpc_endpoint" "s3" {
@@ -345,6 +348,9 @@ resource "aws_vpc" "foo" {
 resource "aws_subnet" "foo" {
   vpc_id = "${aws_vpc.foo.id}"
   cidr_block = "10.0.1.0/24"
+  tags {
+    Name = "tf-acc-vpc-endpoint-gw-w-route-table-and-policy"
+  }
 }
 
 resource "aws_vpc_endpoint" "s3" {
@@ -422,12 +428,18 @@ resource "aws_subnet" "sn1" {
   vpc_id = "${aws_vpc.foo.id}"
   cidr_block = "10.0.0.0/17"
   availability_zone = "us-west-2a"
+  tags {
+    Name = "tf-acc-vpc-endpoint-iface-w-subnet-1"
+  }
 }
 
 resource "aws_subnet" "sn2" {
   vpc_id = "${aws_vpc.foo.id}"
   cidr_block = "10.0.128.0/17"
   availability_zone = "us-west-2b"
+  tags {
+    Name = "tf-acc-vpc-endpoint-iface-w-subnet-2"
+  }
 }
 
 resource "aws_security_group" "sg1" {
@@ -462,12 +474,18 @@ resource "aws_subnet" "sn1" {
   vpc_id = "${aws_vpc.foo.id}"
   cidr_block = "10.0.0.0/17"
   availability_zone = "us-west-2a"
+  tags {
+    Name = "tf-acc-vpc-endpoint-iface-w-subnet-1"
+  }
 }
 
 resource "aws_subnet" "sn2" {
   vpc_id = "${aws_vpc.foo.id}"
   cidr_block = "10.0.128.0/17"
   availability_zone = "us-west-2b"
+  tags {
+    Name = "tf-acc-vpc-endpoint-iface-w-subnet-2"
+  }
 }
 
 resource "aws_security_group" "sg1" {
@@ -522,7 +540,7 @@ resource "aws_subnet" "nlb_test_1" {
   availability_zone = "us-west-2a"
 
   tags {
-    Name = "testAccVpcEndpointServiceBasicConfig_subnet1"
+    Name = "tf-acc-vpc-endpoint-iface-non-aws-svc-1"
   }
 }
 
@@ -532,7 +550,7 @@ resource "aws_subnet" "nlb_test_2" {
   availability_zone = "us-west-2b"
 
   tags {
-    Name = "testAccVpcEndpointServiceBasicConfig_subnet2"
+    Name = "tf-acc-vpc-endpoint-iface-non-aws-svc-2"
   }
 }
 

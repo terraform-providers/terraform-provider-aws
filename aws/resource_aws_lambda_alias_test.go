@@ -40,6 +40,44 @@ func TestAccAWSLambdaAlias_basic(t *testing.T) {
 	})
 }
 
+func TestAccAWSLambdaAlias_nameupdate(t *testing.T) {
+	var conf lambda.AliasConfiguration
+
+	rString := acctest.RandString(8)
+	roleName := fmt.Sprintf("tf_acc_role_lambda_alias_basic_%s", rString)
+	policyName := fmt.Sprintf("tf_acc_policy_lambda_alias_basic_%s", rString)
+	attachmentName := fmt.Sprintf("tf_acc_attachment_%s", rString)
+	funcName := fmt.Sprintf("tf_acc_lambda_func_alias_basic_%s", rString)
+	aliasName := fmt.Sprintf("tf_acc_lambda_alias_basic_%s", rString)
+	aliasNameUpdate := fmt.Sprintf("tf_acc_lambda_alias_basic_%s", acctest.RandString(8))
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAwsLambdaAliasDestroy,
+		Steps: []resource.TestStep{
+			resource.TestStep{
+				Config: testAccAwsLambdaAliasConfig(roleName, policyName, attachmentName, funcName, aliasName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsLambdaAliasExists("aws_lambda_alias.lambda_alias_test", &conf),
+					testAccCheckAwsLambdaAttributes(&conf),
+					resource.TestMatchResourceAttr("aws_lambda_alias.lambda_alias_test", "arn",
+						regexp.MustCompile(`^arn:aws:lambda:[a-z]+-[a-z]+-[0-9]+:\d{12}:function:`+funcName+`:`+aliasName+`$`)),
+				),
+			},
+			resource.TestStep{
+				Config: testAccAwsLambdaAliasConfig(roleName, policyName, attachmentName, funcName, aliasNameUpdate),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsLambdaAliasExists("aws_lambda_alias.lambda_alias_test", &conf),
+					testAccCheckAwsLambdaAttributes(&conf),
+					resource.TestMatchResourceAttr("aws_lambda_alias.lambda_alias_test", "arn",
+						regexp.MustCompile(`^arn:aws:lambda:[a-z]+-[a-z]+-[0-9]+:\d{12}:function:`+funcName+`:`+aliasNameUpdate+`$`)),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckAwsLambdaAliasDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*AWSClient).lambdaconn
 

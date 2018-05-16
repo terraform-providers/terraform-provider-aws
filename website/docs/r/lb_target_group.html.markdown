@@ -37,6 +37,7 @@ The following arguments are supported:
 * `protocol` - (Required) The protocol to use for routing traffic to the targets.
 * `vpc_id` - (Required) The identifier of the VPC in which to create the target group.
 * `deregistration_delay` - (Optional) The amount time for Elastic Load Balancing to wait before changing the state of a deregistering target from draining to unused. The range is 0-3600 seconds. The default value is 300 seconds.
+* `proxy_protocol_v2` - (Optional) Boolean to enable / disable support for proxy protocol v2 on Network Load Balancers. See [doc](https://docs.aws.amazon.com/elasticloadbalancing/latest/network/load-balancer-target-groups.html#proxy-protocol) for more information.
 * `stickiness` - (Optional) A Stickiness block. Stickiness blocks are documented below. `stickiness` is only valid if used with Load Balancers of type `Application`
 * `health_check` - (Optional) A Health Check block. Health Check blocks are documented below.
 * `target_type` - (Optional) The type of target that you must specify when registering targets with this target group.
@@ -52,6 +53,8 @@ Stickiness Blocks (`stickiness`) support the following:
 * `type` - (Required) The type of sticky sessions. The only current possible value is `lb_cookie`.
 * `cookie_duration` - (Optional) The time period, in seconds, during which requests from a client should be routed to the same target. After this time period expires, the load balancer-generated cookie is considered stale. The range is 1 second to 1 week (604800 seconds). The default value is 1 day (86400 seconds).
 * `enabled` - (Optional) Boolean to enable / disable `stickiness`. Default is `true`
+
+~> **NOTE:** To help facilitate the authoring of modules that support target groups of any protocol, you can define `stickiness` regardless of the protocol chosen. However, for `TCP` target groups, `enabled` must be `false`.
 
 Health Check Blocks (`health_check`):
 

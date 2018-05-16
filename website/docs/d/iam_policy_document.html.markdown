@@ -147,6 +147,16 @@ uses `${...}`-style syntax that is in conflict with Terraform's interpolation
 syntax, so this data source instead uses `&{...}` syntax for interpolations that
 should be processed by AWS rather than by Terraform.
 
+## Wildcard Principal
+
+In order to define wildcard principal (a.k.a. anonymous user) use `type = "*"` and
+`identifiers = ["*"]`. In that case the rendered json will contain `"Principal": "*"`.
+Note, that even though the [IAM Documentation](https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_principal.html)
+states that `"Principal": "*"` and `"Principal": {"AWS": "*"}` are equivalent,
+those principals have different behavior for IAM Role Trust Policy. Therefore
+Terraform will normalize the principal field only in above-mentioned case and principals
+like `type = "AWS"` and `identifiers = ["*"]` will be rendered as `"Principal": {"AWS": "*"}`.
+
 ## Attributes Reference
 
 The following attribute is exported:

@@ -26,7 +26,7 @@ ingress and egress rules in the Security Group**. It then proceeds to create any
 configuration. This step is required so that only the rules specified in the
 configuration are created.
 
-This resource treats it's inline rules as absolute; only the rules defined
+This resource treats its inline rules as absolute; only the rules defined
 inline are created, and any additions/removals external to this resource will
 result in diff shown. For these reasons, this resource is incompatible with the
 `aws_security_group_rule` resource.
@@ -98,7 +98,7 @@ removed. The following arguments are still supported:
       egress rule. Each egress block supports fields documented below.
 * `vpc_id` - (Optional, Forces new resource) The VPC ID. **Note that changing
 the `vpc_id` will _not_ restore any default security group rules that were
-modified, added, or removed.** It will be left in it's current state
+modified, added, or removed.** It will be left in its current state
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 

@@ -389,7 +389,7 @@ resource "aws_subnet" "main" {
   cidr_block = "168.31.0.0/20"
 
   tags {
-    Name = "emr_test_%d"
+    Name = "tf-acc-appautoscaling-target-emr-cluster"
   }
 }
 
@@ -606,7 +606,7 @@ resource "aws_appautoscaling_target" "bar" {
 	max_capacity = 8
 }
 
-`, rInt, rInt, rInt, rInt, rInt, rInt, rInt, rInt, rInt)
+`, rInt, rInt, rInt, rInt, rInt, rInt, rInt, rInt)
 }
 
 var testAccAWSAppautoscalingTargetSpotFleetRequestConfig = fmt.Sprintf(`

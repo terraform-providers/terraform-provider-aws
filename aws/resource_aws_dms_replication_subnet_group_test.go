@@ -113,7 +113,7 @@ resource "aws_subnet" "dms_subnet_1" {
 	availability_zone = "us-west-2a"
 	vpc_id = "${aws_vpc.dms_vpc.id}"
 	tags {
-		Name = "tf-test-dms-subnet-%[1]s"
+		Name = "tf-acc-dms-replication-subnet-group-1"
 	}
 	depends_on = ["aws_vpc.dms_vpc"]
 }
@@ -123,7 +123,7 @@ resource "aws_subnet" "dms_subnet_2" {
 	availability_zone = "us-west-2b"
 	vpc_id = "${aws_vpc.dms_vpc.id}"
 	tags {
-		Name = "tf-test-dms-subnet-%[1]s"
+		Name = "tf-acc-dms-replication-subnet-group-2"
 	}
 	depends_on = ["aws_vpc.dms_vpc"]
 }
@@ -133,7 +133,7 @@ resource "aws_subnet" "dms_subnet_3" {
 	availability_zone = "us-west-2b"
 	vpc_id = "${aws_vpc.dms_vpc.id}"
 	tags {
-		Name = "tf-test-dms-subnet-%[1]s"
+		Name = "tf-acc-dms-replication-subnet-group-3"
 	}
 	depends_on = ["aws_vpc.dms_vpc"]
 }
@@ -165,7 +165,7 @@ resource "aws_subnet" "dms_subnet_1" {
 	availability_zone = "us-west-2a"
 	vpc_id = "${aws_vpc.dms_vpc.id}"
 	tags {
-		Name = "tf-test-dms-subnet-%[1]s"
+		Name = "tf-acc-dms-replication-subnet-group-1"
 	}
 	depends_on = ["aws_vpc.dms_vpc"]
 }
@@ -175,7 +175,7 @@ resource "aws_subnet" "dms_subnet_2" {
 	availability_zone = "us-west-2b"
 	vpc_id = "${aws_vpc.dms_vpc.id}"
 	tags {
-		Name = "tf-test-dms-subnet-%[1]s"
+		Name = "tf-acc-dms-replication-subnet-group-2"
 	}
 	depends_on = ["aws_vpc.dms_vpc"]
 }
@@ -185,7 +185,7 @@ resource "aws_subnet" "dms_subnet_3" {
 	availability_zone = "us-west-2b"
 	vpc_id = "${aws_vpc.dms_vpc.id}"
 	tags {
-		Name = "tf-test-dms-subnet-%[1]s"
+		Name = "tf-acc-dms-replication-subnet-group-3"
 	}
 	depends_on = ["aws_vpc.dms_vpc"]
 }

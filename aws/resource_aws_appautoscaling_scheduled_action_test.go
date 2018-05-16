@@ -288,6 +288,9 @@ resource "aws_vpc" "hoge" {
 resource "aws_subnet" "hoge" {
   vpc_id     = "${aws_vpc.hoge.id}"
   cidr_block = "168.31.0.0/20"
+  tags {
+    Name = "tf-acc-appautoscaling-scheduled-action"
+  }
 }
 
 resource "aws_internet_gateway" "hoge" {

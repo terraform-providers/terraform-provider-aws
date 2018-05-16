@@ -3,6 +3,8 @@
 package medialive
 
 import (
+	"fmt"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awsutil"
 	"github.com/aws/aws-sdk-go/aws/request"
@@ -12,7 +14,7 @@ const opCreateChannel = "CreateChannel"
 
 // CreateChannelRequest generates a "aws/request.Request" representing the
 // client's request for the CreateChannel operation. The "output" return
-// value will be populated with the request's response once the request complets
+// value will be populated with the request's response once the request completes
 // successfuly.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
@@ -104,7 +106,7 @@ const opCreateInput = "CreateInput"
 
 // CreateInputRequest generates a "aws/request.Request" representing the
 // client's request for the CreateInput operation. The "output" return
-// value will be populated with the request's response once the request complets
+// value will be populated with the request's response once the request completes
 // successfuly.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
@@ -192,7 +194,7 @@ const opCreateInputSecurityGroup = "CreateInputSecurityGroup"
 
 // CreateInputSecurityGroupRequest generates a "aws/request.Request" representing the
 // client's request for the CreateInputSecurityGroup operation. The "output" return
-// value will be populated with the request's response once the request complets
+// value will be populated with the request's response once the request completes
 // successfuly.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
@@ -280,7 +282,7 @@ const opDeleteChannel = "DeleteChannel"
 
 // DeleteChannelRequest generates a "aws/request.Request" representing the
 // client's request for the DeleteChannel operation. The "output" return
-// value will be populated with the request's response once the request complets
+// value will be populated with the request's response once the request completes
 // successfuly.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
@@ -372,7 +374,7 @@ const opDeleteInput = "DeleteInput"
 
 // DeleteInputRequest generates a "aws/request.Request" representing the
 // client's request for the DeleteInput operation. The "output" return
-// value will be populated with the request's response once the request complets
+// value will be populated with the request's response once the request completes
 // successfuly.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
@@ -464,7 +466,7 @@ const opDeleteInputSecurityGroup = "DeleteInputSecurityGroup"
 
 // DeleteInputSecurityGroupRequest generates a "aws/request.Request" representing the
 // client's request for the DeleteInputSecurityGroup operation. The "output" return
-// value will be populated with the request's response once the request complets
+// value will be populated with the request's response once the request completes
 // successfuly.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
@@ -554,7 +556,7 @@ const opDescribeChannel = "DescribeChannel"
 
 // DescribeChannelRequest generates a "aws/request.Request" representing the
 // client's request for the DescribeChannel operation. The "output" return
-// value will be populated with the request's response once the request complets
+// value will be populated with the request's response once the request completes
 // successfuly.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
@@ -644,7 +646,7 @@ const opDescribeInput = "DescribeInput"
 
 // DescribeInputRequest generates a "aws/request.Request" representing the
 // client's request for the DescribeInput operation. The "output" return
-// value will be populated with the request's response once the request complets
+// value will be populated with the request's response once the request completes
 // successfuly.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
@@ -734,7 +736,7 @@ const opDescribeInputSecurityGroup = "DescribeInputSecurityGroup"
 
 // DescribeInputSecurityGroupRequest generates a "aws/request.Request" representing the
 // client's request for the DescribeInputSecurityGroup operation. The "output" return
-// value will be populated with the request's response once the request complets
+// value will be populated with the request's response once the request completes
 // successfuly.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
@@ -824,7 +826,7 @@ const opListChannels = "ListChannels"
 
 // ListChannelsRequest generates a "aws/request.Request" representing the
 // client's request for the ListChannels operation. The "output" return
-// value will be populated with the request's response once the request complets
+// value will be populated with the request's response once the request completes
 // successfuly.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
@@ -968,7 +970,7 @@ const opListInputSecurityGroups = "ListInputSecurityGroups"
 
 // ListInputSecurityGroupsRequest generates a "aws/request.Request" representing the
 // client's request for the ListInputSecurityGroups operation. The "output" return
-// value will be populated with the request's response once the request complets
+// value will be populated with the request's response once the request completes
 // successfuly.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
@@ -1112,7 +1114,7 @@ const opListInputs = "ListInputs"
 
 // ListInputsRequest generates a "aws/request.Request" representing the
 // client's request for the ListInputs operation. The "output" return
-// value will be populated with the request's response once the request complets
+// value will be populated with the request's response once the request completes
 // successfuly.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
@@ -1256,7 +1258,7 @@ const opStartChannel = "StartChannel"
 
 // StartChannelRequest generates a "aws/request.Request" representing the
 // client's request for the StartChannel operation. The "output" return
-// value will be populated with the request's response once the request complets
+// value will be populated with the request's response once the request completes
 // successfuly.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
@@ -1348,7 +1350,7 @@ const opStopChannel = "StopChannel"
 
 // StopChannelRequest generates a "aws/request.Request" representing the
 // client's request for the StopChannel operation. The "output" return
-// value will be populated with the request's response once the request complets
+// value will be populated with the request's response once the request completes
 // successfuly.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
@@ -1440,7 +1442,7 @@ const opUpdateChannel = "UpdateChannel"
 
 // UpdateChannelRequest generates a "aws/request.Request" representing the
 // client's request for the UpdateChannel operation. The "output" return
-// value will be populated with the request's response once the request complets
+// value will be populated with the request's response once the request completes
 // successfuly.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
@@ -1521,6 +1523,186 @@ func (c *MediaLive) UpdateChannel(input *UpdateChannelInput) (*UpdateChannelOutp
 // for more information on using Contexts.
 func (c *MediaLive) UpdateChannelWithContext(ctx aws.Context, input *UpdateChannelInput, opts ...request.Option) (*UpdateChannelOutput, error) {
 	req, out := c.UpdateChannelRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opUpdateInput = "UpdateInput"
+
+// UpdateInputRequest generates a "aws/request.Request" representing the
+// client's request for the UpdateInput operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfuly.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See UpdateInput for more information on using the UpdateInput
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the UpdateInputRequest method.
+//    req, resp := client.UpdateInputRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/medialive-2017-10-14/UpdateInput
+func (c *MediaLive) UpdateInputRequest(input *UpdateInputInput) (req *request.Request, output *UpdateInputOutput) {
+	op := &request.Operation{
+		Name:       opUpdateInput,
+		HTTPMethod: "PUT",
+		HTTPPath:   "/prod/inputs/{inputId}",
+	}
+
+	if input == nil {
+		input = &UpdateInputInput{}
+	}
+
+	output = &UpdateInputOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// UpdateInput API operation for AWS Elemental MediaLive.
+//
+// Updates an input.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Elemental MediaLive's
+// API operation UpdateInput for usage and error information.
+//
+// Returned Error Codes:
+//   * ErrCodeBadRequestException "BadRequestException"
+//
+//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//
+//   * ErrCodeForbiddenException "ForbiddenException"
+//
+//   * ErrCodeBadGatewayException "BadGatewayException"
+//
+//   * ErrCodeNotFoundException "NotFoundException"
+//
+//   * ErrCodeGatewayTimeoutException "GatewayTimeoutException"
+//
+//   * ErrCodeConflictException "ConflictException"
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/medialive-2017-10-14/UpdateInput
+func (c *MediaLive) UpdateInput(input *UpdateInputInput) (*UpdateInputOutput, error) {
+	req, out := c.UpdateInputRequest(input)
+	return out, req.Send()
+}
+
+// UpdateInputWithContext is the same as UpdateInput with the addition of
+// the ability to pass a context and additional request options.
+//
+// See UpdateInput for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *MediaLive) UpdateInputWithContext(ctx aws.Context, input *UpdateInputInput, opts ...request.Option) (*UpdateInputOutput, error) {
+	req, out := c.UpdateInputRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opUpdateInputSecurityGroup = "UpdateInputSecurityGroup"
+
+// UpdateInputSecurityGroupRequest generates a "aws/request.Request" representing the
+// client's request for the UpdateInputSecurityGroup operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfuly.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See UpdateInputSecurityGroup for more information on using the UpdateInputSecurityGroup
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the UpdateInputSecurityGroupRequest method.
+//    req, resp := client.UpdateInputSecurityGroupRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/medialive-2017-10-14/UpdateInputSecurityGroup
+func (c *MediaLive) UpdateInputSecurityGroupRequest(input *UpdateInputSecurityGroupInput) (req *request.Request, output *UpdateInputSecurityGroupOutput) {
+	op := &request.Operation{
+		Name:       opUpdateInputSecurityGroup,
+		HTTPMethod: "PUT",
+		HTTPPath:   "/prod/inputSecurityGroups/{inputSecurityGroupId}",
+	}
+
+	if input == nil {
+		input = &UpdateInputSecurityGroupInput{}
+	}
+
+	output = &UpdateInputSecurityGroupOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// UpdateInputSecurityGroup API operation for AWS Elemental MediaLive.
+//
+// Update an Input Security Group's Whilelists.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Elemental MediaLive's
+// API operation UpdateInputSecurityGroup for usage and error information.
+//
+// Returned Error Codes:
+//   * ErrCodeBadRequestException "BadRequestException"
+//
+//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//
+//   * ErrCodeForbiddenException "ForbiddenException"
+//
+//   * ErrCodeBadGatewayException "BadGatewayException"
+//
+//   * ErrCodeNotFoundException "NotFoundException"
+//
+//   * ErrCodeGatewayTimeoutException "GatewayTimeoutException"
+//
+//   * ErrCodeConflictException "ConflictException"
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/medialive-2017-10-14/UpdateInputSecurityGroup
+func (c *MediaLive) UpdateInputSecurityGroup(input *UpdateInputSecurityGroupInput) (*UpdateInputSecurityGroupOutput, error) {
+	req, out := c.UpdateInputSecurityGroupRequest(input)
+	return out, req.Send()
+}
+
+// UpdateInputSecurityGroupWithContext is the same as UpdateInputSecurityGroup with the addition of
+// the ability to pass a context and additional request options.
+//
+// See UpdateInputSecurityGroup for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *MediaLive) UpdateInputSecurityGroupWithContext(ctx aws.Context, input *UpdateInputSecurityGroupInput, opts ...request.Option) (*UpdateInputSecurityGroupOutput, error) {
+	req, out := c.UpdateInputSecurityGroupRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -1648,7 +1830,7 @@ type Ac3Settings struct {
 
 	// Sets the dialnorm for the output. If excluded and input audio is Dolby Digital,
 	// dialnorm will be passed through.
-	Dialnorm *int64 `locationName:"dialnorm" type:"integer"`
+	Dialnorm *int64 `locationName:"dialnorm" min:"1" type:"integer"`
 
 	// If set to filmStandard, adds dynamic range compression signaling to the output
 	// bitstream as defined in the Dolby Digital specification.
@@ -1672,6 +1854,19 @@ func (s Ac3Settings) String() string {
 // GoString returns the string representation
 func (s Ac3Settings) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *Ac3Settings) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "Ac3Settings"}
+	if s.Dialnorm != nil && *s.Dialnorm < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("Dialnorm", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // SetBitrate sets the Bitrate field's value.
@@ -1732,6 +1927,21 @@ func (s ArchiveContainerSettings) GoString() string {
 	return s.String()
 }
 
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ArchiveContainerSettings) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ArchiveContainerSettings"}
+	if s.M2tsSettings != nil {
+		if err := s.M2tsSettings.Validate(); err != nil {
+			invalidParams.AddNested("M2tsSettings", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
 // SetM2tsSettings sets the M2tsSettings field's value.
 func (s *ArchiveContainerSettings) SetM2tsSettings(v *M2tsSettings) *ArchiveContainerSettings {
 	s.M2tsSettings = v
@@ -1744,11 +1954,13 @@ type ArchiveGroupSettings struct {
 	// A directory and base filename where archive files should be written. If the
 	// base filename portion of the URI is left blank, the base filename of the
 	// first input will be automatically inserted.
-	Destination *OutputLocationRef `locationName:"destination" type:"structure"`
+	//
+	// Destination is a required field
+	Destination *OutputLocationRef `locationName:"destination" type:"structure" required:"true"`
 
 	// Number of seconds to write to archive file before closing and starting a
 	// new one.
-	RolloverInterval *int64 `locationName:"rolloverInterval" type:"integer"`
+	RolloverInterval *int64 `locationName:"rolloverInterval" min:"1" type:"integer"`
 }
 
 // String returns the string representation
@@ -1759,6 +1971,22 @@ func (s ArchiveGroupSettings) String() string {
 // GoString returns the string representation
 func (s ArchiveGroupSettings) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ArchiveGroupSettings) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ArchiveGroupSettings"}
+	if s.Destination == nil {
+		invalidParams.Add(request.NewErrParamRequired("Destination"))
+	}
+	if s.RolloverInterval != nil && *s.RolloverInterval < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("RolloverInterval", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // SetDestination sets the Destination field's value.
@@ -1777,7 +2005,9 @@ type ArchiveOutputSettings struct {
 	_ struct{} `type:"structure"`
 
 	// Settings specific to the container type of the file.
-	ContainerSettings *ArchiveContainerSettings `locationName:"containerSettings" type:"structure"`
+	//
+	// ContainerSettings is a required field
+	ContainerSettings *ArchiveContainerSettings `locationName:"containerSettings" type:"structure" required:"true"`
 
 	// Output file extension. If excluded, this will be auto-selected from the container
 	// type.
@@ -1796,6 +2026,24 @@ func (s ArchiveOutputSettings) String() string {
 // GoString returns the string representation
 func (s ArchiveOutputSettings) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ArchiveOutputSettings) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ArchiveOutputSettings"}
+	if s.ContainerSettings == nil {
+		invalidParams.Add(request.NewErrParamRequired("ContainerSettings"))
+	}
+	if s.ContainerSettings != nil {
+		if err := s.ContainerSettings.Validate(); err != nil {
+			invalidParams.AddNested("ContainerSettings", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // SetContainerSettings sets the ContainerSettings field's value.
@@ -1849,10 +2097,14 @@ type AudioChannelMapping struct {
 
 	// Indices and gain values for each input channel that should be remixed into
 	// this output channel.
-	InputChannelLevels []*InputChannelLevel `locationName:"inputChannelLevels" type:"list"`
+	//
+	// InputChannelLevels is a required field
+	InputChannelLevels []*InputChannelLevel `locationName:"inputChannelLevels" type:"list" required:"true"`
 
 	// The index of the output channel being produced.
-	OutputChannel *int64 `locationName:"outputChannel" type:"integer"`
+	//
+	// OutputChannel is a required field
+	OutputChannel *int64 `locationName:"outputChannel" type:"integer" required:"true"`
 }
 
 // String returns the string representation
@@ -1863,6 +2115,32 @@ func (s AudioChannelMapping) String() string {
 // GoString returns the string representation
 func (s AudioChannelMapping) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *AudioChannelMapping) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "AudioChannelMapping"}
+	if s.InputChannelLevels == nil {
+		invalidParams.Add(request.NewErrParamRequired("InputChannelLevels"))
+	}
+	if s.OutputChannel == nil {
+		invalidParams.Add(request.NewErrParamRequired("OutputChannel"))
+	}
+	if s.InputChannelLevels != nil {
+		for i, v := range s.InputChannelLevels {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "InputChannelLevels", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // SetInputChannelLevels sets the InputChannelLevels field's value.
@@ -1899,6 +2177,26 @@ func (s AudioCodecSettings) String() string {
 // GoString returns the string representation
 func (s AudioCodecSettings) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *AudioCodecSettings) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "AudioCodecSettings"}
+	if s.Ac3Settings != nil {
+		if err := s.Ac3Settings.Validate(); err != nil {
+			invalidParams.AddNested("Ac3Settings", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.Eac3Settings != nil {
+		if err := s.Eac3Settings.Validate(); err != nil {
+			invalidParams.AddNested("Eac3Settings", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // SetAacSettings sets the AacSettings field's value.
@@ -1938,7 +2236,9 @@ type AudioDescription struct {
 	AudioNormalizationSettings *AudioNormalizationSettings `locationName:"audioNormalizationSettings" type:"structure"`
 
 	// The name of the AudioSelector used as the source for this AudioDescription.
-	AudioSelectorName *string `locationName:"audioSelectorName" type:"string"`
+	//
+	// AudioSelectorName is a required field
+	AudioSelectorName *string `locationName:"audioSelectorName" type:"string" required:"true"`
 
 	// Applies only if audioTypeControl is useConfigured. The values for audioType
 	// are defined in ISO-IEC 13818-1.
@@ -1957,7 +2257,7 @@ type AudioDescription struct {
 
 	// Indicates the language of the audio output track. Only used if languageControlMode
 	// is useConfigured, or there is no ISO 639 language code specified in the input.
-	LanguageCode *string `locationName:"languageCode" type:"string"`
+	LanguageCode *string `locationName:"languageCode" min:"3" type:"string"`
 
 	// Choosing followInput will cause the ISO 639 language code of the output to
 	// follow the ISO 639 language code of the input. The languageCode will be used
@@ -1968,7 +2268,9 @@ type AudioDescription struct {
 	// The name of this AudioDescription. Outputs will use this name to uniquely
 	// identify this AudioDescription. Description names should be unique within
 	// this Live Event.
-	Name *string `locationName:"name" type:"string"`
+	//
+	// Name is a required field
+	Name *string `locationName:"name" type:"string" required:"true"`
 
 	// Settings that control how input audio channels are remixed into the output
 	// audio channels.
@@ -1987,6 +2289,35 @@ func (s AudioDescription) String() string {
 // GoString returns the string representation
 func (s AudioDescription) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *AudioDescription) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "AudioDescription"}
+	if s.AudioSelectorName == nil {
+		invalidParams.Add(request.NewErrParamRequired("AudioSelectorName"))
+	}
+	if s.LanguageCode != nil && len(*s.LanguageCode) < 3 {
+		invalidParams.Add(request.NewErrParamMinLen("LanguageCode", 3))
+	}
+	if s.Name == nil {
+		invalidParams.Add(request.NewErrParamRequired("Name"))
+	}
+	if s.CodecSettings != nil {
+		if err := s.CodecSettings.Validate(); err != nil {
+			invalidParams.AddNested("CodecSettings", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.RemixSettings != nil {
+		if err := s.RemixSettings.Validate(); err != nil {
+			invalidParams.AddNested("RemixSettings", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // SetAudioNormalizationSettings sets the AudioNormalizationSettings field's value.
@@ -2053,7 +2384,9 @@ type AudioLanguageSelection struct {
 	_ struct{} `type:"structure"`
 
 	// Selects a specific three-letter language code from within an audio source.
-	LanguageCode *string `locationName:"languageCode" type:"string"`
+	//
+	// LanguageCode is a required field
+	LanguageCode *string `locationName:"languageCode" type:"string" required:"true"`
 
 	// When set to "strict", the transport stream demux strictly identifies audio
 	// streams by their language descriptor. If a PMT update occurs such that an
@@ -2072,6 +2405,19 @@ func (s AudioLanguageSelection) String() string {
 // GoString returns the string representation
 func (s AudioLanguageSelection) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *AudioLanguageSelection) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "AudioLanguageSelection"}
+	if s.LanguageCode == nil {
+		invalidParams.Add(request.NewErrParamRequired("LanguageCode"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // SetLanguageCode sets the LanguageCode field's value.
@@ -2171,6 +2517,21 @@ func (s AudioOnlyHlsSettings) GoString() string {
 	return s.String()
 }
 
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *AudioOnlyHlsSettings) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "AudioOnlyHlsSettings"}
+	if s.AudioOnlyImage != nil {
+		if err := s.AudioOnlyImage.Validate(); err != nil {
+			invalidParams.AddNested("AudioOnlyImage", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
 // SetAudioGroupId sets the AudioGroupId field's value.
 func (s *AudioOnlyHlsSettings) SetAudioGroupId(v string) *AudioOnlyHlsSettings {
 	s.AudioGroupId = &v
@@ -2193,7 +2554,9 @@ type AudioPidSelection struct {
 	_ struct{} `type:"structure"`
 
 	// Selects a specific PID from within a source.
-	Pid *int64 `locationName:"pid" type:"integer"`
+	//
+	// Pid is a required field
+	Pid *int64 `locationName:"pid" type:"integer" required:"true"`
 }
 
 // String returns the string representation
@@ -2204,6 +2567,19 @@ func (s AudioPidSelection) String() string {
 // GoString returns the string representation
 func (s AudioPidSelection) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *AudioPidSelection) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "AudioPidSelection"}
+	if s.Pid == nil {
+		invalidParams.Add(request.NewErrParamRequired("Pid"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // SetPid sets the Pid field's value.
@@ -2217,7 +2593,9 @@ type AudioSelector struct {
 
 	// The name of this AudioSelector. AudioDescriptions will use this name to uniquely
 	// identify this Selector. Selector names should be unique per input.
-	Name *string `locationName:"name" type:"string"`
+	//
+	// Name is a required field
+	Name *string `locationName:"name" type:"string" required:"true"`
 
 	// The audio selector settings.
 	SelectorSettings *AudioSelectorSettings `locationName:"selectorSettings" type:"structure"`
@@ -2231,6 +2609,24 @@ func (s AudioSelector) String() string {
 // GoString returns the string representation
 func (s AudioSelector) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *AudioSelector) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "AudioSelector"}
+	if s.Name == nil {
+		invalidParams.Add(request.NewErrParamRequired("Name"))
+	}
+	if s.SelectorSettings != nil {
+		if err := s.SelectorSettings.Validate(); err != nil {
+			invalidParams.AddNested("SelectorSettings", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // SetName sets the Name field's value.
@@ -2261,6 +2657,26 @@ func (s AudioSelectorSettings) String() string {
 // GoString returns the string representation
 func (s AudioSelectorSettings) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *AudioSelectorSettings) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "AudioSelectorSettings"}
+	if s.AudioLanguageSelection != nil {
+		if err := s.AudioLanguageSelection.Validate(); err != nil {
+			invalidParams.AddNested("AudioLanguageSelection", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.AudioPidSelection != nil {
+		if err := s.AudioPidSelection.Validate(); err != nil {
+			invalidParams.AddNested("AudioPidSelection", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // SetAudioLanguageSelection sets the AudioLanguageSelection field's value.
@@ -2297,6 +2713,21 @@ func (s AvailBlanking) GoString() string {
 	return s.String()
 }
 
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *AvailBlanking) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "AvailBlanking"}
+	if s.AvailBlankingImage != nil {
+		if err := s.AvailBlankingImage.Validate(); err != nil {
+			invalidParams.AddNested("AvailBlankingImage", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
 // SetAvailBlankingImage sets the AvailBlankingImage field's value.
 func (s *AvailBlanking) SetAvailBlankingImage(v *InputLocation) *AvailBlanking {
 	s.AvailBlankingImage = v
@@ -2326,6 +2757,21 @@ func (s AvailConfiguration) GoString() string {
 	return s.String()
 }
 
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *AvailConfiguration) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "AvailConfiguration"}
+	if s.AvailSettings != nil {
+		if err := s.AvailSettings.Validate(); err != nil {
+			invalidParams.AddNested("AvailSettings", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
 // SetAvailSettings sets the AvailSettings field's value.
 func (s *AvailConfiguration) SetAvailSettings(v *AvailSettings) *AvailConfiguration {
 	s.AvailSettings = v
@@ -2348,6 +2794,26 @@ func (s AvailSettings) String() string {
 // GoString returns the string representation
 func (s AvailSettings) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *AvailSettings) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "AvailSettings"}
+	if s.Scte35SpliceInsert != nil {
+		if err := s.Scte35SpliceInsert.Validate(); err != nil {
+			invalidParams.AddNested("Scte35SpliceInsert", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.Scte35TimeSignalApos != nil {
+		if err := s.Scte35TimeSignalApos.Validate(); err != nil {
+			invalidParams.AddNested("Scte35TimeSignalApos", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // SetScte35SpliceInsert sets the Scte35SpliceInsert field's value.
@@ -2382,7 +2848,7 @@ type BlackoutSlate struct {
 	NetworkEndBlackoutImage *InputLocation `locationName:"networkEndBlackoutImage" type:"structure"`
 
 	// Provides Network ID that matches EIDR ID format (e.g., "10.XXXX/XXXX-XXXX-XXXX-XXXX-XXXX-C").
-	NetworkId *string `locationName:"networkId" type:"string"`
+	NetworkId *string `locationName:"networkId" min:"34" type:"string"`
 
 	// When set to enabled, causes video, audio and captions to be blanked when
 	// indicated by program metadata.
@@ -2397,6 +2863,29 @@ func (s BlackoutSlate) String() string {
 // GoString returns the string representation
 func (s BlackoutSlate) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *BlackoutSlate) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "BlackoutSlate"}
+	if s.NetworkId != nil && len(*s.NetworkId) < 34 {
+		invalidParams.Add(request.NewErrParamMinLen("NetworkId", 34))
+	}
+	if s.BlackoutSlateImage != nil {
+		if err := s.BlackoutSlateImage.Validate(); err != nil {
+			invalidParams.AddNested("BlackoutSlateImage", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.NetworkEndBlackoutImage != nil {
+		if err := s.NetworkEndBlackoutImage.Validate(); err != nil {
+			invalidParams.AddNested("NetworkEndBlackoutImage", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // SetBlackoutSlateImage sets the BlackoutSlateImage field's value.
@@ -2469,7 +2958,7 @@ type BurnInDestinationSettings struct {
 
 	// Font resolution in DPI (dots per inch); default is 96 dpi. All burn-in and
 	// DVB-Sub font settings must match.
-	FontResolution *int64 `locationName:"fontResolution" type:"integer"`
+	FontResolution *int64 `locationName:"fontResolution" min:"96" type:"integer"`
 
 	// When set to 'auto' fontSize will scale depending on the size of the output.
 	// Giving a positive integer will specify the exact font size in points. All
@@ -2534,6 +3023,24 @@ func (s BurnInDestinationSettings) String() string {
 // GoString returns the string representation
 func (s BurnInDestinationSettings) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *BurnInDestinationSettings) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "BurnInDestinationSettings"}
+	if s.FontResolution != nil && *s.FontResolution < 96 {
+		invalidParams.Add(request.NewErrParamMinValue("FontResolution", 96))
+	}
+	if s.Font != nil {
+		if err := s.Font.Validate(); err != nil {
+			invalidParams.AddNested("Font", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // SetAlignment sets the Alignment field's value.
@@ -2645,7 +3152,9 @@ type CaptionDescription struct {
 
 	// Specifies which input caption selector to use as a caption source when generating
 	// output captions. This field should match a captionSelector name.
-	CaptionSelectorName *string `locationName:"captionSelectorName" type:"string"`
+	//
+	// CaptionSelectorName is a required field
+	CaptionSelectorName *string `locationName:"captionSelectorName" type:"string" required:"true"`
 
 	// Additional settings for captions destination that depend on the destination
 	// type.
@@ -2660,7 +3169,9 @@ type CaptionDescription struct {
 
 	// Name of the caption description. Used to associate a caption description
 	// with an output. Names must be unique within an event.
-	Name *string `locationName:"name" type:"string"`
+	//
+	// Name is a required field
+	Name *string `locationName:"name" type:"string" required:"true"`
 }
 
 // String returns the string representation
@@ -2671,6 +3182,27 @@ func (s CaptionDescription) String() string {
 // GoString returns the string representation
 func (s CaptionDescription) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *CaptionDescription) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "CaptionDescription"}
+	if s.CaptionSelectorName == nil {
+		invalidParams.Add(request.NewErrParamRequired("CaptionSelectorName"))
+	}
+	if s.Name == nil {
+		invalidParams.Add(request.NewErrParamRequired("Name"))
+	}
+	if s.DestinationSettings != nil {
+		if err := s.DestinationSettings.Validate(); err != nil {
+			invalidParams.AddNested("DestinationSettings", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // SetCaptionSelectorName sets the CaptionSelectorName field's value.
@@ -2716,6 +3248,8 @@ type CaptionDestinationSettings struct {
 
 	EmbeddedPlusScte20DestinationSettings *EmbeddedPlusScte20DestinationSettings `locationName:"embeddedPlusScte20DestinationSettings" type:"structure"`
 
+	RtmpCaptionInfoDestinationSettings *RtmpCaptionInfoDestinationSettings `locationName:"rtmpCaptionInfoDestinationSettings" type:"structure"`
+
 	Scte20PlusEmbeddedDestinationSettings *Scte20PlusEmbeddedDestinationSettings `locationName:"scte20PlusEmbeddedDestinationSettings" type:"structure"`
 
 	Scte27DestinationSettings *Scte27DestinationSettings `locationName:"scte27DestinationSettings" type:"structure"`
@@ -2737,6 +3271,26 @@ func (s CaptionDestinationSettings) String() string {
 // GoString returns the string representation
 func (s CaptionDestinationSettings) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *CaptionDestinationSettings) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "CaptionDestinationSettings"}
+	if s.BurnInDestinationSettings != nil {
+		if err := s.BurnInDestinationSettings.Validate(); err != nil {
+			invalidParams.AddNested("BurnInDestinationSettings", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.DvbSubDestinationSettings != nil {
+		if err := s.DvbSubDestinationSettings.Validate(); err != nil {
+			invalidParams.AddNested("DvbSubDestinationSettings", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // SetAribDestinationSettings sets the AribDestinationSettings field's value.
@@ -2766,6 +3320,12 @@ func (s *CaptionDestinationSettings) SetEmbeddedDestinationSettings(v *EmbeddedD
 // SetEmbeddedPlusScte20DestinationSettings sets the EmbeddedPlusScte20DestinationSettings field's value.
 func (s *CaptionDestinationSettings) SetEmbeddedPlusScte20DestinationSettings(v *EmbeddedPlusScte20DestinationSettings) *CaptionDestinationSettings {
 	s.EmbeddedPlusScte20DestinationSettings = v
+	return s
+}
+
+// SetRtmpCaptionInfoDestinationSettings sets the RtmpCaptionInfoDestinationSettings field's value.
+func (s *CaptionDestinationSettings) SetRtmpCaptionInfoDestinationSettings(v *RtmpCaptionInfoDestinationSettings) *CaptionDestinationSettings {
+	s.RtmpCaptionInfoDestinationSettings = v
 	return s
 }
 
@@ -2812,13 +3372,19 @@ type CaptionLanguageMapping struct {
 
 	// The closed caption channel being described by this CaptionLanguageMapping.
 	// Each channel mapping must have a unique channel number (maximum of 4)
-	CaptionChannel *int64 `locationName:"captionChannel" type:"integer"`
+	//
+	// CaptionChannel is a required field
+	CaptionChannel *int64 `locationName:"captionChannel" min:"1" type:"integer" required:"true"`
 
 	// Three character ISO 639-2 language code (see http://www.loc.gov/standards/iso639-2)
-	LanguageCode *string `locationName:"languageCode" type:"string"`
+	//
+	// LanguageCode is a required field
+	LanguageCode *string `locationName:"languageCode" min:"3" type:"string" required:"true"`
 
 	// Textual description of language
-	LanguageDescription *string `locationName:"languageDescription" type:"string"`
+	//
+	// LanguageDescription is a required field
+	LanguageDescription *string `locationName:"languageDescription" min:"1" type:"string" required:"true"`
 }
 
 // String returns the string representation
@@ -2829,6 +3395,34 @@ func (s CaptionLanguageMapping) String() string {
 // GoString returns the string representation
 func (s CaptionLanguageMapping) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *CaptionLanguageMapping) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "CaptionLanguageMapping"}
+	if s.CaptionChannel == nil {
+		invalidParams.Add(request.NewErrParamRequired("CaptionChannel"))
+	}
+	if s.CaptionChannel != nil && *s.CaptionChannel < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("CaptionChannel", 1))
+	}
+	if s.LanguageCode == nil {
+		invalidParams.Add(request.NewErrParamRequired("LanguageCode"))
+	}
+	if s.LanguageCode != nil && len(*s.LanguageCode) < 3 {
+		invalidParams.Add(request.NewErrParamMinLen("LanguageCode", 3))
+	}
+	if s.LanguageDescription == nil {
+		invalidParams.Add(request.NewErrParamRequired("LanguageDescription"))
+	}
+	if s.LanguageDescription != nil && len(*s.LanguageDescription) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("LanguageDescription", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // SetCaptionChannel sets the CaptionChannel field's value.
@@ -2861,7 +3455,9 @@ type CaptionSelector struct {
 	// Name identifier for a caption selector. This name is used to associate this
 	// caption selector with one or more caption descriptions. Names must be unique
 	// within an event.
-	Name *string `locationName:"name" type:"string"`
+	//
+	// Name is a required field
+	Name *string `locationName:"name" type:"string" required:"true"`
 
 	// Caption selector settings.
 	SelectorSettings *CaptionSelectorSettings `locationName:"selectorSettings" type:"structure"`
@@ -2875,6 +3471,24 @@ func (s CaptionSelector) String() string {
 // GoString returns the string representation
 func (s CaptionSelector) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *CaptionSelector) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "CaptionSelector"}
+	if s.Name == nil {
+		invalidParams.Add(request.NewErrParamRequired("Name"))
+	}
+	if s.SelectorSettings != nil {
+		if err := s.SelectorSettings.Validate(); err != nil {
+			invalidParams.AddNested("SelectorSettings", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // SetLanguageCode sets the LanguageCode field's value.
@@ -2919,6 +3533,36 @@ func (s CaptionSelectorSettings) String() string {
 // GoString returns the string representation
 func (s CaptionSelectorSettings) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *CaptionSelectorSettings) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "CaptionSelectorSettings"}
+	if s.DvbSubSourceSettings != nil {
+		if err := s.DvbSubSourceSettings.Validate(); err != nil {
+			invalidParams.AddNested("DvbSubSourceSettings", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.EmbeddedSourceSettings != nil {
+		if err := s.EmbeddedSourceSettings.Validate(); err != nil {
+			invalidParams.AddNested("EmbeddedSourceSettings", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.Scte20SourceSettings != nil {
+		if err := s.Scte20SourceSettings.Validate(); err != nil {
+			invalidParams.AddNested("Scte20SourceSettings", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.Scte27SourceSettings != nil {
+		if err := s.Scte27SourceSettings.Validate(); err != nil {
+			invalidParams.AddNested("Scte27SourceSettings", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // SetAribSourceSettings sets the AribSourceSettings field's value.
@@ -3224,6 +3868,31 @@ func (s CreateChannelInput) String() string {
 // GoString returns the string representation
 func (s CreateChannelInput) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *CreateChannelInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "CreateChannelInput"}
+	if s.EncoderSettings != nil {
+		if err := s.EncoderSettings.Validate(); err != nil {
+			invalidParams.AddNested("EncoderSettings", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.InputAttachments != nil {
+		for i, v := range s.InputAttachments {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "InputAttachments", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // SetDestinations sets the Destinations field's value.
@@ -3966,6 +4635,10 @@ type DescribeInputSecurityGroupOutput struct {
 
 	Id *string `locationName:"id" type:"string"`
 
+	Inputs []*string `locationName:"inputs" type:"list"`
+
+	State *string `locationName:"state" type:"string" enum:"InputSecurityGroupState"`
+
 	WhitelistRules []*InputWhitelistRule `locationName:"whitelistRules" type:"list"`
 }
 
@@ -3991,6 +4664,18 @@ func (s *DescribeInputSecurityGroupOutput) SetId(v string) *DescribeInputSecurit
 	return s
 }
 
+// SetInputs sets the Inputs field's value.
+func (s *DescribeInputSecurityGroupOutput) SetInputs(v []*string) *DescribeInputSecurityGroupOutput {
+	s.Inputs = v
+	return s
+}
+
+// SetState sets the State field's value.
+func (s *DescribeInputSecurityGroupOutput) SetState(v string) *DescribeInputSecurityGroupOutput {
+	s.State = &v
+	return s
+}
+
 // SetWhitelistRules sets the WhitelistRules field's value.
 func (s *DescribeInputSecurityGroupOutput) SetWhitelistRules(v []*InputWhitelistRule) *DescribeInputSecurityGroupOutput {
 	s.WhitelistRules = v
@@ -4002,15 +4687,19 @@ type DvbNitSettings struct {
 	_ struct{} `type:"structure"`
 
 	// The numeric value placed in the Network Information Table (NIT).
-	NetworkId *int64 `locationName:"networkId" type:"integer"`
+	//
+	// NetworkId is a required field
+	NetworkId *int64 `locationName:"networkId" type:"integer" required:"true"`
 
 	// The network name text placed in the networkNameDescriptor inside the Network
 	// Information Table. Maximum length is 256 characters.
-	NetworkName *string `locationName:"networkName" type:"string"`
+	//
+	// NetworkName is a required field
+	NetworkName *string `locationName:"networkName" min:"1" type:"string" required:"true"`
 
 	// The number of milliseconds between instances of this table in the output
 	// transport stream.
-	RepInterval *int64 `locationName:"repInterval" type:"integer"`
+	RepInterval *int64 `locationName:"repInterval" min:"25" type:"integer"`
 }
 
 // String returns the string representation
@@ -4021,6 +4710,28 @@ func (s DvbNitSettings) String() string {
 // GoString returns the string representation
 func (s DvbNitSettings) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DvbNitSettings) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DvbNitSettings"}
+	if s.NetworkId == nil {
+		invalidParams.Add(request.NewErrParamRequired("NetworkId"))
+	}
+	if s.NetworkName == nil {
+		invalidParams.Add(request.NewErrParamRequired("NetworkName"))
+	}
+	if s.NetworkName != nil && len(*s.NetworkName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("NetworkName", 1))
+	}
+	if s.RepInterval != nil && *s.RepInterval < 25 {
+		invalidParams.Add(request.NewErrParamMinValue("RepInterval", 25))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // SetNetworkId sets the NetworkId field's value.
@@ -4055,15 +4766,15 @@ type DvbSdtSettings struct {
 
 	// The number of milliseconds between instances of this table in the output
 	// transport stream.
-	RepInterval *int64 `locationName:"repInterval" type:"integer"`
+	RepInterval *int64 `locationName:"repInterval" min:"25" type:"integer"`
 
 	// The service name placed in the serviceDescriptor in the Service Description
 	// Table. Maximum length is 256 characters.
-	ServiceName *string `locationName:"serviceName" type:"string"`
+	ServiceName *string `locationName:"serviceName" min:"1" type:"string"`
 
 	// The service provider name placed in the serviceDescriptor in the Service
 	// Description Table. Maximum length is 256 characters.
-	ServiceProviderName *string `locationName:"serviceProviderName" type:"string"`
+	ServiceProviderName *string `locationName:"serviceProviderName" min:"1" type:"string"`
 }
 
 // String returns the string representation
@@ -4074,6 +4785,25 @@ func (s DvbSdtSettings) String() string {
 // GoString returns the string representation
 func (s DvbSdtSettings) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DvbSdtSettings) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DvbSdtSettings"}
+	if s.RepInterval != nil && *s.RepInterval < 25 {
+		invalidParams.Add(request.NewErrParamMinValue("RepInterval", 25))
+	}
+	if s.ServiceName != nil && len(*s.ServiceName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ServiceName", 1))
+	}
+	if s.ServiceProviderName != nil && len(*s.ServiceProviderName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ServiceProviderName", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // SetOutputSdt sets the OutputSdt field's value.
@@ -4142,7 +4872,7 @@ type DvbSubDestinationSettings struct {
 
 	// Font resolution in DPI (dots per inch); default is 96 dpi. All burn-in and
 	// DVB-Sub font settings must match.
-	FontResolution *int64 `locationName:"fontResolution" type:"integer"`
+	FontResolution *int64 `locationName:"fontResolution" min:"96" type:"integer"`
 
 	// When set to auto fontSize will scale depending on the size of the output.
 	// Giving a positive integer will specify the exact font size in points. All
@@ -4211,6 +4941,24 @@ func (s DvbSubDestinationSettings) String() string {
 // GoString returns the string representation
 func (s DvbSubDestinationSettings) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DvbSubDestinationSettings) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DvbSubDestinationSettings"}
+	if s.FontResolution != nil && *s.FontResolution < 96 {
+		invalidParams.Add(request.NewErrParamMinValue("FontResolution", 96))
+	}
+	if s.Font != nil {
+		if err := s.Font.Validate(); err != nil {
+			invalidParams.AddNested("Font", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // SetAlignment sets the Alignment field's value.
@@ -4321,7 +5069,7 @@ type DvbSubSourceSettings struct {
 	// When using DVB-Sub with Burn-In or SMPTE-TT, use this PID for the source
 	// content. Unused for DVB-Sub passthrough. All DVB-Sub content is passed through,
 	// regardless of selectors.
-	Pid *int64 `locationName:"pid" type:"integer"`
+	Pid *int64 `locationName:"pid" min:"1" type:"integer"`
 }
 
 // String returns the string representation
@@ -4332,6 +5080,19 @@ func (s DvbSubSourceSettings) String() string {
 // GoString returns the string representation
 func (s DvbSubSourceSettings) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DvbSubSourceSettings) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DvbSubSourceSettings"}
+	if s.Pid != nil && *s.Pid < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("Pid", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // SetPid sets the Pid field's value.
@@ -4346,7 +5107,7 @@ type DvbTdtSettings struct {
 
 	// The number of milliseconds between instances of this table in the output
 	// transport stream.
-	RepInterval *int64 `locationName:"repInterval" type:"integer"`
+	RepInterval *int64 `locationName:"repInterval" min:"1000" type:"integer"`
 }
 
 // String returns the string representation
@@ -4357,6 +5118,19 @@ func (s DvbTdtSettings) String() string {
 // GoString returns the string representation
 func (s DvbTdtSettings) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DvbTdtSettings) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DvbTdtSettings"}
+	if s.RepInterval != nil && *s.RepInterval < 1000 {
+		invalidParams.Add(request.NewErrParamMinValue("RepInterval", 1000))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // SetRepInterval sets the RepInterval field's value.
@@ -4387,7 +5161,7 @@ type Eac3Settings struct {
 
 	// Sets the dialnorm for the output. If blank and input audio is Dolby Digital
 	// Plus, dialnorm will be passed through.
-	Dialnorm *int64 `locationName:"dialnorm" type:"integer"`
+	Dialnorm *int64 `locationName:"dialnorm" min:"1" type:"integer"`
 
 	// Sets the Dolby dynamic range compression profile.
 	DrcLine *string `locationName:"drcLine" type:"string" enum:"Eac3DrcLine"`
@@ -4450,6 +5224,19 @@ func (s Eac3Settings) String() string {
 // GoString returns the string representation
 func (s Eac3Settings) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *Eac3Settings) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "Eac3Settings"}
+	if s.Dialnorm != nil && *s.Dialnorm < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("Dialnorm", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // SetAttenuationControl sets the AttenuationControl field's value.
@@ -4614,10 +5401,10 @@ type EmbeddedSourceSettings struct {
 
 	// Specifies the 608/708 channel number within the video track from which to
 	// extract captions. Unused for passthrough.
-	Source608ChannelNumber *int64 `locationName:"source608ChannelNumber" type:"integer"`
+	Source608ChannelNumber *int64 `locationName:"source608ChannelNumber" min:"1" type:"integer"`
 
 	// This field is unused and deprecated.
-	Source608TrackNumber *int64 `locationName:"source608TrackNumber" type:"integer"`
+	Source608TrackNumber *int64 `locationName:"source608TrackNumber" min:"1" type:"integer"`
 }
 
 // String returns the string representation
@@ -4628,6 +5415,22 @@ func (s EmbeddedSourceSettings) String() string {
 // GoString returns the string representation
 func (s EmbeddedSourceSettings) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *EmbeddedSourceSettings) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "EmbeddedSourceSettings"}
+	if s.Source608ChannelNumber != nil && *s.Source608ChannelNumber < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("Source608ChannelNumber", 1))
+	}
+	if s.Source608TrackNumber != nil && *s.Source608TrackNumber < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("Source608TrackNumber", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // SetConvert608To708 sets the Convert608To708 field's value.
@@ -4657,7 +5460,8 @@ func (s *EmbeddedSourceSettings) SetSource608TrackNumber(v int64) *EmbeddedSourc
 type EncoderSettings struct {
 	_ struct{} `type:"structure"`
 
-	AudioDescriptions []*AudioDescription `locationName:"audioDescriptions" type:"list"`
+	// AudioDescriptions is a required field
+	AudioDescriptions []*AudioDescription `locationName:"audioDescriptions" type:"list" required:"true"`
 
 	// Settings for ad avail blanking.
 	AvailBlanking *AvailBlanking `locationName:"availBlanking" type:"structure"`
@@ -4674,12 +5478,16 @@ type EncoderSettings struct {
 	// Configuration settings that apply to the event as a whole.
 	GlobalConfiguration *GlobalConfiguration `locationName:"globalConfiguration" type:"structure"`
 
-	OutputGroups []*OutputGroup `locationName:"outputGroups" type:"list"`
+	// OutputGroups is a required field
+	OutputGroups []*OutputGroup `locationName:"outputGroups" type:"list" required:"true"`
 
 	// Contains settings used to acquire and adjust timecode information from inputs.
-	TimecodeConfig *TimecodeConfig `locationName:"timecodeConfig" type:"structure"`
+	//
+	// TimecodeConfig is a required field
+	TimecodeConfig *TimecodeConfig `locationName:"timecodeConfig" type:"structure" required:"true"`
 
-	VideoDescriptions []*VideoDescription `locationName:"videoDescriptions" type:"list"`
+	// VideoDescriptions is a required field
+	VideoDescriptions []*VideoDescription `locationName:"videoDescriptions" type:"list" required:"true"`
 }
 
 // String returns the string representation
@@ -4690,6 +5498,93 @@ func (s EncoderSettings) String() string {
 // GoString returns the string representation
 func (s EncoderSettings) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *EncoderSettings) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "EncoderSettings"}
+	if s.AudioDescriptions == nil {
+		invalidParams.Add(request.NewErrParamRequired("AudioDescriptions"))
+	}
+	if s.OutputGroups == nil {
+		invalidParams.Add(request.NewErrParamRequired("OutputGroups"))
+	}
+	if s.TimecodeConfig == nil {
+		invalidParams.Add(request.NewErrParamRequired("TimecodeConfig"))
+	}
+	if s.VideoDescriptions == nil {
+		invalidParams.Add(request.NewErrParamRequired("VideoDescriptions"))
+	}
+	if s.AudioDescriptions != nil {
+		for i, v := range s.AudioDescriptions {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "AudioDescriptions", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+	if s.AvailBlanking != nil {
+		if err := s.AvailBlanking.Validate(); err != nil {
+			invalidParams.AddNested("AvailBlanking", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.AvailConfiguration != nil {
+		if err := s.AvailConfiguration.Validate(); err != nil {
+			invalidParams.AddNested("AvailConfiguration", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.BlackoutSlate != nil {
+		if err := s.BlackoutSlate.Validate(); err != nil {
+			invalidParams.AddNested("BlackoutSlate", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.CaptionDescriptions != nil {
+		for i, v := range s.CaptionDescriptions {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "CaptionDescriptions", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+	if s.GlobalConfiguration != nil {
+		if err := s.GlobalConfiguration.Validate(); err != nil {
+			invalidParams.AddNested("GlobalConfiguration", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.OutputGroups != nil {
+		for i, v := range s.OutputGroups {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "OutputGroups", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+	if s.TimecodeConfig != nil {
+		if err := s.TimecodeConfig.Validate(); err != nil {
+			invalidParams.AddNested("TimecodeConfig", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.VideoDescriptions != nil {
+		for i, v := range s.VideoDescriptions {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "VideoDescriptions", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // SetAudioDescriptions sets the AudioDescriptions field's value.
@@ -4752,7 +5647,7 @@ type FecOutputSettings struct {
 	// Parameter D from SMPTE 2022-1. The height of the FEC protection matrix. The
 	// number of transport stream packets per column error correction packet. Must
 	// be between 4 and 20, inclusive.
-	ColumnDepth *int64 `locationName:"columnDepth" type:"integer"`
+	ColumnDepth *int64 `locationName:"columnDepth" min:"4" type:"integer"`
 
 	// Enables column only or column and row based FEC
 	IncludeFec *string `locationName:"includeFec" type:"string" enum:"FecOutputIncludeFec"`
@@ -4763,7 +5658,7 @@ type FecOutputSettings struct {
 	// stream packets per row error correction packet, and the value must be between
 	// 4 and 20, inclusive, if includeFec is columnAndRow. If includeFec is column,
 	// this value must be 1 to 20, inclusive.
-	RowLength *int64 `locationName:"rowLength" type:"integer"`
+	RowLength *int64 `locationName:"rowLength" min:"1" type:"integer"`
 }
 
 // String returns the string representation
@@ -4774,6 +5669,22 @@ func (s FecOutputSettings) String() string {
 // GoString returns the string representation
 func (s FecOutputSettings) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *FecOutputSettings) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "FecOutputSettings"}
+	if s.ColumnDepth != nil && *s.ColumnDepth < 4 {
+		invalidParams.Add(request.NewErrParamMinValue("ColumnDepth", 4))
+	}
+	if s.RowLength != nil && *s.RowLength < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("RowLength", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // SetColumnDepth sets the ColumnDepth field's value.
@@ -4833,6 +5744,24 @@ func (s GlobalConfiguration) GoString() string {
 	return s.String()
 }
 
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *GlobalConfiguration) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "GlobalConfiguration"}
+	if s.InitialAudioGain != nil && *s.InitialAudioGain < -60 {
+		invalidParams.Add(request.NewErrParamMinValue("InitialAudioGain", -60))
+	}
+	if s.InputLossBehavior != nil {
+		if err := s.InputLossBehavior.Validate(); err != nil {
+			invalidParams.AddNested("InputLossBehavior", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
 // SetInitialAudioGain sets the InitialAudioGain field's value.
 func (s *GlobalConfiguration) SetInitialAudioGain(v int64) *GlobalConfiguration {
 	s.InitialAudioGain = &v
@@ -4879,7 +5808,7 @@ type H264Settings struct {
 	// Average bitrate in bits/second. Required for VBR, CBR, and ABR. For MS Smooth
 	// outputs, bitrates must be unique when rounded down to the nearest multiple
 	// of 1000.
-	Bitrate *int64 `locationName:"bitrate" type:"integer"`
+	Bitrate *int64 `locationName:"bitrate" min:"1000" type:"integer"`
 
 	// Percentage of the buffer that should initially be filled (HRD buffer model).
 	BufFillPct *int64 `locationName:"bufFillPct" type:"integer"`
@@ -4943,7 +5872,7 @@ type H264Settings struct {
 	LookAheadRateControl *string `locationName:"lookAheadRateControl" type:"string" enum:"H264LookAheadRateControl"`
 
 	// Maximum bitrate in bits/second (for VBR mode only).
-	MaxBitrate *int64 `locationName:"maxBitrate" type:"integer"`
+	MaxBitrate *int64 `locationName:"maxBitrate" min:"1000" type:"integer"`
 
 	// Only meaningful if sceneChangeDetect is set to enabled. Enforces separation
 	// between repeated (cadence) I-frames and I-frames inserted by Scene Change
@@ -4956,7 +5885,7 @@ type H264Settings struct {
 
 	// Number of reference frames to use. The encoder may use more than requested
 	// if using B-frames and/or interlaced encoding.
-	NumRefFrames *int64 `locationName:"numRefFrames" type:"integer"`
+	NumRefFrames *int64 `locationName:"numRefFrames" min:"1" type:"integer"`
 
 	// This field indicates how the output pixel aspect ratio is specified. If "specified"
 	// is selected then the output video pixel aspect ratio is determined by parNumerator
@@ -4966,7 +5895,7 @@ type H264Settings struct {
 	ParControl *string `locationName:"parControl" type:"string" enum:"H264ParControl"`
 
 	// Pixel Aspect Ratio denominator.
-	ParDenominator *int64 `locationName:"parDenominator" type:"integer"`
+	ParDenominator *int64 `locationName:"parDenominator" min:"1" type:"integer"`
 
 	// Pixel Aspect Ratio numerator.
 	ParNumerator *int64 `locationName:"parNumerator" type:"integer"`
@@ -4988,7 +5917,7 @@ type H264Settings struct {
 	// the number of macroblock rows for interlaced pictures.This field is optional;
 	// when no value is specified the encoder will choose the number of slices based
 	// on encode resolution.
-	Slices *int64 `locationName:"slices" type:"integer"`
+	Slices *int64 `locationName:"slices" min:"1" type:"integer"`
 
 	// Softness. Selects quantizer matrix, larger values reduce high-frequency content
 	// in the encoded image.
@@ -5019,6 +5948,31 @@ func (s H264Settings) String() string {
 // GoString returns the string representation
 func (s H264Settings) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *H264Settings) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "H264Settings"}
+	if s.Bitrate != nil && *s.Bitrate < 1000 {
+		invalidParams.Add(request.NewErrParamMinValue("Bitrate", 1000))
+	}
+	if s.MaxBitrate != nil && *s.MaxBitrate < 1000 {
+		invalidParams.Add(request.NewErrParamMinValue("MaxBitrate", 1000))
+	}
+	if s.NumRefFrames != nil && *s.NumRefFrames < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("NumRefFrames", 1))
+	}
+	if s.ParDenominator != nil && *s.ParDenominator < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("ParDenominator", 1))
+	}
+	if s.Slices != nil && *s.Slices < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("Slices", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // SetAdaptiveQuantization sets the AdaptiveQuantization field's value.
@@ -5454,11 +6408,13 @@ type HlsGroupSettings struct {
 	// For use with encryptionType. This is a 128-bit, 16-byte hex value represented
 	// by a 32-character text string. If ivSource is set to "explicit" then this
 	// parameter is required and is used as the IV for encryption.
-	ConstantIv *string `locationName:"constantIv" type:"string"`
+	ConstantIv *string `locationName:"constantIv" min:"32" type:"string"`
 
 	// A directory or HTTP destination for the HLS segments, manifest files, and
 	// encryption keys (if enabled).
-	Destination *OutputLocationRef `locationName:"destination" type:"structure"`
+	//
+	// Destination is a required field
+	Destination *OutputLocationRef `locationName:"destination" type:"structure" required:"true"`
 
 	// Place segments in subdirectories.
 	DirectoryStructure *string `locationName:"directoryStructure" type:"string" enum:"HlsDirectoryStructure"`
@@ -5473,7 +6429,7 @@ type HlsGroupSettings struct {
 	// If mode is "live", the number of segments to retain in the manifest (.m3u8)
 	// file. This number must be less than or equal to keepSegments. If mode is
 	// "vod", this parameter has no effect.
-	IndexNSegments *int64 `locationName:"indexNSegments" type:"integer"`
+	IndexNSegments *int64 `locationName:"indexNSegments" min:"3" type:"integer"`
 
 	// Parameter that control output group behavior on input loss.
 	InputLossAction *string `locationName:"inputLossAction" type:"string" enum:"InputLossActionForHlsOut"`
@@ -5492,7 +6448,7 @@ type HlsGroupSettings struct {
 
 	// If mode is "live", the number of TS segments to retain in the destination
 	// directory. If mode is "vod", this parameter has no effect.
-	KeepSegments *int64 `locationName:"keepSegments" type:"integer"`
+	KeepSegments *int64 `locationName:"keepSegments" min:"1" type:"integer"`
 
 	// The value specifies how the key is represented in the resource identified
 	// by the URI. If parameter is absent, an implicit value of "identity" is used.
@@ -5542,7 +6498,7 @@ type HlsGroupSettings struct {
 	// Length of MPEG-2 Transport Stream segments to create (in seconds). Note that
 	// segments will end on the next keyframe after this number of seconds, so actual
 	// segment length may be longer.
-	SegmentLength *int64 `locationName:"segmentLength" type:"integer"`
+	SegmentLength *int64 `locationName:"segmentLength" min:"1" type:"integer"`
 
 	// When set to useInputSegmentation, the output segment or fragment points are
 	// set by the RAI markers from the input streams.
@@ -5551,7 +6507,7 @@ type HlsGroupSettings struct {
 	// Number of segments to write to a subdirectory before starting a new one.
 	// directoryStructure must be subdirectoryPerStream for this setting to have
 	// an effect.
-	SegmentsPerSubdirectory *int64 `locationName:"segmentsPerSubdirectory" type:"integer"`
+	SegmentsPerSubdirectory *int64 `locationName:"segmentsPerSubdirectory" min:"1" type:"integer"`
 
 	// Include or exclude RESOLUTION attribute for video in EXT-X-STREAM-INF tag
 	// of variant manifest.
@@ -5580,6 +6536,49 @@ func (s HlsGroupSettings) String() string {
 // GoString returns the string representation
 func (s HlsGroupSettings) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *HlsGroupSettings) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "HlsGroupSettings"}
+	if s.ConstantIv != nil && len(*s.ConstantIv) < 32 {
+		invalidParams.Add(request.NewErrParamMinLen("ConstantIv", 32))
+	}
+	if s.Destination == nil {
+		invalidParams.Add(request.NewErrParamRequired("Destination"))
+	}
+	if s.IndexNSegments != nil && *s.IndexNSegments < 3 {
+		invalidParams.Add(request.NewErrParamMinValue("IndexNSegments", 3))
+	}
+	if s.KeepSegments != nil && *s.KeepSegments < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("KeepSegments", 1))
+	}
+	if s.SegmentLength != nil && *s.SegmentLength < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("SegmentLength", 1))
+	}
+	if s.SegmentsPerSubdirectory != nil && *s.SegmentsPerSubdirectory < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("SegmentsPerSubdirectory", 1))
+	}
+	if s.CaptionLanguageMappings != nil {
+		for i, v := range s.CaptionLanguageMappings {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "CaptionLanguageMappings", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+	if s.KeyProviderSettings != nil {
+		if err := s.KeyProviderSettings.Validate(); err != nil {
+			invalidParams.AddNested("KeyProviderSettings", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // SetAdMarkers sets the AdMarkers field's value.
@@ -5917,11 +6916,13 @@ type HlsOutputSettings struct {
 
 	// Settings regarding the underlying stream. These settings are different for
 	// audio-only outputs.
-	HlsSettings *HlsSettings `locationName:"hlsSettings" type:"structure"`
+	//
+	// HlsSettings is a required field
+	HlsSettings *HlsSettings `locationName:"hlsSettings" type:"structure" required:"true"`
 
 	// String concatenated to the end of the destination filename. Accepts \"Format
 	// Identifiers\":#formatIdentifierParameters.
-	NameModifier *string `locationName:"nameModifier" type:"string"`
+	NameModifier *string `locationName:"nameModifier" min:"1" type:"string"`
 
 	// String concatenated to end of segment filenames.
 	SegmentModifier *string `locationName:"segmentModifier" type:"string"`
@@ -5935,6 +6936,27 @@ func (s HlsOutputSettings) String() string {
 // GoString returns the string representation
 func (s HlsOutputSettings) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *HlsOutputSettings) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "HlsOutputSettings"}
+	if s.HlsSettings == nil {
+		invalidParams.Add(request.NewErrParamRequired("HlsSettings"))
+	}
+	if s.NameModifier != nil && len(*s.NameModifier) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("NameModifier", 1))
+	}
+	if s.HlsSettings != nil {
+		if err := s.HlsSettings.Validate(); err != nil {
+			invalidParams.AddNested("HlsSettings", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // SetHlsSettings sets the HlsSettings field's value.
@@ -5971,6 +6993,26 @@ func (s HlsSettings) String() string {
 // GoString returns the string representation
 func (s HlsSettings) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *HlsSettings) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "HlsSettings"}
+	if s.AudioOnlyHlsSettings != nil {
+		if err := s.AudioOnlyHlsSettings.Validate(); err != nil {
+			invalidParams.AddNested("AudioOnlyHlsSettings", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.StandardHlsSettings != nil {
+		if err := s.StandardHlsSettings.Validate(); err != nil {
+			invalidParams.AddNested("StandardHlsSettings", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // SetAudioOnlyHlsSettings sets the AudioOnlyHlsSettings field's value.
@@ -6161,6 +7203,21 @@ func (s InputAttachment) GoString() string {
 	return s.String()
 }
 
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *InputAttachment) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "InputAttachment"}
+	if s.InputSettings != nil {
+		if err := s.InputSettings.Validate(); err != nil {
+			invalidParams.AddNested("InputSettings", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
 // SetInputId sets the InputId field's value.
 func (s *InputAttachment) SetInputId(v string) *InputAttachment {
 	s.InputId = &v
@@ -6178,10 +7235,14 @@ type InputChannelLevel struct {
 
 	// Remixing value. Units are in dB and acceptable values are within the range
 	// from -60 (mute) and 6 dB.
-	Gain *int64 `locationName:"gain" type:"integer"`
+	//
+	// Gain is a required field
+	Gain *int64 `locationName:"gain" type:"integer" required:"true"`
 
 	// The index of the input channel used as a source.
-	InputChannel *int64 `locationName:"inputChannel" type:"integer"`
+	//
+	// InputChannel is a required field
+	InputChannel *int64 `locationName:"inputChannel" type:"integer" required:"true"`
 }
 
 // String returns the string representation
@@ -6192,6 +7253,25 @@ func (s InputChannelLevel) String() string {
 // GoString returns the string representation
 func (s InputChannelLevel) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *InputChannelLevel) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "InputChannelLevel"}
+	if s.Gain == nil {
+		invalidParams.Add(request.NewErrParamRequired("Gain"))
+	}
+	if s.Gain != nil && *s.Gain < -60 {
+		invalidParams.Add(request.NewErrParamMinValue("Gain", -60))
+	}
+	if s.InputChannel == nil {
+		invalidParams.Add(request.NewErrParamRequired("InputChannel"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // SetGain sets the Gain field's value.
@@ -6281,8 +7361,10 @@ type InputLocation struct {
 
 	// Uniform Resource Identifier - This should be a path to a file accessible
 	// to the Live system (eg. a http:// URI) depending on the output type. For
-	// example, a rtmpEndpoint should have a uri simliar to: "rtmp://fmsserver/live".
-	Uri *string `locationName:"uri" type:"string"`
+	// example, a RTMP destination should have a uri simliar to: "rtmp://fmsserver/live".
+	//
+	// Uri is a required field
+	Uri *string `locationName:"uri" type:"string" required:"true"`
 
 	// Username if credentials are required to access a file or publishing point.
 	// This can be either a plaintext username, or a reference to an AWS parameter
@@ -6299,6 +7381,19 @@ func (s InputLocation) String() string {
 // GoString returns the string representation
 func (s InputLocation) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *InputLocation) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "InputLocation"}
+	if s.Uri == nil {
+		invalidParams.Add(request.NewErrParamRequired("Uri"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // SetPasswordParam sets the PasswordParam field's value.
@@ -6330,7 +7425,7 @@ type InputLossBehavior struct {
 
 	// When input loss image type is "color" this field specifies the color to use.
 	// Value: 6 hex characters representing the values of RGB.
-	InputLossImageColor *string `locationName:"inputLossImageColor" type:"string"`
+	InputLossImageColor *string `locationName:"inputLossImageColor" min:"6" type:"string"`
 
 	// When input loss image type is "slate" these fields specify the parameters
 	// for accessing the slate.
@@ -6354,6 +7449,24 @@ func (s InputLossBehavior) String() string {
 // GoString returns the string representation
 func (s InputLossBehavior) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *InputLossBehavior) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "InputLossBehavior"}
+	if s.InputLossImageColor != nil && len(*s.InputLossImageColor) < 6 {
+		invalidParams.Add(request.NewErrParamMinLen("InputLossImageColor", 6))
+	}
+	if s.InputLossImageSlate != nil {
+		if err := s.InputLossImageSlate.Validate(); err != nil {
+			invalidParams.AddNested("InputLossImageSlate", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // SetBlackFrameMsec sets the BlackFrameMsec field's value.
@@ -6396,6 +7509,12 @@ type InputSecurityGroup struct {
 	// The Id of the Input Security Group
 	Id *string `locationName:"id" type:"string"`
 
+	// The list of inputs currently using this Input Security Group.
+	Inputs []*string `locationName:"inputs" type:"list"`
+
+	// The current state of the Input Security Group.
+	State *string `locationName:"state" type:"string" enum:"InputSecurityGroupState"`
+
 	// Whitelist rules and their sync status
 	WhitelistRules []*InputWhitelistRule `locationName:"whitelistRules" type:"list"`
 }
@@ -6419,6 +7538,18 @@ func (s *InputSecurityGroup) SetArn(v string) *InputSecurityGroup {
 // SetId sets the Id field's value.
 func (s *InputSecurityGroup) SetId(v string) *InputSecurityGroup {
 	s.Id = &v
+	return s
+}
+
+// SetInputs sets the Inputs field's value.
+func (s *InputSecurityGroup) SetInputs(v []*string) *InputSecurityGroup {
+	s.Inputs = v
+	return s
+}
+
+// SetState sets the State field's value.
+func (s *InputSecurityGroup) SetState(v string) *InputSecurityGroup {
+	s.State = &v
 	return s
 }
 
@@ -6446,7 +7577,7 @@ type InputSettings struct {
 	DenoiseFilter *string `locationName:"denoiseFilter" type:"string" enum:"InputDenoiseFilter"`
 
 	// Adjusts the magnitude of filtering from 1 (minimal) to 5 (strongest).
-	FilterStrength *int64 `locationName:"filterStrength" type:"integer"`
+	FilterStrength *int64 `locationName:"filterStrength" min:"1" type:"integer"`
 
 	// Turns on the filter for this input. MPEG-2 inputs have the deblocking filter
 	// enabled by default.1) auto - filtering will be applied depending on input
@@ -6473,6 +7604,39 @@ func (s InputSettings) String() string {
 // GoString returns the string representation
 func (s InputSettings) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *InputSettings) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "InputSettings"}
+	if s.FilterStrength != nil && *s.FilterStrength < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("FilterStrength", 1))
+	}
+	if s.AudioSelectors != nil {
+		for i, v := range s.AudioSelectors {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "AudioSelectors", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+	if s.CaptionSelectors != nil {
+		for i, v := range s.CaptionSelectors {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "CaptionSelectors", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // SetAudioSelectors sets the AudioSelectors field's value.
@@ -6682,7 +7846,7 @@ func (s *InputWhitelistRule) SetCidr(v string) *InputWhitelistRule {
 type InputWhitelistRuleCidr struct {
 	_ struct{} `type:"structure"`
 
-	// The IPv4 CIDR to whitelist
+	// The IPv4 CIDR to whitelist.
 	Cidr *string `locationName:"cidr" type:"string"`
 }
 
@@ -6716,6 +7880,21 @@ func (s KeyProviderSettings) String() string {
 // GoString returns the string representation
 func (s KeyProviderSettings) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *KeyProviderSettings) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "KeyProviderSettings"}
+	if s.StaticKeySettings != nil {
+		if err := s.StaticKeySettings.Validate(); err != nil {
+			invalidParams.AddNested("StaticKeySettings", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // SetStaticKeySettings sets the StaticKeySettings field's value.
@@ -7178,6 +8357,31 @@ func (s M2tsSettings) GoString() string {
 	return s.String()
 }
 
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *M2tsSettings) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "M2tsSettings"}
+	if s.DvbNitSettings != nil {
+		if err := s.DvbNitSettings.Validate(); err != nil {
+			invalidParams.AddNested("DvbNitSettings", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.DvbSdtSettings != nil {
+		if err := s.DvbSdtSettings.Validate(); err != nil {
+			invalidParams.AddNested("DvbSdtSettings", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.DvbTdtSettings != nil {
+		if err := s.DvbTdtSettings.Validate(); err != nil {
+			invalidParams.AddNested("DvbTdtSettings", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
 // SetAbsentInputAudioBehavior sets the AbsentInputAudioBehavior field's value.
 func (s *M2tsSettings) SetAbsentInputAudioBehavior(v string) *M2tsSettings {
 	s.AbsentInputAudioBehavior = &v
@@ -7509,6 +8713,11 @@ type M3u8Settings struct {
 	// When set to passthrough, timed metadata is passed through from input to output.
 	TimedMetadataBehavior *string `locationName:"timedMetadataBehavior" type:"string" enum:"M3u8TimedMetadataBehavior"`
 
+	// Packet Identifier (PID) of the timed metadata stream in the transport stream.
+	// Can be entered as a decimal or hexadecimal value. Valid values are 32 (or
+	// 0x20)..8182 (or 0x1ff6).
+	TimedMetadataPid *string `locationName:"timedMetadataPid" type:"string"`
+
 	// The value of the transport stream ID field in the Program Map Table.
 	TransportStreamId *int64 `locationName:"transportStreamId" type:"integer"`
 
@@ -7605,6 +8814,12 @@ func (s *M3u8Settings) SetTimedMetadataBehavior(v string) *M3u8Settings {
 	return s
 }
 
+// SetTimedMetadataPid sets the TimedMetadataPid field's value.
+func (s *M3u8Settings) SetTimedMetadataPid(v string) *M3u8Settings {
+	s.TimedMetadataPid = &v
+	return s
+}
+
 // SetTransportStreamId sets the TransportStreamId field's value.
 func (s *M3u8Settings) SetTransportStreamId(v int64) *M3u8Settings {
 	s.TransportStreamId = &v
@@ -7673,8 +8888,7 @@ type MsSmoothGroupSettings struct {
 
 	// If set to verifyAuthenticity, verify the https certificate chain to a trusted
 	// Certificate Authority (CA). This will cause https outputs to self-signed
-	// certificates to fail unless those certificates are manually added to the
-	// OS trusted keystore.
+	// certificates to fail.
 	CertificateMode *string `locationName:"certificateMode" type:"string" enum:"SmoothGroupCertificateMode"`
 
 	// Number of seconds to wait before retrying connection to the IIS server if
@@ -7684,7 +8898,9 @@ type MsSmoothGroupSettings struct {
 
 	// Smooth Streaming publish point on an IIS server. Elemental Live acts as a
 	// "Push" encoder to IIS.
-	Destination *OutputLocationRef `locationName:"destination" type:"structure"`
+	//
+	// Destination is a required field
+	Destination *OutputLocationRef `locationName:"destination" type:"structure" required:"true"`
 
 	// MS Smooth event ID to be sent to the IIS server.Should only be specified
 	// if eventIdMode is set to useConfigured.
@@ -7706,7 +8922,7 @@ type MsSmoothGroupSettings struct {
 
 	// Length of mp4 fragments to generate (in seconds). Fragment length must be
 	// compatible with GOP size and framerate.
-	FragmentLength *int64 `locationName:"fragmentLength" type:"integer"`
+	FragmentLength *int64 `locationName:"fragmentLength" min:"1" type:"integer"`
 
 	// Parameter that control output group behavior on input loss.
 	InputLossAction *string `locationName:"inputLossAction" type:"string" enum:"InputLossActionForMsSmoothOut"`
@@ -7759,6 +8975,22 @@ func (s MsSmoothGroupSettings) String() string {
 // GoString returns the string representation
 func (s MsSmoothGroupSettings) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *MsSmoothGroupSettings) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "MsSmoothGroupSettings"}
+	if s.Destination == nil {
+		invalidParams.Add(request.NewErrParamRequired("Destination"))
+	}
+	if s.FragmentLength != nil && *s.FragmentLength < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("FragmentLength", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // SetAcquisitionPointId sets the AcquisitionPointId field's value.
@@ -7949,10 +9181,12 @@ type Output struct {
 	CaptionDescriptionNames []*string `locationName:"captionDescriptionNames" type:"list"`
 
 	// The name used to identify an output.
-	OutputName *string `locationName:"outputName" type:"string"`
+	OutputName *string `locationName:"outputName" min:"1" type:"string"`
 
 	// Output type-specific settings.
-	OutputSettings *OutputSettings `locationName:"outputSettings" type:"structure"`
+	//
+	// OutputSettings is a required field
+	OutputSettings *OutputSettings `locationName:"outputSettings" type:"structure" required:"true"`
 
 	// The name of the VideoDescription used as the source for this output.
 	VideoDescriptionName *string `locationName:"videoDescriptionName" type:"string"`
@@ -7966,6 +9200,27 @@ func (s Output) String() string {
 // GoString returns the string representation
 func (s Output) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *Output) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "Output"}
+	if s.OutputName != nil && len(*s.OutputName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("OutputName", 1))
+	}
+	if s.OutputSettings == nil {
+		invalidParams.Add(request.NewErrParamRequired("OutputSettings"))
+	}
+	if s.OutputSettings != nil {
+		if err := s.OutputSettings.Validate(); err != nil {
+			invalidParams.AddNested("OutputSettings", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // SetAudioDescriptionNames sets the AudioDescriptionNames field's value.
@@ -8036,6 +9291,9 @@ type OutputDestinationSettings struct {
 	// key used to extract the password from EC2 Parameter store
 	PasswordParam *string `locationName:"passwordParam" type:"string"`
 
+	// Stream name for RTMP destinations (URLs of type rtmp://)
+	StreamName *string `locationName:"streamName" type:"string"`
+
 	// A URL specifying a destination
 	Url *string `locationName:"url" type:"string"`
 
@@ -8056,6 +9314,12 @@ func (s OutputDestinationSettings) GoString() string {
 // SetPasswordParam sets the PasswordParam field's value.
 func (s *OutputDestinationSettings) SetPasswordParam(v string) *OutputDestinationSettings {
 	s.PasswordParam = &v
+	return s
+}
+
+// SetStreamName sets the StreamName field's value.
+func (s *OutputDestinationSettings) SetStreamName(v string) *OutputDestinationSettings {
+	s.StreamName = &v
 	return s
 }
 
@@ -8081,9 +9345,12 @@ type OutputGroup struct {
 	Name *string `locationName:"name" type:"string"`
 
 	// Settings associated with the output group.
-	OutputGroupSettings *OutputGroupSettings `locationName:"outputGroupSettings" type:"structure"`
+	//
+	// OutputGroupSettings is a required field
+	OutputGroupSettings *OutputGroupSettings `locationName:"outputGroupSettings" type:"structure" required:"true"`
 
-	Outputs []*Output `locationName:"outputs" type:"list"`
+	// Outputs is a required field
+	Outputs []*Output `locationName:"outputs" type:"list" required:"true"`
 }
 
 // String returns the string representation
@@ -8094,6 +9361,37 @@ func (s OutputGroup) String() string {
 // GoString returns the string representation
 func (s OutputGroup) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *OutputGroup) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "OutputGroup"}
+	if s.OutputGroupSettings == nil {
+		invalidParams.Add(request.NewErrParamRequired("OutputGroupSettings"))
+	}
+	if s.Outputs == nil {
+		invalidParams.Add(request.NewErrParamRequired("Outputs"))
+	}
+	if s.OutputGroupSettings != nil {
+		if err := s.OutputGroupSettings.Validate(); err != nil {
+			invalidParams.AddNested("OutputGroupSettings", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.Outputs != nil {
+		for i, v := range s.Outputs {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Outputs", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // SetName sets the Name field's value.
@@ -8123,6 +9421,8 @@ type OutputGroupSettings struct {
 
 	MsSmoothGroupSettings *MsSmoothGroupSettings `locationName:"msSmoothGroupSettings" type:"structure"`
 
+	RtmpGroupSettings *RtmpGroupSettings `locationName:"rtmpGroupSettings" type:"structure"`
+
 	UdpGroupSettings *UdpGroupSettings `locationName:"udpGroupSettings" type:"structure"`
 }
 
@@ -8134,6 +9434,36 @@ func (s OutputGroupSettings) String() string {
 // GoString returns the string representation
 func (s OutputGroupSettings) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *OutputGroupSettings) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "OutputGroupSettings"}
+	if s.ArchiveGroupSettings != nil {
+		if err := s.ArchiveGroupSettings.Validate(); err != nil {
+			invalidParams.AddNested("ArchiveGroupSettings", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.HlsGroupSettings != nil {
+		if err := s.HlsGroupSettings.Validate(); err != nil {
+			invalidParams.AddNested("HlsGroupSettings", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.MsSmoothGroupSettings != nil {
+		if err := s.MsSmoothGroupSettings.Validate(); err != nil {
+			invalidParams.AddNested("MsSmoothGroupSettings", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.RtmpGroupSettings != nil {
+		if err := s.RtmpGroupSettings.Validate(); err != nil {
+			invalidParams.AddNested("RtmpGroupSettings", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // SetArchiveGroupSettings sets the ArchiveGroupSettings field's value.
@@ -8151,6 +9481,12 @@ func (s *OutputGroupSettings) SetHlsGroupSettings(v *HlsGroupSettings) *OutputGr
 // SetMsSmoothGroupSettings sets the MsSmoothGroupSettings field's value.
 func (s *OutputGroupSettings) SetMsSmoothGroupSettings(v *MsSmoothGroupSettings) *OutputGroupSettings {
 	s.MsSmoothGroupSettings = v
+	return s
+}
+
+// SetRtmpGroupSettings sets the RtmpGroupSettings field's value.
+func (s *OutputGroupSettings) SetRtmpGroupSettings(v *RtmpGroupSettings) *OutputGroupSettings {
+	s.RtmpGroupSettings = v
 	return s
 }
 
@@ -8192,6 +9528,8 @@ type OutputSettings struct {
 
 	MsSmoothOutputSettings *MsSmoothOutputSettings `locationName:"msSmoothOutputSettings" type:"structure"`
 
+	RtmpOutputSettings *RtmpOutputSettings `locationName:"rtmpOutputSettings" type:"structure"`
+
 	UdpOutputSettings *UdpOutputSettings `locationName:"udpOutputSettings" type:"structure"`
 }
 
@@ -8203,6 +9541,36 @@ func (s OutputSettings) String() string {
 // GoString returns the string representation
 func (s OutputSettings) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *OutputSettings) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "OutputSettings"}
+	if s.ArchiveOutputSettings != nil {
+		if err := s.ArchiveOutputSettings.Validate(); err != nil {
+			invalidParams.AddNested("ArchiveOutputSettings", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.HlsOutputSettings != nil {
+		if err := s.HlsOutputSettings.Validate(); err != nil {
+			invalidParams.AddNested("HlsOutputSettings", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.RtmpOutputSettings != nil {
+		if err := s.RtmpOutputSettings.Validate(); err != nil {
+			invalidParams.AddNested("RtmpOutputSettings", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.UdpOutputSettings != nil {
+		if err := s.UdpOutputSettings.Validate(); err != nil {
+			invalidParams.AddNested("UdpOutputSettings", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // SetArchiveOutputSettings sets the ArchiveOutputSettings field's value.
@@ -8220,6 +9588,12 @@ func (s *OutputSettings) SetHlsOutputSettings(v *HlsOutputSettings) *OutputSetti
 // SetMsSmoothOutputSettings sets the MsSmoothOutputSettings field's value.
 func (s *OutputSettings) SetMsSmoothOutputSettings(v *MsSmoothOutputSettings) *OutputSettings {
 	s.MsSmoothOutputSettings = v
+	return s
+}
+
+// SetRtmpOutputSettings sets the RtmpOutputSettings field's value.
+func (s *OutputSettings) SetRtmpOutputSettings(v *RtmpOutputSettings) *OutputSettings {
+	s.RtmpOutputSettings = v
 	return s
 }
 
@@ -8247,13 +9621,15 @@ type RemixSettings struct {
 	_ struct{} `type:"structure"`
 
 	// Mapping of input channels to output channels, with appropriate gain adjustments.
-	ChannelMappings []*AudioChannelMapping `locationName:"channelMappings" type:"list"`
+	//
+	// ChannelMappings is a required field
+	ChannelMappings []*AudioChannelMapping `locationName:"channelMappings" type:"list" required:"true"`
 
 	// Number of input channels to be used.
-	ChannelsIn *int64 `locationName:"channelsIn" type:"integer"`
+	ChannelsIn *int64 `locationName:"channelsIn" min:"1" type:"integer"`
 
 	// Number of output channels to be produced.Valid values: 1, 2, 4, 6, 8
-	ChannelsOut *int64 `locationName:"channelsOut" type:"integer"`
+	ChannelsOut *int64 `locationName:"channelsOut" min:"1" type:"integer"`
 }
 
 // String returns the string representation
@@ -8264,6 +9640,35 @@ func (s RemixSettings) String() string {
 // GoString returns the string representation
 func (s RemixSettings) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *RemixSettings) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "RemixSettings"}
+	if s.ChannelMappings == nil {
+		invalidParams.Add(request.NewErrParamRequired("ChannelMappings"))
+	}
+	if s.ChannelsIn != nil && *s.ChannelsIn < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("ChannelsIn", 1))
+	}
+	if s.ChannelsOut != nil && *s.ChannelsOut < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("ChannelsOut", 1))
+	}
+	if s.ChannelMappings != nil {
+		for i, v := range s.ChannelMappings {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "ChannelMappings", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // SetChannelMappings sets the ChannelMappings field's value.
@@ -8281,6 +9686,176 @@ func (s *RemixSettings) SetChannelsIn(v int64) *RemixSettings {
 // SetChannelsOut sets the ChannelsOut field's value.
 func (s *RemixSettings) SetChannelsOut(v int64) *RemixSettings {
 	s.ChannelsOut = &v
+	return s
+}
+
+type RtmpCaptionInfoDestinationSettings struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s RtmpCaptionInfoDestinationSettings) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s RtmpCaptionInfoDestinationSettings) GoString() string {
+	return s.String()
+}
+
+type RtmpGroupSettings struct {
+	_ struct{} `type:"structure"`
+
+	// Authentication scheme to use when connecting with CDN
+	AuthenticationScheme *string `locationName:"authenticationScheme" type:"string" enum:"AuthenticationScheme"`
+
+	// Controls behavior when content cache fills up. If remote origin server stalls
+	// the RTMP connection and does not accept content fast enough the 'Media Cache'
+	// will fill up. When the cache reaches the duration specified by cacheLength
+	// the cache will stop accepting new content. If set to disconnectImmediately,
+	// the RTMP output will force a disconnect. Clear the media cache, and reconnect
+	// after restartDelay seconds. If set to waitForServer, the RTMP output will
+	// wait up to 5 minutes to allow the origin server to begin accepting data again.
+	CacheFullBehavior *string `locationName:"cacheFullBehavior" type:"string" enum:"RtmpCacheFullBehavior"`
+
+	// Cache length, in seconds, is used to calculate buffer size.
+	CacheLength *int64 `locationName:"cacheLength" min:"30" type:"integer"`
+
+	// Controls the types of data that passes to onCaptionInfo outputs. If set to
+	// 'all' then 608 and 708 carried DTVCC data will be passed. If set to 'field1AndField2608'
+	// then DTVCC data will be stripped out, but 608 data from both fields will
+	// be passed. If set to 'field1608' then only the data carried in 608 from field
+	// 1 video will be passed.
+	CaptionData *string `locationName:"captionData" type:"string" enum:"RtmpCaptionData"`
+
+	// If a streaming output fails, number of seconds to wait until a restart is
+	// initiated. A value of 0 means never restart.
+	RestartDelay *int64 `locationName:"restartDelay" type:"integer"`
+}
+
+// String returns the string representation
+func (s RtmpGroupSettings) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s RtmpGroupSettings) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *RtmpGroupSettings) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "RtmpGroupSettings"}
+	if s.CacheLength != nil && *s.CacheLength < 30 {
+		invalidParams.Add(request.NewErrParamMinValue("CacheLength", 30))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetAuthenticationScheme sets the AuthenticationScheme field's value.
+func (s *RtmpGroupSettings) SetAuthenticationScheme(v string) *RtmpGroupSettings {
+	s.AuthenticationScheme = &v
+	return s
+}
+
+// SetCacheFullBehavior sets the CacheFullBehavior field's value.
+func (s *RtmpGroupSettings) SetCacheFullBehavior(v string) *RtmpGroupSettings {
+	s.CacheFullBehavior = &v
+	return s
+}
+
+// SetCacheLength sets the CacheLength field's value.
+func (s *RtmpGroupSettings) SetCacheLength(v int64) *RtmpGroupSettings {
+	s.CacheLength = &v
+	return s
+}
+
+// SetCaptionData sets the CaptionData field's value.
+func (s *RtmpGroupSettings) SetCaptionData(v string) *RtmpGroupSettings {
+	s.CaptionData = &v
+	return s
+}
+
+// SetRestartDelay sets the RestartDelay field's value.
+func (s *RtmpGroupSettings) SetRestartDelay(v int64) *RtmpGroupSettings {
+	s.RestartDelay = &v
+	return s
+}
+
+type RtmpOutputSettings struct {
+	_ struct{} `type:"structure"`
+
+	// If set to verifyAuthenticity, verify the tls certificate chain to a trusted
+	// Certificate Authority (CA). This will cause rtmps outputs with self-signed
+	// certificates to fail.
+	CertificateMode *string `locationName:"certificateMode" type:"string" enum:"RtmpOutputCertificateMode"`
+
+	// Number of seconds to wait before retrying a connection to the Flash Media
+	// server if the connection is lost.
+	ConnectionRetryInterval *int64 `locationName:"connectionRetryInterval" min:"1" type:"integer"`
+
+	// The RTMP endpoint excluding the stream name (eg. rtmp://host/appname). For
+	// connection to Akamai, a username and password must be supplied. URI fields
+	// accept format identifiers.
+	//
+	// Destination is a required field
+	Destination *OutputLocationRef `locationName:"destination" type:"structure" required:"true"`
+
+	// Number of retry attempts.
+	NumRetries *int64 `locationName:"numRetries" type:"integer"`
+}
+
+// String returns the string representation
+func (s RtmpOutputSettings) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s RtmpOutputSettings) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *RtmpOutputSettings) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "RtmpOutputSettings"}
+	if s.ConnectionRetryInterval != nil && *s.ConnectionRetryInterval < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("ConnectionRetryInterval", 1))
+	}
+	if s.Destination == nil {
+		invalidParams.Add(request.NewErrParamRequired("Destination"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetCertificateMode sets the CertificateMode field's value.
+func (s *RtmpOutputSettings) SetCertificateMode(v string) *RtmpOutputSettings {
+	s.CertificateMode = &v
+	return s
+}
+
+// SetConnectionRetryInterval sets the ConnectionRetryInterval field's value.
+func (s *RtmpOutputSettings) SetConnectionRetryInterval(v int64) *RtmpOutputSettings {
+	s.ConnectionRetryInterval = &v
+	return s
+}
+
+// SetDestination sets the Destination field's value.
+func (s *RtmpOutputSettings) SetDestination(v *OutputLocationRef) *RtmpOutputSettings {
+	s.Destination = v
+	return s
+}
+
+// SetNumRetries sets the NumRetries field's value.
+func (s *RtmpOutputSettings) SetNumRetries(v int64) *RtmpOutputSettings {
+	s.NumRetries = &v
 	return s
 }
 
@@ -8308,7 +9883,7 @@ type Scte20SourceSettings struct {
 
 	// Specifies the 608/708 channel number within the video track from which to
 	// extract captions. Unused for passthrough.
-	Source608ChannelNumber *int64 `locationName:"source608ChannelNumber" type:"integer"`
+	Source608ChannelNumber *int64 `locationName:"source608ChannelNumber" min:"1" type:"integer"`
 }
 
 // String returns the string representation
@@ -8319,6 +9894,19 @@ func (s Scte20SourceSettings) String() string {
 // GoString returns the string representation
 func (s Scte20SourceSettings) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *Scte20SourceSettings) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "Scte20SourceSettings"}
+	if s.Source608ChannelNumber != nil && *s.Source608ChannelNumber < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("Source608ChannelNumber", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // SetConvert608To708 sets the Convert608To708 field's value.
@@ -8357,7 +9945,7 @@ type Scte27SourceSettings struct {
 	// language, whichever PID that happens to be. - Omit PID and omit Language:
 	// Valid only if source is DVB-Sub that is being passed through; all languages
 	// will be passed through.
-	Pid *int64 `locationName:"pid" type:"integer"`
+	Pid *int64 `locationName:"pid" min:"1" type:"integer"`
 }
 
 // String returns the string representation
@@ -8368,6 +9956,19 @@ func (s Scte27SourceSettings) String() string {
 // GoString returns the string representation
 func (s Scte27SourceSettings) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *Scte27SourceSettings) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "Scte27SourceSettings"}
+	if s.Pid != nil && *s.Pid < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("Pid", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // SetPid sets the Pid field's value.
@@ -8401,6 +10002,19 @@ func (s Scte35SpliceInsert) String() string {
 // GoString returns the string representation
 func (s Scte35SpliceInsert) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *Scte35SpliceInsert) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "Scte35SpliceInsert"}
+	if s.AdAvailOffset != nil && *s.AdAvailOffset < -1000 {
+		invalidParams.Add(request.NewErrParamMinValue("AdAvailOffset", -1000))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // SetAdAvailOffset sets the AdAvailOffset field's value.
@@ -8448,6 +10062,19 @@ func (s Scte35TimeSignalApos) GoString() string {
 	return s.String()
 }
 
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *Scte35TimeSignalApos) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "Scte35TimeSignalApos"}
+	if s.AdAvailOffset != nil && *s.AdAvailOffset < -1000 {
+		invalidParams.Add(request.NewErrParamMinValue("AdAvailOffset", -1000))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
 // SetAdAvailOffset sets the AdAvailOffset field's value.
 func (s *Scte35TimeSignalApos) SetAdAvailOffset(v int64) *Scte35TimeSignalApos {
 	s.AdAvailOffset = &v
@@ -8488,7 +10115,9 @@ type StandardHlsSettings struct {
 	AudioRenditionSets *string `locationName:"audioRenditionSets" type:"string"`
 
 	// Settings information for the .m3u8 container
-	M3u8Settings *M3u8Settings `locationName:"m3u8Settings" type:"structure"`
+	//
+	// M3u8Settings is a required field
+	M3u8Settings *M3u8Settings `locationName:"m3u8Settings" type:"structure" required:"true"`
 }
 
 // String returns the string representation
@@ -8499,6 +10128,19 @@ func (s StandardHlsSettings) String() string {
 // GoString returns the string representation
 func (s StandardHlsSettings) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *StandardHlsSettings) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "StandardHlsSettings"}
+	if s.M3u8Settings == nil {
+		invalidParams.Add(request.NewErrParamRequired("M3u8Settings"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // SetAudioRenditionSets sets the AudioRenditionSets field's value.
@@ -8658,7 +10300,9 @@ type StaticKeySettings struct {
 	KeyProviderServer *InputLocation `locationName:"keyProviderServer" type:"structure"`
 
 	// Static key value as a 32 character hexadecimal string.
-	StaticKeyValue *string `locationName:"staticKeyValue" type:"string"`
+	//
+	// StaticKeyValue is a required field
+	StaticKeyValue *string `locationName:"staticKeyValue" min:"32" type:"string" required:"true"`
 }
 
 // String returns the string representation
@@ -8669,6 +10313,27 @@ func (s StaticKeySettings) String() string {
 // GoString returns the string representation
 func (s StaticKeySettings) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *StaticKeySettings) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "StaticKeySettings"}
+	if s.StaticKeyValue == nil {
+		invalidParams.Add(request.NewErrParamRequired("StaticKeyValue"))
+	}
+	if s.StaticKeyValue != nil && len(*s.StaticKeyValue) < 32 {
+		invalidParams.Add(request.NewErrParamMinLen("StaticKeyValue", 32))
+	}
+	if s.KeyProviderServer != nil {
+		if err := s.KeyProviderServer.Validate(); err != nil {
+			invalidParams.AddNested("KeyProviderServer", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // SetKeyProviderServer sets the KeyProviderServer field's value.
@@ -8869,13 +10534,15 @@ type TimecodeConfig struct {
 	// system falls back to using "Start at 0" (zerobased).-System Clock (systemclock):
 	// Use the UTC time.-Start at 0 (zerobased): The time of the first frame of
 	// the event will be 00:00:00:00.
-	Source *string `locationName:"source" type:"string" enum:"TimecodeConfigSource"`
+	//
+	// Source is a required field
+	Source *string `locationName:"source" type:"string" required:"true" enum:"TimecodeConfigSource"`
 
 	// Threshold in frames beyond which output timecode is resynchronized to the
 	// input timecode. Discrepancies below this threshold are permitted to avoid
 	// unnecessary discontinuities in the output timecode. No timecode sync when
 	// this is not specified.
-	SyncThreshold *int64 `locationName:"syncThreshold" type:"integer"`
+	SyncThreshold *int64 `locationName:"syncThreshold" min:"1" type:"integer"`
 }
 
 // String returns the string representation
@@ -8886,6 +10553,22 @@ func (s TimecodeConfig) String() string {
 // GoString returns the string representation
 func (s TimecodeConfig) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *TimecodeConfig) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "TimecodeConfig"}
+	if s.Source == nil {
+		invalidParams.Add(request.NewErrParamRequired("Source"))
+	}
+	if s.SyncThreshold != nil && *s.SyncThreshold < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("SyncThreshold", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // SetSource sets the Source field's value.
@@ -8939,6 +10622,21 @@ func (s UdpContainerSettings) String() string {
 // GoString returns the string representation
 func (s UdpContainerSettings) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *UdpContainerSettings) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "UdpContainerSettings"}
+	if s.M2tsSettings != nil {
+		if err := s.M2tsSettings.Validate(); err != nil {
+			invalidParams.AddNested("M2tsSettings", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // SetM2tsSettings sets the M2tsSettings field's value.
@@ -9003,11 +10701,14 @@ type UdpOutputSettings struct {
 	// switching, input disruptions, picture reordering, etc.
 	BufferMsec *int64 `locationName:"bufferMsec" type:"integer"`
 
-	ContainerSettings *UdpContainerSettings `locationName:"containerSettings" type:"structure"`
+	// ContainerSettings is a required field
+	ContainerSettings *UdpContainerSettings `locationName:"containerSettings" type:"structure" required:"true"`
 
 	// Destination address and port number for RTP or UDP packets. Can be unicast
 	// or multicast RTP or UDP (eg. rtp://239.10.10.10:5001 or udp://10.100.100.100:5002).
-	Destination *OutputLocationRef `locationName:"destination" type:"structure"`
+	//
+	// Destination is a required field
+	Destination *OutputLocationRef `locationName:"destination" type:"structure" required:"true"`
 
 	// Settings for enabling and adjusting Forward Error Correction on UDP outputs.
 	FecOutputSettings *FecOutputSettings `locationName:"fecOutputSettings" type:"structure"`
@@ -9021,6 +10722,32 @@ func (s UdpOutputSettings) String() string {
 // GoString returns the string representation
 func (s UdpOutputSettings) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *UdpOutputSettings) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "UdpOutputSettings"}
+	if s.ContainerSettings == nil {
+		invalidParams.Add(request.NewErrParamRequired("ContainerSettings"))
+	}
+	if s.Destination == nil {
+		invalidParams.Add(request.NewErrParamRequired("Destination"))
+	}
+	if s.ContainerSettings != nil {
+		if err := s.ContainerSettings.Validate(); err != nil {
+			invalidParams.AddNested("ContainerSettings", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.FecOutputSettings != nil {
+		if err := s.FecOutputSettings.Validate(); err != nil {
+			invalidParams.AddNested("FecOutputSettings", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // SetBufferMsec sets the BufferMsec field's value.
@@ -9057,6 +10784,8 @@ type UpdateChannelInput struct {
 
 	EncoderSettings *EncoderSettings `locationName:"encoderSettings" type:"structure"`
 
+	InputAttachments []*InputAttachment `locationName:"inputAttachments" type:"list"`
+
 	InputSpecification *InputSpecification `locationName:"inputSpecification" type:"structure"`
 
 	Name *string `locationName:"name" type:"string"`
@@ -9080,6 +10809,21 @@ func (s *UpdateChannelInput) Validate() error {
 	if s.ChannelId == nil {
 		invalidParams.Add(request.NewErrParamRequired("ChannelId"))
 	}
+	if s.EncoderSettings != nil {
+		if err := s.EncoderSettings.Validate(); err != nil {
+			invalidParams.AddNested("EncoderSettings", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.InputAttachments != nil {
+		for i, v := range s.InputAttachments {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "InputAttachments", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -9102,6 +10846,12 @@ func (s *UpdateChannelInput) SetDestinations(v []*OutputDestination) *UpdateChan
 // SetEncoderSettings sets the EncoderSettings field's value.
 func (s *UpdateChannelInput) SetEncoderSettings(v *EncoderSettings) *UpdateChannelInput {
 	s.EncoderSettings = v
+	return s
+}
+
+// SetInputAttachments sets the InputAttachments field's value.
+func (s *UpdateChannelInput) SetInputAttachments(v []*InputAttachment) *UpdateChannelInput {
+	s.InputAttachments = v
 	return s
 }
 
@@ -9142,6 +10892,163 @@ func (s UpdateChannelOutput) GoString() string {
 // SetChannel sets the Channel field's value.
 func (s *UpdateChannelOutput) SetChannel(v *Channel) *UpdateChannelOutput {
 	s.Channel = v
+	return s
+}
+
+type UpdateInputInput struct {
+	_ struct{} `type:"structure"`
+
+	Destinations []*InputDestinationRequest `locationName:"destinations" type:"list"`
+
+	// InputId is a required field
+	InputId *string `location:"uri" locationName:"inputId" type:"string" required:"true"`
+
+	InputSecurityGroups []*string `locationName:"inputSecurityGroups" type:"list"`
+
+	Name *string `locationName:"name" type:"string"`
+
+	Sources []*InputSourceRequest `locationName:"sources" type:"list"`
+}
+
+// String returns the string representation
+func (s UpdateInputInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateInputInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *UpdateInputInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "UpdateInputInput"}
+	if s.InputId == nil {
+		invalidParams.Add(request.NewErrParamRequired("InputId"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetDestinations sets the Destinations field's value.
+func (s *UpdateInputInput) SetDestinations(v []*InputDestinationRequest) *UpdateInputInput {
+	s.Destinations = v
+	return s
+}
+
+// SetInputId sets the InputId field's value.
+func (s *UpdateInputInput) SetInputId(v string) *UpdateInputInput {
+	s.InputId = &v
+	return s
+}
+
+// SetInputSecurityGroups sets the InputSecurityGroups field's value.
+func (s *UpdateInputInput) SetInputSecurityGroups(v []*string) *UpdateInputInput {
+	s.InputSecurityGroups = v
+	return s
+}
+
+// SetName sets the Name field's value.
+func (s *UpdateInputInput) SetName(v string) *UpdateInputInput {
+	s.Name = &v
+	return s
+}
+
+// SetSources sets the Sources field's value.
+func (s *UpdateInputInput) SetSources(v []*InputSourceRequest) *UpdateInputInput {
+	s.Sources = v
+	return s
+}
+
+type UpdateInputOutput struct {
+	_ struct{} `type:"structure"`
+
+	Input *Input `locationName:"input" type:"structure"`
+}
+
+// String returns the string representation
+func (s UpdateInputOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateInputOutput) GoString() string {
+	return s.String()
+}
+
+// SetInput sets the Input field's value.
+func (s *UpdateInputOutput) SetInput(v *Input) *UpdateInputOutput {
+	s.Input = v
+	return s
+}
+
+type UpdateInputSecurityGroupInput struct {
+	_ struct{} `type:"structure"`
+
+	// InputSecurityGroupId is a required field
+	InputSecurityGroupId *string `location:"uri" locationName:"inputSecurityGroupId" type:"string" required:"true"`
+
+	WhitelistRules []*InputWhitelistRuleCidr `locationName:"whitelistRules" type:"list"`
+}
+
+// String returns the string representation
+func (s UpdateInputSecurityGroupInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateInputSecurityGroupInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *UpdateInputSecurityGroupInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "UpdateInputSecurityGroupInput"}
+	if s.InputSecurityGroupId == nil {
+		invalidParams.Add(request.NewErrParamRequired("InputSecurityGroupId"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetInputSecurityGroupId sets the InputSecurityGroupId field's value.
+func (s *UpdateInputSecurityGroupInput) SetInputSecurityGroupId(v string) *UpdateInputSecurityGroupInput {
+	s.InputSecurityGroupId = &v
+	return s
+}
+
+// SetWhitelistRules sets the WhitelistRules field's value.
+func (s *UpdateInputSecurityGroupInput) SetWhitelistRules(v []*InputWhitelistRuleCidr) *UpdateInputSecurityGroupInput {
+	s.WhitelistRules = v
+	return s
+}
+
+type UpdateInputSecurityGroupOutput struct {
+	_ struct{} `type:"structure"`
+
+	// An Input Security Group
+	SecurityGroup *InputSecurityGroup `locationName:"securityGroup" type:"structure"`
+}
+
+// String returns the string representation
+func (s UpdateInputSecurityGroupOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateInputSecurityGroupOutput) GoString() string {
+	return s.String()
+}
+
+// SetSecurityGroup sets the SecurityGroup field's value.
+func (s *UpdateInputSecurityGroupOutput) SetSecurityGroup(v *InputSecurityGroup) *UpdateInputSecurityGroupOutput {
+	s.SecurityGroup = v
 	return s
 }
 
@@ -9191,6 +11098,21 @@ func (s VideoCodecSettings) GoString() string {
 	return s.String()
 }
 
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *VideoCodecSettings) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "VideoCodecSettings"}
+	if s.H264Settings != nil {
+		if err := s.H264Settings.Validate(); err != nil {
+			invalidParams.AddNested("H264Settings", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
 // SetH264Settings sets the H264Settings field's value.
 func (s *VideoCodecSettings) SetH264Settings(v *H264Settings) *VideoCodecSettings {
 	s.H264Settings = v
@@ -9211,7 +11133,9 @@ type VideoDescription struct {
 	// The name of this VideoDescription. Outputs will use this name to uniquely
 	// identify this Description. Description names should be unique within this
 	// Live Event.
-	Name *string `locationName:"name" type:"string"`
+	//
+	// Name is a required field
+	Name *string `locationName:"name" type:"string" required:"true"`
 
 	// Indicates how to respond to the AFD values in the input stream. Setting to
 	// "respond" causes input video to be clipped, depending on AFD value, input
@@ -9242,6 +11166,24 @@ func (s VideoDescription) String() string {
 // GoString returns the string representation
 func (s VideoDescription) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *VideoDescription) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "VideoDescription"}
+	if s.Name == nil {
+		invalidParams.Add(request.NewErrParamRequired("Name"))
+	}
+	if s.CodecSettings != nil {
+		if err := s.CodecSettings.Validate(); err != nil {
+			invalidParams.AddNested("CodecSettings", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // SetCodecSettings sets the CodecSettings field's value.
@@ -9641,6 +11583,14 @@ const (
 
 	// AudioTypeVisualImpairedCommentary is a AudioType enum value
 	AudioTypeVisualImpairedCommentary = "VISUAL_IMPAIRED_COMMENTARY"
+)
+
+const (
+	// AuthenticationSchemeAkamai is a AuthenticationScheme enum value
+	AuthenticationSchemeAkamai = "AKAMAI"
+
+	// AuthenticationSchemeCommon is a AuthenticationScheme enum value
+	AuthenticationSchemeCommon = "COMMON"
 )
 
 const (
@@ -10598,6 +12548,20 @@ const (
 )
 
 const (
+	// InputSecurityGroupStateIdle is a InputSecurityGroupState enum value
+	InputSecurityGroupStateIdle = "IDLE"
+
+	// InputSecurityGroupStateInUse is a InputSecurityGroupState enum value
+	InputSecurityGroupStateInUse = "IN_USE"
+
+	// InputSecurityGroupStateUpdating is a InputSecurityGroupState enum value
+	InputSecurityGroupStateUpdating = "UPDATING"
+
+	// InputSecurityGroupStateDeleted is a InputSecurityGroupState enum value
+	InputSecurityGroupStateDeleted = "DELETED"
+)
+
+const (
 	// InputSourceEndBehaviorContinue is a InputSourceEndBehavior enum value
 	InputSourceEndBehaviorContinue = "CONTINUE"
 
@@ -10833,6 +12797,33 @@ const (
 
 	// NetworkInputServerValidationCheckCryptographyOnly is a NetworkInputServerValidation enum value
 	NetworkInputServerValidationCheckCryptographyOnly = "CHECK_CRYPTOGRAPHY_ONLY"
+)
+
+const (
+	// RtmpCacheFullBehaviorDisconnectImmediately is a RtmpCacheFullBehavior enum value
+	RtmpCacheFullBehaviorDisconnectImmediately = "DISCONNECT_IMMEDIATELY"
+
+	// RtmpCacheFullBehaviorWaitForServer is a RtmpCacheFullBehavior enum value
+	RtmpCacheFullBehaviorWaitForServer = "WAIT_FOR_SERVER"
+)
+
+const (
+	// RtmpCaptionDataAll is a RtmpCaptionData enum value
+	RtmpCaptionDataAll = "ALL"
+
+	// RtmpCaptionDataField1608 is a RtmpCaptionData enum value
+	RtmpCaptionDataField1608 = "FIELD1_608"
+
+	// RtmpCaptionDataField1AndField2608 is a RtmpCaptionData enum value
+	RtmpCaptionDataField1AndField2608 = "FIELD1_AND_FIELD2_608"
+)
+
+const (
+	// RtmpOutputCertificateModeSelfSigned is a RtmpOutputCertificateMode enum value
+	RtmpOutputCertificateModeSelfSigned = "SELF_SIGNED"
+
+	// RtmpOutputCertificateModeVerifyAuthenticity is a RtmpOutputCertificateMode enum value
+	RtmpOutputCertificateModeVerifyAuthenticity = "VERIFY_AUTHENTICITY"
 )
 
 const (

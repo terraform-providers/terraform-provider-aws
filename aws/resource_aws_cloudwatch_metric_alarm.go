@@ -224,7 +224,6 @@ func resourceAwsCloudWatchMetricAlarmDelete(d *schema.ResourceData, meta interfa
 	}
 	log.Println("[INFO] CloudWatch Metric Alarm deleted")
 
-	d.SetId("")
 	return nil
 }
 

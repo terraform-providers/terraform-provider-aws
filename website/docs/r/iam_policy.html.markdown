@@ -10,6 +10,8 @@ description: |-
 
 Provides an IAM policy.
 
+## Example Usage
+
 ```hcl
 resource "aws_iam_policy" "policy" {
   name        = "test_policy"

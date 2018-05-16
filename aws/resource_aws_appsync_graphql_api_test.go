@@ -62,6 +62,26 @@ func TestAccAWSAppsyncGraphqlApi_cognito(t *testing.T) {
 	})
 }
 
+func TestAccAWSAppsyncGraphqlApi_import(t *testing.T) {
+	resourceName := "aws_appsync_graphql_api.test_apikey"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAwsAppsyncGraphqlApiDestroy,
+		Steps: []resource.TestStep{
+			resource.TestStep{
+				Config: testAccAppsyncGraphqlApiConfig_apikey(acctest.RandString(5)),
+			},
+			resource.TestStep{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func testAccCheckAwsAppsyncGraphqlApiDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*AWSClient).appsyncconn
 	for _, rs := range s.RootModule().Resources {

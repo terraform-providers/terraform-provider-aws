@@ -56,7 +56,55 @@ func TestAccAWSS3BucketObject_content(t *testing.T) {
 			resource.TestStep{
 				PreConfig: func() {},
 				Config:    testAccAWSS3BucketObjectConfigContent(rInt),
-				Check:     testAccCheckAWSS3BucketObjectExists("aws_s3_bucket_object.object", &obj),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSS3BucketObjectExists("aws_s3_bucket_object.object", &obj),
+					func(s *terraform.State) error {
+						body, err := ioutil.ReadAll(obj.Body)
+						if err != nil {
+							return fmt.Errorf("failed to read body: %s", err)
+						}
+						obj.Body.Close()
+
+						if got, want := string(body), "some_bucket_content"; got != want {
+							return fmt.Errorf("wrong result body %q; want %q", got, want)
+						}
+
+						return nil
+					},
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSS3BucketObject_contentBase64(t *testing.T) {
+	rInt := acctest.RandInt()
+	var obj s3.GetObjectOutput
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSS3BucketObjectDestroy,
+		Steps: []resource.TestStep{
+			resource.TestStep{
+				PreConfig: func() {},
+				Config:    testAccAWSS3BucketObjectConfigContentBase64(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSS3BucketObjectExists("aws_s3_bucket_object.object", &obj),
+					func(s *terraform.State) error {
+						body, err := ioutil.ReadAll(obj.Body)
+						if err != nil {
+							return fmt.Errorf("failed to read body: %s", err)
+						}
+						obj.Body.Close()
+
+						if got, want := string(body), "some_bucket_content"; got != want {
+							return fmt.Errorf("wrong result body %q; want %q", got, want)
+						}
+
+						return nil
+					},
+				),
 			},
 		},
 	})
@@ -376,34 +424,6 @@ func testAccCheckAWSS3BucketObjectAcl(n string, expectedPerms []string) resource
 	}
 }
 
-func TestResourceAWSS3BucketObjectAcl_validation(t *testing.T) {
-	_, errors := validateS3BucketObjectAclType("incorrect", "acl")
-	if len(errors) == 0 {
-		t.Fatalf("Expected to trigger a validation error")
-	}
-
-	var testCases = []struct {
-		Value    string
-		ErrCount int
-	}{
-		{
-			Value:    "public-read",
-			ErrCount: 0,
-		},
-		{
-			Value:    "public-read-write",
-			ErrCount: 0,
-		},
-	}
-
-	for _, tc := range testCases {
-		_, errors := validateS3BucketObjectAclType(tc.Value, "acl")
-		if len(errors) != tc.ErrCount {
-			t.Fatalf("Expected not to trigger a validation error")
-		}
-	}
-}
-
 func TestAccAWSS3BucketObject_storageClass(t *testing.T) {
 	rInt := acctest.RandInt()
 	var obj s3.GetObjectOutput
@@ -446,34 +466,6 @@ func TestAccAWSS3BucketObject_storageClass(t *testing.T) {
 			},
 		},
 	})
-}
-
-func TestResourceAWSS3BucketObjectStorageClass_validation(t *testing.T) {
-	_, errors := validateS3BucketObjectStorageClassType("incorrect", "storage_class")
-	if len(errors) == 0 {
-		t.Fatalf("Expected to trigger a validation error")
-	}
-
-	var testCases = []struct {
-		Value    string
-		ErrCount int
-	}{
-		{
-			Value:    "STANDARD",
-			ErrCount: 0,
-		},
-		{
-			Value:    "REDUCED_REDUNDANCY",
-			ErrCount: 0,
-		},
-	}
-
-	for _, tc := range testCases {
-		_, errors := validateS3BucketObjectStorageClassType(tc.Value, "storage_class")
-		if len(errors) != tc.ErrCount {
-			t.Fatalf("Expected not to trigger a validation error")
-		}
-	}
 }
 
 func testAccCheckAWSS3BucketObjectStorageClass(n, expectedClass string) resource.TestCheckFunc {
@@ -595,6 +587,19 @@ resource "aws_s3_bucket_object" "object" {
         bucket = "${aws_s3_bucket.object_bucket.bucket}"
         key = "test-key"
         content = "some_bucket_content"
+}
+`, randInt)
+}
+
+func testAccAWSS3BucketObjectConfigContentBase64(randInt int) string {
+	return fmt.Sprintf(`
+resource "aws_s3_bucket" "object_bucket" {
+        bucket = "tf-object-test-bucket-%d"
+}
+resource "aws_s3_bucket_object" "object" {
+        bucket         = "${aws_s3_bucket.object_bucket.bucket}"
+        key            = "test-key"
+        content_base64 = "c29tZV9idWNrZXRfY29udGVudA=="
 }
 `, randInt)
 }

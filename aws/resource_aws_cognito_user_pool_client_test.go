@@ -14,7 +14,8 @@ import (
 )
 
 func TestAccAWSCognitoUserPoolClient_basic(t *testing.T) {
-	name := acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
+	userPoolName := fmt.Sprintf("tf-acc-cognito-user-pool-%s", acctest.RandString(7))
+	clientName := acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -22,10 +23,10 @@ func TestAccAWSCognitoUserPoolClient_basic(t *testing.T) {
 		CheckDestroy: testAccCheckAWSCognitoUserPoolClientDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSCognitoUserPoolClientConfig_basic(name),
+				Config: testAccAWSCognitoUserPoolClientConfig_basic(userPoolName, clientName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAWSCognitoUserPoolClientExists("aws_cognito_user_pool_client.client"),
-					resource.TestCheckResourceAttr("aws_cognito_user_pool_client.client", "name", name),
+					resource.TestCheckResourceAttr("aws_cognito_user_pool_client.client", "name", clientName),
 					resource.TestCheckResourceAttr("aws_cognito_user_pool_client.client", "explicit_auth_flows.#", "1"),
 					resource.TestCheckResourceAttr("aws_cognito_user_pool_client.client", "explicit_auth_flows.245201344", "ADMIN_NO_SRP_AUTH"),
 				),
@@ -34,8 +35,62 @@ func TestAccAWSCognitoUserPoolClient_basic(t *testing.T) {
 	})
 }
 
+func TestAccAWSCognitoUserPoolClient_importBasic(t *testing.T) {
+	userPoolName := fmt.Sprintf("tf-acc-cognito-user-pool-%s", acctest.RandString(7))
+	clientName := acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
+
+	resourceName := "aws_cognito_user_pool_client.client"
+
+	getStateId := func(s *terraform.State) (string, error) {
+
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return "", fmt.Errorf("Not found: %s", resourceName)
+		}
+
+		if rs.Primary.ID == "" {
+			return "", errors.New("No Cognito User Pool Client ID set")
+		}
+
+		conn := testAccProvider.Meta().(*AWSClient).cognitoidpconn
+		userPoolId := rs.Primary.Attributes["user_pool_id"]
+		clientId := rs.Primary.ID
+
+		params := &cognitoidentityprovider.DescribeUserPoolClientInput{
+			UserPoolId: aws.String(userPoolId),
+			ClientId:   aws.String(clientId),
+		}
+
+		_, err := conn.DescribeUserPoolClient(params)
+
+		if err != nil {
+			return "", err
+		}
+
+		return fmt.Sprintf("%s/%s", userPoolId, clientId), nil
+	}
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSEcsServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSCognitoUserPoolClientConfig_basic(userPoolName, clientName),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: getStateId,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAWSCognitoUserPoolClient_allFields(t *testing.T) {
-	name := acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
+	userPoolName := fmt.Sprintf("tf-acc-cognito-user-pool-%s", acctest.RandString(7))
+	clientName := acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -43,10 +98,10 @@ func TestAccAWSCognitoUserPoolClient_allFields(t *testing.T) {
 		CheckDestroy: testAccCheckAWSCognitoUserPoolClientDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSCognitoUserPoolClientConfig_allFields(name),
+				Config: testAccAWSCognitoUserPoolClientConfig_allFields(userPoolName, clientName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAWSCognitoUserPoolClientExists("aws_cognito_user_pool_client.client"),
-					resource.TestCheckResourceAttr("aws_cognito_user_pool_client.client", "name", name),
+					resource.TestCheckResourceAttr("aws_cognito_user_pool_client.client", "name", clientName),
 					resource.TestCheckResourceAttr("aws_cognito_user_pool_client.client", "explicit_auth_flows.#", "3"),
 					resource.TestCheckResourceAttr("aws_cognito_user_pool_client.client", "explicit_auth_flows.1728632605", "CUSTOM_AUTH_FLOW_ONLY"),
 					resource.TestCheckResourceAttr("aws_cognito_user_pool_client.client", "explicit_auth_flows.1860959087", "USER_PASSWORD_AUTH"),
@@ -61,9 +116,12 @@ func TestAccAWSCognitoUserPoolClient_allFields(t *testing.T) {
 					resource.TestCheckResourceAttr("aws_cognito_user_pool_client.client", "allowed_oauth_flows.2645166319", "code"),
 					resource.TestCheckResourceAttr("aws_cognito_user_pool_client.client", "allowed_oauth_flows.3465961881", "implicit"),
 					resource.TestCheckResourceAttr("aws_cognito_user_pool_client.client", "allowed_oauth_flows_user_pool_client", "true"),
-					resource.TestCheckResourceAttr("aws_cognito_user_pool_client.client", "allowed_oauth_scopes.#", "2"),
+					resource.TestCheckResourceAttr("aws_cognito_user_pool_client.client", "allowed_oauth_scopes.#", "5"),
 					resource.TestCheckResourceAttr("aws_cognito_user_pool_client.client", "allowed_oauth_scopes.2517049750", "openid"),
 					resource.TestCheckResourceAttr("aws_cognito_user_pool_client.client", "allowed_oauth_scopes.881205744", "email"),
+					resource.TestCheckResourceAttr("aws_cognito_user_pool_client.client", "allowed_oauth_scopes.2603607895", "phone"),
+					resource.TestCheckResourceAttr("aws_cognito_user_pool_client.client", "allowed_oauth_scopes.380129571", "aws.cognito.signin.user.admin"),
+					resource.TestCheckResourceAttr("aws_cognito_user_pool_client.client", "allowed_oauth_scopes.4080487570", "profile"),
 					resource.TestCheckResourceAttr("aws_cognito_user_pool_client.client", "callback_urls.#", "2"),
 					resource.TestCheckResourceAttr("aws_cognito_user_pool_client.client", "callback_urls.0", "https://www.example.com/callback"),
 					resource.TestCheckResourceAttr("aws_cognito_user_pool_client.client", "callback_urls.1", "https://www.example.com/redirect"),
@@ -130,23 +188,26 @@ func testAccCheckAWSCognitoUserPoolClientExists(name string) resource.TestCheckF
 	}
 }
 
-func testAccAWSCognitoUserPoolClientConfig_basic(clientName string) string {
+func testAccAWSCognitoUserPoolClientConfig_basic(userPoolName, clientName string) string {
 	return fmt.Sprintf(`
-resource "aws_cognito_user_pool_client" "client" {
-  name = "%s"
-
-  user_pool_id = "${aws_cognito_user_pool.pool.id}"
-  explicit_auth_flows = [ "ADMIN_NO_SRP_AUTH" ]
-}
-
 resource "aws_cognito_user_pool" "pool" {
-  name = "test-pool"
-}
-`, clientName)
+  name = "%s"
 }
 
-func testAccAWSCognitoUserPoolClientConfig_allFields(clientName string) string {
+resource "aws_cognito_user_pool_client" "client" {
+  name                = "%s"
+  user_pool_id        = "${aws_cognito_user_pool.pool.id}"
+  explicit_auth_flows = ["ADMIN_NO_SRP_AUTH"]
+}
+`, userPoolName, clientName)
+}
+
+func testAccAWSCognitoUserPoolClientConfig_allFields(userPoolName, clientName string) string {
 	return fmt.Sprintf(`
+resource "aws_cognito_user_pool" "pool" {
+  name = "%s"
+}
+
 resource "aws_cognito_user_pool_client" "client" {
   name = "%s"
 
@@ -162,15 +223,11 @@ resource "aws_cognito_user_pool_client" "client" {
 
   allowed_oauth_flows = ["code", "implicit"]
   allowed_oauth_flows_user_pool_client = "true"
-  allowed_oauth_scopes = ["openid", "email"]
+  allowed_oauth_scopes = ["phone", "email", "openid", "profile", "aws.cognito.signin.user.admin"]
 
   callback_urls = ["https://www.example.com/callback", "https://www.example.com/redirect"]
   default_redirect_uri = "https://www.example.com/redirect"
   logout_urls = ["https://www.example.com/login"]
 }
-
-resource "aws_cognito_user_pool" "pool" {
-  name = "test-pool"
-}
-`, clientName)
+`, userPoolName, clientName)
 }

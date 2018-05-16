@@ -17,6 +17,8 @@ func init() {
 	resource.AddTestSweepers("aws_vpc", &resource.Sweeper{
 		Name: "aws_vpc",
 		Dependencies: []string{
+			"aws_internet_gateway",
+			"aws_nat_gateway",
 			"aws_network_acl",
 			"aws_security_group",
 			"aws_subnet",
@@ -45,6 +47,10 @@ func testSweepVPCs(region string) error {
 	}
 	resp, err := conn.DescribeVpcs(req)
 	if err != nil {
+		if testSweepSkipSweepError(err) {
+			log.Printf("[WARN] Skipping EC2 VPC sweep for %s: %s", region, err)
+			return nil
+		}
 		return fmt.Errorf("Error describing vpcs: %s", err)
 	}
 

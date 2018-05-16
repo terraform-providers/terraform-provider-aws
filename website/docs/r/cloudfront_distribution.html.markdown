@@ -76,6 +76,49 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
     max_ttl                = 86400
   }
 
+  # Cache behavior with precedence 0
+  ordered_cache_behavior {
+    path_pattern     = "/content/immutable/*"
+    allowed_methods  = ["GET", "HEAD", "OPTIONS"]
+    cached_methods   = ["GET", "HEAD", "OPTIONS"]
+    target_origin_id = "myS3Origin"
+
+    forwarded_values {
+      query_string = false
+      headers = ["Origin"]
+      cookies {
+        forward = "none"
+      }
+    }
+
+    min_ttl                = 0
+    default_ttl            = 86400
+    max_ttl                = 31536000
+    compress               = true
+    viewer_protocol_policy = "redirect-to-https"
+  }
+
+  # Cache behavior with precedence 1
+  ordered_cache_behavior {
+    path_pattern     = "/content/*"
+    allowed_methods  = ["GET", "HEAD", "OPTIONS"]
+    cached_methods   = ["GET", "HEAD"]
+    target_origin_id = "myS3Origin"
+
+    forwarded_values {
+      query_string = false
+      cookies {
+        forward = "none"
+      }
+    }
+
+    min_ttl                = 0
+    default_ttl            = 3600
+    max_ttl                = 86400
+    compress               = true
+    viewer_protocol_policy = "redirect-to-https"
+  }
+
   price_class = "PriceClass_200"
 
   restrictions {
@@ -105,8 +148,11 @@ of several sub-resources - these resources are laid out below.
   * `aliases` (Optional) - Extra CNAMEs (alternate domain names), if any, for
     this distribution.
 
-  * `cache_behavior` (Optional) - A [cache behavior](#cache-behavior-arguments)
-    resource for this distribution (multiples allowed).
+  * `cache_behavior` (Optional) - **Deprecated**, use `ordered_cache_behavior` instead.
+
+  * `ordered_cache_behavior` (Optional) - An ordered list of [cache behaviors](#cache-behavior-arguments)
+    resource for this distribution. List from top to bottom
++    in order of precedence. The topmost cache behavior will have precedence 0.
 
   * `comment` (Optional) - Any comments you want to include about the
     distribution.
@@ -167,9 +213,12 @@ of several sub-resources - these resources are laid out below.
     compress content for web requests that include `Accept-Encoding: gzip` in
     the request header (default: `false`).
 
-  * `default_ttl` (Required) - The default amount of time (in seconds) that an
+  * `default_ttl` (Optional) - The default amount of time (in seconds) that an
     object is in a CloudFront cache before CloudFront forwards another request
-    in the absence of an `Cache-Control max-age` or `Expires` header.
+    in the absence of an `Cache-Control max-age` or `Expires` header. Defaults to
+    1 day.
+
+  * `field_level_encryption_id` (Optional) - Field level encryption configuration ID
 
   * `forwarded_values` (Required) - The [forwarded values configuration](#forwarded-values-arguments) that specifies how CloudFront
     handles query strings, cookies and headers (maximum one).
@@ -177,15 +226,15 @@ of several sub-resources - these resources are laid out below.
   * `lambda_function_association` (Optional) - A config block that triggers a lambda function with
   specific actions. Defined below, maximum 4.
 
-  * `max_ttl` (Required) - The maximum amount of time (in seconds) that an
+  * `max_ttl` (Optional) - The maximum amount of time (in seconds) that an
     object is in a CloudFront cache before CloudFront forwards another request
     to your origin to determine whether the object has been updated. Only
     effective in the presence of `Cache-Control max-age`, `Cache-Control
-    s-maxage`, and `Expires` headers.
+    s-maxage`, and `Expires` headers. Defaults to 365 days.
 
-  * `min_ttl` (Required) - The minimum amount of time that you want objects to
+  * `min_ttl` (Optional) - The minimum amount of time that you want objects to
     stay in CloudFront caches before CloudFront queries your origin to see
-    whether the object has been updated.
+    whether the object has been updated. Defaults to 0 seconds.
 
   * `path_pattern` (Required) - The pattern (for example, `images/*.jpg)` that
     specifies which requests you want this cache behavior to apply to.
@@ -405,7 +454,7 @@ The following attributes are exported:
 
 
 [1]: http://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/Introduction.html
-[2]: http://docs.aws.amazon.com/AmazonCloudFront/latest/APIReference/CreateDistribution.html
+[2]: https://docs.aws.amazon.com/cloudfront/latest/APIReference/API_CreateDistribution.html
 [3]: http://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-restricting-access-to-s3.html
 [4]: http://www.iso.org/iso/country_codes/iso_3166_code_lists/country_names_and_code_elements.htm
 [5]: /docs/providers/aws/r/cloudfront_origin_access_identity.html

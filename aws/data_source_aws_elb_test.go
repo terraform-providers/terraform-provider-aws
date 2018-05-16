@@ -80,7 +80,7 @@ resource "aws_subnet" "elb_test" {
   availability_zone       = "${element(data.aws_availability_zones.available.names, count.index)}"
 
   tags {
-    TestName = "%[2]s"
+    Name = "tf-acc-elb-data-source"
   }
 }
 

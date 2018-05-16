@@ -175,7 +175,7 @@ resource "aws_subnet" "alb_test" {
   availability_zone       = "${element(data.aws_availability_zones.available.names, count.index)}"
 
   tags {
-    TestName = "TestAccAWSALB_basic"
+    Name = "tf-acc-lb-listener-data-source-basic"
   }
 }
 
@@ -210,6 +210,18 @@ data "aws_lb_listener" "front_end" {
 data "aws_lb_listener" "from_lb_and_port" {
   load_balancer_arn = "${aws_lb.alb_test.arn}"
   port              = "${aws_lb_listener.front_end.port}"
+}
+
+output "front_end_load_balancer_arn" {
+  value = "${data.aws_lb_listener.front_end.load_balancer_arn}"
+}
+
+output "front_end_port" {
+  value = "${data.aws_lb_listener.front_end.port}"
+}
+
+output "from_lb_and_port_arn" {
+  value = "${data.aws_lb_listener.from_lb_and_port.arn}"
 }
 `, lbName, targetGroupName)
 }
@@ -282,7 +294,7 @@ resource "aws_subnet" "alb_test" {
   availability_zone       = "${element(data.aws_availability_zones.available.names, count.index)}"
 
   tags {
-    TestName = "TestAccAWSALB_basic"
+    Name = "tf-acc-lb-listener-data-source-bc"
   }
 }
 
@@ -386,6 +398,7 @@ resource "aws_internet_gateway" "gw" {
   vpc_id = "${aws_vpc.alb_test.id}"
 
   tags {
+    Name     = "terraform-testacc-lb-listener-data-source-https"
     TestName = "TestAccAWSALB_basic"
   }
 }
@@ -398,7 +411,7 @@ resource "aws_subnet" "alb_test" {
   availability_zone       = "${element(data.aws_availability_zones.available.names, count.index)}"
 
   tags {
-    TestName = "TestAccAWSALB_basic"
+    Name = "tf-acc-lb-listener-data-source-https"
   }
 }
 

@@ -220,6 +220,9 @@ resource "aws_subnet" "sub" {
 	vpc_id = "${aws_vpc.main.id}"
 	cidr_block = "192.168.0.0/25"
 	availability_zone = "us-west-2a"
+	tags {
+		Name = "tf-acc-eip-association"
+	}
 }
 resource "aws_internet_gateway" "igw" {
 	vpc_id = "${aws_vpc.main.id}"
@@ -272,6 +275,9 @@ resource "aws_subnet" "sub" {
 	vpc_id = "${aws_vpc.main.id}"
 	cidr_block = "192.168.0.0/25"
 	availability_zone = "us-west-2a"
+	tags {
+		Name = "tf-acc-eip-association-disappears"
+	}
 }
 resource "aws_internet_gateway" "igw" {
 	vpc_id = "${aws_vpc.main.id}"

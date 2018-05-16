@@ -177,6 +177,55 @@ func TestAccAWSDynamoDbTableItem_update(t *testing.T) {
 	})
 }
 
+func TestAccAWSDynamoDbTableItem_updateWithRangeKey(t *testing.T) {
+	var conf dynamodb.GetItemOutput
+
+	tableName := fmt.Sprintf("tf-acc-test-%s", acctest.RandString(8))
+	hashKey := "hashKey"
+	rangeKey := "rangeKey"
+
+	itemBefore := `{
+	"hashKey": {"S": "before"},
+	"rangeKey": {"S": "rangeBefore"},
+	"value": {"S": "valueBefore"}
+}`
+	itemAfter := `{
+	"hashKey": {"S": "before"},
+	"rangeKey": {"S": "rangeAfter"},
+	"value": {"S": "valueAfter"}
+}`
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSDynamoDbItemDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSDynamoDbItemConfigWithRangeKey(tableName, hashKey, rangeKey, itemBefore),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSDynamoDbTableItemExists("aws_dynamodb_table_item.test", &conf),
+					testAccCheckAWSDynamoDbTableItemCount(tableName, 1),
+					resource.TestCheckResourceAttr("aws_dynamodb_table_item.test", "hash_key", hashKey),
+					resource.TestCheckResourceAttr("aws_dynamodb_table_item.test", "range_key", rangeKey),
+					resource.TestCheckResourceAttr("aws_dynamodb_table_item.test", "table_name", tableName),
+					resource.TestCheckResourceAttr("aws_dynamodb_table_item.test", "item", itemBefore+"\n"),
+				),
+			},
+			{
+				Config: testAccAWSDynamoDbItemConfigWithRangeKey(tableName, hashKey, rangeKey, itemAfter),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSDynamoDbTableItemExists("aws_dynamodb_table_item.test", &conf),
+					testAccCheckAWSDynamoDbTableItemCount(tableName, 1),
+					resource.TestCheckResourceAttr("aws_dynamodb_table_item.test", "hash_key", hashKey),
+					resource.TestCheckResourceAttr("aws_dynamodb_table_item.test", "range_key", rangeKey),
+					resource.TestCheckResourceAttr("aws_dynamodb_table_item.test", "table_name", tableName),
+					resource.TestCheckResourceAttr("aws_dynamodb_table_item.test", "item", itemAfter+"\n"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckAWSDynamoDbItemDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*AWSClient).dynamodbconn
 

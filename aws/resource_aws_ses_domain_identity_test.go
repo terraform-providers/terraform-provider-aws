@@ -2,9 +2,11 @@ package aws
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/ses"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
@@ -17,14 +19,33 @@ func TestAccAWSSESDomainIdentity_basic(t *testing.T) {
 		acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() {
-			testAccPreCheck(t)
-		},
+		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsSESDomainIdentityDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(testAccAwsSESDomainIdentityConfig, domain),
+				Config: testAccAwsSESDomainIdentityConfig(domain),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsSESDomainIdentityExists("aws_ses_domain_identity.test"),
+					testAccCheckAwsSESDomainIdentityArn("aws_ses_domain_identity.test", domain),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSSESDomainIdentity_trailingPeriod(t *testing.T) {
+	domain := fmt.Sprintf(
+		"%s.terraformtesting.com.",
+		acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAwsSESDomainIdentityDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAwsSESDomainIdentityConfig(domain),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsSESDomainIdentityExists("aws_ses_domain_identity.test"),
 					testAccCheckAwsSESDomainIdentityArn("aws_ses_domain_identity.test", domain),
@@ -98,15 +119,17 @@ func testAccCheckAwsSESDomainIdentityExists(n string) resource.TestCheckFunc {
 func testAccCheckAwsSESDomainIdentityArn(n string, domain string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, _ := s.RootModule().Resources[n]
+		awsClient := testAccProvider.Meta().(*AWSClient)
 
-		expected := fmt.Sprintf(
-			"arn:%s:ses:%s:%s:identity/%s",
-			testAccProvider.Meta().(*AWSClient).partition,
-			testAccProvider.Meta().(*AWSClient).region,
-			testAccProvider.Meta().(*AWSClient).accountid,
-			domain)
+		expected := arn.ARN{
+			AccountID: awsClient.accountid,
+			Partition: awsClient.partition,
+			Region:    awsClient.region,
+			Resource:  fmt.Sprintf("identity/%s", strings.TrimSuffix(domain, ".")),
+			Service:   "ses",
+		}
 
-		if rs.Primary.Attributes["arn"] != expected {
+		if rs.Primary.Attributes["arn"] != expected.String() {
 			return fmt.Errorf("Incorrect ARN: expected %q, got %q", expected, rs.Primary.Attributes["arn"])
 		}
 
@@ -114,8 +137,10 @@ func testAccCheckAwsSESDomainIdentityArn(n string, domain string) resource.TestC
 	}
 }
 
-const testAccAwsSESDomainIdentityConfig = `
+func testAccAwsSESDomainIdentityConfig(domain string) string {
+	return fmt.Sprintf(`
 resource "aws_ses_domain_identity" "test" {
 	domain = "%s"
 }
-`
+`, domain)
+}

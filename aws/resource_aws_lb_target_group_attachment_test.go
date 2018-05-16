@@ -209,6 +209,9 @@ resource "aws_lb_target_group" "test" {
 resource "aws_subnet" "subnet" {
   cidr_block = "10.0.1.0/24"
   vpc_id = "${aws_vpc.test.id}"
+  tags {
+    Name = "tf-acc-lb-target-group-attachment-without-port"
+  }
 }
 
 resource "aws_vpc" "test" {
@@ -258,6 +261,9 @@ resource "aws_lb_target_group" "test" {
 resource "aws_subnet" "subnet" {
   cidr_block = "10.0.1.0/24"
   vpc_id = "${aws_vpc.test.id}"
+  tags {
+    Name = "tf-acc-lb-target-group-attachment-basic"
+  }
 }
 
 resource "aws_vpc" "test" {
@@ -307,6 +313,9 @@ resource "aws_alb_target_group" "test" {
 resource "aws_subnet" "subnet" {
   cidr_block = "10.0.1.0/24"
   vpc_id = "${aws_vpc.test.id}"
+  tags {
+    Name = "tf-acc-lb-target-group-attachment-bc"
+  }
 }
 
 resource "aws_vpc" "test" {
@@ -354,6 +363,9 @@ resource "aws_lb_target_group" "test" {
 resource "aws_subnet" "subnet" {
   cidr_block = "10.0.1.0/24"
   vpc_id = "${aws_vpc.test.id}"
+  tags {
+    Name = "tf-acc-lb-target-group-attachment-with-ip-address"
+  }
 }
 resource "aws_vpc" "test" {
   cidr_block = "10.0.0.0/16"

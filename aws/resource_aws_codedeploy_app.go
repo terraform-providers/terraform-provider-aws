@@ -110,7 +110,6 @@ func resourceAwsCodeDeployAppDelete(d *schema.ResourceData, meta interface{}) er
 	})
 	if err != nil {
 		if cderr, ok := err.(awserr.Error); ok && cderr.Code() == "InvalidApplicationNameException" {
-			d.SetId("")
 			return nil
 		} else {
 			log.Printf("[ERROR] Error deleting CodeDeploy application: %s", err)

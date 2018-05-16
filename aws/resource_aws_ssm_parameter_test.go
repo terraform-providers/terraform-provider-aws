@@ -80,6 +80,29 @@ func TestAccAWSSSMParameter_update(t *testing.T) {
 	})
 }
 
+func TestAccAWSSSMParameter_updateDescription(t *testing.T) {
+	var param ssm.Parameter
+	name := fmt.Sprintf("%s_%s", t.Name(), acctest.RandString(10))
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSSSMParameterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSSSMParameterBasicConfigOverwrite(name, "String", "bar"),
+			},
+			{
+				Config: testAccAWSSSMParameterBasicConfigOverwriteWithoutDescription(name, "String", "bar"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSSSMParameterExists("aws_ssm_parameter.foo", &param),
+					resource.TestCheckResourceAttr("aws_ssm_parameter.foo", "description", ""),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAWSSSMParameter_changeNameForcesNew(t *testing.T) {
 	var beforeParam, afterParam ssm.Parameter
 	before := fmt.Sprintf("%s_%s", t.Name(), acctest.RandString(10))
@@ -145,6 +168,7 @@ func TestAccAWSSSMParameter_secure(t *testing.T) {
 					testAccCheckAWSSSMParameterExists("aws_ssm_parameter.foo", &param),
 					resource.TestCheckResourceAttr("aws_ssm_parameter.foo", "value", "secret"),
 					resource.TestCheckResourceAttr("aws_ssm_parameter.foo", "type", "SecureString"),
+					resource.TestCheckResourceAttr("aws_ssm_parameter.foo", "key_id", "alias/aws/ssm"), // Default SSM key id
 				),
 			},
 		},
@@ -153,7 +177,8 @@ func TestAccAWSSSMParameter_secure(t *testing.T) {
 
 func TestAccAWSSSMParameter_secure_with_key(t *testing.T) {
 	var param ssm.Parameter
-	name := fmt.Sprintf("%s_%s", t.Name(), acctest.RandString(10))
+	randString := acctest.RandString(10)
+	name := fmt.Sprintf("%s_%s", t.Name(), randString)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -161,11 +186,44 @@ func TestAccAWSSSMParameter_secure_with_key(t *testing.T) {
 		CheckDestroy: testAccCheckAWSSSMParameterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSSSMParameterSecureConfigWithKey(name, "secret"),
+				Config: testAccAWSSSMParameterSecureConfigWithKey(name, "secret", randString),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSSSMParameterExists("aws_ssm_parameter.secret_foo", &param),
 					resource.TestCheckResourceAttr("aws_ssm_parameter.secret_foo", "value", "secret"),
 					resource.TestCheckResourceAttr("aws_ssm_parameter.secret_foo", "type", "SecureString"),
+					resource.TestCheckResourceAttr("aws_ssm_parameter.secret_foo", "key_id", "alias/"+randString),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSSSMParameter_secure_keyUpdate(t *testing.T) {
+	var param ssm.Parameter
+	randString := acctest.RandString(10)
+	name := fmt.Sprintf("%s_%s", t.Name(), randString)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSSSMParameterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSSSMParameterSecureConfig(name, "secret"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSSSMParameterExists("aws_ssm_parameter.secret_foo", &param),
+					resource.TestCheckResourceAttr("aws_ssm_parameter.secret_foo", "value", "secret"),
+					resource.TestCheckResourceAttr("aws_ssm_parameter.secret_foo", "type", "SecureString"),
+					resource.TestCheckResourceAttr("aws_ssm_parameter.secret_foo", "key_id", "alias/aws/ssm"), // Default SSM key id
+				),
+			},
+			{
+				Config: testAccAWSSSMParameterSecureConfigWithKey(name, "secret", randString),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSSSMParameterExists("aws_ssm_parameter.secret_foo", &param),
+					resource.TestCheckResourceAttr("aws_ssm_parameter.secret_foo", "value", "secret"),
+					resource.TestCheckResourceAttr("aws_ssm_parameter.secret_foo", "type", "SecureString"),
+					resource.TestCheckResourceAttr("aws_ssm_parameter.secret_foo", "key_id", "alias/"+randString),
 				),
 			},
 		},
@@ -273,26 +331,88 @@ resource "aws_ssm_parameter" "foo" {
 func testAccAWSSSMParameterBasicConfigOverwrite(rName, pType, value string) string {
 	return fmt.Sprintf(`
 resource "aws_ssm_parameter" "foo" {
-  name  = "%s"
-  type  = "%s"
-  value = "%s"
+  name  = "test_parameter-%[1]s"
+  description  = "description for parameter %[1]s"
+  type  = "%[2]s"
+  value = "%[3]s"
   overwrite = true
 }
 `, rName, pType, value)
 }
 
-func testAccAWSSSMParameterSecureConfigWithKey(rName string, value string) string {
+func testAccAWSSSMParameterBasicConfigOverwriteWithoutDescription(rName, pType, value string) string {
+	return fmt.Sprintf(`
+resource "aws_ssm_parameter" "foo" {
+  name  = "test_parameter-%[1]s"
+  type  = "%[2]s"
+  value = "%[3]s"
+  overwrite = true
+}
+`, rName, pType, value)
+}
+
+func testAccAWSSSMParameterSecureConfig(rName string, value string) string {
 	return fmt.Sprintf(`
 resource "aws_ssm_parameter" "secret_foo" {
-  name  = "test_secure_parameter-%s"
+  name  = "test_secure_parameter-%[1]s"
+  description  = "description for parameter %[1]s"
   type  = "SecureString"
-  value = "%s"
-	key_id = "${aws_kms_key.test_key.id}"
+  value = "%[2]s"
+}
+`, rName, value)
+}
+
+func testAccAWSSSMParameterSecureConfigWithKey(rName string, value string, keyAlias string) string {
+	return fmt.Sprintf(`
+resource "aws_ssm_parameter" "secret_foo" {
+  name  = "test_secure_parameter-%[1]s"
+  description  = "description for parameter %[1]s"
+  type  = "SecureString"
+  value = "%[2]s"
+  key_id = "alias/%[3]s"
+  depends_on = ["aws_kms_alias.test_alias"]
 }
 
 resource "aws_kms_key" "test_key" {
   description             = "KMS key 1"
   deletion_window_in_days = 7
 }
-`, rName, value)
+
+resource "aws_kms_alias" "test_alias" {
+  name          = "alias/%[3]s"
+  target_key_id = "${aws_kms_key.test_key.id}"
+}
+`, rName, value, keyAlias)
+}
+
+func TestAWSSSMParameterShouldUpdate(t *testing.T) {
+	data := resourceAwsSsmParameter().TestResourceData()
+	failure := false
+
+	if !shouldUpdateSsmParameter(data) {
+		t.Logf("Existing resources should be overwritten if the values don't match!")
+		failure = true
+	}
+
+	data.MarkNewResource()
+	if shouldUpdateSsmParameter(data) {
+		t.Logf("New resources must never be overwritten, this will overwrite parameters created outside of the system")
+		failure = true
+	}
+
+	data = resourceAwsSsmParameter().TestResourceData()
+	data.Set("overwrite", true)
+	if !shouldUpdateSsmParameter(data) {
+		t.Logf("Resources should always be overwritten if the user requests it")
+		failure = true
+	}
+
+	data.Set("overwrite", false)
+	if shouldUpdateSsmParameter(data) {
+		t.Logf("Resources should never be overwritten if the user requests it")
+		failure = true
+	}
+	if failure {
+		t.Fail()
+	}
 }

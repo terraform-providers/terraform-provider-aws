@@ -12,23 +12,17 @@ Provides a CloudTrail resource.
 
 ## Example Usage
 
+### Basic
+
+Enable CloudTrail to capture all compatible management events in region.
+For capturing events from services like IAM, `include_global_service_events` must be enabled.
+
 ```hcl
 resource "aws_cloudtrail" "foobar" {
   name                          = "tf-trail-foobar"
   s3_bucket_name                = "${aws_s3_bucket.foo.id}"
   s3_key_prefix                 = "prefix"
   include_global_service_events = false
-
-  event_selector {
-    read_write_type = "All"
-    include_management_events = false
-    data_resource {
-      type = "AWS::S3::Object"
-      values = [
-         "arn:aws:s3:::tf-bucket/foobar",
-       ]
-    }
-  }
 }
 
 resource "aws_s3_bucket" "foo" {
@@ -68,6 +62,70 @@ POLICY
 }
 ```
 
+### Data Event Logging
+
+CloudTrail can log [Data Events](https://docs.aws.amazon.com/awscloudtrail/latest/userguide/logging-management-and-data-events-with-cloudtrail.html#logging-data-events) for certain services such as S3 bucket objects and Lambda function invocations. Additional information about data event configuration can be found in the [CloudTrail API DataResource documentation](https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_DataResource.html).
+
+#### Logging All Lambda Function Invocations
+
+```hcl
+resource "aws_cloudtrail" "example" {
+  # ... other configuration ...
+
+  event_selector {
+    read_write_type = "All"
+    include_management_events = true
+
+    data_resource {
+      type   = "AWS::Lambda::Function"
+      values = ["arn:aws:lambda"]
+    }
+  }
+}
+```
+
+#### Logging All S3 Bucket Object Events
+
+```hcl
+resource "aws_cloudtrail" "example" {
+  # ... other configuration ...
+
+  event_selector {
+    read_write_type = "All"
+    include_management_events = true
+
+    data_resource {
+      type   = "AWS::S3::Object"
+      values = ["arn:aws:s3:::"]
+    }
+  }
+}
+```
+
+#### Logging Individual S3 Bucket Events
+
+```hcl
+data "aws_s3_bucket" "important-bucket" {
+  bucket = "important-bucket"
+}
+
+resource "aws_cloudtrail" "example" {
+  # ... other configuration ...
+
+  event_selector {
+    read_write_type = "All"
+    include_management_events = true
+
+    data_resource {
+      type   = "AWS::S3::Object"
+      # Make sure to append a trailing '/' to your ARN if you want
+      # to monitor all objects in a bucket.
+      values = ["${data.aws_s3_bucket.important-bucket.arn}/"]
+    }
+  }
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -91,7 +149,7 @@ The following arguments are supported:
 * `enable_log_file_validation` - (Optional) Specifies whether log file integrity validation is enabled.
     Defaults to `false`.
 * `kms_key_id` - (Optional) Specifies the KMS key ARN to use to encrypt the logs delivered by CloudTrail.
-* `event_selector` - (Optional) Specifies the event selector. Fields documented below.
+* `event_selector` - (Optional) Specifies an event selector for enabling data event logging. Fields documented below. Please note the [CloudTrail limits](https://docs.aws.amazon.com/awscloudtrail/latest/userguide/WhatIsCloudTrail-Limits.html) when configuring these.
 * `tags` - (Optional) A mapping of tags to assign to the trail
 
 ### Event Selector Arguments

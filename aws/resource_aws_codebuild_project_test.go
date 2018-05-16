@@ -44,7 +44,7 @@ func TestAccAWSCodeBuildProject_vpc(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSCodeBuildProjectConfig_basic(name,
-					hclVpcConfig("\"${aws_subnet.codebuild_subnet.id}\",\"${aws_subnet.codebuild_subnet_2.id}\""), hclVpcResources()),
+					testAccAWSCodeBuildProjectConfig_vpcConfig("\"${aws_subnet.codebuild_subnet.id}\",\"${aws_subnet.codebuild_subnet_2.id}\""), testAccAWSCodeBuildProjectConfig_vpcResources()),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSCodeBuildProjectExists("aws_codebuild_project.foo"),
 					resource.TestCheckResourceAttr(
@@ -55,7 +55,7 @@ func TestAccAWSCodeBuildProject_vpc(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAWSCodeBuildProjectConfig_basic(name, hclVpcConfig("\"${aws_subnet.codebuild_subnet.id}\""), hclVpcResources()),
+				Config: testAccAWSCodeBuildProjectConfig_basic(name, testAccAWSCodeBuildProjectConfig_vpcConfig("\"${aws_subnet.codebuild_subnet.id}\""), testAccAWSCodeBuildProjectConfig_vpcResources()),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSCodeBuildProjectExists("aws_codebuild_project.foo"),
 					resource.TestCheckResourceAttr(
@@ -78,6 +78,64 @@ func TestAccAWSCodeBuildProject_vpc(t *testing.T) {
 	})
 }
 
+func TestAccAWSCodeBuildProject_cache(t *testing.T) {
+	name := acctest.RandString(10)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSCodeBuildProjectDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccAWSCodeBuildProjectConfig_cache(name, testAccAWSCodeBuildProjectConfig_cacheConfig("S3", "")),
+				ExpectError: regexp.MustCompile(`cache location is required when cache type is "S3"`),
+			},
+			{
+				Config: testAccAWSCodeBuildProjectConfig_cache(name, testAccAWSCodeBuildProjectConfig_cacheConfig("NO_CACHE", "")),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSCodeBuildProjectExists("aws_codebuild_project.foo"),
+					resource.TestCheckResourceAttr("aws_codebuild_project.foo", "cache.#", "1"),
+					resource.TestCheckResourceAttr("aws_codebuild_project.foo", "cache.0.type", "NO_CACHE"),
+				),
+			},
+			{
+				Config: testAccAWSCodeBuildProjectConfig_cache(name, ""),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSCodeBuildProjectExists("aws_codebuild_project.foo"),
+					resource.TestCheckResourceAttr("aws_codebuild_project.foo", "cache.#", "1"),
+					resource.TestCheckResourceAttr("aws_codebuild_project.foo", "cache.0.type", "NO_CACHE"),
+				),
+			},
+			{
+				Config: testAccAWSCodeBuildProjectConfig_cache(name, testAccAWSCodeBuildProjectConfig_cacheConfig("S3", "some-bucket")),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSCodeBuildProjectExists("aws_codebuild_project.foo"),
+					resource.TestCheckResourceAttr("aws_codebuild_project.foo", "cache.#", "1"),
+					resource.TestCheckResourceAttr("aws_codebuild_project.foo", "cache.0.type", "S3"),
+					resource.TestCheckResourceAttr("aws_codebuild_project.foo", "cache.0.location", "some-bucket"),
+				),
+			},
+			{
+				Config: testAccAWSCodeBuildProjectConfig_cache(name, testAccAWSCodeBuildProjectConfig_cacheConfig("S3", "some-new-bucket")),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSCodeBuildProjectExists("aws_codebuild_project.foo"),
+					resource.TestCheckResourceAttr("aws_codebuild_project.foo", "cache.#", "1"),
+					resource.TestCheckResourceAttr("aws_codebuild_project.foo", "cache.0.type", "S3"),
+					resource.TestCheckResourceAttr("aws_codebuild_project.foo", "cache.0.location", "some-new-bucket"),
+				),
+			},
+			{
+				Config: testAccAWSCodeBuildProjectConfig_cache(name, ""),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSCodeBuildProjectExists("aws_codebuild_project.foo"),
+					resource.TestCheckResourceAttr("aws_codebuild_project.foo", "cache.#", "1"),
+					resource.TestCheckResourceAttr("aws_codebuild_project.foo", "cache.0.type", "NO_CACHE"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAWSCodeBuildProject_sourceAuth(t *testing.T) {
 	authResource := "FAKERESOURCE1"
 	authType := "OAUTH"
@@ -91,7 +149,7 @@ func TestAccAWSCodeBuildProject_sourceAuth(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccAWSCodeBuildProjectConfig_sourceAuth(name, authResource, "INVALID"),
-				ExpectError: regexp.MustCompile(`Source Auth Type can only be`),
+				ExpectError: regexp.MustCompile(`expected source.0.auth.0.type to be one of`),
 			},
 			{
 				Config: testAccAWSCodeBuildProjectConfig_sourceAuth(name, authResource, authType),
@@ -133,45 +191,6 @@ func TestAccAWSCodeBuildProject_default_build_timeout(t *testing.T) {
 	})
 }
 
-func TestAWSCodeBuildProject_artifactsTypeValidation(t *testing.T) {
-	cases := []struct {
-		Value    string
-		ErrCount int
-	}{
-		{Value: "CODEPIPELINE", ErrCount: 0},
-		{Value: "NO_ARTIFACTS", ErrCount: 0},
-		{Value: "S3", ErrCount: 0},
-		{Value: "XYZ", ErrCount: 1},
-	}
-
-	for _, tc := range cases {
-		_, errors := validateAwsCodeBuildArifactsType(tc.Value, "aws_codebuild_project")
-
-		if len(errors) != tc.ErrCount {
-			t.Fatalf("Expected the AWS CodeBuild project artifacts type to trigger a validation error")
-		}
-	}
-}
-
-func TestAWSCodeBuildProject_artifactsNamespaceTypeValidation(t *testing.T) {
-	cases := []struct {
-		Value    string
-		ErrCount int
-	}{
-		{Value: "NONE", ErrCount: 0},
-		{Value: "BUILD_ID", ErrCount: 0},
-		{Value: "XYZ", ErrCount: 1},
-	}
-
-	for _, tc := range cases {
-		_, errors := validateAwsCodeBuildArifactsNamespaceType(tc.Value, "aws_codebuild_project")
-
-		if len(errors) != tc.ErrCount {
-			t.Fatalf("Expected the AWS CodeBuild project artifacts namepsace_type to trigger a validation error")
-		}
-	}
-}
-
 func longTestData() string {
 	data := `
 	test-test-test-test-test-test-test-test-test-test-
@@ -207,122 +226,6 @@ func TestAWSCodeBuildProject_nameValidation(t *testing.T) {
 
 		if len(errors) != tc.ErrCount {
 			t.Fatalf("Expected the AWS CodeBuild project name to trigger a validation error - %s", errors)
-		}
-	}
-}
-
-func TestAWSCodeBuildProject_descriptionValidation(t *testing.T) {
-	cases := []struct {
-		Value    string
-		ErrCount int
-	}{
-		{Value: "test", ErrCount: 0},
-		{Value: longTestData(), ErrCount: 1},
-	}
-
-	for _, tc := range cases {
-		_, errors := validateAwsCodeBuildProjectDescription(tc.Value, "aws_codebuild_project")
-
-		if len(errors) != tc.ErrCount {
-			t.Fatalf("Expected the AWS CodeBuild project description to trigger a validation error")
-		}
-	}
-}
-
-func TestAWSCodeBuildProject_environmentComputeTypeValidation(t *testing.T) {
-	cases := []struct {
-		Value    string
-		ErrCount int
-	}{
-		{Value: "BUILD_GENERAL1_SMALL", ErrCount: 0},
-		{Value: "BUILD_GENERAL1_MEDIUM", ErrCount: 0},
-		{Value: "BUILD_GENERAL1_LARGE", ErrCount: 0},
-		{Value: "BUILD_GENERAL1_VERYLARGE", ErrCount: 1},
-	}
-
-	for _, tc := range cases {
-		_, errors := validateAwsCodeBuildEnvironmentComputeType(tc.Value, "aws_codebuild_project")
-
-		if len(errors) != tc.ErrCount {
-			t.Fatalf("Expected the AWS CodeBuild project environment compute_type to trigger a validation error")
-		}
-	}
-}
-
-func TestAWSCodeBuildProject_environmentTypeValidation(t *testing.T) {
-	cases := []struct {
-		Value    string
-		ErrCount int
-	}{
-		{Value: "LINUX_CONTAINER", ErrCount: 0},
-		{Value: "WINDOWS_CONTAINER", ErrCount: 1},
-	}
-
-	for _, tc := range cases {
-		_, errors := validateAwsCodeBuildEnvironmentType(tc.Value, "aws_codebuild_project")
-
-		if len(errors) != tc.ErrCount {
-			t.Fatalf("Expected the AWS CodeBuild project environment type to trigger a validation error")
-		}
-	}
-}
-
-func TestAWSCodeBuildProject_sourceTypeValidation(t *testing.T) {
-	cases := []struct {
-		Value    string
-		ErrCount int
-	}{
-		{Value: "CODECOMMIT", ErrCount: 0},
-		{Value: "CODEPIPELINE", ErrCount: 0},
-		{Value: "GITHUB", ErrCount: 0},
-		{Value: "S3", ErrCount: 0},
-		{Value: "BITBUCKET", ErrCount: 0},
-		{Value: "GITLAB", ErrCount: 1},
-	}
-
-	for _, tc := range cases {
-		_, errors := validateAwsCodeBuildSourceType(tc.Value, "aws_codebuild_project")
-
-		if len(errors) != tc.ErrCount {
-			t.Fatalf("Expected the AWS CodeBuild project source type to trigger a validation error")
-		}
-	}
-}
-
-func TestAWSCodeBuildProject_sourceAuthTypeValidation(t *testing.T) {
-	cases := []struct {
-		Value    string
-		ErrCount int
-	}{
-		{Value: "OAUTH", ErrCount: 0},
-		{Value: "PASSWORD", ErrCount: 1},
-	}
-
-	for _, tc := range cases {
-		_, errors := validateAwsCodeBuildSourceAuthType(tc.Value, "aws_codebuild_project")
-
-		if len(errors) != tc.ErrCount {
-			t.Fatalf("Expected the AWS CodeBuild project source auth to trigger a validation error")
-		}
-	}
-}
-
-func TestAWSCodeBuildProject_timeoutValidation(t *testing.T) {
-	cases := []struct {
-		Value    int
-		ErrCount int
-	}{
-		{Value: 10, ErrCount: 0},
-		{Value: 200, ErrCount: 0},
-		{Value: 1, ErrCount: 1},
-		{Value: 500, ErrCount: 1},
-	}
-
-	for _, tc := range cases {
-		_, errors := validateAwsCodeBuildTimeout(tc.Value, "aws_codebuild_project")
-
-		if len(errors) != tc.ErrCount {
-			t.Fatalf("Expected the AWS CodeBuild project timeout to trigger a validation error")
 		}
 	}
 }
@@ -567,6 +470,104 @@ resource "aws_codebuild_project" "foo" {
 `, rName, rName, rName, rName)
 }
 
+func testAccAWSCodeBuildProjectConfig_cache(rName, cacheConfig string) string {
+	return fmt.Sprintf(`
+resource "aws_iam_role" "codebuild_role" {
+  name = "codebuild-role-%s"
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "codebuild.amazonaws.com"
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_policy" "codebuild_policy" {
+  name        = "codebuild-policy-%s"
+  path        = "/service-role/"
+  description = "Policy used in trust relationship with CodeBuild"
+  policy      = <<POLICY
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Resource": [
+        "*"
+      ],
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "ec2:CreateNetworkInterface",
+        "ec2:DescribeDhcpOptions",
+        "ec2:DescribeNetworkInterfaces",
+        "ec2:DeleteNetworkInterface",
+        "ec2:DescribeSubnets",
+        "ec2:DescribeSecurityGroups",
+        "ec2:DescribeVpcs"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
+POLICY
+}
+
+resource "aws_iam_policy_attachment" "codebuild_policy_attachment" {
+  name       = "codebuild-policy-attachment-%s"
+  policy_arn = "${aws_iam_policy.codebuild_policy.arn}"
+  roles      = ["${aws_iam_role.codebuild_role.id}"]
+}
+
+resource "aws_codebuild_project" "foo" {
+  name          = "test-project-%s"
+  description   = "test_codebuild_project"
+  build_timeout = "5"
+  service_role  = "${aws_iam_role.codebuild_role.arn}"
+
+  artifacts {
+    type = "NO_ARTIFACTS"
+  }
+
+  %s
+
+  environment {
+    compute_type = "BUILD_GENERAL1_SMALL"
+    image        = "2"
+    type         = "LINUX_CONTAINER"
+
+    environment_variable = {
+      "name"  = "SOME_KEY"
+      "value" = "SOME_VALUE"
+    }
+  }
+
+  source {
+    type     = "GITHUB"
+    location = "https://github.com/hashicorp/packer.git"
+  }
+
+  tags {
+    "Environment" = "Test"
+  }
+}
+`, rName, rName, rName, rName, cacheConfig)
+}
+
 func testAccAWSCodeBuildProjectConfig_default_timeout(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_iam_role" "codebuild_role" {
@@ -738,7 +739,7 @@ resource "aws_codebuild_project" "foo" {
 `, rName, authResource, authType)
 }
 
-func hclVpcResources() string {
+func testAccAWSCodeBuildProjectConfig_vpcResources() string {
 	return fmt.Sprintf(`
 	resource "aws_vpc" "codebuild_vpc" {
 		cidr_block = "10.0.0.0/16"
@@ -747,11 +748,17 @@ func hclVpcResources() string {
 	resource "aws_subnet" "codebuild_subnet" {
 		vpc_id     = "${aws_vpc.codebuild_vpc.id}"
 		cidr_block = "10.0.0.0/24"
+		tags {
+			Name = "tf-acc-codebuild-project-1"
+		}
 	}
 
 	resource "aws_subnet" "codebuild_subnet_2" {
 		vpc_id     = "${aws_vpc.codebuild_vpc.id}"
 		cidr_block = "10.0.1.0/24"
+		tags {
+			Name = "tf-acc-codebuild-project-2"
+		}
 	}
 
 
@@ -761,7 +768,7 @@ func hclVpcResources() string {
 `)
 }
 
-func hclVpcConfig(subnets string) string {
+func testAccAWSCodeBuildProjectConfig_vpcConfig(subnets string) string {
 	return fmt.Sprintf(`
   vpc_config {
     vpc_id = "${aws_vpc.codebuild_vpc.id}"
@@ -773,4 +780,13 @@ func hclVpcConfig(subnets string) string {
     ]
   }
 `, subnets)
+}
+
+func testAccAWSCodeBuildProjectConfig_cacheConfig(cacheType, cacheLocation string) string {
+	return fmt.Sprintf(`
+  cache {
+    type     = "%s"
+    location = "%s"
+  }
+`, cacheType, cacheLocation)
 }

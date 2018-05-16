@@ -43,7 +43,7 @@ The following arguments are supported:
 * `event_delivery_failure_topic_arn` - (Optional) SNS Topic triggered when a delivery to any of the platform endpoints associated with your platform application encounters a permanent failure.
 * `event_endpoint_created_topic_arn` - (Optional) SNS Topic triggered when a new platform endpoint is added to your platform application.
 * `event_endpoint_deleted_topic_arn` - (Optional) SNS Topic triggered when an existing platform endpoint is deleted from your platform application.
-* `event_endpoint_updated_topic` - (Optional) SNS Topic triggered when an existing platform endpoint is changed from your platform application.
+* `event_endpoint_updated_topic_arn` - (Optional) SNS Topic triggered when an existing platform endpoint is changed from your platform application.
 * `failure_feedback_role_arn` - (Optional) The IAM role permitted to receive failure feedback for this application.
 * `platform_principal` - (Optional) Application Platform principal. See [Principal][2] for type of principal required for platform. The value of this attribute when stored into the Terraform state is only a hash of the real value, so therefore it is not practical to use this as an attribute for other resources.
 * `success_feedback_role_arn` - (Optional) The IAM role permitted to receive success feedback for this application.

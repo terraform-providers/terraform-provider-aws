@@ -2,6 +2,8 @@
 layout: "aws"
 page_title: "AWS: aws_redshift_cluster"
 sidebar_current: "docs-aws-resource-redshift-cluster"
+description: |-
+  Provides a Redshift Cluster resource.
 ---
 
 # aws_redshift_cluster

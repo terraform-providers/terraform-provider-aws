@@ -65,8 +65,6 @@ The following arguments are supported:
   See [docs](http://docs.aws.amazon.com/waf/latest/APIReference/API_FieldToMatch.html)
   for all supported values.
 
-## Remarks
-
 ## Attributes Reference
 
 The following attributes are exported:

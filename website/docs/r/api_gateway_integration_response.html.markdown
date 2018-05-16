@@ -76,8 +76,8 @@ The following arguments are supported:
 * `http_method` - (Required) The HTTP method (`GET`, `POST`, `PUT`, `DELETE`, `HEAD`, `OPTIONS`, `ANY`)
 * `status_code` - (Required) The HTTP status code
 * `selection_pattern` - (Optional) Specifies the regular expression pattern used to choose
-  an integration response based on the response from the backend. Setting this to `-` makes the integration the default one.
-  If the backend is an `AWS` Lambda function, the AWS Lambda function error header is matched.
+  an integration response based on the response from the backend. Setting this to `-` makes the integration the default one.
+  If the backend is an `AWS` Lambda function, the AWS Lambda function error header is matched.
   For all other `HTTP` and `AWS` backends, the HTTP status code is matched.
 * `response_templates` - (Optional) A map specifying the templates used to transform the integration response body
 * `response_parameters` - (Optional) A map of response parameters that can be read from the backend response.

@@ -299,6 +299,10 @@ Nested `endpoints` block supports the following:
   URL constructed from the `region`. It's typically used to connect to
   custom ELB endpoints.
 
+* `es` - (Optional) Use this to override the default endpoint
+  URL constructed from the `region`.  It's typically used to connect to
+  custom Elasticsearch endpoints.
+
 * `iam` - (Optional) Use this to override the default endpoint
   URL constructed from the `region`. It's typically used to connect to
   custom IAM endpoints.

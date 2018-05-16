@@ -24,6 +24,7 @@ var ssmPatchOSs = []string{
 	ssm.OperatingSystemAmazonLinux,
 	ssm.OperatingSystemUbuntu,
 	ssm.OperatingSystemRedhatEnterpriseLinux,
+	ssm.OperatingSystemCentos,
 }
 
 func resourceAwsSsmPatchBaseline() *schema.Resource {

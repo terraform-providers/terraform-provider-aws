@@ -50,7 +50,7 @@ resource "aws_api_gateway_method_settings" "s" {
 
   settings {
     metrics_enabled = true
-  logging_level = "INFO"
+    logging_level = "INFO"
   }
 }
 
@@ -69,6 +69,7 @@ The following arguments are supported:
 * `rest_api_id` - (Required) The ID of the associated REST API
 * `stage_name` - (Required) The name of the stage
 * `deployment_id` - (Required) The ID of the deployment that the stage points to
+* `access_log_settings` - (Optional) Enables access logs for the API stage. Detailed below.
 * `cache_cluster_enabled` - (Optional) Specifies whether a cache cluster is enabled for the stage
 * `cache_cluster_size` - (Optional) The size of the cache cluster for the stage, if enabled.
 	Allowed values include `0.5`, `1.6`, `6.1`, `13.5`, `28.4`, `58.2`, `118` and `237`.
@@ -76,3 +77,23 @@ The following arguments are supported:
 * `description` - (Optional) The description of the stage
 * `documentation_version` - (Optional) The version of the associated API documentation
 * `variables` - (Optional) A map that defines the stage variables
+* `tags` - (Optional) A mapping of tags to assign to the resource.
+
+### Nested Blocks
+
+#### `access_log_settings`
+
+* `destination_arn` - (Required) ARN of the log group to send the logs to. Automatically removes trailing `:*` if present.
+* `format` - (Required) The formatting and values recorded in the logs. 
+For more information on configuring the log format rules visit the AWS [documentation](https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-logging.html)
+
+## Attribute Reference
+
+The following attributes are exported:
+
+* `id` - The ID of the stage
+* `invoke_url` - The URL to invoke the API pointing to the stage,
+  e.g. `https://z4675bid1j.execute-api.eu-west-2.amazonaws.com/prod`
+* `execution_arn` - The execution ARN to be used in [`lambda_permission`](/docs/providers/aws/r/lambda_permission.html)'s `source_arn`
+  when allowing API Gateway to invoke a Lambda function,
+  e.g. `arn:aws:execute-api:eu-west-2:123456789012:z4675bid1j/prod`

@@ -7,21 +7,55 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 )
 
 func TestAccAWSEBSSnapshot_basic(t *testing.T) {
 	var v ec2.Snapshot
+	rName := fmt.Sprintf("tf-acc-ebs-snapshot-basic-%s", acctest.RandString(7))
+
+	deleteSnapshot := func() {
+		conn := testAccProvider.Meta().(*AWSClient).ec2conn
+		resp, err := conn.DescribeSnapshots(&ec2.DescribeSnapshotsInput{
+			Filters: []*ec2.Filter{
+				{
+					Name:   aws.String("tag:Name"),
+					Values: []*string{aws.String(rName)},
+				},
+			},
+		})
+		if err != nil {
+			t.Fatalf("Error fetching snapshot: %s", err)
+		}
+		if len(resp.Snapshots) == 0 {
+			t.Fatalf("No snapshot exists with tag:Name = %s", rName)
+		}
+		snapshotId := resp.Snapshots[0].SnapshotId
+		_, err = conn.DeleteSnapshot(&ec2.DeleteSnapshotInput{SnapshotId: snapshotId})
+		if err != nil {
+			t.Fatalf("Error deleting snapshot %s with tag:Name = %s: %s", *snapshotId, rName, err)
+		}
+	}
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAwsEbsSnapshotConfig,
+				Config: testAccAwsEbsSnapshotConfigBasic(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckSnapshotExists("aws_ebs_snapshot.test", &v),
-					testAccCheckTags(&v.Tags, "Name", "testAccAwsEbsSnapshotConfig"),
+					testAccCheckTags(&v.Tags, "Name", rName),
+				),
+			},
+			{
+				PreConfig: deleteSnapshot,
+				Config:    testAccAwsEbsSnapshotConfigBasic(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckSnapshotExists("aws_ebs_snapshot.test", &v),
+					testAccCheckTags(&v.Tags, "Name", rName),
 				),
 			},
 		},
@@ -30,15 +64,17 @@ func TestAccAWSEBSSnapshot_basic(t *testing.T) {
 
 func TestAccAWSEBSSnapshot_withDescription(t *testing.T) {
 	var v ec2.Snapshot
+	rName := fmt.Sprintf("tf-acc-ebs-snapshot-desc-%s", acctest.RandString(7))
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAwsEbsSnapshotConfigWithDescription,
+				Config: testAccAwsEbsSnapshotConfigWithDescription(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckSnapshotExists("aws_ebs_snapshot.test", &v),
-					resource.TestCheckResourceAttr("aws_ebs_snapshot.test", "description", "EBS Snapshot Acceptance Test"),
+					resource.TestCheckResourceAttr("aws_ebs_snapshot.test", "description", rName),
 				),
 			},
 		},
@@ -47,12 +83,14 @@ func TestAccAWSEBSSnapshot_withDescription(t *testing.T) {
 
 func TestAccAWSEBSSnapshot_withKms(t *testing.T) {
 	var v ec2.Snapshot
+	rName := fmt.Sprintf("tf-acc-ebs-snapshot-kms-%s", acctest.RandString(7))
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAwsEbsSnapshotConfigWithKms,
+				Config: testAccAwsEbsSnapshotConfigWithKms(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckSnapshotExists("aws_ebs_snapshot.test", &v),
 					resource.TestMatchResourceAttr("aws_ebs_snapshot.test", "kms_key_id",
@@ -91,9 +129,12 @@ func testAccCheckSnapshotExists(n string, v *ec2.Snapshot) resource.TestCheckFun
 	}
 }
 
-const testAccAwsEbsSnapshotConfig = `
+func testAccAwsEbsSnapshotConfigBasic(rName string) string {
+	return fmt.Sprintf(`
+data "aws_region" "current" {}
+
 resource "aws_ebs_volume" "test" {
-  availability_zone = "us-west-2a"
+  availability_zone = "${data.aws_region.current.name}a"
   size              = 1
 }
 
@@ -101,40 +142,49 @@ resource "aws_ebs_snapshot" "test" {
   volume_id = "${aws_ebs_volume.test.id}"
 
   tags {
-    Name = "testAccAwsEbsSnapshotConfig"
+    Name = "%s"
   }
 }
-`
+`, rName)
+}
 
-const testAccAwsEbsSnapshotConfigWithDescription = `
+func testAccAwsEbsSnapshotConfigWithDescription(rName string) string {
+	return fmt.Sprintf(`
+data "aws_region" "current" {}
+
 resource "aws_ebs_volume" "description_test" {
-	availability_zone = "us-west-2a"
-	size = 1
+  availability_zone = "${data.aws_region.current.name}a"
+  size              = 1
 }
 
 resource "aws_ebs_snapshot" "test" {
-	volume_id = "${aws_ebs_volume.description_test.id}"
-	description = "EBS Snapshot Acceptance Test"
+  volume_id = "${aws_ebs_volume.description_test.id}"
+  description = "%s"
 }
-`
+`, rName)
+}
 
-const testAccAwsEbsSnapshotConfigWithKms = `
+func testAccAwsEbsSnapshotConfigWithKms(rName string) string {
+	return fmt.Sprintf(`
+variable "name" { default = "%s" }
+data "aws_region" "current" {}
+
 resource "aws_kms_key" "test" {
   deletion_window_in_days = 7
 
   tags {
-    Name = "testAccAwsEbsSnapshotConfigWithKms"
+    Name = "${var.name}"
   }
 }
 
 resource "aws_ebs_volume" "test" {
-  availability_zone = "us-west-2a"
+  availability_zone = "${data.aws_region.current.name}a"
   size              = 1
   encrypted         = true
   kms_key_id        = "${aws_kms_key.test.arn}"
 
   tags {
-    Name = "testAccAwsEbsSnapshotConfigWithKms"
+    Name = "${var.name}"
   }
 }
 
@@ -142,7 +192,8 @@ resource "aws_ebs_snapshot" "test" {
   volume_id = "${aws_ebs_volume.test.id}"
 
   tags {
-    Name = "testAccAwsEbsSnapshotConfigWithKms"
+    Name = "${var.name}"
   }
 }
-`
+`, rName)
+}

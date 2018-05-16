@@ -348,7 +348,7 @@ func TestAccAWSSecurityGroupRule_ExpectInvalidTypeError(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccAWSSecurityGroupRuleExpectInvalidType(rInt),
-				ExpectError: regexp.MustCompile(`\"type\" contains an invalid Security Group Rule type \"foobar\"`),
+				ExpectError: regexp.MustCompile(`expected type to be one of \[ingress egress\]`),
 			},
 		},
 	})

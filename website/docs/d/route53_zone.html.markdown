@@ -14,7 +14,7 @@ This data source allows to find a Hosted Zone ID given Hosted Zone name and cert
 
 ## Example Usage
 
-The following example shows how to get a Hosted Zone from it's name and from this data how to create a Record Set.
+The following example shows how to get a Hosted Zone from its name and from this data how to create a Record Set.
 
 
 ```hcl
@@ -56,4 +56,5 @@ The following attribute is additionally exported:
 
 * `caller_reference` - Caller Reference of the Hosted Zone.
 * `comment` - The comment field of the Hosted Zone.
+* `name_servers` - The list of DNS name servers for the Hosted Zone.
 * `resource_record_set_count` - the number of Record Set in the Hosted Zone

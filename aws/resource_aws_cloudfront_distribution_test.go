@@ -2,8 +2,10 @@ package aws
 
 import (
 	"fmt"
+	"log"
 	"math/rand"
 	"os"
+	"regexp"
 	"testing"
 	"time"
 
@@ -13,6 +15,69 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 )
+
+func init() {
+	resource.AddTestSweepers("aws_cloudfront_distribution", &resource.Sweeper{
+		Name: "aws_cloudfront_distribution",
+		F:    testSweepCloudFrontDistributions,
+	})
+}
+
+func testSweepCloudFrontDistributions(region string) error {
+	client, err := sharedClientForRegion(region)
+	if err != nil {
+		return fmt.Errorf("error getting client: %s", err)
+	}
+	conn := client.(*AWSClient).cloudfrontconn
+
+	distributionSummaries := make([]*cloudfront.DistributionSummary, 0)
+
+	input := &cloudfront.ListDistributionsInput{}
+	err = conn.ListDistributionsPages(input, func(page *cloudfront.ListDistributionsOutput, lastPage bool) bool {
+		for _, distributionSummary := range page.DistributionList.Items {
+			distributionSummaries = append(distributionSummaries, distributionSummary)
+		}
+		return !lastPage
+	})
+	if err != nil {
+		if testSweepSkipSweepError(err) {
+			log.Printf("[WARN] Skipping CloudFront Distribution sweep for %s: %s", region, err)
+			return nil
+		}
+		return fmt.Errorf("Error listing CloudFront Distributions: %s", err)
+	}
+
+	if len(distributionSummaries) == 0 {
+		log.Print("[DEBUG] No CloudFront Distributions to sweep")
+		return nil
+	}
+
+	for _, distributionSummary := range distributionSummaries {
+		distributionID := *distributionSummary.Id
+
+		if *distributionSummary.Enabled {
+			log.Printf("[WARN] Skipping deletion of enabled CloudFront Distribution: %s", distributionID)
+			continue
+		}
+
+		output, err := conn.GetDistribution(&cloudfront.GetDistributionInput{
+			Id: aws.String(distributionID),
+		})
+		if err != nil {
+			return fmt.Errorf("Error reading CloudFront Distribution %s: %s", distributionID, err)
+		}
+
+		_, err = conn.DeleteDistribution(&cloudfront.DeleteDistributionInput{
+			Id:      aws.String(distributionID),
+			IfMatch: output.ETag,
+		})
+		if err != nil {
+			return fmt.Errorf("Error deleting CloudFront Distribution %s: %s", distributionID, err)
+		}
+	}
+
+	return nil
+}
 
 // TestAccAWSCloudFrontDistribution_S3Origin runs an
 // aws_cloudfront_distribution acceptance test with a single S3 origin.
@@ -113,6 +178,7 @@ func TestAccAWSCloudFrontDistribution_customOrigin(t *testing.T) {
 // If you are testing manually and can't wait for deletion, set the
 // TF_TEST_CLOUDFRONT_RETAIN environment variable.
 func TestAccAWSCloudFrontDistribution_multiOrigin(t *testing.T) {
+	resourceName := "aws_cloudfront_distribution.multi_origin_distribution"
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -121,10 +187,67 @@ func TestAccAWSCloudFrontDistribution_multiOrigin(t *testing.T) {
 			{
 				Config: testAccAWSCloudFrontDistributionMultiOriginConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckCloudFrontDistributionExistence(
-						"aws_cloudfront_distribution.multi_origin_distribution",
-					),
+					testAccCheckCloudFrontDistributionExistence(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "cache_behavior.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "cache_behavior.2106187217.default_ttl", "50"),
+					resource.TestCheckResourceAttr(resourceName, "cache_behavior.2106187217.path_pattern", "images1/*.jpg"),
 				),
+			},
+		},
+	})
+}
+
+// https://github.com/terraform-providers/terraform-provider-aws/issues/188
+// TestAccAWSCloudFrontDistribution_orderedCacheBehavior runs an
+// aws_cloudfront_distribution acceptance test with multiple and ordered cache behaviors.
+//
+// If you are testing manually and can't wait for deletion, set the
+// TF_TEST_CLOUDFRONT_RETAIN environment variable.
+func TestAccAWSCloudFrontDistribution_orderedCacheBehavior(t *testing.T) {
+	resourceName := "aws_cloudfront_distribution.main"
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudFrontDistributionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSCloudFrontDistributionOrderedCacheBehavior,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudFrontDistributionExistence(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "ordered_cache_behavior.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "ordered_cache_behavior.0.default_ttl", "50"),
+					resource.TestCheckResourceAttr(resourceName, "ordered_cache_behavior.0.path_pattern", "images1/*.jpg"),
+					resource.TestCheckResourceAttr(resourceName, "ordered_cache_behavior.1.default_ttl", "51"),
+					resource.TestCheckResourceAttr(resourceName, "ordered_cache_behavior.1.path_pattern", "images2/*.jpg"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSCloudFrontDistribution_Origin_EmptyDomainName(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudFrontDistributionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccAWSCloudFrontDistributionConfig_Origin_EmptyDomainName,
+				ExpectError: regexp.MustCompile(`domain_name must not be empty`),
+			},
+		},
+	})
+}
+
+func TestAccAWSCloudFrontDistribution_Origin_EmptyOriginID(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudFrontDistributionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccAWSCloudFrontDistributionConfig_Origin_EmptyOriginID,
+				ExpectError: regexp.MustCompile(`origin_id must not be empty`),
 			},
 		},
 	})
@@ -136,6 +259,7 @@ func TestAccAWSCloudFrontDistribution_multiOrigin(t *testing.T) {
 // If you are testing manually and can't wait for deletion, set the
 // TF_TEST_CLOUDFRONT_RETAIN environment variable.
 func TestAccAWSCloudFrontDistribution_noOptionalItemsConfig(t *testing.T) {
+	resourceName := "aws_cloudfront_distribution.no_optional_items"
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -144,9 +268,69 @@ func TestAccAWSCloudFrontDistribution_noOptionalItemsConfig(t *testing.T) {
 			{
 				Config: testAccAWSCloudFrontDistributionNoOptionalItemsConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckCloudFrontDistributionExistence(
-						"aws_cloudfront_distribution.no_optional_items",
-					),
+					testAccCheckCloudFrontDistributionExistence(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "aliases.#", "0"),
+					resource.TestMatchResourceAttr(resourceName, "arn", regexp.MustCompile(`^arn:[^:]+:cloudfront::[^:]+:distribution/[A-Z0-9]+$`)),
+					resource.TestCheckResourceAttr(resourceName, "custom_error_response.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "default_cache_behavior.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "default_cache_behavior.2871742778.allowed_methods.#", "7"),
+					resource.TestCheckResourceAttr(resourceName, "default_cache_behavior.2871742778.allowed_methods.0", "HEAD"),
+					resource.TestCheckResourceAttr(resourceName, "default_cache_behavior.2871742778.allowed_methods.1", "DELETE"),
+					resource.TestCheckResourceAttr(resourceName, "default_cache_behavior.2871742778.allowed_methods.2", "POST"),
+					resource.TestCheckResourceAttr(resourceName, "default_cache_behavior.2871742778.allowed_methods.3", "GET"),
+					resource.TestCheckResourceAttr(resourceName, "default_cache_behavior.2871742778.allowed_methods.4", "OPTIONS"),
+					resource.TestCheckResourceAttr(resourceName, "default_cache_behavior.2871742778.allowed_methods.5", "PUT"),
+					resource.TestCheckResourceAttr(resourceName, "default_cache_behavior.2871742778.allowed_methods.6", "PATCH"),
+					resource.TestCheckResourceAttr(resourceName, "default_cache_behavior.2871742778.cached_methods.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "default_cache_behavior.2871742778.cached_methods.0", "HEAD"),
+					resource.TestCheckResourceAttr(resourceName, "default_cache_behavior.2871742778.cached_methods.1", "GET"),
+					resource.TestCheckResourceAttr(resourceName, "default_cache_behavior.2871742778.compress", "false"),
+					resource.TestCheckResourceAttr(resourceName, "default_cache_behavior.2871742778.default_ttl", "86400"),
+					resource.TestCheckResourceAttr(resourceName, "default_cache_behavior.2871742778.forwarded_values.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "default_cache_behavior.2871742778.forwarded_values.2510654351.cookies.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "default_cache_behavior.2871742778.forwarded_values.2510654351.cookies.1870923232.forward", "all"),
+					resource.TestCheckResourceAttr(resourceName, "default_cache_behavior.2871742778.forwarded_values.2510654351.cookies.1870923232.whitelisted_names.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "default_cache_behavior.2871742778.forwarded_values.2510654351.headers.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "default_cache_behavior.2871742778.forwarded_values.2510654351.query_string", "false"),
+					resource.TestCheckResourceAttr(resourceName, "default_cache_behavior.2871742778.forwarded_values.2510654351.query_string_cache_keys.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "default_cache_behavior.2871742778.lambda_function_association.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "default_cache_behavior.2871742778.max_ttl", "31536000"),
+					resource.TestCheckResourceAttr(resourceName, "default_cache_behavior.2871742778.min_ttl", "0"),
+					resource.TestCheckResourceAttr(resourceName, "default_cache_behavior.2871742778.smooth_streaming", "false"),
+					resource.TestCheckResourceAttr(resourceName, "default_cache_behavior.2871742778.target_origin_id", "myCustomOrigin"),
+					resource.TestCheckResourceAttr(resourceName, "default_cache_behavior.2871742778.trusted_signers.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "default_cache_behavior.2871742778.viewer_protocol_policy", "allow-all"),
+					resource.TestMatchResourceAttr(resourceName, "domain_name", regexp.MustCompile(`^[a-z0-9]+\.cloudfront\.net$`)),
+					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
+					resource.TestMatchResourceAttr(resourceName, "etag", regexp.MustCompile(`^[A-Z0-9]+$`)),
+					resource.TestCheckResourceAttr(resourceName, "hosted_zone_id", "Z2FDTNDATAQYW2"),
+					resource.TestCheckResourceAttrSet(resourceName, "http_version"),
+					resource.TestCheckResourceAttr(resourceName, "is_ipv6_enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "logging_config.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "origin.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "origin.1857972443.custom_header.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "origin.1857972443.custom_origin_config.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "origin.1857972443.custom_origin_config.3832794885.http_port", "80"),
+					resource.TestCheckResourceAttr(resourceName, "origin.1857972443.custom_origin_config.3832794885.https_port", "443"),
+					resource.TestCheckResourceAttr(resourceName, "origin.1857972443.custom_origin_config.3832794885.origin_keepalive_timeout", "5"),
+					resource.TestCheckResourceAttr(resourceName, "origin.1857972443.custom_origin_config.3832794885.origin_protocol_policy", "http-only"),
+					resource.TestCheckResourceAttr(resourceName, "origin.1857972443.custom_origin_config.3832794885.origin_read_timeout", "30"),
+					resource.TestCheckResourceAttr(resourceName, "origin.1857972443.custom_origin_config.3832794885.origin_ssl_protocols.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "origin.1857972443.custom_origin_config.3832794885.origin_ssl_protocols.0", "SSLv3"),
+					resource.TestCheckResourceAttr(resourceName, "origin.1857972443.custom_origin_config.3832794885.origin_ssl_protocols.1", "TLSv1"),
+					resource.TestCheckResourceAttr(resourceName, "origin.1857972443.domain_name", "www.example.com"),
+					resource.TestCheckResourceAttr(resourceName, "price_class", "PriceClass_All"),
+					resource.TestCheckResourceAttr(resourceName, "restrictions.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "restrictions.811065190.geo_restriction.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "restrictions.811065190.geo_restriction.1303118592.locations.#", "4"),
+					resource.TestCheckResourceAttr(resourceName, "restrictions.811065190.geo_restriction.1303118592.locations.0", "CA"),
+					resource.TestCheckResourceAttr(resourceName, "restrictions.811065190.geo_restriction.1303118592.locations.1", "DE"),
+					resource.TestCheckResourceAttr(resourceName, "restrictions.811065190.geo_restriction.1303118592.locations.2", "GB"),
+					resource.TestCheckResourceAttr(resourceName, "restrictions.811065190.geo_restriction.1303118592.locations.3", "US"),
+					resource.TestCheckResourceAttr(resourceName, "restrictions.811065190.geo_restriction.1303118592.restriction_type", "whitelist"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+					resource.TestCheckResourceAttr(resourceName, "viewer_certificate.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "viewer_certificate.69840937.cloudfront_default_certificate", "true"),
 				),
 			},
 		},
@@ -213,23 +397,6 @@ func TestAccAWSCloudFrontDistribution_noCustomErrorResponseConfig(t *testing.T) 
 			},
 		},
 	})
-}
-
-func TestResourceAWSCloudFrontDistribution_validateHTTP(t *testing.T) {
-	var value string
-	var errors []error
-
-	value = "incorrect"
-	_, errors = validateHTTP(value, "http_version")
-	if len(errors) == 0 {
-		t.Fatalf("Expected %q to trigger a validation error", value)
-	}
-
-	value = "http1.1"
-	_, errors = validateHTTP(value, "http_version")
-	if len(errors) != 0 {
-		t.Fatalf("Expected %q not to trigger a validation error", value)
-	}
 }
 
 func testAccCheckCloudFrontDistributionDestroy(s *terraform.State) error {
@@ -692,7 +859,6 @@ resource "aws_cloudfront_distribution" "no_optional_items" {
 		}
 	}
 	enabled = true
-	comment = "Some comment"
 	default_cache_behavior {
 		allowed_methods = [ "DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT" ]
 		cached_methods = [ "GET", "HEAD" ]
@@ -705,9 +871,6 @@ resource "aws_cloudfront_distribution" "no_optional_items" {
 			}
 		}
 		viewer_protocol_policy = "allow-all"
-		min_ttl = 0
-		default_ttl = 3600
-		max_ttl = 86400
 	}
 	restrictions {
 		geo_restriction {
@@ -721,6 +884,84 @@ resource "aws_cloudfront_distribution" "no_optional_items" {
 	%s
 }
 `, rand.New(rand.NewSource(time.Now().UnixNano())).Int(), testAccAWSCloudFrontDistributionRetainConfig())
+
+var testAccAWSCloudFrontDistributionConfig_Origin_EmptyDomainName = fmt.Sprintf(`
+resource "aws_cloudfront_distribution" "Origin_EmptyDomainName" {
+  origin {
+    domain_name = ""
+    origin_id   = "myCustomOrigin"
+    custom_origin_config {
+      http_port              = 80
+      https_port             = 443
+      origin_protocol_policy = "http-only"
+      origin_ssl_protocols   = [ "SSLv3", "TLSv1" ]
+    }
+  }
+  enabled = true
+  default_cache_behavior {
+    allowed_methods  = [ "DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT" ]
+    cached_methods   = [ "GET", "HEAD" ]
+    target_origin_id = "myCustomOrigin"
+    smooth_streaming = false
+    forwarded_values {
+      query_string = false
+      cookies {
+        forward = "all"
+      }
+    }
+    viewer_protocol_policy = "allow-all"
+  }
+  restrictions {
+    geo_restriction {
+      restriction_type = "whitelist"
+      locations        = [ "US", "CA", "GB", "DE" ]
+    }
+  }
+  viewer_certificate {
+    cloudfront_default_certificate = true
+  }
+  %s
+}
+`, testAccAWSCloudFrontDistributionRetainConfig())
+
+var testAccAWSCloudFrontDistributionConfig_Origin_EmptyOriginID = fmt.Sprintf(`
+resource "aws_cloudfront_distribution" "Origin_EmptyOriginID" {
+  origin {
+    domain_name = "www.example.com"
+    origin_id   = ""
+    custom_origin_config {
+      http_port              = 80
+      https_port             = 443
+      origin_protocol_policy = "http-only"
+      origin_ssl_protocols   = [ "SSLv3", "TLSv1" ]
+    }
+  }
+  enabled = true
+  default_cache_behavior {
+    allowed_methods  = [ "DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT" ]
+    cached_methods   = [ "GET", "HEAD" ]
+    target_origin_id = "myCustomOrigin"
+    smooth_streaming = false
+    forwarded_values {
+      query_string = false
+      cookies {
+        forward = "all"
+      }
+    }
+    viewer_protocol_policy = "allow-all"
+  }
+  restrictions {
+    geo_restriction {
+      restriction_type = "whitelist"
+      locations        = [ "US", "CA", "GB", "DE" ]
+    }
+  }
+  viewer_certificate {
+    cloudfront_default_certificate = true
+  }
+  %s
+}
+`, testAccAWSCloudFrontDistributionRetainConfig())
 
 var testAccAWSCloudFrontDistributionHTTP11Config = fmt.Sprintf(`
 variable rand_id {
@@ -810,6 +1051,87 @@ resource "aws_cloudfront_distribution" "is_ipv6_enabled" {
 		geo_restriction {
 			restriction_type = "whitelist"
 			locations = [ "US", "CA", "GB", "DE" ]
+		}
+	}
+	viewer_certificate {
+		cloudfront_default_certificate = true
+	}
+	%s
+}
+`, rand.New(rand.NewSource(time.Now().UnixNano())).Int(), testAccAWSCloudFrontDistributionRetainConfig())
+
+var testAccAWSCloudFrontDistributionOrderedCacheBehavior = fmt.Sprintf(`
+variable rand_id {
+	default = %d
+}
+
+resource "aws_cloudfront_distribution" "main" {
+	origin {
+		domain_name = "www.hashicorp.com"
+		origin_id = "myCustomOrigin"
+		custom_origin_config {
+			http_port = 80
+			https_port = 443
+			origin_protocol_policy = "http-only"
+			origin_ssl_protocols = [ "SSLv3", "TLSv1" ]
+		}
+	}
+	enabled = true
+	comment = "Some comment"
+	aliases = []
+	default_cache_behavior {
+		allowed_methods = [ "DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT" ]
+		cached_methods = [ "GET", "HEAD" ]
+		target_origin_id = "myCustomOrigin"
+		smooth_streaming = true
+		forwarded_values {
+			query_string = false
+			cookies {
+				forward = "all"
+			}
+		}
+		min_ttl = 100
+		default_ttl = 100
+		max_ttl = 100
+		viewer_protocol_policy = "allow-all"
+	}
+	ordered_cache_behavior {
+		allowed_methods = [ "DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT" ]
+		cached_methods = [ "GET", "HEAD" ]
+		target_origin_id = "myCustomOrigin"
+		forwarded_values {
+			query_string = true
+			cookies {
+				forward = "none"
+			}
+		}
+		min_ttl = 50
+		default_ttl = 50
+		max_ttl = 50
+		viewer_protocol_policy = "allow-all"
+		path_pattern = "images1/*.jpg"
+	}
+	ordered_cache_behavior {
+		allowed_methods = [ "DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT" ]
+		cached_methods = [ "GET", "HEAD" ]
+		target_origin_id = "myCustomOrigin"
+		forwarded_values {
+			query_string = true
+			cookies {
+				forward = "none"
+			}
+		}
+		min_ttl = 51
+		default_ttl = 51
+		max_ttl = 51
+		viewer_protocol_policy = "allow-all"
+		path_pattern = "images2/*.jpg"
+	}
+
+	price_class = "PriceClass_All"
+	restrictions {
+		geo_restriction {
+			restriction_type = "none"
 		}
 	}
 	viewer_certificate {

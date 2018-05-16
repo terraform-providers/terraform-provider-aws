@@ -153,7 +153,7 @@ resource "aws_subnet" "foo" {
     cidr_block = "192.168.0.0/20"
     availability_zone = "us-west-2a"
     tags {
-        Name = "tf-test"
+        Name = "tf-acc-elasticache-subnet-group"
     }
 }
 
@@ -178,7 +178,7 @@ resource "aws_subnet" "foo" {
     cidr_block = "10.0.1.0/24"
     availability_zone = "us-west-2a"
     tags {
-        Name = "tf-test"
+        Name = "tf-acc-elasticache-subnet-group-update-foo"
     }
 }
 
@@ -202,7 +202,7 @@ resource "aws_subnet" "foo" {
     cidr_block = "10.0.1.0/24"
     availability_zone = "us-west-2a"
     tags {
-        Name = "tf-test"
+        Name = "tf-acc-elasticache-subnet-group-update-foo"
     }
 }
 
@@ -211,7 +211,7 @@ resource "aws_subnet" "bar" {
     cidr_block = "10.0.2.0/24"
     availability_zone = "us-west-2a"
     tags {
-        Name = "tf-test-foo-update"
+        Name = "tf-acc-elasticache-subnet-group-update-bar"
     }
 }
 

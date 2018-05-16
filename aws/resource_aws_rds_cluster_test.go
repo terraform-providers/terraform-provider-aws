@@ -1,10 +1,10 @@
 package aws
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"regexp"
-	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
@@ -18,7 +18,9 @@ import (
 )
 
 func TestAccAWSRDSCluster_basic(t *testing.T) {
-	var v rds.DBCluster
+	var dbCluster rds.DBCluster
+	rInt := acctest.RandInt()
+	resourceName := "aws_rds_cluster.default"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -26,24 +28,56 @@ func TestAccAWSRDSCluster_basic(t *testing.T) {
 		CheckDestroy: testAccCheckAWSClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSClusterConfig(acctest.RandInt()),
+				Config: testAccAWSClusterConfig(rInt),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSClusterExists("aws_rds_cluster.default", &v),
-					resource.TestCheckResourceAttr(
-						"aws_rds_cluster.default", "storage_encrypted", "false"),
-					resource.TestCheckResourceAttr(
-						"aws_rds_cluster.default", "db_cluster_parameter_group_name", "default.aurora5.6"),
-					resource.TestCheckResourceAttrSet(
-						"aws_rds_cluster.default", "reader_endpoint"),
-					resource.TestCheckResourceAttrSet(
-						"aws_rds_cluster.default", "cluster_resource_id"),
-					resource.TestCheckResourceAttr(
-						"aws_rds_cluster.default", "engine", "aurora"),
-					resource.TestCheckResourceAttrSet(
-						"aws_rds_cluster.default", "engine_version"),
-					resource.TestCheckResourceAttrSet(
-						"aws_rds_cluster.default", "hosted_zone_id"),
+					testAccCheckAWSClusterExists(resourceName, &dbCluster),
+					resource.TestCheckResourceAttr(resourceName, "backtrack_window", "0"),
+					resource.TestCheckResourceAttr(resourceName, "storage_encrypted", "false"),
+					resource.TestCheckResourceAttr(resourceName, "db_cluster_parameter_group_name", "default.aurora5.6"),
+					resource.TestCheckResourceAttrSet(resourceName, "reader_endpoint"),
+					resource.TestCheckResourceAttrSet(resourceName, "cluster_resource_id"),
+					resource.TestCheckResourceAttr(resourceName, "engine", "aurora"),
+					resource.TestCheckResourceAttrSet(resourceName, "engine_version"),
+					resource.TestCheckResourceAttrSet(resourceName, "hosted_zone_id"),
 				),
+			},
+		},
+	})
+}
+
+func TestAccAWSRDSCluster_BacktrackWindow(t *testing.T) {
+	var dbCluster rds.DBCluster
+	resourceName := "aws_rds_cluster.test"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSClusterConfig_BacktrackWindow(43200),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSClusterExists(resourceName, &dbCluster),
+					resource.TestCheckResourceAttr(resourceName, "backtrack_window", "43200"),
+				),
+			},
+			{
+				Config: testAccAWSClusterConfig_BacktrackWindow(86400),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSClusterExists(resourceName, &dbCluster),
+					resource.TestCheckResourceAttr(resourceName, "backtrack_window", "86400"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"apply_immediately",
+					"cluster_identifier_prefix",
+					"master_password",
+					"skip_final_snapshot",
+				},
 			},
 		},
 	})
@@ -63,6 +97,29 @@ func TestAccAWSRDSCluster_namePrefix(t *testing.T) {
 					testAccCheckAWSClusterExists("aws_rds_cluster.test", &v),
 					resource.TestMatchResourceAttr(
 						"aws_rds_cluster.test", "cluster_identifier", regexp.MustCompile("^tf-test-")),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSRDSCluster_s3Restore(t *testing.T) {
+	var v rds.DBCluster
+	resourceName := "aws_rds_cluster.test"
+	bucket := acctest.RandomWithPrefix("tf-acc-test")
+	uniqueId := acctest.RandomWithPrefix("tf-acc-s3-import-test")
+	bucketPrefix := acctest.RandString(5)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSClusterConfig_s3Restore(bucket, bucketPrefix, uniqueId),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSClusterExists("aws_rds_cluster.test", &v),
+					resource.TestCheckResourceAttr(resourceName, "engine", "aurora"),
 				),
 			},
 		},
@@ -315,6 +372,57 @@ func TestAccAWSRDSCluster_iamAuth(t *testing.T) {
 	})
 }
 
+func TestAccAWSRDSCluster_EngineVersion(t *testing.T) {
+	var dbCluster rds.DBCluster
+	rInt := acctest.RandInt()
+	resourceName := "aws_rds_cluster.test"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSClusterConfig_EngineVersion(rInt, "aurora-postgresql", "9.6.6"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSClusterExists(resourceName, &dbCluster),
+					resource.TestCheckResourceAttr(resourceName, "engine", "aurora-postgresql"),
+					resource.TestCheckResourceAttr(resourceName, "engine_version", "9.6.6"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSRDSCluster_Port(t *testing.T) {
+	var dbCluster1, dbCluster2 rds.DBCluster
+	rInt := acctest.RandInt()
+	resourceName := "aws_rds_cluster.test"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSClusterConfig_Port(rInt, 5432),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSClusterExists(resourceName, &dbCluster1),
+					resource.TestCheckResourceAttr(resourceName, "port", "5432"),
+				),
+			},
+			{
+				Config: testAccAWSClusterConfig_Port(rInt, 2345),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSClusterExists(resourceName, &dbCluster2),
+					testAccCheckAWSClusterRecreated(&dbCluster1, &dbCluster2),
+					resource.TestCheckResourceAttr(resourceName, "port", "2345"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckAWSClusterDestroy(s *terraform.State) error {
 	return testAccCheckAWSClusterDestroyWithProvider(s, testAccProvider)
 }
@@ -366,12 +474,6 @@ func testAccCheckAWSClusterSnapshot(rInt int) resource.TestCheckFunc {
 
 			awsClient := testAccProvider.Meta().(*AWSClient)
 			conn := awsClient.rdsconn
-
-			arn, arnErr := buildRDSClusterARN(snapshot_identifier, awsClient.partition, awsClient.accountid, awsClient.region)
-			tagsARN := strings.Replace(arn, ":cluster:", ":snapshot:", 1)
-			if arnErr != nil {
-				return fmt.Errorf("Error building ARN for tags check with ARN (%s): %s", tagsARN, arnErr)
-			}
 
 			log.Printf("[INFO] Deleting the Snapshot %s", snapshot_identifier)
 			_, snapDeleteErr := conn.DeleteDBClusterSnapshot(
@@ -446,6 +548,16 @@ func testAccCheckAWSClusterExistsWithProvider(n string, v *rds.DBCluster, provid
 	}
 }
 
+func testAccCheckAWSClusterRecreated(i, j *rds.DBCluster) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		if aws.TimeValue(i.ClusterCreateTime) == aws.TimeValue(j.ClusterCreateTime) {
+			return errors.New("RDS Cluster was not recreated")
+		}
+
+		return nil
+	}
+}
+
 func testAccAWSClusterConfig(n int) string {
 	return fmt.Sprintf(`
 resource "aws_rds_cluster" "default" {
@@ -460,6 +572,19 @@ resource "aws_rds_cluster" "default" {
     Environment = "production"
   }
 }`, n)
+}
+
+func testAccAWSClusterConfig_BacktrackWindow(backtrackWindow int) string {
+	return fmt.Sprintf(`
+resource "aws_rds_cluster" "test" {
+  apply_immediately         = true
+  backtrack_window          = %d
+  cluster_identifier_prefix = "tf-acc-test-"
+  master_password           = "mustbeeightcharaters"
+  master_username           = "test"
+  skip_final_snapshot       = true
+}
+`, backtrackWindow)
 }
 
 func testAccAWSClusterConfig_namePrefix(n int) string {
@@ -483,18 +608,18 @@ resource "aws_subnet" "a" {
   vpc_id = "${aws_vpc.test.id}"
   cidr_block = "10.0.0.0/24"
   availability_zone = "us-west-2a"
-	tags {
-		Name = "testAccAWSClusterConfig_namePrefix"
-	}
+  tags {
+    Name = "tf-acc-rds-cluster-name-prefix-a"
+  }
 }
 
 resource "aws_subnet" "b" {
   vpc_id = "${aws_vpc.test.id}"
   cidr_block = "10.0.1.0/24"
   availability_zone = "us-west-2b"
-	tags {
-		Name = "testAccAWSClusterConfig_namePrefix"
-	}
+  tags {
+    Name = "tf-acc-rds-cluster-name-prefix-b"
+  }
 }
 
 resource "aws_db_subnet_group" "test" {
@@ -502,6 +627,124 @@ resource "aws_db_subnet_group" "test" {
   subnet_ids = ["${aws_subnet.a.id}", "${aws_subnet.b.id}"]
 }
 `, n)
+}
+
+func testAccAWSClusterConfig_s3Restore(bucketName string, bucketPrefix string, uniqueId string) string {
+	return fmt.Sprintf(`
+
+data "aws_region" "current" {}
+    
+resource "aws_s3_bucket" "xtrabackup" {
+  bucket = "%s"
+  region = "${data.aws_region.current.name}"
+}
+
+resource "aws_s3_bucket_object" "xtrabackup_db" {
+  bucket = "${aws_s3_bucket.xtrabackup.id}"
+  key    = "%s/mysql-5-6-xtrabackup.tar.gz"
+  source = "../files/mysql-5-6-xtrabackup.tar.gz"
+  etag   = "${md5(file("../files/mysql-5-6-xtrabackup.tar.gz"))}"
+}
+
+
+
+resource "aws_iam_role" "rds_s3_access_role" {
+    name = "%s-role"
+    assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "",
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "rds.amazonaws.com"
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_policy" "test" {
+  name   = "%s-policy"
+  policy = <<POLICY
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "s3:*"
+            ],
+            "Resource": [
+                "${aws_s3_bucket.xtrabackup.arn}",
+                "${aws_s3_bucket.xtrabackup.arn}/*"
+            ]
+        }
+    ]
+}
+POLICY
+}
+
+resource "aws_iam_policy_attachment" "test-attach" {
+    name = "%s-policy-attachment"
+    roles = [
+        "${aws_iam_role.rds_s3_access_role.name}"
+    ]
+
+    policy_arn = "${aws_iam_policy.test.arn}"
+}
+
+
+resource "aws_rds_cluster" "test" {
+  cluster_identifier_prefix = "tf-test-"
+  master_username = "root"
+  master_password = "password"
+  db_subnet_group_name = "${aws_db_subnet_group.test.name}"
+  skip_final_snapshot = true
+  s3_import {
+      source_engine = "mysql"
+      source_engine_version = "5.6"
+
+      bucket_name = "${aws_s3_bucket.xtrabackup.bucket}"
+      bucket_prefix = "%s"
+      ingestion_role = "${aws_iam_role.rds_s3_access_role.arn}"
+  }
+
+}
+
+resource "aws_vpc" "test" {
+  cidr_block = "10.0.0.0/16"
+	tags {
+		Name = "%s-vpc"
+	}
+}
+
+resource "aws_subnet" "a" {
+  vpc_id = "${aws_vpc.test.id}"
+  cidr_block = "10.0.0.0/24"
+  availability_zone = "us-west-2a"
+  tags {
+    Name = "%s-subnet-a"
+  }
+}
+
+resource "aws_subnet" "b" {
+  vpc_id = "${aws_vpc.test.id}"
+  cidr_block = "10.0.1.0/24"
+  availability_zone = "us-west-2b"
+  tags {
+    Name = "%s-subnet-b"
+  }
+}
+
+resource "aws_db_subnet_group" "test" {
+  name = "%s-db-subnet-group"
+  subnet_ids = ["${aws_subnet.a.id}", "${aws_subnet.b.id}"]
+}
+`, bucketName, bucketPrefix, uniqueId, uniqueId, uniqueId, bucketPrefix, uniqueId, uniqueId, uniqueId, uniqueId)
 }
 
 func testAccAWSClusterConfig_generatedName(n int) string {
@@ -524,12 +767,18 @@ resource "aws_subnet" "a" {
   vpc_id = "${aws_vpc.test.id}"
   cidr_block = "10.0.0.0/24"
   availability_zone = "us-west-2a"
+  tags {
+    Name = "tf-acc-rds-cluster-generated-name-a"
+  }
 }
 
 resource "aws_subnet" "b" {
   vpc_id = "${aws_vpc.test.id}"
   cidr_block = "10.0.1.0/24"
   availability_zone = "us-west-2b"
+  tags {
+    Name = "tf-acc-rds-cluster-generated-name-b"
+  }
 }
 
 resource "aws_db_subnet_group" "test" {
@@ -674,6 +923,40 @@ resource "aws_rds_cluster" "default" {
   iam_database_authentication_enabled = true
   skip_final_snapshot = true
 }`, n)
+}
+
+func testAccAWSClusterConfig_EngineVersion(rInt int, engine, engineVersion string) string {
+	return fmt.Sprintf(`
+data "aws_availability_zones" "available" {}
+
+resource "aws_rds_cluster" "test" {
+  availability_zones              = ["${data.aws_availability_zones.available.names}"]
+  cluster_identifier              = "tf-acc-test-%d"
+  database_name                   = "mydb"
+  db_cluster_parameter_group_name = "default.aurora-postgresql9.6"
+  engine                          = "%s"
+  engine_version                  = "%s"
+  master_password                 = "mustbeeightcharaters"
+  master_username                 = "foo"
+  skip_final_snapshot             = true
+}`, rInt, engine, engineVersion)
+}
+
+func testAccAWSClusterConfig_Port(rInt, port int) string {
+	return fmt.Sprintf(`
+data "aws_availability_zones" "available" {}
+
+resource "aws_rds_cluster" "test" {
+  availability_zones              = ["${data.aws_availability_zones.available.names}"]
+  cluster_identifier              = "tf-acc-test-%d"
+  database_name                   = "mydb"
+  db_cluster_parameter_group_name = "default.aurora-postgresql9.6"
+  engine                          = "aurora-postgresql"
+  master_password                 = "mustbeeightcharaters"
+  master_username                 = "foo"
+  port                            = %d
+  skip_final_snapshot             = true
+}`, rInt, port)
 }
 
 func testAccAWSClusterConfigIncludingIamRoles(n int) string {
@@ -987,6 +1270,9 @@ resource "aws_subnet" "db" {
   vpc_id            = "${aws_vpc.main.id}"
   availability_zone = "${data.aws_availability_zones.us-east-1.names[count.index]}"
   cidr_block        = "10.0.${count.index}.0/24"
+  tags {
+    Name = "tf-acc-rds-cluster-encrypted-cross-region-replica-${count.index}"
+  }
 }
 
 resource "aws_db_subnet_group" "replica" {

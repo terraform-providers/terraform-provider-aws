@@ -38,6 +38,10 @@ func testSweepBeanstalkEnvironments(region string) error {
 	})
 
 	if err != nil {
+		if testSweepSkipSweepError(err) {
+			log.Printf("[WARN] Skipping Elastic Beanstalk Environment sweep for %s: %s", region, err)
+			return nil
+		}
 		return fmt.Errorf("Error retrieving beanstalk environment: %s", err)
 	}
 
@@ -125,10 +129,14 @@ func TestAccAWSBeanstalkEnv_basic(t *testing.T) {
 				Config: testAccBeanstalkEnvConfig(appName, envName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckBeanstalkEnvExists("aws_elastic_beanstalk_environment.tfenvtest", &app),
+					resource.TestMatchResourceAttr(
+						"aws_elastic_beanstalk_environment.tfenvtest", "arn",
+						regexp.MustCompile(fmt.Sprintf("^arn:[^:]+:elasticbeanstalk:[^:]+:[^:]+:environment/%s/%s$", appName, envName))),
 				),
 			},
 		},
 	})
+
 }
 
 func TestAccAWSBeanstalkEnv_tier(t *testing.T) {
@@ -277,6 +285,53 @@ func TestAccAWSBeanstalkEnv_resource(t *testing.T) {
 				Config: testAccBeanstalkResourceOptionSetting(appName, envName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckBeanstalkEnvExists("aws_elastic_beanstalk_environment.tfenvtest", &app),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSBeanstalkEnv_tags(t *testing.T) {
+	var app elasticbeanstalk.EnvironmentDescription
+
+	rString := acctest.RandString(8)
+	appName := fmt.Sprintf("tf_acc_app_env_resource_%s", rString)
+	envName := fmt.Sprintf("tf-acc-env-resource-%s", rString)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckBeanstalkEnvDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccBeanstalkEnvConfig_empty_settings(appName, envName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckBeanstalkEnvExists("aws_elastic_beanstalk_environment.tfenvtest", &app),
+					testAccCheckBeanstalkEnvTagsMatch(&app, map[string]string{}),
+				),
+			},
+
+			{
+				Config: testAccBeanstalkTagsTemplate(appName, envName, "test1", "test2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckBeanstalkEnvExists("aws_elastic_beanstalk_environment.tfenvtest", &app),
+					testAccCheckBeanstalkEnvTagsMatch(&app, map[string]string{"firstTag": "test1", "secondTag": "test2"}),
+				),
+			},
+
+			{
+				Config: testAccBeanstalkTagsTemplate(appName, envName, "test2", "test1"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckBeanstalkEnvExists("aws_elastic_beanstalk_environment.tfenvtest", &app),
+					testAccCheckBeanstalkEnvTagsMatch(&app, map[string]string{"firstTag": "test2", "secondTag": "test1"}),
+				),
+			},
+
+			{
+				Config: testAccBeanstalkEnvConfig_empty_settings(appName, envName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckBeanstalkEnvExists("aws_elastic_beanstalk_environment.tfenvtest", &app),
+					testAccCheckBeanstalkEnvTagsMatch(&app, map[string]string{}),
 				),
 			},
 		},
@@ -629,6 +684,32 @@ func testAccCheckBeanstalkEnvConfigValue(n string, expectedValue string) resourc
 	}
 }
 
+func testAccCheckBeanstalkEnvTagsMatch(env *elasticbeanstalk.EnvironmentDescription, expectedValue map[string]string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		if env == nil {
+			return fmt.Errorf("Nil environment in testAccCheckBeanstalkEnvTagsMatch")
+		}
+
+		conn := testAccProvider.Meta().(*AWSClient).elasticbeanstalkconn
+
+		tags, err := conn.ListTagsForResource(&elasticbeanstalk.ListTagsForResourceInput{
+			ResourceArn: env.EnvironmentArn,
+		})
+
+		if err != nil {
+			return err
+		}
+
+		foundTags := tagsToMapBeanstalk(tags.ResourceTags)
+
+		if !reflect.DeepEqual(foundTags, expectedValue) {
+			return fmt.Errorf("Tag value: %s.  Expected %s", foundTags, expectedValue)
+		}
+
+		return nil
+	}
+}
+
 func testAccCheckBeanstalkApplicationVersionDeployed(n string, app *elasticbeanstalk.EnvironmentDescription) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
@@ -933,6 +1014,27 @@ resource "aws_elastic_beanstalk_environment" "tfenvtest" {
 }`, appName, envName)
 }
 
+func testAccBeanstalkTagsTemplate(appName, envName, firstTag, secondTag string) string {
+	return fmt.Sprintf(`
+resource "aws_elastic_beanstalk_application" "tftest" {
+  name = "%s"
+  description = "tf-test-desc"
+}
+
+resource "aws_elastic_beanstalk_environment" "tfenvtest" {
+  name = "%s"
+  application = "${aws_elastic_beanstalk_application.tftest.name}"
+  solution_stack_name = "64bit Amazon Linux running Python"
+
+  wait_for_ready_timeout = "15m"
+
+  tags {
+    firstTag = "%s"
+    secondTag = "%s"
+  }
+}`, appName, envName, firstTag, secondTag)
+}
+
 func testAccBeanstalkEnv_VPC(sgName, appName, envName string) string {
 	return fmt.Sprintf(`
 resource "aws_vpc" "tf_b_test" {
@@ -955,6 +1057,9 @@ resource "aws_route" "r" {
 resource "aws_subnet" "main" {
   vpc_id     = "${aws_vpc.tf_b_test.id}"
   cidr_block = "10.0.0.0/24"
+  tags {
+    Name = "tf-acc-elastic-beanstalk-env-vpc"
+  }
 }
 
 resource "aws_security_group" "default" {

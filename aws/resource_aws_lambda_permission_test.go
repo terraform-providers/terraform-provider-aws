@@ -211,6 +211,31 @@ func TestAccAWSLambdaPermission_withRawFunctionName(t *testing.T) {
 	})
 }
 
+func TestAccAWSLambdaPermission_withStatementIdPrefix(t *testing.T) {
+	var statement LambdaPolicyStatement
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	endsWithFuncName := regexp.MustCompile(":function:lambda_function_name_perm$")
+	startsWithPrefix := regexp.MustCompile("^AllowExecutionWithStatementIdPrefix-")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSLambdaPermissionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSLambdaPermissionConfig_withStatementIdPrefix(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckLambdaPermissionExists("aws_lambda_permission.with_statement_id_prefix", &statement),
+					resource.TestCheckResourceAttr("aws_lambda_permission.with_statement_id_prefix", "action", "lambda:InvokeFunction"),
+					resource.TestCheckResourceAttr("aws_lambda_permission.with_statement_id_prefix", "principal", "events.amazonaws.com"),
+					resource.TestMatchResourceAttr("aws_lambda_permission.with_statement_id_prefix", "statement_id", startsWithPrefix),
+					resource.TestMatchResourceAttr("aws_lambda_permission.with_statement_id_prefix", "function_name", endsWithFuncName),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAWSLambdaPermission_withQualifier(t *testing.T) {
 	var statement LambdaPolicyStatement
 
@@ -592,6 +617,44 @@ resource "aws_iam_role" "iam_for_lambda" {
 EOF
 }
 `, funcName, roleName)
+}
+
+func testAccAWSLambdaPermissionConfig_withStatementIdPrefix(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_lambda_permission" "with_statement_id_prefix" {
+    statement_id_prefix = "AllowExecutionWithStatementIdPrefix-"
+    action = "lambda:InvokeFunction"
+    function_name = "${aws_lambda_function.test_lambda.arn}"
+    principal = "events.amazonaws.com"
+}
+
+resource "aws_lambda_function" "test_lambda" {
+    filename = "test-fixtures/lambdatest.zip"
+    function_name = "lambda_function_name_perm"
+    role = "${aws_iam_role.iam_for_lambda.arn}"
+    handler = "exports.handler"
+    runtime = "nodejs4.3"
+}
+
+resource "aws_iam_role" "iam_for_lambda" {
+    name = "%s"
+    assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "lambda.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOF
+}
+`, rName)
 }
 
 func testAccAWSLambdaPermissionConfig_withQualifier(aliasName, funcName, roleName string) string {

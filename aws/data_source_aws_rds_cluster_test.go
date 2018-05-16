@@ -55,12 +55,18 @@ resource "aws_subnet" "a" {
 	vpc_id = "${aws_vpc.test.id}"
 	cidr_block = "10.0.0.0/24"
 	availability_zone = "us-west-2a"
+	tags {
+		Name = "tf-acc-rds-cluster-data-source-basic"
+	}
 }
   
 resource "aws_subnet" "b" {
 	vpc_id = "${aws_vpc.test.id}"
 	cidr_block = "10.0.1.0/24"
 	availability_zone = "us-west-2b"
+	tags {
+		Name = "tf-acc-rds-cluster-data-source-basic"
+	}
 }
   
 resource "aws_db_subnet_group" "test" {

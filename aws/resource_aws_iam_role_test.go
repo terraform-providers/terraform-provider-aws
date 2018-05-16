@@ -158,6 +158,47 @@ func TestAccAWSIAMRole_force_detach_policies(t *testing.T) {
 	})
 }
 
+func TestAccAWSIAMRole_MaxSessionDuration(t *testing.T) {
+	var conf iam.GetRoleOutput
+	rName := acctest.RandString(10)
+	resourceName := "aws_iam_role.test"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSRoleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccCheckIAMRoleConfig_MaxSessionDuration(rName, 3599),
+				ExpectError: regexp.MustCompile(`expected max_session_duration to be in the range`),
+			},
+			{
+				Config:      testAccCheckIAMRoleConfig_MaxSessionDuration(rName, 43201),
+				ExpectError: regexp.MustCompile(`expected max_session_duration to be in the range`),
+			},
+			{
+				Config: testAccCheckIAMRoleConfig_MaxSessionDuration(rName, 3700),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSRoleExists(resourceName, &conf),
+					resource.TestCheckResourceAttr(resourceName, "max_session_duration", "3700"),
+				),
+			},
+			{
+				Config: testAccCheckIAMRoleConfig_MaxSessionDuration(rName, 3701),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSRoleExists(resourceName, &conf),
+					resource.TestCheckResourceAttr(resourceName, "max_session_duration", "3701"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func testAccCheckAWSRoleDestroy(s *terraform.State) error {
 	iamconn := testAccProvider.Meta().(*AWSClient).iamconn
 
@@ -259,6 +300,17 @@ func testAccAddAwsIAMRolePolicy(n string) resource.TestCheckFunc {
 		_, err := iamconn.PutRolePolicy(input)
 		return err
 	}
+}
+
+func testAccCheckIAMRoleConfig_MaxSessionDuration(rName string, maxSessionDuration int) string {
+	return fmt.Sprintf(`
+resource "aws_iam_role" "test" {
+  name   = "test-role-%s"
+	path = "/"
+	max_session_duration = %d
+  assume_role_policy = "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":{\"Service\":[\"ec2.amazonaws.com\"]},\"Action\":[\"sts:AssumeRole\"]}]}"
+}
+`, rName, maxSessionDuration)
 }
 
 func testAccAWSIAMRoleConfig(rName string) string {

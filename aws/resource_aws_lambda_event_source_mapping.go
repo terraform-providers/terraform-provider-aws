@@ -175,8 +175,6 @@ func resourceAwsLambdaEventSourceMappingDelete(d *schema.ResourceData, meta inte
 		return fmt.Errorf("Error deleting Lambda event source mapping: %s", err)
 	}
 
-	d.SetId("")
-
 	return nil
 }
 

@@ -81,13 +81,29 @@ func testAccCheckAwsAutoscalingGroupsAvailable(attrs map[string]string) ([]strin
 
 func testAccCheckAwsAutoscalingGroupsConfig(rInt1, rInt2, rInt3 int) string {
 	return fmt.Sprintf(`
+data "aws_ami" "test_ami" {
+  most_recent = true
+
+  filter {
+    name   = "owner-alias"
+    values = ["amazon"]
+  }
+
+  filter {
+    name   = "name"
+    values = ["amzn-ami-hvm-*-x86_64-gp2"]
+  }
+}
+
+data "aws_availability_zones" "available" {}
+
 resource "aws_launch_configuration" "foobar" {
-  image_id = "ami-21f78e11"
+  image_id = "${data.aws_ami.test_ami.id}"
   instance_type = "t1.micro"
 }
 
 resource "aws_autoscaling_group" "bar" {
-  availability_zones = ["us-west-2a"]
+  availability_zones = ["${data.aws_availability_zones.available.names[0]}"]
   name = "test-asg-%d"
   max_size = 1
   min_size = 0
@@ -105,7 +121,7 @@ resource "aws_autoscaling_group" "bar" {
 }
 
 resource "aws_autoscaling_group" "foo" {
-  availability_zones = ["us-west-2b"]
+  availability_zones = ["${data.aws_availability_zones.available.names[1]}"]
   name = "test-asg-%d"
   max_size = 1
   min_size = 0
@@ -123,7 +139,7 @@ resource "aws_autoscaling_group" "foo" {
 }
 
 resource "aws_autoscaling_group" "barbaz" {
-  availability_zones = ["us-west-2c"]
+  availability_zones = ["${data.aws_availability_zones.available.names[2]}"]
   name = "test-asg-%d"
   max_size = 1
   min_size = 0
@@ -143,13 +159,29 @@ resource "aws_autoscaling_group" "barbaz" {
 
 func testAccCheckAwsAutoscalingGroupsConfigWithDataSource(rInt1, rInt2, rInt3 int) string {
 	return fmt.Sprintf(`
+data "aws_ami" "test_ami" {
+  most_recent = true
+
+  filter {
+    name   = "owner-alias"
+    values = ["amazon"]
+  }
+
+  filter {
+    name   = "name"
+    values = ["amzn-ami-hvm-*-x86_64-gp2"]
+  }
+}
+
+data "aws_availability_zones" "available" {}
+
 resource "aws_launch_configuration" "foobar" {
-  image_id = "ami-21f78e11"
+  image_id = "${data.aws_ami.test_ami.id}"
   instance_type = "t1.micro"
 }
 
 resource "aws_autoscaling_group" "bar" {
-  availability_zones = ["us-west-2a"]
+  availability_zones = ["${data.aws_availability_zones.available.names[0]}"]
   name = "test-asg-%d"
   max_size = 1
   min_size = 0
@@ -167,7 +199,7 @@ resource "aws_autoscaling_group" "bar" {
 }
 
 resource "aws_autoscaling_group" "foo" {
-  availability_zones = ["us-west-2b"]
+  availability_zones = ["${data.aws_availability_zones.available.names[1]}"]
   name = "test-asg-%d"
   max_size = 1
   min_size = 0
@@ -185,7 +217,7 @@ resource "aws_autoscaling_group" "foo" {
 }
 
 resource "aws_autoscaling_group" "barbaz" {
-  availability_zones = ["us-west-2c"]
+  availability_zones = ["${data.aws_availability_zones.available.names[2]}"]
   name = "test-asg-%d"
   max_size = 1
   min_size = 0

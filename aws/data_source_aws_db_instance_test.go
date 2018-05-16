@@ -2,52 +2,60 @@ package aws
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 )
 
-func TestAccAWSDataDbInstance_basic(t *testing.T) {
+func TestAccAWSDbInstanceDataSource_basic(t *testing.T) {
 	rInt := acctest.RandInt()
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSDBInstanceConfigWithDataSource(rInt),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrSet("data.aws_db_instance.bar", "allocated_storage"),
-					resource.TestCheckResourceAttrSet("data.aws_db_instance.bar", "engine"),
-					resource.TestCheckResourceAttrSet("data.aws_db_instance.bar", "db_instance_class"),
-					resource.TestCheckResourceAttrSet("data.aws_db_instance.bar", "db_name"),
-					resource.TestCheckResourceAttrSet("data.aws_db_instance.bar", "master_username"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccAWSDataDbInstance_endpoint(t *testing.T) {
-	rInt := acctest.RandInt()
-	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAWSDBInstanceConfigWithDataSource(rInt),
+				Config: testAccAWSDBInstanceDataSourceConfig(rInt),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet("data.aws_db_instance.bar", "address"),
-					resource.TestCheckResourceAttrSet("data.aws_db_instance.bar", "port"),
-					resource.TestCheckResourceAttrSet("data.aws_db_instance.bar", "hosted_zone_id"),
+					resource.TestCheckResourceAttrSet("data.aws_db_instance.bar", "allocated_storage"),
+					resource.TestCheckResourceAttrSet("data.aws_db_instance.bar", "db_instance_class"),
+					resource.TestCheckResourceAttrSet("data.aws_db_instance.bar", "db_name"),
+					resource.TestCheckResourceAttrSet("data.aws_db_instance.bar", "db_subnet_group"),
 					resource.TestCheckResourceAttrSet("data.aws_db_instance.bar", "endpoint"),
+					resource.TestCheckResourceAttrSet("data.aws_db_instance.bar", "engine"),
+					resource.TestCheckResourceAttrSet("data.aws_db_instance.bar", "hosted_zone_id"),
+					resource.TestCheckResourceAttrSet("data.aws_db_instance.bar", "master_username"),
+					resource.TestCheckResourceAttrSet("data.aws_db_instance.bar", "port"),
 				),
 			},
 		},
 	})
 }
 
-func testAccAWSDBInstanceConfigWithDataSource(rInt int) string {
+func TestAccAWSDbInstanceDataSource_ec2Classic(t *testing.T) {
+	oldvar := os.Getenv("AWS_DEFAULT_REGION")
+	os.Setenv("AWS_DEFAULT_REGION", "us-east-1")
+	defer os.Setenv("AWS_DEFAULT_REGION", oldvar)
+
+	rInt := acctest.RandInt()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t); testAccEC2ClassicPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSDBInstanceDataSourceConfig_ec2Classic(rInt),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("data.aws_db_instance.bar", "db_subnet_group", ""),
+				),
+			},
+		},
+	})
+}
+
+func testAccAWSDBInstanceDataSourceConfig(rInt int) string {
 	return fmt.Sprintf(`
 resource "aws_db_instance" "bar" {
 	identifier = "datasource-test-terraform-%d"
@@ -68,4 +76,15 @@ data "aws_db_instance" "bar" {
 }
 
 `, rInt)
+}
+
+func testAccAWSDBInstanceDataSourceConfig_ec2Classic(rInt int) string {
+	return fmt.Sprintf(`
+%s
+
+data "aws_db_instance" "bar" {
+	db_instance_identifier = "${aws_db_instance.bar.identifier}"
+}
+
+`, testAccAWSDBInstanceConfigEc2Classic(rInt))
 }

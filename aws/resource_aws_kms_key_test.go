@@ -70,6 +70,10 @@ func testSweepKmsKeys(region string) error {
 		return !lastPage
 	})
 	if err != nil {
+		if testSweepSkipSweepError(err) {
+			log.Printf("[WARN] Skipping KMS Key sweep for %s: %s", region, err)
+			return nil
+		}
 		return fmt.Errorf("Error describing KMS keys: %s", err)
 	}
 

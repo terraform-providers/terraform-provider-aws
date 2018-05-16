@@ -11,6 +11,8 @@ description: |-
 Provides a VPC/Subnet/ENI Flow Log to capture IP traffic for a specific network
 interface, subnet, or VPC. Logs are sent to a CloudWatch Log Group.
 
+## Example Usage
+
 ```hcl
 resource "aws_flow_log" "test_flow_log" {
   log_group_name = "${aws_cloudwatch_log_group.test_log_group.name}"

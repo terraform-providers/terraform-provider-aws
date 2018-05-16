@@ -10,6 +10,8 @@ description: |-
 
 Provides an IoT policy.
 
+## Example Usage
+
 ```hcl
 resource "aws_iot_policy" "pubsub" {
   name        = "PubSubToAnyTopic"

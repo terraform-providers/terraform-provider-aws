@@ -13,8 +13,9 @@ import (
 
 func TestDiffBeanstalkTags(t *testing.T) {
 	cases := []struct {
-		Old, New       map[string]interface{}
-		Create, Remove map[string]string
+		Old, New map[string]interface{}
+		Create   map[string]string
+		Remove   []string
 	}{
 		// Basic add/remove
 		{
@@ -27,8 +28,8 @@ func TestDiffBeanstalkTags(t *testing.T) {
 			Create: map[string]string{
 				"bar": "baz",
 			},
-			Remove: map[string]string{
-				"foo": "bar",
+			Remove: []string{
+				"foo",
 			},
 		},
 
@@ -43,21 +44,22 @@ func TestDiffBeanstalkTags(t *testing.T) {
 			Create: map[string]string{
 				"foo": "baz",
 			},
-			Remove: map[string]string{
-				"foo": "bar",
-			},
+			Remove: []string{},
 		},
 	}
 
 	for i, tc := range cases {
 		c, r := diffTagsBeanstalk(tagsFromMapBeanstalk(tc.Old), tagsFromMapBeanstalk(tc.New))
 		cm := tagsToMapBeanstalk(c)
-		rm := tagsToMapBeanstalk(r)
+		rl := []string{}
+		for _, tagName := range r {
+			rl = append(rl, *tagName)
+		}
 		if !reflect.DeepEqual(cm, tc.Create) {
 			t.Fatalf("%d: bad create: %#v", i, cm)
 		}
-		if !reflect.DeepEqual(rm, tc.Remove) {
-			t.Fatalf("%d: bad remove: %#v", i, rm)
+		if !reflect.DeepEqual(rl, tc.Remove) {
+			t.Fatalf("%d: bad remove: %#v", i, rl)
 		}
 	}
 }

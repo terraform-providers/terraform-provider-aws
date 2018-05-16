@@ -24,6 +24,9 @@ func TestAccAWSBatchJobDefinition_basic(t *testing.T) {
 		RetryStrategy: &batch.RetryStrategy{
 			Attempts: aws.Int64(int64(1)),
 		},
+		Timeout: &batch.JobTimeout{
+			AttemptDurationSeconds: aws.Int64(int64(60)),
+		},
 		ContainerProperties: &batch.ContainerProperties{
 			Command: []*string{aws.String("ls"), aws.String("-la")},
 			Environment: []*batch.KeyValuePair{
@@ -184,6 +187,9 @@ resource "aws_batch_job_definition" "test" {
 	}
 	retry_strategy = {
 		attempts = 1
+	}
+	timeout = {
+		attempt_duration_seconds = 60
 	}
 	container_properties = <<CONTAINER_PROPERTIES
 {

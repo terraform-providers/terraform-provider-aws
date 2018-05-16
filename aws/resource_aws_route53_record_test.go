@@ -22,6 +22,8 @@ func TestCleanRecordName(t *testing.T) {
 	}{
 		{"www.nonexample.com", "www.nonexample.com"},
 		{"\\052.nonexample.com", "*.nonexample.com"},
+		{"\\100.nonexample.com", "@.nonexample.com"},
+		{"\\043.nonexample.com", "#.nonexample.com"},
 		{"nonexample.com", "nonexample.com"},
 	}
 

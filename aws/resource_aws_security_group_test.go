@@ -41,6 +41,13 @@ func testSweepSecurityGroups(region string) error {
 		},
 	}
 	resp, err := conn.DescribeSecurityGroups(req)
+	if err != nil {
+		if testSweepSkipSweepError(err) {
+			log.Printf("[WARN] Skipping EC2 Security Group sweep for %s: %s", region, err)
+			return nil
+		}
+		return fmt.Errorf("Error retrieving EC2 Security Groups: %s", err)
+	}
 
 	if len(resp.SecurityGroups) == 0 {
 		log.Print("[DEBUG] No aws security groups to sweep")
@@ -351,6 +358,7 @@ func TestAccAWSSecurityGroup_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSSecurityGroupExists("aws_security_group.web", &group),
 					testAccCheckAWSSecurityGroupAttributes(&group),
+					resource.TestMatchResourceAttr("aws_security_group.web", "arn", regexp.MustCompile(`^arn:[^:]+:ec2:[^:]+:[^:]+:security-group/.+$`)),
 					resource.TestCheckResourceAttr(
 						"aws_security_group.web", "name", "terraform_acceptance_test_example"),
 					resource.TestCheckResourceAttr(
@@ -365,6 +373,28 @@ func TestAccAWSSecurityGroup_basic(t *testing.T) {
 						"aws_security_group.web", "ingress.3629188364.cidr_blocks.#", "1"),
 					resource.TestCheckResourceAttr(
 						"aws_security_group.web", "ingress.3629188364.cidr_blocks.0", "10.0.0.0/8"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSSecurityGroup_ruleGathering(t *testing.T) {
+	var group ec2.SecurityGroup
+	sgName := fmt.Sprintf("tf-acc-security-group-%s", acctest.RandString(7))
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSSecurityGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSSecurityGroupConfig_ruleGathering(sgName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSSecurityGroupExists("aws_security_group.test", &group),
+					resource.TestCheckResourceAttr("aws_security_group.test", "name", sgName),
+					resource.TestCheckResourceAttr("aws_security_group.test", "egress.#", "3"),
+					resource.TestCheckResourceAttr("aws_security_group.test", "ingress.#", "5"),
 				),
 			},
 		},
@@ -1841,7 +1871,7 @@ resource "aws_security_group" "primary" {
 		Name = "tf-acc-revoke-test-primary"
 	}
 
-  revoke_rules_on_delete = true	
+  revoke_rules_on_delete = true
 }
 
 resource "aws_security_group" "secondary" {
@@ -1853,7 +1883,7 @@ resource "aws_security_group" "secondary" {
 		Name = "tf-acc-revoke-test-secondary"
 	}
 
-  revoke_rules_on_delete = true	
+  revoke_rules_on_delete = true
 }
 `
 
@@ -2811,6 +2841,8 @@ resource "aws_security_group" "egress" {
 `
 
 const testAccAWSSecurityGroupConfigPrefixListEgress = `
+data "aws_region" "current" {}
+
 resource "aws_vpc" "tf_sg_prefix_list_egress_test" {
     cidr_block = "10.0.0.0/16"
     tags {
@@ -2822,9 +2854,9 @@ resource "aws_route_table" "default" {
     vpc_id = "${aws_vpc.tf_sg_prefix_list_egress_test.id}"
 }
 
-resource "aws_vpc_endpoint" "s3-us-west-2" {
+resource "aws_vpc_endpoint" "test" {
   	vpc_id = "${aws_vpc.tf_sg_prefix_list_egress_test.id}"
-  	service_name = "com.amazonaws.us-west-2.s3"
+  	service_name = "com.amazonaws.${data.aws_region.current.name}.s3"
   	route_table_ids = ["${aws_route_table.default.id}"]
   	policy = <<POLICY
 {
@@ -2851,7 +2883,132 @@ resource "aws_security_group" "egress" {
       protocol = "-1"
       from_port = 0
       to_port = 0
-      prefix_list_ids = ["${aws_vpc_endpoint.s3-us-west-2.prefix_list_id}"]
+      prefix_list_ids = ["${aws_vpc_endpoint.test.prefix_list_id}"]
     }
 }
 `
+
+func testAccAWSSecurityGroupConfig_ruleGathering(sgName string) string {
+	return fmt.Sprintf(`
+variable "name" {
+  default = "%s"
+}
+
+data "aws_region" "current" {}
+
+resource "aws_vpc" "test" {
+  cidr_block = "10.0.0.0/16"
+
+  tags {
+    Name = "${var.name}"
+  }
+}
+
+resource "aws_route_table" "default" {
+  vpc_id = "${aws_vpc.test.id}"
+}
+
+resource "aws_vpc_endpoint" "test" {
+  vpc_id          = "${aws_vpc.test.id}"
+  service_name    = "com.amazonaws.${data.aws_region.current.name}.s3"
+  route_table_ids = ["${aws_route_table.default.id}"]
+
+  policy = <<POLICY
+{
+	"Version": "2012-10-17",
+	"Statement": [
+		{
+			"Sid":"AllowAll",
+			"Effect":"Allow",
+			"Principal":"*",
+			"Action":"*",
+			"Resource":"*"
+		}
+	]
+}
+POLICY
+}
+
+resource "aws_security_group" "source1" {
+  name        = "${var.name}-source1"
+  description = "terraform acceptance test for security group as source1"
+  vpc_id      = "${aws_vpc.test.id}"
+}
+
+resource "aws_security_group" "source2" {
+  name        = "${var.name}-source2"
+  description = "terraform acceptance test for security group as source2"
+  vpc_id      = "${aws_vpc.test.id}"
+}
+
+resource "aws_security_group" "test" {
+  name        = "${var.name}"
+  description = "terraform acceptance test for security group"
+  vpc_id      = "${aws_vpc.test.id}"
+
+  ingress {
+    protocol    = "tcp"
+    from_port   = 80
+    to_port     = 80
+    cidr_blocks = ["10.0.0.0/24", "10.0.1.0/24"]
+    self        = true
+  }
+
+  ingress {
+    protocol    = "tcp"
+    from_port   = 80
+    to_port     = 80
+    cidr_blocks = ["10.0.2.0/24", "10.0.3.0/24"]
+    description = "ingress from 10.0.0.0/16"
+  }
+
+  ingress {
+    protocol    = "tcp"
+    from_port   = 80
+    to_port     = 80
+    cidr_blocks = ["192.168.0.0/16"]
+    description = "ingress from 192.168.0.0/16"
+  }
+
+  ingress {
+    protocol         = "tcp"
+    from_port        = 80
+    to_port          = 80
+    ipv6_cidr_blocks = ["::/0"]
+    description      = "ingress from all ipv6"
+  }
+
+  ingress {
+    protocol        = "tcp"
+    from_port       = 80
+    to_port         = 80
+    security_groups = ["${aws_security_group.source1.id}", "${aws_security_group.source2.id}"]
+    description     = "ingress from other security groups"
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "egress for all ipv4"
+  }
+
+  egress {
+    from_port        = 0
+    to_port          = 0
+    protocol         = "-1"
+    ipv6_cidr_blocks = ["::/0"]
+    description      = "egress for all ipv6"
+  }
+
+  egress {
+    from_port       = 0
+    to_port         = 0
+    protocol        = "-1"
+    prefix_list_ids = ["${aws_vpc_endpoint.test.prefix_list_id}"]
+    description     = "egress for vpc endpoints"
+  }
+}
+`, sgName)
+}

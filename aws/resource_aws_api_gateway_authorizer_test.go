@@ -8,16 +8,21 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/apigateway"
+	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 )
 
 func TestAccAWSAPIGatewayAuthorizer_basic(t *testing.T) {
 	var conf apigateway.Authorizer
+	rString := acctest.RandString(7)
+	apiGatewayName := "tf-acctest-apigw-" + rString
+	authorizerName := "tf-acctest-igw-authorizer-" + rString
+	lambdaName := "tf-acctest-igw-auth-lambda-" + rString
 
 	expectedAuthUri := regexp.MustCompile("arn:aws:apigateway:[a-z0-9-]+:lambda:path/2015-03-31/functions/" +
-		"arn:aws:lambda:[a-z0-9-]+:[0-9]{12}:function:tf_acc_api_gateway_authorizer/invocations")
-	expectedCreds := regexp.MustCompile("arn:aws:iam::[0-9]{12}:role/tf_acc_api_gateway_auth_invocation_role")
+		"arn:aws:lambda:[a-z0-9-]+:[0-9]{12}:function:" + lambdaName + "/invocations")
+	expectedCreds := regexp.MustCompile("arn:aws:iam::[0-9]{12}:role/" + apiGatewayName + "_auth_invocation_role")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -25,44 +30,147 @@ func TestAccAWSAPIGatewayAuthorizer_basic(t *testing.T) {
 		CheckDestroy: testAccCheckAWSAPIGatewayAuthorizerDestroy,
 		Steps: []resource.TestStep{
 			resource.TestStep{
-				Config: testAccAWSAPIGatewayAuthorizerConfig,
+				Config: testAccAWSAPIGatewayAuthorizerConfig_lambda(apiGatewayName, authorizerName, lambdaName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSAPIGatewayAuthorizerExists("aws_api_gateway_authorizer.test", &conf),
+					testAccCheckAWSAPIGatewayAuthorizerExists("aws_api_gateway_authorizer.acctest", &conf),
 					testAccCheckAWSAPIGatewayAuthorizerAuthorizerUri(&conf, expectedAuthUri),
-					resource.TestMatchResourceAttr("aws_api_gateway_authorizer.test", "authorizer_uri", expectedAuthUri),
+					resource.TestMatchResourceAttr("aws_api_gateway_authorizer.acctest", "authorizer_uri", expectedAuthUri),
 					testAccCheckAWSAPIGatewayAuthorizerIdentitySource(&conf, "method.request.header.Authorization"),
-					resource.TestCheckResourceAttr("aws_api_gateway_authorizer.test", "identity_source", "method.request.header.Authorization"),
-					testAccCheckAWSAPIGatewayAuthorizerName(&conf, "tf-acc-test-authorizer"),
-					resource.TestCheckResourceAttr("aws_api_gateway_authorizer.test", "name", "tf-acc-test-authorizer"),
+					resource.TestCheckResourceAttr("aws_api_gateway_authorizer.acctest", "identity_source", "method.request.header.Authorization"),
+					testAccCheckAWSAPIGatewayAuthorizerName(&conf, authorizerName),
+					resource.TestCheckResourceAttr("aws_api_gateway_authorizer.acctest", "name", authorizerName),
 					testAccCheckAWSAPIGatewayAuthorizerType(&conf, "TOKEN"),
-					resource.TestCheckResourceAttr("aws_api_gateway_authorizer.test", "type", "TOKEN"),
+					resource.TestCheckResourceAttr("aws_api_gateway_authorizer.acctest", "type", "TOKEN"),
 					testAccCheckAWSAPIGatewayAuthorizerAuthorizerCredentials(&conf, expectedCreds),
-					resource.TestMatchResourceAttr("aws_api_gateway_authorizer.test", "authorizer_credentials", expectedCreds),
+					resource.TestMatchResourceAttr("aws_api_gateway_authorizer.acctest", "authorizer_credentials", expectedCreds),
 					testAccCheckAWSAPIGatewayAuthorizerAuthorizerResultTtlInSeconds(&conf, nil),
-					resource.TestCheckResourceAttr("aws_api_gateway_authorizer.test", "authorizer_result_ttl_in_seconds", "0"),
+					resource.TestCheckResourceAttr("aws_api_gateway_authorizer.acctest", "authorizer_result_ttl_in_seconds", "0"),
 					testAccCheckAWSAPIGatewayAuthorizerIdentityValidationExpression(&conf, nil),
-					resource.TestCheckResourceAttr("aws_api_gateway_authorizer.test", "identity_validation_expression", ""),
+					resource.TestCheckResourceAttr("aws_api_gateway_authorizer.acctest", "identity_validation_expression", ""),
 				),
 			},
 			resource.TestStep{
-				Config: testAccAWSAPIGatewayAuthorizerUpdatedConfig,
+				Config: testAccAWSAPIGatewayAuthorizerConfig_lambdaUpdate(apiGatewayName, authorizerName, lambdaName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSAPIGatewayAuthorizerExists("aws_api_gateway_authorizer.test", &conf),
+					testAccCheckAWSAPIGatewayAuthorizerExists("aws_api_gateway_authorizer.acctest", &conf),
 					testAccCheckAWSAPIGatewayAuthorizerAuthorizerUri(&conf, expectedAuthUri),
-					resource.TestMatchResourceAttr("aws_api_gateway_authorizer.test", "authorizer_uri", expectedAuthUri),
+					resource.TestMatchResourceAttr("aws_api_gateway_authorizer.acctest", "authorizer_uri", expectedAuthUri),
 					testAccCheckAWSAPIGatewayAuthorizerIdentitySource(&conf, "method.request.header.Authorization"),
-					resource.TestCheckResourceAttr("aws_api_gateway_authorizer.test", "identity_source", "method.request.header.Authorization"),
-					testAccCheckAWSAPIGatewayAuthorizerName(&conf, "tf-acc-test-authorizer_modified"),
-					resource.TestCheckResourceAttr("aws_api_gateway_authorizer.test", "name", "tf-acc-test-authorizer_modified"),
+					resource.TestCheckResourceAttr("aws_api_gateway_authorizer.acctest", "identity_source", "method.request.header.Authorization"),
+					testAccCheckAWSAPIGatewayAuthorizerName(&conf, authorizerName+"_modified"),
+					resource.TestCheckResourceAttr("aws_api_gateway_authorizer.acctest", "name", authorizerName+"_modified"),
 					testAccCheckAWSAPIGatewayAuthorizerType(&conf, "TOKEN"),
-					resource.TestCheckResourceAttr("aws_api_gateway_authorizer.test", "type", "TOKEN"),
+					resource.TestCheckResourceAttr("aws_api_gateway_authorizer.acctest", "type", "TOKEN"),
 					testAccCheckAWSAPIGatewayAuthorizerAuthorizerCredentials(&conf, expectedCreds),
-					resource.TestMatchResourceAttr("aws_api_gateway_authorizer.test", "authorizer_credentials", expectedCreds),
+					resource.TestMatchResourceAttr("aws_api_gateway_authorizer.acctest", "authorizer_credentials", expectedCreds),
 					testAccCheckAWSAPIGatewayAuthorizerAuthorizerResultTtlInSeconds(&conf, aws.Int64(360)),
-					resource.TestCheckResourceAttr("aws_api_gateway_authorizer.test", "authorizer_result_ttl_in_seconds", "360"),
+					resource.TestCheckResourceAttr("aws_api_gateway_authorizer.acctest", "authorizer_result_ttl_in_seconds", "360"),
 					testAccCheckAWSAPIGatewayAuthorizerIdentityValidationExpression(&conf, aws.String(".*")),
-					resource.TestCheckResourceAttr("aws_api_gateway_authorizer.test", "identity_validation_expression", ".*"),
+					resource.TestCheckResourceAttr("aws_api_gateway_authorizer.acctest", "identity_validation_expression", ".*"),
 				),
+			},
+		},
+	})
+}
+
+func TestAccAWSAPIGatewayAuthorizer_cognito(t *testing.T) {
+	rString := acctest.RandString(7)
+	apiGatewayName := "tf-acctest-apigw-" + rString
+	authorizerName := "tf-acctest-igw-authorizer-" + rString
+	cognitoName := "tf-acctest-cognito-user-pool-" + rString
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAPIGatewayAuthorizerDestroy,
+		Steps: []resource.TestStep{
+			resource.TestStep{
+				Config: testAccAWSAPIGatewayAuthorizerConfig_cognito(apiGatewayName, authorizerName, cognitoName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("aws_api_gateway_authorizer.acctest", "name", authorizerName+"-cognito"),
+					resource.TestCheckResourceAttr("aws_api_gateway_authorizer.acctest", "provider_arns.#", "2"),
+				),
+			},
+			resource.TestStep{
+				Config: testAccAWSAPIGatewayAuthorizerConfig_cognitoUpdate(apiGatewayName, authorizerName, cognitoName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("aws_api_gateway_authorizer.acctest", "name", authorizerName+"-cognito-update"),
+					resource.TestCheckResourceAttr("aws_api_gateway_authorizer.acctest", "provider_arns.#", "3"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSAPIGatewayAuthorizer_switchAuthType(t *testing.T) {
+	rString := acctest.RandString(7)
+	apiGatewayName := "tf-acctest-apigw-" + rString
+	authorizerName := "tf-acctest-igw-authorizer-" + rString
+	cognitoName := "tf-acctest-cognito-user-pool-" + rString
+	lambdaName := "tf-acctest-igw-auth-lambda-" + rString
+
+	expectedAuthUri := regexp.MustCompile("arn:aws:apigateway:[a-z0-9-]+:lambda:path/2015-03-31/functions/" +
+		"arn:aws:lambda:[a-z0-9-]+:[0-9]{12}:function:" + lambdaName + "/invocations")
+	expectedCreds := regexp.MustCompile("arn:aws:iam::[0-9]{12}:role/" + apiGatewayName + "_auth_invocation_role")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAPIGatewayAuthorizerDestroy,
+		Steps: []resource.TestStep{
+			resource.TestStep{
+				Config: testAccAWSAPIGatewayAuthorizerConfig_lambda(apiGatewayName, authorizerName, lambdaName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("aws_api_gateway_authorizer.acctest", "name", authorizerName),
+					resource.TestCheckResourceAttr("aws_api_gateway_authorizer.acctest", "type", "TOKEN"),
+					resource.TestMatchResourceAttr("aws_api_gateway_authorizer.acctest", "authorizer_uri", expectedAuthUri),
+					resource.TestMatchResourceAttr("aws_api_gateway_authorizer.acctest", "authorizer_credentials", expectedCreds),
+				),
+			},
+			resource.TestStep{
+				Config: testAccAWSAPIGatewayAuthorizerConfig_cognito(apiGatewayName, authorizerName, cognitoName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("aws_api_gateway_authorizer.acctest", "name", authorizerName+"-cognito"),
+					resource.TestCheckResourceAttr("aws_api_gateway_authorizer.acctest", "type", "COGNITO_USER_POOLS"),
+					resource.TestCheckResourceAttr("aws_api_gateway_authorizer.acctest", "provider_arns.#", "2"),
+				),
+			},
+			resource.TestStep{
+				Config: testAccAWSAPIGatewayAuthorizerConfig_lambdaUpdate(apiGatewayName, authorizerName, lambdaName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("aws_api_gateway_authorizer.acctest", "name", authorizerName+"_modified"),
+					resource.TestCheckResourceAttr("aws_api_gateway_authorizer.acctest", "type", "TOKEN"),
+					resource.TestMatchResourceAttr("aws_api_gateway_authorizer.acctest", "authorizer_uri", expectedAuthUri),
+					resource.TestMatchResourceAttr("aws_api_gateway_authorizer.acctest", "authorizer_credentials", expectedCreds),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSAPIGatewayAuthorizer_authTypeValidation(t *testing.T) {
+	rString := acctest.RandString(7)
+	apiGatewayName := "tf-acctest-apigw-" + rString
+	authorizerName := "tf-acctest-igw-authorizer-" + rString
+	cognitoName := "tf-acctest-cognito-user-pool-" + rString
+	lambdaName := "tf-acctest-igw-auth-lambda-" + rString
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAPIGatewayAuthorizerDestroy,
+		Steps: []resource.TestStep{
+			resource.TestStep{
+				Config:      testAccAWSAPIGatewayAuthorizerConfig_authTypeValidationDefaultToken(apiGatewayName, authorizerName, lambdaName),
+				ExpectError: regexp.MustCompile(`authorizer_uri must be set non-empty when authorizer type is TOKEN`),
+			},
+			resource.TestStep{
+				Config:      testAccAWSAPIGatewayAuthorizerConfig_authTypeValidationRequest(apiGatewayName, authorizerName, lambdaName),
+				ExpectError: regexp.MustCompile(`authorizer_uri must be set non-empty when authorizer type is REQUEST`),
+			},
+			resource.TestStep{
+				Config:      testAccAWSAPIGatewayAuthorizerConfig_authTypeValidationCognito(apiGatewayName, authorizerName, cognitoName),
+				ExpectError: regexp.MustCompile(`provider_arns must be set non-empty when authorizer type is COGNITO_USER_POOLS`),
 			},
 		},
 	})
@@ -228,13 +336,14 @@ func testAccCheckAWSAPIGatewayAuthorizerDestroy(s *terraform.State) error {
 	return nil
 }
 
-const testAccAWSAPIGatewayAuthorizerConfig_base = `
-resource "aws_api_gateway_rest_api" "test" {
-  name = "tf-auth-test"
+func testAccAWSAPIGatewayAuthorizerConfig_baseLambda(apiGatewayName, lambdaName string) string {
+	return fmt.Sprintf(`
+resource "aws_api_gateway_rest_api" "acctest" {
+  name = "%s"
 }
 
 resource "aws_iam_role" "invocation_role" {
-  name = "tf_acc_api_gateway_auth_invocation_role"
+  name = "%s_auth_invocation_role"
   path = "/"
   assume_role_policy = <<EOF
 {
@@ -271,7 +380,7 @@ EOF
 }
 
 resource "aws_iam_role" "iam_for_lambda" {
-  name = "tf_acc_iam_for_lambda_api_gateway_authorizer"
+  name = "%s_authorizer_lambda"
   assume_role_policy = <<EOF
 {
   "Version": "2012-10-17",
@@ -292,29 +401,113 @@ EOF
 resource "aws_lambda_function" "authorizer" {
   filename = "test-fixtures/lambdatest.zip"
   source_code_hash = "${base64sha256(file("test-fixtures/lambdatest.zip"))}"
-  function_name = "tf_acc_api_gateway_authorizer"
+  function_name = "%s"
   role = "${aws_iam_role.iam_for_lambda.arn}"
   handler = "exports.example"
-	runtime = "nodejs4.3"
+  runtime = "nodejs4.3"
 }
-`
+`, apiGatewayName, apiGatewayName, apiGatewayName, lambdaName)
+}
 
-const testAccAWSAPIGatewayAuthorizerConfig = testAccAWSAPIGatewayAuthorizerConfig_base + `
-resource "aws_api_gateway_authorizer" "test" {
-  name = "tf-acc-test-authorizer"
-  rest_api_id = "${aws_api_gateway_rest_api.test.id}"
+func testAccAWSAPIGatewayAuthorizerConfig_lambda(apiGatewayName, authorizerName, lambdaName string) string {
+	return testAccAWSAPIGatewayAuthorizerConfig_baseLambda(apiGatewayName, lambdaName) + fmt.Sprintf(`
+resource "aws_api_gateway_authorizer" "acctest" {
+  name = "%s"
+  rest_api_id = "${aws_api_gateway_rest_api.acctest.id}"
   authorizer_uri = "${aws_lambda_function.authorizer.invoke_arn}"
   authorizer_credentials = "${aws_iam_role.invocation_role.arn}"
 }
-`
+`, authorizerName)
+}
 
-const testAccAWSAPIGatewayAuthorizerUpdatedConfig = testAccAWSAPIGatewayAuthorizerConfig_base + `
-resource "aws_api_gateway_authorizer" "test" {
-  name = "tf-acc-test-authorizer_modified"
-  rest_api_id = "${aws_api_gateway_rest_api.test.id}"
+func testAccAWSAPIGatewayAuthorizerConfig_lambdaUpdate(apiGatewayName, authorizerName, lambdaName string) string {
+	return testAccAWSAPIGatewayAuthorizerConfig_baseLambda(apiGatewayName, lambdaName) + fmt.Sprintf(`
+resource "aws_api_gateway_authorizer" "acctest" {
+  name = "%s_modified"
+  rest_api_id = "${aws_api_gateway_rest_api.acctest.id}"
   authorizer_uri = "${aws_lambda_function.authorizer.invoke_arn}"
   authorizer_credentials = "${aws_iam_role.invocation_role.arn}"
   authorizer_result_ttl_in_seconds = 360
   identity_validation_expression = ".*"
+}`, authorizerName)
 }
-`
+
+func testAccAWSAPIGatewayAuthorizerConfig_cognito(apiGatewayName, authorizerName, cognitoName string) string {
+	return fmt.Sprintf(`
+resource "aws_api_gateway_rest_api" "acctest" {
+  name = "%s"
+}
+
+resource "aws_cognito_user_pool" "acctest" {
+  count = 2
+  name = "%s-${count.index}"
+}
+
+resource "aws_api_gateway_authorizer" "acctest" {
+  name = "%s-cognito"
+  type = "COGNITO_USER_POOLS"
+  rest_api_id = "${aws_api_gateway_rest_api.acctest.id}"
+  provider_arns = ["${aws_cognito_user_pool.acctest.*.arn}"]
+}
+`, apiGatewayName, cognitoName, authorizerName)
+}
+
+func testAccAWSAPIGatewayAuthorizerConfig_cognitoUpdate(apiGatewayName, authorizerName, cognitoName string) string {
+	return fmt.Sprintf(`
+resource "aws_api_gateway_rest_api" "acctest" {
+  name = "%s"
+}
+
+resource "aws_cognito_user_pool" "acctest_update" {
+  count = 3
+  name = "%s-${count.index}-update"
+}
+
+resource "aws_api_gateway_authorizer" "acctest" {
+  name = "%s-cognito-update"
+  type = "COGNITO_USER_POOLS"
+  rest_api_id = "${aws_api_gateway_rest_api.acctest.id}"
+  provider_arns = ["${aws_cognito_user_pool.acctest_update.*.arn}"]
+}
+`, apiGatewayName, cognitoName, authorizerName)
+}
+
+func testAccAWSAPIGatewayAuthorizerConfig_authTypeValidationDefaultToken(apiGatewayName, authorizerName, lambdaName string) string {
+	return testAccAWSAPIGatewayAuthorizerConfig_baseLambda(apiGatewayName, lambdaName) + fmt.Sprintf(`
+resource "aws_api_gateway_authorizer" "acctest" {
+  name = "%s"
+  rest_api_id = "${aws_api_gateway_rest_api.acctest.id}"
+  authorizer_credentials = "${aws_iam_role.invocation_role.arn}"
+}
+`, authorizerName)
+}
+
+func testAccAWSAPIGatewayAuthorizerConfig_authTypeValidationRequest(apiGatewayName, authorizerName, lambdaName string) string {
+	return testAccAWSAPIGatewayAuthorizerConfig_baseLambda(apiGatewayName, lambdaName) + fmt.Sprintf(`
+resource "aws_api_gateway_authorizer" "acctest" {
+	name = "%s"
+	type = "REQUEST"
+  rest_api_id = "${aws_api_gateway_rest_api.acctest.id}"
+  authorizer_credentials = "${aws_iam_role.invocation_role.arn}"
+}
+`, authorizerName)
+}
+
+func testAccAWSAPIGatewayAuthorizerConfig_authTypeValidationCognito(apiGatewayName, authorizerName, cognitoName string) string {
+	return fmt.Sprintf(`
+resource "aws_api_gateway_rest_api" "acctest" {
+  name = "%s"
+}
+
+resource "aws_cognito_user_pool" "acctest" {
+  count = 2
+  name = "%s-${count.index}"
+}
+
+resource "aws_api_gateway_authorizer" "acctest" {
+  name = "%s-cognito"
+  type = "COGNITO_USER_POOLS"
+  rest_api_id = "${aws_api_gateway_rest_api.acctest.id}"
+}
+`, apiGatewayName, cognitoName, authorizerName)
+}

@@ -67,7 +67,7 @@ large files efficiently.
 ## Argument Reference
 
 * `filename` - (Optional) The path to the function's deployment package within the local filesystem. If defined, The `s3_`-prefixed options cannot be used.
-* `s3_bucket` - (Optional) The S3 bucket location containing the function's deployment package. Conflicts with `filename`.
+* `s3_bucket` - (Optional) The S3 bucket location containing the function's deployment package. Conflicts with `filename`. This bucket must reside in the same AWS region where you are creating the Lambda function.
 * `s3_key` - (Optional) The S3 key of an object containing the function's deployment package. Conflicts with `filename`.
 * `s3_object_version` - (Optional) The object version containing the function's deployment package. Conflicts with `filename`.
 * `function_name` - (Required) A unique name for your Lambda Function.
@@ -121,8 +121,8 @@ For **environment** the following attributes are supported:
 * `version` - Latest published version of your Lambda Function.
 * `last_modified` - The date this resource was last modified.
 * `kms_key_arn` - (Optional) The ARN for the KMS encryption key.
-* `source_code_hash` - Base64-encoded representation of raw SHA-256 sum of the zip file
-  provided either via `filename` or `s3_*` parameters.
+* `source_code_hash` - Base64-encoded representation of raw SHA-256 sum of the zip file, provided either via `filename` or `s3_*` parameters.
+* `source_code_size` - The size in bytes of the function .zip file.
 
 [1]: https://docs.aws.amazon.com/lambda/latest/dg/welcome.html
 [2]: https://docs.aws.amazon.com/lambda/latest/dg/walkthrough-s3-events-adminuser-create-test-function-create-function.html

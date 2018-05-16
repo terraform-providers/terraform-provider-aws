@@ -66,7 +66,7 @@ func TestCleanChangeID(t *testing.T) {
 }
 
 func TestAccAWSRoute53Zone_basic(t *testing.T) {
-	var zone route53.GetHostedZoneOutput
+	var zone, zone0, zone1, zone2, zone3, zone4 route53.GetHostedZoneOutput
 	var td route53.ResourceTagSet
 
 	rString := acctest.RandString(8)
@@ -84,6 +84,21 @@ func TestAccAWSRoute53Zone_basic(t *testing.T) {
 					testAccCheckRoute53ZoneExists("aws_route53_zone.main", &zone),
 					testAccLoadTagsR53(&zone, &td),
 					testAccCheckTagsR53(&td.Tags, "foo", "bar"),
+				),
+			},
+			resource.TestStep{
+				Config: testAccRoute53ZoneCountConfig(),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckRoute53ZoneExists("aws_route53_zone.main.0", &zone0),
+					testAccCheckDomainName(&zone0, "subdomain0.terraformtest.com."),
+					testAccCheckRoute53ZoneExists("aws_route53_zone.main.1", &zone1),
+					testAccCheckDomainName(&zone1, "subdomain1.terraformtest.com."),
+					testAccCheckRoute53ZoneExists("aws_route53_zone.main.2", &zone2),
+					testAccCheckDomainName(&zone2, "subdomain2.terraformtest.com."),
+					testAccCheckRoute53ZoneExists("aws_route53_zone.main.3", &zone3),
+					testAccCheckDomainName(&zone3, "subdomain3.terraformtest.com."),
+					testAccCheckRoute53ZoneExists("aws_route53_zone.main.4", &zone4),
+					testAccCheckDomainName(&zone4, "subdomain4.terraformtest.com."),
 				),
 			},
 		},
@@ -373,7 +388,19 @@ func testAccLoadTagsR53(zone *route53.GetHostedZoneOutput, td *route53.ResourceT
 		return nil
 	}
 }
+func testAccCheckDomainName(zone *route53.GetHostedZoneOutput, domain string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		if zone.HostedZone.Name == nil {
+			return fmt.Errorf("Empty name in HostedZone for domain %s", domain)
+		}
 
+		if *zone.HostedZone.Name == domain {
+			return nil
+		}
+
+		return fmt.Errorf("Invalid domain name. Expected %s is %s", domain, *zone.HostedZone.Name)
+	}
+}
 func testAccRoute53ZoneConfig(zoneName string) string {
 	return fmt.Sprintf(`
 resource "aws_route53_zone" "main" {
@@ -386,6 +413,16 @@ resource "aws_route53_zone" "main" {
 	}
 }
 `, zoneName)
+}
+
+func testAccRoute53ZoneCountConfig() string {
+	return fmt.Sprintf(`
+resource "aws_route53_zone" "main" {
+	name = "subdomain${count.index}.terraformtest.com"
+
+	count = 5
+}
+`)
 }
 
 func testAccRoute53ZoneConfig_forceDestroy(zoneName1, zoneName2 string) string {

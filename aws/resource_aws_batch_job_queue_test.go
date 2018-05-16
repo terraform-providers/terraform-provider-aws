@@ -6,12 +6,70 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/aws/aws-sdk-go/service/batch"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 )
+
+func init() {
+	resource.AddTestSweepers("aws_batch_job_queue", &resource.Sweeper{
+		Name: "aws_batch_job_queue",
+		F:    testSweepBatchJobQueues,
+	})
+}
+
+func testSweepBatchJobQueues(region string) error {
+	client, err := sharedClientForRegion(region)
+	if err != nil {
+		return fmt.Errorf("error getting client: %s", err)
+	}
+	conn := client.(*AWSClient).batchconn
+
+	prefixes := []string{
+		"tf_acc",
+	}
+
+	out, err := conn.DescribeJobQueues(&batch.DescribeJobQueuesInput{})
+	if err != nil {
+		if testSweepSkipSweepError(err) {
+			log.Printf("[WARN] Skipping Batch Job Queue sweep for %s: %s", region, err)
+			return nil
+		}
+		return fmt.Errorf("Error retrieving Batch Job Queues: %s", err)
+	}
+	for _, jobQueue := range out.JobQueues {
+		name := jobQueue.JobQueueName
+		skip := true
+		for _, prefix := range prefixes {
+			if strings.HasPrefix(*name, prefix) {
+				skip = false
+				break
+			}
+		}
+		if skip {
+			log.Printf("[INFO] Skipping Batch Job Queue: %s", *name)
+			continue
+		}
+
+		log.Printf("[INFO] Disabling Batch Job Queue: %s", *name)
+		err := disableBatchJobQueue(*name, 10*time.Minute, conn)
+		if err != nil {
+			log.Printf("[ERROR] Failed to disable Batch Job Queue %s: %s", *name, err)
+			continue
+		}
+
+		log.Printf("[INFO] Deleting Batch Job Queue: %s", *name)
+		err = deleteBatchJobQueue(*name, 10*time.Minute, conn)
+		if err != nil {
+			log.Printf("[ERROR] Failed to delete Batch Job Queue %s: %s", *name, err)
+		}
+	}
+
+	return nil
+}
 
 func TestAccAWSBatchJobQueue_basic(t *testing.T) {
 	var jq batch.JobQueueDetail
@@ -206,6 +264,9 @@ resource "aws_vpc" "test_acc" {
 resource "aws_subnet" "test_acc" {
   vpc_id = "${aws_vpc.test_acc.id}"
   cidr_block = "10.1.1.0/24"
+  tags {
+    Name = "tf-acc-batch-job-queue"
+  }
 }
 
 resource "aws_batch_compute_environment" "test_environment" {

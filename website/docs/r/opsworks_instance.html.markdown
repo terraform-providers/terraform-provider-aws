@@ -120,6 +120,7 @@ The following attributes are exported:
 * `id` - The id of the OpsWorks instance.
 * `agent_version` - The AWS OpsWorks agent version.
 * `availability_zone` - The availability zone of the instance.
+* `ec2_instance_id` - EC2 instance ID
 * `ssh_key_name` - The key name of the instance
 * `public_dns` - The public DNS name assigned to the instance. For EC2-VPC, this
   is only available if you've enabled DNS hostnames for your VPC

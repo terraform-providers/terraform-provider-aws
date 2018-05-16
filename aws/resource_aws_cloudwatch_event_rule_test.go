@@ -2,6 +2,7 @@ package aws
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -31,6 +32,26 @@ func TestAccAWSCloudWatchEventRule_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudWatchEventRuleExists("aws_cloudwatch_event_rule.foo", &rule),
 					resource.TestCheckResourceAttr("aws_cloudwatch_event_rule.foo", "name", "tf-acc-cw-event-rule-mod"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSCloudWatchEventRule_prefix(t *testing.T) {
+	var rule events.DescribeRuleOutput
+	startsWithPrefix := regexp.MustCompile("^tf-acc-cw-event-rule-prefix-")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSCloudWatchEventRuleDestroy,
+		Steps: []resource.TestStep{
+			resource.TestStep{
+				Config: testAccAWSCloudWatchEventRuleConfig_prefix,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudWatchEventRuleExists("aws_cloudwatch_event_rule.moobar", &rule),
+					resource.TestMatchResourceAttr("aws_cloudwatch_event_rule.moobar", "name", startsWithPrefix),
 				),
 			},
 		},
@@ -249,6 +270,18 @@ var testAccAWSCloudWatchEventRuleConfigModified = `
 resource "aws_cloudwatch_event_rule" "foo" {
     name = "tf-acc-cw-event-rule-mod"
     schedule_expression = "rate(1 hour)"
+}
+`
+
+var testAccAWSCloudWatchEventRuleConfig_prefix = `
+resource "aws_cloudwatch_event_rule" "moobar" {
+    name_prefix = "tf-acc-cw-event-rule-prefix-"
+    schedule_expression = "rate(5 minutes)"
+	event_pattern = <<PATTERN
+{ "source": ["aws.ec2"] }
+PATTERN
+	description = "He's not dead, he's just resting!"
+	is_enabled = false
 }
 `
 

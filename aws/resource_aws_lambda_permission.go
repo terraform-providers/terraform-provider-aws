@@ -60,8 +60,16 @@ func resourceAwsLambdaPermission() *schema.Resource {
 				ValidateFunc: validateArn,
 			},
 			"statement_id": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ForceNew:      true,
+				ConflictsWith: []string{"statement_id_prefix"},
+				ValidateFunc:  validatePolicyStatementId,
+			},
+			"statement_id_prefix": {
 				Type:         schema.TypeString,
-				Required:     true,
+				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: validatePolicyStatementId,
 			},
@@ -74,6 +82,15 @@ func resourceAwsLambdaPermissionCreate(d *schema.ResourceData, meta interface{})
 
 	functionName := d.Get("function_name").(string)
 
+	var statementId string
+	if v, ok := d.GetOk("statement_id"); ok {
+		statementId = v.(string)
+	} else if v, ok := d.GetOk("statement_id_prefix"); ok {
+		statementId = resource.PrefixedUniqueId(v.(string))
+	} else {
+		statementId = resource.UniqueId()
+	}
+
 	// There is a bug in the API (reported and acknowledged by AWS)
 	// which causes some permissions to be ignored when API calls are sent in parallel
 	// We work around this bug via mutex
@@ -84,7 +101,7 @@ func resourceAwsLambdaPermissionCreate(d *schema.ResourceData, meta interface{})
 		Action:       aws.String(d.Get("action").(string)),
 		FunctionName: aws.String(functionName),
 		Principal:    aws.String(d.Get("principal").(string)),
-		StatementId:  aws.String(d.Get("statement_id").(string)),
+		StatementId:  aws.String(statementId),
 	}
 
 	if v, ok := d.GetOk("qualifier"); ok {
@@ -127,7 +144,7 @@ func resourceAwsLambdaPermissionCreate(d *schema.ResourceData, meta interface{})
 		log.Printf("[DEBUG] Created new Lambda permission, but no Statement was included")
 	}
 
-	d.SetId(d.Get("statement_id").(string))
+	d.SetId(statementId)
 
 	err = resource.Retry(5*time.Minute, func() *resource.RetryError {
 		// IAM is eventually cosistent :/
@@ -245,6 +262,8 @@ func resourceAwsLambdaPermissionRead(d *schema.ResourceData, meta interface{}) e
 		d.Set("source_arn", arnLike["AWS:SourceArn"])
 	}
 
+	d.Set("statement_id", statement.Sid)
+
 	return nil
 }
 
@@ -321,7 +340,6 @@ func resourceAwsLambdaPermissionDelete(d *schema.ResourceData, meta interface{})
 	}
 
 	log.Printf("[DEBUG] Lambda permission with ID %q removed", d.Id())
-	d.SetId("")
 
 	return nil
 }

@@ -17,9 +17,8 @@ This resource is for additional certificates and does not replace the default ce
 ## Example Usage
 
 ```hcl
-data "aws_acm_certificate" "example" {
-  domain   = "example.com"
-  statuses = ["ISSUED"]
+resource "aws_acm_certificate" "example" {
+  # ...
 }
 
 resource "aws_lb" "front_end" {

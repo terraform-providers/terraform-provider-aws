@@ -190,14 +190,16 @@ func testAccCheckIAMUserPolicyDestroy(s *terraform.State) error {
 			continue
 		}
 
-		user, name := resourceAwsIamUserPolicyParseId(rs.Primary.ID)
+		user, name, err := resourceAwsIamUserPolicyParseId(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
 
 		request := &iam.GetUserPolicyInput{
 			PolicyName: aws.String(name),
 			UserName:   aws.String(user),
 		}
 
-		var err error
 		getResp, err := iamconn.GetUserPolicy(request)
 		if err != nil {
 			if iamerr, ok := err.(awserr.Error); ok && iamerr.Code() == "NoSuchEntity" {
@@ -234,8 +236,12 @@ func testAccCheckIAMUserPolicy(
 		}
 
 		iamconn := testAccProvider.Meta().(*AWSClient).iamconn
-		username, name := resourceAwsIamUserPolicyParseId(policy.Primary.ID)
-		_, err := iamconn.GetUserPolicy(&iam.GetUserPolicyInput{
+		username, name, err := resourceAwsIamUserPolicyParseId(policy.Primary.ID)
+		if err != nil {
+			return err
+		}
+
+		_, err = iamconn.GetUserPolicy(&iam.GetUserPolicyInput{
 			UserName:   aws.String(username),
 			PolicyName: aws.String(name),
 		})

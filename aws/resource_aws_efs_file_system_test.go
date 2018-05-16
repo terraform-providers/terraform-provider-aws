@@ -32,34 +32,6 @@ func TestResourceAWSEFSFileSystem_validateReferenceName(t *testing.T) {
 	}
 }
 
-func TestResourceAWSEFSFileSystem_validatePerformanceModeType(t *testing.T) {
-	_, errors := validatePerformanceModeType("incorrect", "performance_mode")
-	if len(errors) == 0 {
-		t.Fatalf("Expected to trigger a validation error")
-	}
-
-	var testCases = []struct {
-		Value    string
-		ErrCount int
-	}{
-		{
-			Value:    "generalPurpose",
-			ErrCount: 0,
-		},
-		{
-			Value:    "maxIO",
-			ErrCount: 0,
-		},
-	}
-
-	for _, tc := range testCases {
-		_, errors := validatePerformanceModeType(tc.Value, "performance_mode")
-		if len(errors) != tc.ErrCount {
-			t.Fatalf("Expected not to trigger a validation error")
-		}
-	}
-}
-
 func TestResourceAWSEFSFileSystem_hasEmptyFileSystems(t *testing.T) {
 	fs := &efs.DescribeFileSystemsOutput{
 		FileSystems: []*efs.FileSystemDescription{},

@@ -14,15 +14,16 @@ func defaultCacheBehaviorConf() map[string]interface{} {
 		"viewer_protocol_policy":      "allow-all",
 		"target_origin_id":            "myS3Origin",
 		"forwarded_values":            schema.NewSet(forwardedValuesHash, []interface{}{forwardedValuesConf()}),
-		"min_ttl":                     86400,
+		"min_ttl":                     0,
 		"trusted_signers":             trustedSignersConf(),
 		"lambda_function_association": lambdaFunctionAssociationsConf(),
-		"max_ttl":                     365000000,
+		"max_ttl":                     31536000,
 		"smooth_streaming":            false,
 		"default_ttl":                 86400,
 		"allowed_methods":             allowedMethodsConf(),
 		"cached_methods":              cachedMethodsConf(),
 		"compress":                    true,
+		"field_level_encryption_id":   "",
 	}
 }
 
@@ -270,14 +271,14 @@ func TestCloudFrontStructure_expandDefaultCacheBehavior(t *testing.T) {
 	if reflect.DeepEqual(dcb.ForwardedValues.Headers.Items, expandStringList(headersConf())) != true {
 		t.Fatalf("Expected Items to be %v, got %v", headersConf(), dcb.ForwardedValues.Headers.Items)
 	}
-	if *dcb.MinTTL != 86400 {
-		t.Fatalf("Expected MinTTL to be 86400, got %v", *dcb.MinTTL)
+	if *dcb.MinTTL != 0 {
+		t.Fatalf("Expected MinTTL to be 0, got %v", *dcb.MinTTL)
 	}
 	if reflect.DeepEqual(dcb.TrustedSigners.Items, expandStringList(trustedSignersConf())) != true {
 		t.Fatalf("Expected TrustedSigners.Items to be %v, got %v", trustedSignersConf(), dcb.TrustedSigners.Items)
 	}
-	if *dcb.MaxTTL != 365000000 {
-		t.Fatalf("Expected MaxTTL to be 365000000, got %v", *dcb.MaxTTL)
+	if *dcb.MaxTTL != 31536000 {
+		t.Fatalf("Expected MaxTTL to be 31536000, got %v", *dcb.MaxTTL)
 	}
 	if *dcb.SmoothStreaming != false {
 		t.Fatalf("Expected SmoothStreaming to be false, got %v", *dcb.SmoothStreaming)
@@ -289,10 +290,10 @@ func TestCloudFrontStructure_expandDefaultCacheBehavior(t *testing.T) {
 		t.Fatalf("Expected LambdaFunctionAssociations to be 2, got %v", *dcb.LambdaFunctionAssociations.Quantity)
 	}
 	if reflect.DeepEqual(dcb.AllowedMethods.Items, expandStringList(allowedMethodsConf())) != true {
-		t.Fatalf("Expected TrustedSigners.Items to be %v, got %v", allowedMethodsConf(), dcb.AllowedMethods.Items)
+		t.Fatalf("Expected AllowedMethods.Items to be %v, got %v", allowedMethodsConf(), dcb.AllowedMethods.Items)
 	}
 	if reflect.DeepEqual(dcb.AllowedMethods.CachedMethods.Items, expandStringList(cachedMethodsConf())) != true {
-		t.Fatalf("Expected TrustedSigners.Items to be %v, got %v", cachedMethodsConf(), dcb.AllowedMethods.CachedMethods.Items)
+		t.Fatalf("Expected AllowedMethods.CachedMethods.Items to be %v, got %v", cachedMethodsConf(), dcb.AllowedMethods.CachedMethods.Items)
 	}
 }
 
@@ -309,7 +310,7 @@ func TestCloudFrontStructure_flattenDefaultCacheBehavior(t *testing.T) {
 
 func TestCloudFrontStructure_expandCacheBehavior(t *testing.T) {
 	data := cacheBehaviorConf1()
-	cb := expandCacheBehavior(data)
+	cb := expandCacheBehaviorDeprecated(data)
 	if *cb.Compress != true {
 		t.Fatalf("Expected Compress to be true, got %v", *cb.Compress)
 	}
@@ -322,14 +323,14 @@ func TestCloudFrontStructure_expandCacheBehavior(t *testing.T) {
 	if reflect.DeepEqual(cb.ForwardedValues.Headers.Items, expandStringList(headersConf())) != true {
 		t.Fatalf("Expected Items to be %v, got %v", headersConf(), cb.ForwardedValues.Headers.Items)
 	}
-	if *cb.MinTTL != 86400 {
-		t.Fatalf("Expected MinTTL to be 86400, got %v", *cb.MinTTL)
+	if *cb.MinTTL != 0 {
+		t.Fatalf("Expected MinTTL to be 0, got %v", *cb.MinTTL)
 	}
 	if reflect.DeepEqual(cb.TrustedSigners.Items, expandStringList(trustedSignersConf())) != true {
 		t.Fatalf("Expected TrustedSigners.Items to be %v, got %v", trustedSignersConf(), cb.TrustedSigners.Items)
 	}
-	if *cb.MaxTTL != 365000000 {
-		t.Fatalf("Expected MaxTTL to be 365000000, got %v", *cb.MaxTTL)
+	if *cb.MaxTTL != 31536000 {
+		t.Fatalf("Expected MaxTTL to be 31536000, got %v", *cb.MaxTTL)
 	}
 	if *cb.SmoothStreaming != false {
 		t.Fatalf("Expected SmoothStreaming to be false, got %v", *cb.SmoothStreaming)
@@ -353,8 +354,8 @@ func TestCloudFrontStructure_expandCacheBehavior(t *testing.T) {
 
 func TestCloudFrontStructure_flattenCacheBehavior(t *testing.T) {
 	in := cacheBehaviorConf1()
-	cb := expandCacheBehavior(in)
-	out := flattenCacheBehavior(cb)
+	cb := expandCacheBehaviorDeprecated(in)
+	out := flattenCacheBehaviorDeprecated(cb)
 	var diff *schema.Set
 	if out["compress"] != true {
 		t.Fatalf("Expected out[compress] to be true, got %v", out["compress"])
@@ -384,14 +385,14 @@ func TestCloudFrontStructure_flattenCacheBehavior(t *testing.T) {
 	if len(diff.List()) > 0 {
 		t.Fatalf("Expected out[forwarded_values] to be %v, got %v, diff: %v", out["forwarded_values"], in["forwarded_values"], diff)
 	}
-	if out["min_ttl"] != int(86400) {
-		t.Fatalf("Expected out[min_ttl] to be 86400 (int), got %v", out["forwarded_values"])
+	if out["min_ttl"] != int(0) {
+		t.Fatalf("Expected out[min_ttl] to be 0 (int), got %v", out["min_ttl"])
 	}
 	if reflect.DeepEqual(out["trusted_signers"], in["trusted_signers"]) != true {
 		t.Fatalf("Expected out[trusted_signers] to be %v, got %v", in["trusted_signers"], out["trusted_signers"])
 	}
-	if out["max_ttl"] != int(365000000) {
-		t.Fatalf("Expected out[max_ttl] to be 365000000 (int), got %v", out["max_ttl"])
+	if out["max_ttl"] != int(31536000) {
+		t.Fatalf("Expected out[max_ttl] to be 31536000 (int), got %v", out["max_ttl"])
 	}
 	if out["smooth_streaming"] != false {
 		t.Fatalf("Expected out[smooth_streaming] to be false, got %v", out["smooth_streaming"])
@@ -412,7 +413,7 @@ func TestCloudFrontStructure_flattenCacheBehavior(t *testing.T) {
 
 func TestCloudFrontStructure_expandCacheBehaviors(t *testing.T) {
 	data := cacheBehaviorsConf()
-	cbs := expandCacheBehaviors(data)
+	cbs := expandCacheBehaviorsDeprecated(data)
 	if *cbs.Quantity != 2 {
 		t.Fatalf("Expected Quantity to be 2, got %v", *cbs.Quantity)
 	}
@@ -423,8 +424,8 @@ func TestCloudFrontStructure_expandCacheBehaviors(t *testing.T) {
 
 func TestCloudFrontStructure_flattenCacheBehaviors(t *testing.T) {
 	in := cacheBehaviorsConf()
-	cbs := expandCacheBehaviors(in)
-	out := flattenCacheBehaviors(cbs)
+	cbs := expandCacheBehaviorsDeprecated(in)
+	out := flattenCacheBehaviorsDeprecated(cbs)
 	diff := in.Difference(out)
 
 	if len(diff.List()) > 0 {
@@ -627,7 +628,7 @@ func TestCloudFrontStructure_flattenCookieNames(t *testing.T) {
 
 func TestCloudFrontStructure_expandAllowedMethods(t *testing.T) {
 	data := allowedMethodsConf()
-	am := expandAllowedMethods(data)
+	am := expandAllowedMethodsDeprecated(data)
 	if *am.Quantity != 7 {
 		t.Fatalf("Expected Quantity to be 7, got %v", *am.Quantity)
 	}
@@ -638,8 +639,8 @@ func TestCloudFrontStructure_expandAllowedMethods(t *testing.T) {
 
 func TestCloudFrontStructure_flattenAllowedMethods(t *testing.T) {
 	in := allowedMethodsConf()
-	am := expandAllowedMethods(in)
-	out := flattenAllowedMethods(am)
+	am := expandAllowedMethodsDeprecated(in)
+	out := flattenAllowedMethodsDeprecated(am)
 
 	if reflect.DeepEqual(in, out) != true {
 		t.Fatalf("Expected out to be %v, got %v", in, out)
@@ -648,7 +649,7 @@ func TestCloudFrontStructure_flattenAllowedMethods(t *testing.T) {
 
 func TestCloudFrontStructure_expandCachedMethods(t *testing.T) {
 	data := cachedMethodsConf()
-	cm := expandCachedMethods(data)
+	cm := expandCachedMethodsDeprecated(data)
 	if *cm.Quantity != 3 {
 		t.Fatalf("Expected Quantity to be 3, got %v", *cm.Quantity)
 	}
@@ -659,8 +660,8 @@ func TestCloudFrontStructure_expandCachedMethods(t *testing.T) {
 
 func TestCloudFrontStructure_flattenCachedMethods(t *testing.T) {
 	in := cachedMethodsConf()
-	cm := expandCachedMethods(in)
-	out := flattenCachedMethods(cm)
+	cm := expandCachedMethodsDeprecated(in)
+	out := flattenCachedMethodsDeprecated(cm)
 
 	if reflect.DeepEqual(in, out) != true {
 		t.Fatalf("Expected out to be %v, got %v", in, out)

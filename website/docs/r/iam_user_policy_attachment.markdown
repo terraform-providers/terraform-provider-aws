@@ -10,6 +10,9 @@ description: |-
 
 Attaches a Managed IAM Policy to an IAM user
 
+
+## Example Usage
+
 ```hcl
 resource "aws_iam_user" "user" {
     name = "test-user"

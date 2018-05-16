@@ -314,7 +314,7 @@ resource "aws_subnet" "one" {
   vpc_id     = "${aws_vpc.foo.id}"
 
   tags {
-    Name = "TestAccAWSDefaultNetworkAcl_SubnetRemoval"
+    Name = "tf-acc-default-network-acl-one"
   }
 }
 
@@ -323,7 +323,7 @@ resource "aws_subnet" "two" {
   vpc_id     = "${aws_vpc.foo.id}"
 
   tags {
-    Name = "TestAccAWSDefaultNetworkAcl_SubnetRemoval"
+    Name = "tf-acc-default-network-acl-two"
   }
 }
 
@@ -360,7 +360,7 @@ resource "aws_subnet" "one" {
   vpc_id     = "${aws_vpc.foo.id}"
 
   tags {
-    Name = "TestAccAWSDefaultNetworkAcl_SubnetRemoval"
+    Name = "tf-acc-default-network-acl-subnets-remove-one"
   }
 }
 
@@ -369,7 +369,7 @@ resource "aws_subnet" "two" {
   vpc_id     = "${aws_vpc.foo.id}"
 
   tags {
-    Name = "TestAccAWSDefaultNetworkAcl_SubnetRemoval"
+    Name = "tf-acc-default-network-acl-subnets-remove-two"
   }
 }
 
@@ -404,7 +404,7 @@ resource "aws_subnet" "one" {
   vpc_id     = "${aws_vpc.foo.id}"
 
   tags {
-    Name = "TestAccAWSDefaultNetworkAcl_SubnetRemoval"
+    Name = "tf-acc-default-network-acl-subnets-move-one"
   }
 }
 
@@ -413,7 +413,7 @@ resource "aws_subnet" "two" {
   vpc_id     = "${aws_vpc.foo.id}"
 
   tags {
-    Name = "TestAccAWSDefaultNetworkAcl_SubnetRemoval"
+    Name = "tf-acc-default-network-acl-subnets-move-two"
   }
 }
 

@@ -55,6 +55,10 @@ func testSweepGameliftAliases(region string) error {
 		return nil
 	})
 	if err != nil {
+		if testSweepSkipSweepError(err) {
+			log.Printf("[WARN] Skipping Gamelift Alias sweep for %s: %s", region, err)
+			return nil
+		}
 		return fmt.Errorf("Error listing Gamelift Aliases: %s", err)
 	}
 

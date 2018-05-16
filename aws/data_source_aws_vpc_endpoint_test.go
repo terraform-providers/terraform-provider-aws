@@ -209,6 +209,9 @@ resource "aws_subnet" "sn" {
   vpc_id = "${aws_vpc.foo.id}"
   cidr_block = "${aws_vpc.foo.cidr_block}"
   availability_zone = "us-west-2a"
+  tags {
+    Name = "tf-acc-vpc-endpoint-data-source-interface"
+  }
 }
 
 resource "aws_security_group" "sg" {

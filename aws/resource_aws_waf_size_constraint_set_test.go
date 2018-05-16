@@ -162,7 +162,7 @@ func TestAccAWSWafSizeConstraintSet_changeConstraints(t *testing.T) {
 }
 
 func TestAccAWSWafSizeConstraintSet_noConstraints(t *testing.T) {
-	var ipset waf.SizeConstraintSet
+	var contraints waf.SizeConstraintSet
 	setName := fmt.Sprintf("sizeConstraintSet-%s", acctest.RandString(5))
 
 	resource.Test(t, resource.TestCase{
@@ -173,7 +173,7 @@ func TestAccAWSWafSizeConstraintSet_noConstraints(t *testing.T) {
 			{
 				Config: testAccAWSWafSizeConstraintSetConfig_noConstraints(setName),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckAWSWafSizeConstraintSetExists("aws_waf_size_constraint_set.size_constraint_set", &ipset),
+					testAccCheckAWSWafSizeConstraintSetExists("aws_waf_size_constraint_set.size_constraint_set", &contraints),
 					resource.TestCheckResourceAttr(
 						"aws_waf_size_constraint_set.size_constraint_set", "name", setName),
 					resource.TestCheckResourceAttr(
@@ -258,7 +258,7 @@ func testAccCheckAWSWafSizeConstraintSetExists(n string, v *waf.SizeConstraintSe
 
 func testAccCheckAWSWafSizeConstraintSetDestroy(s *terraform.State) error {
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "aws_waf_byte_match_set" {
+		if rs.Type != "aws_waf_size_contraint_set" {
 			continue
 		}
 

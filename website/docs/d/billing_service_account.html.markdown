@@ -41,7 +41,7 @@ resource "aws_s3_bucket" "billing_logs" {
         "s3:PutObject"
       ],
       "Effect": "Allow",
-      "Resource": "arn:aws:s3:::my-billing-tf-test-bucket/AWSLogs/*",
+      "Resource": "arn:aws:s3:::my-billing-tf-test-bucket/*",
       "Principal": {
         "AWS": [
           "${data.aws_billing_service_account.main.arn}"

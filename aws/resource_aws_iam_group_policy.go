@@ -102,7 +102,12 @@ func resourceAwsIamGroupPolicyRead(d *schema.ResourceData, meta interface{}) err
 	if err != nil {
 		return err
 	}
-	return d.Set("policy", policy)
+
+	d.Set("group", group)
+	d.Set("name", name)
+	d.Set("policy", policy)
+
+	return nil
 }
 
 func resourceAwsIamGroupPolicyDelete(d *schema.ResourceData, meta interface{}) error {

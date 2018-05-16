@@ -51,7 +51,7 @@ All of the argument attributes are also exported as result attributes.
 * `subnet_ids` - One or more subnets in which the VPC Endpoint is located. Applicable for endpoints of type `Interface`.
 * `network_interface_ids` - One or more network interfaces for the VPC Endpoint. Applicable for endpoints of type `Interface`.
 * `security_group_ids` - One or more security groups associated with the network interfaces. Applicable for endpoints of type `Interface`.
-* `private_dns_enabled` - Whether or not the VPC is associated with a private hosted zone - `true` or `false`. Applicable for endpoints of type `Gateway`.
+* `private_dns_enabled` - Whether or not the VPC is associated with a private hosted zone - `true` or `false`. Applicable for endpoints of type `Interface`.
 * `dns_entry` - The DNS entries for the VPC Endpoint. Applicable for endpoints of type `Interface`. DNS blocks are documented below.
 
 DNS blocks (for `dns_entry`) support the following attributes:

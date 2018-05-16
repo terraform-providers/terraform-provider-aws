@@ -122,6 +122,5 @@ func resourceAwsApiGatewayAccountUpdate(d *schema.ResourceData, meta interface{}
 
 func resourceAwsApiGatewayAccountDelete(d *schema.ResourceData, meta interface{}) error {
 	// There is no API for "deleting" account or resetting it to "default" settings
-	d.SetId("")
 	return nil
 }

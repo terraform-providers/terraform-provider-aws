@@ -6,6 +6,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
@@ -13,7 +14,37 @@ import (
 )
 
 func TestAccAWSSSMAssociation_basic(t *testing.T) {
-	name := acctest.RandString(10)
+	name := fmt.Sprintf("tf-acc-ssm-association-%s", acctest.RandString(10))
+
+	deleteSsmAssociaton := func() {
+		ec2conn := testAccProvider.Meta().(*AWSClient).ec2conn
+		ssmconn := testAccProvider.Meta().(*AWSClient).ssmconn
+
+		ins, err := ec2conn.DescribeInstances(&ec2.DescribeInstancesInput{
+			Filters: []*ec2.Filter{
+				{
+					Name:   aws.String("tag:Name"),
+					Values: []*string{aws.String(name)},
+				},
+			},
+		})
+		if err != nil {
+			t.Fatalf("Error getting instance with tag:Name %s: %s", name, err)
+		}
+		if len(ins.Reservations) == 0 || len(ins.Reservations[0].Instances) == 0 {
+			t.Fatalf("No instance exists with tag:Name %s", name)
+		}
+		instanceId := ins.Reservations[0].Instances[0].InstanceId
+
+		_, err = ssmconn.DeleteAssociation(&ssm.DeleteAssociationInput{
+			Name:       aws.String(name),
+			InstanceId: instanceId,
+		})
+		if err != nil {
+			t.Fatalf("Error deleting ssm association %s/%s: %s", name, aws.StringValue(instanceId), err)
+		}
+	}
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -21,6 +52,13 @@ func TestAccAWSSSMAssociation_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSSSMAssociationBasicConfig(name),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSSSMAssociationExists("aws_ssm_association.foo"),
+				),
+			},
+			{
+				PreConfig: deleteSsmAssociaton,
+				Config:    testAccAWSSSMAssociationBasicConfig(name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSSSMAssociationExists("aws_ssm_association.foo"),
 				),
@@ -412,9 +450,37 @@ resource "aws_ssm_association" "foo" {
 
 func testAccAWSSSMAssociationBasicConfig(rName string) string {
 	return fmt.Sprintf(`
+variable "name" { default = "%s" }
+
+data "aws_availability_zones" "available" {}
+
+data "aws_ami" "amzn" {
+  most_recent      = true
+  owners     = ["amazon"]
+
+  filter {
+    name   = "name"
+    values = ["amzn2-ami-hvm-*-gp2"]
+  }
+}
+
+resource "aws_vpc" "main" {
+  cidr_block = "10.0.0.0/16"
+  tags {
+    Name = "${var.name}"
+  }
+}
+
+resource "aws_subnet" "first" {
+  vpc_id = "${aws_vpc.main.id}"
+  cidr_block = "10.0.0.0/24"
+  availability_zone = "${data.aws_availability_zones.available.names[0]}"
+}
+
 resource "aws_security_group" "tf_test_foo" {
-  name = "tf_test_foo-%s"
+  name = "${var.name}"
   description = "foo"
+  vpc_id = "${aws_vpc.main.id}"
   ingress {
     protocol = "icmp"
     from_port = -1
@@ -424,14 +490,18 @@ resource "aws_security_group" "tf_test_foo" {
 }
 
 resource "aws_instance" "foo" {
-  ami = "ami-4fccb37f"
-  availability_zone = "us-west-2a"
-  instance_type = "m1.small"
-  security_groups = ["${aws_security_group.tf_test_foo.name}"]
+  ami = "${data.aws_ami.amzn.image_id}"
+  availability_zone = "${data.aws_availability_zones.available.names[0]}"
+  instance_type = "t2.micro"
+  vpc_security_group_ids = ["${aws_security_group.tf_test_foo.id}"]
+  subnet_id = "${aws_subnet.first.id}"
+  tags {
+    Name = "${var.name}"
+  }
 }
 
 resource "aws_ssm_document" "foo_document" {
-  name    = "test_document_association-%s",
+  name    = "${var.name}",
 	document_type = "Command"
   content = <<DOC
   {
@@ -455,25 +525,14 @@ DOC
 }
 
 resource "aws_ssm_association" "foo" {
-  name        = "test_document_association-%s",
+  name        = "${var.name}",
   instance_id = "${aws_instance.foo.id}"
 }
-`, rName, rName, rName)
+`, rName)
 }
 
 func testAccAWSSSMAssociationBasicConfigWithDocumentVersion(rName string) string {
 	return fmt.Sprintf(`
-resource "aws_security_group" "tf_test_foo" {
-  name = "tf_test_foo-%s"
-  description = "foo"
-  ingress {
-    protocol = "icmp"
-    from_port = -1
-    to_port = -1
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-}
-
 resource "aws_ssm_document" "foo_document" {
   name    = "test_document_association-%s",
 	document_type = "Command"
@@ -506,7 +565,7 @@ resource "aws_ssm_association" "foo" {
     values = ["acceptanceTest"]
   }
 }
-`, rName, rName, rName)
+`, rName, rName)
 }
 
 func testAccAWSSSMAssociationBasicConfigWithScheduleExpression(rName string) string {

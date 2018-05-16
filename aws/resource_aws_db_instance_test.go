@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
+	"os"
 	"regexp"
 	"strings"
 	"testing"
@@ -14,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/rds"
 )
@@ -72,6 +74,10 @@ func testSweepDbInstances(region string) error {
 		return !lastPage
 	})
 	if err != nil {
+		if testSweepSkipSweepError(err) {
+			log.Printf("[WARN] Skipping RDS DB Instance sweep for %s: %s", region, err)
+			return nil
+		}
 		return fmt.Errorf("Error retrieving DB instances: %s", err)
 	}
 
@@ -105,6 +111,8 @@ func TestAccAWSDBInstance_basic(t *testing.T) {
 						"aws_db_instance.bar", "username", "foo"),
 					resource.TestCheckResourceAttr(
 						"aws_db_instance.bar", "parameter_group_name", "default.mysql5.6"),
+					resource.TestCheckResourceAttr(
+						"aws_db_instance.bar", "enabled_cloudwatch_logs_exports.#", "0"),
 					resource.TestCheckResourceAttrSet("aws_db_instance.bar", "hosted_zone_id"),
 					resource.TestCheckResourceAttrSet("aws_db_instance.bar", "ca_cert_identifier"),
 					resource.TestCheckResourceAttrSet(
@@ -312,6 +320,27 @@ func TestAccAWSDBInstance_snapshot(t *testing.T) {
 	})
 }
 
+func TestAccAWSDBInstance_s3(t *testing.T) {
+	var snap rds.DBInstance
+	bucket := acctest.RandomWithPrefix("tf-acc-test")
+	uniqueId := acctest.RandomWithPrefix("tf-acc-s3-import-test")
+	bucketPrefix := acctest.RandString(5)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSDBInstanceNoSnapshot,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccSnapshotInstanceConfigWithS3Import(bucket, bucketPrefix, uniqueId),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSDBInstanceExists("aws_db_instance.s3", &snap),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAWSDBInstance_enhancedMonitoring(t *testing.T) {
 	var dbInstance rds.DBInstance
 	rName := acctest.RandString(5)
@@ -472,6 +501,11 @@ func TestAccAWSDBInstance_diffSuppressInitialState(t *testing.T) {
 
 func TestAccAWSDBInstance_ec2Classic(t *testing.T) {
 	var v rds.DBInstance
+
+	oldvar := os.Getenv("AWS_DEFAULT_REGION")
+	os.Setenv("AWS_DEFAULT_REGION", "us-east-1")
+	defer os.Setenv("AWS_DEFAULT_REGION", oldvar)
+
 	rInt := acctest.RandInt()
 
 	resource.Test(t, resource.TestCase{
@@ -483,6 +517,88 @@ func TestAccAWSDBInstance_ec2Classic(t *testing.T) {
 				Config: testAccAWSDBInstanceConfigEc2Classic(rInt),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSDBInstanceExists("aws_db_instance.bar", &v),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSDBInstance_cloudwatchLogsExportConfiguration(t *testing.T) {
+	var v rds.DBInstance
+
+	rInt := acctest.RandInt()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSDBInstanceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSDBInstanceConfigCloudwatchLogsExportConfiguration(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSDBInstanceExists("aws_db_instance.bar", &v),
+				),
+			},
+			{
+				ResourceName:            "aws_db_instance.bar",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"password"},
+			},
+		},
+	})
+}
+
+func TestAccAWSDBInstance_cloudwatchLogsExportConfigurationUpdate(t *testing.T) {
+	var v rds.DBInstance
+
+	rInt := acctest.RandInt()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSDBInstanceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSDBInstanceConfigCloudwatchLogsExportConfiguration(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSDBInstanceExists("aws_db_instance.bar", &v),
+					resource.TestCheckResourceAttr(
+						"aws_db_instance.bar", "enabled_cloudwatch_logs_exports.0", "audit"),
+					resource.TestCheckResourceAttr(
+						"aws_db_instance.bar", "enabled_cloudwatch_logs_exports.1", "error"),
+				),
+			},
+			{
+				Config: testAccAWSDBInstanceConfigCloudwatchLogsExportConfigurationAdd(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSDBInstanceExists("aws_db_instance.bar", &v),
+					resource.TestCheckResourceAttr(
+						"aws_db_instance.bar", "enabled_cloudwatch_logs_exports.0", "audit"),
+					resource.TestCheckResourceAttr(
+						"aws_db_instance.bar", "enabled_cloudwatch_logs_exports.1", "error"),
+					resource.TestCheckResourceAttr(
+						"aws_db_instance.bar", "enabled_cloudwatch_logs_exports.2", "general"),
+				),
+			},
+			{
+				Config: testAccAWSDBInstanceConfigCloudwatchLogsExportConfigurationModify(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSDBInstanceExists("aws_db_instance.bar", &v),
+					resource.TestCheckResourceAttr(
+						"aws_db_instance.bar", "enabled_cloudwatch_logs_exports.0", "audit"),
+					resource.TestCheckResourceAttr(
+						"aws_db_instance.bar", "enabled_cloudwatch_logs_exports.1", "general"),
+					resource.TestCheckResourceAttr(
+						"aws_db_instance.bar", "enabled_cloudwatch_logs_exports.2", "slowquery"),
+				),
+			},
+			{
+				Config: testAccAWSDBInstanceConfigCloudwatchLogsExportConfigurationDelete(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSDBInstanceExists("aws_db_instance.bar", &v),
+					resource.TestCheckResourceAttr(
+						"aws_db_instance.bar", "enabled_cloudwatch_logs_exports.#", "0"),
 				),
 			},
 		},
@@ -603,12 +719,13 @@ func testAccCheckAWSDBInstanceSnapshot(rInt int) resource.TestCheckFunc {
 				}
 			} else { // snapshot was found,
 				// verify we have the tags copied to the snapshot
-				instanceARN, err := buildRDSARN(snapshot_identifier, testAccProvider.Meta().(*AWSClient).partition, testAccProvider.Meta().(*AWSClient).accountid, testAccProvider.Meta().(*AWSClient).region)
-				// tags have a different ARN, just swapping :db: for :snapshot:
-				tagsARN := strings.Replace(instanceARN, ":db:", ":snapshot:", 1)
-				if err != nil {
-					return fmt.Errorf("Error building ARN for tags check with ARN (%s): %s", tagsARN, err)
-				}
+				tagsARN := arn.ARN{
+					Partition: testAccProvider.Meta().(*AWSClient).partition,
+					Service:   "rds",
+					Region:    testAccProvider.Meta().(*AWSClient).region,
+					AccountID: testAccProvider.Meta().(*AWSClient).accountid,
+					Resource:  fmt.Sprintf("snapshot:%s", snapshot_identifier),
+				}.String()
 				resp, err := conn.ListTagsForResource(&rds.ListTagsForResourceInput{
 					ResourceName: aws.String(tagsARN),
 				})
@@ -954,6 +1071,138 @@ resource "aws_db_instance" "snapshot" {
 }`, acctest.RandInt())
 }
 
+func testAccSnapshotInstanceConfigWithS3Import(bucketName string, bucketPrefix string, uniqueId string) string {
+	return fmt.Sprintf(`
+
+resource "aws_s3_bucket" "xtrabackup" {
+  bucket = "%s"
+}
+
+resource "aws_s3_bucket_object" "xtrabackup_db" {
+  bucket = "${aws_s3_bucket.xtrabackup.id}"
+  key    = "%s/mysql-5-6-xtrabackup.tar.gz"
+  source = "../files/mysql-5-6-xtrabackup.tar.gz"
+  etag   = "${md5(file("../files/mysql-5-6-xtrabackup.tar.gz"))}"
+}
+
+
+
+resource "aws_iam_role" "rds_s3_access_role" {
+    name = "%s-role"
+    assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "",
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "rds.amazonaws.com"
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_policy" "test" {
+  name   = "%s-policy"
+  policy = <<POLICY
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "s3:*"
+            ],
+            "Resource": [
+                "${aws_s3_bucket.xtrabackup.arn}",
+                "${aws_s3_bucket.xtrabackup.arn}/*"
+            ]
+        }
+    ]
+}
+POLICY
+}
+
+resource "aws_iam_policy_attachment" "test-attach" {
+    name = "%s-policy-attachment"
+    roles = [
+        "${aws_iam_role.rds_s3_access_role.name}"
+    ]
+
+    policy_arn = "${aws_iam_policy.test.arn}"
+}
+
+
+//  Make sure EVERYTHING required is here...
+resource "aws_vpc" "foo" {
+	cidr_block = "10.1.0.0/16"
+	tags {
+		Name = "terraform-testacc-db-instance-with-subnet-group"
+	}
+}
+
+resource "aws_subnet" "foo" {
+	cidr_block = "10.1.1.0/24"
+	availability_zone = "us-west-2a"
+	vpc_id = "${aws_vpc.foo.id}"
+	tags {
+		Name = "tf-acc-db-instance-with-subnet-group-1"
+	}
+}
+
+resource "aws_subnet" "bar" {
+	cidr_block = "10.1.2.0/24"
+	availability_zone = "us-west-2b"
+	vpc_id = "${aws_vpc.foo.id}"
+	tags {
+		Name = "tf-acc-db-instance-with-subnet-group-2"
+	}
+}
+
+resource "aws_db_subnet_group" "foo" {
+	name = "%s-subnet-group"
+	subnet_ids = ["${aws_subnet.foo.id}", "${aws_subnet.bar.id}"]
+	tags {
+		Name = "tf-dbsubnet-group-test"
+	}
+}
+
+
+resource "aws_db_instance" "s3" {
+	identifier = "%s-db"
+
+	allocated_storage = 5
+	engine = "mysql"
+	engine_version = "5.6"
+    auto_minor_version_upgrade = true
+	instance_class = "db.t2.small"
+	name = "baz"
+	password = "barbarbarbar"
+	publicly_accessible = false
+	username = "foo"
+	backup_retention_period = 0
+
+	parameter_group_name = "default.mysql5.6"
+    skip_final_snapshot = true
+    multi_az = false
+    db_subnet_group_name = "${aws_db_subnet_group.foo.id}"
+
+	s3_import {
+        source_engine = "mysql"
+        source_engine_version = "5.6"
+
+		bucket_name = "${aws_s3_bucket.xtrabackup.bucket}"
+		bucket_prefix = "%s"
+		ingestion_role = "${aws_iam_role.rds_s3_access_role.arn}"
+	}
+}
+`, bucketName, bucketPrefix, uniqueId, uniqueId, uniqueId, uniqueId, uniqueId, bucketPrefix)
+}
+
 func testAccSnapshotInstanceConfigWithSnapshot(rInt int) string {
 	return fmt.Sprintf(`
 resource "aws_db_instance" "snapshot" {
@@ -1141,7 +1390,7 @@ resource "aws_subnet" "foo" {
 	availability_zone = "us-west-2a"
 	vpc_id = "${aws_vpc.foo.id}"
 	tags {
-		Name = "tf-dbsubnet-test-1"
+		Name = "tf-acc-db-instance-with-subnet-group-1"
 	}
 }
 
@@ -1150,7 +1399,7 @@ resource "aws_subnet" "bar" {
 	availability_zone = "us-west-2b"
 	vpc_id = "${aws_vpc.foo.id}"
 	tags {
-		Name = "tf-dbsubnet-test-2"
+		Name = "tf-acc-db-instance-with-subnet-group-2"
 	}
 }
 
@@ -1202,7 +1451,7 @@ resource "aws_subnet" "foo" {
 	availability_zone = "us-west-2a"
 	vpc_id = "${aws_vpc.foo.id}"
 	tags {
-		Name = "tf-dbsubnet-test-1"
+		Name = "tf-acc-db-instance-with-subnet-group-1"
 	}
 }
 
@@ -1211,7 +1460,7 @@ resource "aws_subnet" "bar" {
 	availability_zone = "us-west-2b"
 	vpc_id = "${aws_vpc.foo.id}"
 	tags {
-		Name = "tf-dbsubnet-test-2"
+		Name = "tf-acc-db-instance-with-subnet-group-2"
 	}
 }
 
@@ -1220,7 +1469,7 @@ resource "aws_subnet" "test" {
 	availability_zone = "us-west-2b"
 	vpc_id = "${aws_vpc.bar.id}"
 	tags {
-		Name = "tf-dbsubnet-test-3"
+		Name = "tf-acc-db-instance-with-subnet-group-3"
 	}
 }
 
@@ -1229,7 +1478,7 @@ resource "aws_subnet" "another_test" {
 	availability_zone = "us-west-2a"
 	vpc_id = "${aws_vpc.bar.id}"
 	tags {
-		Name = "tf-dbsubnet-test-4"
+		Name = "tf-acc-db-instance-with-subnet-group-4"
 	}
 }
 
@@ -1290,12 +1539,18 @@ resource "aws_subnet" "main" {
   vpc_id            = "${aws_vpc.foo.id}"
   availability_zone = "us-west-2a"
   cidr_block        = "10.1.1.0/24"
+  tags {
+    Name = "tf-acc-db-instance-mssql-timezone-main"
+  }
 }
 
 resource "aws_subnet" "other" {
   vpc_id            = "${aws_vpc.foo.id}"
   availability_zone = "us-west-2b"
   cidr_block        = "10.1.2.0/24"
+  tags {
+    Name = "tf-acc-db-instance-mssql-timezone-other"
+  }
 }
 
 resource "aws_db_instance" "mssql" {
@@ -1356,12 +1611,18 @@ resource "aws_subnet" "main" {
   vpc_id            = "${aws_vpc.foo.id}"
   availability_zone = "us-west-2a"
   cidr_block        = "10.1.1.0/24"
+  tags {
+    Name = "tf-acc-db-instance-mssql-timezone-akst-main"
+  }
 }
 
 resource "aws_subnet" "other" {
   vpc_id            = "${aws_vpc.foo.id}"
   availability_zone = "us-west-2b"
   cidr_block        = "10.1.2.0/24"
+  tags {
+    Name = "tf-acc-db-instance-mssql-timezone-akst-other"
+  }
 }
 
 resource "aws_db_instance" "mssql" {
@@ -1416,12 +1677,240 @@ resource "aws_db_instance" "bar" {
 }
 `, acctest.RandInt())
 
-func testAccAWSDBInstanceConfigEc2Classic(rInt int) string {
+func testAccAWSDBInstanceConfigCloudwatchLogsExportConfiguration(rInt int) string {
 	return fmt.Sprintf(`
-provider "aws" {
-  region = "us-east-1"
+
+	resource "aws_vpc" "foo" {
+		cidr_block           = "10.1.0.0/16"
+		enable_dns_hostnames = true
+		tags {
+		  Name = "terraform-testacc-db-instance-enable-cloudwatch"
+		}
+	  }
+
+	  resource "aws_db_subnet_group" "rds_one" {
+		name        = "tf_acc_test_%d"
+		description = "db subnets for rds_one"
+
+		subnet_ids = ["${aws_subnet.main.id}", "${aws_subnet.other.id}"]
+	  }
+
+	  resource "aws_subnet" "main" {
+		vpc_id            = "${aws_vpc.foo.id}"
+		availability_zone = "us-west-2a"
+		cidr_block        = "10.1.1.0/24"
+		tags {
+		  Name = "tf-acc-db-instance-enable-cloudwatch-main"
+		}
+	  }
+
+	  resource "aws_subnet" "other" {
+		vpc_id            = "${aws_vpc.foo.id}"
+		availability_zone = "us-west-2b"
+		cidr_block        = "10.1.2.0/24"
+		tags {
+		  Name = "tf-acc-db-instance-enable-cloudwatch-other"
+		}
+	  }
+
+	resource "aws_db_instance" "bar" {
+		identifier = "foobarbaz-test-terraform-%d"
+
+		db_subnet_group_name = "${aws_db_subnet_group.rds_one.name}"
+		allocated_storage = 10
+		engine = "MySQL"
+		engine_version = "5.6"
+		instance_class = "db.t2.micro"
+		name = "baz"
+		password = "barbarbarbar"
+		username = "foo"
+		skip_final_snapshot = true
+
+		enabled_cloudwatch_logs_exports = [
+			"audit",
+			"error",
+		]
+	}
+	`, rInt, rInt)
 }
 
+func testAccAWSDBInstanceConfigCloudwatchLogsExportConfigurationAdd(rInt int) string {
+	return fmt.Sprintf(`
+
+		resource "aws_vpc" "foo" {
+			cidr_block           = "10.1.0.0/16"
+			enable_dns_hostnames = true
+			tags {
+			  Name = "terraform-testacc-db-instance-enable-cloudwatch"
+			}
+		  }
+
+		  resource "aws_db_subnet_group" "rds_one" {
+			name        = "tf_acc_test_%d"
+			description = "db subnets for rds_one"
+
+			subnet_ids = ["${aws_subnet.main.id}", "${aws_subnet.other.id}"]
+		  }
+
+		  resource "aws_subnet" "main" {
+			vpc_id            = "${aws_vpc.foo.id}"
+			availability_zone = "us-west-2a"
+			cidr_block        = "10.1.1.0/24"
+			tags {
+			  Name = "tf-acc-db-instance-enable-cloudwatch-main"
+			}
+		  }
+
+		  resource "aws_subnet" "other" {
+			vpc_id            = "${aws_vpc.foo.id}"
+			availability_zone = "us-west-2b"
+			cidr_block        = "10.1.2.0/24"
+			tags {
+			  Name = "tf-acc-db-instance-enable-cloudwatch-other"
+			}
+		  }
+
+		resource "aws_db_instance" "bar" {
+			identifier = "foobarbaz-test-terraform-%d"
+
+			db_subnet_group_name = "${aws_db_subnet_group.rds_one.name}"
+			allocated_storage = 10
+			engine = "MySQL"
+			engine_version = "5.6"
+			instance_class = "db.t2.micro"
+			name = "baz"
+			password = "barbarbarbar"
+			username = "foo"
+			skip_final_snapshot = true
+
+			apply_immediately = true
+
+			enabled_cloudwatch_logs_exports = [
+				"audit",
+				"error",
+				"general",
+			]
+		}
+		`, rInt, rInt)
+}
+
+func testAccAWSDBInstanceConfigCloudwatchLogsExportConfigurationModify(rInt int) string {
+	return fmt.Sprintf(`
+
+		resource "aws_vpc" "foo" {
+			cidr_block           = "10.1.0.0/16"
+			enable_dns_hostnames = true
+			tags {
+			  Name = "terraform-testacc-db-instance-enable-cloudwatch"
+			}
+		  }
+
+		  resource "aws_db_subnet_group" "rds_one" {
+			name        = "tf_acc_test_%d"
+			description = "db subnets for rds_one"
+
+			subnet_ids = ["${aws_subnet.main.id}", "${aws_subnet.other.id}"]
+		  }
+
+		  resource "aws_subnet" "main" {
+			vpc_id            = "${aws_vpc.foo.id}"
+			availability_zone = "us-west-2a"
+			cidr_block        = "10.1.1.0/24"
+			tags {
+			  Name = "tf-acc-db-instance-enable-cloudwatch-main"
+			}
+		  }
+
+		  resource "aws_subnet" "other" {
+			vpc_id            = "${aws_vpc.foo.id}"
+			availability_zone = "us-west-2b"
+			cidr_block        = "10.1.2.0/24"
+			tags {
+			  Name = "tf-acc-db-instance-enable-cloudwatch-other"
+			}
+		  }
+
+		resource "aws_db_instance" "bar" {
+			identifier = "foobarbaz-test-terraform-%d"
+
+			db_subnet_group_name = "${aws_db_subnet_group.rds_one.name}"
+			allocated_storage = 10
+			engine = "MySQL"
+			engine_version = "5.6"
+			instance_class = "db.t2.micro"
+			name = "baz"
+			password = "barbarbarbar"
+			username = "foo"
+			skip_final_snapshot = true
+
+			apply_immediately = true
+
+			enabled_cloudwatch_logs_exports = [
+				"audit",
+				"general",
+				"slowquery",
+			]
+		}
+		`, rInt, rInt)
+}
+
+func testAccAWSDBInstanceConfigCloudwatchLogsExportConfigurationDelete(rInt int) string {
+	return fmt.Sprintf(`
+
+		resource "aws_vpc" "foo" {
+			cidr_block           = "10.1.0.0/16"
+			enable_dns_hostnames = true
+			tags {
+			  Name = "terraform-testacc-db-instance-enable-cloudwatch"
+			}
+		  }
+
+		  resource "aws_db_subnet_group" "rds_one" {
+			name        = "tf_acc_test_%d"
+			description = "db subnets for rds_one"
+
+			subnet_ids = ["${aws_subnet.main.id}", "${aws_subnet.other.id}"]
+		  }
+
+		  resource "aws_subnet" "main" {
+			vpc_id            = "${aws_vpc.foo.id}"
+			availability_zone = "us-west-2a"
+			cidr_block        = "10.1.1.0/24"
+			tags {
+			  Name = "tf-acc-db-instance-enable-cloudwatch-main"
+			}
+		  }
+
+		  resource "aws_subnet" "other" {
+			vpc_id            = "${aws_vpc.foo.id}"
+			availability_zone = "us-west-2b"
+			cidr_block        = "10.1.2.0/24"
+			tags {
+			  Name = "tf-acc-db-instance-enable-cloudwatch-other"
+			}
+		  }
+
+		resource "aws_db_instance" "bar" {
+			identifier = "foobarbaz-test-terraform-%d"
+
+			db_subnet_group_name = "${aws_db_subnet_group.rds_one.name}"
+			allocated_storage = 10
+			engine = "MySQL"
+			engine_version = "5.6"
+			instance_class = "db.t2.micro"
+			name = "baz"
+			password = "barbarbarbar"
+			username = "foo"
+			skip_final_snapshot = true
+
+			apply_immediately = true
+
+		}
+		`, rInt, rInt)
+}
+
+func testAccAWSDBInstanceConfigEc2Classic(rInt int) string {
+	return fmt.Sprintf(`
 resource "aws_db_instance" "bar" {
   identifier = "foobarbaz-test-terraform-%d"
   allocated_storage = 10
