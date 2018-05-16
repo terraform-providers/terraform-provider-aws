@@ -602,6 +602,13 @@ func resourceAwsRedshiftClusterRead(d *schema.ResourceData, meta interface{}) er
 	if err := d.Set("iam_roles", iamRoles); err != nil {
 		return fmt.Errorf("[DEBUG] Error saving IAM Roles to state for Redshift Cluster (%s): %s", d.Id(), err)
 	}
+	var nip []string
+	for _, i := range rsc.ClusterNodes {
+		nip = append(nip, *i.PrivateIPAddress)
+	}
+	if err := d.Set("cluster_node_ips", nip); err != nil {
+		return fmt.Errorf("[DEBUG] Error saving Cluster Node IPs to state for Redshift Cluster (%s): %s", d.Id(), err)
+	}
 
 	d.Set("cluster_public_key", rsc.ClusterPublicKey)
 	d.Set("cluster_revision_number", rsc.ClusterRevisionNumber)
