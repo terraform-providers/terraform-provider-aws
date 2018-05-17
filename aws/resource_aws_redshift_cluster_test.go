@@ -173,6 +173,28 @@ func TestAccAWSRedshiftCluster_kmsKey(t *testing.T) {
 	})
 }
 
+func TestAccAWSRedshiftCluster_privateIps(t *testing.T) {
+	var v redshift.Cluster
+
+	ri := rand.New(rand.NewSource(time.Now().UnixNano())).Int()
+	config := testAccAWSRedshiftClusterConfig_basic(ri)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSRedshiftClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSRedshiftClusterExists("aws_redshift_cluster.default", &v),
+					resource.TestCheckResourceAttrSet("aws_redshift_cluster.default", "cluster_node_ips"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAWSRedshiftCluster_enhancedVpcRoutingEnabled(t *testing.T) {
 	var v redshift.Cluster
 

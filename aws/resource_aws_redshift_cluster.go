@@ -143,6 +143,14 @@ func resourceAwsRedshiftCluster() *schema.Resource {
 				Default:  1,
 			},
 
+			"cluster_node_ips": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				Computed: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+				Set:      schema.HashString,
+			},
+
 			"publicly_accessible": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -380,6 +388,10 @@ func resourceAwsRedshiftClusterCreate(d *schema.ResourceData, meta interface{}) 
 			restoreOpts.IamRoles = expandStringList(v.(*schema.Set).List())
 		}
 
+		if v := d.Get("vpc_security_group_ids").(*schema.Set); v.Len() > 0 {
+			restoreOpts.VpcSecurityGroupIds = expandStringList(v.List())
+		}
+
 		log.Printf("[DEBUG] Redshift Cluster restore cluster options: %s", restoreOpts)
 
 		resp, err := conn.RestoreFromClusterSnapshot(restoreOpts)
@@ -601,6 +613,16 @@ func resourceAwsRedshiftClusterRead(d *schema.ResourceData, meta interface{}) er
 	}
 	if err := d.Set("iam_roles", iamRoles); err != nil {
 		return fmt.Errorf("[DEBUG] Error saving IAM Roles to state for Redshift Cluster (%s): %s", d.Id(), err)
+	}
+
+	if rsc.ClusterNodes != nil {
+		var nip []string
+		for _, i := range rsc.ClusterNodes {
+			if i.PrivateIPAddress != nil {
+				nip = append(nip, *i.PrivateIPAddress)
+			}
+		}
+		d.Set("cluster_node_ips", nip)
 	}
 
 	d.Set("cluster_public_key", rsc.ClusterPublicKey)
