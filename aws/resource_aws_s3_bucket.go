@@ -1027,25 +1027,25 @@ func resourceAwsS3BucketRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	// Read the bucket replication configuration
-
-	replicationResponse, err := retryOnAwsCode("NoSuchBucket", func() (interface{}, error) {
-		return s3conn.GetBucketReplication(&s3.GetBucketReplicationInput{
-			Bucket: aws.String(d.Id()),
+	if _, ok := d.GetOk("replication_configuration"); ok {
+		replicationResponse, err := retryOnAwsCode("NoSuchBucket", func() (interface{}, error) {
+			return s3conn.GetBucketReplication(&s3.GetBucketReplicationInput{
+				Bucket: aws.String(d.Id()),
+			})
 		})
-	})
-	if err != nil {
-		if awsError, ok := err.(awserr.RequestFailure); ok && awsError.StatusCode() != 404 {
+		if err != nil {
+			if awsError, ok := err.(awserr.RequestFailure); ok && awsError.StatusCode() != 404 {
+				return err
+			}
+		}
+		replication := replicationResponse.(*s3.GetBucketReplicationOutput)
+
+		log.Printf("[DEBUG] S3 Bucket: %s, read replication configuration: %v", d.Id(), replication)
+		if err := d.Set("replication_configuration", flattenAwsS3BucketReplicationConfiguration(replication.ReplicationConfiguration)); err != nil {
+			log.Printf("[DEBUG] Error setting replication configuration: %s", err)
 			return err
 		}
 	}
-	replication := replicationResponse.(*s3.GetBucketReplicationOutput)
-
-	log.Printf("[DEBUG] S3 Bucket: %s, read replication configuration: %v", d.Id(), replication)
-	if err := d.Set("replication_configuration", flattenAwsS3BucketReplicationConfiguration(replication.ReplicationConfiguration)); err != nil {
-		log.Printf("[DEBUG] Error setting replication configuration: %s", err)
-		return err
-	}
-
 	// Read the bucket server side encryption configuration
 
 	encryptionResponse, err := retryOnAwsCode("NoSuchBucket", func() (interface{}, error) {
@@ -1070,7 +1070,6 @@ func resourceAwsS3BucketRead(d *schema.ResourceData, meta interface{}) error {
 			}
 		}
 	}
-
 	// Add the region as an attribute
 
 	locationResponse, err := retryOnAwsCode("NoSuchBucket", func() (interface{}, error) {
@@ -1751,60 +1750,8 @@ func resourceAwsS3BucketReplicationConfigurationUpdate(s3conn *s3.S3, d *schema.
 
 	c := replicationConfiguration[0].(map[string]interface{})
 
-	rc := &s3.ReplicationConfiguration{}
-	if val, ok := c["role"]; ok {
-		rc.Role = aws.String(val.(string))
-	}
+	rc := buildAwsS3BucketReplicationConfiguration(c)
 
-	rcRules := c["rules"].(*schema.Set).List()
-	rules := []*s3.ReplicationRule{}
-	for _, v := range rcRules {
-		rr := v.(map[string]interface{})
-		rcRule := &s3.ReplicationRule{
-			Prefix: aws.String(rr["prefix"].(string)),
-			Status: aws.String(rr["status"].(string)),
-		}
-
-		if rrid, ok := rr["id"]; ok {
-			rcRule.ID = aws.String(rrid.(string))
-		}
-
-		ruleDestination := &s3.Destination{}
-		if dest, ok := rr["destination"].(*schema.Set); ok && dest.Len() > 0 {
-			bd := dest.List()[0].(map[string]interface{})
-			ruleDestination.Bucket = aws.String(bd["bucket"].(string))
-
-			if storageClass, ok := bd["storage_class"]; ok && storageClass != "" {
-				ruleDestination.StorageClass = aws.String(storageClass.(string))
-			}
-
-			if replicaKmsKeyId, ok := bd["replica_kms_key_id"]; ok && replicaKmsKeyId != "" {
-				ruleDestination.EncryptionConfiguration = &s3.EncryptionConfiguration{
-					ReplicaKmsKeyID: aws.String(replicaKmsKeyId.(string)),
-				}
-			}
-		}
-		rcRule.Destination = ruleDestination
-
-		if ssc, ok := rr["source_selection_criteria"].(*schema.Set); ok && ssc.Len() > 0 {
-			sscValues := ssc.List()[0].(map[string]interface{})
-			ruleSsc := &s3.SourceSelectionCriteria{}
-			if sseKms, ok := sscValues["sse_kms_encrypted_objects"].(*schema.Set); ok && sseKms.Len() > 0 {
-				sseKmsValues := sseKms.List()[0].(map[string]interface{})
-				sseKmsEncryptedObjects := &s3.SseKmsEncryptedObjects{}
-				if sseKmsValues["enabled"].(bool) {
-					sseKmsEncryptedObjects.Status = aws.String(s3.SseKmsEncryptedObjectsStatusEnabled)
-				} else {
-					sseKmsEncryptedObjects.Status = aws.String(s3.SseKmsEncryptedObjectsStatusDisabled)
-				}
-				ruleSsc.SseKmsEncryptedObjects = sseKmsEncryptedObjects
-			}
-			rcRule.SourceSelectionCriteria = ruleSsc
-		}
-		rules = append(rules, rcRule)
-	}
-
-	rc.Rules = rules
 	i := &s3.PutBucketReplicationInput{
 		Bucket: aws.String(bucket),
 		ReplicationConfiguration: rc,
@@ -2060,6 +2007,64 @@ func flattenAwsS3BucketReplicationConfiguration(r *s3.ReplicationConfiguration) 
 	replication_configuration = append(replication_configuration, m)
 
 	return replication_configuration
+}
+
+func buildAwsS3BucketReplicationConfiguration(c map[string]interface{}) *s3.ReplicationConfiguration {
+	rc := &s3.ReplicationConfiguration{}
+	if val, ok := c["role"]; ok {
+		rc.Role = aws.String(val.(string))
+	}
+
+	rcRules := c["rules"].(*schema.Set).List()
+	rules := []*s3.ReplicationRule{}
+	for _, v := range rcRules {
+		rr := v.(map[string]interface{})
+		rcRule := &s3.ReplicationRule{
+			Prefix: aws.String(rr["prefix"].(string)),
+			Status: aws.String(rr["status"].(string)),
+		}
+
+		if rrid, ok := rr["id"]; ok {
+			rcRule.ID = aws.String(rrid.(string))
+		}
+
+		ruleDestination := &s3.Destination{}
+		if dest, ok := rr["destination"].(*schema.Set); ok && dest.Len() > 0 {
+			bd := dest.List()[0].(map[string]interface{})
+			ruleDestination.Bucket = aws.String(bd["bucket"].(string))
+
+			if storageClass, ok := bd["storage_class"]; ok && storageClass != "" {
+				ruleDestination.StorageClass = aws.String(storageClass.(string))
+			}
+
+			if replicaKmsKeyId, ok := bd["replica_kms_key_id"]; ok && replicaKmsKeyId != "" {
+				ruleDestination.EncryptionConfiguration = &s3.EncryptionConfiguration{
+					ReplicaKmsKeyID: aws.String(replicaKmsKeyId.(string)),
+				}
+			}
+		}
+		rcRule.Destination = ruleDestination
+
+		if ssc, ok := rr["source_selection_criteria"].(*schema.Set); ok && ssc.Len() > 0 {
+			sscValues := ssc.List()[0].(map[string]interface{})
+			ruleSsc := &s3.SourceSelectionCriteria{}
+			if sseKms, ok := sscValues["sse_kms_encrypted_objects"].(*schema.Set); ok && sseKms.Len() > 0 {
+				sseKmsValues := sseKms.List()[0].(map[string]interface{})
+				sseKmsEncryptedObjects := &s3.SseKmsEncryptedObjects{}
+				if sseKmsValues["enabled"].(bool) {
+					sseKmsEncryptedObjects.Status = aws.String(s3.SseKmsEncryptedObjectsStatusEnabled)
+				} else {
+					sseKmsEncryptedObjects.Status = aws.String(s3.SseKmsEncryptedObjectsStatusDisabled)
+				}
+				ruleSsc.SseKmsEncryptedObjects = sseKmsEncryptedObjects
+			}
+			rcRule.SourceSelectionCriteria = ruleSsc
+		}
+		rules = append(rules, rcRule)
+	}
+
+	rc.Rules = rules
+	return rc
 }
 
 func normalizeRoutingRules(w []*s3.RoutingRule) (string, error) {
