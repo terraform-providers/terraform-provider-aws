@@ -1579,6 +1579,26 @@ func TestAccAWSInstance_creditSpecification_removalReturnsStandard(t *testing.T)
 	})
 }
 
+func TestAccAWSInstance_instanceMarketOptions(t *testing.T) {
+	var instance ec2.Instance
+	resName := "aws_instance.foo"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckInstanceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccInstanceConfig_instanceMarketOptions,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckInstanceExists(resName, &instance),
+					resource.TestCheckResourceAttr(resName, "instance_market_options.#", "1"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckInstanceNotRecreated(t *testing.T,
 	before, after *ec2.Instance) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
@@ -3227,3 +3247,36 @@ resource "aws_instance" "foo" {
 }
 `, rInt)
 }
+
+const testAccInstanceConfig_instanceMarketOptions = `
+resource "aws_vpc" "foo" {
+  cidr_block = "10.1.0.0/16"
+  tags {
+    Name = "terraform-testacc-instance-market-options"
+  }
+}
+
+resource "aws_subnet" "foo" {
+  cidr_block = "10.1.1.0/24"
+  vpc_id = "${aws_vpc.foo.id}"
+}
+
+resource "aws_instance" "foo" {
+  ami = "ami-22b9a343" # us-west-2
+  instance_type = "t2.medium"
+  subnet_id = "${aws_subnet.foo.id}"
+
+  instance_market_options {
+    market_type = "spot"
+    spot_options {
+      spot_instance_type = "one-time"
+      max_price = "0.02"
+      block_duration_minutes = "60"
+      instance_interruption_behavior = "terminate"
+    }
+  }
+  tags {
+    Name = "tf-acctest-instance-market-options"
+  }
+}
+`

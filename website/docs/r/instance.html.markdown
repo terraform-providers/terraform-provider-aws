@@ -97,7 +97,9 @@ instances. See [Shutdown Behavior](https://docs.aws.amazon.com/AWSEC2/latest/Use
   "Instance Store") volumes on the instance. See [Block Devices](#block-devices) below for details.
 * `network_interface` - (Optional) Customize network interfaces to be attached at instance boot time. See [Network Interfaces](#network-interfaces) below for more details.
 * `credit_specification` - (Optional) Customize the credit specification of the instance. See [Credit Specification](#credit-specification) below for more details.
-
+* `instance_market_options` - (Optional) The market (purchasing) option for the instance. See [Market Options](#market-options)
+  below for details.
+  
 ### Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
@@ -190,6 +192,24 @@ Credit specification can be applied/modified to the EC2 Instance at any time.
 The `credit_specification` block supports the following:
 
 * `cpu_credits` - (Optional) The credit option for CPU usage.
+
+### Market Options
+
+The market (purchasing) option for the instance.
+
+The `instance_market_options` block supports the following:
+
+* `market_type` - The market type. Can be `spot`.
+* `spot_options` - The options for [Spot Instance](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-spot-instances.html)
+
+The `spot_options` block supports the following:
+
+* `block_duration_minutes` - The required duration in minutes. This value must be a multiple of 60.
+* `instance_interruption_behavior` - The behavior when a Spot Instance is interrupted. Can be `hibernate`,
+  `stop`, or `terminate`.
+* `max_price` - The maximum hourly price you're willing to pay for the Spot Instances.
+* `spot_instance_type` - The Spot Instance request type. Can be `one-time`, or `persistent`.
+* `valid_until` - The end date of the request.
 
 ### Example
 
