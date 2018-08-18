@@ -46,11 +46,10 @@ func resourceAwsNetworkInterface() *schema.Resource {
 			},
 
 			"private_ips": &schema.Schema{
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Optional: true,
 				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
-				Set:      schema.HashString,
 			},
 
 			"private_ips_count": &schema.Schema{
@@ -119,7 +118,7 @@ func resourceAwsNetworkInterfaceCreate(d *schema.ResourceData, meta interface{})
 		request.Groups = expandStringList(security_groups)
 	}
 
-	private_ips := d.Get("private_ips").(*schema.Set).List()
+	private_ips := d.Get("private_ips").([]interface{})
 	if len(private_ips) != 0 {
 		request.PrivateIpAddresses = expandPrivateIPAddresses(private_ips)
 	}
@@ -274,21 +273,21 @@ func resourceAwsNetworkInterfaceUpdate(d *schema.ResourceData, meta interface{})
 	if d.HasChange("private_ips") {
 		o, n := d.GetChange("private_ips")
 		if o == nil {
-			o = new(schema.Set)
+			o = []interface{}{}
 		}
 		if n == nil {
-			n = new(schema.Set)
+			n = []interface{}{}
 		}
 
-		os := o.(*schema.Set)
-		ns := n.(*schema.Set)
+		os := o.([]interface{})
+		ns := n.([]interface{})
 
 		// Unassign old IP addresses
-		unassignIps := os.Difference(ns)
-		if unassignIps.Len() != 0 {
+		unassignIps := difference(ns, os)
+		if len(unassignIps) != 0 {
 			input := &ec2.UnassignPrivateIpAddressesInput{
 				NetworkInterfaceId: aws.String(d.Id()),
-				PrivateIpAddresses: expandStringList(unassignIps.List()),
+				PrivateIpAddresses: expandStringList(unassignIps),
 			}
 			_, err := conn.UnassignPrivateIpAddresses(input)
 			if err != nil {
@@ -297,11 +296,11 @@ func resourceAwsNetworkInterfaceUpdate(d *schema.ResourceData, meta interface{})
 		}
 
 		// Assign new IP addresses
-		assignIps := ns.Difference(os)
-		if assignIps.Len() != 0 {
+		assignIps := difference(os, ns)
+		if len(assignIps) != 0 {
 			input := &ec2.AssignPrivateIpAddressesInput{
 				NetworkInterfaceId: aws.String(d.Id()),
-				PrivateIpAddresses: expandStringList(assignIps.List()),
+				PrivateIpAddresses: expandStringList(assignIps),
 			}
 			_, err := conn.AssignPrivateIpAddresses(input)
 			if err != nil {
@@ -326,7 +325,7 @@ func resourceAwsNetworkInterfaceUpdate(d *schema.ResourceData, meta interface{})
 
 	if d.HasChange("private_ips_count") {
 		o, n := d.GetChange("private_ips_count")
-		private_ips := d.Get("private_ips").(*schema.Set).List()
+		private_ips := d.Get("private_ips").([]interface{})
 		private_ips_filtered := private_ips[:0]
 		primary_ip := d.Get("private_ip")
 
@@ -432,4 +431,19 @@ func resourceAwsEniAttachmentHash(v interface{}) int {
 	buf.WriteString(fmt.Sprintf("%s-", m["instance"].(string)))
 	buf.WriteString(fmt.Sprintf("%d-", m["device_index"].(int)))
 	return hashcode.String(buf.String())
+}
+
+// returns items from list2 which are not contained in list1
+func difference(list1, list2 []interface{}) []interface{} {
+	result := []interface{}{}
+Items:
+	for _, item2 := range list2 {
+		for _, item1 := range list1 {
+			if item1 == item2 {
+				continue Items
+			}
+		}
+		result = append(result, item2)
+	}
+	return result
 }
