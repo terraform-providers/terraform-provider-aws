@@ -43,6 +43,28 @@ func TestAccAwsSecretsManagerSecretVersion_Basic(t *testing.T) {
 	})
 }
 
+func TestAccAwsSecretsManagerSecretVersion_generateRandomPassword(t *testing.T) {
+	var version secretsmanager.GetSecretValueOutput
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_secretsmanager_secret_version.test"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAwsSecretsManagerSecretVersionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAwsSecretsManagerSecretVersionConfig_generateRandomPassword(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsSecretsManagerSecretVersionExists(resourceName, &version),
+					resource.TestCheckResourceAttrSet(resourceName, "version_id"),
+					resource.TestCheckResourceAttr(resourceName, "version_stages.#", "1"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAwsSecretsManagerSecretVersion_VersionStages(t *testing.T) {
 	var version secretsmanager.GetSecretValueOutput
 	rName := acctest.RandomWithPrefix("tf-acc-test")
@@ -186,6 +208,22 @@ resource "aws_secretsmanager_secret" "test" {
 resource "aws_secretsmanager_secret_version" "test" {
   secret_id     = "${aws_secretsmanager_secret.test.id}"
   secret_string = "test-string"
+}
+`, rName)
+}
+
+func testAccAwsSecretsManagerSecretVersionConfig_generateRandomPassword(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_secretsmanager_secret" "test" {
+  name = "%s"
+}
+
+resource "aws_secretsmanager_secret_version" "test" {
+  secret_id     = "${aws_secretsmanager_secret.test.id}"
+  generate_random_password {
+    exclude_characters = "aed"
+    exclude_punctuation = true
+  }
 }
 `, rName)
 }
