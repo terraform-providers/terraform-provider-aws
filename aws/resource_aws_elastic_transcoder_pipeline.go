@@ -33,10 +33,11 @@ func resourceAwsElasticTranscoderPipeline() *schema.Resource {
 
 			// ContentConfig also requires ThumbnailConfig
 			"content_config": {
-				Type:     schema.TypeSet,
-				Optional: true,
-				Computed: true,
-				MaxItems: 1,
+				Type:          schema.TypeSet,
+				Optional:      true,
+				Computed:      true,
+				MaxItems:      1,
+				ConflictsWith: []string{"output_bucket"},
 				Elem: &schema.Resource{
 					// elastictranscoder.PipelineOutputConfig
 					Schema: map[string]*schema.Schema{
@@ -130,9 +131,10 @@ func resourceAwsElasticTranscoderPipeline() *schema.Resource {
 			// This is set as Computed, because the API may or may not return
 			// this as set based on the other 2 configurations.
 			"output_bucket": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Type:          schema.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ConflictsWith: []string{"content_config", "thumbnail_config"},
 			},
 
 			"role": {
@@ -141,10 +143,11 @@ func resourceAwsElasticTranscoderPipeline() *schema.Resource {
 			},
 
 			"thumbnail_config": {
-				Type:     schema.TypeSet,
-				Optional: true,
-				Computed: true,
-				MaxItems: 1,
+				Type:          schema.TypeSet,
+				Optional:      true,
+				Computed:      true,
+				MaxItems:      1,
+				ConflictsWith: []string{"output_bucket"},
 				Elem: &schema.Resource{
 					// elastictranscoder.PipelineOutputConfig
 					Schema: map[string]*schema.Schema{
@@ -310,6 +313,13 @@ func expandETPiplineOutputConfig(d *schema.ResourceData, key string) *elastictra
 	return cfg
 }
 
+func expandETPiplineOutputBucketConfig(bucket string) *elastictranscoder.PipelineOutputConfig {
+	cfg := &elastictranscoder.PipelineOutputConfig{
+		Bucket: aws.String(bucket),
+	}
+	return cfg
+}
+
 func flattenETPipelineOutputConfig(cfg *elastictranscoder.PipelineOutputConfig) []map[string]interface{} {
 	m := setMap(make(map[string]interface{}))
 
@@ -387,6 +397,12 @@ func resourceAwsElasticTranscoderPipelineUpdate(d *schema.ResourceData, meta int
 
 	if d.HasChange("thumbnail_config") {
 		req.ThumbnailConfig = expandETPiplineOutputConfig(d, "thumbnail_config")
+	}
+
+	if d.HasChange("output_bucket") {
+		bucket := d.Get("output_bucket").(string)
+		req.ContentConfig = expandETPiplineOutputBucketConfig(bucket)
+		req.ThumbnailConfig = expandETPiplineOutputBucketConfig(bucket)
 	}
 
 	log.Printf("[DEBUG] Updating Elastic Transcoder Pipeline: %#v", req)
