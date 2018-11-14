@@ -7,6 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/elbv2"
 	"github.com/hashicorp/terraform/helper/schema"
+	"reflect"
 )
 
 func dataSourceAwsLb() *schema.Resource {
@@ -118,24 +119,35 @@ func dataSourceAwsLb() *schema.Resource {
 				Computed: true,
 			},
 
-			"tags": tagsSchemaComputed(),
+			"tags": tagsSchema(),
 		},
 	}
 }
 
 func dataSourceAwsLbRead(d *schema.ResourceData, meta interface{}) error {
-	elbconn := meta.(*AWSClient).elbv2conn
 	lbArn := d.Get("arn").(string)
 	lbName := d.Get("name").(string)
+	lbTags := tagsFromMapELBv2(d.Get("tags").(map[string]interface{}))
 
-	describeLbOpts := &elbv2.DescribeLoadBalancersInput{}
 	switch {
 	case lbArn != "":
-		describeLbOpts.LoadBalancerArns = []*string{aws.String(lbArn)}
+		describeLbOpts := &elbv2.DescribeLoadBalancersInput{
+			LoadBalancerArns: []*string{aws.String(lbArn)},
+		}
+		return readFromDescribeLb(d, meta, describeLbOpts)
 	case lbName != "":
-		describeLbOpts.Names = []*string{aws.String(lbName)}
+		describeLbOpts := &elbv2.DescribeLoadBalancersInput{
+			Names: []*string{aws.String(lbName)},
+		}
+		return readFromDescribeLb(d, meta, describeLbOpts)
+	case len(lbTags) > 0:
+		return readFromDescribeTags(d, meta, lbTags)
 	}
 
+	return nil
+}
+func readFromDescribeLb(d *schema.ResourceData, meta interface{}, describeLbOpts *elbv2.DescribeLoadBalancersInput) error {
+	elbconn := meta.(*AWSClient).elbv2conn
 	log.Printf("[DEBUG] Reading Load Balancer: %s", describeLbOpts)
 	describeResp, err := elbconn.DescribeLoadBalancers(describeLbOpts)
 	if err != nil {
@@ -147,4 +159,53 @@ func dataSourceAwsLbRead(d *schema.ResourceData, meta interface{}) error {
 	d.SetId(aws.StringValue(describeResp.LoadBalancers[0].LoadBalancerArn))
 
 	return flattenAwsLbResource(d, meta, describeResp.LoadBalancers[0])
+}
+
+func readFromDescribeTags(d *schema.ResourceData, meta interface{}, lbTags []*elbv2.Tag) error {
+	elbconn := meta.(*AWSClient).elbv2conn
+	describeLbOpts := &elbv2.DescribeLoadBalancersInput{}
+	describeResp, err := elbconn.DescribeLoadBalancers(describeLbOpts)
+	if err != nil {
+		return fmt.Errorf("Error retrieving LB: %s", err)
+	}
+
+	var matchedLb []*elbv2.LoadBalancer
+	for _, element := range describeResp.LoadBalancers {
+		describeTagsOpts := &elbv2.DescribeTagsInput{
+			ResourceArns: []*string{element.LoadBalancerArn},
+		}
+		describeTagsResp, err := elbconn.DescribeTags(describeTagsOpts)
+		if err != nil {
+			return fmt.Errorf("Error retrieving LB tags: %s", err)
+		}
+
+		if containsAllTags(describeTagsResp.TagDescriptions[0].Tags, lbTags) {
+			matchedLb = append(matchedLb, element)
+		}
+	}
+
+	if len(matchedLb) != 1 {
+		return fmt.Errorf("Search returned %d results, please revise so only one is returned", len(matchedLb))
+	}
+
+	d.SetId(aws.StringValue(matchedLb[0].LoadBalancerArn))
+	return flattenAwsLbResource(d, meta, matchedLb[0])
+}
+
+func containsAllTags(existingTags []*elbv2.Tag, requiredTags []*elbv2.Tag) bool {
+	for _, requiredTag := range requiredTags {
+		if !containsTag(existingTags, requiredTag) {
+			return false
+		}
+	}
+	return true
+}
+
+func containsTag(existingTags []*elbv2.Tag, requiredTag *elbv2.Tag) bool {
+	for _, existingTag := range existingTags {
+		if reflect.DeepEqual(existingTag, requiredTag) {
+			return true
+		}
+	}
+	return false
 }

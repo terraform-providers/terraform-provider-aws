@@ -42,6 +42,7 @@ func TestAccDataSourceAWSLB_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet("data.aws_lb.alb_test_with_name", "zone_id"),
 					resource.TestCheckResourceAttrSet("data.aws_lb.alb_test_with_name", "dns_name"),
 					resource.TestCheckResourceAttrSet("data.aws_lb.alb_test_with_name", "arn"),
+					resource.TestCheckResourceAttr("data.aws_lb.alb_test_with_tags", "name", lbName),
 				),
 			},
 		},
@@ -63,7 +64,7 @@ func TestAccDataSourceAWSLBBackwardsCompatibility(t *testing.T) {
 					resource.TestCheckResourceAttr("data.aws_alb.alb_test_with_arn", "subnets.#", "2"),
 					resource.TestCheckResourceAttr("data.aws_alb.alb_test_with_arn", "security_groups.#", "1"),
 					resource.TestCheckResourceAttr("data.aws_alb.alb_test_with_arn", "tags.%", "1"),
-					resource.TestCheckResourceAttr("data.aws_alb.alb_test_with_arn", "tags.TestName", "TestAccAWSALB_basic"),
+					resource.TestCheckResourceAttr("data.aws_alb.alb_test_with_arn", "tags.TestName", "TestAccAWSALB_compatibility"),
 					resource.TestCheckResourceAttr("data.aws_alb.alb_test_with_arn", "enable_deletion_protection", "false"),
 					resource.TestCheckResourceAttr("data.aws_alb.alb_test_with_arn", "idle_timeout", "30"),
 					resource.TestCheckResourceAttrSet("data.aws_alb.alb_test_with_arn", "vpc_id"),
@@ -75,13 +76,14 @@ func TestAccDataSourceAWSLBBackwardsCompatibility(t *testing.T) {
 					resource.TestCheckResourceAttr("data.aws_alb.alb_test_with_name", "subnets.#", "2"),
 					resource.TestCheckResourceAttr("data.aws_alb.alb_test_with_name", "security_groups.#", "1"),
 					resource.TestCheckResourceAttr("data.aws_alb.alb_test_with_name", "tags.%", "1"),
-					resource.TestCheckResourceAttr("data.aws_alb.alb_test_with_name", "tags.TestName", "TestAccAWSALB_basic"),
+					resource.TestCheckResourceAttr("data.aws_alb.alb_test_with_name", "tags.TestName", "TestAccAWSALB_compatibility"),
 					resource.TestCheckResourceAttr("data.aws_alb.alb_test_with_name", "enable_deletion_protection", "false"),
 					resource.TestCheckResourceAttr("data.aws_alb.alb_test_with_name", "idle_timeout", "30"),
 					resource.TestCheckResourceAttrSet("data.aws_alb.alb_test_with_name", "vpc_id"),
 					resource.TestCheckResourceAttrSet("data.aws_alb.alb_test_with_name", "zone_id"),
 					resource.TestCheckResourceAttrSet("data.aws_alb.alb_test_with_name", "dns_name"),
 					resource.TestCheckResourceAttrSet("data.aws_alb.alb_test_with_name", "arn"),
+					resource.TestCheckResourceAttr("data.aws_alb.alb_test_with_tags", "name", lbName),
 				),
 			},
 		},
@@ -160,6 +162,10 @@ data "aws_lb" "alb_test_with_arn" {
 
 data "aws_lb" "alb_test_with_name" {
 	name = "${aws_lb.alb_test.name}"
+}
+
+data "aws_lb" "alb_test_with_tags" {
+	tags = "${aws_lb.alb_test.tags}"
 }`, lbName)
 }
 
@@ -174,7 +180,7 @@ func testAccDataSourceAWSLBConfigBackardsCompatibility(albName string) string {
   enable_deletion_protection = false
 
   tags {
-    TestName = "TestAccAWSALB_basic"
+    TestName = "TestAccAWSALB_compatibility"
   }
 }
 
@@ -235,5 +241,9 @@ data "aws_alb" "alb_test_with_arn" {
 
 data "aws_alb" "alb_test_with_name" {
 	name = "${aws_alb.alb_test.name}"
+}
+
+data "aws_alb" "alb_test_with_tags" {
+	tags = "${aws_alb.alb_test.tags}"
 }`, albName)
 }
