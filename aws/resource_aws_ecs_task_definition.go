@@ -186,6 +186,12 @@ func resourceAwsEcsTaskDefinition() *schema.Resource {
 				ForceNew: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
+
+			"deregister_old": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
 		},
 	}
 }
@@ -352,6 +358,10 @@ func flattenPlacementConstraints(pcs []*ecs.TaskDefinitionPlacementConstraint) [
 
 func resourceAwsEcsTaskDefinitionDelete(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ecsconn
+	deregister_old := d.Get("deregister_old").(bool)
+	if !deregister_old {
+		return nil
+	}
 
 	_, err := conn.DeregisterTaskDefinition(&ecs.DeregisterTaskDefinitionInput{
 		TaskDefinition: aws.String(d.Get("arn").(string)),
