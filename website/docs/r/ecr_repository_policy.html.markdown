@@ -8,7 +8,7 @@ description: |-
 
 # aws_ecr_repository_policy
 
-Provides an ECR repository policy.
+Provides an ECR repository policy. Consider using [`aws_ecr_lifecycle_policy_document` data_source](/docs/providers/aws/d/ecr_lifecycle_policy_document.html) to generate/manage the JSON document used for the `policy` argument.
 
 Note that currently only one policy may be applied to a repository.
 

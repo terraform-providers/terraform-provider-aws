@@ -192,6 +192,7 @@ func Provider() terraform.ResourceProvider {
 			"aws_ebs_snapshot":                     dataSourceAwsEbsSnapshot(),
 			"aws_ebs_snapshot_ids":                 dataSourceAwsEbsSnapshotIds(),
 			"aws_ebs_volume":                       dataSourceAwsEbsVolume(),
+			"aws_ecr_lifecycle_policy_document":    dataSourceAwsEcrLifecyclePolicyDocument(),
 			"aws_ecr_repository":                   dataSourceAwsEcrRepository(),
 			"aws_ecs_cluster":                      dataSourceAwsEcsCluster(),
 			"aws_ecs_container_definition":         dataSourceAwsEcsContainerDefinition(),
