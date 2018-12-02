@@ -16,7 +16,7 @@ groups.
 To exclusively manage the users in a group, see the
 [`aws_iam_group_membership` resource][3].
 
-## Example usage
+## Example Usage
 
 ```hcl
 resource "aws_iam_user_group_membership" "example1" {

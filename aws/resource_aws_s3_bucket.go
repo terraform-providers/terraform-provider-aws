@@ -627,7 +627,7 @@ func resourceAwsS3BucketUpdate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if d.HasChange("versioning") {
-		if err := resourceAwsS3BucketVersioningUpdate(s3conn, d); err != nil {
+		if err := resourceAwsS3BucketVersioningBlockUpdate(s3conn, d); err != nil {
 			return err
 		}
 	}
@@ -1546,7 +1546,7 @@ func resourceAwsS3BucketAclUpdate(s3conn *s3.S3, d *schema.ResourceData) error {
 	return nil
 }
 
-func resourceAwsS3BucketVersioningUpdate(s3conn *s3.S3, d *schema.ResourceData) error {
+func resourceAwsS3BucketVersioningBlockUpdate(s3conn *s3.S3, d *schema.ResourceData) error {
 	v := d.Get("versioning").([]interface{})
 	bucket := d.Get("bucket").(string)
 	vc := &s3.VersioningConfiguration{}
