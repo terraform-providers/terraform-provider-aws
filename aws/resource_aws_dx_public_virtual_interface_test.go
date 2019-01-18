@@ -127,7 +127,7 @@ resource "aws_dx_public_virtual_interface" "foo" {
 	"175.45.176.0/22"
   ]
 
-  tags {
+  tags = {
     Environment = "test"
   }
 }

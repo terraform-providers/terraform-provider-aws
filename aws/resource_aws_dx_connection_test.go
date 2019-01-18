@@ -137,7 +137,7 @@ resource "aws_dx_connection" "hoge" {
   bandwidth = "1Gbps"
   location = "EqSe2"
 
-  tags {
+  tags = {
     Environment = "production"
     Usage = "original"
   }
@@ -152,7 +152,7 @@ resource "aws_dx_connection" "hoge" {
   bandwidth = "1Gbps"
   location = "EqSe2"
 
-  tags {
+  tags = {
     Usage = "changed"
   }
 }

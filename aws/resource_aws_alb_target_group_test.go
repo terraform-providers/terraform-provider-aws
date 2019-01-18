@@ -504,6 +504,51 @@ func testAccCheckAWSALBTargetGroupDestroy(s *terraform.State) error {
 	return nil
 }
 
+func TestAccAWSALBTargetGroup_lambda(t *testing.T) {
+	var conf elbv2.TargetGroup
+	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:      func() { testAccPreCheck(t) },
+		IDRefreshName: "aws_alb_target_group.test",
+		Providers:     testAccProviders,
+		CheckDestroy:  testAccCheckAWSALBTargetGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSALBTargetGroupConfig_lambda(targetGroupName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSALBTargetGroupExists("aws_alb_target_group.test", &conf),
+					resource.TestCheckResourceAttr("aws_alb_target_group.test", "target_type", "lambda"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSALBTargetGroup_missingPortProtocolVpc(t *testing.T) {
+	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSALBTargetGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccAWSALBTargetGroupConfig_missing_port(targetGroupName),
+				ExpectError: regexp.MustCompile(`port should be set when target type is`),
+			},
+			{
+				Config:      testAccAWSALBTargetGroupConfig_missing_protocol(targetGroupName),
+				ExpectError: regexp.MustCompile(`protocol should be set when target type is`),
+			},
+			{
+				Config:      testAccAWSALBTargetGroupConfig_missing_vpc(targetGroupName),
+				ExpectError: regexp.MustCompile(`vpc_id should be set when target type is`),
+			},
+		},
+	})
+}
+
 func testAccAWSALBTargetGroupConfig_basic(targetGroupName string) string {
 	return fmt.Sprintf(`resource "aws_alb_target_group" "test" {
   name = "%s"
@@ -529,7 +574,7 @@ func testAccAWSALBTargetGroupConfig_basic(targetGroupName string) string {
     matcher = "200-299"
   }
 
-  tags {
+  tags = {
     TestName = "TestAccAWSALBTargetGroup_basic"
   }
 }
@@ -537,7 +582,7 @@ func testAccAWSALBTargetGroupConfig_basic(targetGroupName string) string {
 resource "aws_vpc" "test" {
   cidr_block = "10.0.0.0/16"
 
-  tags {
+  tags = {
     Name = "terraform-testacc-alb-target-group-basic"
   }
 }`, targetGroupName)
@@ -568,7 +613,7 @@ func testAccAWSALBTargetGroupConfig_updatedPort(targetGroupName string) string {
     matcher = "200-299"
   }
 
-  tags {
+  tags = {
     TestName = "TestAccAWSALBTargetGroup_basic"
   }
 }
@@ -576,7 +621,7 @@ func testAccAWSALBTargetGroupConfig_updatedPort(targetGroupName string) string {
 resource "aws_vpc" "test" {
   cidr_block = "10.0.0.0/16"
 
-  tags {
+  tags = {
     Name = "terraform-testacc-alb-target-group-basic"
   }
 }`, targetGroupName)
@@ -607,7 +652,7 @@ func testAccAWSALBTargetGroupConfig_updatedProtocol(targetGroupName string) stri
     matcher = "200-299"
   }
 
-  tags {
+  tags = {
     TestName = "TestAccAWSALBTargetGroup_basic"
   }
 }
@@ -615,7 +660,7 @@ func testAccAWSALBTargetGroupConfig_updatedProtocol(targetGroupName string) stri
 resource "aws_vpc" "test2" {
   cidr_block = "10.10.0.0/16"
 
-  tags {
+  tags = {
     Name = "terraform-testacc-alb-target-group-basic-2"
   }
 }
@@ -623,7 +668,7 @@ resource "aws_vpc" "test2" {
 resource "aws_vpc" "test" {
   cidr_block = "10.0.0.0/16"
 
-  tags {
+  tags = {
     Name = "terraform-testacc-alb-target-group-basic"
   }
 }`, targetGroupName)
@@ -654,7 +699,7 @@ func testAccAWSALBTargetGroupConfig_updatedVpc(targetGroupName string) string {
     matcher = "200-299"
   }
 
-  tags {
+  tags = {
     TestName = "TestAccAWSALBTargetGroup_basic"
   }
 }
@@ -662,7 +707,7 @@ func testAccAWSALBTargetGroupConfig_updatedVpc(targetGroupName string) string {
 resource "aws_vpc" "test" {
   cidr_block = "10.0.0.0/16"
 
-  tags {
+  tags = {
     Name = "terraform-testacc-alb-target-group-basic"
   }
 }`, targetGroupName)
@@ -693,7 +738,7 @@ func testAccAWSALBTargetGroupConfig_updateTags(targetGroupName string) string {
     matcher = "200-299"
   }
 
-  tags {
+  tags = {
     Environment = "Production"
     Type = "ALB Target Group"
   }
@@ -702,7 +747,7 @@ func testAccAWSALBTargetGroupConfig_updateTags(targetGroupName string) string {
 resource "aws_vpc" "test" {
   cidr_block = "10.0.0.0/16"
 
-  tags {
+  tags = {
     Name = "terraform-testacc-alb-target-group-basic"
   }
 }`, targetGroupName)
@@ -737,7 +782,7 @@ func testAccAWSALBTargetGroupConfig_updateHealthCheck(targetGroupName string) st
 resource "aws_vpc" "test" {
   cidr_block = "10.0.0.0/16"
 
-  tags {
+  tags = {
     Name = "terraform-testacc-alb-target-group-basic"
   }
 }`, targetGroupName)
@@ -779,7 +824,7 @@ func testAccAWSALBTargetGroupConfig_stickiness(targetGroupName string, addSticki
 resource "aws_vpc" "test" {
   cidr_block = "10.0.0.0/16"
 
-  tags {
+  tags = {
     Name = "terraform-testacc-alb-target-group-stickiness"
   }
 }`, targetGroupName, stickinessBlock)
@@ -811,7 +856,7 @@ func testAccAWSALBTargetGroupConfig_updateSlowStart(targetGroupName string, slow
     matcher = "200-299"
   }
 
-  tags {
+  tags = {
     TestName = "TestAccAWSALBTargetGroup_SlowStart"
   }
 }
@@ -819,7 +864,7 @@ func testAccAWSALBTargetGroupConfig_updateSlowStart(targetGroupName string, slow
 resource "aws_vpc" "test" {
   cidr_block = "10.0.0.0/16"
 
-  tags {
+  tags = {
     Name = "terraform-testacc-alb-target-group-slowstart"
   }
 }`, targetGroupName, slowStartDuration)
@@ -835,7 +880,7 @@ resource "aws_alb_target_group" "test" {
 
 resource "aws_vpc" "test" {
   cidr_block = "10.0.0.0/16"
-	tags {
+	tags = {
 		Name = "terraform-testacc-alb-target-group-name-prefix"
 	}
 }
@@ -845,13 +890,63 @@ const testAccAWSALBTargetGroupConfig_generatedName = `
 resource "aws_alb_target_group" "test" {
   port = 80
   protocol = "HTTP"
+	vpc_id = "${aws_vpc.test.id}"
+	
+	health_check {
+    path = "/health"
+    interval = 60
+    timeout = 3
+    healthy_threshold = 3
+    unhealthy_threshold = 3
+    matcher = "200-299"
+  }
+
+}
+
+resource "aws_vpc" "test" {
+  cidr_block = "10.0.0.0/16"
+	tags = {
+		Name = "terraform-testacc-alb-target-group-generated-name"
+	}
+}
+`
+
+func testAccAWSALBTargetGroupConfig_lambda(targetGroupName string) string {
+	return fmt.Sprintf(`resource "aws_alb_target_group" "test" {
+	name = "%s"
+	target_type = "lambda"
+}`, targetGroupName)
+}
+
+func testAccAWSALBTargetGroupConfig_missing_port(targetGroupName string) string {
+	return fmt.Sprintf(`resource "aws_alb_target_group" "test" {
+  name = "%s"
+  protocol = "HTTPS"
   vpc_id = "${aws_vpc.test.id}"
 }
 
 resource "aws_vpc" "test" {
   cidr_block = "10.0.0.0/16"
-	tags {
-		Name = "terraform-testacc-alb-target-group-generated-name"
-	}
+}`, targetGroupName)
 }
-`
+
+func testAccAWSALBTargetGroupConfig_missing_protocol(targetGroupName string) string {
+	return fmt.Sprintf(`resource "aws_alb_target_group" "test" {
+	name = "%s"
+	port = 443
+  vpc_id = "${aws_vpc.test.id}"
+}
+
+resource "aws_vpc" "test" {
+  cidr_block = "10.0.0.0/16"
+}`, targetGroupName)
+}
+
+func testAccAWSALBTargetGroupConfig_missing_vpc(targetGroupName string) string {
+	return fmt.Sprintf(`resource "aws_alb_target_group" "test" {
+	name = "%s"
+	port = 443
+  protocol = "HTTPS"
+}
+`, targetGroupName)
+}

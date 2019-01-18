@@ -158,10 +158,8 @@ func testAccCheckEIPAssociationDisappears(address *ec2.Address) resource.TestChe
 		opts := &ec2.DisassociateAddressInput{
 			AssociationId: address.AssociationId,
 		}
-		if _, err := conn.DisassociateAddress(opts); err != nil {
-			return err
-		}
-		return nil
+		_, err := conn.DisassociateAddress(opts)
+		return err
 	}
 }
 
@@ -252,7 +250,7 @@ func testAccCheckAWSEIPAssociationDestroy(s *terraform.State) error {
 const testAccAWSEIPAssociationConfig = `
 resource "aws_vpc" "main" {
 	cidr_block = "192.168.0.0/24"
-	tags {
+	tags = {
 		Name = "terraform-testacc-eip-association"
 	}
 }
@@ -260,7 +258,7 @@ resource "aws_subnet" "sub" {
 	vpc_id = "${aws_vpc.main.id}"
 	cidr_block = "192.168.0.0/25"
 	availability_zone = "us-west-2a"
-	tags {
+	tags = {
 		Name = "tf-acc-eip-association"
 	}
 }
@@ -307,7 +305,7 @@ resource "aws_network_interface" "baz" {
 const testAccAWSEIPAssociationConfigDisappears = `
 resource "aws_vpc" "main" {
 	cidr_block = "192.168.0.0/24"
-	tags {
+	tags = {
 		Name = "terraform-testacc-eip-association-disappears"
 	}
 }
@@ -315,7 +313,7 @@ resource "aws_subnet" "sub" {
 	vpc_id = "${aws_vpc.main.id}"
 	cidr_block = "192.168.0.0/25"
 	availability_zone = "us-west-2a"
-	tags {
+	tags = {
 		Name = "tf-acc-eip-association-disappears"
 	}
 }

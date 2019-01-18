@@ -279,10 +279,8 @@ func testAccCheckCloudWatchLogGroupDisappears(lg *cloudwatchlogs.LogGroup) resou
 		opts := &cloudwatchlogs.DeleteLogGroupInput{
 			LogGroupName: lg.LogGroupName,
 		}
-		if _, err := conn.DeleteLogGroup(opts); err != nil {
-			return err
-		}
-		return nil
+		_, err := conn.DeleteLogGroup(opts)
+		return err
 	}
 }
 
@@ -342,7 +340,7 @@ func testAccAWSCloudWatchLogGroupConfigWithTags(rInt int) string {
 resource "aws_cloudwatch_log_group" "foobar" {
     name = "foo-bar-%d"
 
-    tags {
+  tags = {
     	Environment = "Production"
     	Foo = "Bar"
     	Empty = ""
@@ -356,7 +354,7 @@ func testAccAWSCloudWatchLogGroupConfigWithTagsAdded(rInt int) string {
 resource "aws_cloudwatch_log_group" "foobar" {
     name = "foo-bar-%d"
 
-    tags {
+  tags = {
     	Environment = "Development"
     	Foo = "Bar"
     	Empty = ""
@@ -371,7 +369,7 @@ func testAccAWSCloudWatchLogGroupConfigWithTagsUpdated(rInt int) string {
 resource "aws_cloudwatch_log_group" "foobar" {
     name = "foo-bar-%d"
 
-    tags {
+  tags = {
     	Environment = "Development"
     	Foo = "UpdatedBar"
     	Empty = "NotEmpty"

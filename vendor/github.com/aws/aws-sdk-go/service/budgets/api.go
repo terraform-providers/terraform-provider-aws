@@ -9,6 +9,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awsutil"
 	"github.com/aws/aws-sdk-go/aws/request"
+	"github.com/aws/aws-sdk-go/private/protocol"
+	"github.com/aws/aws-sdk-go/private/protocol/jsonrpc"
 )
 
 const opCreateBudget = "CreateBudget"
@@ -48,6 +50,7 @@ func (c *Budgets) CreateBudgetRequest(input *CreateBudgetInput) (req *request.Re
 
 	output = &CreateBudgetOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -135,6 +138,7 @@ func (c *Budgets) CreateNotificationRequest(input *CreateNotificationInput) (req
 
 	output = &CreateNotificationOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -226,6 +230,7 @@ func (c *Budgets) CreateSubscriberRequest(input *CreateSubscriberInput) (req *re
 
 	output = &CreateSubscriberOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -317,6 +322,7 @@ func (c *Budgets) DeleteBudgetRequest(input *DeleteBudgetInput) (req *request.Re
 
 	output = &DeleteBudgetOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -404,6 +410,7 @@ func (c *Budgets) DeleteNotificationRequest(input *DeleteNotificationInput) (req
 
 	output = &DeleteNotificationOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -491,6 +498,7 @@ func (c *Budgets) DeleteSubscriberRequest(input *DeleteSubscriberInput) (req *re
 
 	output = &DeleteSubscriberOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -1022,6 +1030,7 @@ func (c *Budgets) UpdateBudgetRequest(input *UpdateBudgetInput) (req *request.Re
 
 	output = &UpdateBudgetOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -1108,6 +1117,7 @@ func (c *Budgets) UpdateNotificationRequest(input *UpdateNotificationInput) (req
 
 	output = &UpdateNotificationOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -1195,6 +1205,7 @@ func (c *Budgets) UpdateSubscriberRequest(input *UpdateSubscriberInput) (req *re
 
 	output = &UpdateSubscriberOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -1278,6 +1289,18 @@ type Budget struct {
 	CalculatedSpend *CalculatedSpend `type:"structure"`
 
 	// The cost filters, such as service or region, that are applied to a budget.
+	//
+	// AWS Budgets supports the following services as a filter for RI budgets:
+	//
+	//    * Amazon Elastic Compute Cloud - Compute
+	//
+	//    * Amazon Redshift
+	//
+	//    * Amazon Relational Database Service
+	//
+	//    * Amazon ElastiCache
+	//
+	//    * Amazon Elasticsearch Service
 	CostFilters map[string][]*string `type:"map"`
 
 	// The types of costs that are included in this COST budget.
@@ -2528,8 +2551,8 @@ type DescribeBudgetPerformanceHistoryOutput struct {
 	//
 	// For DAILY budgets, the history saves the state of the budget for the last
 	// 60 days. For MONTHLY budgets, the history saves the state of the budget for
-	// the last 12 months. For QUARTERLY budgets, the history saves the state of
-	// the budget for the last four quarters.
+	// the current month plus the last 12 months. For QUARTERLY budgets, the history
+	// saves the state of the budget for the last four quarters.
 	BudgetPerformanceHistory *BudgetPerformanceHistory `type:"structure"`
 
 	// A generic string.
@@ -3173,7 +3196,7 @@ type Subscriber struct {
 	// an email.
 	//
 	// Address is a required field
-	Address *string `min:"1" type:"string" required:"true"`
+	Address *string `min:"1" type:"string" required:"true" sensitive:"true"`
 
 	// The type of notification that AWS sends to a subscriber.
 	//

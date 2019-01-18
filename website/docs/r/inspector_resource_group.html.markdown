@@ -14,7 +14,7 @@ Provides a Inspector resource group
 
 ```hcl
 resource "aws_inspector_resource_group" "bar" {
-  tags {
+  tags = {
     Name = "foo"
     Env  = "bar"
   }

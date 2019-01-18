@@ -10,6 +10,10 @@ description: |-
 
 Provides a CloudTrail resource.
 
+~> *NOTE:* For a multi-region trail, this resource must be in the home region of the trail.
+
+~> *NOTE:* For an organization trail, this resource must be in the master account of the organization.
+
 ## Example Usage
 
 ### Basic
@@ -145,6 +149,7 @@ The following arguments are supported:
     from global services such as IAM to the log files. Defaults to `true`.
 * `is_multi_region_trail` - (Optional) Specifies whether the trail is created in the current
     region or in all regions. Defaults to `false`.
+* `is_organization_trail` - (Optional) Specifies whether the trail is an AWS Organizations trail. Organization trails log events for the master account and all member accounts. Can only be created in the organization master account. Defaults to `false`.
 * `sns_topic_name` - (Optional) Specifies the name of the Amazon SNS topic
     defined for notification of log file delivery.
 * `enable_log_file_validation` - (Optional) Specifies whether log file integrity validation is enabled.

@@ -640,7 +640,7 @@ func testAccAWSLaunchConfigurationConfig_withVpcClassicLink(rInt int) string {
 resource "aws_vpc" "foo" {
     cidr_block = "10.0.0.0/16"
     enable_classiclink = true
-    tags {
+  tags = {
         Name = "terraform-testacc-launch-configuration-with-vpc-classic-link"
     }
 }

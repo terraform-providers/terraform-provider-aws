@@ -19,7 +19,7 @@ resource "aws_opsworks_stack" "main" {
   service_role_arn             = "${aws_iam_role.opsworks.arn}"
   default_instance_profile_arn = "${aws_iam_instance_profile.opsworks.arn}"
 
-  tags {
+  tags = {
     Name = "foobar-terraform-stack"
   }
 

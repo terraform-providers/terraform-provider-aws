@@ -23,7 +23,7 @@ resource "aws_vpc" "network" {
 }
 
 resource "aws_vpn_gateway" "vpn" {
-  tags {
+  tags = {
     Name = "example-vpn-gateway"
   }
 }

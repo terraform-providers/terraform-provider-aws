@@ -97,7 +97,7 @@ func TestAccAWSEBSSnapshot_withKms(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckSnapshotExists("aws_ebs_snapshot.test", &v),
 					resource.TestMatchResourceAttr("aws_ebs_snapshot.test", "kms_key_id",
-						regexp.MustCompile("^arn:aws:kms:[a-z]{2}-[a-z]+-\\d{1}:[0-9]{12}:key/[a-z0-9-]{36}$")),
+						regexp.MustCompile(`^arn:aws:kms:[a-z]{2}-[a-z]+-\d{1}:[0-9]{12}:key/[a-z0-9-]{36}$`)),
 				),
 			},
 		},
@@ -170,7 +170,7 @@ resource "aws_ebs_volume" "test" {
 resource "aws_ebs_snapshot" "test" {
   volume_id = "${aws_ebs_volume.test.id}"
 
-  tags {
+  tags = {
     Name = "%s"
   }
 }
@@ -201,7 +201,7 @@ data "aws_region" "current" {}
 resource "aws_kms_key" "test" {
   deletion_window_in_days = 7
 
-  tags {
+  tags = {
     Name = "${var.name}"
   }
 }
@@ -212,7 +212,7 @@ resource "aws_ebs_volume" "test" {
   encrypted         = true
   kms_key_id        = "${aws_kms_key.test.arn}"
 
-  tags {
+  tags = {
     Name = "${var.name}"
   }
 }
@@ -220,7 +220,7 @@ resource "aws_ebs_volume" "test" {
 resource "aws_ebs_snapshot" "test" {
   volume_id = "${aws_ebs_volume.test.id}"
 
-  tags {
+  tags = {
     Name = "${var.name}"
   }
 }

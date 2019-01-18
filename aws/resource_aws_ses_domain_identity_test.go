@@ -118,7 +118,7 @@ func testAccCheckAwsSESDomainIdentityExists(n string) resource.TestCheckFunc {
 
 func testAccCheckAwsSESDomainIdentityArn(n string, domain string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		rs, _ := s.RootModule().Resources[n]
+		rs := s.RootModule().Resources[n]
 		awsClient := testAccProvider.Meta().(*AWSClient)
 
 		expected := arn.ARN{

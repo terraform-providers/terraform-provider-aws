@@ -52,8 +52,7 @@ func (c *CloudWatchEvents) DeleteRuleRequest(input *DeleteRuleInput) (req *reque
 
 	output = &DeleteRuleOutput{}
 	req = c.newRequest(op, input, output)
-	req.Handlers.Unmarshal.Remove(jsonrpc.UnmarshalHandler)
-	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -66,6 +65,12 @@ func (c *CloudWatchEvents) DeleteRuleRequest(input *DeleteRuleInput) (req *reque
 // When you delete a rule, incoming events might continue to match to the deleted
 // rule. Allow a short period of time for changes to take effect.
 //
+// Managed rules are rules created and managed by another AWS service on your
+// behalf. These rules are created by those other AWS services to support functionality
+// in those services. You can delete these rules using the Force option, but
+// you should do so only if you are sure the other service is not still using
+// that rule.
+//
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
 // the error.
@@ -76,6 +81,13 @@ func (c *CloudWatchEvents) DeleteRuleRequest(input *DeleteRuleInput) (req *reque
 // Returned Error Codes:
 //   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
 //   There is concurrent modification on a rule or target.
+//
+//   * ErrCodeManagedRuleException "ManagedRuleException"
+//   This rule was created by an AWS service on behalf of your account. It is
+//   managed by that service. If you see this error in response to DeleteRule
+//   or RemoveTargets, you can use the Force parameter in those calls to delete
+//   the rule or remove targets from the rule. You cannot modify these managed
+//   rules by using DisableRule, EnableRule, PutTargets, or PutRule.
 //
 //   * ErrCodeInternalException "InternalException"
 //   This exception occurs due to unexpected causes.
@@ -310,8 +322,7 @@ func (c *CloudWatchEvents) DisableRuleRequest(input *DisableRuleInput) (req *req
 
 	output = &DisableRuleOutput{}
 	req = c.newRequest(op, input, output)
-	req.Handlers.Unmarshal.Remove(jsonrpc.UnmarshalHandler)
-	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -336,6 +347,13 @@ func (c *CloudWatchEvents) DisableRuleRequest(input *DisableRuleInput) (req *req
 //
 //   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
 //   There is concurrent modification on a rule or target.
+//
+//   * ErrCodeManagedRuleException "ManagedRuleException"
+//   This rule was created by an AWS service on behalf of your account. It is
+//   managed by that service. If you see this error in response to DeleteRule
+//   or RemoveTargets, you can use the Force parameter in those calls to delete
+//   the rule or remove targets from the rule. You cannot modify these managed
+//   rules by using DisableRule, EnableRule, PutTargets, or PutRule.
 //
 //   * ErrCodeInternalException "InternalException"
 //   This exception occurs due to unexpected causes.
@@ -401,8 +419,7 @@ func (c *CloudWatchEvents) EnableRuleRequest(input *EnableRuleInput) (req *reque
 
 	output = &EnableRuleOutput{}
 	req = c.newRequest(op, input, output)
-	req.Handlers.Unmarshal.Remove(jsonrpc.UnmarshalHandler)
-	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -427,6 +444,13 @@ func (c *CloudWatchEvents) EnableRuleRequest(input *EnableRuleInput) (req *reque
 //
 //   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
 //   There is concurrent modification on a rule or target.
+//
+//   * ErrCodeManagedRuleException "ManagedRuleException"
+//   This rule was created by an AWS service on behalf of your account. It is
+//   managed by that service. If you see this error in response to DeleteRule
+//   or RemoveTargets, you can use the Force parameter in those calls to delete
+//   the rule or remove targets from the rule. You cannot modify these managed
+//   rules by using DisableRule, EnableRule, PutTargets, or PutRule.
 //
 //   * ErrCodeInternalException "InternalException"
 //   This exception occurs due to unexpected causes.
@@ -817,8 +841,7 @@ func (c *CloudWatchEvents) PutPermissionRequest(input *PutPermissionInput) (req 
 
 	output = &PutPermissionOutput{}
 	req = c.newRequest(op, input, output)
-	req.Handlers.Unmarshal.Remove(jsonrpc.UnmarshalHandler)
-	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -986,6 +1009,13 @@ func (c *CloudWatchEvents) PutRuleRequest(input *PutRuleInput) (req *request.Req
 //
 //   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
 //   There is concurrent modification on a rule or target.
+//
+//   * ErrCodeManagedRuleException "ManagedRuleException"
+//   This rule was created by an AWS service on behalf of your account. It is
+//   managed by that service. If you see this error in response to DeleteRule
+//   or RemoveTargets, you can use the Force parameter in those calls to delete
+//   the rule or remove targets from the rule. You cannot modify these managed
+//   rules by using DisableRule, EnableRule, PutTargets, or PutRule.
 //
 //   * ErrCodeInternalException "InternalException"
 //   This exception occurs due to unexpected causes.
@@ -1177,6 +1207,13 @@ func (c *CloudWatchEvents) PutTargetsRequest(input *PutTargetsInput) (req *reque
 //   * ErrCodeLimitExceededException "LimitExceededException"
 //   You tried to create more rules or add more targets to a rule than is allowed.
 //
+//   * ErrCodeManagedRuleException "ManagedRuleException"
+//   This rule was created by an AWS service on behalf of your account. It is
+//   managed by that service. If you see this error in response to DeleteRule
+//   or RemoveTargets, you can use the Force parameter in those calls to delete
+//   the rule or remove targets from the rule. You cannot modify these managed
+//   rules by using DisableRule, EnableRule, PutTargets, or PutRule.
+//
 //   * ErrCodeInternalException "InternalException"
 //   This exception occurs due to unexpected causes.
 //
@@ -1241,8 +1278,7 @@ func (c *CloudWatchEvents) RemovePermissionRequest(input *RemovePermissionInput)
 
 	output = &RemovePermissionOutput{}
 	req = c.newRequest(op, input, output)
-	req.Handlers.Unmarshal.Remove(jsonrpc.UnmarshalHandler)
-	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -1361,6 +1397,13 @@ func (c *CloudWatchEvents) RemoveTargetsRequest(input *RemoveTargetsInput) (req 
 //
 //   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
 //   There is concurrent modification on a rule or target.
+//
+//   * ErrCodeManagedRuleException "ManagedRuleException"
+//   This rule was created by an AWS service on behalf of your account. It is
+//   managed by that service. If you see this error in response to DeleteRule
+//   or RemoveTargets, you can use the Force parameter in those calls to delete
+//   the rule or remove targets from the rule. You cannot modify these managed
+//   rules by using DisableRule, EnableRule, PutTargets, or PutRule.
 //
 //   * ErrCodeInternalException "InternalException"
 //   This exception occurs due to unexpected causes.
@@ -1750,6 +1793,13 @@ func (s *Condition) SetValue(v string) *Condition {
 type DeleteRuleInput struct {
 	_ struct{} `type:"structure"`
 
+	// If this is a managed rule, created by an AWS service on your behalf, you
+	// must specify Force as True to delete the rule. This parameter is ignored
+	// for rules that are not managed rules. You can check whether a rule is a managed
+	// rule by using DescribeRule or ListRules and checking the ManagedBy field
+	// of the response.
+	Force *bool `type:"boolean"`
+
 	// The name of the rule.
 	//
 	// Name is a required field
@@ -1780,6 +1830,12 @@ func (s *DeleteRuleInput) Validate() error {
 		return invalidParams
 	}
 	return nil
+}
+
+// SetForce sets the Force field's value.
+func (s *DeleteRuleInput) SetForce(v bool) *DeleteRuleInput {
+	s.Force = &v
+	return s
 }
 
 // SetName sets the Name field's value.
@@ -1912,6 +1968,10 @@ type DescribeRuleOutput struct {
 	// in the Amazon CloudWatch Events User Guide.
 	EventPattern *string `type:"string"`
 
+	// If this is a managed rule, created by an AWS service on your behalf, this
+	// field displays the principal name of the AWS service that created the rule.
+	ManagedBy *string `min:"1" type:"string"`
+
 	// The name of the rule.
 	Name *string `min:"1" type:"string"`
 
@@ -1950,6 +2010,12 @@ func (s *DescribeRuleOutput) SetDescription(v string) *DescribeRuleOutput {
 // SetEventPattern sets the EventPattern field's value.
 func (s *DescribeRuleOutput) SetEventPattern(v string) *DescribeRuleOutput {
 	s.EventPattern = &v
+	return s
+}
+
+// SetManagedBy sets the ManagedBy field's value.
+func (s *DescribeRuleOutput) SetManagedBy(v string) *DescribeRuleOutput {
+	s.ManagedBy = &v
 	return s
 }
 
@@ -3290,6 +3356,13 @@ func (s RemovePermissionOutput) GoString() string {
 type RemoveTargetsInput struct {
 	_ struct{} `type:"structure"`
 
+	// If this is a managed rule, created by an AWS service on your behalf, you
+	// must specify Force as True to remove targets. This parameter is ignored for
+	// rules that are not managed rules. You can check whether a rule is a managed
+	// rule by using DescribeRule or ListRules and checking the ManagedBy field
+	// of the response.
+	Force *bool `type:"boolean"`
+
 	// The IDs of the targets to remove from the rule.
 	//
 	// Ids is a required field
@@ -3331,6 +3404,12 @@ func (s *RemoveTargetsInput) Validate() error {
 		return invalidParams
 	}
 	return nil
+}
+
+// SetForce sets the Force field's value.
+func (s *RemoveTargetsInput) SetForce(v bool) *RemoveTargetsInput {
+	s.Force = &v
+	return s
 }
 
 // SetIds sets the Ids field's value.
@@ -3436,6 +3515,10 @@ type Rule struct {
 	// in the Amazon CloudWatch Events User Guide.
 	EventPattern *string `type:"string"`
 
+	// If the rule was created on behalf of your account by an AWS service, this
+	// field displays the principal name of the service that created the rule.
+	ManagedBy *string `min:"1" type:"string"`
+
 	// The name of the rule.
 	Name *string `min:"1" type:"string"`
 
@@ -3474,6 +3557,12 @@ func (s *Rule) SetDescription(v string) *Rule {
 // SetEventPattern sets the EventPattern field's value.
 func (s *Rule) SetEventPattern(v string) *Rule {
 	s.EventPattern = &v
+	return s
+}
+
+// SetManagedBy sets the ManagedBy field's value.
+func (s *Rule) SetManagedBy(v string) *Rule {
+	s.ManagedBy = &v
 	return s
 }
 

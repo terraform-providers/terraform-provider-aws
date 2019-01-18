@@ -73,7 +73,7 @@ func TestAccAWSVPNGatewayRoutePropagation_basic(t *testing.T) {
 const testAccAWSVPNGatewayRoutePropagation_basic = `
 resource "aws_vpc" "foo" {
 	cidr_block = "10.1.0.0/16"
-	tags {
+	tags = {
 		Name = "terraform-testacc-vpn-gateway-route-propagation"
 	}
 }

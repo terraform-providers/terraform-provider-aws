@@ -8,7 +8,7 @@ description: |-
 
 # aws_codebuild_project
 
-Provides a CodeBuild Project resource.
+Provides a CodeBuild Project resource. See also the [`aws_codebuild_webhook` resource](/docs/providers/aws/r/codebuild_webhook.html), which manages the webhook to the source (e.g. the "rebuild every time a code change is pushed" option in the CodeBuild web console).
 
 ## Example Usage
 
@@ -135,7 +135,7 @@ resource "aws_codebuild_project" "example" {
     ]
   }
 
-  tags {
+  tags = {
     "Environment" = "Test"
   }
 }
@@ -232,7 +232,7 @@ The following arguments are supported:
 * `git_clone_depth` - (Optional) Truncate git history to this many commits.
 * `insecure_ssl` - (Optional) Ignore SSL warnings when connecting to source control.
 * `location` - (Optional) The location of the source code from git or s3.
-* `report_build_status` - (Optional) Set to `true` to report the status of a build's start and finish to your source provider. This option is only valid when your source provider is GitHub.
+* `report_build_status` - (Optional) Set to `true` to report the status of a build's start and finish to your source provider. This option is only valid when your source provider is `GITHUB`, `BITBUCKET`, or `GITHUB_ENTERPRISE`.
 
 ## Attributes Reference
 

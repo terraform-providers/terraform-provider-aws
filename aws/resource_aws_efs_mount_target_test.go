@@ -128,9 +128,7 @@ func TestResourceAWSEFSMountTarget_hasEmptyMountTargets(t *testing.T) {
 		MountTargets: []*efs.MountTargetDescription{},
 	}
 
-	var actual bool
-
-	actual = hasEmptyMountTargets(mto)
+	actual := hasEmptyMountTargets(mto)
 	if !actual {
 		t.Fatalf("Expected return value to be true, got %t", actual)
 	}
@@ -257,7 +255,7 @@ resource "aws_efs_mount_target" "alpha" {
 
 resource "aws_vpc" "foo" {
 	cidr_block = "10.0.0.0/16"
-	tags {
+	tags = {
 		Name = "terraform-testacc-efs-mount-target"
 	}
 }
@@ -266,7 +264,7 @@ resource "aws_subnet" "alpha" {
 	vpc_id = "${aws_vpc.foo.id}"
 	availability_zone = "us-west-2a"
 	cidr_block = "10.0.1.0/24"
-	tags {
+	tags = {
 		Name = "tf-acc-efs-mount-target-alpha"
 	}
 }
@@ -291,7 +289,7 @@ resource "aws_efs_mount_target" "beta" {
 
 resource "aws_vpc" "foo" {
 	cidr_block = "10.0.0.0/16"
-	tags {
+	tags = {
 		Name = "terraform-testacc-efs-mount-target-modified"
 	}
 }
@@ -300,7 +298,7 @@ resource "aws_subnet" "alpha" {
 	vpc_id = "${aws_vpc.foo.id}"
 	availability_zone = "us-west-2a"
 	cidr_block = "10.0.1.0/24"
-	tags {
+	tags = {
 		Name = "tf-acc-efs-mount-target-alpha"
 	}
 }
@@ -309,7 +307,7 @@ resource "aws_subnet" "beta" {
 	vpc_id = "${aws_vpc.foo.id}"
 	availability_zone = "us-west-2b"
 	cidr_block = "10.0.2.0/24"
-	tags {
+	tags = {
 		Name = "tf-acc-efs-mount-target-beta"
 	}
 }

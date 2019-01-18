@@ -45,6 +45,7 @@ The following arguments are supported:
   the instance before snapshotting. This is risky since it may cause a snapshot of an
   inconsistent filesystem state, but can be used to avoid downtime if the user otherwise
   guarantees that no filesystem writes will be underway at the time of snapshot.
+* `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ### Timeouts
 

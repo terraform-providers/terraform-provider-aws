@@ -217,8 +217,7 @@ func attachPolicyToRoles(conn *iam.IAM, roles []*string, arn string) error {
 			return err
 		}
 
-		var attachmentErr error
-		attachmentErr = resource.Retry(2*time.Minute, func() *resource.RetryError {
+		var attachmentErr = resource.Retry(2*time.Minute, func() *resource.RetryError {
 
 			input := iam.ListRolePoliciesInput{
 				RoleName: r,

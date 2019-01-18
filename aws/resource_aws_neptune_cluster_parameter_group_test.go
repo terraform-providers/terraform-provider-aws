@@ -320,7 +320,7 @@ resource "aws_neptune_cluster_parameter_group" "bar" {
   family = "neptune1"
   name   = "%s"
 
-  tags {
+  tags = {
     %s = "%s"
   }
 }

@@ -25,7 +25,6 @@ func TestAccAWSCloudwatchLogGroupDataSource(t *testing.T) {
 			},
 		},
 	})
-	return
 }
 
 func testAccCheckAWSCloudwatchLogGroupDataSourceConfig(rName string) string {

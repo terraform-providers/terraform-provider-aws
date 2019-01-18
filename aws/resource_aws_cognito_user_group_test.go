@@ -27,14 +27,14 @@ func TestAccAWSCognitoUserGroup_basic(t *testing.T) {
 				Config: testAccAWSCognitoUserGroupConfig_basic(poolName, groupName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAWSCognitoUserGroupExists("aws_cognito_user_group.main"),
-					resource.TestCheckResourceAttr("aws_cognito_user_group.main", "name", fmt.Sprintf("%s", groupName)),
+					resource.TestCheckResourceAttr("aws_cognito_user_group.main", "name", groupName),
 				),
 			},
 			{
 				Config: testAccAWSCognitoUserGroupConfig_basic(poolName, updatedGroupName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAWSCognitoUserGroupExists("aws_cognito_user_group.main"),
-					resource.TestCheckResourceAttr("aws_cognito_user_group.main", "name", fmt.Sprintf("%s", updatedGroupName)),
+					resource.TestCheckResourceAttr("aws_cognito_user_group.main", "name", updatedGroupName),
 				),
 			},
 		},
@@ -55,7 +55,7 @@ func TestAccAWSCognitoUserGroup_complex(t *testing.T) {
 				Config: testAccAWSCognitoUserGroupConfig_complex(poolName, groupName, "This is the user group description", 1),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAWSCognitoUserGroupExists("aws_cognito_user_group.main"),
-					resource.TestCheckResourceAttr("aws_cognito_user_group.main", "name", fmt.Sprintf("%s", groupName)),
+					resource.TestCheckResourceAttr("aws_cognito_user_group.main", "name", groupName),
 					resource.TestCheckResourceAttr("aws_cognito_user_group.main", "description", "This is the user group description"),
 					resource.TestCheckResourceAttr("aws_cognito_user_group.main", "precedence", "1"),
 					resource.TestCheckResourceAttrSet("aws_cognito_user_group.main", "role_arn"),
@@ -65,7 +65,7 @@ func TestAccAWSCognitoUserGroup_complex(t *testing.T) {
 				Config: testAccAWSCognitoUserGroupConfig_complex(poolName, updatedGroupName, "This is the updated user group description", 42),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAWSCognitoUserGroupExists("aws_cognito_user_group.main"),
-					resource.TestCheckResourceAttr("aws_cognito_user_group.main", "name", fmt.Sprintf("%s", updatedGroupName)),
+					resource.TestCheckResourceAttr("aws_cognito_user_group.main", "name", updatedGroupName),
 					resource.TestCheckResourceAttr("aws_cognito_user_group.main", "description", "This is the updated user group description"),
 					resource.TestCheckResourceAttr("aws_cognito_user_group.main", "precedence", "42"),
 					resource.TestCheckResourceAttrSet("aws_cognito_user_group.main", "role_arn"),
@@ -144,7 +144,7 @@ func testAccCheckAWSCognitoUserGroupExists(name string) resource.TestCheckFunc {
 		}
 
 		if id != fmt.Sprintf("%s/%s", userPoolId, name) {
-			return errors.New(fmt.Sprintf("ID should be user_pool_id/name. ID was %s. name was %s, user_pool_id was %s", id, name, userPoolId))
+			return fmt.Errorf(fmt.Sprintf("ID should be user_pool_id/name. ID was %s. name was %s, user_pool_id was %s", id, name, userPoolId))
 		}
 
 		conn := testAccProvider.Meta().(*AWSClient).cognitoidpconn
@@ -155,12 +155,7 @@ func testAccCheckAWSCognitoUserGroupExists(name string) resource.TestCheckFunc {
 		}
 
 		_, err := conn.GetGroup(params)
-
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return err
 	}
 }
 

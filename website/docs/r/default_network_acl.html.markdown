@@ -186,5 +186,6 @@ In addition to all arguments above, the following attributes are exported:
 * `ingress` - Set of ingress rules
 * `egress` - Set of egress rules
 * `subnet_ids` – IDs of associated Subnets
+* `owner_id` - The ID of the AWS account that owns the Default Network ACL
 
 [aws-network-acls]: http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_ACLs.html

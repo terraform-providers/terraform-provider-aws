@@ -70,7 +70,7 @@ func TestAccAWSConfigAggregateAuthorization_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("aws_config_aggregate_authorization.example", "account_id", rString),
 					resource.TestCheckResourceAttr("aws_config_aggregate_authorization.example", "region", "eu-west-1"),
-					resource.TestMatchResourceAttr("aws_config_aggregate_authorization.example", "arn", regexp.MustCompile("^arn:aws:config:[\\w-]+:\\d{12}:aggregation-authorization/\\d{12}/[\\w-]+$")),
+					resource.TestMatchResourceAttr("aws_config_aggregate_authorization.example", "arn", regexp.MustCompile(`^arn:aws:config:[\w-]+:\d{12}:aggregation-authorization/\d{12}/[\w-]+$`)),
 				),
 			},
 			{

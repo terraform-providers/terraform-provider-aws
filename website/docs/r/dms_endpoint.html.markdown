@@ -30,7 +30,7 @@ resource "aws_dms_endpoint" "test" {
   server_name                 = "test"
   ssl_mode                    = "none"
 
-  tags {
+  tags = {
     Name = "test"
   }
 

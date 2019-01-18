@@ -193,11 +193,7 @@ func testAccCheckAWSAMILaunchPermissionAddPublic(resourceName string) resource.T
 
 		_, err := conn.ModifyImageAttribute(input)
 
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return err
 	}
 }
 
@@ -228,11 +224,7 @@ func testAccCheckAWSAMILaunchPermissionDisappears(resourceName string) resource.
 
 		_, err := conn.ModifyImageAttribute(input)
 
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return err
 	}
 }
 

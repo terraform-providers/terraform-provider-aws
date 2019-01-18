@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 )
 
-func TestAccDataSourceAwsRoute_basic(t *testing.T) {
+func TestAccAWSRouteDataSource_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
@@ -21,6 +22,29 @@ func TestAccDataSourceAwsRoute_basic(t *testing.T) {
 					testAccDataSourceAwsRouteCheck("data.aws_route.by_peering_connection_id"),
 				),
 				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSRouteDataSource_TransitGatewayID(t *testing.T) {
+	var route ec2.Route
+	dataSourceName := "data.aws_route.test"
+	resourceName := "aws_route.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSRouteDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSRouteDataSourceConfigTransitGatewayID(),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSRouteExists(resourceName, &route),
+					resource.TestCheckResourceAttrPair(resourceName, "destination_cidr_block", dataSourceName, "destination_cidr_block"),
+					resource.TestCheckResourceAttrPair(resourceName, "route_table_id", dataSourceName, "route_table_id"),
+					resource.TestCheckResourceAttrPair(resourceName, "transit_gateway_id", dataSourceName, "transit_gateway_id"),
+				),
 			},
 		},
 	})
@@ -66,14 +90,10 @@ func testAccDataSourceAwsRouteCheck(name string) resource.TestCheckFunc {
 }
 
 const testAccDataSourceAwsRouteGroupConfig = `
-provider "aws" {
-  region = "ap-southeast-2"
-}
-
 resource "aws_vpc" "test" {
   cidr_block = "172.16.0.0/16"
 
-  tags {
+  tags = {
     Name = "terraform-testacc-route-table-data-source"
   }
 }
@@ -81,7 +101,7 @@ resource "aws_vpc" "test" {
 resource "aws_vpc" "dest" {
 	cidr_block = "172.17.0.0/16"
   
-	tags {
+	tags = {
 	  Name = "terraform-testacc-route-table-data-source"
 	}
 }
@@ -95,14 +115,14 @@ resource "aws_vpc_peering_connection" "test" {
 resource "aws_subnet" "test" {
   cidr_block = "172.16.0.0/24"
   vpc_id     = "${aws_vpc.test.id}"
-  tags {
+  tags = {
     Name = "tf-acc-route-table-data-source"
   }
 }
 
 resource "aws_route_table" "test" {
 	vpc_id = "${aws_vpc.test.id}"
-	tags {
+	tags = {
 	  Name = "terraform-testacc-routetable-data-source"
 	}
 }
@@ -138,7 +158,7 @@ data "aws_ami" "ubuntu" {
 	ami           = "${data.aws_ami.ubuntu.id}"
 	instance_type = "t2.micro"
 	subnet_id = "${aws_subnet.test.id}"
-	tags {
+	tags = {
 	  Name = "HelloWorld"
 	}
   }
@@ -172,3 +192,43 @@ data "aws_route" "by_instance_id"{
 
 
 `
+
+func testAccAWSRouteDataSourceConfigTransitGatewayID() string {
+	return fmt.Sprintf(`
+resource "aws_vpc" "test" {
+  cidr_block = "10.0.0.0/16"
+
+  tags = {
+    Name = "tf-acc-test-ec2-route-datasource-transit-gateway-id"
+  }
+}
+
+resource "aws_subnet" "test" {
+  cidr_block = "10.0.0.0/24"
+  vpc_id     = "${aws_vpc.test.id}"
+
+  tags = {
+    Name = "tf-acc-test-ec2-route-datasource-transit-gateway-id"
+  }
+}
+
+resource "aws_ec2_transit_gateway" "test" {}
+
+resource "aws_ec2_transit_gateway_vpc_attachment" "test" {
+  subnet_ids         = ["${aws_subnet.test.id}"]
+  transit_gateway_id = "${aws_ec2_transit_gateway.test.id}"
+  vpc_id             = "${aws_vpc.test.id}"
+}
+
+resource "aws_route" "test" {
+  destination_cidr_block = "0.0.0.0/0"
+  route_table_id         = "${aws_vpc.test.default_route_table_id}"
+  transit_gateway_id     = "${aws_ec2_transit_gateway_vpc_attachment.test.transit_gateway_id}"
+}
+
+data "aws_route" "test"{
+  route_table_id     = "${aws_route.test.route_table_id}"
+  transit_gateway_id = "${aws_route.test.transit_gateway_id}"
+}
+`)
+}

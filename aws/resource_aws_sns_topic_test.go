@@ -227,6 +227,35 @@ func TestAccAWSSNSTopic_deliveryStatus(t *testing.T) {
 	})
 }
 
+func TestAccAWSSNSTopic_encryption(t *testing.T) {
+	attributes := make(map[string]string)
+
+	rName := acctest.RandString(10)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:      func() { testAccPreCheck(t) },
+		IDRefreshName: "aws_sns_topic.test_topic",
+		Providers:     testAccProviders,
+		CheckDestroy:  testAccCheckAWSSNSTopicDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSSNSTopicConfig_withEncryption(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSSNSTopicExists("aws_sns_topic.test_topic", attributes),
+					resource.TestCheckResourceAttr("aws_sns_topic.test_topic", "kms_master_key_id", "alias/aws/sns"),
+				),
+			},
+			{
+				Config: testAccAWSSNSTopicConfig_withName(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSSNSTopicExists("aws_sns_topic.test_topic", attributes),
+					resource.TestCheckResourceAttr("aws_sns_topic.test_topic", "kms_master_key_id", ""),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckAWSNSTopicHasPolicy(n string, expectedPolicyText string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
@@ -592,4 +621,13 @@ resource "aws_iam_role_policy" "example" {
 EOF
 }
 `, r, r, r)
+}
+
+func testAccAWSSNSTopicConfig_withEncryption(r string) string {
+	return fmt.Sprintf(`
+resource "aws_sns_topic" "test_topic" {
+	name = "terraform-test-topic-%s"
+	kms_master_key_id = "alias/aws/sns"
+}
+`, r)
 }

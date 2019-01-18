@@ -630,7 +630,7 @@ resource "aws_s3_bucket_metric" "test" {
   filter {
     prefix = "%s"
 
-    tags {
+  tags = {
       "tag1" = "%s"
       "tag2" = "%s"
     }
@@ -650,7 +650,7 @@ resource "aws_s3_bucket_metric" "test" {
   filter {
     prefix = "%s"
 
-    tags {
+  tags = {
       "tag1" = "%s"
     }
   }
@@ -667,7 +667,7 @@ resource "aws_s3_bucket_metric" "test" {
   name = "%s"
 
   filter {
-    tags {
+  tags = {
       "tag1" = "%s"
       "tag2" = "%s"
     }
@@ -685,7 +685,7 @@ resource "aws_s3_bucket_metric" "test" {
   name   = "%s"
 
   filter {
-    tags {
+  tags = {
       "tag1" = "%s"
     }
   }

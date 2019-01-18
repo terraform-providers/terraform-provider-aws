@@ -4,32 +4,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/aws/aws-sdk-go/service/route53"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
-
-	"github.com/aws/aws-sdk-go/service/route53"
 )
-
-func TestAccAWSRoute53HealthCheck_importBasic(t *testing.T) {
-	resourceName := "aws_route53_health_check.foo"
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckRoute53HealthCheckDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccRoute53HealthCheckConfig,
-			},
-
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-		},
-	})
-}
 
 func TestAccAWSRoute53HealthCheck_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
@@ -47,6 +25,11 @@ func TestAccAWSRoute53HealthCheck_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"aws_route53_health_check.foo", "invert_healthcheck", "true"),
 				),
+			},
+			{
+				ResourceName:      "aws_route53_health_check.foo",
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 			{
 				Config: testAccRoute53HealthCheckConfigUpdate,
@@ -80,6 +63,11 @@ func TestAccAWSRoute53HealthCheck_withSearchString(t *testing.T) {
 				),
 			},
 			{
+				ResourceName:      "aws_route53_health_check.foo",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
 				Config: testAccRoute53HealthCheckConfigWithSearchStringUpdate,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckRoute53HealthCheckExists("aws_route53_health_check.foo"),
@@ -105,6 +93,11 @@ func TestAccAWSRoute53HealthCheck_withChildHealthChecks(t *testing.T) {
 					testAccCheckRoute53HealthCheckExists("aws_route53_health_check.foo"),
 				),
 			},
+			{
+				ResourceName:      "aws_route53_health_check.foo",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -123,6 +116,11 @@ func TestAccAWSRoute53HealthCheck_withHealthCheckRegions(t *testing.T) {
 						"aws_route53_health_check.foo", "regions.#", "3"),
 				),
 			},
+			{
+				ResourceName:      "aws_route53_health_check.foo",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -138,6 +136,11 @@ func TestAccAWSRoute53HealthCheck_IpConfig(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckRoute53HealthCheckExists("aws_route53_health_check.bar"),
 				),
+			},
+			{
+				ResourceName:      "aws_route53_health_check.bar",
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -157,6 +160,11 @@ func TestAccAWSRoute53HealthCheck_CloudWatchAlarmCheck(t *testing.T) {
 						"aws_route53_health_check.foo", "cloudwatch_alarm_name", "cloudwatch-healthcheck-alarm"),
 				),
 			},
+			{
+				ResourceName:      "aws_route53_health_check.foo",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -175,6 +183,11 @@ func TestAccAWSRoute53HealthCheck_withSNI(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"aws_route53_health_check.foo", "enable_sni", "true"),
 				),
+			},
+			{
+				ResourceName:      "aws_route53_health_check.foo",
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 			{
 				Config: testAccRoute53HealthCheckConfigWithSNIDisabled,
@@ -232,8 +245,6 @@ func testAccCheckRoute53HealthCheckExists(n string) resource.TestCheckFunc {
 		if !ok {
 			return fmt.Errorf("Not found: %s", n)
 		}
-
-		fmt.Print(rs.Primary.ID)
 
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("No health check ID is set")

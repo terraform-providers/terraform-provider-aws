@@ -86,7 +86,7 @@ func TestAccAWSEbsSnapshotCopy_withKms(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckEbsSnapshotCopyExists("aws_ebs_snapshot_copy.kms_test", &v),
 					resource.TestMatchResourceAttr("aws_ebs_snapshot_copy.kms_test", "kms_key_id",
-						regexp.MustCompile("^arn:aws:kms:[a-z]{2}-[a-z]+-\\d{1}:[0-9]{12}:key/[a-z0-9-]{36}$")),
+						regexp.MustCompile(`^arn:aws:kms:[a-z]{2}-[a-z]+-\d{1}:[0-9]{12}:key/[a-z0-9-]{36}$`)),
 				),
 			},
 		},
@@ -142,7 +142,7 @@ resource "aws_ebs_volume" "test" {
 resource "aws_ebs_snapshot" "test" {
   volume_id = "${aws_ebs_volume.test.id}"
 
-  tags {
+  tags = {
     Name = "testAccAwsEbsSnapshotCopyConfig"
   }
 }
@@ -151,7 +151,7 @@ resource "aws_ebs_snapshot_copy" "test" {
   source_snapshot_id = "${aws_ebs_snapshot.test.id}"
 	source_region      = "us-west-2"
 
-  tags {
+  tags = {
     Name = "testAccAwsEbsSnapshotCopyConfig"
   }
 }
@@ -162,7 +162,7 @@ resource "aws_ebs_volume" "description_test" {
 	availability_zone = "us-west-2a"
 	size              = 1
 
-  tags {
+  tags = {
     Name = "testAccAwsEbsSnapshotCopyConfigWithDescription"
   }
 }
@@ -171,7 +171,7 @@ resource "aws_ebs_snapshot" "description_test" {
 	volume_id   = "${aws_ebs_volume.description_test.id}"
 	description = "EBS Snapshot Acceptance Test"
 
-  tags {
+  tags = {
     Name = "testAccAwsEbsSnapshotCopyConfigWithDescription"
   }
 }
@@ -181,7 +181,7 @@ resource "aws_ebs_snapshot_copy" "description_test" {
   source_snapshot_id = "${aws_ebs_snapshot.description_test.id}"
 	source_region      = "us-west-2"
 
-  tags {
+  tags = {
     Name = "testAccAwsEbsSnapshotCopyConfigWithDescription"
   }
 }
@@ -203,7 +203,7 @@ resource "aws_ebs_volume" "region_test" {
   availability_zone = "us-west-2a"
   size              = 1
 
-  tags {
+  tags = {
     Name = "testAccAwsEbsSnapshotCopyConfigWithRegions"
   }
 }
@@ -212,7 +212,7 @@ resource "aws_ebs_snapshot" "region_test" {
   provider  = "aws.uswest2"
   volume_id = "${aws_ebs_volume.region_test.id}"
 
-  tags {
+  tags = {
     Name = "testAccAwsEbsSnapshotCopyConfigWithRegions"
   }
 }
@@ -222,7 +222,7 @@ resource "aws_ebs_snapshot_copy" "region_test" {
   source_snapshot_id = "${aws_ebs_snapshot.region_test.id}"
   source_region      = "us-west-2"
 
-  tags {
+  tags = {
     Name = "testAccAwsEbsSnapshotCopyConfigWithRegions"
   }
 }
@@ -242,7 +242,7 @@ resource "aws_ebs_volume" "kms_test" {
   availability_zone = "us-west-2a"
   size              = 1
 
-  tags {
+  tags = {
     Name = "testAccAwsEbsSnapshotCopyConfigWithKms"
   }
 }
@@ -250,7 +250,7 @@ resource "aws_ebs_volume" "kms_test" {
 resource "aws_ebs_snapshot" "kms_test" {
   volume_id = "${aws_ebs_volume.kms_test.id}"
 
-  tags {
+  tags = {
     Name = "testAccAwsEbsSnapshotCopyConfigWithKms"
   }
 }
@@ -261,7 +261,7 @@ resource "aws_ebs_snapshot_copy" "kms_test" {
   encrypted          = true
   kms_key_id         = "${aws_kms_key.kms_test.arn}"
 
-  tags {
+  tags = {
     Name = "testAccAwsEbsSnapshotCopyConfigWithKms"
   }
 }

@@ -137,6 +137,7 @@ func TestAccAWSRouteTable_basic(t *testing.T) {
 					testAccCheckRouteTableExists(
 						"aws_route_table.foo", &v),
 					testCheck,
+					testAccCheckResourceAttrAccountID("aws_route_table.foo", "owner_id"),
 				),
 			},
 
@@ -146,6 +147,7 @@ func TestAccAWSRouteTable_basic(t *testing.T) {
 					testAccCheckRouteTableExists(
 						"aws_route_table.foo", &v),
 					testCheckChange,
+					testAccCheckResourceAttrAccountID("aws_route_table.foo", "owner_id"),
 				),
 			},
 		},
@@ -262,6 +264,25 @@ func TestAccAWSRouteTable_panicEmptyRoute(t *testing.T) {
 			{
 				Config:      testAccRouteTableConfigPanicEmptyRoute,
 				ExpectError: regexp.MustCompile("The request must contain the parameter destinationCidrBlock or destinationIpv6CidrBlock"),
+			},
+		},
+	})
+}
+
+func TestAccAWSRouteTable_Route_TransitGatewayID(t *testing.T) {
+	var routeTable1 ec2.RouteTable
+	resourceName := "aws_route_table.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckRouteTableDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSRouteTableConfigRouteTransitGatewayID(),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckRouteTableExists(resourceName, &routeTable1),
+				),
 			},
 		},
 	})
@@ -415,7 +436,7 @@ func TestAccAWSRouteTable_vgwRoutePropagation(t *testing.T) {
 const testAccRouteTableConfig = `
 resource "aws_vpc" "foo" {
 	cidr_block = "10.1.0.0/16"
-	tags {
+	tags = {
 		Name = "terraform-testacc-route-table"
 	}
 }
@@ -423,7 +444,7 @@ resource "aws_vpc" "foo" {
 resource "aws_internet_gateway" "foo" {
 	vpc_id = "${aws_vpc.foo.id}"
 
-	tags {
+	tags = {
 		Name = "terraform-testacc-route-table"
 	}
 }
@@ -441,7 +462,7 @@ resource "aws_route_table" "foo" {
 const testAccRouteTableConfigChange = `
 resource "aws_vpc" "foo" {
 	cidr_block = "10.1.0.0/16"
-	tags {
+	tags = {
 		Name = "terraform-testacc-route-table"
 	}
 }
@@ -449,7 +470,7 @@ resource "aws_vpc" "foo" {
 resource "aws_internet_gateway" "foo" {
 	vpc_id = "${aws_vpc.foo.id}"
 
-	tags {
+	tags = {
 		Name = "terraform-testacc-route-table"
 	}
 }
@@ -473,7 +494,7 @@ const testAccRouteTableConfigIpv6 = `
 resource "aws_vpc" "foo" {
   cidr_block = "10.1.0.0/16"
   assign_generated_ipv6_cidr_block = true
-  tags {
+  tags = {
     Name = "terraform-testacc-route-table-ipv6"
   }
 }
@@ -495,7 +516,7 @@ resource "aws_route_table" "foo" {
 const testAccRouteTableConfigInstance = `
 resource "aws_vpc" "foo" {
 	cidr_block = "10.1.0.0/16"
-	tags {
+	tags = {
 		Name = "terraform-testacc-route-table-instance"
 	}
 }
@@ -503,7 +524,7 @@ resource "aws_vpc" "foo" {
 resource "aws_subnet" "foo" {
 	cidr_block = "10.1.1.0/24"
 	vpc_id = "${aws_vpc.foo.id}"
-	tags {
+	tags = {
 		Name = "tf-acc-route-table-instance"
 	}
 }
@@ -528,7 +549,7 @@ resource "aws_route_table" "foo" {
 const testAccRouteTableConfigTags = `
 resource "aws_vpc" "foo" {
 	cidr_block = "10.1.0.0/16"
-	tags {
+	tags = {
 		Name = "terraform-testacc-route-table-tags"
 	}
 }
@@ -536,7 +557,7 @@ resource "aws_vpc" "foo" {
 resource "aws_route_table" "foo" {
 	vpc_id = "${aws_vpc.foo.id}"
 
-	tags {
+	tags = {
 		foo = "bar"
 	}
 }
@@ -545,7 +566,7 @@ resource "aws_route_table" "foo" {
 const testAccRouteTableConfigTagsUpdate = `
 resource "aws_vpc" "foo" {
 	cidr_block = "10.1.0.0/16"
-	tags {
+	tags = {
 		Name = "terraform-testacc-route-table-tags"
 	}
 }
@@ -553,7 +574,7 @@ resource "aws_vpc" "foo" {
 resource "aws_route_table" "foo" {
 	vpc_id = "${aws_vpc.foo.id}"
 
-	tags {
+	tags = {
 		bar = "baz"
 	}
 }
@@ -563,7 +584,7 @@ resource "aws_route_table" "foo" {
 const testAccRouteTableVpcPeeringConfig = `
 resource "aws_vpc" "foo" {
 	cidr_block = "10.1.0.0/16"
-	tags {
+	tags = {
 		Name = "terraform-testacc-route-table-vpc-peering-foo"
 	}
 }
@@ -571,14 +592,14 @@ resource "aws_vpc" "foo" {
 resource "aws_internet_gateway" "foo" {
 	vpc_id = "${aws_vpc.foo.id}"
 
-	tags {
+	tags = {
 		Name = "terraform-testacc-route-table-vpc-peering-foo"
 	}
 }
 
 resource "aws_vpc" "bar" {
 	cidr_block = "10.3.0.0/16"
-	tags {
+	tags = {
 		Name = "terraform-testacc-route-table-vpc-peering-bar"
 	}
 }
@@ -586,7 +607,7 @@ resource "aws_vpc" "bar" {
 resource "aws_internet_gateway" "bar" {
 	vpc_id = "${aws_vpc.bar.id}"
 
-	tags {
+	tags = {
 		Name = "terraform-testacc-route-table-vpc-peering-bar"
 	}
 }
@@ -594,7 +615,7 @@ resource "aws_internet_gateway" "bar" {
 resource "aws_vpc_peering_connection" "foo" {
 		vpc_id = "${aws_vpc.foo.id}"
 		peer_vpc_id = "${aws_vpc.bar.id}"
-		tags {
+	tags = {
 			foo = "bar"
 		}
 }
@@ -612,7 +633,7 @@ resource "aws_route_table" "foo" {
 const testAccRouteTableVgwRoutePropagationConfig = `
 resource "aws_vpc" "foo" {
 	cidr_block = "10.1.0.0/16"
-	tags {
+	tags = {
 		Name = "terraform-testacc-route-table-vgw-route-propagation"
 	}
 }
@@ -632,7 +653,7 @@ resource "aws_route_table" "foo" {
 const testAccRouteTableConfigPanicEmptyRoute = `
 resource "aws_vpc" "foo" {
 	cidr_block = "10.2.0.0/16"
-	tags {
+	tags = {
 		Name = "terraform-testacc-route-table-panic-empty-route"
 	}
 }
@@ -644,3 +665,41 @@ resource "aws_route_table" "foo" {
   }
 }
 `
+
+func testAccAWSRouteTableConfigRouteTransitGatewayID() string {
+	return fmt.Sprintf(`
+resource "aws_vpc" "test" {
+  cidr_block = "10.0.0.0/16"
+
+  tags = {
+    Name = "tf-acc-test-ec2-route-table-transit-gateway-id"
+  }
+}
+
+resource "aws_subnet" "test" {
+  cidr_block = "10.0.0.0/24"
+  vpc_id     = "${aws_vpc.test.id}"
+
+  tags = {
+    Name = "tf-acc-test-ec2-route-table-transit-gateway-id"
+  }
+}
+
+resource "aws_ec2_transit_gateway" "test" {}
+
+resource "aws_ec2_transit_gateway_vpc_attachment" "test" {
+  subnet_ids         = ["${aws_subnet.test.id}"]
+  transit_gateway_id = "${aws_ec2_transit_gateway.test.id}"
+  vpc_id             = "${aws_vpc.test.id}"
+}
+
+resource "aws_route_table" "test" {
+  vpc_id = "${aws_vpc.test.id}"
+
+  route {
+    cidr_block         = "0.0.0.0/0"
+    transit_gateway_id = "${aws_ec2_transit_gateway_vpc_attachment.test.transit_gateway_id}"
+  }
+}
+`)
+}

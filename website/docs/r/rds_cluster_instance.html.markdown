@@ -93,6 +93,7 @@ what IAM permissions are needed to allow Enhanced Monitoring for RDS Instances.
 * `auto_minor_version_upgrade` - (Optional) Indicates that minor engine upgrades will be applied automatically to the DB instance during the maintenance window. Default `true`.
 * `performance_insights_enabled` - (Optional) Specifies whether Performance Insights is enabled or not.
 * `performance_insights_kms_key_id` - (Optional) The ARN for the KMS key to encrypt Performance Insights data. When specifying `performance_insights_kms_key_id`, `performance_insights_enabled` needs to be set to true.
+* `copy_tags_to_snapshot` – (Optional, boolean) Indicates whether to copy all of the user-defined tags from the DB instance to snapshots of the DB instance. Default `false`.
 * `tags` - (Optional) A mapping of tags to assign to the instance.
 
 ## Attributes Reference

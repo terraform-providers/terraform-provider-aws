@@ -74,10 +74,7 @@ func resourceAwsNetworkAcl() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-								if strings.ToLower(old) == strings.ToLower(new) {
-									return true
-								}
-								return false
+								return strings.ToLower(old) == strings.ToLower(new)
 							},
 						},
 						"protocol": {
@@ -127,10 +124,7 @@ func resourceAwsNetworkAcl() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-								if strings.ToLower(old) == strings.ToLower(new) {
-									return true
-								}
-								return false
+								return strings.ToLower(old) == strings.ToLower(new)
 							},
 						},
 						"protocol": {
@@ -158,6 +152,10 @@ func resourceAwsNetworkAcl() *schema.Resource {
 				Set: resourceAwsNetworkAclEntryHash,
 			},
 			"tags": tagsSchema(),
+			"owner_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -220,7 +218,7 @@ func resourceAwsNetworkAclRead(d *schema.ResourceData, meta interface{}) error {
 			continue
 		}
 
-		if *e.Egress == true {
+		if *e.Egress {
 			egressEntries = append(egressEntries, e)
 		} else {
 			ingressEntries = append(ingressEntries, e)
@@ -229,6 +227,7 @@ func resourceAwsNetworkAclRead(d *schema.ResourceData, meta interface{}) error {
 
 	d.Set("vpc_id", networkAcl.VpcId)
 	d.Set("tags", tagsToMap(networkAcl.Tags))
+	d.Set("owner_id", networkAcl.OwnerId)
 
 	var s []string
 	for _, a := range networkAcl.Associations {

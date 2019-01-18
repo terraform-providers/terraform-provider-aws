@@ -40,7 +40,7 @@ resource "aws_instance" "web" {
   ami           = "${data.aws_ami.ubuntu.id}"
   instance_type = "t2.micro"
 
-  tags {
+  tags = {
     Name = "HelloWorld"
   }
 }
@@ -54,6 +54,7 @@ The following arguments are supported:
 * `availability_zone` - (Optional) The AZ to start the instance in.
 * `placement_group` - (Optional) The Placement Group to start the instance in.
 * `tenancy` - (Optional) The tenancy of the instance (if the instance is running in a VPC). An instance with a tenancy of dedicated runs on single-tenant hardware. The host tenancy is not supported for the import-instance command.
+* `host_id` - (optional) The Id of a dedicated host that the instance will be assigned to. Use when an instance is to be launched on a specific dedicated host.
 * `cpu_core_count` - (Optional) Sets the number of CPU cores for an instance. This option is 
   only supported on creation of instance type that support CPU Options 
   [CPU Cores and Threads Per CPU Core Per Instance Type](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-optimize-cpu.html#cpu-options-supported-instances-values) - specifying this option for unsupported instance types will return an error from the EC2 API.
@@ -123,7 +124,7 @@ to understand the implications of using these attributes.
 The `root_block_device` mapping supports the following:
 
 * `volume_type` - (Optional) The type of volume. Can be `"standard"`, `"gp2"`, `"io1"`, `"sc1"`, or `"st1"`. (Default: `"standard"`).
-* `volume_size` - (Optional) The size of the volume in gigabytes.
+* `volume_size` - (Optional) The size of the volume in gibibytes (GiB).
 * `iops` - (Optional) The amount of provisioned
   [IOPS](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-io-characteristics.html).
   This is only valid for `volume_type` of `"io1"`, and must be specified if
@@ -140,7 +141,7 @@ Each `ebs_block_device` supports the following:
 * `snapshot_id` - (Optional) The Snapshot ID to mount.
 * `volume_type` - (Optional) The type of volume. Can be `"standard"`, `"gp2"`,
   or `"io1"`. (Default: `"standard"`).
-* `volume_size` - (Optional) The size of the volume in gigabytes.
+* `volume_size` - (Optional) The size of the volume in gibibytes (GiB).
 * `iops` - (Optional) The amount of provisioned
   [IOPS](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-io-characteristics.html).
   This must be set with a `volume_type` of `"io1"`.
@@ -197,7 +198,7 @@ Credit specification can be applied/modified to the EC2 Instance at any time.
 
 The `credit_specification` block supports the following:
 
-* `cpu_credits` - (Optional) The credit option for CPU usage.
+* `cpu_credits` - (Optional) The credit option for CPU usage. Can be `"standard"` or `"unlimited"`. T3 instances are launched as unlimited by default. T2 instances are launched as standard by default.
 
 ### Example
 
@@ -205,7 +206,7 @@ The `credit_specification` block supports the following:
 resource "aws_vpc" "my_vpc" {
   cidr_block = "172.16.0.0/16"
 
-  tags {
+  tags = {
     Name = "tf-example"
   }
 }
@@ -215,7 +216,7 @@ resource "aws_subnet" "my_subnet" {
   cidr_block        = "172.16.10.0/24"
   availability_zone = "us-west-2a"
 
-  tags {
+  tags = {
     Name = "tf-example"
   }
 }
@@ -224,7 +225,7 @@ resource "aws_network_interface" "foo" {
   subnet_id   = "${aws_subnet.my_subnet.id}"
   private_ips = ["172.16.10.100"]
 
-  tags {
+  tags = {
     Name = "primary_network_interface"
   }
 }

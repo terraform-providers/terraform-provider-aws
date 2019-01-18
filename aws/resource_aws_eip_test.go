@@ -306,6 +306,56 @@ func TestAccAWSEIP_tags(t *testing.T) {
 	})
 }
 
+func TestAccAWSEIP_PublicIpv4Pool_default(t *testing.T) {
+	var conf ec2.Address
+	resourceName := "aws_eip.bar"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:      func() { testAccPreCheck(t) },
+		IDRefreshName: resourceName,
+		Providers:     testAccProviders,
+		CheckDestroy:  testAccCheckAWSEIPDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSEIPConfig_PublicIpv4Pool_default,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSEIPExists(resourceName, &conf),
+					testAccCheckAWSEIPAttributes(&conf),
+					resource.TestCheckResourceAttr(resourceName, "public_ipv4_pool", "amazon"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSEIP_PublicIpv4Pool_custom(t *testing.T) {
+	if os.Getenv("AWS_EC2_EIP_PUBLIC_IPV4_POOL") == "" {
+		t.Skip("Environment variable AWS_EC2_EIP_PUBLIC_IPV4_POOL is not set")
+	}
+
+	var conf ec2.Address
+	resourceName := "aws_eip.bar"
+
+	poolName := os.Getenv("AWS_EC2_EIP_PUBLIC_IPV4_POOL")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:      func() { testAccPreCheck(t) },
+		IDRefreshName: resourceName,
+		Providers:     testAccProviders,
+		CheckDestroy:  testAccCheckAWSEIPDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSEIPConfig_PublicIpv4Pool_custom(poolName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSEIPExists(resourceName, &conf),
+					testAccCheckAWSEIPAttributes(&conf),
+					resource.TestCheckResourceAttr(resourceName, "public_ipv4_pool", poolName),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckAWSEIPDisappears(v *ec2.Address) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := testAccProvider.Meta().(*AWSClient).ec2conn
@@ -446,12 +496,27 @@ resource "aws_eip" "bar" {
 func testAccAWSEIPConfig_tags(rName, testName string) string {
 	return fmt.Sprintf(`
 resource "aws_eip" "bar" {
-  tags {
+  tags = {
     RandomName = "%[1]s"
     TestName   = "%[2]s"
   }
 }
 `, rName, testName)
+}
+
+const testAccAWSEIPConfig_PublicIpv4Pool_default = `
+resource "aws_eip" "bar" {
+   vpc = true
+}
+`
+
+func testAccAWSEIPConfig_PublicIpv4Pool_custom(poolName string) string {
+	return fmt.Sprintf(`
+resource "aws_eip" "bar" {
+   vpc = true
+   public_ipv4_pool = "%s"
+}
+`, poolName)
 }
 
 const testAccAWSEIPInstanceEc2Classic = `
@@ -478,7 +543,7 @@ data "aws_ami" "amzn-ami-minimal-pv" {
 resource "aws_instance" "foo" {
 	ami = "${data.aws_ami.amzn-ami-minimal-pv.id}"
 	instance_type = "m1.small"
-	tags {
+	tags = {
 		Name = "testAccAWSEIPInstanceEc2Classic"
 	}
 }
@@ -563,7 +628,7 @@ resource "aws_vpc" "default" {
   cidr_block           = "10.0.0.0/16"
   enable_dns_hostnames = true
 
-  tags {
+  tags = {
     Name = "terraform-testacc-eip-instance-associated"
   }
 }
@@ -571,7 +636,7 @@ resource "aws_vpc" "default" {
 resource "aws_internet_gateway" "gw" {
   vpc_id = "${aws_vpc.default.id}"
 
-  tags {
+  tags = {
     Name = "main"
   }
 }
@@ -583,7 +648,7 @@ resource "aws_subnet" "tf_test_subnet" {
 
   depends_on = ["aws_internet_gateway.gw"]
 
-  tags {
+  tags = {
     Name = "tf-acc-eip-instance-associated"
   }
 }
@@ -595,7 +660,7 @@ resource "aws_instance" "foo" {
   private_ip = "10.0.0.12"
   subnet_id  = "${aws_subnet.tf_test_subnet.id}"
 
-  tags {
+  tags = {
     Name = "foo instance"
   }
 }
@@ -608,7 +673,7 @@ resource "aws_instance" "bar" {
   private_ip = "10.0.0.19"
   subnet_id  = "${aws_subnet.tf_test_subnet.id}"
 
-  tags {
+  tags = {
     Name = "bar instance"
   }
 }
@@ -641,7 +706,7 @@ resource "aws_vpc" "default" {
   cidr_block           = "10.0.0.0/16"
   enable_dns_hostnames = true
 
-  tags {
+  tags = {
     Name = "terraform-testacc-eip-instance-associated"
   }
 }
@@ -649,7 +714,7 @@ resource "aws_vpc" "default" {
 resource "aws_internet_gateway" "gw" {
   vpc_id = "${aws_vpc.default.id}"
 
-  tags {
+  tags = {
     Name = "main"
   }
 }
@@ -661,7 +726,7 @@ resource "aws_subnet" "tf_test_subnet" {
 
   depends_on = ["aws_internet_gateway.gw"]
 
-  tags {
+  tags = {
     Name = "tf-acc-eip-instance-associated"
   }
 }
@@ -673,7 +738,7 @@ resource "aws_instance" "foo" {
   private_ip = "10.0.0.12"
   subnet_id  = "${aws_subnet.tf_test_subnet.id}"
 
-  tags {
+  tags = {
     Name = "foo instance"
   }
 }
@@ -686,7 +751,7 @@ resource "aws_instance" "bar" {
   private_ip = "10.0.0.19"
   subnet_id  = "${aws_subnet.tf_test_subnet.id}"
 
-  tags {
+  tags = {
     Name = "bar instance"
   }
 }
@@ -702,7 +767,7 @@ resource "aws_eip" "bar" {
 const testAccAWSEIPNetworkInterfaceConfig = `
 resource "aws_vpc" "bar" {
 	cidr_block = "10.0.0.0/24"
-	tags {
+	tags = {
 		Name = "terraform-testacc-eip-network-interface"
 	}
 }
@@ -715,8 +780,8 @@ resource "aws_subnet" "bar" {
   vpc_id = "${aws_vpc.bar.id}"
   availability_zone = "us-west-2a"
   cidr_block = "10.0.0.0/24"
-  tags {
-  	Name = "tf-acc-eip-network-interface"
+  tags = {
+	Name = "tf-acc-eip-network-interface"
   }
 }
 
@@ -736,7 +801,7 @@ resource "aws_eip" "bar" {
 const testAccAWSEIPMultiNetworkInterfaceConfig = `
 resource "aws_vpc" "bar" {
   cidr_block = "10.0.0.0/24"
-	tags {
+	tags = {
 		Name = "terraform-testacc-eip-multi-network-interface"
 	}
 }
@@ -749,8 +814,8 @@ resource "aws_subnet" "bar" {
   vpc_id            = "${aws_vpc.bar.id}"
   availability_zone = "us-west-2a"
   cidr_block        = "10.0.0.0/24"
-  tags {
-  	Name = "tf-acc-eip-multi-network-interface"
+  tags = {
+	Name = "tf-acc-eip-multi-network-interface"
   }
 }
 
@@ -816,7 +881,7 @@ resource "aws_instance" "example" {
   subnet_id                   = "${aws_subnet.us-east-1b-public.id}"
   availability_zone           = "${aws_subnet.us-east-1b-public.availability_zone}"
 
-  tags {
+  tags = {
     Name = "testAccAWSEIP_classic_disassociate"
   }
 
@@ -827,7 +892,7 @@ resource "aws_instance" "example" {
 
 resource "aws_vpc" "example" {
   cidr_block = "10.0.0.0/16"
-	tags {
+	tags = {
 		Name = "terraform-testacc-eip-classic-disassociate"
 	}
 }
@@ -841,7 +906,7 @@ resource "aws_subnet" "us-east-1b-public" {
 
   cidr_block        = "10.0.0.0/24"
   availability_zone = "us-east-1b"
-  tags {
+  tags = {
     Name = "tf-acc-eip-classic-disassociate"
   }
 }

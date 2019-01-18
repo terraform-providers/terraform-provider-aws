@@ -431,7 +431,7 @@ resource "aws_neptune_cluster" "default" {
   engine = "neptune"
   neptune_cluster_parameter_group_name = "default.neptune1"
   skip_final_snapshot = true
-  tags {
+  tags = {
     Environment = "production"
   }
 }`, n)
@@ -455,7 +455,7 @@ resource "aws_neptune_cluster" "default" {
   availability_zones = ["us-west-2a","us-west-2b","us-west-2c"]
   neptune_cluster_parameter_group_name = "default.neptune1"
   final_snapshot_identifier = "tf-acctest-neptunecluster-snapshot-%d"
-  tags {
+  tags = {
     Environment = "production"
   }
 }`, n, n)
@@ -468,7 +468,7 @@ resource "aws_neptune_cluster" "default" {
   availability_zones = ["us-west-2a","us-west-2b","us-west-2c"]
   neptune_cluster_parameter_group_name = "default.neptune1"
   skip_final_snapshot = true
-  tags {
+  tags = {
     Environment = "production"
     AnotherTag = "test"
   }
@@ -548,7 +548,7 @@ resource "aws_neptune_cluster" "default" {
   availability_zones = ["us-west-2a","us-west-2b","us-west-2c"]
   neptune_cluster_parameter_group_name = "default.neptune1"
   skip_final_snapshot = true
-  tags {
+  tags = {
     Environment = "production"
   }
   depends_on = ["aws_iam_role.another_neptune_sample_role", "aws_iam_role.neptune_sample_role"]
@@ -629,7 +629,7 @@ resource "aws_neptune_cluster" "default" {
   availability_zones = ["us-west-2a","us-west-2b","us-west-2c"]
   skip_final_snapshot = true
   iam_roles = ["${aws_iam_role.neptune_sample_role.arn}","${aws_iam_role.another_neptune_sample_role.arn}"]
-  tags {
+  tags = {
     Environment = "production"
   }
   depends_on = ["aws_iam_role.another_neptune_sample_role", "aws_iam_role.neptune_sample_role"]
@@ -677,7 +677,7 @@ resource "aws_neptune_cluster" "default" {
   availability_zones = ["us-west-2a","us-west-2b","us-west-2c"]
   skip_final_snapshot = true
   iam_roles = ["${aws_iam_role.another_neptune_sample_role.arn}"]
-  tags {
+  tags = {
     Environment = "production"
   }
 

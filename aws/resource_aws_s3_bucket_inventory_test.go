@@ -281,7 +281,7 @@ resource "aws_s3_bucket_inventory" "test" {
 
   destination {
     bucket {
-      format = "ORC"
+      format = "Parquet"
       bucket_arn = "${aws_s3_bucket.bucket.arn}"
 
       encryption {

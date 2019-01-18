@@ -143,7 +143,7 @@ resource "aws_lb" "alb_test" {
   idle_timeout = 30
   enable_deletion_protection = false
 
-  tags {
+  tags = {
     TestName = "TestAccDataSourceAWSALBTargetGroup_basic"
   }
 }
@@ -165,7 +165,7 @@ resource "aws_lb_target_group" "test" {
     matcher = "200-299"
   }
 
-  tags {
+  tags = {
     TestName = "TestAccDataSourceAWSALBTargetGroup_basic"
   }
 }
@@ -180,7 +180,7 @@ data "aws_availability_zones" "available" {}
 resource "aws_vpc" "alb_test" {
   cidr_block = "10.0.0.0/16"
 
-  tags {
+  tags = {
     Name = "terraform-testacc-lb-data-source-target-group-basic"
   }
 }
@@ -192,7 +192,7 @@ resource "aws_subnet" "alb_test" {
   map_public_ip_on_launch = true
   availability_zone       = "${element(data.aws_availability_zones.available.names, count.index)}"
 
-  tags {
+  tags = {
     Name = "tf-acc-lb-data-source-target-group-basic"
   }
 }
@@ -216,7 +216,7 @@ resource "aws_security_group" "alb_test" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags {
+  tags = {
     TestName = "TestAccDataSourceAWSALBTargetGroup_basic"
   }
 }
@@ -251,7 +251,7 @@ resource "aws_alb" "alb_test" {
   idle_timeout = 30
   enable_deletion_protection = false
 
-  tags {
+  tags = {
     TestName = "TestAccDataSourceAWSALBTargetGroup_basic"
   }
 }
@@ -273,7 +273,7 @@ resource "aws_alb_target_group" "test" {
     matcher = "200-299"
   }
 
-  tags {
+  tags = {
     TestName = "TestAccDataSourceAWSALBTargetGroup_basic"
   }
 }
@@ -288,7 +288,7 @@ data "aws_availability_zones" "available" {}
 resource "aws_vpc" "alb_test" {
   cidr_block = "10.0.0.0/16"
 
-  tags {
+  tags = {
     Name = "terraform-testacc-lb-data-source-target-group-bc"
   }
 }
@@ -300,7 +300,7 @@ resource "aws_subnet" "alb_test" {
   map_public_ip_on_launch = true
   availability_zone       = "${element(data.aws_availability_zones.available.names, count.index)}"
 
-  tags {
+  tags = {
     Name = "tf-acc-lb-data-source-target-group-bc"
   }
 }
@@ -324,7 +324,7 @@ resource "aws_security_group" "alb_test" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags {
+  tags = {
     TestName = "TestAccDataSourceAWSALBTargetGroup_basic"
   }
 }

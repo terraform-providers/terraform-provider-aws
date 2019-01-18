@@ -226,7 +226,7 @@ func testAccCustomerGatewayConfig(rInt, rBgpAsn int) string {
 			bgp_asn = %d
 			ip_address = "172.0.0.1"
 			type = "ipsec.1"
-			tags {
+	tags = {
 				Name = "foo-gateway-%d"
 			}
 		}
@@ -239,7 +239,7 @@ func testAccCustomerGatewayConfigIdentical(randInt, rBgpAsn int) string {
 			bgp_asn = %d
 			ip_address = "172.0.0.1"
 			type = "ipsec.1"
-			tags {
+	tags = {
 				Name = "foo-gateway-%d"
 			}
 		}
@@ -247,7 +247,7 @@ func testAccCustomerGatewayConfigIdentical(randInt, rBgpAsn int) string {
 			bgp_asn = %d
 			ip_address = "172.0.0.1"
 			type = "ipsec.1"
-			tags {
+	tags = {
 				Name = "foo-gateway-identical-%d"
 			}
 		}
@@ -261,7 +261,7 @@ func testAccCustomerGatewayConfigUpdateTags(rInt, rBgpAsn int) string {
 		bgp_asn = %d
 		ip_address = "172.0.0.1"
 		type = "ipsec.1"
-		tags {
+	tags = {
 			Name = "foo-gateway-%d"
 			Another = "tag"
 		}
@@ -276,7 +276,7 @@ func testAccCustomerGatewayConfigForceReplace(rInt, rBgpAsn int) string {
 			bgp_asn = %d
 			ip_address = "172.10.10.1"
 			type = "ipsec.1"
-			tags {
+	tags = {
 				Name = "foo-gateway-%d"
 				Another = "tag"
 			}

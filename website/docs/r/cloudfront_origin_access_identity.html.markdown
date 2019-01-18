@@ -53,7 +53,7 @@ Normally, when referencing an origin access identity in CloudFront, you need to
 prefix the ID with the `origin-access-identity/cloudfront/` special path.
 The `cloudfront_access_identity_path` allows this to be circumvented.
 The below snippet demonstrates use with the `s3_origin_config` structure for the
-[`aws_cloudfront_web_distribution`][3] resource:
+[`aws_cloudfront_distribution`][3] resource:
 
 ```hcl
 s3_origin_config {

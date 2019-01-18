@@ -29,7 +29,7 @@ resource "aws_s3_bucket" "b" {
   bucket = "mybucket"
   acl    = "private"
 
-  tags {
+  tags = {
     Name = "My bucket"
   }
 }
@@ -134,7 +134,7 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
     }
   }
 
-  tags {
+  tags = {
     Environment = "production"
   }
 

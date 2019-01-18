@@ -49,7 +49,7 @@ provider "aws" {
 
 resource "aws_vpc" "test" {
   cidr_block = "172.%d.0.0/16"
-  tags {
+  tags = {
     Name = "terraform-testacc-nat-gw-data-source"
   }
 }
@@ -59,7 +59,7 @@ resource "aws_subnet" "test" {
   cidr_block        = "172.%d.123.0/24"
   availability_zone = "us-west-2a"
 
-  tags {
+  tags = {
     Name = "tf-acc-nat-gw-data-source"
   }
 }
@@ -72,7 +72,7 @@ resource "aws_eip" "test" {
 # IGWs are required for an NGW to spin up; manual dependency
 resource "aws_internet_gateway" "test" {
   vpc_id = "${aws_vpc.test.id}"
-  tags {
+  tags = {
     Name = "terraform-testacc-nat-gateway-data-source-%d"
   }
 }
@@ -81,7 +81,7 @@ resource "aws_nat_gateway" "test" {
   subnet_id     = "${aws_subnet.test.id}"
   allocation_id = "${aws_eip.test.id}"
 
-  tags {
+  tags = {
     Name = "terraform-testacc-nat-gw-data-source-%d"
     OtherTag = "some-value"
   }
@@ -98,7 +98,7 @@ data "aws_nat_gateway" "test_by_subnet_id" {
 }
 
 data "aws_nat_gateway" "test_by_tags" {
-  tags {
+  tags = {
     Name = "${aws_nat_gateway.test.tags["Name"]}"
   }
 }

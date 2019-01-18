@@ -39,6 +39,7 @@ The following arguments are supported:
 
 * `db_instance_identifier` - (Required) The DB Instance Identifier from which to take the snapshot.
 * `db_snapshot_identifier` - (Required) The Identifier for the snapshot.
+* `tags` - (Optional) Key-value mapping of resource tags
 
 
 ## Attributes Reference

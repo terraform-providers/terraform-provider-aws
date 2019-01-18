@@ -408,7 +408,7 @@ resource "aws_directory_service_directory" "bar" {
 
 resource "aws_vpc" "main" {
   cidr_block = "10.0.0.0/16"
-	tags {
+	tags = {
 		Name = "terraform-testacc-directory-service-directory"
 	}
 }
@@ -417,7 +417,7 @@ resource "aws_subnet" "foo" {
   vpc_id = "${aws_vpc.main.id}"
   availability_zone = "us-west-2a"
   cidr_block = "10.0.1.0/24"
-  tags {
+  tags = {
     Name = "tf-acc-directory-service-directory-foo"
   }
 }
@@ -425,7 +425,7 @@ resource "aws_subnet" "bar" {
   vpc_id = "${aws_vpc.main.id}"
   availability_zone = "us-west-2b"
   cidr_block = "10.0.2.0/24"
-  tags {
+  tags = {
     Name = "tf-acc-directory-service-directory-bar"
   }
 }
@@ -442,7 +442,7 @@ resource "aws_directory_service_directory" "bar" {
     subnet_ids = ["${aws_subnet.foo.id}", "${aws_subnet.bar.id}"]
   }
 
-	tags {
+	tags = {
 		foo = "bar"
 		project = "test"
 	}
@@ -450,7 +450,7 @@ resource "aws_directory_service_directory" "bar" {
 
 resource "aws_vpc" "main" {
   cidr_block = "10.0.0.0/16"
-	tags {
+	tags = {
 		Name = "terraform-testacc-directory-service-directory-tags"
 	}
 }
@@ -459,7 +459,7 @@ resource "aws_subnet" "foo" {
   vpc_id = "${aws_vpc.main.id}"
   availability_zone = "us-west-2a"
   cidr_block = "10.0.1.0/24"
-  tags {
+  tags = {
     Name = "tf-acc-directory-service-directory-tags-foo"
   }
 }
@@ -467,7 +467,7 @@ resource "aws_subnet" "bar" {
   vpc_id = "${aws_vpc.main.id}"
   availability_zone = "us-west-2b"
   cidr_block = "10.0.2.0/24"
-  tags {
+  tags = {
     Name = "tf-acc-directory-service-directory-tags-bar"
   }
 }
@@ -501,7 +501,7 @@ resource "aws_directory_service_directory" "connector" {
 
 resource "aws_vpc" "main" {
   cidr_block = "10.0.0.0/16"
-	tags {
+	tags = {
 		Name = "terraform-testacc-directory-service-directory-connector"
 	}
 }
@@ -510,7 +510,7 @@ resource "aws_subnet" "foo" {
   vpc_id = "${aws_vpc.main.id}"
   availability_zone = "us-west-2a"
   cidr_block = "10.0.1.0/24"
-  tags {
+  tags = {
     Name = "tf-acc-directory-service-directory-connector-foo"
   }
 }
@@ -518,7 +518,7 @@ resource "aws_subnet" "bar" {
   vpc_id = "${aws_vpc.main.id}"
   availability_zone = "us-west-2b"
   cidr_block = "10.0.2.0/24"
-  tags {
+  tags = {
     Name = "tf-acc-directory-service-directory-connector-bar"
   }
 }
@@ -538,7 +538,7 @@ resource "aws_directory_service_directory" "bar" {
 
 resource "aws_vpc" "main" {
   cidr_block = "10.0.0.0/16"
-	tags {
+	tags = {
 		Name = "terraform-testacc-directory-service-directory-microsoft"
 	}
 }
@@ -547,7 +547,7 @@ resource "aws_subnet" "foo" {
   vpc_id = "${aws_vpc.main.id}"
   availability_zone = "us-west-2a"
   cidr_block = "10.0.1.0/24"
-  tags {
+  tags = {
     Name = "tf-acc-directory-service-directory-microsoft-foo"
   }
 }
@@ -555,7 +555,7 @@ resource "aws_subnet" "bar" {
   vpc_id = "${aws_vpc.main.id}"
   availability_zone = "us-west-2b"
   cidr_block = "10.0.2.0/24"
-  tags {
+  tags = {
     Name = "tf-acc-directory-service-directory-microsoft-bar"
   }
 }
@@ -576,7 +576,7 @@ resource "aws_directory_service_directory" "bar" {
 
 resource "aws_vpc" "main" {
   cidr_block = "10.0.0.0/16"
-	tags {
+	tags = {
 		Name = "terraform-testacc-directory-service-directory-microsoft"
 	}
 }
@@ -585,7 +585,7 @@ resource "aws_subnet" "foo" {
   vpc_id = "${aws_vpc.main.id}"
   availability_zone = "us-west-2a"
   cidr_block = "10.0.1.0/24"
-  tags {
+  tags = {
     Name = "tf-acc-directory-service-directory-microsoft-foo"
   }
 }
@@ -593,7 +593,7 @@ resource "aws_subnet" "bar" {
   vpc_id = "${aws_vpc.main.id}"
   availability_zone = "us-west-2b"
   cidr_block = "10.0.2.0/24"
-  tags {
+  tags = {
     Name = "tf-acc-directory-service-directory-microsoft-bar"
   }
 }
@@ -615,7 +615,7 @@ resource "aws_directory_service_directory" "bar_a" {
 
 resource "aws_vpc" "main" {
   cidr_block = "10.0.0.0/16"
-	tags {
+	tags = {
 		Name = "terraform-testacc-directory-service-directory-with-alias"
 	}
 }
@@ -624,7 +624,7 @@ resource "aws_subnet" "foo" {
   vpc_id = "${aws_vpc.main.id}"
   availability_zone = "us-west-2a"
   cidr_block = "10.0.1.0/24"
-  tags {
+  tags = {
     Name = "tf-acc-directory-service-directory-with-alias-foo"
   }
 }
@@ -632,7 +632,7 @@ resource "aws_subnet" "bar" {
   vpc_id = "${aws_vpc.main.id}"
   availability_zone = "us-west-2b"
   cidr_block = "10.0.2.0/24"
-  tags {
+  tags = {
     Name = "tf-acc-directory-service-directory-with-alias-bar"
   }
 }
@@ -654,7 +654,7 @@ resource "aws_directory_service_directory" "bar_a" {
 
 resource "aws_vpc" "main" {
   cidr_block = "10.0.0.0/16"
-	tags {
+	tags = {
 		Name = "terraform-testacc-directory-service-directory-with-sso"
 	}
 }
@@ -663,7 +663,7 @@ resource "aws_subnet" "foo" {
   vpc_id = "${aws_vpc.main.id}"
   availability_zone = "us-west-2a"
   cidr_block = "10.0.1.0/24"
-  tags {
+  tags = {
     Name = "tf-acc-directory-service-directory-with-sso-foo"
   }
 }
@@ -671,7 +671,7 @@ resource "aws_subnet" "bar" {
   vpc_id = "${aws_vpc.main.id}"
   availability_zone = "us-west-2b"
   cidr_block = "10.0.2.0/24"
-  tags {
+  tags = {
     Name = "tf-acc-directory-service-directory-with-sso-bar"
   }
 }
@@ -693,7 +693,7 @@ resource "aws_directory_service_directory" "bar_a" {
 
 resource "aws_vpc" "main" {
   cidr_block = "10.0.0.0/16"
-	tags {
+	tags = {
 		Name = "terraform-testacc-directory-service-directory-with-sso-modified"
 	}
 }
@@ -702,7 +702,7 @@ resource "aws_subnet" "foo" {
   vpc_id = "${aws_vpc.main.id}"
   availability_zone = "us-west-2a"
   cidr_block = "10.0.1.0/24"
-  tags {
+  tags = {
     Name = "tf-acc-directory-service-directory-with-sso-foo"
   }
 }
@@ -710,7 +710,7 @@ resource "aws_subnet" "bar" {
   vpc_id = "${aws_vpc.main.id}"
   availability_zone = "us-west-2b"
   cidr_block = "10.0.2.0/24"
-  tags {
+  tags = {
     Name = "tf-acc-directory-service-directory-with-sso-bar"
   }
 }

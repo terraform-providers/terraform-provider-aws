@@ -38,6 +38,15 @@ func (c *EndpointCache) get(endpointKey string) (Endpoint, bool) {
 	return endpoint.(Endpoint), true
 }
 
+// Has returns if the enpoint cache contains a valid entry for the endpoint key
+// provided.
+func (c *EndpointCache) Has(endpointKey string) bool {
+	endpoint, ok := c.get(endpointKey)
+	_, found := endpoint.GetValidAddress()
+
+	return ok && found
+}
+
 // Get will retrieve a weighted address  based off of the endpoint key. If an endpoint
 // should be retrieved, due to not existing or the current endpoint has expired
 // the Discoverer object that was passed in will attempt to discover a new endpoint

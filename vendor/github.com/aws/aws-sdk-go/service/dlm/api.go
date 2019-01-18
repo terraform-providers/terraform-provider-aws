@@ -9,6 +9,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awsutil"
 	"github.com/aws/aws-sdk-go/aws/request"
+	"github.com/aws/aws-sdk-go/private/protocol"
+	"github.com/aws/aws-sdk-go/private/protocol/restjson"
 )
 
 const opCreateLifecyclePolicy = "CreateLifecyclePolicy"
@@ -136,6 +138,7 @@ func (c *DLM) DeleteLifecyclePolicyRequest(input *DeleteLifecyclePolicyInput) (r
 
 	output = &DeleteLifecyclePolicyOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(restjson.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -397,6 +400,7 @@ func (c *DLM) UpdateLifecyclePolicyRequest(input *UpdateLifecyclePolicyInput) (r
 
 	output = &UpdateLifecyclePolicyOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(restjson.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -650,6 +654,9 @@ func (s *DeleteLifecyclePolicyInput) Validate() error {
 	if s.PolicyId == nil {
 		invalidParams.Add(request.NewErrParamRequired("PolicyId"))
 	}
+	if s.PolicyId != nil && len(*s.PolicyId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("PolicyId", 1))
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -806,6 +813,9 @@ func (s *GetLifecyclePolicyInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "GetLifecyclePolicyInput"}
 	if s.PolicyId == nil {
 		invalidParams.Add(request.NewErrParamRequired("PolicyId"))
+	}
+	if s.PolicyId != nil && len(*s.PolicyId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("PolicyId", 1))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -1269,6 +1279,9 @@ func (s *UpdateLifecyclePolicyInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "UpdateLifecyclePolicyInput"}
 	if s.PolicyId == nil {
 		invalidParams.Add(request.NewErrParamRequired("PolicyId"))
+	}
+	if s.PolicyId != nil && len(*s.PolicyId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("PolicyId", 1))
 	}
 	if s.PolicyDetails != nil {
 		if err := s.PolicyDetails.Validate(); err != nil {

@@ -1,7 +1,7 @@
 ---
 name: 🚀 Feature Request
 about: I have a suggestion (and might want to implement myself 🙂)!
-
+labels: enhancement
 ---
 
 <!--- Please keep this note for the community --->

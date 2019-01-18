@@ -207,14 +207,14 @@ func testAccCheckAWSAPIGatewayMethodAttributes(conf *apigateway.Method) resource
 		if val, ok := conf.RequestParameters["method.request.header.Content-Type"]; !ok {
 			return fmt.Errorf("missing Content-Type RequestParameters")
 		} else {
-			if *val != false {
+			if *val {
 				return fmt.Errorf("wrong Content-Type RequestParameters value")
 			}
 		}
 		if val, ok := conf.RequestParameters["method.request.querystring.page"]; !ok {
 			return fmt.Errorf("missing page RequestParameters")
 		} else {
-			if *val != true {
+			if !*val {
 				return fmt.Errorf("wrong query string RequestParameters value")
 			}
 		}
@@ -234,7 +234,7 @@ func testAccCheckAWSAPIGatewayMethodAttributesUpdate(conf *apigateway.Method) re
 		if val, ok := conf.RequestParameters["method.request.querystring.page"]; !ok {
 			return fmt.Errorf("missing updated page RequestParameters")
 		} else {
-			if *val != false {
+			if *val {
 				return fmt.Errorf("wrong query string RequestParameters updated value")
 			}
 		}
@@ -384,7 +384,7 @@ resource "aws_lambda_function" "authorizer" {
   function_name = "tf_acc_api_gateway_authorizer_%d"
   role = "${aws_iam_role.iam_for_lambda.arn}"
   handler = "exports.example"
-	runtime = "nodejs4.3"
+	runtime = "nodejs8.10"
 }
 
 resource "aws_api_gateway_authorizer" "test" {

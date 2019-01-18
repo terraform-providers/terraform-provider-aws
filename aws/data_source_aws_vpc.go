@@ -104,6 +104,11 @@ func dataSourceAwsVpc() *schema.Resource {
 			},
 
 			"tags": tagsSchemaComputed(),
+
+			"owner_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -172,6 +177,7 @@ func dataSourceAwsVpcRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("default", vpc.IsDefault)
 	d.Set("state", vpc.State)
 	d.Set("tags", tagsToMap(vpc.Tags))
+	d.Set("owner_id", vpc.OwnerId)
 
 	arn := arn.ARN{
 		Partition: meta.(*AWSClient).partition,

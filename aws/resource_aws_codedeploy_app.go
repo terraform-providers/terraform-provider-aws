@@ -64,8 +64,9 @@ func resourceAwsCodeDeployApp() *schema.Resource {
 				Optional: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					codedeploy.ComputePlatformServer,
+					codedeploy.ComputePlatformEcs,
 					codedeploy.ComputePlatformLambda,
+					codedeploy.ComputePlatformServer,
 				}, false),
 				Default: codedeploy.ComputePlatformServer,
 			},

@@ -702,7 +702,7 @@ func testAccRoute53ZoneConfigTagsSingle(zoneName, tag1Key, tag1Value string) str
 resource "aws_route53_zone" "test" {
   name = "%s."
 
-  tags {
+  tags = {
     %q = %q
   }
 }
@@ -714,7 +714,7 @@ func testAccRoute53ZoneConfigTagsMultiple(zoneName, tag1Key, tag1Value, tag2Key,
 resource "aws_route53_zone" "test" {
   name = "%s."
 
-  tags {
+  tags = {
     %q = %q
     %q = %q
   }
@@ -727,7 +727,7 @@ func testAccRoute53ZoneConfigVPCID(zoneName string) string {
 resource "aws_vpc" "test" {
   cidr_block = "172.29.0.0/24"
 
-  tags {
+  tags = {
     Name = "terraform-testacc-route53-zone-private"
   }
 }
@@ -756,7 +756,7 @@ resource "aws_vpc" "test" {
 
   cidr_block = "172.29.0.0/24"
 
-  tags {
+  tags = {
     Name = "terraform-testacc-route53-zone-private-region"
   }
 }
@@ -776,7 +776,7 @@ func testAccRoute53ZoneConfigVPCSingle(rName, zoneName string) string {
 resource "aws_vpc" "test1" {
   cidr_block = "10.1.0.0/16"
 
-  tags {
+  tags = {
     Name = %q
   }
 }
@@ -796,7 +796,7 @@ func testAccRoute53ZoneConfigVPCMultiple(rName, zoneName string) string {
 resource "aws_vpc" "test1" {
   cidr_block = "10.1.0.0/16"
 
-  tags {
+  tags = {
     Name = %q
   }
 }
@@ -804,7 +804,7 @@ resource "aws_vpc" "test1" {
 resource "aws_vpc" "test2" {
   cidr_block = "10.2.0.0/16"
 
-  tags {
+  tags = {
     Name = %q
   }
 }

@@ -265,7 +265,7 @@ resource "aws_db_event_subscription" "bar" {
     "deletion",
     "maintenance"
   ]
-  tags {
+  tags = {
     Name = "name"
   }
 }`, rInt, rInt)
@@ -288,7 +288,7 @@ resource "aws_db_event_subscription" "bar" {
     "deletion",
     "maintenance"
   ]
-  tags {
+  tags = {
     Name = "name"
   }
 }`, rInt)
@@ -308,7 +308,7 @@ resource "aws_db_event_subscription" "bar" {
   event_categories = [
     "configuration change"
   ]
-  tags {
+  tags = {
     Name = "new-name"
   }
 }`, rInt, rInt)
@@ -334,7 +334,7 @@ resource "aws_db_event_subscription" "bar" {
   event_categories = [
     "configuration change"
   ]
-  tags {
+  tags = {
     Name = "name"
   }
 }`, rInt, rInt, rInt)
@@ -366,7 +366,7 @@ func testAccAWSDBEventSubscriptionConfigUpdateSourceIds(rInt int) string {
 		event_categories = [
 			"configuration change"
 		]
-		tags {
+	tags = {
 			Name = "name"
 		}
 	}`, rInt, rInt, rInt, rInt)
@@ -385,7 +385,7 @@ resource "aws_db_event_subscription" "bar" {
   event_categories = [
     "availability",
   ]
-  tags {
+  tags = {
     Name = "name"
   }
 }`, rInt, rInt)

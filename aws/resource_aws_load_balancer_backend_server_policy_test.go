@@ -181,7 +181,7 @@ resource "aws_elb" "test-lb" {
     ssl_certificate_id = "${aws_iam_server_certificate.test-iam-cert0.arn}"
   }
 
-  tags {
+  tags = {
     Name = "tf-acc-test"
   }
 }
@@ -280,7 +280,7 @@ resource "aws_elb" "test-lb" {
     ssl_certificate_id = "${aws_iam_server_certificate.test-iam-cert0.arn}"
   }
 
-  tags {
+  tags = {
     Name = "tf-acc-test"
   }
 }
@@ -389,7 +389,7 @@ resource "aws_elb" "test-lb" {
     ssl_certificate_id = "${aws_iam_server_certificate.test-iam-cert0.arn}"
   }
 
-  tags {
+  tags = {
     Name = "tf-acc-test"
   }
 }

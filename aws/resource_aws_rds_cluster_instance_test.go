@@ -52,6 +52,7 @@ func TestAccAWSRDSClusterInstance_basic(t *testing.T) {
 					testAccCheckAWSDBClusterInstanceAttributes(&v),
 					resource.TestMatchResourceAttr("aws_rds_cluster_instance.cluster_instances", "arn", regexp.MustCompile(`^arn:[^:]+:rds:[^:]+:[^:]+:db:.+`)),
 					resource.TestCheckResourceAttr("aws_rds_cluster_instance.cluster_instances", "auto_minor_version_upgrade", "true"),
+					resource.TestCheckResourceAttr("aws_rds_cluster_instance.cluster_instances", "copy_tags_to_snapshot", "false"),
 					resource.TestCheckResourceAttrSet("aws_rds_cluster_instance.cluster_instances", "preferred_maintenance_window"),
 					resource.TestCheckResourceAttrSet("aws_rds_cluster_instance.cluster_instances", "preferred_backup_window"),
 					resource.TestCheckResourceAttrSet("aws_rds_cluster_instance.cluster_instances", "dbi_resource_id"),
@@ -214,6 +215,35 @@ func TestAccAWSRDSClusterInstance_PubliclyAccessible(t *testing.T) {
 	})
 }
 
+func TestAccAWSRDSClusterInstance_CopyTagsToSnapshot(t *testing.T) {
+	var dbInstance rds.DBInstance
+	rNameSuffix := acctest.RandInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSClusterInstanceConfig_CopyTagsToSnapshot(rNameSuffix, true),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSClusterInstanceExists("aws_rds_cluster_instance.cluster_instances", &dbInstance),
+					resource.TestCheckResourceAttr(
+						"aws_rds_cluster_instance.cluster_instances", "copy_tags_to_snapshot", "true"),
+				),
+			},
+			{
+				Config: testAccAWSClusterInstanceConfig_CopyTagsToSnapshot(rNameSuffix, false),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSClusterInstanceExists("aws_rds_cluster_instance.cluster_instances", &dbInstance),
+					resource.TestCheckResourceAttr(
+						"aws_rds_cluster_instance.cluster_instances", "copy_tags_to_snapshot", "false"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckAWSDBClusterInstanceAttributes(v *rds.DBInstance) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 
@@ -361,7 +391,7 @@ resource "aws_db_parameter_group" "bar" {
     apply_method = "pending-reboot"
   }
 
-  tags {
+  tags = {
     foo = "bar"
   }
 }
@@ -398,7 +428,7 @@ resource "aws_db_parameter_group" "bar" {
     apply_method = "pending-reboot"
   }
 
-  tags {
+  tags = {
     foo = "bar"
   }
 }
@@ -411,7 +441,7 @@ data "aws_availability_zones" "available" {}
 
 resource "aws_rds_cluster" "default" {
   cluster_identifier = "tf-aurora-cluster-test-%d"
-  availability_zones = ["${data.aws_availability_zones.available.names}"]
+  availability_zones = ["${data.aws_availability_zones.available.names[0]}", "${data.aws_availability_zones.available.names[1]}", "${data.aws_availability_zones.available.names[2]}"]
   database_name      = "mydb"
   master_username    = "foo"
   master_password    = "mustbeeightcharaters"
@@ -437,7 +467,7 @@ resource "aws_db_parameter_group" "bar" {
     apply_method = "pending-reboot"
   }
 
-  tags {
+  tags = {
     foo = "bar"
   }
 }
@@ -462,7 +492,7 @@ resource "aws_rds_cluster" "test" {
 
 resource "aws_vpc" "test" {
   cidr_block = "10.0.0.0/16"
-	tags {
+	tags = {
 		Name = "terraform-testacc-rds-cluster-instance-name-prefix"
 	}
 }
@@ -471,7 +501,7 @@ resource "aws_subnet" "a" {
   vpc_id = "${aws_vpc.test.id}"
   cidr_block = "10.0.0.0/24"
   availability_zone = "us-west-2a"
-  tags {
+  tags = {
     Name = "tf-acc-rds-cluster-instance-name-prefix-a"
   }
 }
@@ -480,7 +510,7 @@ resource "aws_subnet" "b" {
   vpc_id = "${aws_vpc.test.id}"
   cidr_block = "10.0.1.0/24"
   availability_zone = "us-west-2b"
-  tags {
+  tags = {
     Name = "tf-acc-rds-cluster-instance-name-prefix-b"
   }
 }
@@ -509,7 +539,7 @@ resource "aws_rds_cluster" "test" {
 
 resource "aws_vpc" "test" {
   cidr_block = "10.0.0.0/16"
-	tags {
+	tags = {
 		Name = "terraform-testacc-rds-cluster-instance-generated-name"
 	}
 }
@@ -518,7 +548,7 @@ resource "aws_subnet" "a" {
   vpc_id = "${aws_vpc.test.id}"
   cidr_block = "10.0.0.0/24"
   availability_zone = "us-west-2a"
-  tags {
+  tags = {
     Name = "tf-acc-rds-cluster-instance-generated-name-a"
   }
 }
@@ -527,7 +557,7 @@ resource "aws_subnet" "b" {
   vpc_id = "${aws_vpc.test.id}"
   cidr_block = "10.0.1.0/24"
   availability_zone = "us-west-2b"
-  tags {
+  tags = {
     Name = "tf-acc-rds-cluster-instance-generated-name-b"
   }
 }
@@ -591,7 +621,7 @@ resource "aws_db_parameter_group" "bar" {
     apply_method = "pending-reboot"
   }
 
-  tags {
+  tags = {
     foo = "bar"
   }
 }
@@ -688,7 +718,7 @@ resource "aws_db_parameter_group" "bar" {
     apply_method = "pending-reboot"
   }
 
-  tags {
+  tags = {
     foo = "bar"
   }
 }
@@ -749,7 +779,7 @@ resource "aws_db_parameter_group" "bar" {
     value = "10"
   }
 
-  tags {
+  tags = {
     foo = "bar"
   }
 }
@@ -773,4 +803,25 @@ resource "aws_rds_cluster_instance" "test" {
   publicly_accessible     = %t
 }
 `, rName, rName, publiclyAccessible)
+}
+
+func testAccAWSClusterInstanceConfig_CopyTagsToSnapshot(n int, f bool) string {
+	return fmt.Sprintf(`
+resource "aws_rds_cluster" "default" {
+  cluster_identifier = "tf-aurora-cluster-test-%d"
+  availability_zones = ["us-west-2a", "us-west-2b", "us-west-2c"]
+  database_name      = "mydb"
+  master_username    = "foo"
+  master_password    = "mustbeeightcharaters"
+  skip_final_snapshot = true
+}
+
+resource "aws_rds_cluster_instance" "cluster_instances" {
+  identifier              = "tf-cluster-instance-%d"
+  cluster_identifier      = "${aws_rds_cluster.default.id}"
+  instance_class          = "db.t2.small"
+  promotion_tier          = "3"
+  copy_tags_to_snapshot 	= %t
+}
+`, n, n, f)
 }

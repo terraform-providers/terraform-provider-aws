@@ -82,11 +82,14 @@ official [Developer Guide](https://docs.aws.amazon.com/AmazonECS/latest/develope
 * `task_role_arn` - (Optional) The ARN of IAM role that allows your Amazon ECS container task to make calls to other AWS services.
 * `execution_role_arn` - (Optional) The Amazon Resource Name (ARN) of the task execution role that the Amazon ECS container agent and the Docker daemon can assume.
 * `network_mode` - (Optional) The Docker networking mode to use for the containers in the task. The valid values are `none`, `bridge`, `awsvpc`, and `host`.
+* `ipc_mode` - (Optional) The IPC resource namespace to be used for the containers in the task The valid values are `host`, `task`, and `none`.
+* `pid_mode` - (Optional) The process namespace to use for the containers in the task. The valid values are `host` and `task`.
 * `volume` - (Optional) A set of [volume blocks](#volume-block-arguments) that containers in your task may use.
 * `placement_constraints` - (Optional) A set of [placement constraints](#placement-constraints-arguments) rules that are taken into consideration during task placement. Maximum number of `placement_constraints` is `10`.
 * `cpu` - (Optional) The number of cpu units used by the task. If the `requires_compatibilities` is `FARGATE` this field is required.
 * `memory` - (Optional) The amount (in MiB) of memory used by the task. If the `requires_compatibilities` is `FARGATE` this field is required.
 * `requires_compatibilities` - (Optional) A set of launch types required by the task. The valid values are `EC2` and `FARGATE`.
+* `tags` - (Optional) Key-value mapping of resource tags
 
 #### Volume Block Arguments
 
@@ -139,3 +142,11 @@ In addition to all arguments above, the following attributes are exported:
 * `arn` - Full ARN of the Task Definition (including both `family` and `revision`).
 * `family` - The family of the Task Definition.
 * `revision` - The revision of the task in a particular family.
+
+## Import
+
+ECS Task Definitions can be imported via their Amazon Resource Name (ARN):
+
+```
+$ terraform import aws_ecs_task_definition.example arn:aws:ecs:us-east-1:012345678910:task-definition/mytaskfamily:123
+```

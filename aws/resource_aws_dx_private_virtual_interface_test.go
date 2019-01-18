@@ -164,7 +164,7 @@ func testAccCheckAwsDxPrivateVirtualInterfaceExists(name string) resource.TestCh
 func testAccDxPrivateVirtualInterfaceConfig_noTags(cid, n string, bgpAsn, vlan int) string {
 	return fmt.Sprintf(`
 resource "aws_vpn_gateway" "foo" {
-  tags {
+  tags = {
     Name = "%s"
   }
 }
@@ -184,7 +184,7 @@ resource "aws_dx_private_virtual_interface" "foo" {
 func testAccDxPrivateVirtualInterfaceConfig_tags(cid, n string, bgpAsn, vlan int) string {
 	return fmt.Sprintf(`
 resource "aws_vpn_gateway" "foo" {
-  tags {
+  tags = {
     Name = "%s"
   }
 }
@@ -198,7 +198,7 @@ resource "aws_dx_private_virtual_interface" "foo" {
   address_family = "ipv4"
   bgp_asn        = %d
 
-  tags {
+  tags = {
     Environment = "test"
   }
 }
@@ -227,7 +227,7 @@ resource "aws_dx_private_virtual_interface" "foo" {
 func testAccDxPrivateVirtualInterfaceConfig_jumboFrames(cid, n string, bgpAsn, vlan int) string {
 	return fmt.Sprintf(`
 resource "aws_vpn_gateway" "foo" {
-  tags {
+  tags = {
     Name = "%s"
   }
 }

@@ -2,10 +2,12 @@ package aws
 
 import (
 	"fmt"
+	"sort"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
 	dms "github.com/aws/aws-sdk-go/service/databasemigrationservice"
+	gversion "github.com/hashicorp/go-version"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
@@ -153,32 +155,49 @@ func TestAccAWSDmsReplicationInstance_EngineVersion(t *testing.T) {
 	resourceName := "aws_dms_replication_instance.test"
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 
+	// This acceptance test is designed to test engine version upgrades.
+	// Over time, DMS replication instance engine versions are deprecated
+	// so they will eventually error on resource creation, e.g.
+	//   InvalidParameterValueException: No replication engine found with version: 2.4.2
+	// During the PreCheck, we will find candidate engine versions from the
+	// orderable replication instances and generate the TestStep.
+	// We prefer this method over creating a plural data source that
+	// seems impractical for real world usage.
+	testSteps := []resource.TestStep{
+		{},
+		{},
+		{
+			ResourceName:            resourceName,
+			ImportState:             true,
+			ImportStateVerify:       true,
+			ImportStateVerifyIgnore: []string{"apply_immediately"},
+		},
+	}
+
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck: func() {
+			testAccPreCheck(t)
+
+			engineVersions := testAccAWSDmsReplicationInstanceEngineVersionsPreCheck(t)
+
+			testSteps[0] = resource.TestStep{
+				Config: testAccAWSDmsReplicationInstanceConfig_EngineVersion(rName, engineVersions[0]),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSDmsReplicationInstanceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "engine_version", engineVersions[0]),
+				),
+			}
+			testSteps[1] = resource.TestStep{
+				Config: testAccAWSDmsReplicationInstanceConfig_EngineVersion(rName, engineVersions[1]),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSDmsReplicationInstanceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "engine_version", engineVersions[1]),
+				),
+			}
+		},
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSDmsReplicationInstanceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAWSDmsReplicationInstanceConfig_EngineVersion(rName, "2.4.2"),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSDmsReplicationInstanceExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "engine_version", "2.4.2"),
-				),
-			},
-			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"apply_immediately"},
-			},
-			{
-				Config: testAccAWSDmsReplicationInstanceConfig_EngineVersion(rName, "2.4.3"),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSDmsReplicationInstanceExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "engine_version", "2.4.3"),
-				),
-			},
-		},
+		Steps:        testSteps,
 	})
 }
 
@@ -507,6 +526,66 @@ func testAccCheckAWSDmsReplicationInstanceDestroy(s *terraform.State) error {
 	return nil
 }
 
+// Ensure at least two engine versions of the replication instance class are available
+func testAccAWSDmsReplicationInstanceEngineVersionsPreCheck(t *testing.T) []string {
+	conn := testAccProvider.Meta().(*AWSClient).dmsconn
+
+	// Gather all orderable DMS replication instances of the instance class
+	// used in the acceptance testing. Not currently available as an input
+	// parameter to the describe API call.
+	var orderableReplicationInstances []*dms.OrderableReplicationInstance
+	input := &dms.DescribeOrderableReplicationInstancesInput{}
+	replicationInstanceClass := "dms.t2.micro"
+
+	err := conn.DescribeOrderableReplicationInstancesPages(input, func(output *dms.DescribeOrderableReplicationInstancesOutput, lastPage bool) bool {
+		for _, orderableReplicationInstance := range output.OrderableReplicationInstances {
+			if orderableReplicationInstance == nil {
+				continue
+			}
+
+			if aws.StringValue(orderableReplicationInstance.ReplicationInstanceClass) == replicationInstanceClass {
+				orderableReplicationInstances = append(orderableReplicationInstances, orderableReplicationInstance)
+			}
+		}
+
+		return !lastPage
+	})
+
+	if err != nil {
+		t.Fatalf("error describing DMS orderable replication instances: %s", err)
+	}
+
+	// Ensure we have enough
+	if len(orderableReplicationInstances) < 2 {
+		t.Fatalf("found (%d) DMS orderable replication instances for instance class (%s), need at least 2", len(orderableReplicationInstances), replicationInstanceClass)
+	}
+
+	// Sort them ascending
+	sort.Slice(orderableReplicationInstances, func(i, j int) bool {
+		iEngineVersion, err := gversion.NewVersion(aws.StringValue(orderableReplicationInstances[i].EngineVersion))
+
+		if err != nil {
+			t.Fatalf("error converting (%s) to go-version: %s", aws.StringValue(orderableReplicationInstances[i].EngineVersion), err)
+		}
+
+		jEngineVersion, err := gversion.NewVersion(aws.StringValue(orderableReplicationInstances[j].EngineVersion))
+
+		if err != nil {
+			t.Fatalf("error converting (%s) to go-version: %s", aws.StringValue(orderableReplicationInstances[j].EngineVersion), err)
+		}
+
+		return iEngineVersion.LessThan(jEngineVersion)
+	})
+
+	engineVersions := make([]string, len(orderableReplicationInstances))
+
+	for i, orderableReplicationInstance := range orderableReplicationInstances {
+		engineVersions[i] = aws.StringValue(orderableReplicationInstance.EngineVersion)
+	}
+
+	return engineVersions
+}
+
 func testAccAWSDmsReplicationInstanceConfig_AllocatedStorage(rName string, allocatedStorage int) string {
 	return fmt.Sprintf(`
 resource "aws_dms_replication_instance" "test" {
@@ -618,7 +697,7 @@ data "aws_availability_zones" "available" {}
 resource "aws_vpc" "test" {
   cidr_block = "10.1.0.0/16"
 
-  tags {
+  tags = {
     Name = %q
   }
 }
@@ -630,7 +709,7 @@ resource "aws_subnet" "test" {
   cidr_block        = "10.1.${count.index}.0/24"
   vpc_id            = "${aws_vpc.test.id}"
 
-  tags {
+  tags = {
     Name = "${aws_vpc.test.tags["Name"]}"
   }
 }
@@ -657,7 +736,7 @@ resource "aws_dms_replication_instance" "test" {
   replication_instance_class   = "dms.t2.micro"
   replication_instance_id      = %q
 
-  tags {
+  tags = {
     %q = %q
   }
 }
@@ -671,7 +750,7 @@ resource "aws_dms_replication_instance" "test" {
   replication_instance_class   = "dms.t2.micro"
   replication_instance_id      = %q
 
-  tags {
+  tags = {
     %q = %q
     %q = %q
   }
@@ -686,7 +765,7 @@ data "aws_availability_zones" "available" {}
 resource "aws_vpc" "test" {
   cidr_block = "10.1.0.0/16"
 
-  tags {
+  tags = {
     Name = %q
   }
 }
@@ -703,7 +782,7 @@ resource "aws_subnet" "test" {
   cidr_block        = "10.1.${count.index}.0/24"
   vpc_id            = "${aws_vpc.test.id}"
 
-  tags {
+  tags = {
     Name = "${aws_vpc.test.tags["Name"]}"
   }
 }

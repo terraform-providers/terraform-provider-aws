@@ -39,7 +39,7 @@ func TestAccAWSElasticTranscoderPipeline_kmsKey(t *testing.T) {
 	pipeline := &elastictranscoder.Pipeline{}
 	ri := acctest.RandInt()
 	config := fmt.Sprintf(awsElasticTranscoderPipelineConfigKmsKey, ri, ri, ri)
-	keyRegex := regexp.MustCompile("^arn:aws:([a-zA-Z0-9\\-])+:([a-z]{2}-[a-z]+-\\d{1})?:(\\d{12})?:(.*)$")
+	keyRegex := regexp.MustCompile(`^arn:aws:([a-zA-Z0-9\-])+:([a-z]{2}-[a-z]+-\d{1})?:(\d{12})?:(.*)$`)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },

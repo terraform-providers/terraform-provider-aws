@@ -78,7 +78,7 @@ func testAccCheckDHCPOptionsAssociationExist(n string, vpc *ec2.Vpc) resource.Te
 const testAccDHCPOptionsAssociationConfig = `
 resource "aws_vpc" "foo" {
 	cidr_block = "10.1.0.0/16"
-	tags {
+	tags = {
 		Name = "terraform-testacc-vpc-dhcp-options-association"
 	}
 }
@@ -90,7 +90,7 @@ resource "aws_vpc_dhcp_options" "foo" {
 	netbios_name_servers = ["127.0.0.1"]
 	netbios_node_type = 2
 
-	tags {
+	tags = {
 		Name = "foo"
 	}
 }

@@ -20,7 +20,7 @@ ElastiCache cluster **inside** of a VPC. If you are on EC2 Classic, see the
 resource "aws_vpc" "foo" {
   cidr_block = "10.0.0.0/16"
 
-  tags {
+  tags = {
     Name = "tf-test"
   }
 }
@@ -30,7 +30,7 @@ resource "aws_subnet" "foo" {
   cidr_block        = "10.0.0.0/24"
   availability_zone = "us-west-2a"
 
-  tags {
+  tags = {
     Name = "tf-test"
   }
 }

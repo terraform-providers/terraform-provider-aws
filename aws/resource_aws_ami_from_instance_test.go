@@ -150,7 +150,7 @@ func testAccAWSAMIFromInstanceConfig(rInt int) string {
 			// one snapshot in our created AMI.
 			ami = "ami-408c7f28"
 			instance_type = "t1.micro"
-			tags {
+	tags = {
 				Name = "testAccAWSAMIFromInstanceConfig_TestAMI"
 			}
 	}

@@ -16,7 +16,7 @@ Provides a CloudWatch Log Group resource.
 resource "aws_cloudwatch_log_group" "yada" {
   name = "Yada"
 
-  tags {
+  tags = {
     Environment = "production"
     Application = "serviceA"
   }

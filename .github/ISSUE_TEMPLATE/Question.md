@@ -1,7 +1,7 @@
 ---
 name: 💬 Question
 about: If you have a question, please check out our other community resources!
-
+labels: question
 ---
 
 Issues on GitHub are intended to be related to bugs or feature requests with provider codebase,

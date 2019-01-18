@@ -398,7 +398,7 @@ func testAccAWSStorageGateway_VPCBase(rName string) string {
 resource "aws_vpc" "test" {
   cidr_block = "10.0.0.0/16"
 
-  tags {
+  tags = {
     Name = %q
   }
 }
@@ -407,7 +407,7 @@ resource "aws_subnet" "test" {
   cidr_block = "10.0.0.0/24"
   vpc_id     = "${aws_vpc.test.id}"
 
-  tags {
+  tags = {
     Name = %q
   }
 }
@@ -415,7 +415,7 @@ resource "aws_subnet" "test" {
 resource "aws_internet_gateway" "test" {
   vpc_id = "${aws_vpc.test.id}"
 
-  tags {
+  tags = {
     Name = %q
   }
 }
@@ -428,7 +428,7 @@ resource "aws_route_table" "test" {
     gateway_id = "${aws_internet_gateway.test.id}"
   }
 
-  tags {
+  tags = {
     Name = %q
   }
 }
@@ -455,7 +455,7 @@ resource "aws_security_group" "test" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags {
+  tags = {
     Name = %q
   }
 }
@@ -490,7 +490,7 @@ resource "aws_instance" "test" {
   vpc_security_group_ids      = ["${aws_security_group.test.id}"]
   subnet_id                   = "${aws_subnet.test.id}"
 
-  tags {
+  tags = {
     Name = %q
   }
 }
@@ -525,7 +525,7 @@ resource "aws_instance" "test" {
   vpc_security_group_ids      = ["${aws_security_group.test.id}"]
   subnet_id                   = "${aws_subnet.test.id}"
 
-  tags {
+  tags = {
     Name = %q
   }
 }
@@ -594,7 +594,7 @@ data "aws_availability_zones" "available" {}
 resource "aws_vpc" "test" {
   cidr_block = "10.0.0.0/16"
 
-  tags {
+  tags = {
     Name = %q
   }
 }
@@ -606,7 +606,7 @@ resource "aws_subnet" "test" {
   cidr_block        = "10.0.${count.index}.0/24"
   vpc_id            = "${aws_vpc.test.id}"
 
-  tags {
+  tags = {
     Name = %q
   }
 }
@@ -614,7 +614,7 @@ resource "aws_subnet" "test" {
 resource "aws_internet_gateway" "test" {
   vpc_id = "${aws_vpc.test.id}"
 
-  tags {
+  tags = {
     Name = %q
   }
 }
@@ -627,7 +627,7 @@ resource "aws_route_table" "test" {
     gateway_id = "${aws_internet_gateway.test.id}"
   }
 
-  tags {
+  tags = {
     Name = %q
   }
 }
@@ -656,7 +656,7 @@ resource "aws_security_group" "test" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags {
+  tags = {
     Name = %q
   }
 }
@@ -671,7 +671,7 @@ resource "aws_directory_service_directory" "test" {
     vpc_id     = "${aws_vpc.test.id}"
   }
 
-  tags {
+  tags = {
     Name = %q
   }
 }
@@ -680,7 +680,7 @@ resource "aws_vpc_dhcp_options" "test" {
   domain_name         = "${aws_directory_service_directory.test.name}"
   domain_name_servers = ["${aws_directory_service_directory.test.dns_ip_addresses}"]
 
-  tags {
+  tags = {
     Name = %q
   }
 }
@@ -714,7 +714,7 @@ resource "aws_instance" "test" {
   vpc_security_group_ids      = ["${aws_security_group.test.id}"]
   subnet_id                   = "${aws_subnet.test.*.id[0]}"
 
-  tags {
+  tags = {
     Name = %q
   }
 }

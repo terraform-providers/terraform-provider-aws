@@ -28,6 +28,7 @@ func TestAccAWSDefaultVpcDhcpOptions_basic(t *testing.T) {
 						"aws_default_vpc_dhcp_options.foo", "tags.%", "1"),
 					resource.TestCheckResourceAttr(
 						"aws_default_vpc_dhcp_options.foo", "tags.Name", "Default DHCP Option Set"),
+					testAccCheckResourceAttrAccountID("aws_default_vpc_dhcp_options.foo", "owner_id"),
 				),
 			},
 		},
@@ -45,7 +46,7 @@ provider "aws" {
 }
 
 resource "aws_default_vpc_dhcp_options" "foo" {
-	tags {
+	tags = {
 		Name = "Default DHCP Option Set"
 	}
 }

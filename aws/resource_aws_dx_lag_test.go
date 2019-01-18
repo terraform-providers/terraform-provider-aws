@@ -160,7 +160,7 @@ resource "aws_dx_lag" "hoge" {
   location = "EqSe2"
   force_destroy = true
 
-  tags {
+  tags = {
     Environment = "production"
     Usage = "original"
   }
@@ -176,7 +176,7 @@ resource "aws_dx_lag" "hoge" {
   location = "EqSe2"
   force_destroy = true
 
-  tags {
+  tags = {
     Usage = "changed"
   }
 }

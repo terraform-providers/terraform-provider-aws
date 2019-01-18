@@ -91,11 +91,8 @@ func testAccCheckAwsDaxParameterGroupExists(name string) resource.TestCheckFunc 
 		_, err := conn.DescribeParameterGroups(&dax.DescribeParameterGroupsInput{
 			ParameterGroupNames: []*string{aws.String(rs.Primary.ID)},
 		})
-		if err != nil {
-			return err
-		}
 
-		return nil
+		return err
 	}
 }
 

@@ -31,6 +31,11 @@ func TestAccAWSAppCookieStickinessPolicy_basic(t *testing.T) {
 				),
 			},
 			{
+				ResourceName:      "aws_app_cookie_stickiness_policy.foo",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
 				Config: testAccAppCookieStickinessPolicyConfigUpdate(lbName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAppCookieStickinessPolicy(
@@ -131,11 +136,7 @@ func testAccCheckAppCookieStickinessPolicy(elbResource string, policyResource st
 			PolicyNames:      []*string{aws.String(policyName)},
 		})
 
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return err
 	}
 }
 

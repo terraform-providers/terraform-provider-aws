@@ -229,7 +229,7 @@ func testAccAwsNetworkInterfaceSGAttachmentConfig(rName string) string {
 resource "aws_vpc" "test" {
   cidr_block = "172.16.0.0/16"
 
-  tags {
+  tags = {
     Name = %q
   }
 }
@@ -238,7 +238,7 @@ resource "aws_subnet" "test" {
   cidr_block = "172.16.10.0/24"
   vpc_id     = "${aws_vpc.test.id}"
 
-  tags {
+  tags = {
     Name = %q
   }
 }
@@ -251,7 +251,7 @@ resource "aws_security_group" "test" {
 resource "aws_network_interface" "test" {
   subnet_id = "${aws_subnet.test.id}"
 
-  tags {
+  tags = {
     Name = %q
   }
 }

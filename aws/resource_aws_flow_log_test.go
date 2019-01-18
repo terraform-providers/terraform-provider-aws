@@ -204,7 +204,7 @@ func testAccFlowLogConfig_LogDestinationType_CloudWatchLogs(rName string) string
 resource "aws_vpc" "test" {
   cidr_block = "10.0.0.0/16"
 
-  tags {
+  tags = {
     Name = %q
   }
 }
@@ -250,7 +250,7 @@ func testAccFlowLogConfig_LogDestinationType_S3(rName string) string {
 resource "aws_vpc" "test" {
   cidr_block = "10.0.0.0/16"
 
-  tags {
+  tags = {
     Name = %q
   }
 }
@@ -274,7 +274,7 @@ func testAccFlowLogConfig_SubnetID(rName string) string {
 resource "aws_vpc" "test" {
   cidr_block = "10.0.0.0/16"
 
-  tags {
+  tags = {
     Name = %q
   }
 }
@@ -283,7 +283,7 @@ resource "aws_subnet" "test" {
   cidr_block = "10.0.1.0/24"
   vpc_id     = "${aws_vpc.test.id}"
 
-  tags {
+  tags = {
     Name = %q
   }
 }
@@ -328,7 +328,7 @@ func testAccFlowLogConfig_VPCID(rName string) string {
 resource "aws_vpc" "test" {
   cidr_block = "10.0.0.0/16"
 
-  tags {
+  tags = {
     Name = %q
   }
 }

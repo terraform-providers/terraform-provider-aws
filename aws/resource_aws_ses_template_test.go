@@ -119,11 +119,7 @@ func testAccCheckSesTemplate(pr string, template *ses.Template) resource.TestChe
 		}
 
 		_, err := conn.GetTemplate(&input)
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return err
 	}
 }
 

@@ -127,11 +127,7 @@ func testAccCheckAwsGuardDutyThreatintelsetExists(name string) resource.TestChec
 
 		conn := testAccProvider.Meta().(*AWSClient).guarddutyconn
 		_, err = conn.GetThreatIntelSet(input)
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return err
 	}
 }
 

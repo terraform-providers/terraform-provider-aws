@@ -1670,6 +1670,9 @@ func (s *GetTagsInput) Validate() error {
 	if s.Arn == nil {
 		invalidParams.Add(request.NewErrParamRequired("Arn"))
 	}
+	if s.Arn != nil && len(*s.Arn) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Arn", 1))
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -1988,6 +1991,11 @@ type ListGroupResourcesOutput struct {
 	// to get more results.
 	NextToken *string `type:"string"`
 
+	// A list of QueryError objects. Each error is an object that contains ErrorCode
+	// and Message structures. Possible values for ErrorCode are CLOUDFORMATION_STACK_INACTIVE
+	// and CLOUDFORMATION_STACK_NOT_EXISTING.
+	QueryErrors []*QueryError `type:"list"`
+
 	// The ARNs and resource types of resources that are members of the group that
 	// you specified.
 	ResourceIdentifiers []*ResourceIdentifier `type:"list"`
@@ -2009,6 +2017,12 @@ func (s *ListGroupResourcesOutput) SetNextToken(v string) *ListGroupResourcesOut
 	return s
 }
 
+// SetQueryErrors sets the QueryErrors field's value.
+func (s *ListGroupResourcesOutput) SetQueryErrors(v []*QueryError) *ListGroupResourcesOutput {
+	s.QueryErrors = v
+	return s
+}
+
 // SetResourceIdentifiers sets the ResourceIdentifiers field's value.
 func (s *ListGroupResourcesOutput) SetResourceIdentifiers(v []*ResourceIdentifier) *ListGroupResourcesOutput {
 	s.ResourceIdentifiers = v
@@ -2021,7 +2035,7 @@ type ListGroupsInput struct {
 	// Filters, formatted as GroupFilter objects, that you want to apply to a ListGroups
 	// operation.
 	//
-	//    * group-type - Filter groups by resource type. Specify up to five group
+	//    * resource-type - Filter groups by resource type. Specify up to five resource
 	//    types in the format AWS::ServiceCode::ResourceType. For example, AWS::EC2::Instance,
 	//    or AWS::S3::Bucket.
 	Filters []*GroupFilter `type:"list"`
@@ -2132,6 +2146,47 @@ func (s *ListGroupsOutput) SetNextToken(v string) *ListGroupsOutput {
 	return s
 }
 
+// A two-part error structure that can occur in ListGroupResources or SearchResources
+// operations on CloudFormation stack-based queries. The error occurs if the
+// CloudFormation stack on which the query is based either does not exist, or
+// has a status that renders the stack inactive. A QueryError occurrence does
+// not necessarily mean that AWS Resource Groups could not complete the operation,
+// but the resulting group might have no member resources.
+type QueryError struct {
+	_ struct{} `type:"structure"`
+
+	// Possible values are CLOUDFORMATION_STACK_INACTIVE and CLOUDFORMATION_STACK_NOT_EXISTING.
+	ErrorCode *string `type:"string" enum:"QueryErrorCode"`
+
+	// A message that explains the ErrorCode value. Messages might state that the
+	// specified CloudFormation stack does not exist (or no longer exists). For
+	// CLOUDFORMATION_STACK_INACTIVE, the message typically states that the CloudFormation
+	// stack has a status that is not (or no longer) active, such as CREATE_FAILED.
+	Message *string `type:"string"`
+}
+
+// String returns the string representation
+func (s QueryError) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s QueryError) GoString() string {
+	return s.String()
+}
+
+// SetErrorCode sets the ErrorCode field's value.
+func (s *QueryError) SetErrorCode(v string) *QueryError {
+	s.ErrorCode = &v
+	return s
+}
+
+// SetMessage sets the Message field's value.
+func (s *QueryError) SetMessage(v string) *QueryError {
+	s.Message = &v
+	return s
+}
+
 // A filter name and value pair that is used to obtain more specific results
 // from a list of resources.
 type ResourceFilter struct {
@@ -2232,14 +2287,40 @@ type ResourceQuery struct {
 	// Query is a required field
 	Query *string `type:"string" required:"true"`
 
-	// The type of the query. The valid value in this release is TAG_FILTERS_1_0.
+	// The type of the query. The valid values in this release are TAG_FILTERS_1_0
+	// and CLOUDFORMATION_STACK_1_0.
 	//
 	// TAG_FILTERS_1_0: A JSON syntax that lets you specify a collection of simple
 	// tag filters for resource types and tags, as supported by the AWS Tagging
-	// API GetResources operation. When more than one element is present, only resources
-	// that match all filters are part of the result. If a filter specifies more
-	// than one value for a key, a resource matches the filter if its tag value
-	// matches any of the specified values.
+	// API GetResources (https://docs.aws.amazon.com/resourcegroupstagging/latest/APIReference/API_GetResources.html)
+	// operation. If you specify more than one tag key, only resources that match
+	// all tag keys, and at least one value of each specified tag key, are returned
+	// in your query. If you specify more than one value for a tag key, a resource
+	// matches the filter if it has a tag key value that matches any of the specified
+	// values.
+	//
+	// For example, consider the following sample query for resources that have
+	// two tags, Stage and Version, with two values each. ([{"Key":"Stage","Values":["Test","Deploy"]},{"Key":"Version","Values":["1","2"]}])
+	// The results of this query might include the following.
+	//
+	//    * An EC2 instance that has the following two tags: {"Key":"Stage","Values":["Deploy"]},
+	//    and {"Key":"Version","Values":["2"]}
+	//
+	//    * An S3 bucket that has the following two tags: {"Key":"Stage","Values":["Test","Deploy"]},
+	//    and {"Key":"Version","Values":["1"]}
+	//
+	// The query would not return the following results, however. The following
+	// EC2 instance does not have all tag keys specified in the filter, so it is
+	// rejected. The RDS database has all of the tag keys, but no values that match
+	// at least one of the specified tag key values in the filter.
+	//
+	//    * An EC2 instance that has only the following tag: {"Key":"Stage","Values":["Deploy"]}.
+	//
+	//    * An RDS database that has the following two tags: {"Key":"Stage","Values":["Archived"]},
+	//    and {"Key":"Version","Values":["4"]}
+	//
+	// CLOUDFORMATION_STACK_1_0: A JSON syntax that lets you specify a CloudFormation
+	// stack ARN.
 	//
 	// Type is a required field
 	Type *string `type:"string" required:"true" enum:"QueryType"`
@@ -2358,6 +2439,11 @@ type SearchResourcesOutput struct {
 	// get more results.
 	NextToken *string `type:"string"`
 
+	// A list of QueryError objects. Each error is an object that contains ErrorCode
+	// and Message structures. Possible values for ErrorCode are CLOUDFORMATION_STACK_INACTIVE
+	// and CLOUDFORMATION_STACK_NOT_EXISTING.
+	QueryErrors []*QueryError `type:"list"`
+
 	// The ARNs and resource types of resources that are members of the group that
 	// you specified.
 	ResourceIdentifiers []*ResourceIdentifier `type:"list"`
@@ -2376,6 +2462,12 @@ func (s SearchResourcesOutput) GoString() string {
 // SetNextToken sets the NextToken field's value.
 func (s *SearchResourcesOutput) SetNextToken(v string) *SearchResourcesOutput {
 	s.NextToken = &v
+	return s
+}
+
+// SetQueryErrors sets the QueryErrors field's value.
+func (s *SearchResourcesOutput) SetQueryErrors(v []*QueryError) *SearchResourcesOutput {
+	s.QueryErrors = v
 	return s
 }
 
@@ -2416,6 +2508,9 @@ func (s *TagInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "TagInput"}
 	if s.Arn == nil {
 		invalidParams.Add(request.NewErrParamRequired("Arn"))
+	}
+	if s.Arn != nil && len(*s.Arn) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Arn", 1))
 	}
 	if s.Tags == nil {
 		invalidParams.Add(request.NewErrParamRequired("Tags"))
@@ -2500,6 +2595,9 @@ func (s *UntagInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "UntagInput"}
 	if s.Arn == nil {
 		invalidParams.Add(request.NewErrParamRequired("Arn"))
+	}
+	if s.Arn != nil && len(*s.Arn) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Arn", 1))
 	}
 	if s.Keys == nil {
 		invalidParams.Add(request.NewErrParamRequired("Keys"))
@@ -2720,8 +2818,19 @@ const (
 )
 
 const (
+	// QueryErrorCodeCloudformationStackInactive is a QueryErrorCode enum value
+	QueryErrorCodeCloudformationStackInactive = "CLOUDFORMATION_STACK_INACTIVE"
+
+	// QueryErrorCodeCloudformationStackNotExisting is a QueryErrorCode enum value
+	QueryErrorCodeCloudformationStackNotExisting = "CLOUDFORMATION_STACK_NOT_EXISTING"
+)
+
+const (
 	// QueryTypeTagFilters10 is a QueryType enum value
 	QueryTypeTagFilters10 = "TAG_FILTERS_1_0"
+
+	// QueryTypeCloudformationStack10 is a QueryType enum value
+	QueryTypeCloudformationStack10 = "CLOUDFORMATION_STACK_1_0"
 )
 
 const (

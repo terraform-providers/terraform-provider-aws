@@ -320,7 +320,7 @@ func resourceAwsMqBrokerRead(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	rawUsers := make([]*mq.User, len(out.Users), len(out.Users))
+	rawUsers := make([]*mq.User, len(out.Users))
 	for i, u := range out.Users {
 		uOut, err := conn.DescribeUser(&mq.DescribeUserInput{
 			BrokerId: aws.String(d.Id()),
@@ -339,11 +339,7 @@ func resourceAwsMqBrokerRead(d *schema.ResourceData, meta interface{}) error {
 
 	users := flattenMqUsers(rawUsers, d.Get("user").(*schema.Set).List())
 	err = d.Set("user", users)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
 
 func resourceAwsMqBrokerUpdate(d *schema.ResourceData, meta interface{}) error {
@@ -496,7 +492,7 @@ func updateAwsMqBrokerUsers(conn *mq.MQ, bId string, oldUsers, newUsers []interf
 func diffAwsMqBrokerUsers(bId string, oldUsers, newUsers []interface{}) (
 	cr []*mq.CreateUserRequest, di []*mq.DeleteUserInput, ur []*mq.UpdateUserRequest, e error) {
 
-	existingUsers := make(map[string]interface{}, 0)
+	existingUsers := make(map[string]interface{})
 	for _, ou := range oldUsers {
 		u := ou.(map[string]interface{})
 		username := u["username"].(string)

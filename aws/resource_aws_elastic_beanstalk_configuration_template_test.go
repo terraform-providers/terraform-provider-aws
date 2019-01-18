@@ -161,7 +161,7 @@ func testAccBeanstalkConfigurationTemplateConfig_VPC(name string) string {
 resource "aws_vpc" "tf_b_test" {
   cidr_block = "10.0.0.0/16"
 
-  tags {
+  tags = {
     Name = "terraform-testacc-elastic-beanstalk-cfg-tpl-vpc"
   }
 }
@@ -170,7 +170,7 @@ resource "aws_subnet" "main" {
   vpc_id     = "${aws_vpc.tf_b_test.id}"
   cidr_block = "10.0.0.0/24"
 
-  tags {
+  tags = {
     Name = "tf-acc-elastic-beanstalk-cfg-tpl-vpc"
   }
 }

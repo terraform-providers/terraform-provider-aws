@@ -30,7 +30,7 @@ resource "aws_vpc_dhcp_options" "foo" {
   netbios_name_servers = ["127.0.0.1"]
   netbios_node_type    = 2
 
-  tags {
+  tags = {
     Name = "foo-name"
   }
 }
@@ -52,13 +52,14 @@ The following arguments are supported:
 * `domain_name_servers`, `netbios_name_servers`, `ntp_servers` are limited by AWS to maximum four servers only.
 * To actually use the DHCP Options Set you need to associate it to a VPC using [`aws_vpc_dhcp_options_association`](/docs/providers/aws/r/vpc_dhcp_options_association.html).
 * If you delete a DHCP Options Set, all VPCs using it will be associated to AWS's `default` DHCP Option Set.
-* In most cases unless you're configuring your own DNS you'll want to set `domain_name_servers` to `AmazonProvidedDNS`. 
+* In most cases unless you're configuring your own DNS you'll want to set `domain_name_servers` to `AmazonProvidedDNS`.
 
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the DHCP Options Set.
+* `owner_id` - The ID of the AWS account that owns the DHCP options set.
 
 You can find more technical documentation about DHCP Options Set in the
 official [AWS User Guide](https://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_DHCP_Options.html).

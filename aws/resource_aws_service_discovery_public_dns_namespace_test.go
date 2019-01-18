@@ -100,11 +100,7 @@ func testAccCheckAwsServiceDiscoveryPublicDnsNamespaceExists(name string) resour
 		}
 
 		_, err := conn.GetNamespace(input)
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return err
 	}
 }
 

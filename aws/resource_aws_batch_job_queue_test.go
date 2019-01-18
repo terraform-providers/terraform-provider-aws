@@ -292,7 +292,7 @@ resource "aws_security_group" "test_acc" {
 
 resource "aws_vpc" "test_acc" {
   cidr_block = "10.1.0.0/16"
-  tags {
+  tags = {
     Name = "terraform-testacc-batch-job-queue"
   }
 }
@@ -300,14 +300,14 @@ resource "aws_vpc" "test_acc" {
 resource "aws_subnet" "test_acc" {
   vpc_id = "${aws_vpc.test_acc.id}"
   cidr_block = "10.1.1.0/24"
-  tags {
+  tags = {
     Name = "tf-acc-batch-job-queue"
   }
 }
 
 resource "aws_batch_compute_environment" "test_environment" {
   compute_environment_name = "tf_acctest_batch_compute_environment_%[1]d"
-  compute_resources = {
+  compute_resources {
     instance_role = "${aws_iam_role.aws_batch_service_role.arn}"
     instance_type = ["m3.medium"]
     max_vcpus = 1

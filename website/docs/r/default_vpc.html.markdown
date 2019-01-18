@@ -17,7 +17,7 @@ using it. Please read this document in its entirety before using this resource.
 
 The `aws_default_vpc` behaves differently from normal resources, in that
 Terraform does not _create_ this resource, but instead "adopts" it
-into management. 
+into management.
 
 ## Example Usage
 
@@ -25,7 +25,7 @@ Basic usage with tags:
 
 ```hcl
 resource "aws_default_vpc" "default" {
-  tags {
+  tags = {
     Name = "Default VPC"
   }
 }
@@ -33,13 +33,13 @@ resource "aws_default_vpc" "default" {
 
 ## Argument Reference
 
-The arguments of an `aws_default_vpc` differ slightly from `aws_vpc` 
+The arguments of an `aws_default_vpc` differ slightly from `aws_vpc`
 resources. Namely, the `cidr_block`, `instance_tenancy` and `assign_generated_ipv6_cidr_block`
-arguments are computed. The following arguments are still supported: 
+arguments are computed. The following arguments are still supported:
 
 * `enable_dns_support` - (Optional) A boolean flag to enable/disable DNS support in the VPC. Defaults true.
 * `enable_dns_hostnames` - (Optional) A boolean flag to enable/disable DNS hostnames in the VPC. Defaults false.
-* `enable_classiclink` - (Optional) A boolean flag to enable/disable ClassicLink 
+* `enable_classiclink` - (Optional) A boolean flag to enable/disable ClassicLink
   for the VPC. Only valid in regions and accounts that support EC2 Classic.
   See the [ClassicLink documentation][1] for more information. Defaults false.
 * `tags` - (Optional) A mapping of tags to assign to the resource.
@@ -62,7 +62,7 @@ In addition to all arguments above, the following attributes are exported:
 * `enable_dns_support` - Whether or not the VPC has DNS support
 * `enable_dns_hostnames` - Whether or not the VPC has DNS hostname support
 * `enable_classiclink` - Whether or not the VPC has Classiclink enabled
-* `assign_generated_ipv6_cidr_block` - Whether or not an Amazon-provided IPv6 CIDR 
+* `assign_generated_ipv6_cidr_block` - Whether or not an Amazon-provided IPv6 CIDR
 block with a /56 prefix length for the VPC was assigned
 * `main_route_table_id` - The ID of the main route table associated with
      this VPC. Note that you can change a VPC's main route table by using an
@@ -72,6 +72,7 @@ block with a /56 prefix length for the VPC was assigned
 * `default_route_table_id` - The ID of the route table created by default on VPC creation
 * `ipv6_association_id` - The association ID for the IPv6 CIDR block of the VPC
 * `ipv6_cidr_block` - The IPv6 CIDR block of the VPC
+* `owner_id` - The ID of the AWS account that owns the VPC.
 
 
 [1]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/vpc-classiclink.html

@@ -245,7 +245,7 @@ resource "aws_neptune_event_subscription" "bar" {
     "deletion",
     "maintenance"
   ]
-  tags {
+  tags = {
     Name = "tf-acc-test"
   }
 }`, rInt, rInt)
@@ -265,7 +265,7 @@ resource "aws_neptune_event_subscription" "bar" {
   event_categories = [
     "configuration change"
   ]
-  tags {
+  tags = {
     Name = "tf-acc-test1"
   }
 }`, rInt, rInt)
@@ -288,7 +288,7 @@ resource "aws_neptune_event_subscription" "bar" {
     "deletion",
     "maintenance"
   ]
-  tags {
+  tags = {
     Name = "tf-acc-test"
   }
 }`, rInt)
@@ -314,7 +314,7 @@ resource "aws_neptune_event_subscription" "bar" {
   event_categories = [
     "configuration change"
   ]
-  tags {
+  tags = {
     Name = "tf-acc-test"
   }
 }`, rInt, rInt, rInt)
@@ -346,7 +346,7 @@ func testAccAWSNeptuneEventSubscriptionConfigUpdateSourceIds(rInt int) string {
 		event_categories = [
 			"configuration change"
 		]
-		tags {
+	tags = {
 			Name = "tf-acc-test"
 		}
 	}`, rInt, rInt, rInt, rInt)
@@ -365,7 +365,7 @@ resource "aws_neptune_event_subscription" "bar" {
   event_categories = [
     "availability",
   ]
-  tags {
+  tags = {
     Name = "tf-acc-test"
   }
 }`, rInt, rInt)

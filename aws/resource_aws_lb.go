@@ -557,11 +557,8 @@ func cleanupLBNetworkInterfaces(conn *ec2.EC2, lbArn string) error {
 	}
 
 	err = deleteNetworkInterfaces(conn, out.NetworkInterfaces)
-	if err != nil {
-		return err
-	}
 
-	return nil
+	return err
 }
 
 func waitForNLBNetworkInterfacesToDetach(conn *ec2.EC2, lbArn string) error {
@@ -631,7 +628,7 @@ func flattenSubnetMappingsFromAvailabilityZones(availabilityZones []*elbv2.Avail
 	l := make([]map[string]interface{}, 0)
 	for _, availabilityZone := range availabilityZones {
 		for _, loadBalancerAddress := range availabilityZone.LoadBalancerAddresses {
-			m := make(map[string]interface{}, 0)
+			m := make(map[string]interface{})
 			m["subnet_id"] = aws.StringValue(availabilityZone.SubnetId)
 
 			if loadBalancerAddress.AllocationId != nil {

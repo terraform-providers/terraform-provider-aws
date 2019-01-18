@@ -1,0 +1,13 @@
+sudo: false
+
+language: go
+
+go:
+  - 1.8
+  - tip
+
+script: make updatedeps test testrace
+
+matrix:
+  allow_failures:
+    - go: tip

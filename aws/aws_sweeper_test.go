@@ -15,12 +15,8 @@ func TestMain(m *testing.M) {
 // sharedClientForRegion returns a common AWSClient setup needed for the sweeper
 // functions for a given region
 func sharedClientForRegion(region string) (interface{}, error) {
-	if os.Getenv("AWS_ACCESS_KEY_ID") == "" {
-		return nil, fmt.Errorf("empty AWS_ACCESS_KEY_ID")
-	}
-
-	if os.Getenv("AWS_SECRET_ACCESS_KEY") == "" {
-		return nil, fmt.Errorf("empty AWS_SECRET_ACCESS_KEY")
+	if os.Getenv("AWS_PROFILE") == "" && (os.Getenv("AWS_ACCESS_KEY_ID") == "" || os.Getenv("AWS_SECRET_ACCESS_KEY") == "") {
+		return nil, fmt.Errorf("must provide environment variables AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY or environment variable AWS_PROFILE")
 	}
 
 	conf := &Config{

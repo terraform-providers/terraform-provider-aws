@@ -185,10 +185,10 @@ resource "aws_batch_job_definition" "test" {
 		param1 = "val1"
 		param2 = "val2"
 	}
-	retry_strategy = {
+	retry_strategy {
 		attempts = 1
 	}
-	timeout = {
+	timeout {
 		attempt_duration_seconds = 60
 	}
 	container_properties = <<CONTAINER_PROPERTIES

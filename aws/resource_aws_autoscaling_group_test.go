@@ -1032,6 +1032,401 @@ func TestAccAWSAutoScalingGroup_LaunchTemplate_IAMInstanceProfile(t *testing.T) 
 	})
 }
 
+func TestAccAWSAutoScalingGroup_MixedInstancesPolicy(t *testing.T) {
+	var group autoscaling.Group
+	resourceName := "aws_autoscaling_group.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAutoScalingGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSAutoScalingGroupConfig_MixedInstancesPolicy(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAutoScalingGroupExists(resourceName, &group),
+					resource.TestCheckResourceAttr(resourceName, "mixed_instances_policy.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "mixed_instances_policy.0.launch_template.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "mixed_instances_policy.0.launch_template.0.launch_template_specification.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "mixed_instances_policy.0.launch_template.0.launch_template_specification.0.version", "$Default"),
+					resource.TestCheckResourceAttr(resourceName, "mixed_instances_policy.0.launch_template.0.override.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "mixed_instances_policy.0.launch_template.0.override.0.instance_type", "t2.micro"),
+					resource.TestCheckResourceAttr(resourceName, "mixed_instances_policy.0.launch_template.0.override.1.instance_type", "t3.small"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"force_delete",
+					"metrics_granularity",
+					"wait_for_capacity_timeout",
+				},
+			},
+		},
+	})
+}
+
+func TestAccAWSAutoScalingGroup_MixedInstancesPolicy_InstancesDistribution_OnDemandAllocationStrategy(t *testing.T) {
+	var group autoscaling.Group
+	resourceName := "aws_autoscaling_group.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAutoScalingGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSAutoScalingGroupConfig_MixedInstancesPolicy_InstancesDistribution_OnDemandAllocationStrategy(rName, "prioritized"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAutoScalingGroupExists(resourceName, &group),
+					resource.TestCheckResourceAttr(resourceName, "mixed_instances_policy.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "mixed_instances_policy.0.instances_distribution.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "mixed_instances_policy.0.instances_distribution.0.on_demand_allocation_strategy", "prioritized"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"force_delete",
+					"metrics_granularity",
+					"wait_for_capacity_timeout",
+				},
+			},
+		},
+	})
+}
+
+func TestAccAWSAutoScalingGroup_MixedInstancesPolicy_InstancesDistribution_OnDemandBaseCapacity(t *testing.T) {
+	var group autoscaling.Group
+	resourceName := "aws_autoscaling_group.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAutoScalingGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSAutoScalingGroupConfig_MixedInstancesPolicy_InstancesDistribution_OnDemandBaseCapacity(rName, 1),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAutoScalingGroupExists(resourceName, &group),
+					resource.TestCheckResourceAttr(resourceName, "mixed_instances_policy.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "mixed_instances_policy.0.instances_distribution.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "mixed_instances_policy.0.instances_distribution.0.on_demand_base_capacity", "1"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"force_delete",
+					"metrics_granularity",
+					"wait_for_capacity_timeout",
+				},
+			},
+			{
+				Config: testAccAWSAutoScalingGroupConfig_MixedInstancesPolicy_InstancesDistribution_OnDemandBaseCapacity(rName, 2),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAutoScalingGroupExists(resourceName, &group),
+					resource.TestCheckResourceAttr(resourceName, "mixed_instances_policy.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "mixed_instances_policy.0.instances_distribution.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "mixed_instances_policy.0.instances_distribution.0.on_demand_base_capacity", "2"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSAutoScalingGroup_MixedInstancesPolicy_InstancesDistribution_OnDemandPercentageAboveBaseCapacity(t *testing.T) {
+	var group autoscaling.Group
+	resourceName := "aws_autoscaling_group.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAutoScalingGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSAutoScalingGroupConfig_MixedInstancesPolicy_InstancesDistribution_OnDemandPercentageAboveBaseCapacity(rName, 1),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAutoScalingGroupExists(resourceName, &group),
+					resource.TestCheckResourceAttr(resourceName, "mixed_instances_policy.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "mixed_instances_policy.0.instances_distribution.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "mixed_instances_policy.0.instances_distribution.0.on_demand_percentage_above_base_capacity", "1"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"force_delete",
+					"metrics_granularity",
+					"wait_for_capacity_timeout",
+				},
+			},
+			{
+				Config: testAccAWSAutoScalingGroupConfig_MixedInstancesPolicy_InstancesDistribution_OnDemandPercentageAboveBaseCapacity(rName, 2),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAutoScalingGroupExists(resourceName, &group),
+					resource.TestCheckResourceAttr(resourceName, "mixed_instances_policy.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "mixed_instances_policy.0.instances_distribution.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "mixed_instances_policy.0.instances_distribution.0.on_demand_percentage_above_base_capacity", "2"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSAutoScalingGroup_MixedInstancesPolicy_InstancesDistribution_SpotAllocationStrategy(t *testing.T) {
+	var group autoscaling.Group
+	resourceName := "aws_autoscaling_group.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAutoScalingGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSAutoScalingGroupConfig_MixedInstancesPolicy_InstancesDistribution_SpotAllocationStrategy(rName, "lowest-price"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAutoScalingGroupExists(resourceName, &group),
+					resource.TestCheckResourceAttr(resourceName, "mixed_instances_policy.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "mixed_instances_policy.0.instances_distribution.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "mixed_instances_policy.0.instances_distribution.0.spot_allocation_strategy", "lowest-price"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"force_delete",
+					"metrics_granularity",
+					"wait_for_capacity_timeout",
+				},
+			},
+		},
+	})
+}
+
+func TestAccAWSAutoScalingGroup_MixedInstancesPolicy_InstancesDistribution_SpotInstancePools(t *testing.T) {
+	var group autoscaling.Group
+	resourceName := "aws_autoscaling_group.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAutoScalingGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSAutoScalingGroupConfig_MixedInstancesPolicy_InstancesDistribution_SpotInstancePools(rName, 2),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAutoScalingGroupExists(resourceName, &group),
+					resource.TestCheckResourceAttr(resourceName, "mixed_instances_policy.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "mixed_instances_policy.0.instances_distribution.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "mixed_instances_policy.0.instances_distribution.0.spot_instance_pools", "2"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"force_delete",
+					"metrics_granularity",
+					"wait_for_capacity_timeout",
+				},
+			},
+			{
+				Config: testAccAWSAutoScalingGroupConfig_MixedInstancesPolicy_InstancesDistribution_SpotInstancePools(rName, 3),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAutoScalingGroupExists(resourceName, &group),
+					resource.TestCheckResourceAttr(resourceName, "mixed_instances_policy.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "mixed_instances_policy.0.instances_distribution.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "mixed_instances_policy.0.instances_distribution.0.spot_instance_pools", "3"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSAutoScalingGroup_MixedInstancesPolicy_InstancesDistribution_SpotMaxPrice(t *testing.T) {
+	var group autoscaling.Group
+	resourceName := "aws_autoscaling_group.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAutoScalingGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSAutoScalingGroupConfig_MixedInstancesPolicy_InstancesDistribution_SpotMaxPrice(rName, "0.50"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAutoScalingGroupExists(resourceName, &group),
+					resource.TestCheckResourceAttr(resourceName, "mixed_instances_policy.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "mixed_instances_policy.0.instances_distribution.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "mixed_instances_policy.0.instances_distribution.0.spot_max_price", "0.50"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"force_delete",
+					"metrics_granularity",
+					"wait_for_capacity_timeout",
+				},
+			},
+			{
+				Config: testAccAWSAutoScalingGroupConfig_MixedInstancesPolicy_InstancesDistribution_SpotMaxPrice(rName, "0.51"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAutoScalingGroupExists(resourceName, &group),
+					resource.TestCheckResourceAttr(resourceName, "mixed_instances_policy.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "mixed_instances_policy.0.instances_distribution.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "mixed_instances_policy.0.instances_distribution.0.spot_max_price", "0.51"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSAutoScalingGroup_MixedInstancesPolicy_LaunchTemplate_LaunchTemplateSpecification_LaunchTemplateName(t *testing.T) {
+	var group autoscaling.Group
+	resourceName := "aws_autoscaling_group.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAutoScalingGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSAutoScalingGroupConfig_MixedInstancesPolicy_LaunchTemplate_LaunchTemplateSpecification_LaunchTemplateName(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAutoScalingGroupExists(resourceName, &group),
+					resource.TestCheckResourceAttr(resourceName, "mixed_instances_policy.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "mixed_instances_policy.0.launch_template.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "mixed_instances_policy.0.launch_template.0.launch_template_specification.#", "1"),
+					resource.TestCheckResourceAttrSet(resourceName, "mixed_instances_policy.0.launch_template.0.launch_template_specification.0.launch_template_name"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"force_delete",
+					"metrics_granularity",
+					"wait_for_capacity_timeout",
+				},
+			},
+		},
+	})
+}
+
+func TestAccAWSAutoScalingGroup_MixedInstancesPolicy_LaunchTemplate_LaunchTemplateSpecification_Version(t *testing.T) {
+	var group autoscaling.Group
+	resourceName := "aws_autoscaling_group.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAutoScalingGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSAutoScalingGroupConfig_MixedInstancesPolicy_LaunchTemplate_LaunchTemplateSpecification_Version(rName, "1"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAutoScalingGroupExists(resourceName, &group),
+					resource.TestCheckResourceAttr(resourceName, "mixed_instances_policy.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "mixed_instances_policy.0.launch_template.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "mixed_instances_policy.0.launch_template.0.launch_template_specification.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "mixed_instances_policy.0.launch_template.0.launch_template_specification.0.version", "1"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"force_delete",
+					"metrics_granularity",
+					"wait_for_capacity_timeout",
+				},
+			},
+			{
+				Config: testAccAWSAutoScalingGroupConfig_MixedInstancesPolicy_LaunchTemplate_LaunchTemplateSpecification_Version(rName, "$$Latest"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAutoScalingGroupExists(resourceName, &group),
+					resource.TestCheckResourceAttr(resourceName, "mixed_instances_policy.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "mixed_instances_policy.0.launch_template.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "mixed_instances_policy.0.launch_template.0.launch_template_specification.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "mixed_instances_policy.0.launch_template.0.launch_template_specification.0.version", "$Latest"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSAutoScalingGroup_MixedInstancesPolicy_LaunchTemplate_Override_InstanceType(t *testing.T) {
+	var group autoscaling.Group
+	resourceName := "aws_autoscaling_group.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAutoScalingGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSAutoScalingGroupConfig_MixedInstancesPolicy_LaunchTemplate_Override_InstanceType(rName, "t3.small"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAutoScalingGroupExists(resourceName, &group),
+					resource.TestCheckResourceAttr(resourceName, "mixed_instances_policy.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "mixed_instances_policy.0.launch_template.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "mixed_instances_policy.0.launch_template.0.override.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "mixed_instances_policy.0.launch_template.0.override.0.instance_type", "t2.micro"),
+					resource.TestCheckResourceAttr(resourceName, "mixed_instances_policy.0.launch_template.0.override.1.instance_type", "t3.small"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"force_delete",
+					"metrics_granularity",
+					"wait_for_capacity_timeout",
+				},
+			},
+			{
+				Config: testAccAWSAutoScalingGroupConfig_MixedInstancesPolicy_LaunchTemplate_Override_InstanceType(rName, "t3.medium"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAutoScalingGroupExists(resourceName, &group),
+					resource.TestCheckResourceAttr(resourceName, "mixed_instances_policy.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "mixed_instances_policy.0.launch_template.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "mixed_instances_policy.0.launch_template.0.override.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "mixed_instances_policy.0.launch_template.0.override.0.instance_type", "t2.micro"),
+					resource.TestCheckResourceAttr(resourceName, "mixed_instances_policy.0.launch_template.0.override.1.instance_type", "t3.medium"),
+				),
+			},
+		},
+	})
+}
+
 const testAccAWSAutoScalingGroupConfig_autoGeneratedName = `
 data "aws_ami" "test_ami" {
   most_recent = true
@@ -1365,7 +1760,7 @@ resource "aws_autoscaling_group" "bar" {
 const testAccAWSAutoScalingGroupConfigWithLoadBalancer = `
 resource "aws_vpc" "foo" {
   cidr_block = "10.1.0.0/16"
-  tags {
+  tags = {
     Name = "terraform-testacc-autoscaling-group-with-lb"
   }
 }
@@ -1377,7 +1772,7 @@ resource "aws_internet_gateway" "gw" {
 resource "aws_subnet" "foo" {
 	cidr_block = "10.1.1.0/24"
 	vpc_id = "${aws_vpc.foo.id}"
-	tags {
+	tags = {
 		Name = "tf-acc-autoscaling-group-with-load-balancer"
 	}
 }
@@ -1458,7 +1853,7 @@ resource "aws_autoscaling_group" "bar" {
 const testAccAWSAutoScalingGroupConfigWithAZ = `
 resource "aws_vpc" "default" {
   cidr_block = "10.0.0.0/16"
-  tags {
+  tags = {
     Name = "terraform-testacc-autoscaling-group-with-az"
   }
 }
@@ -1467,7 +1862,7 @@ resource "aws_subnet" "main" {
   vpc_id = "${aws_vpc.default.id}"
   cidr_block = "10.0.1.0/24"
   availability_zone = "us-west-2a"
-  tags {
+  tags = {
     Name = "tf-acc-autoscaling-group-with-az"
   }
 }
@@ -1505,7 +1900,7 @@ resource "aws_autoscaling_group" "bar" {
 const testAccAWSAutoScalingGroupConfigWithVPCIdent = `
 resource "aws_vpc" "default" {
   cidr_block = "10.0.0.0/16"
-  tags {
+  tags = {
     Name = "terraform-testacc-autoscaling-group-with-vpc-id"
   }
 }
@@ -1514,7 +1909,7 @@ resource "aws_subnet" "main" {
   vpc_id = "${aws_vpc.default.id}"
   cidr_block = "10.0.1.0/24"
   availability_zone = "us-west-2a"
-  tags {
+  tags = {
     Name = "tf-acc-autoscaling-group-with-vpc-id"
   }
 }
@@ -1718,7 +2113,7 @@ const testAccAWSAutoScalingGroupConfig_ALB_TargetGroup_pre = `
 resource "aws_vpc" "default" {
   cidr_block = "10.0.0.0/16"
 
-  tags {
+  tags = {
     Name = "terraform-testacc-autoscaling-group-alb-target-group"
   }
 }
@@ -1735,7 +2130,7 @@ resource "aws_subnet" "main" {
   cidr_block        = "10.0.1.0/24"
   availability_zone = "us-west-2a"
 
-  tags {
+  tags = {
     Name = "tf-acc-autoscaling-group-alb-target-group-main"
   }
 }
@@ -1745,7 +2140,7 @@ resource "aws_subnet" "alt" {
   cidr_block        = "10.0.2.0/24"
   availability_zone = "us-west-2b"
 
-  tags {
+  tags = {
     Name = "tf-acc-autoscaling-group-alb-target-group-alt"
   }
 }
@@ -1799,7 +2194,7 @@ resource "aws_security_group" "tf_test_self" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags {
+  tags = {
     Name = "testAccAWSAutoScalingGroupConfig_ALB_TargetGroup"
   }
 }
@@ -1809,7 +2204,7 @@ const testAccAWSAutoScalingGroupConfig_ALB_TargetGroup_post = `
 resource "aws_vpc" "default" {
   cidr_block = "10.0.0.0/16"
 
-  tags {
+  tags = {
     Name = "terraform-testacc-autoscaling-group-alb-target-group"
   }
 }
@@ -1826,7 +2221,7 @@ resource "aws_subnet" "main" {
   cidr_block        = "10.0.1.0/24"
   availability_zone = "us-west-2a"
 
-  tags {
+  tags = {
     Name = "tf-acc-autoscaling-group-alb-target-group-main"
   }
 }
@@ -1836,7 +2231,7 @@ resource "aws_subnet" "alt" {
   cidr_block        = "10.0.2.0/24"
   availability_zone = "us-west-2b"
 
-  tags {
+  tags = {
     Name = "tf-acc-autoscaling-group-alb-target-group-alt"
   }
 }
@@ -1892,7 +2287,7 @@ resource "aws_security_group" "tf_test_self" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags {
+  tags = {
     Name = "testAccAWSAutoScalingGroupConfig_ALB_TargetGroup"
   }
 }
@@ -1906,7 +2301,7 @@ provider "aws" {
 resource "aws_vpc" "default" {
   cidr_block = "10.0.0.0/16"
 
-  tags {
+  tags = {
     Name = "terraform-testacc-autoscaling-group-alb-target-group"
   }
 }
@@ -1930,7 +2325,7 @@ resource "aws_subnet" "main" {
   cidr_block        = "10.0.1.0/24"
   availability_zone = "us-west-2a"
 
-  tags {
+  tags = {
     Name = "tf-acc-autoscaling-group-alb-target-group-main"
   }
 }
@@ -1940,7 +2335,7 @@ resource "aws_subnet" "alt" {
   cidr_block        = "10.0.2.0/24"
   availability_zone = "us-west-2b"
 
-  tags {
+  tags = {
     Name = "tf-acc-autoscaling-group-alb-target-group-alt"
   }
 }
@@ -1999,7 +2394,7 @@ resource "aws_security_group" "tf_test_self" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags {
+  tags = {
     Name = "testAccAWSAutoScalingGroupConfig_ALB_TargetGroup"
   }
 }
@@ -2059,7 +2454,7 @@ resource "aws_vpc" "default" {
   enable_dns_hostnames = "true"
   enable_dns_support   = "true"
 
-  tags {
+  tags = {
     Name = "terraform-testacc-autoscaling-group-alb-target-group-elb-capacity"
   }
 }
@@ -2067,7 +2462,7 @@ resource "aws_vpc" "default" {
 resource "aws_lb" "test_lb" {
   subnets = ["${aws_subnet.main.id}", "${aws_subnet.alt.id}"]
 
-  tags {
+  tags = {
     Name = "testAccAWSAutoScalingGroupConfig_ALB_TargetGroup_ELBCapacity"
   }
 }
@@ -2096,7 +2491,7 @@ resource "aws_lb_target_group" "test" {
     matcher           = "200"
   }
 
-  tags {
+  tags = {
     Name = "testAccAWSAutoScalingGroupConfig_ALB_TargetGroup_ELBCapacity"
   }
 }
@@ -2106,7 +2501,7 @@ resource "aws_subnet" "main" {
   cidr_block        = "10.0.1.0/24"
   availability_zone = "us-west-2a"
 
-  tags {
+  tags = {
     Name = "tf-acc-autoscaling-group-alb-target-group-elb-capacity-main"
   }
 }
@@ -2116,7 +2511,7 @@ resource "aws_subnet" "alt" {
   cidr_block        = "10.0.2.0/24"
   availability_zone = "us-west-2b"
 
-  tags {
+  tags = {
     Name = "tf-acc-autoscaling-group-alb-target-group-elb-capacity-alt"
   }
 }
@@ -2324,7 +2719,7 @@ resource "aws_launch_configuration" "test" {
 const testAccAWSAutoScalingGroupConfig_emptyAvailabilityZones = `
 resource "aws_vpc" "test" {
   cidr_block = "10.0.0.0/16"
-  tags {
+  tags = {
     Name = "terraform-testacc-autoscaling-group-empty-azs"
   }
 }
@@ -2332,7 +2727,7 @@ resource "aws_vpc" "test" {
 resource "aws_subnet" "test" {
   vpc_id     = "${aws_vpc.test.id}"
   cidr_block = "10.0.0.0/16"
-  tags {
+  tags = {
     Name = "tf-acc-autoscaling-group-empty-availability-zones"
   }
 }
@@ -2394,7 +2789,7 @@ resource "aws_autoscaling_group" "bar" {
   desired_capacity = 0
   max_size = 0
   min_size = 0
-  launch_template = {
+  launch_template {
     id = "${aws_launch_template.foobar.id}"
     version = "${aws_launch_template.foobar.default_version}"
   }
@@ -2477,7 +2872,7 @@ resource "aws_autoscaling_group" "bar" {
   desired_capacity = 0
   max_size = 0
   min_size = 0
-  launch_template = {
+  launch_template {
     name = "foobar2"
   }
 }
@@ -2522,7 +2917,7 @@ resource "aws_autoscaling_group" "bar" {
   desired_capacity = 0
   max_size = 0
   min_size = 0
-  launch_template = {
+  launch_template {
     id = "${aws_launch_template.foobar.id}"
     version = "$$Latest"
   }
@@ -2575,4 +2970,321 @@ resource "aws_autoscaling_group" "test" {
   }
 }
 `, rName, rName, rName, rName)
+}
+
+func testAccAWSAutoScalingGroupConfig_MixedInstancesPolicy_Base(rName string) string {
+	return fmt.Sprintf(`
+data "aws_ami" "test" {
+  most_recent = true
+  owners      = ["amazon"]
+
+  filter {
+    name   = "name"
+    values = ["amzn-ami-hvm-*-x86_64-gp2"]
+  }
+}
+
+data "aws_availability_zones" "available" {}
+
+resource "aws_launch_template" "test" {
+  image_id      = "${data.aws_ami.test.id}"
+  instance_type = "t3.micro"
+  name          = %q
+}
+`, rName)
+}
+
+func testAccAWSAutoScalingGroupConfig_MixedInstancesPolicy(rName string) string {
+	return testAccAWSAutoScalingGroupConfig_MixedInstancesPolicy_Base(rName) + fmt.Sprintf(`
+resource "aws_autoscaling_group" "test" {
+  availability_zones = ["${data.aws_availability_zones.available.names[0]}"]
+  desired_capacity   = 0
+  max_size           = 0
+  min_size           = 0
+  name               = %q
+
+  mixed_instances_policy {
+    launch_template {
+      launch_template_specification {
+        launch_template_id = "${aws_launch_template.test.id}"
+      }
+
+      override {
+        instance_type = "t2.micro"
+      }
+      override {
+        instance_type = "t3.small"
+      }
+    }
+  }
+}
+`, rName)
+}
+
+func testAccAWSAutoScalingGroupConfig_MixedInstancesPolicy_InstancesDistribution_OnDemandAllocationStrategy(rName, onDemandAllocationStrategy string) string {
+	return testAccAWSAutoScalingGroupConfig_MixedInstancesPolicy_Base(rName) + fmt.Sprintf(`
+resource "aws_autoscaling_group" "test" {
+  availability_zones = ["${data.aws_availability_zones.available.names[0]}"]
+  desired_capacity   = 0
+  max_size           = 0
+  min_size           = 0
+  name               = %q
+
+  mixed_instances_policy {
+    instances_distribution {
+      on_demand_allocation_strategy = %q
+    }
+
+    launch_template {
+      launch_template_specification {
+        launch_template_id = "${aws_launch_template.test.id}"
+      }
+
+      override {
+        instance_type = "t2.micro"
+      }
+      override {
+        instance_type = "t3.small"
+      }
+    }
+  }
+}
+`, rName, onDemandAllocationStrategy)
+}
+
+func testAccAWSAutoScalingGroupConfig_MixedInstancesPolicy_InstancesDistribution_OnDemandBaseCapacity(rName string, onDemandBaseCapacity int) string {
+	return testAccAWSAutoScalingGroupConfig_MixedInstancesPolicy_Base(rName) + fmt.Sprintf(`
+resource "aws_autoscaling_group" "test" {
+  availability_zones = ["${data.aws_availability_zones.available.names[0]}"]
+  desired_capacity   = 0
+  max_size           = 2
+  min_size           = 0
+  name               = %q
+
+  mixed_instances_policy {
+    instances_distribution {
+      on_demand_base_capacity = %d
+    }
+
+    launch_template {
+      launch_template_specification {
+        launch_template_id = "${aws_launch_template.test.id}"
+      }
+
+      override {
+        instance_type = "t2.micro"
+      }
+      override {
+        instance_type = "t3.small"
+      }
+    }
+  }
+}
+`, rName, onDemandBaseCapacity)
+}
+
+func testAccAWSAutoScalingGroupConfig_MixedInstancesPolicy_InstancesDistribution_OnDemandPercentageAboveBaseCapacity(rName string, onDemandPercentageAboveBaseCapacity int) string {
+	return testAccAWSAutoScalingGroupConfig_MixedInstancesPolicy_Base(rName) + fmt.Sprintf(`
+resource "aws_autoscaling_group" "test" {
+  availability_zones = ["${data.aws_availability_zones.available.names[0]}"]
+  desired_capacity   = 0
+  max_size           = 0
+  min_size           = 0
+  name               = %q
+
+  mixed_instances_policy {
+    instances_distribution {
+      on_demand_percentage_above_base_capacity = %d
+    }
+
+    launch_template {
+      launch_template_specification {
+        launch_template_id = "${aws_launch_template.test.id}"
+      }
+
+      override {
+        instance_type = "t2.micro"
+      }
+      override {
+        instance_type = "t3.small"
+      }
+    }
+  }
+}
+`, rName, onDemandPercentageAboveBaseCapacity)
+}
+
+func testAccAWSAutoScalingGroupConfig_MixedInstancesPolicy_InstancesDistribution_SpotAllocationStrategy(rName, spotAllocationStrategy string) string {
+	return testAccAWSAutoScalingGroupConfig_MixedInstancesPolicy_Base(rName) + fmt.Sprintf(`
+resource "aws_autoscaling_group" "test" {
+  availability_zones = ["${data.aws_availability_zones.available.names[0]}"]
+  desired_capacity   = 0
+  max_size           = 0
+  min_size           = 0
+  name               = %q
+
+  mixed_instances_policy {
+    instances_distribution {
+      spot_allocation_strategy = %q
+    }
+
+    launch_template {
+      launch_template_specification {
+        launch_template_id = "${aws_launch_template.test.id}"
+      }
+
+      override {
+        instance_type = "t2.micro"
+      }
+      override {
+        instance_type = "t3.small"
+      }
+    }
+  }
+}
+`, rName, spotAllocationStrategy)
+}
+
+func testAccAWSAutoScalingGroupConfig_MixedInstancesPolicy_InstancesDistribution_SpotInstancePools(rName string, spotInstancePools int) string {
+	return testAccAWSAutoScalingGroupConfig_MixedInstancesPolicy_Base(rName) + fmt.Sprintf(`
+resource "aws_autoscaling_group" "test" {
+  availability_zones = ["${data.aws_availability_zones.available.names[0]}"]
+  desired_capacity   = 0
+  max_size           = 0
+  min_size           = 0
+  name               = %q
+
+  mixed_instances_policy {
+    instances_distribution {
+      spot_instance_pools = %d
+    }
+
+    launch_template {
+      launch_template_specification {
+        launch_template_id = "${aws_launch_template.test.id}"
+      }
+
+      override {
+        instance_type = "t2.micro"
+      }
+      override {
+        instance_type = "t3.small"
+      }
+    }
+  }
+}
+`, rName, spotInstancePools)
+}
+
+func testAccAWSAutoScalingGroupConfig_MixedInstancesPolicy_InstancesDistribution_SpotMaxPrice(rName, spotMaxPrice string) string {
+	return testAccAWSAutoScalingGroupConfig_MixedInstancesPolicy_Base(rName) + fmt.Sprintf(`
+resource "aws_autoscaling_group" "test" {
+  availability_zones = ["${data.aws_availability_zones.available.names[0]}"]
+  desired_capacity   = 0
+  max_size           = 0
+  min_size           = 0
+  name               = %q
+
+  mixed_instances_policy {
+    instances_distribution {
+      spot_max_price = %q
+    }
+
+    launch_template {
+      launch_template_specification {
+        launch_template_id = "${aws_launch_template.test.id}"
+      }
+
+      override {
+        instance_type = "t2.micro"
+      }
+      override {
+        instance_type = "t3.small"
+      }
+    }
+  }
+}
+`, rName, spotMaxPrice)
+}
+
+func testAccAWSAutoScalingGroupConfig_MixedInstancesPolicy_LaunchTemplate_LaunchTemplateSpecification_LaunchTemplateName(rName string) string {
+	return testAccAWSAutoScalingGroupConfig_MixedInstancesPolicy_Base(rName) + fmt.Sprintf(`
+resource "aws_autoscaling_group" "test" {
+  availability_zones = ["${data.aws_availability_zones.available.names[0]}"]
+  desired_capacity   = 0
+  max_size           = 0
+  min_size           = 0
+  name               = %q
+
+  mixed_instances_policy {
+    launch_template {
+      launch_template_specification {
+        launch_template_name = "${aws_launch_template.test.name}"
+      }
+
+      override {
+        instance_type = "t2.micro"
+      }
+      override {
+        instance_type = "t3.small"
+      }
+    }
+  }
+}
+`, rName)
+}
+
+func testAccAWSAutoScalingGroupConfig_MixedInstancesPolicy_LaunchTemplate_LaunchTemplateSpecification_Version(rName, version string) string {
+	return testAccAWSAutoScalingGroupConfig_MixedInstancesPolicy_Base(rName) + fmt.Sprintf(`
+resource "aws_autoscaling_group" "test" {
+  availability_zones = ["${data.aws_availability_zones.available.names[0]}"]
+  desired_capacity   = 0
+  max_size           = 0
+  min_size           = 0
+  name               = %q
+
+  mixed_instances_policy {
+    launch_template {
+      launch_template_specification {
+        launch_template_id = "${aws_launch_template.test.id}"
+        version            = %q
+      }
+
+      override {
+        instance_type = "t2.micro"
+      }
+      override {
+        instance_type = "t3.small"
+      }
+    }
+  }
+}
+`, rName, version)
+}
+
+func testAccAWSAutoScalingGroupConfig_MixedInstancesPolicy_LaunchTemplate_Override_InstanceType(rName, instanceType string) string {
+	return testAccAWSAutoScalingGroupConfig_MixedInstancesPolicy_Base(rName) + fmt.Sprintf(`
+resource "aws_autoscaling_group" "test" {
+  availability_zones = ["${data.aws_availability_zones.available.names[0]}"]
+  desired_capacity   = 0
+  max_size           = 0
+  min_size           = 0
+  name               = %q
+
+  mixed_instances_policy {
+    launch_template {
+      launch_template_specification {
+        launch_template_id = "${aws_launch_template.test.id}"
+      }
+
+      override {
+        instance_type = "t2.micro"
+      }
+      override {
+        instance_type = %q
+      }
+    }
+  }
+}
+`, rName, instanceType)
 }

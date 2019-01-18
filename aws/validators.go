@@ -82,6 +82,34 @@ func validateTypeStringNullableFloat(v interface{}, k string) (ws []string, es [
 	return
 }
 
+func validateTransferServerID(v interface{}, k string) (ws []string, errors []error) {
+	value := v.(string)
+
+	// https://docs.aws.amazon.com/transfer/latest/userguide/API_CreateUser.html
+	pattern := `^s-([0-9a-f]{17})$`
+	if !regexp.MustCompile(pattern).MatchString(value) {
+		errors = append(errors, fmt.Errorf(
+			"%q isn't a valid transfer server id (only lowercase alphanumeric characters are allowed): %q",
+			k, value))
+	}
+
+	return
+}
+
+func validateTransferUserName(v interface{}, k string) (ws []string, errors []error) {
+	value := v.(string)
+
+	// https://docs.aws.amazon.com/transfer/latest/userguide/API_CreateUser.html
+	pattern := `^[a-z0-9]{3,32}$`
+	if !regexp.MustCompile(pattern).MatchString(value) {
+		errors = append(errors, fmt.Errorf(
+			"%q isn't a valid transfer user name (only lowercase alphanumeric characters are allowed): %q",
+			k, value))
+	}
+
+	return
+}
+
 func validateRdsIdentifier(v interface{}, k string) (ws []string, errors []error) {
 	value := v.(string)
 	if !regexp.MustCompile(`^[0-9a-z-]+$`).MatchString(value) {
@@ -245,6 +273,52 @@ func validateDbParamGroupName(v interface{}, k string) (ws []string, errors []er
 }
 
 func validateDbParamGroupNamePrefix(v interface{}, k string) (ws []string, errors []error) {
+	value := v.(string)
+	if !regexp.MustCompile(`^[0-9a-z-]+$`).MatchString(value) {
+		errors = append(errors, fmt.Errorf(
+			"only lowercase alphanumeric characters and hyphens allowed in parameter group %q", k))
+	}
+	if !regexp.MustCompile(`^[a-z]`).MatchString(value) {
+		errors = append(errors, fmt.Errorf(
+			"first character of parameter group %q must be a letter", k))
+	}
+	if regexp.MustCompile(`--`).MatchString(value) {
+		errors = append(errors, fmt.Errorf(
+			"parameter group %q cannot contain two consecutive hyphens", k))
+	}
+	if len(value) > 255 {
+		errors = append(errors, fmt.Errorf(
+			"parameter group %q cannot be greater than 226 characters", k))
+	}
+	return
+}
+
+func validateDocDBParamGroupName(v interface{}, k string) (ws []string, errors []error) {
+	value := v.(string)
+	if !regexp.MustCompile(`^[0-9a-z-]+$`).MatchString(value) {
+		errors = append(errors, fmt.Errorf(
+			"only lowercase alphanumeric characters and hyphens allowed in parameter group %q", k))
+	}
+	if !regexp.MustCompile(`^[a-z]`).MatchString(value) {
+		errors = append(errors, fmt.Errorf(
+			"first character of parameter group %q must be a letter", k))
+	}
+	if regexp.MustCompile(`--`).MatchString(value) {
+		errors = append(errors, fmt.Errorf(
+			"parameter group %q cannot contain two consecutive hyphens", k))
+	}
+	if regexp.MustCompile(`-$`).MatchString(value) {
+		errors = append(errors, fmt.Errorf(
+			"parameter group %q cannot end with a hyphen", k))
+	}
+	if len(value) > 255 {
+		errors = append(errors, fmt.Errorf(
+			"parameter group %q cannot be greater than 255 characters", k))
+	}
+	return
+}
+
+func validateDocDBParamGroupNamePrefix(v interface{}, k string) (ws []string, errors []error) {
 	value := v.(string)
 	if !regexp.MustCompile(`^[0-9a-z-]+$`).MatchString(value) {
 		errors = append(errors, fmt.Errorf(
@@ -644,12 +718,31 @@ func validateS3BucketLifecycleTimestamp(v interface{}, k string) (ws []string, e
 	return
 }
 
-func validateS3BucketLifecycleStorageClass() schema.SchemaValidateFunc {
+func validateS3BucketLifecycleTransitionStorageClass() schema.SchemaValidateFunc {
 	return validation.StringInSlice([]string{
-		s3.TransitionStorageClassOnezoneIa,
-		s3.TransitionStorageClassStandardIa,
 		s3.TransitionStorageClassGlacier,
+		s3.TransitionStorageClassStandardIa,
+		s3.TransitionStorageClassOnezoneIa,
+		s3.TransitionStorageClassIntelligentTiering,
 	}, false)
+}
+
+func validateSagemakerName(v interface{}, k string) (ws []string, errors []error) {
+	value := v.(string)
+	if !regexp.MustCompile(`^[0-9A-Za-z-]+$`).MatchString(value) {
+		errors = append(errors, fmt.Errorf(
+			"only alphanumeric characters and hyphens allowed in %q: %q",
+			k, value))
+	}
+	if len(value) > 63 {
+		errors = append(errors, fmt.Errorf(
+			"%q cannot be longer than 63 characters: %q", k, value))
+	}
+	if regexp.MustCompile(`^-`).MatchString(value) {
+		errors = append(errors, fmt.Errorf(
+			"%q cannot begin with a hyphen: %q", k, value))
+	}
+	return
 }
 
 func validateDbEventSubscriptionName(v interface{}, k string) (ws []string, errors []error) {
@@ -1050,6 +1143,23 @@ func validateDbSubnetGroupName(v interface{}, k string) (ws []string, errors []e
 	return
 }
 
+func validateDocDBSubnetGroupName(v interface{}, k string) (ws []string, errors []error) {
+	value := v.(string)
+	if !regexp.MustCompile(`^[ .0-9a-z-_]+$`).MatchString(value) {
+		errors = append(errors, fmt.Errorf(
+			"only lowercase alphanumeric characters, hyphens, underscores, periods, and spaces allowed in %q", k))
+	}
+	if len(value) > 255 {
+		errors = append(errors, fmt.Errorf(
+			"%q cannot be longer than 255 characters", k))
+	}
+	if value == "default" {
+		errors = append(errors, fmt.Errorf(
+			"%q is not allowed as %q", "Default", k))
+	}
+	return
+}
+
 func validateNeptuneSubnetGroupName(v interface{}, k string) (ws []string, errors []error) {
 	value := v.(string)
 	if !regexp.MustCompile(`^[ .0-9a-z-_]+$`).MatchString(value) {
@@ -1076,6 +1186,20 @@ func validateDbSubnetGroupNamePrefix(v interface{}, k string) (ws []string, erro
 	if len(value) > 229 {
 		errors = append(errors, fmt.Errorf(
 			"%q cannot be longer than 229 characters", k))
+	}
+	return
+}
+
+func validateDocDBSubnetGroupNamePrefix(v interface{}, k string) (ws []string, errors []error) {
+	value := v.(string)
+	if !regexp.MustCompile(`^[ .0-9a-z-_]+$`).MatchString(value) {
+		errors = append(errors, fmt.Errorf(
+			"only lowercase alphanumeric characters, hyphens, underscores, periods, and spaces allowed in %q", k))
+	}
+	prefixMaxLength := 255 - resource.UniqueIDSuffixLength
+	if len(value) > prefixMaxLength {
+		errors = append(errors, fmt.Errorf(
+			"%q cannot be longer than %d characters", k, prefixMaxLength))
 	}
 	return
 }
@@ -2010,6 +2134,27 @@ func validateCloudFrontPublicKeyNamePrefix(v interface{}, k string) (ws []string
 	if len(value) > prefixMaxLength {
 		errors = append(errors, fmt.Errorf(
 			"%q cannot be greater than %d characters", k, prefixMaxLength))
+	}
+	return
+}
+
+func validateServiceDiscoveryHttpNamespaceName(v interface{}, k string) (ws []string, errors []error) {
+	value := v.(string)
+	if !regexp.MustCompile(`^[0-9A-Za-z_-]+$`).MatchString(value) {
+		errors = append(errors, fmt.Errorf(
+			"only alphanumeric characters, underscores and hyphens allowed in %q", k))
+	}
+	if !regexp.MustCompile(`^[a-zA-Z]`).MatchString(value) {
+		errors = append(errors, fmt.Errorf(
+			"first character of %q must be a letter", k))
+	}
+	if !regexp.MustCompile(`[a-zA-Z]$`).MatchString(value) {
+		errors = append(errors, fmt.Errorf(
+			"last character of %q must be a letter", k))
+	}
+	if len(value) > 1024 {
+		errors = append(errors, fmt.Errorf(
+			"%q cannot be greater than 1024 characters", k))
 	}
 	return
 }

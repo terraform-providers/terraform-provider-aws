@@ -55,7 +55,7 @@ resource "aws_neptune_event_subscription" "default" {
     "read replica",
   ]
 
-  tags {
+  tags = {
     "env" = "test"
   }
 }

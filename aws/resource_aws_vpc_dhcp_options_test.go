@@ -50,6 +50,7 @@ func TestAccAWSDHCPOptions_basic(t *testing.T) {
 					resource.TestCheckResourceAttr("aws_vpc_dhcp_options.foo", "netbios_name_servers.0", "127.0.0.1"),
 					resource.TestCheckResourceAttr("aws_vpc_dhcp_options.foo", "netbios_node_type", "2"),
 					resource.TestCheckResourceAttr("aws_vpc_dhcp_options.foo", "tags.Name", "foo-name"),
+					testAccCheckResourceAttrAccountID("aws_vpc_dhcp_options.foo", "owner_id"),
 				),
 			},
 		},
@@ -172,7 +173,7 @@ resource "aws_vpc_dhcp_options" "foo" {
 	netbios_name_servers = ["127.0.0.1"]
 	netbios_node_type = 2
 
-	tags {
+	tags = {
 		Name = "foo-name"
 	}
 }

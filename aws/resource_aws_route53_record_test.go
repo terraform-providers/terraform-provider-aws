@@ -148,6 +148,8 @@ func TestAccAWSRoute53Record_importUnderscored(t *testing.T) {
 }
 
 func TestAccAWSRoute53Record_basic(t *testing.T) {
+	var record1 route53.ResourceRecordSet
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		IDRefreshName: "aws_route53_record.default",
@@ -157,14 +159,64 @@ func TestAccAWSRoute53Record_basic(t *testing.T) {
 			{
 				Config: testAccRoute53RecordConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckRoute53RecordExists("aws_route53_record.default"),
+					testAccCheckRoute53RecordExists("aws_route53_record.default", &record1),
 				),
 			},
 		},
 	})
 }
 
+func TestAccAWSRoute53Record_disappears(t *testing.T) {
+	var record1 route53.ResourceRecordSet
+	var zone1 route53.GetHostedZoneOutput
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckRoute53RecordDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRoute53RecordConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckRoute53ZoneExists("aws_route53_zone.main", &zone1),
+					testAccCheckRoute53RecordExists("aws_route53_record.default", &record1),
+					testAccCheckRoute53RecordDisappears(&zone1, &record1),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSRoute53Record_disappears_MultipleRecords(t *testing.T) {
+	var record1, record2, record3, record4, record5 route53.ResourceRecordSet
+	var zone1 route53.GetHostedZoneOutput
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckRoute53RecordDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRoute53RecordConfigMultiple,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckRoute53ZoneExists("aws_route53_zone.test", &zone1),
+					testAccCheckRoute53RecordExists("aws_route53_record.test.0", &record1),
+					testAccCheckRoute53RecordExists("aws_route53_record.test.1", &record2),
+					testAccCheckRoute53RecordExists("aws_route53_record.test.2", &record3),
+					testAccCheckRoute53RecordExists("aws_route53_record.test.3", &record4),
+					testAccCheckRoute53RecordExists("aws_route53_record.test.4", &record5),
+					testAccCheckRoute53RecordDisappears(&zone1, &record1),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
 func TestAccAWSRoute53Record_basic_fqdn(t *testing.T) {
+	var record1, record2 route53.ResourceRecordSet
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		IDRefreshName: "aws_route53_record.default",
@@ -174,7 +226,7 @@ func TestAccAWSRoute53Record_basic_fqdn(t *testing.T) {
 			{
 				Config: testAccRoute53RecordConfig_fqdn,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckRoute53RecordExists("aws_route53_record.default"),
+					testAccCheckRoute53RecordExists("aws_route53_record.default", &record1),
 				),
 			},
 
@@ -187,7 +239,7 @@ func TestAccAWSRoute53Record_basic_fqdn(t *testing.T) {
 			{
 				Config: testAccRoute53RecordConfig_fqdn_no_op,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckRoute53RecordExists("aws_route53_record.default"),
+					testAccCheckRoute53RecordExists("aws_route53_record.default", &record2),
 				),
 			},
 		},
@@ -195,6 +247,8 @@ func TestAccAWSRoute53Record_basic_fqdn(t *testing.T) {
 }
 
 func TestAccAWSRoute53Record_txtSupport(t *testing.T) {
+	var record1 route53.ResourceRecordSet
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:        func() { testAccPreCheck(t) },
 		IDRefreshName:   "aws_route53_record.default",
@@ -205,7 +259,7 @@ func TestAccAWSRoute53Record_txtSupport(t *testing.T) {
 			{
 				Config: testAccRoute53RecordConfigTXT,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckRoute53RecordExists("aws_route53_record.default"),
+					testAccCheckRoute53RecordExists("aws_route53_record.default", &record1),
 				),
 			},
 		},
@@ -213,6 +267,8 @@ func TestAccAWSRoute53Record_txtSupport(t *testing.T) {
 }
 
 func TestAccAWSRoute53Record_spfSupport(t *testing.T) {
+	var record1 route53.ResourceRecordSet
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		IDRefreshName: "aws_route53_record.default",
@@ -222,7 +278,7 @@ func TestAccAWSRoute53Record_spfSupport(t *testing.T) {
 			{
 				Config: testAccRoute53RecordConfigSPF,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckRoute53RecordExists("aws_route53_record.default"),
+					testAccCheckRoute53RecordExists("aws_route53_record.default", &record1),
 					resource.TestCheckResourceAttr(
 						"aws_route53_record.default", "records.2930149397", "include:notexample.com"),
 				),
@@ -232,6 +288,8 @@ func TestAccAWSRoute53Record_spfSupport(t *testing.T) {
 }
 
 func TestAccAWSRoute53Record_caaSupport(t *testing.T) {
+	var record1 route53.ResourceRecordSet
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		IDRefreshName: "aws_route53_record.default",
@@ -241,7 +299,7 @@ func TestAccAWSRoute53Record_caaSupport(t *testing.T) {
 			{
 				Config: testAccRoute53RecordConfigCAA,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckRoute53RecordExists("aws_route53_record.default"),
+					testAccCheckRoute53RecordExists("aws_route53_record.default", &record1),
 					resource.TestCheckResourceAttr(
 						"aws_route53_record.default", "records.2965463512", "0 issue \"exampleca.com;\""),
 				),
@@ -251,6 +309,8 @@ func TestAccAWSRoute53Record_caaSupport(t *testing.T) {
 }
 
 func TestAccAWSRoute53Record_generatesSuffix(t *testing.T) {
+	var record1 route53.ResourceRecordSet
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		IDRefreshName: "aws_route53_record.default",
@@ -260,7 +320,7 @@ func TestAccAWSRoute53Record_generatesSuffix(t *testing.T) {
 			{
 				Config: testAccRoute53RecordConfigSuffix,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckRoute53RecordExists("aws_route53_record.default"),
+					testAccCheckRoute53RecordExists("aws_route53_record.default", &record1),
 				),
 			},
 		},
@@ -268,6 +328,8 @@ func TestAccAWSRoute53Record_generatesSuffix(t *testing.T) {
 }
 
 func TestAccAWSRoute53Record_wildcard(t *testing.T) {
+	var record1, record2 route53.ResourceRecordSet
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		IDRefreshName: "aws_route53_record.wildcard",
@@ -277,7 +339,7 @@ func TestAccAWSRoute53Record_wildcard(t *testing.T) {
 			{
 				Config: testAccRoute53WildCardRecordConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckRoute53RecordExists("aws_route53_record.wildcard"),
+					testAccCheckRoute53RecordExists("aws_route53_record.wildcard", &record1),
 				),
 			},
 
@@ -285,7 +347,7 @@ func TestAccAWSRoute53Record_wildcard(t *testing.T) {
 			{
 				Config: testAccRoute53WildCardRecordConfigUpdate,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckRoute53RecordExists("aws_route53_record.wildcard"),
+					testAccCheckRoute53RecordExists("aws_route53_record.wildcard", &record2),
 				),
 			},
 		},
@@ -293,6 +355,8 @@ func TestAccAWSRoute53Record_wildcard(t *testing.T) {
 }
 
 func TestAccAWSRoute53Record_failover(t *testing.T) {
+	var record1, record2 route53.ResourceRecordSet
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		IDRefreshName: "aws_route53_record.www-primary",
@@ -302,8 +366,8 @@ func TestAccAWSRoute53Record_failover(t *testing.T) {
 			{
 				Config: testAccRoute53FailoverCNAMERecord,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckRoute53RecordExists("aws_route53_record.www-primary"),
-					testAccCheckRoute53RecordExists("aws_route53_record.www-secondary"),
+					testAccCheckRoute53RecordExists("aws_route53_record.www-primary", &record1),
+					testAccCheckRoute53RecordExists("aws_route53_record.www-secondary", &record2),
 				),
 			},
 		},
@@ -311,6 +375,8 @@ func TestAccAWSRoute53Record_failover(t *testing.T) {
 }
 
 func TestAccAWSRoute53Record_weighted_basic(t *testing.T) {
+	var record1, record2, record3 route53.ResourceRecordSet
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		IDRefreshName: "aws_route53_record.www-live",
@@ -320,9 +386,9 @@ func TestAccAWSRoute53Record_weighted_basic(t *testing.T) {
 			{
 				Config: testAccRoute53WeightedCNAMERecord,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckRoute53RecordExists("aws_route53_record.www-dev"),
-					testAccCheckRoute53RecordExists("aws_route53_record.www-live"),
-					testAccCheckRoute53RecordExists("aws_route53_record.www-off"),
+					testAccCheckRoute53RecordExists("aws_route53_record.www-dev", &record1),
+					testAccCheckRoute53RecordExists("aws_route53_record.www-live", &record2),
+					testAccCheckRoute53RecordExists("aws_route53_record.www-off", &record3),
 				),
 			},
 		},
@@ -330,6 +396,8 @@ func TestAccAWSRoute53Record_weighted_basic(t *testing.T) {
 }
 
 func TestAccAWSRoute53Record_alias(t *testing.T) {
+	var record1 route53.ResourceRecordSet
+
 	rs := acctest.RandString(10)
 	config := fmt.Sprintf(testAccRoute53ElbAliasRecord, rs)
 	resource.ParallelTest(t, resource.TestCase{
@@ -341,7 +409,7 @@ func TestAccAWSRoute53Record_alias(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckRoute53RecordExists("aws_route53_record.alias"),
+					testAccCheckRoute53RecordExists("aws_route53_record.alias", &record1),
 				),
 			},
 		},
@@ -349,6 +417,8 @@ func TestAccAWSRoute53Record_alias(t *testing.T) {
 }
 
 func TestAccAWSRoute53Record_aliasUppercase(t *testing.T) {
+	var record1 route53.ResourceRecordSet
+
 	rs := acctest.RandString(10)
 	config := fmt.Sprintf(testAccRoute53ElbAliasRecordUppercase, rs)
 	resource.ParallelTest(t, resource.TestCase{
@@ -360,7 +430,7 @@ func TestAccAWSRoute53Record_aliasUppercase(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckRoute53RecordExists("aws_route53_record.alias"),
+					testAccCheckRoute53RecordExists("aws_route53_record.alias", &record1),
 				),
 			},
 		},
@@ -368,15 +438,18 @@ func TestAccAWSRoute53Record_aliasUppercase(t *testing.T) {
 }
 
 func TestAccAWSRoute53Record_s3_alias(t *testing.T) {
+	var record1 route53.ResourceRecordSet
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckRoute53RecordDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccRoute53S3AliasRecord,
+				Config: testAccRoute53S3AliasRecord(rName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckRoute53RecordExists("aws_route53_record.alias"),
+					testAccCheckRoute53RecordExists("aws_route53_record.alias", &record1),
 				),
 			},
 		},
@@ -384,6 +457,8 @@ func TestAccAWSRoute53Record_s3_alias(t *testing.T) {
 }
 
 func TestAccAWSRoute53Record_weighted_alias(t *testing.T) {
+	var record1, record2, record3, record4, record5, record6 route53.ResourceRecordSet
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		IDRefreshName: "aws_route53_record.elb_weighted_alias_live",
@@ -393,18 +468,18 @@ func TestAccAWSRoute53Record_weighted_alias(t *testing.T) {
 			{
 				Config: testAccRoute53WeightedElbAliasRecord,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckRoute53RecordExists("aws_route53_record.elb_weighted_alias_live"),
-					testAccCheckRoute53RecordExists("aws_route53_record.elb_weighted_alias_dev"),
+					testAccCheckRoute53RecordExists("aws_route53_record.elb_weighted_alias_live", &record1),
+					testAccCheckRoute53RecordExists("aws_route53_record.elb_weighted_alias_dev", &record2),
 				),
 			},
 
 			{
 				Config: testAccRoute53WeightedR53AliasRecord,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckRoute53RecordExists("aws_route53_record.green_origin"),
-					testAccCheckRoute53RecordExists("aws_route53_record.r53_weighted_alias_live"),
-					testAccCheckRoute53RecordExists("aws_route53_record.blue_origin"),
-					testAccCheckRoute53RecordExists("aws_route53_record.r53_weighted_alias_dev"),
+					testAccCheckRoute53RecordExists("aws_route53_record.green_origin", &record3),
+					testAccCheckRoute53RecordExists("aws_route53_record.r53_weighted_alias_live", &record4),
+					testAccCheckRoute53RecordExists("aws_route53_record.blue_origin", &record5),
+					testAccCheckRoute53RecordExists("aws_route53_record.r53_weighted_alias_dev", &record6),
 				),
 			},
 		},
@@ -412,6 +487,8 @@ func TestAccAWSRoute53Record_weighted_alias(t *testing.T) {
 }
 
 func TestAccAWSRoute53Record_geolocation_basic(t *testing.T) {
+	var record1, record2, record3, record4 route53.ResourceRecordSet
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -420,10 +497,10 @@ func TestAccAWSRoute53Record_geolocation_basic(t *testing.T) {
 			{
 				Config: testAccRoute53GeolocationCNAMERecord,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckRoute53RecordExists("aws_route53_record.default"),
-					testAccCheckRoute53RecordExists("aws_route53_record.california"),
-					testAccCheckRoute53RecordExists("aws_route53_record.oceania"),
-					testAccCheckRoute53RecordExists("aws_route53_record.denmark"),
+					testAccCheckRoute53RecordExists("aws_route53_record.default", &record1),
+					testAccCheckRoute53RecordExists("aws_route53_record.california", &record2),
+					testAccCheckRoute53RecordExists("aws_route53_record.oceania", &record3),
+					testAccCheckRoute53RecordExists("aws_route53_record.denmark", &record4),
 				),
 			},
 		},
@@ -431,6 +508,8 @@ func TestAccAWSRoute53Record_geolocation_basic(t *testing.T) {
 }
 
 func TestAccAWSRoute53Record_latency_basic(t *testing.T) {
+	var record1, record2, record3 route53.ResourceRecordSet
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -439,9 +518,9 @@ func TestAccAWSRoute53Record_latency_basic(t *testing.T) {
 			{
 				Config: testAccRoute53LatencyCNAMERecord,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckRoute53RecordExists("aws_route53_record.us-east-1"),
-					testAccCheckRoute53RecordExists("aws_route53_record.eu-west-1"),
-					testAccCheckRoute53RecordExists("aws_route53_record.ap-northeast-1"),
+					testAccCheckRoute53RecordExists("aws_route53_record.us-east-1", &record1),
+					testAccCheckRoute53RecordExists("aws_route53_record.eu-west-1", &record2),
+					testAccCheckRoute53RecordExists("aws_route53_record.ap-northeast-1", &record3),
 				),
 			},
 		},
@@ -449,6 +528,8 @@ func TestAccAWSRoute53Record_latency_basic(t *testing.T) {
 }
 
 func TestAccAWSRoute53Record_TypeChange(t *testing.T) {
+	var record1, record2 route53.ResourceRecordSet
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		IDRefreshName: "aws_route53_record.sample",
@@ -458,7 +539,7 @@ func TestAccAWSRoute53Record_TypeChange(t *testing.T) {
 			{
 				Config: testAccRoute53RecordTypeChangePre,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckRoute53RecordExists("aws_route53_record.sample"),
+					testAccCheckRoute53RecordExists("aws_route53_record.sample", &record1),
 				),
 			},
 
@@ -466,7 +547,7 @@ func TestAccAWSRoute53Record_TypeChange(t *testing.T) {
 			{
 				Config: testAccRoute53RecordTypeChangePost,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckRoute53RecordExists("aws_route53_record.sample"),
+					testAccCheckRoute53RecordExists("aws_route53_record.sample", &record2),
 				),
 			},
 		},
@@ -474,6 +555,8 @@ func TestAccAWSRoute53Record_TypeChange(t *testing.T) {
 }
 
 func TestAccAWSRoute53Record_SetIdentiferChange(t *testing.T) {
+	var record1, record2 route53.ResourceRecordSet
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		IDRefreshName: "aws_route53_record.basic_to_weighted",
@@ -483,7 +566,7 @@ func TestAccAWSRoute53Record_SetIdentiferChange(t *testing.T) {
 			{
 				Config: testAccRoute53RecordSetIdentifierChangePre,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckRoute53RecordExists("aws_route53_record.basic_to_weighted"),
+					testAccCheckRoute53RecordExists("aws_route53_record.basic_to_weighted", &record1),
 				),
 			},
 
@@ -491,7 +574,7 @@ func TestAccAWSRoute53Record_SetIdentiferChange(t *testing.T) {
 			{
 				Config: testAccRoute53RecordSetIdentifierChangePost,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckRoute53RecordExists("aws_route53_record.basic_to_weighted"),
+					testAccCheckRoute53RecordExists("aws_route53_record.basic_to_weighted", &record2),
 				),
 			},
 		},
@@ -499,6 +582,8 @@ func TestAccAWSRoute53Record_SetIdentiferChange(t *testing.T) {
 }
 
 func TestAccAWSRoute53Record_AliasChange(t *testing.T) {
+	var record1, record2 route53.ResourceRecordSet
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		IDRefreshName: "aws_route53_record.elb_alias_change",
@@ -508,7 +593,7 @@ func TestAccAWSRoute53Record_AliasChange(t *testing.T) {
 			{
 				Config: testAccRoute53RecordAliasChangePre,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckRoute53RecordExists("aws_route53_record.elb_alias_change"),
+					testAccCheckRoute53RecordExists("aws_route53_record.elb_alias_change", &record1),
 				),
 			},
 
@@ -516,7 +601,7 @@ func TestAccAWSRoute53Record_AliasChange(t *testing.T) {
 			{
 				Config: testAccRoute53RecordAliasChangePost,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckRoute53RecordExists("aws_route53_record.elb_alias_change"),
+					testAccCheckRoute53RecordExists("aws_route53_record.elb_alias_change", &record2),
 				),
 			},
 		},
@@ -524,6 +609,8 @@ func TestAccAWSRoute53Record_AliasChange(t *testing.T) {
 }
 
 func TestAccAWSRoute53Record_empty(t *testing.T) {
+	var record1 route53.ResourceRecordSet
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		IDRefreshName: "aws_route53_record.empty",
@@ -533,7 +620,7 @@ func TestAccAWSRoute53Record_empty(t *testing.T) {
 			{
 				Config: testAccRoute53RecordConfigEmptyName,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckRoute53RecordExists("aws_route53_record.empty"),
+					testAccCheckRoute53RecordExists("aws_route53_record.empty", &record1),
 				),
 			},
 		},
@@ -542,6 +629,8 @@ func TestAccAWSRoute53Record_empty(t *testing.T) {
 
 // Regression test for https://github.com/hashicorp/terraform/issues/8423
 func TestAccAWSRoute53Record_longTXTrecord(t *testing.T) {
+	var record1 route53.ResourceRecordSet
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		IDRefreshName: "aws_route53_record.long_txt",
@@ -551,7 +640,7 @@ func TestAccAWSRoute53Record_longTXTrecord(t *testing.T) {
 			{
 				Config: testAccRoute53RecordConfigLongTxtRecord,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckRoute53RecordExists("aws_route53_record.long_txt"),
+					testAccCheckRoute53RecordExists("aws_route53_record.long_txt", &record1),
 				),
 			},
 		},
@@ -559,6 +648,8 @@ func TestAccAWSRoute53Record_longTXTrecord(t *testing.T) {
 }
 
 func TestAccAWSRoute53Record_multivalue_answer_basic(t *testing.T) {
+	var record1, record2 route53.ResourceRecordSet
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -567,8 +658,8 @@ func TestAccAWSRoute53Record_multivalue_answer_basic(t *testing.T) {
 			{
 				Config: testAccRoute53MultiValueAnswerARecord,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckRoute53RecordExists("aws_route53_record.www-server1"),
-					testAccCheckRoute53RecordExists("aws_route53_record.www-server2"),
+					testAccCheckRoute53RecordExists("aws_route53_record.www-server1", &record1),
+					testAccCheckRoute53RecordExists("aws_route53_record.www-server2", &record2),
 				),
 			},
 		},
@@ -576,6 +667,8 @@ func TestAccAWSRoute53Record_multivalue_answer_basic(t *testing.T) {
 }
 
 func TestAccAWSRoute53Record_allowOverwrite(t *testing.T) {
+	var record1 route53.ResourceRecordSet
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -583,11 +676,11 @@ func TestAccAWSRoute53Record_allowOverwrite(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccRoute53RecordConfig_allowOverwrite(false),
-				ExpectError: regexp.MustCompile("Tried to create resource record set \\[name='www.notexample.com.', type='A'] but it already exists"),
+				ExpectError: regexp.MustCompile(`Tried to create resource record set \[name='www.notexample.com.', type='A'] but it already exists`),
 			},
 			{
 				Config: testAccRoute53RecordConfig_allowOverwrite(true),
-				Check:  resource.ComposeTestCheckFunc(testAccCheckRoute53RecordExists("aws_route53_record.overwriting")),
+				Check:  resource.ComposeTestCheckFunc(testAccCheckRoute53RecordExists("aws_route53_record.overwriting", &record1)),
 			},
 		},
 	})
@@ -634,7 +727,42 @@ func testAccCheckRoute53RecordDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccCheckRoute53RecordExists(n string) resource.TestCheckFunc {
+func testAccCheckRoute53RecordDisappears(zone *route53.GetHostedZoneOutput, resourceRecordSet *route53.ResourceRecordSet) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		conn := testAccProvider.Meta().(*AWSClient).r53conn
+
+		input := &route53.ChangeResourceRecordSetsInput{
+			HostedZoneId: zone.HostedZone.Id,
+			ChangeBatch: &route53.ChangeBatch{
+				Comment: aws.String("Deleted by Terraform"),
+				Changes: []*route53.Change{
+					{
+						Action:            aws.String(route53.ChangeActionDelete),
+						ResourceRecordSet: resourceRecordSet,
+					},
+				},
+			},
+		}
+
+		respRaw, err := deleteRoute53RecordSet(conn, input)
+		if err != nil {
+			return fmt.Errorf("error deleting resource record set: %s", err)
+		}
+
+		changeInfo := respRaw.(*route53.ChangeResourceRecordSetsOutput).ChangeInfo
+		if changeInfo == nil {
+			return nil
+		}
+
+		if err := waitForRoute53RecordSetToSync(conn, cleanChangeID(*changeInfo.Id)); err != nil {
+			return fmt.Errorf("error waiting for resource record set deletion: %s", err)
+		}
+
+		return nil
+	}
+}
+
+func testAccCheckRoute53RecordExists(n string, resourceRecordSet *route53.ResourceRecordSet) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := testAccProvider.Meta().(*AWSClient).r53conn
 		rs, ok := s.RootModule().Resources[n]
@@ -671,6 +799,8 @@ func testAccCheckRoute53RecordExists(n string) resource.TestCheckFunc {
 		for _, rec := range resp.ResourceRecordSets {
 			recName := cleanRecordName(*rec.Name)
 			if FQDN(strings.ToLower(recName)) == FQDN(strings.ToLower(en)) && *rec.Type == rType {
+				*resourceRecordSet = *rec
+
 				return nil
 			}
 		}
@@ -716,6 +846,22 @@ resource "aws_route53_record" "default" {
 	type = "A"
 	ttl = "30"
 	records = ["127.0.0.1", "127.0.0.27"]
+}
+`
+
+const testAccRoute53RecordConfigMultiple = `
+resource "aws_route53_zone" "test" {
+  name = "notexample.com"
+}
+
+resource "aws_route53_record" "test" {
+  count = 5
+
+  name    = "record${count.index}.${aws_route53_zone.test.name}"
+  records = ["127.0.0.${count.index}"]
+  ttl     = "30"
+  type    = "A"
+  zone_id = "${aws_route53_zone.test.zone_id}"
 }
 `
 
@@ -1096,13 +1242,14 @@ resource "aws_elb" "main" {
 }
 `
 
-const testAccRoute53S3AliasRecord = `
+func testAccRoute53S3AliasRecord(rName string) string {
+	return fmt.Sprintf(`
 resource "aws_route53_zone" "main" {
   name = "notexample.com"
 }
 
 resource "aws_s3_bucket" "website" {
-  bucket = "website.notexample.com"
+  bucket = %q
 	acl = "public-read"
 	website {
 		index_document = "index.html"
@@ -1120,7 +1267,8 @@ resource "aws_route53_record" "alias" {
     evaluate_target_health = true
   }
 }
-`
+`, rName)
+}
 
 const testAccRoute53WeightedElbAliasRecord = `
 resource "aws_route53_zone" "main" {

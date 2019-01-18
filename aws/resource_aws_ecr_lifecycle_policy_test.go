@@ -94,11 +94,7 @@ func testAccCheckAWSEcrLifecyclePolicyExists(name string) resource.TestCheckFunc
 		}
 
 		_, err := conn.GetLifecyclePolicy(input)
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return err
 	}
 }
 

@@ -45,7 +45,7 @@ resource "aws_glacier_vault" "my_archive" {
 }
 EOF
 
-  tags {
+  tags = {
     Test = "MyArchive"
   }
 }

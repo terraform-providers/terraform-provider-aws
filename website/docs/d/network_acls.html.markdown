@@ -29,7 +29,7 @@ tag of `Tier` set to a value of "Private".
 data "aws_network_acls" "example" {
   vpc_id = "${var.vpc_id}"
 
-  tags {
+  tags = {
     Tier = "Private"
   }
 }

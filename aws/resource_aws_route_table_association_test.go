@@ -108,7 +108,7 @@ func testAccCheckRouteTableAssociationExists(n string, v *ec2.RouteTable) resour
 const testAccRouteTableAssociationConfig = `
 resource "aws_vpc" "foo" {
 	cidr_block = "10.1.0.0/16"
-	tags {
+	tags = {
 		Name = "terraform-testacc-route-table-association"
 	}
 }
@@ -116,7 +116,7 @@ resource "aws_vpc" "foo" {
 resource "aws_subnet" "foo" {
 	vpc_id = "${aws_vpc.foo.id}"
 	cidr_block = "10.1.1.0/24"
-	tags {
+	tags = {
 		Name = "tf-acc-route-table-association"
 	}
 }
@@ -124,7 +124,7 @@ resource "aws_subnet" "foo" {
 resource "aws_internet_gateway" "foo" {
 	vpc_id = "${aws_vpc.foo.id}"
 
-	tags {
+	tags = {
 		Name = "terraform-testacc-route-table-association"
 	}
 }
@@ -146,7 +146,7 @@ resource "aws_route_table_association" "foo" {
 const testAccRouteTableAssociationConfigChange = `
 resource "aws_vpc" "foo" {
 	cidr_block = "10.1.0.0/16"
-	tags {
+	tags = {
 		Name = "terraform-testacc-route-table-association"
 	}
 }
@@ -154,7 +154,7 @@ resource "aws_vpc" "foo" {
 resource "aws_subnet" "foo" {
 	vpc_id = "${aws_vpc.foo.id}"
 	cidr_block = "10.1.1.0/24"
-	tags {
+	tags = {
 		Name = "tf-acc-route-table-association"
 	}
 }
@@ -162,7 +162,7 @@ resource "aws_subnet" "foo" {
 resource "aws_internet_gateway" "foo" {
 	vpc_id = "${aws_vpc.foo.id}"
 
-	tags {
+	tags = {
 		Name = "terraform-testacc-route-table-association"
 	}
 }

@@ -9,6 +9,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awsutil"
 	"github.com/aws/aws-sdk-go/aws/request"
+	"github.com/aws/aws-sdk-go/private/protocol"
+	"github.com/aws/aws-sdk-go/private/protocol/jsonrpc"
 )
 
 const opBatchCreatePartition = "BatchCreatePartition"
@@ -678,6 +680,7 @@ func (c *Glue) CreateClassifierRequest(input *CreateClassifierInput) (req *reque
 
 	output = &CreateClassifierOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -765,6 +768,7 @@ func (c *Glue) CreateConnectionRequest(input *CreateConnectionInput) (req *reque
 
 	output = &CreateConnectionOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -856,6 +860,7 @@ func (c *Glue) CreateCrawlerRequest(input *CreateCrawlerInput) (req *request.Req
 
 	output = &CreateCrawlerOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -946,6 +951,7 @@ func (c *Glue) CreateDatabaseRequest(input *CreateDatabaseInput) (req *request.R
 
 	output = &CreateDatabaseOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -1237,6 +1243,7 @@ func (c *Glue) CreatePartitionRequest(input *CreatePartitionInput) (req *request
 
 	output = &CreatePartitionOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -1510,6 +1517,7 @@ func (c *Glue) CreateTableRequest(input *CreateTableInput) (req *request.Request
 
 	output = &CreateTableOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -1704,6 +1712,7 @@ func (c *Glue) CreateUserDefinedFunctionRequest(input *CreateUserDefinedFunction
 
 	output = &CreateUserDefinedFunctionOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -1801,6 +1810,7 @@ func (c *Glue) DeleteClassifierRequest(input *DeleteClassifierInput) (req *reque
 
 	output = &DeleteClassifierOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -1883,6 +1893,7 @@ func (c *Glue) DeleteConnectionRequest(input *DeleteConnectionInput) (req *reque
 
 	output = &DeleteConnectionOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -1965,6 +1976,7 @@ func (c *Glue) DeleteCrawlerRequest(input *DeleteCrawlerInput) (req *request.Req
 
 	output = &DeleteCrawlerOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -2054,6 +2066,7 @@ func (c *Glue) DeleteDatabaseRequest(input *DeleteDatabaseInput) (req *request.R
 
 	output = &DeleteDatabaseOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -2153,6 +2166,7 @@ func (c *Glue) DeleteDevEndpointRequest(input *DeleteDevEndpointInput) (req *req
 
 	output = &DeleteDevEndpointOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -2327,6 +2341,7 @@ func (c *Glue) DeletePartitionRequest(input *DeletePartitionInput) (req *request
 
 	output = &DeletePartitionOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -2415,6 +2430,7 @@ func (c *Glue) DeleteResourcePolicyRequest(input *DeleteResourcePolicyInput) (re
 
 	output = &DeleteResourcePolicyOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -2506,6 +2522,7 @@ func (c *Glue) DeleteSecurityConfigurationRequest(input *DeleteSecurityConfigura
 
 	output = &DeleteSecurityConfigurationOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -2594,6 +2611,7 @@ func (c *Glue) DeleteTableRequest(input *DeleteTableInput) (req *request.Request
 
 	output = &DeleteTableOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -2691,6 +2709,7 @@ func (c *Glue) DeleteTableVersionRequest(input *DeleteTableVersionInput) (req *r
 
 	output = &DeleteTableVersionOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -2868,6 +2887,7 @@ func (c *Glue) DeleteUserDefinedFunctionRequest(input *DeleteUserDefinedFunction
 
 	output = &DeleteUserDefinedFunctionOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -6572,6 +6592,7 @@ func (c *Glue) ImportCatalogToGlueRequest(input *ImportCatalogToGlueInput) (req 
 
 	output = &ImportCatalogToGlueOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -6654,6 +6675,7 @@ func (c *Glue) PutDataCatalogEncryptionSettingsRequest(input *PutDataCatalogEncr
 
 	output = &PutDataCatalogEncryptionSettingsOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -6920,6 +6942,7 @@ func (c *Glue) StartCrawlerRequest(input *StartCrawlerInput) (req *request.Reque
 
 	output = &StartCrawlerOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -7006,6 +7029,7 @@ func (c *Glue) StartCrawlerScheduleRequest(input *StartCrawlerScheduleInput) (re
 
 	output = &StartCrawlerScheduleOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -7287,6 +7311,7 @@ func (c *Glue) StopCrawlerRequest(input *StopCrawlerInput) (req *request.Request
 
 	output = &StopCrawlerOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -7375,6 +7400,7 @@ func (c *Glue) StopCrawlerScheduleRequest(input *StopCrawlerScheduleInput) (req 
 
 	output = &StopCrawlerScheduleOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -7555,6 +7581,7 @@ func (c *Glue) UpdateClassifierRequest(input *UpdateClassifierInput) (req *reque
 
 	output = &UpdateClassifierOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -7644,6 +7671,7 @@ func (c *Glue) UpdateConnectionRequest(input *UpdateConnectionInput) (req *reque
 
 	output = &UpdateConnectionOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -7735,6 +7763,7 @@ func (c *Glue) UpdateCrawlerRequest(input *UpdateCrawlerInput) (req *request.Req
 
 	output = &UpdateCrawlerOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -7827,6 +7856,7 @@ func (c *Glue) UpdateCrawlerScheduleRequest(input *UpdateCrawlerScheduleInput) (
 
 	output = &UpdateCrawlerScheduleOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -7918,6 +7948,7 @@ func (c *Glue) UpdateDatabaseRequest(input *UpdateDatabaseInput) (req *request.R
 
 	output = &UpdateDatabaseOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -8009,6 +8040,7 @@ func (c *Glue) UpdateDevEndpointRequest(input *UpdateDevEndpointInput) (req *req
 
 	output = &UpdateDevEndpointOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -8191,6 +8223,7 @@ func (c *Glue) UpdatePartitionRequest(input *UpdatePartitionInput) (req *request
 
 	output = &UpdatePartitionOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -8282,6 +8315,7 @@ func (c *Glue) UpdateTableRequest(input *UpdateTableInput) (req *request.Request
 
 	output = &UpdateTableOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -8470,6 +8504,7 @@ func (c *Glue) UpdateUserDefinedFunctionRequest(input *UpdateUserDefinedFunction
 
 	output = &UpdateUserDefinedFunctionOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -9973,6 +10008,10 @@ type Connection struct {
 	//
 	//    * PASSWORD - A password, if one is used, for the user name.
 	//
+	//    * ENCRYPTED_PASSWORD - When you enable connection password protection
+	//    by setting ConnectionPasswordEncryption in the Data Catalog encryption
+	//    settings, this field stores the key you designate to encrypt the password.
+	//
 	//    * JDBC_DRIVER_JAR_URI - The S3 path of the a jar file that contains the
 	//    JDBC driver to use.
 	//
@@ -10185,6 +10224,78 @@ func (s *ConnectionInput) SetName(v string) *ConnectionInput {
 // SetPhysicalConnectionRequirements sets the PhysicalConnectionRequirements field's value.
 func (s *ConnectionInput) SetPhysicalConnectionRequirements(v *PhysicalConnectionRequirements) *ConnectionInput {
 	s.PhysicalConnectionRequirements = v
+	return s
+}
+
+// The data structure used by the Data Catalog to encrypt the password as part
+// of CreateConnection or UpdateConnection and store it in the ENCRYPTED_PASSWORD
+// field in the connection properties. You can enable catalog encryption or
+// only password encryption.
+//
+// When a CreationConnection request arrives containing a password, the Data
+// Catalog first encrypts the password using your KMS key, and then encrypts
+// the whole connection object again if catalog encryption is also enabled.
+//
+// This encryption requires that you set KMS key permissions to enable or restrict
+// access on the password key according to your security requirements. For example,
+// you may want only admin users to have decrypt permission on the password
+// key.
+type ConnectionPasswordEncryption struct {
+	_ struct{} `type:"structure"`
+
+	// A KMS key used to protect access to the JDBC source.
+	//
+	// All users in your account should be granted the kms:encrypt permission to
+	// encrypt passwords before storing them in the Data Catalog (through the AWS
+	// Glue CreateConnection operation).
+	//
+	// The decrypt permission should be granted only to KMS key admins and IAM roles
+	// designated for AWS Glue crawlers.
+	AwsKmsKeyId *string `min:"1" type:"string"`
+
+	// When the ReturnConnectionPasswordEncrypted flag is set to "true", passwords
+	// remain encrypted in the responses of GetConnection and GetConnections. This
+	// encryption takes effect independently from catalog encryption.
+	//
+	// ReturnConnectionPasswordEncrypted is a required field
+	ReturnConnectionPasswordEncrypted *bool `type:"boolean" required:"true"`
+}
+
+// String returns the string representation
+func (s ConnectionPasswordEncryption) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ConnectionPasswordEncryption) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ConnectionPasswordEncryption) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ConnectionPasswordEncryption"}
+	if s.AwsKmsKeyId != nil && len(*s.AwsKmsKeyId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("AwsKmsKeyId", 1))
+	}
+	if s.ReturnConnectionPasswordEncrypted == nil {
+		invalidParams.Add(request.NewErrParamRequired("ReturnConnectionPasswordEncrypted"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetAwsKmsKeyId sets the AwsKmsKeyId field's value.
+func (s *ConnectionPasswordEncryption) SetAwsKmsKeyId(v string) *ConnectionPasswordEncryption {
+	s.AwsKmsKeyId = &v
+	return s
+}
+
+// SetReturnConnectionPasswordEncrypted sets the ReturnConnectionPasswordEncrypted field's value.
+func (s *ConnectionPasswordEncryption) SetReturnConnectionPasswordEncrypted(v bool) *ConnectionPasswordEncryption {
+	s.ReturnConnectionPasswordEncrypted = &v
 	return s
 }
 
@@ -12244,6 +12355,12 @@ func (s *CreateXMLClassifierRequest) SetRowTag(v string) *CreateXMLClassifierReq
 type DataCatalogEncryptionSettings struct {
 	_ struct{} `type:"structure"`
 
+	// When password protection is enabled, the Data Catalog uses a customer-provided
+	// key to encrypt the password as part of CreateConnection or UpdateConnection
+	// and store it in the ENCRYPTED_PASSWORD field in the connection properties.
+	// You can enable catalog encryption or only password encryption.
+	ConnectionPasswordEncryption *ConnectionPasswordEncryption `type:"structure"`
+
 	// Specifies encryption-at-rest configuration for the Data Catalog.
 	EncryptionAtRest *EncryptionAtRest `type:"structure"`
 }
@@ -12261,6 +12378,11 @@ func (s DataCatalogEncryptionSettings) GoString() string {
 // Validate inspects the fields of the type to determine if they are valid.
 func (s *DataCatalogEncryptionSettings) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "DataCatalogEncryptionSettings"}
+	if s.ConnectionPasswordEncryption != nil {
+		if err := s.ConnectionPasswordEncryption.Validate(); err != nil {
+			invalidParams.AddNested("ConnectionPasswordEncryption", err.(request.ErrInvalidParams))
+		}
+	}
 	if s.EncryptionAtRest != nil {
 		if err := s.EncryptionAtRest.Validate(); err != nil {
 			invalidParams.AddNested("EncryptionAtRest", err.(request.ErrInvalidParams))
@@ -12271,6 +12393,12 @@ func (s *DataCatalogEncryptionSettings) Validate() error {
 		return invalidParams
 	}
 	return nil
+}
+
+// SetConnectionPasswordEncryption sets the ConnectionPasswordEncryption field's value.
+func (s *DataCatalogEncryptionSettings) SetConnectionPasswordEncryption(v *ConnectionPasswordEncryption) *DataCatalogEncryptionSettings {
+	s.ConnectionPasswordEncryption = v
+	return s
 }
 
 // SetEncryptionAtRest sets the EncryptionAtRest field's value.
@@ -13976,6 +14104,14 @@ type GetConnectionInput struct {
 	// the AWS account ID is used by default.
 	CatalogId *string `min:"1" type:"string"`
 
+	// Allow you to retrieve the connection metadata without displaying the password.
+	// For instance, the AWS Glue console uses this flag to retrieve connections,
+	// since the console does not display passwords. Set this parameter where the
+	// caller may not have permission to use the KMS key to decrypt the password,
+	// but does have permission to access the rest of the connection metadata (that
+	// is, the other connection properties).
+	HidePassword *bool `type:"boolean"`
+
 	// The name of the connection definition to retrieve.
 	//
 	// Name is a required field
@@ -14014,6 +14150,12 @@ func (s *GetConnectionInput) Validate() error {
 // SetCatalogId sets the CatalogId field's value.
 func (s *GetConnectionInput) SetCatalogId(v string) *GetConnectionInput {
 	s.CatalogId = &v
+	return s
+}
+
+// SetHidePassword sets the HidePassword field's value.
+func (s *GetConnectionInput) SetHidePassword(v bool) *GetConnectionInput {
+	s.HidePassword = &v
 	return s
 }
 
@@ -14091,6 +14233,14 @@ type GetConnectionsInput struct {
 	// A filter that controls which connections will be returned.
 	Filter *GetConnectionsFilter `type:"structure"`
 
+	// Allow you to retrieve the connection metadata without displaying the password.
+	// For instance, the AWS Glue console uses this flag to retrieve connections,
+	// since the console does not display passwords. Set this parameter where the
+	// caller may not have permission to use the KMS key to decrypt the password,
+	// but does have permission to access the rest of the connection metadata (that
+	// is, the other connection properties).
+	HidePassword *bool `type:"boolean"`
+
 	// The maximum number of connections to return in one response.
 	MaxResults *int64 `min:"1" type:"integer"`
 
@@ -14133,6 +14283,12 @@ func (s *GetConnectionsInput) SetCatalogId(v string) *GetConnectionsInput {
 // SetFilter sets the Filter field's value.
 func (s *GetConnectionsInput) SetFilter(v *GetConnectionsFilter) *GetConnectionsInput {
 	s.Filter = v
+	return s
+}
+
+// SetHidePassword sets the HidePassword field's value.
+func (s *GetConnectionsInput) SetHidePassword(v bool) *GetConnectionsInput {
+	s.HidePassword = &v
 	return s
 }
 
@@ -19655,6 +19811,11 @@ type Table struct {
 
 	// A list of columns by which the table is partitioned. Only primitive types
 	// are supported as partition keys.
+	//
+	// When creating a table used by Athena, and you do not specify any partitionKeys,
+	// you must at least set the value of partitionKeys to an empty list. For example:
+	//
+	// "PartitionKeys": []
 	PartitionKeys []*Column `type:"list"`
 
 	// Retention time for this table.
@@ -19843,6 +20004,11 @@ type TableInput struct {
 
 	// A list of columns by which the table is partitioned. Only primitive types
 	// are supported as partition keys.
+	//
+	// When creating a table used by Athena, and you do not specify any partitionKeys,
+	// you must at least set the value of partitionKeys to an empty list. For example:
+	//
+	// "PartitionKeys": []
 	PartitionKeys []*Column `type:"list"`
 
 	// Retention time for this table.
@@ -21751,6 +21917,9 @@ const (
 
 	// ConnectionPropertyKeyPassword is a ConnectionPropertyKey enum value
 	ConnectionPropertyKeyPassword = "PASSWORD"
+
+	// ConnectionPropertyKeyEncryptedPassword is a ConnectionPropertyKey enum value
+	ConnectionPropertyKeyEncryptedPassword = "ENCRYPTED_PASSWORD"
 
 	// ConnectionPropertyKeyJdbcDriverJarUri is a ConnectionPropertyKey enum value
 	ConnectionPropertyKeyJdbcDriverJarUri = "JDBC_DRIVER_JAR_URI"

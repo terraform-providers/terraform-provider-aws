@@ -68,7 +68,7 @@ func testAccDataSourceAwsDynamoDbTableConfigBasic(tableName string) string {
     non_key_attributes = ["UserId"]
   }
 
-  tags {
+  tags = {
     Name        = "dynamodb-table-1"
     Environment = "test"
   }

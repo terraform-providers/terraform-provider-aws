@@ -29,7 +29,7 @@ resource "aws_instance" "web" {
   availability_zone = "us-west-2a"
   instance_type     = "t1.micro"
 
-  tags {
+  tags = {
     Name = "HelloWorld"
   }
 }

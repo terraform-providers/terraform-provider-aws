@@ -52,7 +52,7 @@ resource "aws_dx_hosted_public_virtual_interface_accepter" "accepter" {
   provider             = "aws.accepter"
   virtual_interface_id = "${aws_dx_hosted_public_virtual_interface.creator.id}"
 
-  tags {
+  tags = {
     Side = "Accepter"
   }
 }

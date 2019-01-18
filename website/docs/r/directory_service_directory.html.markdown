@@ -28,7 +28,7 @@ resource "aws_directory_service_directory" "bar" {
     subnet_ids = ["${aws_subnet.foo.id}", "${aws_subnet.bar.id}"]
   }
 
-  tags {
+  tags = {
     Project = "foo"
   }
 }
@@ -64,7 +64,7 @@ resource "aws_directory_service_directory" "bar" {
     subnet_ids = ["${aws_subnet.foo.id}", "${aws_subnet.bar.id}"]
   }
 
-  tags {
+  tags = {
     Project = "foo"
   }
 }

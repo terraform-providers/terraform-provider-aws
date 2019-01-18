@@ -250,7 +250,7 @@ func testAccAWSLoadBalancerPolicyConfig_basic(rInt int) string {
 			lb_protocol = "http"
 		}
 
-		tags {
+	tags = {
 			Name = "tf-acc-test"
 		}
 	}
@@ -279,7 +279,7 @@ func testAccAWSLoadBalancerPolicyConfig_updateWhileAssigned0(rInt int) string {
 			lb_protocol = "http"
 		}
 
-		tags {
+	tags = {
 			Name = "tf-acc-test"
 		}
 	}
@@ -316,7 +316,7 @@ func testAccAWSLoadBalancerPolicyConfig_updateWhileAssigned1(rInt int) string {
 			lb_protocol = "http"
 		}
 
-		tags {
+	tags = {
 			Name = "tf-acc-test"
 		}
 	}

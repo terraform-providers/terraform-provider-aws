@@ -33,7 +33,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the Lightsail Instance
 * `availability_zone` - (Required) The Availability Zone in which to create your
-instance. At this time, must be in `us-east-1`, `us-east-2`, `us-west-2`, `eu-west-1`, `eu-west-2`, `eu-central-1`, `ap-southeast-1`, `ap-southeast-2`, `ap-northeast-1`, `ap-south-1` regions
+instance (see list below)
 * `blueprint_id` - (Required) The ID for a virtual private server image
 (see list below)
 * `bundle_id` - (Required) The bundle of specification information (see list below)
@@ -41,35 +41,87 @@ instance. At this time, must be in `us-east-1`, `us-east-2`, `us-west-2`, `eu-we
 Lightsail console (cannot use `aws_key_pair` at this time)
 * `user_data` - (Optional) launch script to configure server with additional user data
 
+## Availability Zones
+Lightsail currently supports the following Availability Zones (e.g. `us-east-1a`):
+
+- `ap-northeast-1{a,c,d}`
+- `ap-northeast-2{a,c}`
+- `ap-south-1{a,b}`
+- `ap-southeast-1{a,b,c}`
+- `ap-southeast-2{a,b,c}`
+- `ca-central-1{a,b}`
+- `eu-central-1{a,b,c}`
+- `eu-west-1{a,b,c}`
+- `eu-west-2{a,b,c}`
+- `eu-west-3{a,b,c}`
+- `us-east-1{a,b,c,d,e,f}`
+- `us-east-2{a,b,c}`
+- `us-west-2{a,b,c}`
 
 ## Blueprints
 
 Lightsail currently supports the following Blueprint IDs:
-- `amazon_linux_2017_03_1_1`
-- `ubuntu_16_04_1`
+
+### OS Only
+
+- `amazon_linux_2018_03_0_2`
+- `centos_7_1805_01`
 - `debian_8_7`
-- `freebsd_11`
+- `debian_9_5`
+- `freebsd_11_1`
 - `opensuse_42_2`
-- `wordpress_4_8_0`
-- `lamp_5_6_30_5`
-- `nodejs_7_10_0`
-- `joomla_3_7_3`
-- `magento_2_1_7`
-- `mean_3_4_5`
-- `drupal_8_3_3`
-- `gitlab_9_2_6`
-- `redmine_3_3_3_1`
-- `nginx_1_12_0_2`
+- `ubuntu_16_04_2`
+- `ubuntu_18_04`
+
+### Apps and OS
+
+- `drupal_8_5_6`
+- `gitlab_11_1_4_1`
+- `joomla_3_8_11`
+- `lamp_5_6_37_2`
+- `lamp_7_1_20_1`
+- `magento_2_2_5`
+- `mean_4_0_1`
+- `nginx_1_14_0_1`
+- `nodejs_10_8_0`
+- `plesk_ubuntu_17_8_11_1`
+- `redmine_3_4_6`
+- `wordpress_4_9_8`
+- `wordpress_multisite_4_9_8`
 
 ## Bundles
 
-Lightsail currently supports the following Bundle IDs:
+Lightsail currently supports the following Bundle IDs (e.g. an instance in `ap-northeast-1` would use `small_2_0`):
 
-- `nano_1_0`
-- `micro_1_0`
-- `small_1_0`
-- `medium_1_0`
-- `large_1_0`
+### Prefix
+
+A Bundle ID starts with one of the below size prefixes:
+
+- `nano_`
+- `micro_`
+- `small_`
+- `medium_`
+- `large_`
+- `xlarge_`
+- `2xlarge_`
+
+### Suffix
+
+A Bundle ID ends with one of the following suffixes depending on Availability Zone:
+
+- ap-northeast-1: `2_0`
+- ap-northeast-2: `2_0`
+- ap-south-1: `2_1`
+- ap-southeast-1: `2_0`
+- ap-southeast-2: `2_2`
+- ca-central-1: `2_0`
+- eu-central-1: `2_0`
+- eu-west-1: `2_0`
+- eu-west-2: `2_0`
+- eu-west-3: `2_0`
+- us-east-1: `2_0`
+- us-east-2: `2_0`
+- us-west-2: `2_0`
 
 ## Attributes Reference
 

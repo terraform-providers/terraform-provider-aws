@@ -556,6 +556,41 @@ func TestAccAWSElasticSearchDomain_update_volume_type(t *testing.T) {
 		}})
 }
 
+func TestAccAWSElasticSearchDomain_update_version(t *testing.T) {
+	var domain1, domain2, domain3 elasticsearch.ElasticsearchDomainStatus
+	ri := acctest.RandInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckESDomainDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccESDomainConfig_ClusterUpdateVersion(ri, "5.5"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckESDomainExists("aws_elasticsearch_domain.example", &domain1),
+					resource.TestCheckResourceAttr("aws_elasticsearch_domain.example", "elasticsearch_version", "5.5"),
+				),
+			},
+			{
+				Config: testAccESDomainConfig_ClusterUpdateVersion(ri, "5.6"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckESDomainExists("aws_elasticsearch_domain.example", &domain2),
+					testAccCheckAWSESDomainNotRecreated(&domain1, &domain2),
+					resource.TestCheckResourceAttr("aws_elasticsearch_domain.example", "elasticsearch_version", "5.6"),
+				),
+			},
+			{
+				Config: testAccESDomainConfig_ClusterUpdateVersion(ri, "6.3"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckESDomainExists("aws_elasticsearch_domain.example", &domain3),
+					testAccCheckAWSESDomainNotRecreated(&domain2, &domain3),
+					resource.TestCheckResourceAttr("aws_elasticsearch_domain.example", "elasticsearch_version", "6.3"),
+				),
+			},
+		}})
+}
+
 func testAccCheckESEBSVolumeSize(ebsVolumeSize int, status *elasticsearch.ElasticsearchDomainStatus) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conf := status.EBSOptions
@@ -665,6 +700,31 @@ func testAccCheckESDomainExists(n string, domain *elasticsearch.ElasticsearchDom
 		}
 
 		*domain = *resp.DomainStatus
+
+		return nil
+	}
+}
+
+func testAccCheckAWSESDomainNotRecreated(i, j *elasticsearch.ElasticsearchDomainStatus) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		conn := testAccProvider.Meta().(*AWSClient).esconn
+
+		iConfig, err := conn.DescribeElasticsearchDomainConfig(&elasticsearch.DescribeElasticsearchDomainConfigInput{
+			DomainName: i.DomainName,
+		})
+		if err != nil {
+			return err
+		}
+		jConfig, err := conn.DescribeElasticsearchDomainConfig(&elasticsearch.DescribeElasticsearchDomainConfigInput{
+			DomainName: j.DomainName,
+		})
+		if err != nil {
+			return err
+		}
+
+		if aws.TimeValue(iConfig.DomainConfig.ElasticsearchClusterConfig.Status.CreationDate) != aws.TimeValue(jConfig.DomainConfig.ElasticsearchClusterConfig.Status.CreationDate) {
+			return fmt.Errorf("ES Domain was recreated")
+		}
 
 		return nil
 	}
@@ -780,6 +840,27 @@ resource "aws_elasticsearch_domain" "example" {
 `, randInt, volumeSize)
 }
 
+func testAccESDomainConfig_ClusterUpdateVersion(randInt int, version string) string {
+	return fmt.Sprintf(`
+resource "aws_elasticsearch_domain" "example" {
+  domain_name = "tf-test-%d"
+
+  elasticsearch_version = "%v"
+
+  ebs_options {
+    ebs_enabled = true
+    volume_size = 10
+  }
+
+  cluster_config {
+    instance_count = 1
+    zone_awareness_enabled = false
+    instance_type = "t2.small.elasticsearch"
+  }
+}
+`, randInt, version)
+}
+
 func testAccESDomainConfig_ClusterUpdateInstanceStore(randInt int) string {
 	return fmt.Sprintf(`
 resource "aws_elasticsearch_domain" "example" {
@@ -813,7 +894,7 @@ resource "aws_elasticsearch_domain" "example" {
     volume_size = 10
   }
 
-  tags {
+  tags = {
     foo = "bar"
     new = "type"
   }
@@ -963,7 +1044,7 @@ resource "aws_elasticsearch_domain" "example" {
     automated_snapshot_start_hour = 23
   }
 
-  tags {
+  tags = {
     bar = "complex"
   }
 }
@@ -991,7 +1072,7 @@ data "aws_availability_zones" "available" {
 
 resource "aws_vpc" "elasticsearch_in_vpc" {
   cidr_block = "192.168.0.0/22"
-  tags {
+  tags = {
     Name = "terraform-testacc-elasticsearch-domain-in-vpc"
   }
 }
@@ -1000,7 +1081,7 @@ resource "aws_subnet" "first" {
   vpc_id            = "${aws_vpc.elasticsearch_in_vpc.id}"
   availability_zone = "${data.aws_availability_zones.available.names[0]}"
   cidr_block        = "192.168.0.0/24"
-  tags {
+  tags = {
     Name = "tf-acc-elasticsearch-domain-in-vpc-first"
   }
 }
@@ -1009,7 +1090,7 @@ resource "aws_subnet" "second" {
   vpc_id            = "${aws_vpc.elasticsearch_in_vpc.id}"
   availability_zone = "${data.aws_availability_zones.available.names[1]}"
   cidr_block        = "192.168.1.0/24"
-  tags {
+  tags = {
     Name = "tf-acc-elasticsearch-domain-in-vpc-second"
   }
 }
@@ -1060,7 +1141,7 @@ data "aws_availability_zones" "available" {
 
 resource "aws_vpc" "elasticsearch_in_vpc" {
   cidr_block = "192.168.0.0/22"
-  tags {
+  tags = {
     Name = "terraform-testacc-elasticsearch-domain-in-vpc-update"
   }
 }
@@ -1069,7 +1150,7 @@ resource "aws_subnet" "az1_first" {
   vpc_id            = "${aws_vpc.elasticsearch_in_vpc.id}"
   availability_zone = "${data.aws_availability_zones.available.names[0]}"
   cidr_block        = "192.168.0.0/24"
-  tags {
+  tags = {
     Name = "tf-acc-elasticsearch-domain-in-vpc-update-az1-first"
   }
 }
@@ -1078,7 +1159,7 @@ resource "aws_subnet" "az2_first" {
   vpc_id            = "${aws_vpc.elasticsearch_in_vpc.id}"
   availability_zone = "${data.aws_availability_zones.available.names[1]}"
   cidr_block        = "192.168.1.0/24"
-  tags {
+  tags = {
     Name = "tf-acc-elasticsearch-domain-in-vpc-update-az2-first"
   }
 }
@@ -1087,7 +1168,7 @@ resource "aws_subnet" "az1_second" {
   vpc_id            = "${aws_vpc.elasticsearch_in_vpc.id}"
   availability_zone = "${data.aws_availability_zones.available.names[0]}"
   cidr_block        = "192.168.2.0/24"
-  tags {
+  tags = {
     Name = "tf-acc-elasticsearch-domain-in-vpc-update-az1-second"
   }
 }
@@ -1096,7 +1177,7 @@ resource "aws_subnet" "az2_second" {
   vpc_id            = "${aws_vpc.elasticsearch_in_vpc.id}"
   availability_zone = "${data.aws_availability_zones.available.names[1]}"
   cidr_block        = "192.168.3.0/24"
-  tags {
+  tags = {
     Name = "tf-acc-elasticsearch-domain-in-vpc-update-az2-second"
   }
 }
@@ -1138,7 +1219,7 @@ data "aws_availability_zones" "available" {
 
 resource "aws_vpc" "elasticsearch_in_vpc" {
   cidr_block = "192.168.0.0/22"
-  tags {
+  tags = {
     Name = "terraform-testacc-elasticsearch-domain-internet-to-vpc-endpoint"
   }
 }
@@ -1147,7 +1228,7 @@ resource "aws_subnet" "first" {
   vpc_id            = "${aws_vpc.elasticsearch_in_vpc.id}"
   availability_zone = "${data.aws_availability_zones.available.names[0]}"
   cidr_block        = "192.168.0.0/24"
-  tags {
+  tags = {
     Name = "tf-acc-elasticsearch-domain-internet-to-vpc-endpoint-first"
   }
 }
@@ -1156,7 +1237,7 @@ resource "aws_subnet" "second" {
   vpc_id            = "${aws_vpc.elasticsearch_in_vpc.id}"
   availability_zone = "${data.aws_availability_zones.available.names[1]}"
   cidr_block        = "192.168.1.0/24"
-  tags {
+  tags = {
     Name = "tf-acc-elasticsearch-domain-internet-to-vpc-endpoint-second"
   }
 }

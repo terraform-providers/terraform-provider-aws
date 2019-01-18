@@ -136,11 +136,7 @@ func testAccCheckAwsServiceDiscoveryServiceExists(name string) resource.TestChec
 		}
 
 		_, err := conn.GetService(input)
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return err
 	}
 }
 
@@ -148,7 +144,7 @@ func testAccServiceDiscoveryServiceConfig_private(rName string, th int) string {
 	return fmt.Sprintf(`
 resource "aws_vpc" "test" {
   cidr_block = "10.0.0.0/16"
-  tags {
+  tags = {
     Name = "terraform-testacc-service-discovery-service-private"
   }
 }
@@ -179,7 +175,7 @@ func testAccServiceDiscoveryServiceConfig_private_update(rName string, th int) s
 	return fmt.Sprintf(`
 resource "aws_vpc" "test" {
   cidr_block = "10.0.0.0/16"
-  tags {
+  tags = {
     Name = "terraform-testacc-service-discovery-service-private"
   }
 }

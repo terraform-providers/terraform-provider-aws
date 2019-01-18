@@ -140,7 +140,7 @@ resource "aws_ebs_volume" "test" {
   size              = "10"
   type              = "gp2"
 
-  tags {
+  tags = {
     Name = %q
   }
 }

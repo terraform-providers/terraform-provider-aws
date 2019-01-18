@@ -52,7 +52,7 @@ resource "aws_elb" "elb_test" {
     lb_protocol       = "http"
   }
 
-  tags {
+  tags = {
     TestName = "%[2]s"
   }
 }
@@ -67,7 +67,7 @@ data "aws_availability_zones" "available" {}
 resource "aws_vpc" "elb_test" {
   cidr_block = "10.0.0.0/16"
 
-  tags {
+  tags = {
     Name = "terraform-testacc-elb-data-source"
   }
 }
@@ -79,7 +79,7 @@ resource "aws_subnet" "elb_test" {
   map_public_ip_on_launch = true
   availability_zone       = "${element(data.aws_availability_zones.available.names, count.index)}"
 
-  tags {
+  tags = {
     Name = "tf-acc-elb-data-source"
   }
 }
@@ -93,7 +93,7 @@ resource "aws_security_group" "elb_test" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
+    self        = true
   }
 
   egress {
@@ -103,7 +103,7 @@ resource "aws_security_group" "elb_test" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags {
+  tags = {
     TestName = "%[2]s"
   }
 }

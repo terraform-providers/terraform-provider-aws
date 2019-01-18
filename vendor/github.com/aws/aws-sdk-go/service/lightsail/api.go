@@ -3,6 +3,7 @@
 package lightsail
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -161,6 +162,10 @@ func (c *Lightsail) AttachDiskRequest(input *AttachDiskInput) (req *request.Requ
 // Attaches a block storage disk to a running or stopped Lightsail instance
 // and exposes it to the instance with the specified disk name.
 //
+// The attach disk operation supports tag-based access control via resource
+// tags applied to the resource identified by diskName. For more information,
+// see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-controlling-access-using-tags).
+//
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
 // the error.
@@ -267,6 +272,10 @@ func (c *Lightsail) AttachInstancesToLoadBalancerRequest(input *AttachInstancesT
 //
 // After some time, the instances are attached to the load balancer and the
 // health check status is available.
+//
+// The attach instances to load balancer operation supports tag-based access
+// control via resource tags applied to the resource identified by loadBalancerName.
+// For more information, see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-controlling-access-using-tags).
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -378,6 +387,10 @@ func (c *Lightsail) AttachLoadBalancerTlsCertificateRequest(input *AttachLoadBal
 // account. Use the AttachLoadBalancerTlsCertificate operation with the non-attached
 // certificate, and it will replace the existing one and become the attached
 // certificate.
+//
+// The attach load balancer tls certificate operation supports tag-based access
+// control via resource tags applied to the resource identified by loadBalancerName.
+// For more information, see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-controlling-access-using-tags).
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -587,6 +600,10 @@ func (c *Lightsail) CloseInstancePublicPortsRequest(input *CloseInstancePublicPo
 //
 // Closes the public ports on a specific Amazon Lightsail instance.
 //
+// The close instance public ports operation supports tag-based access control
+// via resource tags applied to the resource identified by instanceName. For
+// more information, see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-controlling-access-using-tags).
+//
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
 // the error.
@@ -645,6 +662,223 @@ func (c *Lightsail) CloseInstancePublicPortsWithContext(ctx aws.Context, input *
 	return out, req.Send()
 }
 
+const opCopySnapshot = "CopySnapshot"
+
+// CopySnapshotRequest generates a "aws/request.Request" representing the
+// client's request for the CopySnapshot operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See CopySnapshot for more information on using the CopySnapshot
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the CopySnapshotRequest method.
+//    req, resp := client.CopySnapshotRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/lightsail-2016-11-28/CopySnapshot
+func (c *Lightsail) CopySnapshotRequest(input *CopySnapshotInput) (req *request.Request, output *CopySnapshotOutput) {
+	op := &request.Operation{
+		Name:       opCopySnapshot,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &CopySnapshotInput{}
+	}
+
+	output = &CopySnapshotOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// CopySnapshot API operation for Amazon Lightsail.
+//
+// Copies an instance or disk snapshot from one AWS Region to another in Amazon
+// Lightsail.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Lightsail's
+// API operation CopySnapshot for usage and error information.
+//
+// Returned Error Codes:
+//   * ErrCodeServiceException "ServiceException"
+//   A general service exception.
+//
+//   * ErrCodeInvalidInputException "InvalidInputException"
+//   Lightsail throws this exception when user input does not conform to the validation
+//   rules of an input field.
+//
+//   Domain-related APIs are only available in the N. Virginia (us-east-1) Region.
+//   Please set your AWS Region configuration to us-east-1 to create, view, or
+//   edit these resources.
+//
+//   * ErrCodeNotFoundException "NotFoundException"
+//   Lightsail throws this exception when it cannot find a resource.
+//
+//   * ErrCodeOperationFailureException "OperationFailureException"
+//   Lightsail throws this exception when an operation fails to execute.
+//
+//   * ErrCodeAccessDeniedException "AccessDeniedException"
+//   Lightsail throws this exception when the user cannot be authenticated or
+//   uses invalid credentials to access a resource.
+//
+//   * ErrCodeAccountSetupInProgressException "AccountSetupInProgressException"
+//   Lightsail throws this exception when an account is still in the setup in
+//   progress state.
+//
+//   * ErrCodeUnauthenticatedException "UnauthenticatedException"
+//   Lightsail throws this exception when the user has not been authenticated.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/lightsail-2016-11-28/CopySnapshot
+func (c *Lightsail) CopySnapshot(input *CopySnapshotInput) (*CopySnapshotOutput, error) {
+	req, out := c.CopySnapshotRequest(input)
+	return out, req.Send()
+}
+
+// CopySnapshotWithContext is the same as CopySnapshot with the addition of
+// the ability to pass a context and additional request options.
+//
+// See CopySnapshot for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Lightsail) CopySnapshotWithContext(ctx aws.Context, input *CopySnapshotInput, opts ...request.Option) (*CopySnapshotOutput, error) {
+	req, out := c.CopySnapshotRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opCreateCloudFormationStack = "CreateCloudFormationStack"
+
+// CreateCloudFormationStackRequest generates a "aws/request.Request" representing the
+// client's request for the CreateCloudFormationStack operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See CreateCloudFormationStack for more information on using the CreateCloudFormationStack
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the CreateCloudFormationStackRequest method.
+//    req, resp := client.CreateCloudFormationStackRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/lightsail-2016-11-28/CreateCloudFormationStack
+func (c *Lightsail) CreateCloudFormationStackRequest(input *CreateCloudFormationStackInput) (req *request.Request, output *CreateCloudFormationStackOutput) {
+	op := &request.Operation{
+		Name:       opCreateCloudFormationStack,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &CreateCloudFormationStackInput{}
+	}
+
+	output = &CreateCloudFormationStackOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// CreateCloudFormationStack API operation for Amazon Lightsail.
+//
+// Creates an AWS CloudFormation stack, which creates a new Amazon EC2 instance
+// from an exported Amazon Lightsail snapshot. This operation results in a CloudFormation
+// stack record that can be used to track the AWS CloudFormation stack created.
+// Use the get cloud formation stack records operation to get a list of the
+// CloudFormation stacks created.
+//
+// Wait until after your new Amazon EC2 instance is created before running the
+// create cloud formation stack operation again with the same export snapshot
+// record.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Lightsail's
+// API operation CreateCloudFormationStack for usage and error information.
+//
+// Returned Error Codes:
+//   * ErrCodeServiceException "ServiceException"
+//   A general service exception.
+//
+//   * ErrCodeInvalidInputException "InvalidInputException"
+//   Lightsail throws this exception when user input does not conform to the validation
+//   rules of an input field.
+//
+//   Domain-related APIs are only available in the N. Virginia (us-east-1) Region.
+//   Please set your AWS Region configuration to us-east-1 to create, view, or
+//   edit these resources.
+//
+//   * ErrCodeNotFoundException "NotFoundException"
+//   Lightsail throws this exception when it cannot find a resource.
+//
+//   * ErrCodeOperationFailureException "OperationFailureException"
+//   Lightsail throws this exception when an operation fails to execute.
+//
+//   * ErrCodeAccessDeniedException "AccessDeniedException"
+//   Lightsail throws this exception when the user cannot be authenticated or
+//   uses invalid credentials to access a resource.
+//
+//   * ErrCodeAccountSetupInProgressException "AccountSetupInProgressException"
+//   Lightsail throws this exception when an account is still in the setup in
+//   progress state.
+//
+//   * ErrCodeUnauthenticatedException "UnauthenticatedException"
+//   Lightsail throws this exception when the user has not been authenticated.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/lightsail-2016-11-28/CreateCloudFormationStack
+func (c *Lightsail) CreateCloudFormationStack(input *CreateCloudFormationStackInput) (*CreateCloudFormationStackOutput, error) {
+	req, out := c.CreateCloudFormationStackRequest(input)
+	return out, req.Send()
+}
+
+// CreateCloudFormationStackWithContext is the same as CreateCloudFormationStack with the addition of
+// the ability to pass a context and additional request options.
+//
+// See CreateCloudFormationStack for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Lightsail) CreateCloudFormationStackWithContext(ctx aws.Context, input *CreateCloudFormationStackInput, opts ...request.Option) (*CreateCloudFormationStackOutput, error) {
+	req, out := c.CreateCloudFormationStackRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opCreateDisk = "CreateDisk"
 
 // CreateDiskRequest generates a "aws/request.Request" representing the
@@ -693,6 +927,9 @@ func (c *Lightsail) CreateDiskRequest(input *CreateDiskInput) (req *request.Requ
 // in the same Availability Zone (e.g., us-east-2a). The disk is created in
 // the regional endpoint that you send the HTTP request to. For more information,
 // see Regions and Availability Zones in Lightsail (https://lightsail.aws.amazon.com/ls/docs/overview/article/understanding-regions-and-availability-zones-in-amazon-lightsail).
+//
+// The create disk operation supports tag-based access control via request tags.
+// For more information, see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-controlling-access-using-tags).
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -800,6 +1037,10 @@ func (c *Lightsail) CreateDiskFromSnapshotRequest(input *CreateDiskFromSnapshotI
 // a Lightsail instance in the same Availability Zone (e.g., us-east-2a). The
 // disk is created in the regional endpoint that you send the HTTP request to.
 // For more information, see Regions and Availability Zones in Lightsail (https://lightsail.aws.amazon.com/ls/docs/overview/article/understanding-regions-and-availability-zones-in-amazon-lightsail).
+//
+// The create disk from snapshot operation supports tag-based access control
+// via request tags and resource tags applied to the resource identified by
+// diskSnapshotName. For more information, see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-controlling-access-using-tags).
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -918,6 +1159,9 @@ func (c *Lightsail) CreateDiskSnapshotRequest(input *CreateDiskSnapshotInput) (r
 // snapshot. You may remount and use your disk while the snapshot status is
 // pending.
 //
+// The create disk snapshot operation supports tag-based access control via
+// request tags. For more information, see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-controlling-access-using-tags).
+//
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
 // the error.
@@ -1021,6 +1265,9 @@ func (c *Lightsail) CreateDomainRequest(input *CreateDomainInput) (req *request.
 // CreateDomain API operation for Amazon Lightsail.
 //
 // Creates a domain resource for the specified domain (e.g., example.com).
+//
+// The create domain operation supports tag-based access control via request
+// tags. For more information, see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-controlling-access-using-tags).
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1127,6 +1374,10 @@ func (c *Lightsail) CreateDomainEntryRequest(input *CreateDomainEntryInput) (req
 // Creates one of the following entry records associated with the domain: A
 // record, CNAME record, TXT record, or MX record.
 //
+// The create domain entry operation supports tag-based access control via resource
+// tags applied to the resource identified by domainName. For more information,
+// see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-controlling-access-using-tags).
+//
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
 // the error.
@@ -1231,6 +1482,9 @@ func (c *Lightsail) CreateInstanceSnapshotRequest(input *CreateInstanceSnapshotI
 //
 // Creates a snapshot of a specific virtual private server, or instance. You
 // can use a snapshot to create a new instance that is based on that snapshot.
+//
+// The create instance snapshot operation supports tag-based access control
+// via request tags. For more information, see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-controlling-access-using-tags).
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1341,6 +1595,9 @@ func (c *Lightsail) CreateInstancesRequest(input *CreateInstancesInput) (req *re
 // outdated due to operating system updates or new application releases. Use
 // the get blueprints operation to return a list of available blueprints.
 //
+// The create instances operation supports tag-based access control via request
+// tags. For more information, see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-controlling-access-using-tags).
+//
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
 // the error.
@@ -1446,6 +1703,10 @@ func (c *Lightsail) CreateInstancesFromSnapshotRequest(input *CreateInstancesFro
 // Uses a specific snapshot as a blueprint for creating one or more new instances
 // that are based on that identical configuration.
 //
+// The create instances from snapshot operation supports tag-based access control
+// via request tags and resource tags applied to the resource identified by
+// instanceSnapshotName. For more information, see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-controlling-access-using-tags).
+//
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
 // the error.
@@ -1549,6 +1810,9 @@ func (c *Lightsail) CreateKeyPairRequest(input *CreateKeyPairInput) (req *reques
 // CreateKeyPair API operation for Amazon Lightsail.
 //
 // Creates an SSH key pair.
+//
+// The create key pair operation supports tag-based access control via request
+// tags. For more information, see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-controlling-access-using-tags).
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1661,6 +1925,9 @@ func (c *Lightsail) CreateLoadBalancerRequest(input *CreateLoadBalancerInput) (r
 // To change additional load balancer settings, use the UpdateLoadBalancerAttribute
 // operation.
 //
+// The create load balancer operation supports tag-based access control via
+// request tags. For more information, see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-controlling-access-using-tags).
+//
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
 // the error.
@@ -1767,6 +2034,10 @@ func (c *Lightsail) CreateLoadBalancerTlsCertificateRequest(input *CreateLoadBal
 //
 // TLS is just an updated, more secure version of Secure Socket Layer (SSL).
 //
+// The create load balancer tls certificate operation supports tag-based access
+// control via resource tags applied to the resource identified by loadBalancerName.
+// For more information, see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-controlling-access-using-tags).
+//
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
 // the error.
@@ -1870,6 +2141,9 @@ func (c *Lightsail) CreateRelationalDatabaseRequest(input *CreateRelationalDatab
 // CreateRelationalDatabase API operation for Amazon Lightsail.
 //
 // Creates a new database in Amazon Lightsail.
+//
+// The create relational database operation supports tag-based access control
+// via request tags. For more information, see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-controlling-access-using-tags).
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1979,6 +2253,11 @@ func (c *Lightsail) CreateRelationalDatabaseFromSnapshotRequest(input *CreateRel
 // with your original database, or to change it to a different plan, such as
 // a high availability or standard plan.
 //
+// The create relational database from snapshot operation supports tag-based
+// access control via request tags and resource tags applied to the resource
+// identified by relationalDatabaseSnapshotName. For more information, see the
+// Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-controlling-access-using-tags).
+//
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
 // the error.
@@ -2084,6 +2363,10 @@ func (c *Lightsail) CreateRelationalDatabaseSnapshotRequest(input *CreateRelatio
 // Creates a snapshot of your database in Amazon Lightsail. You can use snapshots
 // for backups, to make copies of a database, and to save data before deleting
 // a database.
+//
+// The create relational database snapshot operation supports tag-based access
+// control via request tags. For more information, see the Lightsail Dev Guide
+// (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-controlling-access-using-tags).
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -2191,6 +2474,10 @@ func (c *Lightsail) DeleteDiskRequest(input *DeleteDiskInput) (req *request.Requ
 // state (not attached to a Lightsail instance).
 //
 // The disk may remain in the deleting state for several minutes.
+//
+// The delete disk operation supports tag-based access control via resource
+// tags applied to the resource identified by diskName. For more information,
+// see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-controlling-access-using-tags).
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -2303,6 +2590,10 @@ func (c *Lightsail) DeleteDiskSnapshotRequest(input *DeleteDiskSnapshotInput) (r
 // snapshots have been deleted, all active snapshots will have access to all
 // the information needed to restore the disk.
 //
+// The delete disk snapshot operation supports tag-based access control via
+// resource tags applied to the resource identified by diskSnapshotName. For
+// more information, see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-controlling-access-using-tags).
+//
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
 // the error.
@@ -2406,6 +2697,10 @@ func (c *Lightsail) DeleteDomainRequest(input *DeleteDomainInput) (req *request.
 // DeleteDomain API operation for Amazon Lightsail.
 //
 // Deletes the specified domain recordset and all of its domain records.
+//
+// The delete domain operation supports tag-based access control via resource
+// tags applied to the resource identified by domainName. For more information,
+// see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-controlling-access-using-tags).
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -2511,6 +2806,10 @@ func (c *Lightsail) DeleteDomainEntryRequest(input *DeleteDomainEntryInput) (req
 //
 // Deletes a specific domain entry.
 //
+// The delete domain entry operation supports tag-based access control via resource
+// tags applied to the resource identified by domainName. For more information,
+// see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-controlling-access-using-tags).
+//
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
 // the error.
@@ -2614,6 +2913,10 @@ func (c *Lightsail) DeleteInstanceRequest(input *DeleteInstanceInput) (req *requ
 // DeleteInstance API operation for Amazon Lightsail.
 //
 // Deletes a specific Amazon Lightsail virtual private server, or instance.
+//
+// The delete instance operation supports tag-based access control via resource
+// tags applied to the resource identified by instanceName. For more information,
+// see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-controlling-access-using-tags).
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -2719,6 +3022,10 @@ func (c *Lightsail) DeleteInstanceSnapshotRequest(input *DeleteInstanceSnapshotI
 //
 // Deletes a specific snapshot of a virtual private server (or instance).
 //
+// The delete instance snapshot operation supports tag-based access control
+// via resource tags applied to the resource identified by instanceSnapshotName.
+// For more information, see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-controlling-access-using-tags).
+//
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
 // the error.
@@ -2822,6 +3129,10 @@ func (c *Lightsail) DeleteKeyPairRequest(input *DeleteKeyPairInput) (req *reques
 // DeleteKeyPair API operation for Amazon Lightsail.
 //
 // Deletes a specific SSH key pair.
+//
+// The delete key pair operation supports tag-based access control via resource
+// tags applied to the resource identified by keyPairName. For more information,
+// see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-controlling-access-using-tags).
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -2929,6 +3240,10 @@ func (c *Lightsail) DeleteLoadBalancerRequest(input *DeleteLoadBalancerInput) (r
 // Once the load balancer is deleted, you will need to create a new load balancer,
 // create a new certificate, and verify domain ownership again.
 //
+// The delete load balancer operation supports tag-based access control via
+// resource tags applied to the resource identified by loadBalancerName. For
+// more information, see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-controlling-access-using-tags).
+//
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
 // the error.
@@ -3032,6 +3347,10 @@ func (c *Lightsail) DeleteLoadBalancerTlsCertificateRequest(input *DeleteLoadBal
 // DeleteLoadBalancerTlsCertificate API operation for Amazon Lightsail.
 //
 // Deletes an SSL/TLS certificate associated with a Lightsail load balancer.
+//
+// The delete load balancer tls certificate operation supports tag-based access
+// control via resource tags applied to the resource identified by loadBalancerName.
+// For more information, see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-controlling-access-using-tags).
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -3137,6 +3456,10 @@ func (c *Lightsail) DeleteRelationalDatabaseRequest(input *DeleteRelationalDatab
 //
 // Deletes a database in Amazon Lightsail.
 //
+// The delete relational database operation supports tag-based access control
+// via resource tags applied to the resource identified by relationalDatabaseName.
+// For more information, see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-controlling-access-using-tags).
+//
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
 // the error.
@@ -3240,6 +3563,10 @@ func (c *Lightsail) DeleteRelationalDatabaseSnapshotRequest(input *DeleteRelatio
 // DeleteRelationalDatabaseSnapshot API operation for Amazon Lightsail.
 //
 // Deletes a database snapshot in Amazon Lightsail.
+//
+// The delete relational database snapshot operation supports tag-based access
+// control via resource tags applied to the resource identified by relationalDatabaseName.
+// For more information, see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-controlling-access-using-tags).
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -3347,6 +3674,10 @@ func (c *Lightsail) DetachDiskRequest(input *DetachDiskInput) (req *request.Requ
 // to unmount any file systems on the device within your operating system before
 // stopping the instance and detaching the disk.
 //
+// The detach disk operation supports tag-based access control via resource
+// tags applied to the resource identified by diskName. For more information,
+// see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-controlling-access-using-tags).
+//
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
 // the error.
@@ -3453,6 +3784,10 @@ func (c *Lightsail) DetachInstancesFromLoadBalancerRequest(input *DetachInstance
 //
 // This operation waits until the instances are no longer needed before they
 // are detached from the load balancer.
+//
+// The detach instances from load balancer operation supports tag-based access
+// control via resource tags applied to the resource identified by loadBalancerName.
+// For more information, see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-controlling-access-using-tags).
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -3715,6 +4050,126 @@ func (c *Lightsail) DownloadDefaultKeyPair(input *DownloadDefaultKeyPairInput) (
 // for more information on using Contexts.
 func (c *Lightsail) DownloadDefaultKeyPairWithContext(ctx aws.Context, input *DownloadDefaultKeyPairInput, opts ...request.Option) (*DownloadDefaultKeyPairOutput, error) {
 	req, out := c.DownloadDefaultKeyPairRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opExportSnapshot = "ExportSnapshot"
+
+// ExportSnapshotRequest generates a "aws/request.Request" representing the
+// client's request for the ExportSnapshot operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See ExportSnapshot for more information on using the ExportSnapshot
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the ExportSnapshotRequest method.
+//    req, resp := client.ExportSnapshotRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/lightsail-2016-11-28/ExportSnapshot
+func (c *Lightsail) ExportSnapshotRequest(input *ExportSnapshotInput) (req *request.Request, output *ExportSnapshotOutput) {
+	op := &request.Operation{
+		Name:       opExportSnapshot,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &ExportSnapshotInput{}
+	}
+
+	output = &ExportSnapshotOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// ExportSnapshot API operation for Amazon Lightsail.
+//
+// Exports a Amazon Lightsail instance or block storage disk snapshot to Amazon
+// Elastic Compute Cloud (Amazon EC2). This operation results in an export snapshot
+// record that can be used with the create cloud formation stack operation to
+// create new Amazon EC2 instances.
+//
+// Exported instance snapshots appear in Amazon EC2 as Amazon Machine Images
+// (AMIs), and the instance system disk appears as an Amazon Elastic Block Store
+// (Amazon EBS) volume. Exported disk snapshots appear in Amazon EC2 as Amazon
+// EBS volumes. Snapshots are exported to the same Amazon Web Services Region
+// in Amazon EC2 as the source Lightsail snapshot.
+//
+// The export snapshotoperation supports tag-based access control via resource tags applied to
+// the resource identified by sourceSnapshotName. For more information, see
+// the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-controlling-access-using-tags).
+//
+// Use the get instance snapshots or get disk snapshots operations to get a
+// list of snapshots that you can export to Amazon EC2.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Lightsail's
+// API operation ExportSnapshot for usage and error information.
+//
+// Returned Error Codes:
+//   * ErrCodeServiceException "ServiceException"
+//   A general service exception.
+//
+//   * ErrCodeInvalidInputException "InvalidInputException"
+//   Lightsail throws this exception when user input does not conform to the validation
+//   rules of an input field.
+//
+//   Domain-related APIs are only available in the N. Virginia (us-east-1) Region.
+//   Please set your AWS Region configuration to us-east-1 to create, view, or
+//   edit these resources.
+//
+//   * ErrCodeNotFoundException "NotFoundException"
+//   Lightsail throws this exception when it cannot find a resource.
+//
+//   * ErrCodeOperationFailureException "OperationFailureException"
+//   Lightsail throws this exception when an operation fails to execute.
+//
+//   * ErrCodeAccessDeniedException "AccessDeniedException"
+//   Lightsail throws this exception when the user cannot be authenticated or
+//   uses invalid credentials to access a resource.
+//
+//   * ErrCodeAccountSetupInProgressException "AccountSetupInProgressException"
+//   Lightsail throws this exception when an account is still in the setup in
+//   progress state.
+//
+//   * ErrCodeUnauthenticatedException "UnauthenticatedException"
+//   Lightsail throws this exception when the user has not been authenticated.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/lightsail-2016-11-28/ExportSnapshot
+func (c *Lightsail) ExportSnapshot(input *ExportSnapshotInput) (*ExportSnapshotOutput, error) {
+	req, out := c.ExportSnapshotRequest(input)
+	return out, req.Send()
+}
+
+// ExportSnapshotWithContext is the same as ExportSnapshot with the addition of
+// the ability to pass a context and additional request options.
+//
+// See ExportSnapshot for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Lightsail) ExportSnapshotWithContext(ctx aws.Context, input *ExportSnapshotInput, opts ...request.Option) (*ExportSnapshotOutput, error) {
+	req, out := c.ExportSnapshotRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -4031,6 +4486,114 @@ func (c *Lightsail) GetBundles(input *GetBundlesInput) (*GetBundlesOutput, error
 // for more information on using Contexts.
 func (c *Lightsail) GetBundlesWithContext(ctx aws.Context, input *GetBundlesInput, opts ...request.Option) (*GetBundlesOutput, error) {
 	req, out := c.GetBundlesRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opGetCloudFormationStackRecords = "GetCloudFormationStackRecords"
+
+// GetCloudFormationStackRecordsRequest generates a "aws/request.Request" representing the
+// client's request for the GetCloudFormationStackRecords operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See GetCloudFormationStackRecords for more information on using the GetCloudFormationStackRecords
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the GetCloudFormationStackRecordsRequest method.
+//    req, resp := client.GetCloudFormationStackRecordsRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/lightsail-2016-11-28/GetCloudFormationStackRecords
+func (c *Lightsail) GetCloudFormationStackRecordsRequest(input *GetCloudFormationStackRecordsInput) (req *request.Request, output *GetCloudFormationStackRecordsOutput) {
+	op := &request.Operation{
+		Name:       opGetCloudFormationStackRecords,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &GetCloudFormationStackRecordsInput{}
+	}
+
+	output = &GetCloudFormationStackRecordsOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// GetCloudFormationStackRecords API operation for Amazon Lightsail.
+//
+// Returns the CloudFormation stack record created as a result of the create
+// cloud formation stack operation.
+//
+// An AWS CloudFormation stack is used to create a new Amazon EC2 instance from
+// an exported Lightsail snapshot.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Lightsail's
+// API operation GetCloudFormationStackRecords for usage and error information.
+//
+// Returned Error Codes:
+//   * ErrCodeServiceException "ServiceException"
+//   A general service exception.
+//
+//   * ErrCodeInvalidInputException "InvalidInputException"
+//   Lightsail throws this exception when user input does not conform to the validation
+//   rules of an input field.
+//
+//   Domain-related APIs are only available in the N. Virginia (us-east-1) Region.
+//   Please set your AWS Region configuration to us-east-1 to create, view, or
+//   edit these resources.
+//
+//   * ErrCodeNotFoundException "NotFoundException"
+//   Lightsail throws this exception when it cannot find a resource.
+//
+//   * ErrCodeOperationFailureException "OperationFailureException"
+//   Lightsail throws this exception when an operation fails to execute.
+//
+//   * ErrCodeAccessDeniedException "AccessDeniedException"
+//   Lightsail throws this exception when the user cannot be authenticated or
+//   uses invalid credentials to access a resource.
+//
+//   * ErrCodeAccountSetupInProgressException "AccountSetupInProgressException"
+//   Lightsail throws this exception when an account is still in the setup in
+//   progress state.
+//
+//   * ErrCodeUnauthenticatedException "UnauthenticatedException"
+//   Lightsail throws this exception when the user has not been authenticated.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/lightsail-2016-11-28/GetCloudFormationStackRecords
+func (c *Lightsail) GetCloudFormationStackRecords(input *GetCloudFormationStackRecordsInput) (*GetCloudFormationStackRecordsOutput, error) {
+	req, out := c.GetCloudFormationStackRecordsRequest(input)
+	return out, req.Send()
+}
+
+// GetCloudFormationStackRecordsWithContext is the same as GetCloudFormationStackRecords with the addition of
+// the ability to pass a context and additional request options.
+//
+// See GetCloudFormationStackRecords for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Lightsail) GetCloudFormationStackRecordsWithContext(ctx aws.Context, input *GetCloudFormationStackRecordsInput, opts ...request.Option) (*GetCloudFormationStackRecordsOutput, error) {
+	req, out := c.GetCloudFormationStackRecordsRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -4670,6 +5233,114 @@ func (c *Lightsail) GetDomainsWithContext(ctx aws.Context, input *GetDomainsInpu
 	return out, req.Send()
 }
 
+const opGetExportSnapshotRecords = "GetExportSnapshotRecords"
+
+// GetExportSnapshotRecordsRequest generates a "aws/request.Request" representing the
+// client's request for the GetExportSnapshotRecords operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See GetExportSnapshotRecords for more information on using the GetExportSnapshotRecords
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the GetExportSnapshotRecordsRequest method.
+//    req, resp := client.GetExportSnapshotRecordsRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/lightsail-2016-11-28/GetExportSnapshotRecords
+func (c *Lightsail) GetExportSnapshotRecordsRequest(input *GetExportSnapshotRecordsInput) (req *request.Request, output *GetExportSnapshotRecordsOutput) {
+	op := &request.Operation{
+		Name:       opGetExportSnapshotRecords,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &GetExportSnapshotRecordsInput{}
+	}
+
+	output = &GetExportSnapshotRecordsOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// GetExportSnapshotRecords API operation for Amazon Lightsail.
+//
+// Returns the export snapshot record created as a result of the export snapshot
+// operation.
+//
+// An export snapshot record can be used to create a new Amazon EC2 instance
+// and its related resources with the create cloud formation stack operation.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Lightsail's
+// API operation GetExportSnapshotRecords for usage and error information.
+//
+// Returned Error Codes:
+//   * ErrCodeServiceException "ServiceException"
+//   A general service exception.
+//
+//   * ErrCodeInvalidInputException "InvalidInputException"
+//   Lightsail throws this exception when user input does not conform to the validation
+//   rules of an input field.
+//
+//   Domain-related APIs are only available in the N. Virginia (us-east-1) Region.
+//   Please set your AWS Region configuration to us-east-1 to create, view, or
+//   edit these resources.
+//
+//   * ErrCodeNotFoundException "NotFoundException"
+//   Lightsail throws this exception when it cannot find a resource.
+//
+//   * ErrCodeOperationFailureException "OperationFailureException"
+//   Lightsail throws this exception when an operation fails to execute.
+//
+//   * ErrCodeAccessDeniedException "AccessDeniedException"
+//   Lightsail throws this exception when the user cannot be authenticated or
+//   uses invalid credentials to access a resource.
+//
+//   * ErrCodeAccountSetupInProgressException "AccountSetupInProgressException"
+//   Lightsail throws this exception when an account is still in the setup in
+//   progress state.
+//
+//   * ErrCodeUnauthenticatedException "UnauthenticatedException"
+//   Lightsail throws this exception when the user has not been authenticated.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/lightsail-2016-11-28/GetExportSnapshotRecords
+func (c *Lightsail) GetExportSnapshotRecords(input *GetExportSnapshotRecordsInput) (*GetExportSnapshotRecordsOutput, error) {
+	req, out := c.GetExportSnapshotRecordsRequest(input)
+	return out, req.Send()
+}
+
+// GetExportSnapshotRecordsWithContext is the same as GetExportSnapshotRecords with the addition of
+// the ability to pass a context and additional request options.
+//
+// See GetExportSnapshotRecords for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Lightsail) GetExportSnapshotRecordsWithContext(ctx aws.Context, input *GetExportSnapshotRecordsInput, opts ...request.Option) (*GetExportSnapshotRecordsOutput, error) {
+	req, out := c.GetExportSnapshotRecordsRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opGetInstance = "GetInstance"
 
 // GetInstanceRequest generates a "aws/request.Request" representing the
@@ -4821,6 +5492,10 @@ func (c *Lightsail) GetInstanceAccessDetailsRequest(input *GetInstanceAccessDeta
 //
 // Returns temporary SSH keys you can use to connect to a specific virtual private
 // server, or instance.
+//
+// The get instance access details operation supports tag-based access control
+// via resource tags applied to the resource identified by instanceName. For
+// more information, see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-controlling-access-using-tags).
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -7243,6 +7918,9 @@ func (c *Lightsail) GetRelationalDatabaseMasterUserPasswordRequest(input *GetRel
 // Returns the current, previous, or pending versions of the master user password
 // for a Lightsail database.
 //
+// The asdf operation GetRelationalDatabaseMasterUserPassword supports tag-based
+// access control via resource tags applied to the resource identified by relationalDatabaseName.
+//
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
 // the error.
@@ -8290,6 +8968,10 @@ func (c *Lightsail) OpenInstancePublicPortsRequest(input *OpenInstancePublicPort
 //
 // Adds public ports to an Amazon Lightsail instance.
 //
+// The open instance public ports operation supports tag-based access control
+// via resource tags applied to the resource identified by instanceName. For
+// more information, see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-controlling-access-using-tags).
+//
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
 // the error.
@@ -8499,6 +9181,10 @@ func (c *Lightsail) PutInstancePublicPortsRequest(input *PutInstancePublicPortsI
 // Sets the specified open ports for an Amazon Lightsail instance, and closes
 // all ports for every protocol not included in the current request.
 //
+// The put instance public ports operation supports tag-based access control
+// via resource tags applied to the resource identified by instanceName. For
+// more information, see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-controlling-access-using-tags).
+//
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
 // the error.
@@ -8606,6 +9292,10 @@ func (c *Lightsail) RebootInstanceRequest(input *RebootInstanceInput) (req *requ
 // address after restarting, create a static IP address and attach it to the
 // instance.
 //
+// The reboot instance operation supports tag-based access control via resource
+// tags applied to the resource identified by instanceName. For more information,
+// see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-controlling-access-using-tags).
+//
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
 // the error.
@@ -8709,6 +9399,10 @@ func (c *Lightsail) RebootRelationalDatabaseRequest(input *RebootRelationalDatab
 // RebootRelationalDatabase API operation for Amazon Lightsail.
 //
 // Restarts a specific database in Amazon Lightsail.
+//
+// The reboot relational database operation supports tag-based access control
+// via resource tags applied to the resource identified by relationalDatabaseName.
+// For more information, see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-controlling-access-using-tags).
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -8919,6 +9613,10 @@ func (c *Lightsail) StartInstanceRequest(input *StartInstanceInput) (req *reques
 // Starts a specific Amazon Lightsail instance from a stopped state. To restart
 // an instance, use the reboot instance operation.
 //
+// The start instance operation supports tag-based access control via resource
+// tags applied to the resource identified by instanceName. For more information,
+// see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-controlling-access-using-tags).
+//
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
 // the error.
@@ -9024,6 +9722,10 @@ func (c *Lightsail) StartRelationalDatabaseRequest(input *StartRelationalDatabas
 // Starts a specific database from a stopped state in Amazon Lightsail. To restart
 // a database, use the reboot relational database operation.
 //
+// The start relational database operation supports tag-based access control
+// via resource tags applied to the resource identified by relationalDatabaseName.
+// For more information, see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-controlling-access-using-tags).
+//
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
 // the error.
@@ -9127,6 +9829,10 @@ func (c *Lightsail) StopInstanceRequest(input *StopInstanceInput) (req *request.
 // StopInstance API operation for Amazon Lightsail.
 //
 // Stops a specific Amazon Lightsail instance that is currently running.
+//
+// The stop instance operation supports tag-based access control via resource
+// tags applied to the resource identified by instanceName. For more information,
+// see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-controlling-access-using-tags).
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -9232,6 +9938,10 @@ func (c *Lightsail) StopRelationalDatabaseRequest(input *StopRelationalDatabaseI
 //
 // Stops a specific database that is currently running in Amazon Lightsail.
 //
+// The stop relational database operation supports tag-based access control
+// via resource tags applied to the resource identified by relationalDatabaseName.
+// For more information, see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-controlling-access-using-tags).
+//
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
 // the error.
@@ -9285,6 +9995,117 @@ func (c *Lightsail) StopRelationalDatabase(input *StopRelationalDatabaseInput) (
 // for more information on using Contexts.
 func (c *Lightsail) StopRelationalDatabaseWithContext(ctx aws.Context, input *StopRelationalDatabaseInput, opts ...request.Option) (*StopRelationalDatabaseOutput, error) {
 	req, out := c.StopRelationalDatabaseRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opTagResource = "TagResource"
+
+// TagResourceRequest generates a "aws/request.Request" representing the
+// client's request for the TagResource operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See TagResource for more information on using the TagResource
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the TagResourceRequest method.
+//    req, resp := client.TagResourceRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/lightsail-2016-11-28/TagResource
+func (c *Lightsail) TagResourceRequest(input *TagResourceInput) (req *request.Request, output *TagResourceOutput) {
+	op := &request.Operation{
+		Name:       opTagResource,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &TagResourceInput{}
+	}
+
+	output = &TagResourceOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// TagResource API operation for Amazon Lightsail.
+//
+// Adds one or more tags to the specified Amazon Lightsail resource. Each resource
+// can have a maximum of 50 tags. Each tag consists of a key and an optional
+// value. Tag keys must be unique per resource. For more information about tags,
+// see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-tags).
+//
+// The tag resource operation supports tag-based access control via request
+// tags and resource tags applied to the resource identified by resourceName.
+// For more information, see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-controlling-access-using-tags).
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Lightsail's
+// API operation TagResource for usage and error information.
+//
+// Returned Error Codes:
+//   * ErrCodeServiceException "ServiceException"
+//   A general service exception.
+//
+//   * ErrCodeInvalidInputException "InvalidInputException"
+//   Lightsail throws this exception when user input does not conform to the validation
+//   rules of an input field.
+//
+//   Domain-related APIs are only available in the N. Virginia (us-east-1) Region.
+//   Please set your AWS Region configuration to us-east-1 to create, view, or
+//   edit these resources.
+//
+//   * ErrCodeNotFoundException "NotFoundException"
+//   Lightsail throws this exception when it cannot find a resource.
+//
+//   * ErrCodeOperationFailureException "OperationFailureException"
+//   Lightsail throws this exception when an operation fails to execute.
+//
+//   * ErrCodeAccessDeniedException "AccessDeniedException"
+//   Lightsail throws this exception when the user cannot be authenticated or
+//   uses invalid credentials to access a resource.
+//
+//   * ErrCodeAccountSetupInProgressException "AccountSetupInProgressException"
+//   Lightsail throws this exception when an account is still in the setup in
+//   progress state.
+//
+//   * ErrCodeUnauthenticatedException "UnauthenticatedException"
+//   Lightsail throws this exception when the user has not been authenticated.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/lightsail-2016-11-28/TagResource
+func (c *Lightsail) TagResource(input *TagResourceInput) (*TagResourceOutput, error) {
+	req, out := c.TagResourceRequest(input)
+	return out, req.Send()
+}
+
+// TagResourceWithContext is the same as TagResource with the addition of
+// the ability to pass a context and additional request options.
+//
+// See TagResource for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Lightsail) TagResourceWithContext(ctx aws.Context, input *TagResourceInput, opts ...request.Option) (*TagResourceOutput, error) {
+	req, out := c.TagResourceRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -9394,6 +10215,115 @@ func (c *Lightsail) UnpeerVpcWithContext(ctx aws.Context, input *UnpeerVpcInput,
 	return out, req.Send()
 }
 
+const opUntagResource = "UntagResource"
+
+// UntagResourceRequest generates a "aws/request.Request" representing the
+// client's request for the UntagResource operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See UntagResource for more information on using the UntagResource
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the UntagResourceRequest method.
+//    req, resp := client.UntagResourceRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/lightsail-2016-11-28/UntagResource
+func (c *Lightsail) UntagResourceRequest(input *UntagResourceInput) (req *request.Request, output *UntagResourceOutput) {
+	op := &request.Operation{
+		Name:       opUntagResource,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &UntagResourceInput{}
+	}
+
+	output = &UntagResourceOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// UntagResource API operation for Amazon Lightsail.
+//
+// Deletes the specified set of tag keys and their values from the specified
+// Amazon Lightsail resource.
+//
+// The untag resource operation supports tag-based access control via request
+// tags and resource tags applied to the resource identified by resourceName.
+// For more information, see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-controlling-access-using-tags).
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Lightsail's
+// API operation UntagResource for usage and error information.
+//
+// Returned Error Codes:
+//   * ErrCodeServiceException "ServiceException"
+//   A general service exception.
+//
+//   * ErrCodeInvalidInputException "InvalidInputException"
+//   Lightsail throws this exception when user input does not conform to the validation
+//   rules of an input field.
+//
+//   Domain-related APIs are only available in the N. Virginia (us-east-1) Region.
+//   Please set your AWS Region configuration to us-east-1 to create, view, or
+//   edit these resources.
+//
+//   * ErrCodeNotFoundException "NotFoundException"
+//   Lightsail throws this exception when it cannot find a resource.
+//
+//   * ErrCodeOperationFailureException "OperationFailureException"
+//   Lightsail throws this exception when an operation fails to execute.
+//
+//   * ErrCodeAccessDeniedException "AccessDeniedException"
+//   Lightsail throws this exception when the user cannot be authenticated or
+//   uses invalid credentials to access a resource.
+//
+//   * ErrCodeAccountSetupInProgressException "AccountSetupInProgressException"
+//   Lightsail throws this exception when an account is still in the setup in
+//   progress state.
+//
+//   * ErrCodeUnauthenticatedException "UnauthenticatedException"
+//   Lightsail throws this exception when the user has not been authenticated.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/lightsail-2016-11-28/UntagResource
+func (c *Lightsail) UntagResource(input *UntagResourceInput) (*UntagResourceOutput, error) {
+	req, out := c.UntagResourceRequest(input)
+	return out, req.Send()
+}
+
+// UntagResourceWithContext is the same as UntagResource with the addition of
+// the ability to pass a context and additional request options.
+//
+// See UntagResource for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Lightsail) UntagResourceWithContext(ctx aws.Context, input *UntagResourceInput, opts ...request.Option) (*UntagResourceOutput, error) {
+	req, out := c.UntagResourceRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opUpdateDomainEntry = "UpdateDomainEntry"
 
 // UpdateDomainEntryRequest generates a "aws/request.Request" representing the
@@ -9439,6 +10369,10 @@ func (c *Lightsail) UpdateDomainEntryRequest(input *UpdateDomainEntryInput) (req
 // UpdateDomainEntry API operation for Amazon Lightsail.
 //
 // Updates a domain recordset after it is created.
+//
+// The update domain entry operation supports tag-based access control via resource
+// tags applied to the resource identified by domainName. For more information,
+// see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-controlling-access-using-tags).
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -9544,6 +10478,10 @@ func (c *Lightsail) UpdateLoadBalancerAttributeRequest(input *UpdateLoadBalancer
 //
 // Updates the specified attribute for a load balancer. You can only update
 // one attribute at a time.
+//
+// The update load balancer attribute operation supports tag-based access control
+// via resource tags applied to the resource identified by loadBalancerName.
+// For more information, see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-controlling-access-using-tags).
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -9651,6 +10589,10 @@ func (c *Lightsail) UpdateRelationalDatabaseRequest(input *UpdateRelationalDatab
 //
 // Updates are applied immediately, or in cases where the updates could result
 // in an outage, are applied during the database's predefined maintenance window.
+//
+// The update relational database operation supports tag-based access control
+// via resource tags applied to the resource identified by relationalDatabaseName.
+// For more information, see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-controlling-access-using-tags).
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -9762,6 +10704,10 @@ func (c *Lightsail) UpdateRelationalDatabaseParametersRequest(input *UpdateRelat
 // marked with a dynamic apply type are applied immediately. Parameters marked
 // with a pending-reboot apply type are applied only after the database is rebooted
 // using the reboot relational database operation.
+//
+// The update relational database parameters operation supports tag-based access
+// control via resource tags applied to the resource identified by relationalDatabaseName.
+// For more information, see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-controlling-access-using-tags).
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -10570,6 +11516,307 @@ func (s *CloseInstancePublicPortsOutput) SetOperation(v *Operation) *CloseInstan
 	return s
 }
 
+// Describes a CloudFormation stack record created as a result of the create
+// cloud formation stack operation.
+//
+// A CloudFormation stack record provides information about the AWS CloudFormation
+// stack used to create a new Amazon Elastic Compute Cloud instance from an
+// exported Lightsail instance snapshot.
+type CloudFormationStackRecord struct {
+	_ struct{} `type:"structure"`
+
+	// The Amazon Resource Name (ARN) of the CloudFormation stack record.
+	Arn *string `locationName:"arn" type:"string"`
+
+	// The date when the CloudFormation stack record was created.
+	CreatedAt *time.Time `locationName:"createdAt" type:"timestamp"`
+
+	// A list of objects describing the destination service, which is AWS CloudFormation,
+	// and the Amazon Resource Name (ARN) of the AWS CloudFormation stack.
+	DestinationInfo *DestinationInfo `locationName:"destinationInfo" type:"structure"`
+
+	// A list of objects describing the Availability Zone and AWS Region of the
+	// CloudFormation stack record.
+	Location *ResourceLocation `locationName:"location" type:"structure"`
+
+	// The name of the CloudFormation stack record. It starts with CloudFormationStackRecord
+	// followed by a GUID.
+	Name *string `locationName:"name" type:"string"`
+
+	// The Lightsail resource type (e.g., CloudFormationStackRecord).
+	ResourceType *string `locationName:"resourceType" type:"string" enum:"ResourceType"`
+
+	// A list of objects describing the source of the CloudFormation stack record.
+	SourceInfo []*CloudFormationStackRecordSourceInfo `locationName:"sourceInfo" type:"list"`
+
+	// The current state of the CloudFormation stack record.
+	State *string `locationName:"state" type:"string" enum:"RecordState"`
+}
+
+// String returns the string representation
+func (s CloudFormationStackRecord) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CloudFormationStackRecord) GoString() string {
+	return s.String()
+}
+
+// SetArn sets the Arn field's value.
+func (s *CloudFormationStackRecord) SetArn(v string) *CloudFormationStackRecord {
+	s.Arn = &v
+	return s
+}
+
+// SetCreatedAt sets the CreatedAt field's value.
+func (s *CloudFormationStackRecord) SetCreatedAt(v time.Time) *CloudFormationStackRecord {
+	s.CreatedAt = &v
+	return s
+}
+
+// SetDestinationInfo sets the DestinationInfo field's value.
+func (s *CloudFormationStackRecord) SetDestinationInfo(v *DestinationInfo) *CloudFormationStackRecord {
+	s.DestinationInfo = v
+	return s
+}
+
+// SetLocation sets the Location field's value.
+func (s *CloudFormationStackRecord) SetLocation(v *ResourceLocation) *CloudFormationStackRecord {
+	s.Location = v
+	return s
+}
+
+// SetName sets the Name field's value.
+func (s *CloudFormationStackRecord) SetName(v string) *CloudFormationStackRecord {
+	s.Name = &v
+	return s
+}
+
+// SetResourceType sets the ResourceType field's value.
+func (s *CloudFormationStackRecord) SetResourceType(v string) *CloudFormationStackRecord {
+	s.ResourceType = &v
+	return s
+}
+
+// SetSourceInfo sets the SourceInfo field's value.
+func (s *CloudFormationStackRecord) SetSourceInfo(v []*CloudFormationStackRecordSourceInfo) *CloudFormationStackRecord {
+	s.SourceInfo = v
+	return s
+}
+
+// SetState sets the State field's value.
+func (s *CloudFormationStackRecord) SetState(v string) *CloudFormationStackRecord {
+	s.State = &v
+	return s
+}
+
+// Describes the source of a CloudFormation stack record (i.e., the export snapshot
+// record).
+type CloudFormationStackRecordSourceInfo struct {
+	_ struct{} `type:"structure"`
+
+	// The Amazon Resource Name (ARN) of the export snapshot record.
+	Arn *string `locationName:"arn" type:"string"`
+
+	// The name of the record.
+	Name *string `locationName:"name" type:"string"`
+
+	// The Lightsail resource type (e.g., ExportSnapshotRecord).
+	ResourceType *string `locationName:"resourceType" type:"string" enum:"CloudFormationStackRecordSourceType"`
+}
+
+// String returns the string representation
+func (s CloudFormationStackRecordSourceInfo) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CloudFormationStackRecordSourceInfo) GoString() string {
+	return s.String()
+}
+
+// SetArn sets the Arn field's value.
+func (s *CloudFormationStackRecordSourceInfo) SetArn(v string) *CloudFormationStackRecordSourceInfo {
+	s.Arn = &v
+	return s
+}
+
+// SetName sets the Name field's value.
+func (s *CloudFormationStackRecordSourceInfo) SetName(v string) *CloudFormationStackRecordSourceInfo {
+	s.Name = &v
+	return s
+}
+
+// SetResourceType sets the ResourceType field's value.
+func (s *CloudFormationStackRecordSourceInfo) SetResourceType(v string) *CloudFormationStackRecordSourceInfo {
+	s.ResourceType = &v
+	return s
+}
+
+type CopySnapshotInput struct {
+	_ struct{} `type:"structure"`
+
+	// The AWS Region where the source snapshot is located.
+	//
+	// SourceRegion is a required field
+	SourceRegion *string `locationName:"sourceRegion" type:"string" required:"true" enum:"RegionName"`
+
+	// The name of the source instance or disk snapshot to be copied.
+	//
+	// SourceSnapshotName is a required field
+	SourceSnapshotName *string `locationName:"sourceSnapshotName" type:"string" required:"true"`
+
+	// The name of the new instance or disk snapshot to be created as a copy.
+	//
+	// TargetSnapshotName is a required field
+	TargetSnapshotName *string `locationName:"targetSnapshotName" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s CopySnapshotInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CopySnapshotInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *CopySnapshotInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "CopySnapshotInput"}
+	if s.SourceRegion == nil {
+		invalidParams.Add(request.NewErrParamRequired("SourceRegion"))
+	}
+	if s.SourceSnapshotName == nil {
+		invalidParams.Add(request.NewErrParamRequired("SourceSnapshotName"))
+	}
+	if s.TargetSnapshotName == nil {
+		invalidParams.Add(request.NewErrParamRequired("TargetSnapshotName"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetSourceRegion sets the SourceRegion field's value.
+func (s *CopySnapshotInput) SetSourceRegion(v string) *CopySnapshotInput {
+	s.SourceRegion = &v
+	return s
+}
+
+// SetSourceSnapshotName sets the SourceSnapshotName field's value.
+func (s *CopySnapshotInput) SetSourceSnapshotName(v string) *CopySnapshotInput {
+	s.SourceSnapshotName = &v
+	return s
+}
+
+// SetTargetSnapshotName sets the TargetSnapshotName field's value.
+func (s *CopySnapshotInput) SetTargetSnapshotName(v string) *CopySnapshotInput {
+	s.TargetSnapshotName = &v
+	return s
+}
+
+type CopySnapshotOutput struct {
+	_ struct{} `type:"structure"`
+
+	// A list of objects describing the API operation.
+	Operations []*Operation `locationName:"operations" type:"list"`
+}
+
+// String returns the string representation
+func (s CopySnapshotOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CopySnapshotOutput) GoString() string {
+	return s.String()
+}
+
+// SetOperations sets the Operations field's value.
+func (s *CopySnapshotOutput) SetOperations(v []*Operation) *CopySnapshotOutput {
+	s.Operations = v
+	return s
+}
+
+type CreateCloudFormationStackInput struct {
+	_ struct{} `type:"structure"`
+
+	// An array of parameters that will be used to create the new Amazon EC2 instance.
+	// You can only pass one instance entry at a time in this array. You will get
+	// an invalid parameter error if you pass more than one instance entry in this
+	// array.
+	//
+	// Instances is a required field
+	Instances []*InstanceEntry `locationName:"instances" type:"list" required:"true"`
+}
+
+// String returns the string representation
+func (s CreateCloudFormationStackInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateCloudFormationStackInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *CreateCloudFormationStackInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "CreateCloudFormationStackInput"}
+	if s.Instances == nil {
+		invalidParams.Add(request.NewErrParamRequired("Instances"))
+	}
+	if s.Instances != nil {
+		for i, v := range s.Instances {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Instances", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetInstances sets the Instances field's value.
+func (s *CreateCloudFormationStackInput) SetInstances(v []*InstanceEntry) *CreateCloudFormationStackInput {
+	s.Instances = v
+	return s
+}
+
+type CreateCloudFormationStackOutput struct {
+	_ struct{} `type:"structure"`
+
+	// A list of objects describing the API operation.
+	Operations []*Operation `locationName:"operations" type:"list"`
+}
+
+// String returns the string representation
+func (s CreateCloudFormationStackOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateCloudFormationStackOutput) GoString() string {
+	return s.String()
+}
+
+// SetOperations sets the Operations field's value.
+func (s *CreateCloudFormationStackOutput) SetOperations(v []*Operation) *CreateCloudFormationStackOutput {
+	s.Operations = v
+	return s
+}
+
 type CreateDiskFromSnapshotInput struct {
 	_ struct{} `type:"structure"`
 
@@ -10598,6 +11845,11 @@ type CreateDiskFromSnapshotInput struct {
 	//
 	// SizeInGb is a required field
 	SizeInGb *int64 `locationName:"sizeInGb" type:"integer" required:"true"`
+
+	// The tag keys and optional values to add to the resource during create.
+	//
+	// To tag a resource after it has been created, see the tag resource operation.
+	Tags []*Tag `locationName:"tags" type:"list"`
 }
 
 // String returns the string representation
@@ -10656,6 +11908,12 @@ func (s *CreateDiskFromSnapshotInput) SetSizeInGb(v int64) *CreateDiskFromSnapsh
 	return s
 }
 
+// SetTags sets the Tags field's value.
+func (s *CreateDiskFromSnapshotInput) SetTags(v []*Tag) *CreateDiskFromSnapshotInput {
+	s.Tags = v
+	return s
+}
+
 type CreateDiskFromSnapshotOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -10701,6 +11959,11 @@ type CreateDiskInput struct {
 	//
 	// SizeInGb is a required field
 	SizeInGb *int64 `locationName:"sizeInGb" type:"integer" required:"true"`
+
+	// The tag keys and optional values to add to the resource during create.
+	//
+	// To tag a resource after it has been created, see the tag resource operation.
+	Tags []*Tag `locationName:"tags" type:"list"`
 }
 
 // String returns the string representation
@@ -10750,6 +12013,12 @@ func (s *CreateDiskInput) SetSizeInGb(v int64) *CreateDiskInput {
 	return s
 }
 
+// SetTags sets the Tags field's value.
+func (s *CreateDiskInput) SetTags(v []*Tag) *CreateDiskInput {
+	s.Tags = v
+	return s
+}
+
 type CreateDiskOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -10786,6 +12055,11 @@ type CreateDiskSnapshotInput struct {
 	//
 	// DiskSnapshotName is a required field
 	DiskSnapshotName *string `locationName:"diskSnapshotName" type:"string" required:"true"`
+
+	// The tag keys and optional values to add to the resource during create.
+	//
+	// To tag a resource after it has been created, see the tag resource operation.
+	Tags []*Tag `locationName:"tags" type:"list"`
 }
 
 // String returns the string representation
@@ -10823,6 +12097,12 @@ func (s *CreateDiskSnapshotInput) SetDiskName(v string) *CreateDiskSnapshotInput
 // SetDiskSnapshotName sets the DiskSnapshotName field's value.
 func (s *CreateDiskSnapshotInput) SetDiskSnapshotName(v string) *CreateDiskSnapshotInput {
 	s.DiskSnapshotName = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *CreateDiskSnapshotInput) SetTags(v []*Tag) *CreateDiskSnapshotInput {
+	s.Tags = v
 	return s
 }
 
@@ -10938,6 +12218,11 @@ type CreateDomainInput struct {
 	//
 	// DomainName is a required field
 	DomainName *string `locationName:"domainName" type:"string" required:"true"`
+
+	// The tag keys and optional values to add to the resource during create.
+	//
+	// To tag a resource after it has been created, see the tag resource operation.
+	Tags []*Tag `locationName:"tags" type:"list"`
 }
 
 // String returns the string representation
@@ -10966,6 +12251,12 @@ func (s *CreateDomainInput) Validate() error {
 // SetDomainName sets the DomainName field's value.
 func (s *CreateDomainInput) SetDomainName(v string) *CreateDomainInput {
 	s.DomainName = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *CreateDomainInput) SetTags(v []*Tag) *CreateDomainInput {
+	s.Tags = v
 	return s
 }
 
@@ -11005,6 +12296,11 @@ type CreateInstanceSnapshotInput struct {
 	//
 	// InstanceSnapshotName is a required field
 	InstanceSnapshotName *string `locationName:"instanceSnapshotName" type:"string" required:"true"`
+
+	// The tag keys and optional values to add to the resource during create.
+	//
+	// To tag a resource after it has been created, see the tag resource operation.
+	Tags []*Tag `locationName:"tags" type:"list"`
 }
 
 // String returns the string representation
@@ -11042,6 +12338,12 @@ func (s *CreateInstanceSnapshotInput) SetInstanceName(v string) *CreateInstanceS
 // SetInstanceSnapshotName sets the InstanceSnapshotName field's value.
 func (s *CreateInstanceSnapshotInput) SetInstanceSnapshotName(v string) *CreateInstanceSnapshotInput {
 	s.InstanceSnapshotName = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *CreateInstanceSnapshotInput) SetTags(v []*Tag) *CreateInstanceSnapshotInput {
+	s.Tags = v
 	return s
 }
 
@@ -11104,6 +12406,11 @@ type CreateInstancesFromSnapshotInput struct {
 
 	// The name for your key pair.
 	KeyPairName *string `locationName:"keyPairName" type:"string"`
+
+	// The tag keys and optional values to add to the resource during create.
+	//
+	// To tag a resource after it has been created, see the tag resource operation.
+	Tags []*Tag `locationName:"tags" type:"list"`
 
 	// You can create a launch script that configures a server with additional user
 	// data. For example, apt-get -y update.
@@ -11183,6 +12490,12 @@ func (s *CreateInstancesFromSnapshotInput) SetKeyPairName(v string) *CreateInsta
 	return s
 }
 
+// SetTags sets the Tags field's value.
+func (s *CreateInstancesFromSnapshotInput) SetTags(v []*Tag) *CreateInstancesFromSnapshotInput {
+	s.Tags = v
+	return s
+}
+
 // SetUserData sets the UserData field's value.
 func (s *CreateInstancesFromSnapshotInput) SetUserData(v string) *CreateInstancesFromSnapshotInput {
 	s.UserData = &v
@@ -11254,6 +12567,11 @@ type CreateInstancesInput struct {
 
 	// The name of your key pair.
 	KeyPairName *string `locationName:"keyPairName" type:"string"`
+
+	// The tag keys and optional values to add to the resource during create.
+	//
+	// To tag a resource after it has been created, see the tag resource operation.
+	Tags []*Tag `locationName:"tags" type:"list"`
 
 	// A launch script you can create that configures a server with additional user
 	// data. For example, you might want to run apt-get -y update.
@@ -11333,6 +12651,12 @@ func (s *CreateInstancesInput) SetKeyPairName(v string) *CreateInstancesInput {
 	return s
 }
 
+// SetTags sets the Tags field's value.
+func (s *CreateInstancesInput) SetTags(v []*Tag) *CreateInstancesInput {
+	s.Tags = v
+	return s
+}
+
 // SetUserData sets the UserData field's value.
 func (s *CreateInstancesInput) SetUserData(v string) *CreateInstancesInput {
 	s.UserData = &v
@@ -11370,6 +12694,11 @@ type CreateKeyPairInput struct {
 	//
 	// KeyPairName is a required field
 	KeyPairName *string `locationName:"keyPairName" type:"string" required:"true"`
+
+	// The tag keys and optional values to add to the resource during create.
+	//
+	// To tag a resource after it has been created, see the tag resource operation.
+	Tags []*Tag `locationName:"tags" type:"list"`
 }
 
 // String returns the string representation
@@ -11398,6 +12727,12 @@ func (s *CreateKeyPairInput) Validate() error {
 // SetKeyPairName sets the KeyPairName field's value.
 func (s *CreateKeyPairInput) SetKeyPairName(v string) *CreateKeyPairInput {
 	s.KeyPairName = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *CreateKeyPairInput) SetTags(v []*Tag) *CreateKeyPairInput {
+	s.Tags = v
 	return s
 }
 
@@ -11490,6 +12825,11 @@ type CreateLoadBalancerInput struct {
 	//
 	// LoadBalancerName is a required field
 	LoadBalancerName *string `locationName:"loadBalancerName" type:"string" required:"true"`
+
+	// The tag keys and optional values to add to the resource during create.
+	//
+	// To tag a resource after it has been created, see the tag resource operation.
+	Tags []*Tag `locationName:"tags" type:"list"`
 }
 
 // String returns the string representation
@@ -11554,6 +12894,12 @@ func (s *CreateLoadBalancerInput) SetLoadBalancerName(v string) *CreateLoadBalan
 	return s
 }
 
+// SetTags sets the Tags field's value.
+func (s *CreateLoadBalancerInput) SetTags(v []*Tag) *CreateLoadBalancerInput {
+	s.Tags = v
+	return s
+}
+
 type CreateLoadBalancerOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -11605,6 +12951,11 @@ type CreateLoadBalancerTlsCertificateInput struct {
 	//
 	// LoadBalancerName is a required field
 	LoadBalancerName *string `locationName:"loadBalancerName" type:"string" required:"true"`
+
+	// The tag keys and optional values to add to the resource during create.
+	//
+	// To tag a resource after it has been created, see the tag resource operation.
+	Tags []*Tag `locationName:"tags" type:"list"`
 }
 
 // String returns the string representation
@@ -11657,6 +13008,12 @@ func (s *CreateLoadBalancerTlsCertificateInput) SetCertificateName(v string) *Cr
 // SetLoadBalancerName sets the LoadBalancerName field's value.
 func (s *CreateLoadBalancerTlsCertificateInput) SetLoadBalancerName(v string) *CreateLoadBalancerTlsCertificateInput {
 	s.LoadBalancerName = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *CreateLoadBalancerTlsCertificateInput) SetTags(v []*Tag) *CreateLoadBalancerTlsCertificateInput {
+	s.Tags = v
 	return s
 }
 
@@ -11743,6 +13100,11 @@ type CreateRelationalDatabaseFromSnapshotInput struct {
 	// The name of the source database.
 	SourceRelationalDatabaseName *string `locationName:"sourceRelationalDatabaseName" type:"string"`
 
+	// The tag keys and optional values to add to the resource during create.
+	//
+	// To tag a resource after it has been created, see the tag resource operation.
+	Tags []*Tag `locationName:"tags" type:"list"`
+
 	// Specifies whether your database is restored from the latest backup time.
 	// A value of true restores from the latest backup time.
 	//
@@ -11817,6 +13179,12 @@ func (s *CreateRelationalDatabaseFromSnapshotInput) SetSourceRelationalDatabaseN
 	return s
 }
 
+// SetTags sets the Tags field's value.
+func (s *CreateRelationalDatabaseFromSnapshotInput) SetTags(v []*Tag) *CreateRelationalDatabaseFromSnapshotInput {
+	s.Tags = v
+	return s
+}
+
 // SetUseLatestRestorableTime sets the UseLatestRestorableTime field's value.
 func (s *CreateRelationalDatabaseFromSnapshotInput) SetUseLatestRestorableTime(v bool) *CreateRelationalDatabaseFromSnapshotInput {
 	s.UseLatestRestorableTime = &v
@@ -11874,7 +13242,7 @@ type CreateRelationalDatabaseInput struct {
 	// any printable ASCII character except "/", """, or "@".
 	//
 	// Constraints: Must contain 8 to 41 characters.
-	MasterUserPassword *string `locationName:"masterUserPassword" type:"string"`
+	MasterUserPassword *string `locationName:"masterUserPassword" type:"string" sensitive:"true"`
 
 	// The master user name for your new database.
 	//
@@ -11969,6 +13337,11 @@ type CreateRelationalDatabaseInput struct {
 	//
 	// RelationalDatabaseName is a required field
 	RelationalDatabaseName *string `locationName:"relationalDatabaseName" type:"string" required:"true"`
+
+	// The tag keys and optional values to add to the resource during create.
+	//
+	// To tag a resource after it has been created, see the tag resource operation.
+	Tags []*Tag `locationName:"tags" type:"list"`
 }
 
 // String returns the string representation
@@ -12066,6 +13439,12 @@ func (s *CreateRelationalDatabaseInput) SetRelationalDatabaseName(v string) *Cre
 	return s
 }
 
+// SetTags sets the Tags field's value.
+func (s *CreateRelationalDatabaseInput) SetTags(v []*Tag) *CreateRelationalDatabaseInput {
+	s.Tags = v
+	return s
+}
+
 type CreateRelationalDatabaseOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -12107,6 +13486,11 @@ type CreateRelationalDatabaseSnapshotInput struct {
 	//
 	// RelationalDatabaseSnapshotName is a required field
 	RelationalDatabaseSnapshotName *string `locationName:"relationalDatabaseSnapshotName" type:"string" required:"true"`
+
+	// The tag keys and optional values to add to the resource during create.
+	//
+	// To tag a resource after it has been created, see the tag resource operation.
+	Tags []*Tag `locationName:"tags" type:"list"`
 }
 
 // String returns the string representation
@@ -12144,6 +13528,12 @@ func (s *CreateRelationalDatabaseSnapshotInput) SetRelationalDatabaseName(v stri
 // SetRelationalDatabaseSnapshotName sets the RelationalDatabaseSnapshotName field's value.
 func (s *CreateRelationalDatabaseSnapshotInput) SetRelationalDatabaseSnapshotName(v string) *CreateRelationalDatabaseSnapshotInput {
 	s.RelationalDatabaseSnapshotName = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *CreateRelationalDatabaseSnapshotInput) SetTags(v []*Tag) *CreateRelationalDatabaseSnapshotInput {
+	s.Tags = v
 	return s
 }
 
@@ -12924,6 +14314,39 @@ func (s *DeleteRelationalDatabaseSnapshotOutput) SetOperations(v []*Operation) *
 	return s
 }
 
+// Describes the destination of a record.
+type DestinationInfo struct {
+	_ struct{} `type:"structure"`
+
+	// The ID of the resource created at the destination.
+	Id *string `locationName:"id" type:"string"`
+
+	// The destination service of the record.
+	Service *string `locationName:"service" type:"string"`
+}
+
+// String returns the string representation
+func (s DestinationInfo) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DestinationInfo) GoString() string {
+	return s.String()
+}
+
+// SetId sets the Id field's value.
+func (s *DestinationInfo) SetId(v string) *DestinationInfo {
+	s.Id = &v
+	return s
+}
+
+// SetService sets the Service field's value.
+func (s *DestinationInfo) SetService(v string) *DestinationInfo {
+	s.Service = &v
+	return s
+}
+
 type DetachDiskInput struct {
 	_ struct{} `type:"structure"`
 
@@ -13186,6 +14609,10 @@ type Disk struct {
 	// questions about an instance or another resource in Lightsail. This code enables
 	// our support team to look up your Lightsail information more easily.
 	SupportCode *string `locationName:"supportCode" type:"string"`
+
+	// The tag keys and optional values for the resource. For more information about
+	// tags in Lightsail, see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-tags).
+	Tags []*Tag `locationName:"tags" type:"list"`
 }
 
 // String returns the string representation
@@ -13288,6 +14715,64 @@ func (s *Disk) SetSupportCode(v string) *Disk {
 	return s
 }
 
+// SetTags sets the Tags field's value.
+func (s *Disk) SetTags(v []*Tag) *Disk {
+	s.Tags = v
+	return s
+}
+
+// Describes a disk.
+type DiskInfo struct {
+	_ struct{} `type:"structure"`
+
+	// A Boolean value indicating whether this disk is a system disk (has an operating
+	// system loaded on it).
+	IsSystemDisk *bool `locationName:"isSystemDisk" type:"boolean"`
+
+	// The disk name.
+	Name *string `locationName:"name" type:"string"`
+
+	// The disk path.
+	Path *string `locationName:"path" type:"string"`
+
+	// The size of the disk in GB (e.g., 32).
+	SizeInGb *int64 `locationName:"sizeInGb" type:"integer"`
+}
+
+// String returns the string representation
+func (s DiskInfo) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DiskInfo) GoString() string {
+	return s.String()
+}
+
+// SetIsSystemDisk sets the IsSystemDisk field's value.
+func (s *DiskInfo) SetIsSystemDisk(v bool) *DiskInfo {
+	s.IsSystemDisk = &v
+	return s
+}
+
+// SetName sets the Name field's value.
+func (s *DiskInfo) SetName(v string) *DiskInfo {
+	s.Name = &v
+	return s
+}
+
+// SetPath sets the Path field's value.
+func (s *DiskInfo) SetPath(v string) *DiskInfo {
+	s.Path = &v
+	return s
+}
+
+// SetSizeInGb sets the SizeInGb field's value.
+func (s *DiskInfo) SetSizeInGb(v int64) *DiskInfo {
+	s.SizeInGb = &v
+	return s
+}
+
 // Describes a block storage disk mapping.
 type DiskMap struct {
 	_ struct{} `type:"structure"`
@@ -13360,6 +14845,10 @@ type DiskSnapshot struct {
 	// questions about an instance or another resource in Lightsail. This code enables
 	// our support team to look up your Lightsail information more easily.
 	SupportCode *string `locationName:"supportCode" type:"string"`
+
+	// The tag keys and optional values for the resource. For more information about
+	// tags in Lightsail, see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-tags).
+	Tags []*Tag `locationName:"tags" type:"list"`
 }
 
 // String returns the string representation
@@ -13438,6 +14927,36 @@ func (s *DiskSnapshot) SetSupportCode(v string) *DiskSnapshot {
 	return s
 }
 
+// SetTags sets the Tags field's value.
+func (s *DiskSnapshot) SetTags(v []*Tag) *DiskSnapshot {
+	s.Tags = v
+	return s
+}
+
+// Describes a disk snapshot.
+type DiskSnapshotInfo struct {
+	_ struct{} `type:"structure"`
+
+	// The size of the disk in GB (e.g., 32).
+	SizeInGb *int64 `locationName:"sizeInGb" type:"integer"`
+}
+
+// String returns the string representation
+func (s DiskSnapshotInfo) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DiskSnapshotInfo) GoString() string {
+	return s.String()
+}
+
+// SetSizeInGb sets the SizeInGb field's value.
+func (s *DiskSnapshotInfo) SetSizeInGb(v int64) *DiskSnapshotInfo {
+	s.SizeInGb = &v
+	return s
+}
+
 // Describes a domain where you are storing recordsets in Lightsail.
 type Domain struct {
 	_ struct{} `type:"structure"`
@@ -13464,6 +14983,10 @@ type Domain struct {
 	// questions about an instance or another resource in Lightsail. This code enables
 	// our support team to look up your Lightsail information more easily.
 	SupportCode *string `locationName:"supportCode" type:"string"`
+
+	// The tag keys and optional values for the resource. For more information about
+	// tags in Lightsail, see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-tags).
+	Tags []*Tag `locationName:"tags" type:"list"`
 }
 
 // String returns the string representation
@@ -13515,6 +15038,12 @@ func (s *Domain) SetResourceType(v string) *Domain {
 // SetSupportCode sets the SupportCode field's value.
 func (s *Domain) SetSupportCode(v string) *Domain {
 	s.SupportCode = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *Domain) SetTags(v []*Tag) *Domain {
+	s.Tags = v
 	return s
 }
 
@@ -13642,6 +15171,242 @@ func (s *DownloadDefaultKeyPairOutput) SetPrivateKeyBase64(v string) *DownloadDe
 // SetPublicKeyBase64 sets the PublicKeyBase64 field's value.
 func (s *DownloadDefaultKeyPairOutput) SetPublicKeyBase64(v string) *DownloadDefaultKeyPairOutput {
 	s.PublicKeyBase64 = &v
+	return s
+}
+
+type ExportSnapshotInput struct {
+	_ struct{} `type:"structure"`
+
+	// The name of the instance or disk snapshot to be exported to Amazon EC2.
+	//
+	// SourceSnapshotName is a required field
+	SourceSnapshotName *string `locationName:"sourceSnapshotName" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s ExportSnapshotInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ExportSnapshotInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ExportSnapshotInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ExportSnapshotInput"}
+	if s.SourceSnapshotName == nil {
+		invalidParams.Add(request.NewErrParamRequired("SourceSnapshotName"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetSourceSnapshotName sets the SourceSnapshotName field's value.
+func (s *ExportSnapshotInput) SetSourceSnapshotName(v string) *ExportSnapshotInput {
+	s.SourceSnapshotName = &v
+	return s
+}
+
+type ExportSnapshotOutput struct {
+	_ struct{} `type:"structure"`
+
+	// A list of objects describing the API operation.
+	Operations []*Operation `locationName:"operations" type:"list"`
+}
+
+// String returns the string representation
+func (s ExportSnapshotOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ExportSnapshotOutput) GoString() string {
+	return s.String()
+}
+
+// SetOperations sets the Operations field's value.
+func (s *ExportSnapshotOutput) SetOperations(v []*Operation) *ExportSnapshotOutput {
+	s.Operations = v
+	return s
+}
+
+// Describes an export snapshot record.
+type ExportSnapshotRecord struct {
+	_ struct{} `type:"structure"`
+
+	// The Amazon Resource Name (ARN) of the export snapshot record.
+	Arn *string `locationName:"arn" type:"string"`
+
+	// The date when the export snapshot record was created.
+	CreatedAt *time.Time `locationName:"createdAt" type:"timestamp"`
+
+	// A list of objects describing the destination of the export snapshot record.
+	DestinationInfo *DestinationInfo `locationName:"destinationInfo" type:"structure"`
+
+	// The AWS Region and Availability Zone where the export snapshot record is
+	// located.
+	Location *ResourceLocation `locationName:"location" type:"structure"`
+
+	// The export snapshot record name.
+	Name *string `locationName:"name" type:"string"`
+
+	// The Lightsail resource type (e.g., ExportSnapshotRecord).
+	ResourceType *string `locationName:"resourceType" type:"string" enum:"ResourceType"`
+
+	// A list of objects describing the source of the export snapshot record.
+	SourceInfo *ExportSnapshotRecordSourceInfo `locationName:"sourceInfo" type:"structure"`
+
+	// The state of the export snapshot record.
+	State *string `locationName:"state" type:"string" enum:"RecordState"`
+}
+
+// String returns the string representation
+func (s ExportSnapshotRecord) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ExportSnapshotRecord) GoString() string {
+	return s.String()
+}
+
+// SetArn sets the Arn field's value.
+func (s *ExportSnapshotRecord) SetArn(v string) *ExportSnapshotRecord {
+	s.Arn = &v
+	return s
+}
+
+// SetCreatedAt sets the CreatedAt field's value.
+func (s *ExportSnapshotRecord) SetCreatedAt(v time.Time) *ExportSnapshotRecord {
+	s.CreatedAt = &v
+	return s
+}
+
+// SetDestinationInfo sets the DestinationInfo field's value.
+func (s *ExportSnapshotRecord) SetDestinationInfo(v *DestinationInfo) *ExportSnapshotRecord {
+	s.DestinationInfo = v
+	return s
+}
+
+// SetLocation sets the Location field's value.
+func (s *ExportSnapshotRecord) SetLocation(v *ResourceLocation) *ExportSnapshotRecord {
+	s.Location = v
+	return s
+}
+
+// SetName sets the Name field's value.
+func (s *ExportSnapshotRecord) SetName(v string) *ExportSnapshotRecord {
+	s.Name = &v
+	return s
+}
+
+// SetResourceType sets the ResourceType field's value.
+func (s *ExportSnapshotRecord) SetResourceType(v string) *ExportSnapshotRecord {
+	s.ResourceType = &v
+	return s
+}
+
+// SetSourceInfo sets the SourceInfo field's value.
+func (s *ExportSnapshotRecord) SetSourceInfo(v *ExportSnapshotRecordSourceInfo) *ExportSnapshotRecord {
+	s.SourceInfo = v
+	return s
+}
+
+// SetState sets the State field's value.
+func (s *ExportSnapshotRecord) SetState(v string) *ExportSnapshotRecord {
+	s.State = &v
+	return s
+}
+
+// Describes the source of an export snapshot record.
+type ExportSnapshotRecordSourceInfo struct {
+	_ struct{} `type:"structure"`
+
+	// The Amazon Resource Name (ARN) of the source instance or disk snapshot.
+	Arn *string `locationName:"arn" type:"string"`
+
+	// The date when the source instance or disk snapshot was created.
+	CreatedAt *time.Time `locationName:"createdAt" type:"timestamp"`
+
+	// A list of objects describing a disk snapshot.
+	DiskSnapshotInfo *DiskSnapshotInfo `locationName:"diskSnapshotInfo" type:"structure"`
+
+	// The Amazon Resource Name (ARN) of the snapshot's source instance or disk.
+	FromResourceArn *string `locationName:"fromResourceArn" type:"string"`
+
+	// The name of the snapshot's source instance or disk.
+	FromResourceName *string `locationName:"fromResourceName" type:"string"`
+
+	// A list of objects describing an instance snapshot.
+	InstanceSnapshotInfo *InstanceSnapshotInfo `locationName:"instanceSnapshotInfo" type:"structure"`
+
+	// The name of the source instance or disk snapshot.
+	Name *string `locationName:"name" type:"string"`
+
+	// The Lightsail resource type (e.g., InstanceSnapshot or DiskSnapshot).
+	ResourceType *string `locationName:"resourceType" type:"string" enum:"ExportSnapshotRecordSourceType"`
+}
+
+// String returns the string representation
+func (s ExportSnapshotRecordSourceInfo) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ExportSnapshotRecordSourceInfo) GoString() string {
+	return s.String()
+}
+
+// SetArn sets the Arn field's value.
+func (s *ExportSnapshotRecordSourceInfo) SetArn(v string) *ExportSnapshotRecordSourceInfo {
+	s.Arn = &v
+	return s
+}
+
+// SetCreatedAt sets the CreatedAt field's value.
+func (s *ExportSnapshotRecordSourceInfo) SetCreatedAt(v time.Time) *ExportSnapshotRecordSourceInfo {
+	s.CreatedAt = &v
+	return s
+}
+
+// SetDiskSnapshotInfo sets the DiskSnapshotInfo field's value.
+func (s *ExportSnapshotRecordSourceInfo) SetDiskSnapshotInfo(v *DiskSnapshotInfo) *ExportSnapshotRecordSourceInfo {
+	s.DiskSnapshotInfo = v
+	return s
+}
+
+// SetFromResourceArn sets the FromResourceArn field's value.
+func (s *ExportSnapshotRecordSourceInfo) SetFromResourceArn(v string) *ExportSnapshotRecordSourceInfo {
+	s.FromResourceArn = &v
+	return s
+}
+
+// SetFromResourceName sets the FromResourceName field's value.
+func (s *ExportSnapshotRecordSourceInfo) SetFromResourceName(v string) *ExportSnapshotRecordSourceInfo {
+	s.FromResourceName = &v
+	return s
+}
+
+// SetInstanceSnapshotInfo sets the InstanceSnapshotInfo field's value.
+func (s *ExportSnapshotRecordSourceInfo) SetInstanceSnapshotInfo(v *InstanceSnapshotInfo) *ExportSnapshotRecordSourceInfo {
+	s.InstanceSnapshotInfo = v
+	return s
+}
+
+// SetName sets the Name field's value.
+func (s *ExportSnapshotRecordSourceInfo) SetName(v string) *ExportSnapshotRecordSourceInfo {
+	s.Name = &v
+	return s
+}
+
+// SetResourceType sets the ResourceType field's value.
+func (s *ExportSnapshotRecordSourceInfo) SetResourceType(v string) *ExportSnapshotRecordSourceInfo {
+	s.ResourceType = &v
 	return s
 }
 
@@ -13832,6 +15597,63 @@ func (s *GetBundlesOutput) SetBundles(v []*Bundle) *GetBundlesOutput {
 
 // SetNextPageToken sets the NextPageToken field's value.
 func (s *GetBundlesOutput) SetNextPageToken(v string) *GetBundlesOutput {
+	s.NextPageToken = &v
+	return s
+}
+
+type GetCloudFormationStackRecordsInput struct {
+	_ struct{} `type:"structure"`
+
+	// A token used for advancing to a specific page of results for your get cloud
+	// formation stack records request.
+	PageToken *string `locationName:"pageToken" type:"string"`
+}
+
+// String returns the string representation
+func (s GetCloudFormationStackRecordsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetCloudFormationStackRecordsInput) GoString() string {
+	return s.String()
+}
+
+// SetPageToken sets the PageToken field's value.
+func (s *GetCloudFormationStackRecordsInput) SetPageToken(v string) *GetCloudFormationStackRecordsInput {
+	s.PageToken = &v
+	return s
+}
+
+type GetCloudFormationStackRecordsOutput struct {
+	_ struct{} `type:"structure"`
+
+	// A list of objects describing the CloudFormation stack records.
+	CloudFormationStackRecords []*CloudFormationStackRecord `locationName:"cloudFormationStackRecords" type:"list"`
+
+	// A token used for advancing to the next page of results of your get relational
+	// database bundles request.
+	NextPageToken *string `locationName:"nextPageToken" type:"string"`
+}
+
+// String returns the string representation
+func (s GetCloudFormationStackRecordsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetCloudFormationStackRecordsOutput) GoString() string {
+	return s.String()
+}
+
+// SetCloudFormationStackRecords sets the CloudFormationStackRecords field's value.
+func (s *GetCloudFormationStackRecordsOutput) SetCloudFormationStackRecords(v []*CloudFormationStackRecord) *GetCloudFormationStackRecordsOutput {
+	s.CloudFormationStackRecords = v
+	return s
+}
+
+// SetNextPageToken sets the NextPageToken field's value.
+func (s *GetCloudFormationStackRecordsOutput) SetNextPageToken(v string) *GetCloudFormationStackRecordsOutput {
 	s.NextPageToken = &v
 	return s
 }
@@ -14188,6 +16010,63 @@ func (s *GetDomainsOutput) SetDomains(v []*Domain) *GetDomainsOutput {
 
 // SetNextPageToken sets the NextPageToken field's value.
 func (s *GetDomainsOutput) SetNextPageToken(v string) *GetDomainsOutput {
+	s.NextPageToken = &v
+	return s
+}
+
+type GetExportSnapshotRecordsInput struct {
+	_ struct{} `type:"structure"`
+
+	// A token used for advancing to a specific page of results for your get export
+	// snapshot records request.
+	PageToken *string `locationName:"pageToken" type:"string"`
+}
+
+// String returns the string representation
+func (s GetExportSnapshotRecordsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetExportSnapshotRecordsInput) GoString() string {
+	return s.String()
+}
+
+// SetPageToken sets the PageToken field's value.
+func (s *GetExportSnapshotRecordsInput) SetPageToken(v string) *GetExportSnapshotRecordsInput {
+	s.PageToken = &v
+	return s
+}
+
+type GetExportSnapshotRecordsOutput struct {
+	_ struct{} `type:"structure"`
+
+	// A list of objects describing the export snapshot records.
+	ExportSnapshotRecords []*ExportSnapshotRecord `locationName:"exportSnapshotRecords" type:"list"`
+
+	// A token used for advancing to the next page of results of your get relational
+	// database bundles request.
+	NextPageToken *string `locationName:"nextPageToken" type:"string"`
+}
+
+// String returns the string representation
+func (s GetExportSnapshotRecordsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetExportSnapshotRecordsOutput) GoString() string {
+	return s.String()
+}
+
+// SetExportSnapshotRecords sets the ExportSnapshotRecords field's value.
+func (s *GetExportSnapshotRecordsOutput) SetExportSnapshotRecords(v []*ExportSnapshotRecord) *GetExportSnapshotRecordsOutput {
+	s.ExportSnapshotRecords = v
+	return s
+}
+
+// SetNextPageToken sets the NextPageToken field's value.
+func (s *GetExportSnapshotRecordsOutput) SetNextPageToken(v string) *GetExportSnapshotRecordsOutput {
 	s.NextPageToken = &v
 	return s
 }
@@ -16219,7 +18098,7 @@ type GetRelationalDatabaseMasterUserPasswordOutput struct {
 	CreatedAt *time.Time `locationName:"createdAt" type:"timestamp"`
 
 	// The master user password for the password version specified.
-	MasterUserPassword *string `locationName:"masterUserPassword" type:"string"`
+	MasterUserPassword *string `locationName:"masterUserPassword" type:"string" sensitive:"true"`
 }
 
 // String returns the string representation
@@ -16955,6 +18834,10 @@ type Instance struct {
 	// our support team to look up your Lightsail information more easily.
 	SupportCode *string `locationName:"supportCode" type:"string"`
 
+	// The tag keys and optional values for the resource. For more information about
+	// tags in Lightsail, see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-tags).
+	Tags []*Tag `locationName:"tags" type:"list"`
+
 	// The user name for connecting to the instance (e.g., ec2-user).
 	Username *string `locationName:"username" type:"string"`
 }
@@ -17068,6 +18951,12 @@ func (s *Instance) SetState(v *InstanceState) *Instance {
 // SetSupportCode sets the SupportCode field's value.
 func (s *Instance) SetSupportCode(v string) *Instance {
 	s.SupportCode = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *Instance) SetTags(v []*Tag) *Instance {
+	s.Tags = v
 	return s
 }
 
@@ -17187,6 +19076,114 @@ func (s *InstanceAccessDetails) SetProtocol(v string) *InstanceAccessDetails {
 // SetUsername sets the Username field's value.
 func (s *InstanceAccessDetails) SetUsername(v string) *InstanceAccessDetails {
 	s.Username = &v
+	return s
+}
+
+// Describes the Amazon Elastic Compute Cloud instance and related resources
+// to be created using the create cloud formation stack operation.
+type InstanceEntry struct {
+	_ struct{} `type:"structure"`
+
+	// The Availability Zone for the new Amazon EC2 instance.
+	//
+	// AvailabilityZone is a required field
+	AvailabilityZone *string `locationName:"availabilityZone" type:"string" required:"true"`
+
+	// The instance type (e.g., t2.micro) to use for the new Amazon EC2 instance.
+	//
+	// InstanceType is a required field
+	InstanceType *string `locationName:"instanceType" type:"string" required:"true"`
+
+	// The port configuration to use for the new Amazon EC2 instance.
+	//
+	// The following configuration options are available:
+	//
+	//    * DEFAULT — Use the default firewall settings from the image.
+	//
+	//    * INSTANCE — Use the firewall settings from the source Lightsail instance.
+	//
+	//    * NONE — Default to Amazon EC2.
+	//
+	// PortInfoSource is a required field
+	PortInfoSource *string `locationName:"portInfoSource" type:"string" required:"true" enum:"PortInfoSourceType"`
+
+	// The name of the export snapshot record, which contains the exported Lightsail
+	// instance snapshot that will be used as the source of the new Amazon EC2 instance.
+	//
+	// Use the get export snapshot records operation to get a list of export snapshot
+	// records that you can use to create a CloudFormation stack.
+	//
+	// SourceName is a required field
+	SourceName *string `locationName:"sourceName" type:"string" required:"true"`
+
+	// A launch script you can create that configures a server with additional user
+	// data. For example, you might want to run apt-get -y update.
+	//
+	// Depending on the machine image you choose, the command to get software on
+	// your instance varies. Amazon Linux and CentOS use yum, Debian and Ubuntu
+	// use apt-get, and FreeBSD uses pkg.
+	UserData *string `locationName:"userData" type:"string"`
+}
+
+// String returns the string representation
+func (s InstanceEntry) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InstanceEntry) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *InstanceEntry) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "InstanceEntry"}
+	if s.AvailabilityZone == nil {
+		invalidParams.Add(request.NewErrParamRequired("AvailabilityZone"))
+	}
+	if s.InstanceType == nil {
+		invalidParams.Add(request.NewErrParamRequired("InstanceType"))
+	}
+	if s.PortInfoSource == nil {
+		invalidParams.Add(request.NewErrParamRequired("PortInfoSource"))
+	}
+	if s.SourceName == nil {
+		invalidParams.Add(request.NewErrParamRequired("SourceName"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetAvailabilityZone sets the AvailabilityZone field's value.
+func (s *InstanceEntry) SetAvailabilityZone(v string) *InstanceEntry {
+	s.AvailabilityZone = &v
+	return s
+}
+
+// SetInstanceType sets the InstanceType field's value.
+func (s *InstanceEntry) SetInstanceType(v string) *InstanceEntry {
+	s.InstanceType = &v
+	return s
+}
+
+// SetPortInfoSource sets the PortInfoSource field's value.
+func (s *InstanceEntry) SetPortInfoSource(v string) *InstanceEntry {
+	s.PortInfoSource = &v
+	return s
+}
+
+// SetSourceName sets the SourceName field's value.
+func (s *InstanceEntry) SetSourceName(v string) *InstanceEntry {
+	s.SourceName = &v
+	return s
+}
+
+// SetUserData sets the UserData field's value.
+func (s *InstanceEntry) SetUserData(v string) *InstanceEntry {
+	s.UserData = &v
 	return s
 }
 
@@ -17568,6 +19565,10 @@ type InstanceSnapshot struct {
 	// questions about an instance or another resource in Lightsail. This code enables
 	// our support team to look up your Lightsail information more easily.
 	SupportCode *string `locationName:"supportCode" type:"string"`
+
+	// The tag keys and optional values for the resource. For more information about
+	// tags in Lightsail, see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-tags).
+	Tags []*Tag `locationName:"tags" type:"list"`
 }
 
 // String returns the string representation
@@ -17661,6 +19662,54 @@ func (s *InstanceSnapshot) SetState(v string) *InstanceSnapshot {
 // SetSupportCode sets the SupportCode field's value.
 func (s *InstanceSnapshot) SetSupportCode(v string) *InstanceSnapshot {
 	s.SupportCode = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *InstanceSnapshot) SetTags(v []*Tag) *InstanceSnapshot {
+	s.Tags = v
+	return s
+}
+
+// Describes an instance snapshot.
+type InstanceSnapshotInfo struct {
+	_ struct{} `type:"structure"`
+
+	// The blueprint ID from which the source instance (e.g., os_debian_8_3).
+	FromBlueprintId *string `locationName:"fromBlueprintId" type:"string"`
+
+	// The bundle ID from which the source instance was created (e.g., micro_1_0).
+	FromBundleId *string `locationName:"fromBundleId" type:"string"`
+
+	// A list of objects describing the disks that were attached to the source instance.
+	FromDiskInfo []*DiskInfo `locationName:"fromDiskInfo" type:"list"`
+}
+
+// String returns the string representation
+func (s InstanceSnapshotInfo) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InstanceSnapshotInfo) GoString() string {
+	return s.String()
+}
+
+// SetFromBlueprintId sets the FromBlueprintId field's value.
+func (s *InstanceSnapshotInfo) SetFromBlueprintId(v string) *InstanceSnapshotInfo {
+	s.FromBlueprintId = &v
+	return s
+}
+
+// SetFromBundleId sets the FromBundleId field's value.
+func (s *InstanceSnapshotInfo) SetFromBundleId(v string) *InstanceSnapshotInfo {
+	s.FromBundleId = &v
+	return s
+}
+
+// SetFromDiskInfo sets the FromDiskInfo field's value.
+func (s *InstanceSnapshotInfo) SetFromDiskInfo(v []*DiskInfo) *InstanceSnapshotInfo {
+	s.FromDiskInfo = v
 	return s
 }
 
@@ -17760,6 +19809,10 @@ type KeyPair struct {
 	// questions about an instance or another resource in Lightsail. This code enables
 	// our support team to look up your Lightsail information more easily.
 	SupportCode *string `locationName:"supportCode" type:"string"`
+
+	// The tag keys and optional values for the resource. For more information about
+	// tags in Lightsail, see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-tags).
+	Tags []*Tag `locationName:"tags" type:"list"`
 }
 
 // String returns the string representation
@@ -17811,6 +19864,12 @@ func (s *KeyPair) SetResourceType(v string) *KeyPair {
 // SetSupportCode sets the SupportCode field's value.
 func (s *KeyPair) SetSupportCode(v string) *KeyPair {
 	s.SupportCode = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *KeyPair) SetTags(v []*Tag) *KeyPair {
+	s.Tags = v
 	return s
 }
 
@@ -17869,6 +19928,10 @@ type LoadBalancer struct {
 	// questions about your Lightsail load balancer. This code enables our support
 	// team to look up your Lightsail information more easily.
 	SupportCode *string `locationName:"supportCode" type:"string"`
+
+	// The tag keys and optional values for the resource. For more information about
+	// tags in Lightsail, see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-tags).
+	Tags []*Tag `locationName:"tags" type:"list"`
 
 	// An array of LoadBalancerTlsCertificateSummary objects that provide additional
 	// information about the SSL/TLS certificates. For example, if true, the certificate
@@ -17967,6 +20030,12 @@ func (s *LoadBalancer) SetState(v string) *LoadBalancer {
 // SetSupportCode sets the SupportCode field's value.
 func (s *LoadBalancer) SetSupportCode(v string) *LoadBalancer {
 	s.SupportCode = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *LoadBalancer) SetTags(v []*Tag) *LoadBalancer {
+	s.Tags = v
 	return s
 }
 
@@ -18085,6 +20154,10 @@ type LoadBalancerTlsCertificate struct {
 	// code enables our support team to look up your Lightsail information more
 	// easily.
 	SupportCode *string `locationName:"supportCode" type:"string"`
+
+	// The tag keys and optional values for the resource. For more information about
+	// tags in Lightsail, see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-tags).
+	Tags []*Tag `locationName:"tags" type:"list"`
 }
 
 // String returns the string representation
@@ -18238,6 +20311,12 @@ func (s *LoadBalancerTlsCertificate) SetSubjectAlternativeNames(v []*string) *Lo
 // SetSupportCode sets the SupportCode field's value.
 func (s *LoadBalancerTlsCertificate) SetSupportCode(v string) *LoadBalancerTlsCertificate {
 	s.SupportCode = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *LoadBalancerTlsCertificate) SetTags(v []*Tag) *LoadBalancerTlsCertificate {
+	s.Tags = v
 	return s
 }
 
@@ -19310,6 +21389,10 @@ type RelationalDatabase struct {
 	// when you have questions about a database in Lightsail. This code enables
 	// our support team to look up your Lightsail information more easily.
 	SupportCode *string `locationName:"supportCode" type:"string"`
+
+	// The tag keys and optional values for the resource. For more information about
+	// tags in Lightsail, see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-tags).
+	Tags []*Tag `locationName:"tags" type:"list"`
 }
 
 // String returns the string representation
@@ -19463,6 +21546,12 @@ func (s *RelationalDatabase) SetState(v string) *RelationalDatabase {
 // SetSupportCode sets the SupportCode field's value.
 func (s *RelationalDatabase) SetSupportCode(v string) *RelationalDatabase {
 	s.SupportCode = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *RelationalDatabase) SetTags(v []*Tag) *RelationalDatabase {
+	s.Tags = v
 	return s
 }
 
@@ -19899,6 +21988,10 @@ type RelationalDatabaseSnapshot struct {
 	// This code enables our support team to look up your Lightsail information
 	// more easily.
 	SupportCode *string `locationName:"supportCode" type:"string"`
+
+	// The tag keys and optional values for the resource. For more information about
+	// tags in Lightsail, see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-tags).
+	Tags []*Tag `locationName:"tags" type:"list"`
 }
 
 // String returns the string representation
@@ -19992,6 +22085,12 @@ func (s *RelationalDatabaseSnapshot) SetState(v string) *RelationalDatabaseSnaps
 // SetSupportCode sets the SupportCode field's value.
 func (s *RelationalDatabaseSnapshot) SetSupportCode(v string) *RelationalDatabaseSnapshot {
 	s.SupportCode = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *RelationalDatabaseSnapshot) SetTags(v []*Tag) *RelationalDatabaseSnapshot {
+	s.Tags = v
 	return s
 }
 
@@ -20455,6 +22554,123 @@ func (s *StopRelationalDatabaseOutput) SetOperations(v []*Operation) *StopRelati
 	return s
 }
 
+// Describes a tag key and optional value assigned to an Amazon Lightsail resource.
+//
+// For more information about tags in Lightsail, see the Lightsail Dev Guide
+// (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-tags).
+type Tag struct {
+	_ struct{} `type:"structure"`
+
+	// The key of the tag.
+	//
+	// Constraints: Tag keys accept a maximum of 128 letters, numbers, spaces in
+	// UTF-8, or the following characters: + - = . _ : / @
+	Key *string `locationName:"key" type:"string"`
+
+	// The value of the tag.
+	//
+	// Constraints: Tag values accept a maximum of 256 letters, numbers, spaces
+	// in UTF-8, or the following characters: + - = . _ : / @
+	Value *string `locationName:"value" type:"string"`
+}
+
+// String returns the string representation
+func (s Tag) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s Tag) GoString() string {
+	return s.String()
+}
+
+// SetKey sets the Key field's value.
+func (s *Tag) SetKey(v string) *Tag {
+	s.Key = &v
+	return s
+}
+
+// SetValue sets the Value field's value.
+func (s *Tag) SetValue(v string) *Tag {
+	s.Value = &v
+	return s
+}
+
+type TagResourceInput struct {
+	_ struct{} `type:"structure"`
+
+	// The name of the resource to which you are adding tags.
+	//
+	// ResourceName is a required field
+	ResourceName *string `locationName:"resourceName" type:"string" required:"true"`
+
+	// The tag key and optional value.
+	//
+	// Tags is a required field
+	Tags []*Tag `locationName:"tags" type:"list" required:"true"`
+}
+
+// String returns the string representation
+func (s TagResourceInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s TagResourceInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *TagResourceInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "TagResourceInput"}
+	if s.ResourceName == nil {
+		invalidParams.Add(request.NewErrParamRequired("ResourceName"))
+	}
+	if s.Tags == nil {
+		invalidParams.Add(request.NewErrParamRequired("Tags"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetResourceName sets the ResourceName field's value.
+func (s *TagResourceInput) SetResourceName(v string) *TagResourceInput {
+	s.ResourceName = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *TagResourceInput) SetTags(v []*Tag) *TagResourceInput {
+	s.Tags = v
+	return s
+}
+
+type TagResourceOutput struct {
+	_ struct{} `type:"structure"`
+
+	// A list of objects describing the API operation.
+	Operations []*Operation `locationName:"operations" type:"list"`
+}
+
+// String returns the string representation
+func (s TagResourceOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s TagResourceOutput) GoString() string {
+	return s.String()
+}
+
+// SetOperations sets the Operations field's value.
+func (s *TagResourceOutput) SetOperations(v []*Operation) *TagResourceOutput {
+	s.Operations = v
+	return s
+}
+
 type UnpeerVpcInput struct {
 	_ struct{} `type:"structure"`
 }
@@ -20489,6 +22705,81 @@ func (s UnpeerVpcOutput) GoString() string {
 // SetOperation sets the Operation field's value.
 func (s *UnpeerVpcOutput) SetOperation(v *Operation) *UnpeerVpcOutput {
 	s.Operation = v
+	return s
+}
+
+type UntagResourceInput struct {
+	_ struct{} `type:"structure"`
+
+	// The name of the resource from which you are removing a tag.
+	//
+	// ResourceName is a required field
+	ResourceName *string `locationName:"resourceName" type:"string" required:"true"`
+
+	// The tag keys to delete from the specified resource.
+	//
+	// TagKeys is a required field
+	TagKeys []*string `locationName:"tagKeys" type:"list" required:"true"`
+}
+
+// String returns the string representation
+func (s UntagResourceInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UntagResourceInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *UntagResourceInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "UntagResourceInput"}
+	if s.ResourceName == nil {
+		invalidParams.Add(request.NewErrParamRequired("ResourceName"))
+	}
+	if s.TagKeys == nil {
+		invalidParams.Add(request.NewErrParamRequired("TagKeys"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetResourceName sets the ResourceName field's value.
+func (s *UntagResourceInput) SetResourceName(v string) *UntagResourceInput {
+	s.ResourceName = &v
+	return s
+}
+
+// SetTagKeys sets the TagKeys field's value.
+func (s *UntagResourceInput) SetTagKeys(v []*string) *UntagResourceInput {
+	s.TagKeys = v
+	return s
+}
+
+type UntagResourceOutput struct {
+	_ struct{} `type:"structure"`
+
+	// A list of objects describing the API operation.
+	Operations []*Operation `locationName:"operations" type:"list"`
+}
+
+// String returns the string representation
+func (s UntagResourceOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UntagResourceOutput) GoString() string {
+	return s.String()
+}
+
+// SetOperations sets the Operations field's value.
+func (s *UntagResourceOutput) SetOperations(v []*Operation) *UntagResourceOutput {
+	s.Operations = v
 	return s
 }
 
@@ -20688,7 +22979,7 @@ type UpdateRelationalDatabaseInput struct {
 	// any printable ASCII character except "/", """, or "@".
 	//
 	// Constraints: Must contain 8 to 41 characters.
-	MasterUserPassword *string `locationName:"masterUserPassword" type:"string"`
+	MasterUserPassword *string `locationName:"masterUserPassword" type:"string" sensitive:"true"`
 
 	// The daily time range during which automated backups are created for your
 	// database if automated backups are enabled.
@@ -20936,6 +23227,11 @@ const (
 )
 
 const (
+	// CloudFormationStackRecordSourceTypeExportSnapshotRecord is a CloudFormationStackRecordSourceType enum value
+	CloudFormationStackRecordSourceTypeExportSnapshotRecord = "ExportSnapshotRecord"
+)
+
+const (
 	// DiskSnapshotStatePending is a DiskSnapshotState enum value
 	DiskSnapshotStatePending = "pending"
 
@@ -20964,6 +23260,14 @@ const (
 
 	// DiskStateUnknown is a DiskState enum value
 	DiskStateUnknown = "unknown"
+)
+
+const (
+	// ExportSnapshotRecordSourceTypeInstanceSnapshot is a ExportSnapshotRecordSourceType enum value
+	ExportSnapshotRecordSourceTypeInstanceSnapshot = "InstanceSnapshot"
+
+	// ExportSnapshotRecordSourceTypeDiskSnapshot is a ExportSnapshotRecordSourceType enum value
+	ExportSnapshotRecordSourceTypeDiskSnapshot = "DiskSnapshot"
 )
 
 const (
@@ -21472,6 +23776,36 @@ const (
 
 	// OperationTypeCreateDiskFromSnapshot is a OperationType enum value
 	OperationTypeCreateDiskFromSnapshot = "CreateDiskFromSnapshot"
+
+	// OperationTypeCreateRelationalDatabase is a OperationType enum value
+	OperationTypeCreateRelationalDatabase = "CreateRelationalDatabase"
+
+	// OperationTypeUpdateRelationalDatabase is a OperationType enum value
+	OperationTypeUpdateRelationalDatabase = "UpdateRelationalDatabase"
+
+	// OperationTypeDeleteRelationalDatabase is a OperationType enum value
+	OperationTypeDeleteRelationalDatabase = "DeleteRelationalDatabase"
+
+	// OperationTypeCreateRelationalDatabaseFromSnapshot is a OperationType enum value
+	OperationTypeCreateRelationalDatabaseFromSnapshot = "CreateRelationalDatabaseFromSnapshot"
+
+	// OperationTypeCreateRelationalDatabaseSnapshot is a OperationType enum value
+	OperationTypeCreateRelationalDatabaseSnapshot = "CreateRelationalDatabaseSnapshot"
+
+	// OperationTypeDeleteRelationalDatabaseSnapshot is a OperationType enum value
+	OperationTypeDeleteRelationalDatabaseSnapshot = "DeleteRelationalDatabaseSnapshot"
+
+	// OperationTypeUpdateRelationalDatabaseParameters is a OperationType enum value
+	OperationTypeUpdateRelationalDatabaseParameters = "UpdateRelationalDatabaseParameters"
+
+	// OperationTypeStartRelationalDatabase is a OperationType enum value
+	OperationTypeStartRelationalDatabase = "StartRelationalDatabase"
+
+	// OperationTypeRebootRelationalDatabase is a OperationType enum value
+	OperationTypeRebootRelationalDatabase = "RebootRelationalDatabase"
+
+	// OperationTypeStopRelationalDatabase is a OperationType enum value
+	OperationTypeStopRelationalDatabase = "StopRelationalDatabase"
 )
 
 const (
@@ -21483,11 +23817,33 @@ const (
 )
 
 const (
+	// PortInfoSourceTypeDefault is a PortInfoSourceType enum value
+	PortInfoSourceTypeDefault = "DEFAULT"
+
+	// PortInfoSourceTypeInstance is a PortInfoSourceType enum value
+	PortInfoSourceTypeInstance = "INSTANCE"
+
+	// PortInfoSourceTypeNone is a PortInfoSourceType enum value
+	PortInfoSourceTypeNone = "NONE"
+)
+
+const (
 	// PortStateOpen is a PortState enum value
 	PortStateOpen = "open"
 
 	// PortStateClosed is a PortState enum value
 	PortStateClosed = "closed"
+)
+
+const (
+	// RecordStateStarted is a RecordState enum value
+	RecordStateStarted = "Started"
+
+	// RecordStateSucceeded is a RecordState enum value
+	RecordStateSucceeded = "Succeeded"
+
+	// RecordStateFailed is a RecordState enum value
+	RecordStateFailed = "Failed"
 )
 
 const (
@@ -21606,4 +23962,10 @@ const (
 
 	// ResourceTypeRelationalDatabaseSnapshot is a ResourceType enum value
 	ResourceTypeRelationalDatabaseSnapshot = "RelationalDatabaseSnapshot"
+
+	// ResourceTypeExportSnapshotRecord is a ResourceType enum value
+	ResourceTypeExportSnapshotRecord = "ExportSnapshotRecord"
+
+	// ResourceTypeCloudFormationStackRecord is a ResourceType enum value
+	ResourceTypeCloudFormationStackRecord = "CloudFormationStackRecord"
 )

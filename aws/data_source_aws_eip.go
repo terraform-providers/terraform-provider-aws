@@ -14,15 +14,43 @@ func dataSourceAwsEip() *schema.Resource {
 		Read: dataSourceAwsEipRead,
 
 		Schema: map[string]*schema.Schema{
+			"association_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"domain": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"filter": ec2CustomFiltersSchema(),
 			"id": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
 			},
+			"instance_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"network_interface_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"network_interface_owner_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"private_ip": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"public_ip": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
+			},
+			"public_ipv4_pool": {
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 			"tags": tagsSchemaComputed(),
@@ -79,7 +107,14 @@ func dataSourceAwsEipRead(d *schema.ResourceData, meta interface{}) error {
 		d.SetId(aws.StringValue(eip.PublicIp))
 	}
 
+	d.Set("association_id", eip.AssociationId)
+	d.Set("domain", eip.Domain)
+	d.Set("instance_id", eip.InstanceId)
+	d.Set("network_interface_id", eip.NetworkInterfaceId)
+	d.Set("network_interface_owner_id", eip.NetworkInterfaceOwnerId)
+	d.Set("private_ip", eip.PrivateIpAddress)
 	d.Set("public_ip", eip.PublicIp)
+	d.Set("public_ipv4_pool", eip.PublicIpv4Pool)
 	d.Set("tags", tagsToMap(eip.Tags))
 
 	return nil

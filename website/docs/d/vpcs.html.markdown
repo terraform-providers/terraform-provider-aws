@@ -18,7 +18,7 @@ The following shows outputing all VPC Ids.
 
 ```hcl
 data "aws_vpcs" "foo" {
-  tags {
+  tags = {
     service = "production"
   }
 }

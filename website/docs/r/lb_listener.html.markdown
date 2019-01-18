@@ -29,7 +29,7 @@ resource "aws_lb_listener" "front_end" {
   load_balancer_arn = "${aws_lb.front_end.arn}"
   port              = "443"
   protocol          = "HTTPS"
-  ssl_policy        = "ELBSecurityPolicy-2015-05"
+  ssl_policy        = "ELBSecurityPolicy-2016-08"
   certificate_arn   = "arn:aws:iam::187416307283:server-certificate/test_cert_rab3wuqwgja25ct3n4jdj2tzu4"
 
   default_action {
@@ -212,7 +212,7 @@ Authenticate Cognito Blocks (for `authenticate_cognito`) supports the following:
 * `on_unauthenticated_request` - (Optional) The behavior if the user is not authenticated. Valid values: `deny`, `allow` and `authenticate`
 * `scope` - (Optional) The set of user claims to be requested from the IdP.
 * `session_cookie_name` - (Optional) The name of the cookie used to maintain session information.
-* `session_time_out` - (Optional) The maximum duration of the authentication session, in seconds.
+* `session_timeout` - (Optional) The maximum duration of the authentication session, in seconds.
 * `user_pool_arn` - (Required) The ARN of the Cognito user pool.
 * `user_pool_client_id` - (Required) The ID of the Cognito user pool client.
 * `user_pool_domain` - (Required) The domain prefix or fully-qualified domain name of the Cognito user pool.
@@ -227,7 +227,7 @@ Authenticate OIDC Blocks (for `authenticate_oidc`) supports the following:
 * `on_unauthenticated_request` - (Optional) The behavior if the user is not authenticated. Valid values: `deny`, `allow` and `authenticate`
 * `scope` - (Optional) The set of user claims to be requested from the IdP.
 * `session_cookie_name` - (Optional) The name of the cookie used to maintain session information.
-* `session_time_out` - (Optional) The maximum duration of the authentication session, in seconds.
+* `session_timeout` - (Optional) The maximum duration of the authentication session, in seconds.
 * `token_endpoint` - (Required) The token endpoint of the IdP.
 * `user_info_endpoint` - (Required) The user info endpoint of the IdP.
 

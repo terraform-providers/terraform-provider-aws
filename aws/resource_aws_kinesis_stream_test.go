@@ -386,7 +386,7 @@ func testAccKinesisStreamConfig(rInt int) string {
 resource "aws_kinesis_stream" "test_stream" {
 	name = "terraform-kinesis-test-%d"
 	shard_count = 2
-	tags {
+	tags = {
 		Name = "tf-test"
 	}
 }`, rInt)
@@ -398,7 +398,7 @@ resource "aws_kinesis_stream" "test_stream" {
         count = 20
 	name = "terraform-kinesis-test-%d-${count.index}"
 	shard_count = 2
-	tags {
+	tags = {
 		Name = "tf-test"
 	}
 }`, rInt)
@@ -410,7 +410,7 @@ resource "aws_kinesis_stream" "test_stream" {
 	name = "terraform-kinesis-test-%d"
 	shard_count = 2
 	encryption_type = "KMS"
-	tags {
+	tags = {
 		Name = "tf-test"
 	}
 }`, rInt)
@@ -423,7 +423,7 @@ resource "aws_kinesis_stream" "test_stream" {
 	shard_count = 2
 	encryption_type = "KMS"
 	kms_key_id = "${aws_kms_key.foo.id}"
-	tags {
+	tags = {
 		Name = "tf-test"
 	}
 }
@@ -458,7 +458,7 @@ func testAccKinesisStreamConfigUpdateShardCount(rInt int) string {
 resource "aws_kinesis_stream" "test_stream" {
 	name = "terraform-kinesis-test-%d"
 	shard_count = 4
-	tags {
+	tags = {
 		Name = "tf-test"
 	}
 }`, rInt)
@@ -470,7 +470,7 @@ resource "aws_kinesis_stream" "test_stream" {
 	name = "terraform-kinesis-test-%d"
 	shard_count = 2
 	retention_period = 100
-	tags {
+	tags = {
 		Name = "tf-test"
 	}
 }`, rInt)
@@ -482,7 +482,7 @@ resource "aws_kinesis_stream" "test_stream" {
 	name = "terraform-kinesis-test-%d"
 	shard_count = 2
 	retention_period = 28
-	tags {
+	tags = {
 		Name = "tf-test"
 	}
 }`, rInt)
@@ -493,7 +493,7 @@ func testAccKinesisStreamConfigAllShardLevelMetrics(rInt int) string {
 resource "aws_kinesis_stream" "test_stream" {
 	name = "terraform-kinesis-test-%d"
 	shard_count = 2
-	tags {
+	tags = {
 		Name = "tf-test"
 	}
 	shard_level_metrics = [
@@ -513,7 +513,7 @@ func testAccKinesisStreamConfigSingleShardLevelMetric(rInt int) string {
 resource "aws_kinesis_stream" "test_stream" {
 	name = "terraform-kinesis-test-%d"
 	shard_count = 2
-	tags {
+	tags = {
 		Name = "tf-test"
 	}
 	shard_level_metrics = [
@@ -532,7 +532,7 @@ func testAccKinesisStreamConfig_Tags(rInt, tagCount int) string {
 resource "aws_kinesis_stream" "test" {
 	name = "terraform-kinesis-test-%d"
 	shard_count = 2
-	tags {
+	tags = {
 %s
 	}
 }`, rInt, tagPairs)

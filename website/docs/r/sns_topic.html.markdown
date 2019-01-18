@@ -45,6 +45,15 @@ EOF
 }
 ```
 
+##  Example with Server-side encryption (SSE)
+
+```hcl
+resource "aws_sns_topic" "user_updates" {
+  name = "user-updates-topic"
+  kms_master_key_id = "alias/aws/sns"
+}
+```
+
 ## Message Delivery Status Arguments
 
 The `<endpoint>_success_feedback_role_arn` and `<endpoint>_failure_feedback_role_arn` arguments are used to give Amazon SNS write access to use CloudWatch Logs on your behalf. The `<endpoint>_success_feedback_sample_rate` argument is for specifying the sample rate percentage (0-100) of successfully delivered messages. After you configure the  `<endpoint>_failure_feedback_role_arn` argument, then all failed message deliveries generate CloudWatch Logs.
@@ -64,6 +73,7 @@ The following arguments are supported:
 * `http_success_feedback_role_arn` - (Optional) The IAM role permitted to receive success feedback for this topic
 * `http_success_feedback_sample_rate` - (Optional) Percentage of success to sample
 * `http_failure_feedback_role_arn` - (Optional) IAM role for failure feedback
+* `kms_master_key_id` - (Optional) The ID of an AWS-managed customer master key (CMK) for Amazon SNS or a custom CMK. For more information, see [Key Terms](https://docs.aws.amazon.com/sns/latest/dg/sns-server-side-encryption.html#sse-key-terms)
 * `lambda_success_feedback_role_arn` - (Optional) The IAM role permitted to receive success feedback for this topic
 * `lambda_success_feedback_sample_rate` - (Optional) Percentage of success to sample
 * `lambda_failure_feedback_role_arn` - (Optional) IAM role for failure feedback

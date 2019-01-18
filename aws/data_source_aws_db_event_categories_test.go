@@ -62,7 +62,7 @@ func testAccAwsDbEventCategoriesAttrCheck(n string, expected []string) resource.
 
 		sort.Strings(actual)
 		sort.Strings(expected)
-		if reflect.DeepEqual(expected, actual) != true {
+		if !reflect.DeepEqual(expected, actual) {
 			return fmt.Errorf("DB Event Categories not matched: expected %v, got %v", expected, actual)
 		}
 

@@ -54,7 +54,7 @@ resource "aws_vpc_peering_connection" "peer" {
   peer_region   = "us-west-2"
   auto_accept   = false
 
-  tags {
+  tags = {
     Side = "Requester"
   }
 }
@@ -65,7 +65,7 @@ resource "aws_vpc_peering_connection_accepter" "peer" {
   vpc_peering_connection_id = "${aws_vpc_peering_connection.peer.id}"
   auto_accept               = true
 
-  tags {
+  tags = {
     Side = "Accepter"
   }
 }

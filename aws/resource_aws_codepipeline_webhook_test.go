@@ -121,11 +121,7 @@ func testAccCheckAWSCodePipelineWebhookExists(n string) resource.TestCheckFunc {
 		conn := testAccProvider.Meta().(*AWSClient).codepipelineconn
 
 		_, err := getCodePipelineWebhook(conn, rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return err
 	}
 }
 

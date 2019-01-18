@@ -375,7 +375,7 @@ resource "aws_rds_cluster_parameter_group" "bar" {
     value = "utf8"
   }
 
-  tags {
+  tags = {
     foo = "bar"
   }
 }
@@ -400,7 +400,7 @@ resource "aws_rds_cluster_parameter_group" "bar" {
 		apply_method = "pending-reboot"
   }
 
-  tags {
+  tags = {
     foo = "bar"
   }
 }
@@ -439,7 +439,7 @@ resource "aws_rds_cluster_parameter_group" "bar" {
     value = "utf8_unicode_ci"
   }
 
-  tags {
+  tags = {
     foo = "bar"
     baz = "foo"
   }

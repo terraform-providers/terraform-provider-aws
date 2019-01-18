@@ -40,7 +40,7 @@ resource "aws_redshift_event_subscription" "default" {
     "security",
   ]
 
-  tags {
+  tags = {
     Name = "default"
   }
 }

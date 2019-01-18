@@ -308,11 +308,8 @@ func testAccCheckAWSSSMParameterDisappears(param *ssm.Parameter) resource.TestCh
 		}
 
 		_, err := conn.DeleteParameter(paramInput)
-		if err != nil {
-			return err
-		}
 
-		return nil
+		return err
 	}
 }
 

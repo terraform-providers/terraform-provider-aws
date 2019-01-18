@@ -35,12 +35,8 @@ lint:
 	@gometalinter ./$(PKG_NAME)
 
 tools:
-	go get -u github.com/kardianos/govendor
-	go get -u github.com/alecthomas/gometalinter
-	gometalinter --install
-
-vendor-status:
-	@govendor status
+	GO111MODULE=off go get -u github.com/alecthomas/gometalinter
+	GO111MODULE=off gometalinter --install
 
 test-compile:
 	@if [ "$(TEST)" = "./..." ]; then \
@@ -68,5 +64,5 @@ ifeq (,$(wildcard $(GOPATH)/src/$(WEBSITE_REPO)))
 endif
 	@$(MAKE) -C $(GOPATH)/src/$(WEBSITE_REPO) website-provider-test PROVIDER_PATH=$(shell pwd) PROVIDER_NAME=$(PKG_NAME)
 
-.PHONY: build sweep test testacc fmt fmtcheck lint tools vendor-status test-compile website website-lint website-test
+.PHONY: build sweep test testacc fmt fmtcheck lint tools test-compile website website-lint website-test
 

@@ -83,6 +83,7 @@ The following attribute is additionally exported:
 * `ipv6_association_id` - The association ID for the IPv6 CIDR block.
 * `ipv6_cidr_block` - The IPv6 CIDR block.
 * `main_route_table_id` - The ID of the main route table associated with this VPC.
+* `owner_id` - The ID of the AWS account that owns the VPC.
 
 `cidr_block_associations` is also exported with the following attributes:
 

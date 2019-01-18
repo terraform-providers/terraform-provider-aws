@@ -44,7 +44,7 @@ resource "aws_ssm_parameter" "secret" {
   type        = "SecureString"
   value       = "${var.database_master_password}"
 
-  tags {
+  tags = {
     environment = "${var.environment}"
   }
 }

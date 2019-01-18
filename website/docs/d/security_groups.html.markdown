@@ -14,7 +14,7 @@ outside of Terraform.
 ## Example Usage
 ```hcl
 data "aws_security_groups" "test" {
-  tags {
+  tags = {
     Application = "k8s"
     Environment = "dev"
   }

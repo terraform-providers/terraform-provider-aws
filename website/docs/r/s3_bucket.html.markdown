@@ -19,7 +19,7 @@ resource "aws_s3_bucket" "b" {
   bucket = "my-tf-test-bucket"
   acl    = "private"
 
-  tags {
+  tags = {
     Name        = "My bucket"
     Environment = "Dev"
   }
@@ -114,7 +114,7 @@ resource "aws_s3_bucket" "bucket" {
 
     prefix = "log/"
 
-    tags {
+  tags = {
       "rule"      = "log"
       "autoclean" = "true"
     }
@@ -334,6 +334,7 @@ the costs of any data transfer. See [Requester Pays Buckets](http://docs.aws.ama
 developer guide for more information.
 * `replication_configuration` - (Optional) A configuration of [replication configuration](http://docs.aws.amazon.com/AmazonS3/latest/dev/crr.html) (documented below).
 * `server_side_encryption_configuration` - (Optional) A configuration of [server-side encryption configuration](http://docs.aws.amazon.com/AmazonS3/latest/dev/bucket-encryption.html) (documented below)
+* `object_lock_configuration` - (Optional) A configuration of [S3 object locking](https://docs.aws.amazon.com/AmazonS3/latest/dev/object-lock.html) (documented below)
 
 ~> **NOTE:** You cannot use `acceleration_status` in `cn-north-1` or `us-gov-west-1`
 
@@ -387,7 +388,7 @@ The `transition` object supports the following
 
 * `date` (Optional) Specifies the date after which you want the corresponding action to take effect.
 * `days` (Optional) Specifies the number of days after object creation when the specific rule action takes effect.
-* `storage_class` (Required) Specifies the Amazon S3 storage class to which you want the object to transition. Can be `ONEZONE_IA`, `STANDARD_IA`, or `GLACIER`.
+* `storage_class` (Required) Specifies the Amazon S3 storage class to which you want the object to transition. Can be `ONEZONE_IA`, `STANDARD_IA`, `INTELLIGENT_TIERING`, or `GLACIER`.
 
 The `noncurrent_version_expiration` object supports the following
 
@@ -396,7 +397,7 @@ The `noncurrent_version_expiration` object supports the following
 The `noncurrent_version_transition` object supports the following
 
 * `days` (Required) Specifies the number of days an object is noncurrent object versions expire.
-* `storage_class` (Required) Specifies the Amazon S3 storage class to which you want the noncurrent versions object to transition. Can be `ONEZONE_IA`, `STANDARD_IA`, or `GLACIER`.
+* `storage_class` (Required) Specifies the Amazon S3 storage class to which you want the noncurrent versions object to transition. Can be `ONEZONE_IA`, `STANDARD_IA`, `INTELLIGENT_TIERING`, or `GLACIER`.
 
 The `replication_configuration` object supports the following:
 
@@ -423,7 +424,7 @@ Replication configuration V1 supports filtering based on only the `prefix` attri
 The `destination` object supports the following:
 
 * `bucket` - (Required) The ARN of the S3 bucket where you want Amazon S3 to store replicas of the object identified by the rule.
-* `storage_class` - (Optional) The class of storage used to store the object.
+* `storage_class` - (Optional) The class of storage used to store the object. Can be `STANDARD`, `REDUCED_REDUNDANCY`, `STANDARD_IA`, `ONEZONE_IA`, `INTELLIGENT_TIERING`, or `GLACIER`.
 * `replica_kms_key_id` - (Optional) Destination KMS encryption key ARN for SSE-KMS replication. Must be used in conjunction with
   `sse_kms_encrypted_objects` source selection criteria.
 * `access_control_translation` - (Optional) Specifies the overrides to use for object owners on replication. Must be used in conjunction with `account_id` owner override configuration.
@@ -460,6 +461,27 @@ The `apply_server_side_encryption_by_default` object supports the following:
 The `access_control_translation` object supports the following:
 
 * `owner` - (Required) The override value for the owner on replicated objects. Currently only `Destination` is supported.
+
+The `object_lock_configuration` object supports the following:
+
+* `object_lock_enabled` - (Required) Indicates whether this bucket has an Object Lock configuration enabled. Valid value is `Enabled`.
+* `rule` - (Optional) The Object Lock rule in place for this bucket.
+
+The `rule` object supports the following:
+
+* `default_retention` - (Required) The default retention period that you want to apply to new objects placed in this bucket.
+
+The `default_retention` object supports the following:
+
+* `mode` - (Required) The default Object Lock retention mode you want to apply to new objects placed in this bucket. Valid values are `GOVERNANCE` and `COMPLIANCE`.
+* `days` - (Optional) The number of days that you want to specify for the default retention period.
+* `years` - (Optional) The number of years that you want to specify for the default retention period.
+
+Either `days` or `years` must be specified, but not both.
+
+~> **NOTE on `object_lock_configuration`:** You can only enable S3 Object Lock for new buckets. If you need to turn on S3 Object Lock for an existing bucket, please contact AWS Support.
+When you create a bucket with S3 Object Lock enabled, Amazon S3 automatically enables versioning for the bucket.
+Once you create a bucket with S3 Object Lock enabled, you can't disable Object Lock or suspend versioning for the bucket.
 
 ## Attributes Reference
 

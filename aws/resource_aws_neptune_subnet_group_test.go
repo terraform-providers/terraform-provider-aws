@@ -195,7 +195,7 @@ func testAccNeptuneSubnetGroupConfig(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_vpc" "foo" {
 	cidr_block = "10.1.0.0/16"
-	tags {
+	tags = {
 		Name = "terraform-testacc-neptune-subnet-group"
 	}
 }
@@ -204,7 +204,7 @@ resource "aws_subnet" "foo" {
 	cidr_block = "10.1.1.0/24"
 	availability_zone = "us-west-2a"
 	vpc_id = "${aws_vpc.foo.id}"
-	tags {
+	tags = {
 		Name = "tf-acc-neptune-subnet-group-1"
 	}
 }
@@ -213,7 +213,7 @@ resource "aws_subnet" "bar" {
 	cidr_block = "10.1.2.0/24"
 	availability_zone = "us-west-2b"
 	vpc_id = "${aws_vpc.foo.id}"
-	tags {
+	tags = {
 		Name = "tf-acc-neptune-subnet-group-2"
 	}
 }
@@ -221,7 +221,7 @@ resource "aws_subnet" "bar" {
 resource "aws_neptune_subnet_group" "foo" {
 	name = "%s"
 	subnet_ids = ["${aws_subnet.foo.id}", "${aws_subnet.bar.id}"]
-	tags {
+	tags = {
 		Name = "tf-neptunesubnet-group-test"
 	}
 }`, rName)
@@ -231,7 +231,7 @@ func testAccNeptuneSubnetGroupConfig_updatedDescription(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_vpc" "foo" {
 	cidr_block = "10.1.0.0/16"
-	tags {
+	tags = {
 		Name = "terraform-testacc-neptune-subnet-group-updated-description"
 	}
 }
@@ -240,7 +240,7 @@ resource "aws_subnet" "foo" {
 	cidr_block = "10.1.1.0/24"
 	availability_zone = "us-west-2a"
 	vpc_id = "${aws_vpc.foo.id}"
-	tags {
+	tags = {
 		Name = "tf-acc-neptune-subnet-group-1"
 	}
 }
@@ -249,7 +249,7 @@ resource "aws_subnet" "bar" {
 	cidr_block = "10.1.2.0/24"
 	availability_zone = "us-west-2b"
 	vpc_id = "${aws_vpc.foo.id}"
-	tags {
+	tags = {
 		Name = "tf-acc-neptune-subnet-group-2"
 	}
 }
@@ -258,7 +258,7 @@ resource "aws_neptune_subnet_group" "foo" {
 	name = "%s"
 	description = "foo description updated"
 	subnet_ids = ["${aws_subnet.foo.id}", "${aws_subnet.bar.id}"]
-	tags {
+	tags = {
 		Name = "tf-neptunesubnet-group-test"
 	}
 }`, rName)
@@ -267,7 +267,7 @@ resource "aws_neptune_subnet_group" "foo" {
 const testAccNeptuneSubnetGroupConfig_namePrefix = `
 resource "aws_vpc" "test" {
 	cidr_block = "10.1.0.0/16"
-	tags {
+	tags = {
 		Name = "terraform-testacc-neptune-subnet-group-name-prefix"
 	}
 }
@@ -276,7 +276,7 @@ resource "aws_subnet" "a" {
 	vpc_id = "${aws_vpc.test.id}"
 	cidr_block = "10.1.1.0/24"
 	availability_zone = "us-west-2a"
-	tags {
+	tags = {
 		Name = "tf-acc-neptune-subnet-group-name-prefix-a"
 	}
 }
@@ -285,7 +285,7 @@ resource "aws_subnet" "b" {
 	vpc_id = "${aws_vpc.test.id}"
 	cidr_block = "10.1.2.0/24"
 	availability_zone = "us-west-2b"
-	tags {
+	tags = {
 		Name = "tf-acc-neptune-subnet-group-name-prefix-b"
 	}
 }
@@ -298,7 +298,7 @@ resource "aws_neptune_subnet_group" "test" {
 const testAccNeptuneSubnetGroupConfig_generatedName = `
 resource "aws_vpc" "test" {
 	cidr_block = "10.1.0.0/16"
-	tags {
+	tags = {
 		Name = "terraform-testacc-neptune-subnet-group-generated-name"
 	}
 }
@@ -307,7 +307,7 @@ resource "aws_subnet" "a" {
 	vpc_id = "${aws_vpc.test.id}"
 	cidr_block = "10.1.1.0/24"
 	availability_zone = "us-west-2a"
-	tags {
+	tags = {
 		Name = "tf-acc-neptune-subnet-group-generated-name-a"
 	}
 }
@@ -316,7 +316,7 @@ resource "aws_subnet" "b" {
 	vpc_id = "${aws_vpc.test.id}"
 	cidr_block = "10.1.2.0/24"
 	availability_zone = "us-west-2b"
-	tags {
+	tags = {
 		Name = "tf-acc-neptune-subnet-group-generated-name-a"
 	}
 }

@@ -18,7 +18,7 @@ func TestAccAWSCodeBuildWebhook_Bitbucket(t *testing.T) {
 	resourceName := "aws_codebuild_webhook.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCodeBuild(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodeBuildWebhookDestroy,
 		Steps: []resource.TestStep{
@@ -49,7 +49,7 @@ func TestAccAWSCodeBuildWebhook_GitHub(t *testing.T) {
 	resourceName := "aws_codebuild_webhook.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCodeBuild(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodeBuildWebhookDestroy,
 		Steps: []resource.TestStep{
@@ -80,7 +80,7 @@ func TestAccAWSCodeBuildWebhook_GitHubEnterprise(t *testing.T) {
 	resourceName := "aws_codebuild_webhook.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCodeBuild(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodeBuildWebhookDestroy,
 		Steps: []resource.TestStep{
@@ -128,7 +128,7 @@ func TestAccAWSCodeBuildWebhook_BranchFilter(t *testing.T) {
 	resourceName := "aws_codebuild_webhook.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCodeBuild(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodeBuildWebhookDestroy,
 		Steps: []resource.TestStep{

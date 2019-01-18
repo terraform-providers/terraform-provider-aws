@@ -3,7 +3,7 @@ package aws
 import (
 	"fmt"
 	"os"
-	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -21,8 +21,10 @@ func TestAccAWSRoute53QueryLog_Basic(t *testing.T) {
 	os.Setenv("AWS_DEFAULT_REGION", "us-east-1")
 	defer os.Setenv("AWS_DEFAULT_REGION", oldRegion)
 
+	cloudwatchLogGroupResourceName := "aws_cloudwatch_log_group.test"
 	resourceName := "aws_route53_query_log.test"
-	rName := fmt.Sprintf("%s-%s", t.Name(), acctest.RandString(5))
+	route53ZoneResourceName := "aws_route53_zone.test"
+	rName := strings.ToLower(fmt.Sprintf("%s-%s", t.Name(), acctest.RandString(5)))
 
 	var queryLoggingConfig route53.QueryLoggingConfig
 	resource.ParallelTest(t, resource.TestCase{
@@ -34,34 +36,10 @@ func TestAccAWSRoute53QueryLog_Basic(t *testing.T) {
 				Config: testAccCheckAWSRoute53QueryLogResourceConfigBasic1(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckRoute53QueryLogExists(resourceName, &queryLoggingConfig),
-					resource.TestMatchResourceAttr(resourceName, "cloudwatch_log_group_arn",
-						regexp.MustCompile(fmt.Sprintf(`^arn:aws:logs:[^:]+:[0-9]{12}:log-group:/aws/route53/%s.com:\*$`, rName))),
-					resource.TestCheckResourceAttrSet(resourceName, "zone_id"),
+					resource.TestCheckResourceAttrPair(resourceName, "cloudwatch_log_group_arn", cloudwatchLogGroupResourceName, "arn"),
+					resource.TestCheckResourceAttrPair(resourceName, "zone_id", route53ZoneResourceName, "zone_id"),
 				),
 			},
-		},
-	})
-}
-
-func TestAccAWSRoute53QueryLog_Import(t *testing.T) {
-	// The underlying resources are sensitive to where they are located
-	// Use us-east-1 for testing
-	oldRegion := os.Getenv("AWS_DEFAULT_REGION")
-	os.Setenv("AWS_DEFAULT_REGION", "us-east-1")
-	defer os.Setenv("AWS_DEFAULT_REGION", oldRegion)
-
-	resourceName := "aws_route53_query_log.test"
-	rName := fmt.Sprintf("%s-%s", t.Name(), acctest.RandString(5))
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckRoute53QueryLogDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccCheckAWSRoute53QueryLogResourceConfigBasic1(rName),
-			},
-
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,

@@ -14,6 +14,11 @@ Provides a resource to create an organization.
 
 ```hcl
 resource "aws_organizations_organization" "org" {
+  aws_service_access_principals = [
+    "cloudtrail.amazonaws.com",
+    "config.amazonaws.com",
+  ]
+
   feature_set = "ALL"
 }
 ```
@@ -22,6 +27,7 @@ resource "aws_organizations_organization" "org" {
 
 The following arguments are supported:
 
+* `aws_service_access_principals` - (Optional) List of AWS service principal names for which you want to enable integration with your organization. This is typically in the form of a URL, such as service-abbreviation.amazonaws.com. Organization must have `feature_set` set to `ALL`. For additional information, see the [AWS Organizations User Guide](https://docs.aws.amazon.com/organizations/latest/userguide/orgs_integrate_services.html).
 * `feature_set` - (Optional) Specify "ALL" (default) or "CONSOLIDATED_BILLING".
 
 ## Attributes Reference

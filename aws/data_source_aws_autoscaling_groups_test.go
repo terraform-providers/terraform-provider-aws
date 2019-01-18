@@ -50,7 +50,7 @@ func testAccCheckAwsAutoscalingGroups(n string) resource.TestCheckFunc {
 
 		expected := actual
 		sort.Strings(expected)
-		if reflect.DeepEqual(expected, actual) != true {
+		if !reflect.DeepEqual(expected, actual) {
 			return fmt.Errorf("ASG not sorted - expected %v, got %v", expected, actual)
 		}
 		return nil

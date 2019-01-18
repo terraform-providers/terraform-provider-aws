@@ -33,7 +33,7 @@ data "aws_availability_zones" "available" {}
 resource "aws_vpc" "cloudhsm2_vpc" {
   cidr_block = "10.0.0.0/16"
 
-  tags {
+  tags = {
     Name = "example-aws_cloudhsm_v2_cluster"
   }
 }
@@ -45,7 +45,7 @@ resource "aws_subnet" "cloudhsm2_subnets" {
   map_public_ip_on_launch = false
   availability_zone       = "${element(data.aws_availability_zones.available.names, count.index)}"
 
-  tags {
+  tags = {
     Name = "example-aws_cloudhsm_v2_cluster"
   }
 }
@@ -54,7 +54,7 @@ resource "aws_cloudhsm_v2_cluster" "cloudhsm_v2_cluster" {
   hsm_type   = "hsm1.medium"
   subnet_ids = ["${aws_subnet.cloudhsm2_subnets.*.id}"]
 
-  tags {
+  tags = {
     Name = "example-aws_cloudhsm_v2_cluster"
   }
 }
@@ -66,6 +66,7 @@ The following arguments are supported:
 * `source_backup_identifier` - (Optional) The id of Cloud HSM v2 cluster backup to be restored.
 * `hsm_type` - (Required) The type of HSM module in the cluster. Currently, only hsm1.medium is supported.
 * `subnet_ids` - (Required) The IDs of subnets in which cluster will operate.
+* `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ## Attributes Reference
 

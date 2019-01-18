@@ -134,7 +134,7 @@ func testAccCheckAwsVpcIpv4CidrBlockAssociationExists(n string, association *ec2
 const testAccAwsVpcIpv4CidrBlockAssociationConfig = `
 resource "aws_vpc" "foo" {
   cidr_block = "10.1.0.0/16"
-  tags {
+  tags = {
     Name = "terraform-testacc-vpc-ipv4-cidr-block-association"
   }
 }

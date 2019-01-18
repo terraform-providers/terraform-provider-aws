@@ -20,7 +20,7 @@ resource "aws_customer_gateway" "main" {
   ip_address = "172.83.124.10"
   type       = "ipsec.1"
 
-  tags {
+  tags = {
     Name = "main-customer-gateway"
   }
 }

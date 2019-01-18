@@ -354,11 +354,7 @@ func testAccCheckAWSSNSTopicSubscriptionExists(n string, attributes map[string]s
 			attributes[k] = aws.StringValue(v)
 		}
 
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return err
 	}
 }
 

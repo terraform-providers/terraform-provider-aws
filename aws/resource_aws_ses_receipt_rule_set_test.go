@@ -83,11 +83,7 @@ func testAccCheckAwsSESReceiptRuleSetExists(n string) resource.TestCheckFunc {
 		}
 
 		_, err := conn.DescribeReceiptRuleSet(params)
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return err
 	}
 }
 

@@ -337,6 +337,68 @@ func TestAccAWSKinesisAnalyticsApplication_outputsUpdateKinesisStream(t *testing
 	})
 }
 
+func TestAccAWSKinesisAnalyticsApplication_Outputs_Lambda_Add(t *testing.T) {
+	var application1, application2 kinesisanalytics.ApplicationDetail
+	iamRoleResourceName := "aws_iam_role.kinesis_analytics_application"
+	lambdaFunctionResourceName := "aws_lambda_function.test"
+	resourceName := "aws_kinesis_analytics_application.test"
+	rInt := acctest.RandInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckKinesisAnalyticsApplicationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccKinesisAnalyticsApplication_prereq(rInt) + testAccKinesisAnalyticsApplication_basic(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckKinesisAnalyticsApplicationExists(resourceName, &application1),
+					resource.TestCheckResourceAttr(resourceName, "version", "1"),
+					resource.TestCheckResourceAttr(resourceName, "outputs.#", "0"),
+				),
+			},
+			{
+				Config: testAccKinesisAnalyticsApplicationConfigOutputsLambda(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckKinesisAnalyticsApplicationExists(resourceName, &application2),
+					resource.TestCheckResourceAttr(resourceName, "version", "2"),
+					resource.TestCheckResourceAttr(resourceName, "outputs.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "outputs.0.lambda.#", "1"),
+					resource.TestCheckResourceAttrPair(resourceName, "outputs.0.lambda.0.resource_arn", lambdaFunctionResourceName, "arn"),
+					resource.TestCheckResourceAttrPair(resourceName, "outputs.0.lambda.0.role_arn", iamRoleResourceName, "arn"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSKinesisAnalyticsApplication_Outputs_Lambda_Create(t *testing.T) {
+	var application1 kinesisanalytics.ApplicationDetail
+	iamRoleResourceName := "aws_iam_role.kinesis_analytics_application"
+	lambdaFunctionResourceName := "aws_lambda_function.test"
+	resourceName := "aws_kinesis_analytics_application.test"
+	rInt := acctest.RandInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckKinesisAnalyticsApplicationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccKinesisAnalyticsApplicationConfigOutputsLambda(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckKinesisAnalyticsApplicationExists(resourceName, &application1),
+					resource.TestCheckResourceAttr(resourceName, "version", "1"),
+					resource.TestCheckResourceAttr(resourceName, "outputs.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "outputs.0.lambda.#", "1"),
+					resource.TestCheckResourceAttrPair(resourceName, "outputs.0.lambda.0.resource_arn", lambdaFunctionResourceName, "arn"),
+					resource.TestCheckResourceAttrPair(resourceName, "outputs.0.lambda.0.role_arn", iamRoleResourceName, "arn"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAWSKinesisAnalyticsApplication_referenceDataSource(t *testing.T) {
 	var application kinesisanalytics.ApplicationDetail
 	resName := "aws_kinesis_analytics_application.test"
@@ -586,6 +648,80 @@ resource "aws_kinesis_analytics_application" "test" {
   }
 }
 `, rInt, rInt)
+}
+
+func testAccKinesisAnalyticsApplicationConfigOutputsLambda(rInt int) string {
+	return fmt.Sprintf(`
+data "aws_iam_policy_document" "kinesisanalytics_assume_role_policy" {
+  statement {
+    effect  = "Allow"
+    actions = ["sts:AssumeRole"]
+
+    principals {
+      type        = "Service"
+      identifiers = ["kinesisanalytics.amazonaws.com"]
+    }
+  }
+}
+
+data "aws_iam_policy_document" "lambda_assume_role_policy" {
+  statement {
+    effect  = "Allow"
+    actions = ["sts:AssumeRole"]
+
+    principals {
+      type        = "Service"
+      identifiers = ["lambda.amazonaws.com"]
+    }
+  }
+}
+
+data "aws_partition" "current" {}
+
+resource "aws_iam_role" "kinesis_analytics_application" {
+  name               = "tf-acc-test-%d-kinesis"
+  assume_role_policy = "${data.aws_iam_policy_document.kinesisanalytics_assume_role_policy.json}"
+}
+
+resource "aws_iam_role_policy_attachment" "kinesis_analytics_application-AWSLambdaRole" {
+  policy_arn = "arn:${data.aws_partition.current.partition}:iam::aws:policy/service-role/AWSLambdaRole"
+  role       = "${aws_iam_role.kinesis_analytics_application.name}"
+}
+
+resource "aws_iam_role" "lambda_function" {
+  name               = "tf-acc-test-%d-lambda"
+  assume_role_policy = "${data.aws_iam_policy_document.lambda_assume_role_policy.json}"
+}
+
+resource "aws_iam_role_policy_attachment" "lambda_function-AWSLambdaBasicExecutionRole" {
+  policy_arn = "arn:${data.aws_partition.current.partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+  role       = "${aws_iam_role.lambda_function.name}"
+}
+
+resource "aws_lambda_function" "test" {
+  filename      = "test-fixtures/lambdatest.zip"
+  function_name = "tf-acc-test-%d"
+  handler       = "exports.example"
+  role          = "${aws_iam_role.lambda_function.arn}"
+  runtime       = "nodejs8.10"
+}
+
+resource "aws_kinesis_analytics_application" "test" {
+  name = "testAcc-%d"
+  code = "testCode\n"
+
+  outputs {
+    name = "test_name"
+    lambda {
+      resource_arn = "${aws_lambda_function.test.arn}"
+      role_arn     = "${aws_iam_role.kinesis_analytics_application.arn}"
+    }
+    schema {
+      record_format_type = "JSON"
+    }
+  }
+}
+`, rInt, rInt, rInt, rInt)
 }
 
 func testAccKinesisAnalyticsApplication_outputsUpdateKinesisStream(rInt int, streamName string) string {

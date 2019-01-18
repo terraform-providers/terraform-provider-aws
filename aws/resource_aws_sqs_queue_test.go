@@ -695,7 +695,7 @@ func testAccAWSSQSConfigWithTags(r string) string {
 resource "aws_sqs_queue" "queue" {
   name = "%s"
 
-  tags {
+  tags = {
     Environment = "production"
     Usage = "original"
   }
@@ -708,7 +708,7 @@ func testAccAWSSQSConfigWithTagsChanged(r string) string {
 resource "aws_sqs_queue" "queue" {
   name = "%s"
 
-  tags {
+  tags = {
     Usage = "changed"
   }
 }

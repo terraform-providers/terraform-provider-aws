@@ -317,7 +317,7 @@ loop:
 		return nil, NewParseError(fmt.Sprintf("incomplete expression: %v", stack.container))
 	}
 
-	// returns a sublist which exludes the start symbol
+	// returns a sublist which excludes the start symbol
 	return stack.List(), nil
 }
 
@@ -335,13 +335,12 @@ func trimSpaces(k AST) AST {
 	}
 
 	// trim right hand side of spaces
-	for i := len(k.Root.raw) - 1; i > 0; i-- {
+	for i := len(k.Root.raw) - 1; i >= 0; i-- {
 		if !isWhitespace(k.Root.raw[i]) {
 			break
 		}
 
 		k.Root.raw = k.Root.raw[:len(k.Root.raw)-1]
-		i--
 	}
 
 	return k

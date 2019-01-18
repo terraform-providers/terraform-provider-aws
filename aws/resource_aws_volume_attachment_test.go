@@ -190,7 +190,7 @@ resource "aws_instance" "web" {
   ami = "ami-21f78e11"
   availability_zone = "us-west-2a"
   instance_type = "t1.micro"
-  tags {
+  tags = {
     Name = "HelloWorld"
   }
 }
@@ -201,7 +201,7 @@ resource "aws_instance" "web" {
   ami = "ami-21f78e11"
   availability_zone = "us-west-2a"
   instance_type = "t1.micro"
-  tags {
+  tags = {
     Name = "HelloWorld"
   }
 }
@@ -223,7 +223,7 @@ resource "aws_instance" "web" {
   ami = "ami-21f78e11"
   availability_zone = "us-west-2a"
   instance_type = "t1.micro"
-  tags {
+  tags = {
     Name = "HelloWorld"
   }
 }
@@ -231,7 +231,7 @@ resource "aws_instance" "web" {
 resource "aws_ebs_volume" "example" {
   availability_zone = "us-west-2a"
   size = 1
-  tags {
+  tags = {
     Name = "TestVolume"
   }
 }

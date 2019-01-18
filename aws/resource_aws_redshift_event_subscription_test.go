@@ -261,7 +261,7 @@ resource "aws_redshift_event_subscription" "bar" {
     "monitoring",
     "security",
   ]
-  tags {
+  tags = {
     Name = "name"
   }
 }`, rInt, rInt)
@@ -282,7 +282,7 @@ resource "aws_redshift_event_subscription" "bar" {
   event_categories = [
     "monitoring",
   ]
-  tags {
+  tags = {
     Name = "new-name"
   }
 }`, rInt, rInt)
@@ -309,7 +309,7 @@ resource "aws_redshift_event_subscription" "bar" {
   event_categories = [
     "configuration",
   ]
-  tags {
+  tags = {
     Name = "name"
   }
 }`, rInt, rInt, rInt)
@@ -342,7 +342,7 @@ func testAccAWSRedshiftEventSubscriptionConfigUpdateSourceIds(rInt int) string {
         event_categories = [
             "configuration",
         ]
-        tags {
+  tags = {
             Name = "name"
         }
     }`, rInt, rInt, rInt, rInt)
@@ -362,7 +362,7 @@ resource "aws_redshift_event_subscription" "bar" {
   event_categories = [
     "monitoring",
   ]
-  tags {
+  tags = {
     Name = "name"
   }
 }`, rInt, rInt)

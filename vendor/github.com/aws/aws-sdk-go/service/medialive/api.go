@@ -8,6 +8,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awsutil"
 	"github.com/aws/aws-sdk-go/aws/request"
+	"github.com/aws/aws-sdk-go/private/protocol"
+	"github.com/aws/aws-sdk-go/private/protocol/restjson"
 )
 
 const opBatchUpdateSchedule = "BatchUpdateSchedule"
@@ -501,6 +503,7 @@ func (c *MediaLive) DeleteInputRequest(input *DeleteInputInput) (req *request.Re
 
 	output = &DeleteInputOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(restjson.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -593,6 +596,7 @@ func (c *MediaLive) DeleteInputSecurityGroupRequest(input *DeleteInputSecurityGr
 
 	output = &DeleteInputSecurityGroupOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(restjson.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -3893,6 +3897,9 @@ func (s *BatchUpdateScheduleInput) Validate() error {
 	if s.ChannelId == nil {
 		invalidParams.Add(request.NewErrParamRequired("ChannelId"))
 	}
+	if s.ChannelId != nil && len(*s.ChannelId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ChannelId", 1))
+	}
 	if s.Creates != nil {
 		if err := s.Creates.Validate(); err != nil {
 			invalidParams.AddNested("Creates", err.(request.ErrInvalidParams))
@@ -5134,9 +5141,13 @@ type CreateInputInput struct {
 
 	InputSecurityGroups []*string `locationName:"inputSecurityGroups" type:"list"`
 
+	MediaConnectFlows []*MediaConnectFlowRequest `locationName:"mediaConnectFlows" type:"list"`
+
 	Name *string `locationName:"name" type:"string"`
 
 	RequestId *string `locationName:"requestId" type:"string" idempotencyToken:"true"`
+
+	RoleArn *string `locationName:"roleArn" type:"string"`
 
 	Sources []*InputSourceRequest `locationName:"sources" type:"list"`
 
@@ -5165,6 +5176,12 @@ func (s *CreateInputInput) SetInputSecurityGroups(v []*string) *CreateInputInput
 	return s
 }
 
+// SetMediaConnectFlows sets the MediaConnectFlows field's value.
+func (s *CreateInputInput) SetMediaConnectFlows(v []*MediaConnectFlowRequest) *CreateInputInput {
+	s.MediaConnectFlows = v
+	return s
+}
+
 // SetName sets the Name field's value.
 func (s *CreateInputInput) SetName(v string) *CreateInputInput {
 	s.Name = &v
@@ -5174,6 +5191,12 @@ func (s *CreateInputInput) SetName(v string) *CreateInputInput {
 // SetRequestId sets the RequestId field's value.
 func (s *CreateInputInput) SetRequestId(v string) *CreateInputInput {
 	s.RequestId = &v
+	return s
+}
+
+// SetRoleArn sets the RoleArn field's value.
+func (s *CreateInputInput) SetRoleArn(v string) *CreateInputInput {
+	s.RoleArn = &v
 	return s
 }
 
@@ -5278,6 +5301,9 @@ func (s *DeleteChannelInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "DeleteChannelInput"}
 	if s.ChannelId == nil {
 		invalidParams.Add(request.NewErrParamRequired("ChannelId"))
+	}
+	if s.ChannelId != nil && len(*s.ChannelId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ChannelId", 1))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -5426,6 +5452,9 @@ func (s *DeleteInputInput) Validate() error {
 	if s.InputId == nil {
 		invalidParams.Add(request.NewErrParamRequired("InputId"))
 	}
+	if s.InputId != nil && len(*s.InputId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("InputId", 1))
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -5476,6 +5505,9 @@ func (s *DeleteInputSecurityGroupInput) Validate() error {
 	if s.InputSecurityGroupId == nil {
 		invalidParams.Add(request.NewErrParamRequired("InputSecurityGroupId"))
 	}
+	if s.InputSecurityGroupId != nil && len(*s.InputSecurityGroupId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("InputSecurityGroupId", 1))
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -5525,6 +5557,9 @@ func (s *DeleteReservationInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "DeleteReservationInput"}
 	if s.ReservationId == nil {
 		invalidParams.Add(request.NewErrParamRequired("ReservationId"))
+	}
+	if s.ReservationId != nil && len(*s.ReservationId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ReservationId", 1))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -5716,6 +5751,9 @@ func (s *DescribeChannelInput) Validate() error {
 	if s.ChannelId == nil {
 		invalidParams.Add(request.NewErrParamRequired("ChannelId"))
 	}
+	if s.ChannelId != nil && len(*s.ChannelId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ChannelId", 1))
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -5863,6 +5901,9 @@ func (s *DescribeInputInput) Validate() error {
 	if s.InputId == nil {
 		invalidParams.Add(request.NewErrParamRequired("InputId"))
 	}
+	if s.InputId != nil && len(*s.InputId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("InputId", 1))
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -5887,7 +5928,11 @@ type DescribeInputOutput struct {
 
 	Id *string `locationName:"id" type:"string"`
 
+	MediaConnectFlows []*MediaConnectFlow `locationName:"mediaConnectFlows" type:"list"`
+
 	Name *string `locationName:"name" type:"string"`
+
+	RoleArn *string `locationName:"roleArn" type:"string"`
 
 	SecurityGroups []*string `locationName:"securityGroups" type:"list"`
 
@@ -5932,9 +5977,21 @@ func (s *DescribeInputOutput) SetId(v string) *DescribeInputOutput {
 	return s
 }
 
+// SetMediaConnectFlows sets the MediaConnectFlows field's value.
+func (s *DescribeInputOutput) SetMediaConnectFlows(v []*MediaConnectFlow) *DescribeInputOutput {
+	s.MediaConnectFlows = v
+	return s
+}
+
 // SetName sets the Name field's value.
 func (s *DescribeInputOutput) SetName(v string) *DescribeInputOutput {
 	s.Name = &v
+	return s
+}
+
+// SetRoleArn sets the RoleArn field's value.
+func (s *DescribeInputOutput) SetRoleArn(v string) *DescribeInputOutput {
+	s.RoleArn = &v
 	return s
 }
 
@@ -5984,6 +6041,9 @@ func (s *DescribeInputSecurityGroupInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "DescribeInputSecurityGroupInput"}
 	if s.InputSecurityGroupId == nil {
 		invalidParams.Add(request.NewErrParamRequired("InputSecurityGroupId"))
+	}
+	if s.InputSecurityGroupId != nil && len(*s.InputSecurityGroupId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("InputSecurityGroupId", 1))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -6074,6 +6134,9 @@ func (s *DescribeOfferingInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "DescribeOfferingInput"}
 	if s.OfferingId == nil {
 		invalidParams.Add(request.NewErrParamRequired("OfferingId"))
+	}
+	if s.OfferingId != nil && len(*s.OfferingId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("OfferingId", 1))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -6215,6 +6278,9 @@ func (s *DescribeReservationInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "DescribeReservationInput"}
 	if s.ReservationId == nil {
 		invalidParams.Add(request.NewErrParamRequired("ReservationId"))
+	}
+	if s.ReservationId != nil && len(*s.ReservationId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ReservationId", 1))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -6409,6 +6475,9 @@ func (s *DescribeScheduleInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "DescribeScheduleInput"}
 	if s.ChannelId == nil {
 		invalidParams.Add(request.NewErrParamRequired("ChannelId"))
+	}
+	if s.ChannelId != nil && len(*s.ChannelId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ChannelId", 1))
 	}
 	if s.MaxResults != nil && *s.MaxResults < 1 {
 		invalidParams.Add(request.NewErrParamMinValue("MaxResults", 1))
@@ -7688,8 +7757,9 @@ type H264Settings struct {
 	// be the value configured in the fixedAfd parameter.
 	AfdSignaling *string `locationName:"afdSignaling" type:"string" enum:"AfdSignaling"`
 
-	// Average bitrate in bits/second. Required for VBR, CBR, and ABR. For MS Smooth
-	// outputs, bitrates must be unique when rounded down to the nearest multiple
+	// Average bitrate in bits/second. Required when the rate control mode is VBR
+	// or CBR. Not used for QVBR. In an MS Smooth output group, each output must
+	// have a unique value when its bitrate is rounded down to the nearest multiple
 	// of 1000.
 	Bitrate *int64 `locationName:"bitrate" min:"1000" type:"integer"`
 
@@ -7754,8 +7824,8 @@ type H264Settings struct {
 	// while high can produce better quality for certain content.
 	LookAheadRateControl *string `locationName:"lookAheadRateControl" type:"string" enum:"H264LookAheadRateControl"`
 
-	// Maximum bitrate in bits/second (for VBR and QVBR modes only).Required when
-	// rateControlMode is "qvbr".
+	// For QVBR: See the tooltip for Quality level For VBR: Set the maximum bitrate
+	// in order to accommodate expected spikes in the complexity of the video.
 	MaxBitrate *int64 `locationName:"maxBitrate" min:"1000" type:"integer"`
 
 	// Only meaningful if sceneChangeDetect is set to enabled. Enforces separation
@@ -7787,16 +7857,21 @@ type H264Settings struct {
 	// H.264 Profile.
 	Profile *string `locationName:"profile" type:"string" enum:"H264Profile"`
 
-	// Target quality value. Applicable only to QVBR mode. 1 is the lowest quality
-	// and 10 is thehighest and approaches lossless. Typical levels for content
-	// distribution are between 6 and 8.
+	// Controls the target quality for the video encode. Applies only when the rate
+	// control mode is QVBR. Set values for the QVBR quality level field and Max
+	// bitrate field that suit your most important viewing devices. Recommended
+	// values are:- Primary screen: Quality level: 8 to 10. Max bitrate: 4M- PC
+	// or tablet: Quality level: 7. Max bitrate: 1.5M to 3M- Smartphone: Quality
+	// level: 6. Max bitrate: 1M to 1.5M
 	QvbrQualityLevel *int64 `locationName:"qvbrQualityLevel" min:"1" type:"integer"`
 
-	// Rate control mode. - CBR: Constant Bit Rate- VBR: Variable Bit Rate- QVBR:
-	// Encoder dynamically controls the bitrate to meet the desired quality (specifiedthrough
-	// the qvbrQualityLevel field). The bitrate will not exceed the bitrate specified
-	// inthe maxBitrate field and will not fall below the bitrate required to meet
-	// the desiredquality level.
+	// Rate control mode. QVBR: Quality will match the specified quality level except
+	// when it is constrained by themaximum bitrate. Recommended if you or your
+	// viewers pay for bandwidth.VBR: Quality and bitrate vary, depending on the
+	// video complexity. Recommended instead of QVBRif you want to maintain a specific
+	// average bitrate over the duration of the channel.CBR: Quality varies, depending
+	// on the video complexity. Recommended only if you distributeyour assets to
+	// devices that cannot handle variable bitrates.
 	RateControlMode *string `locationName:"rateControlMode" type:"string" enum:"H264RateControlMode"`
 
 	// Sets the scan type of the output to progressive or top-field-first interlaced.
@@ -7820,6 +7895,10 @@ type H264Settings struct {
 	// If set to enabled, adjust quantization within each frame based on spatial
 	// variation of content complexity.
 	SpatialAq *string `locationName:"spatialAq" type:"string" enum:"H264SpatialAq"`
+
+	// If set to fixed, use gopNumBFrames B-frames per sub-GOP. If set to dynamic,
+	// optimize the number of B-frames used for each sub-GOP to improve visual quality.
+	SubgopLength *string `locationName:"subgopLength" type:"string" enum:"H264SubGopLength"`
 
 	// Produces a bitstream compliant with SMPTE RP-2027.
 	Syntax *string `locationName:"syntax" type:"string" enum:"H264Syntax"`
@@ -8067,6 +8146,12 @@ func (s *H264Settings) SetSoftness(v int64) *H264Settings {
 // SetSpatialAq sets the SpatialAq field's value.
 func (s *H264Settings) SetSpatialAq(v string) *H264Settings {
 	s.SpatialAq = &v
+	return s
+}
+
+// SetSubgopLength sets the SubgopLength field's value.
+func (s *H264Settings) SetSubgopLength(v string) *H264Settings {
+	s.SubgopLength = &v
 	return s
 }
 
@@ -8398,13 +8483,17 @@ type HlsGroupSettings struct {
 	// Period of insertion of EXT-X-PROGRAM-DATE-TIME entry, in seconds.
 	ProgramDateTimePeriod *int64 `locationName:"programDateTimePeriod" type:"integer"`
 
+	// When set to "enabled", includes the media playlists from both pipelines in
+	// the master manifest (.m3u8) file.
+	RedundantManifest *string `locationName:"redundantManifest" type:"string" enum:"HlsRedundantManifest"`
+
 	// Length of MPEG-2 Transport Stream segments to create (in seconds). Note that
 	// segments will end on the next keyframe after this number of seconds, so actual
 	// segment length may be longer.
 	SegmentLength *int64 `locationName:"segmentLength" min:"1" type:"integer"`
 
-	// When set to useInputSegmentation, the output segment or fragment points are
-	// set by the RAI markers from the input streams.
+	// useInputSegmentation has been deprecated. The configured segment size is
+	// always used.
 	SegmentationMode *string `locationName:"segmentationMode" type:"string" enum:"HlsSegmentationMode"`
 
 	// Number of segments to write to a subdirectory before starting a new one.
@@ -8643,6 +8732,12 @@ func (s *HlsGroupSettings) SetProgramDateTime(v string) *HlsGroupSettings {
 // SetProgramDateTimePeriod sets the ProgramDateTimePeriod field's value.
 func (s *HlsGroupSettings) SetProgramDateTimePeriod(v int64) *HlsGroupSettings {
 	s.ProgramDateTimePeriod = &v
+	return s
+}
+
+// SetRedundantManifest sets the RedundantManifest field's value.
+func (s *HlsGroupSettings) SetRedundantManifest(v string) *HlsGroupSettings {
+	s.RedundantManifest = &v
 	return s
 }
 
@@ -8930,6 +9025,45 @@ func (s *HlsSettings) SetStandardHlsSettings(v *StandardHlsSettings) *HlsSetting
 	return s
 }
 
+// Settings for the action to emit HLS metadata
+type HlsTimedMetadataScheduleActionSettings struct {
+	_ struct{} `type:"structure"`
+
+	// Base64 string formatted according to the ID3 specification: http://id3.org/id3v2.4.0-structure
+	//
+	// Id3 is a required field
+	Id3 *string `locationName:"id3" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s HlsTimedMetadataScheduleActionSettings) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s HlsTimedMetadataScheduleActionSettings) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *HlsTimedMetadataScheduleActionSettings) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "HlsTimedMetadataScheduleActionSettings"}
+	if s.Id3 == nil {
+		invalidParams.Add(request.NewErrParamRequired("Id3"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetId3 sets the Id3 field's value.
+func (s *HlsTimedMetadataScheduleActionSettings) SetId3(v string) *HlsTimedMetadataScheduleActionSettings {
+	s.Id3 = &v
+	return s
+}
+
 type HlsWebdavSettings struct {
 	_ struct{} `type:"structure"`
 
@@ -9008,8 +9142,15 @@ type Input struct {
 	// The generated ID of the input (unique for user account, immutable).
 	Id *string `locationName:"id" type:"string"`
 
+	// A list of MediaConnect Flows for this input.
+	MediaConnectFlows []*MediaConnectFlow `locationName:"mediaConnectFlows" type:"list"`
+
 	// The user-assigned name (This is a mutable value).
 	Name *string `locationName:"name" type:"string"`
+
+	// The Amazon Resource Name (ARN) of the role this input assumes during and
+	// after creation.
+	RoleArn *string `locationName:"roleArn" type:"string"`
 
 	// A list of IDs for all the security groups attached to the input.
 	SecurityGroups []*string `locationName:"securityGroups" type:"list"`
@@ -9056,9 +9197,21 @@ func (s *Input) SetId(v string) *Input {
 	return s
 }
 
+// SetMediaConnectFlows sets the MediaConnectFlows field's value.
+func (s *Input) SetMediaConnectFlows(v []*MediaConnectFlow) *Input {
+	s.MediaConnectFlows = v
+	return s
+}
+
 // SetName sets the Name field's value.
 func (s *Input) SetName(v string) *Input {
 	s.Name = &v
+	return s
+}
+
+// SetRoleArn sets the RoleArn field's value.
+func (s *Input) SetRoleArn(v string) *Input {
+	s.RoleArn = &v
 	return s
 }
 
@@ -11050,6 +11203,54 @@ func (s *M3u8Settings) SetVideoPid(v string) *M3u8Settings {
 	return s
 }
 
+// The settings for a MediaConnect Flow.
+type MediaConnectFlow struct {
+	_ struct{} `type:"structure"`
+
+	// The unique ARN of the MediaConnect Flow being used as a source.
+	FlowArn *string `locationName:"flowArn" type:"string"`
+}
+
+// String returns the string representation
+func (s MediaConnectFlow) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s MediaConnectFlow) GoString() string {
+	return s.String()
+}
+
+// SetFlowArn sets the FlowArn field's value.
+func (s *MediaConnectFlow) SetFlowArn(v string) *MediaConnectFlow {
+	s.FlowArn = &v
+	return s
+}
+
+// The settings for a MediaConnect Flow.
+type MediaConnectFlowRequest struct {
+	_ struct{} `type:"structure"`
+
+	// The ARN of the MediaConnect Flow that you want to use as a source.
+	FlowArn *string `locationName:"flowArn" type:"string"`
+}
+
+// String returns the string representation
+func (s MediaConnectFlowRequest) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s MediaConnectFlowRequest) GoString() string {
+	return s.String()
+}
+
+// SetFlowArn sets the FlowArn field's value.
+func (s *MediaConnectFlowRequest) SetFlowArn(v string) *MediaConnectFlowRequest {
+	s.FlowArn = &v
+	return s
+}
+
 type Mp2Settings struct {
 	_ struct{} `type:"structure"`
 
@@ -11152,8 +11353,8 @@ type MsSmoothGroupSettings struct {
 	// to exhausting the numRetries on one segment, or exceeding filecacheDuration.
 	RestartDelay *int64 `locationName:"restartDelay" type:"integer"`
 
-	// When set to useInputSegmentation, the output segment or fragment points are
-	// set by the RAI markers from the input streams.
+	// useInputSegmentation has been deprecated. The configured segment size is
+	// always used.
 	SegmentationMode *string `locationName:"segmentationMode" type:"string" enum:"SmoothGroupSegmentationMode"`
 
 	// Number of milliseconds to delay the output from the second pipeline.
@@ -11980,6 +12181,9 @@ func (s *PurchaseOfferingInput) Validate() error {
 	if s.OfferingId == nil {
 		invalidParams.Add(request.NewErrParamRequired("OfferingId"))
 	}
+	if s.OfferingId != nil && len(*s.OfferingId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("OfferingId", 1))
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -12398,6 +12602,11 @@ type RtmpGroupSettings struct {
 	// 1 video will be passed.
 	CaptionData *string `locationName:"captionData" type:"string" enum:"RtmpCaptionData"`
 
+	// Controls the behavior of this RTMP group if input becomes unavailable.- emitOutput:
+	// Emit a slate until input returns.- pauseOutput: Stop transmitting data until
+	// input returns. This does not close the underlying RTMP connection.
+	InputLossAction *string `locationName:"inputLossAction" type:"string" enum:"InputLossActionForRtmpOut"`
+
 	// If a streaming output fails, number of seconds to wait until a restart is
 	// initiated. A value of 0 means never restart.
 	RestartDelay *int64 `locationName:"restartDelay" type:"integer"`
@@ -12447,6 +12656,12 @@ func (s *RtmpGroupSettings) SetCacheLength(v int64) *RtmpGroupSettings {
 // SetCaptionData sets the CaptionData field's value.
 func (s *RtmpGroupSettings) SetCaptionData(v string) *RtmpGroupSettings {
 	s.CaptionData = &v
+	return s
+}
+
+// SetInputLossAction sets the InputLossAction field's value.
+func (s *RtmpGroupSettings) SetInputLossAction(v string) *RtmpGroupSettings {
+	s.InputLossAction = &v
 	return s
 }
 
@@ -12614,6 +12829,9 @@ func (s *ScheduleAction) SetScheduleActionStartSettings(v *ScheduleActionStartSe
 type ScheduleActionSettings struct {
 	_ struct{} `type:"structure"`
 
+	// Settings to emit HLS metadata
+	HlsTimedMetadataSettings *HlsTimedMetadataScheduleActionSettings `locationName:"hlsTimedMetadataSettings" type:"structure"`
+
 	// Settings to switch an input
 	InputSwitchSettings *InputSwitchScheduleActionSettings `locationName:"inputSwitchSettings" type:"structure"`
 
@@ -12646,6 +12864,11 @@ func (s ScheduleActionSettings) GoString() string {
 // Validate inspects the fields of the type to determine if they are valid.
 func (s *ScheduleActionSettings) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "ScheduleActionSettings"}
+	if s.HlsTimedMetadataSettings != nil {
+		if err := s.HlsTimedMetadataSettings.Validate(); err != nil {
+			invalidParams.AddNested("HlsTimedMetadataSettings", err.(request.ErrInvalidParams))
+		}
+	}
 	if s.InputSwitchSettings != nil {
 		if err := s.InputSwitchSettings.Validate(); err != nil {
 			invalidParams.AddNested("InputSwitchSettings", err.(request.ErrInvalidParams))
@@ -12676,6 +12899,12 @@ func (s *ScheduleActionSettings) Validate() error {
 		return invalidParams
 	}
 	return nil
+}
+
+// SetHlsTimedMetadataSettings sets the HlsTimedMetadataSettings field's value.
+func (s *ScheduleActionSettings) SetHlsTimedMetadataSettings(v *HlsTimedMetadataScheduleActionSettings) *ScheduleActionSettings {
+	s.HlsTimedMetadataSettings = v
+	return s
 }
 
 // SetInputSwitchSettings sets the InputSwitchSettings field's value.
@@ -13556,6 +13785,9 @@ func (s *StartChannelInput) Validate() error {
 	if s.ChannelId == nil {
 		invalidParams.Add(request.NewErrParamRequired("ChannelId"))
 	}
+	if s.ChannelId != nil && len(*s.ChannelId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ChannelId", 1))
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -13942,6 +14174,9 @@ func (s *StopChannelInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "StopChannelInput"}
 	if s.ChannelId == nil {
 		invalidParams.Add(request.NewErrParamRequired("ChannelId"))
+	}
+	if s.ChannelId != nil && len(*s.ChannelId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ChannelId", 1))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -14393,6 +14628,9 @@ func (s *UpdateChannelInput) Validate() error {
 	if s.ChannelId == nil {
 		invalidParams.Add(request.NewErrParamRequired("ChannelId"))
 	}
+	if s.ChannelId != nil && len(*s.ChannelId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ChannelId", 1))
+	}
 	if s.EncoderSettings != nil {
 		if err := s.EncoderSettings.Validate(); err != nil {
 			invalidParams.AddNested("EncoderSettings", err.(request.ErrInvalidParams))
@@ -14495,7 +14733,11 @@ type UpdateInputInput struct {
 
 	InputSecurityGroups []*string `locationName:"inputSecurityGroups" type:"list"`
 
+	MediaConnectFlows []*MediaConnectFlowRequest `locationName:"mediaConnectFlows" type:"list"`
+
 	Name *string `locationName:"name" type:"string"`
+
+	RoleArn *string `locationName:"roleArn" type:"string"`
 
 	Sources []*InputSourceRequest `locationName:"sources" type:"list"`
 }
@@ -14515,6 +14757,9 @@ func (s *UpdateInputInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "UpdateInputInput"}
 	if s.InputId == nil {
 		invalidParams.Add(request.NewErrParamRequired("InputId"))
+	}
+	if s.InputId != nil && len(*s.InputId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("InputId", 1))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -14541,9 +14786,21 @@ func (s *UpdateInputInput) SetInputSecurityGroups(v []*string) *UpdateInputInput
 	return s
 }
 
+// SetMediaConnectFlows sets the MediaConnectFlows field's value.
+func (s *UpdateInputInput) SetMediaConnectFlows(v []*MediaConnectFlowRequest) *UpdateInputInput {
+	s.MediaConnectFlows = v
+	return s
+}
+
 // SetName sets the Name field's value.
 func (s *UpdateInputInput) SetName(v string) *UpdateInputInput {
 	s.Name = &v
+	return s
+}
+
+// SetRoleArn sets the RoleArn field's value.
+func (s *UpdateInputInput) SetRoleArn(v string) *UpdateInputInput {
+	s.RoleArn = &v
 	return s
 }
 
@@ -14599,6 +14856,9 @@ func (s *UpdateInputSecurityGroupInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "UpdateInputSecurityGroupInput"}
 	if s.InputSecurityGroupId == nil {
 		invalidParams.Add(request.NewErrParamRequired("InputSecurityGroupId"))
+	}
+	if s.InputSecurityGroupId != nil && len(*s.InputSecurityGroupId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("InputSecurityGroupId", 1))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -15860,6 +16120,14 @@ const (
 )
 
 const (
+	// H264SubGopLengthDynamic is a H264SubGopLength enum value
+	H264SubGopLengthDynamic = "DYNAMIC"
+
+	// H264SubGopLengthFixed is a H264SubGopLength enum value
+	H264SubGopLengthFixed = "FIXED"
+)
+
+const (
 	// H264SyntaxDefault is a H264Syntax enum value
 	H264SyntaxDefault = "DEFAULT"
 
@@ -16007,6 +16275,14 @@ const (
 )
 
 const (
+	// HlsRedundantManifestDisabled is a HlsRedundantManifest enum value
+	HlsRedundantManifestDisabled = "DISABLED"
+
+	// HlsRedundantManifestEnabled is a HlsRedundantManifest enum value
+	HlsRedundantManifestEnabled = "ENABLED"
+)
+
+const (
 	// HlsSegmentationModeUseInputSegmentation is a HlsSegmentationMode enum value
 	HlsSegmentationModeUseInputSegmentation = "USE_INPUT_SEGMENTATION"
 
@@ -16102,6 +16378,14 @@ const (
 
 	// InputLossActionForMsSmoothOutPauseOutput is a InputLossActionForMsSmoothOut enum value
 	InputLossActionForMsSmoothOutPauseOutput = "PAUSE_OUTPUT"
+)
+
+const (
+	// InputLossActionForRtmpOutEmitOutput is a InputLossActionForRtmpOut enum value
+	InputLossActionForRtmpOutEmitOutput = "EMIT_OUTPUT"
+
+	// InputLossActionForRtmpOutPauseOutput is a InputLossActionForRtmpOut enum value
+	InputLossActionForRtmpOutPauseOutput = "PAUSE_OUTPUT"
 )
 
 const (
@@ -16206,6 +16490,9 @@ const (
 
 	// InputTypeMp4File is a InputType enum value
 	InputTypeMp4File = "MP4_FILE"
+
+	// InputTypeMediaconnect is a InputType enum value
+	InputTypeMediaconnect = "MEDIACONNECT"
 )
 
 // The log level the user wants for their channel.

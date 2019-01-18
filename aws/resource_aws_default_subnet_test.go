@@ -22,12 +22,15 @@ func TestAccAWSDefaultSubnet_basic(t *testing.T) {
 					testAccCheckSubnetExists("aws_default_subnet.foo", &v),
 					resource.TestCheckResourceAttr(
 						"aws_default_subnet.foo", "availability_zone", "us-west-2a"),
+					resource.TestCheckResourceAttrSet(
+						"aws_default_subnet.foo", "availability_zone_id"),
 					resource.TestCheckResourceAttr(
 						"aws_default_subnet.foo", "assign_ipv6_address_on_creation", "false"),
 					resource.TestCheckResourceAttr(
 						"aws_default_subnet.foo", "tags.%", "1"),
 					resource.TestCheckResourceAttr(
 						"aws_default_subnet.foo", "tags.Name", "terraform-testacc-default-subnet"),
+					testAccCheckResourceAttrAccountID("aws_default_subnet.foo", "owner_id"),
 				),
 			},
 		},
@@ -47,7 +50,7 @@ func TestAccAWSDefaultSubnet_publicIp(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckSubnetExists("aws_default_subnet.foo", &v),
 					resource.TestCheckResourceAttr(
-						"aws_default_subnet.foo", "availability_zone", "us-west-2a"),
+						"aws_default_subnet.foo", "availability_zone", "us-west-2b"),
 					resource.TestCheckResourceAttr(
 						"aws_default_subnet.foo", "map_public_ip_on_launch", "true"),
 					resource.TestCheckResourceAttr(
@@ -63,7 +66,7 @@ func TestAccAWSDefaultSubnet_publicIp(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckSubnetExists("aws_default_subnet.foo", &v),
 					resource.TestCheckResourceAttr(
-						"aws_default_subnet.foo", "availability_zone", "us-west-2a"),
+						"aws_default_subnet.foo", "availability_zone", "us-west-2b"),
 					resource.TestCheckResourceAttr(
 						"aws_default_subnet.foo", "map_public_ip_on_launch", "false"),
 					resource.TestCheckResourceAttr(
@@ -86,7 +89,7 @@ func testAccCheckAWSDefaultSubnetDestroy(s *terraform.State) error {
 const testAccAWSDefaultSubnetConfigBasic = `
 resource "aws_default_subnet" "foo" {
   availability_zone = "us-west-2a"
-  tags {
+  tags = {
     Name = "terraform-testacc-default-subnet"
   }
 }
@@ -94,9 +97,9 @@ resource "aws_default_subnet" "foo" {
 
 const testAccAWSDefaultSubnetConfigPublicIp = `
 resource "aws_default_subnet" "foo" {
-  availability_zone = "us-west-2a"
+  availability_zone = "us-west-2b"
   map_public_ip_on_launch = true
-  tags {
+  tags = {
     Name = "terraform-testacc-default-subnet"
   }
 }
@@ -104,9 +107,9 @@ resource "aws_default_subnet" "foo" {
 
 const testAccAWSDefaultSubnetConfigNoPublicIp = `
 resource "aws_default_subnet" "foo" {
-  availability_zone = "us-west-2a"
+  availability_zone = "us-west-2b"
   map_public_ip_on_launch = false
-  tags {
+  tags = {
     Name = "terraform-testacc-default-subnet"
   }
 }

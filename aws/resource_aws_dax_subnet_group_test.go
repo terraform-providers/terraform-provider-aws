@@ -79,11 +79,8 @@ func testAccCheckAwsDaxSubnetGroupExists(name string) resource.TestCheckFunc {
 		_, err := conn.DescribeSubnetGroups(&dax.DescribeSubnetGroupsInput{
 			SubnetGroupNames: []*string{aws.String(rs.Primary.ID)},
 		})
-		if err != nil {
-			return err
-		}
 
-		return nil
+		return err
 	}
 }
 

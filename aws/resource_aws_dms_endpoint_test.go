@@ -232,7 +232,7 @@ resource "aws_dms_endpoint" "dms_endpoint" {
 	port = 3306
 	server_name = "tftest"
 	ssl_mode = "none"
-	tags {
+	tags = {
 		Name = "tf-test-dms-endpoint-%[1]s"
 		Update = "to-update"
 		Remove = "to-remove"
@@ -254,7 +254,7 @@ resource "aws_dms_endpoint" "dms_endpoint" {
 	port = 3303
 	server_name = "tftestupdate"
 	ssl_mode = "none"
-	tags {
+	tags = {
 		Name = "tf-test-dms-endpoint-%[1]s"
 		Update = "updated"
 		Add = "added"
@@ -272,7 +272,7 @@ resource "aws_dms_endpoint" "dms_endpoint" {
 	engine_name = "dynamodb"
 	service_access_role = "${aws_iam_role.iam_role.arn}"
 	ssl_mode = "none"
-	tags {
+	tags = {
 		Name = "tf-test-dynamodb-endpoint-%[1]s"
 		Update = "to-update"
 		Remove = "to-remove"
@@ -335,7 +335,7 @@ resource "aws_dms_endpoint" "dms_endpoint" {
 	engine_name = "dynamodb"
 	service_access_role = "${aws_iam_role.iam_role.arn}"
 	ssl_mode = "none"
-	tags {
+	tags = {
 		Name = "tf-test-dynamodb-endpoint-%[1]s"
 		Update = "updated"
 		Add = "added"
@@ -396,7 +396,7 @@ resource "aws_dms_endpoint" "dms_endpoint" {
 	engine_name = "s3"
 	ssl_mode = "none"
 	extra_connection_attributes = ""
-	tags {
+	tags = {
 		Name = "tf-test-s3-endpoint-%[1]s"
 		Update = "to-update"
 		Remove = "to-remove"
@@ -468,7 +468,7 @@ resource "aws_dms_endpoint" "dms_endpoint" {
 	engine_name = "s3"
 	ssl_mode = "none"
 	extra_connection_attributes = "key=value;"
-	tags {
+	tags = {
 		Name = "tf-test-s3-endpoint-%[1]s"
 		Update = "updated"
 		Add = "added"
@@ -553,7 +553,7 @@ resource "aws_dms_endpoint" "dms_endpoint" {
 	ssl_mode = "none"
 	extra_connection_attributes = ""
 	kms_key_arn = "${data.aws_kms_alias.dms.target_key_arn}"
-	tags {
+	tags = {
 		Name = "tf-test-dms-endpoint-%[1]s"
 		Update = "to-update"
 		Remove = "to-remove"
@@ -588,7 +588,7 @@ resource "aws_dms_endpoint" "dms_endpoint" {
 	ssl_mode = "require"
 	extra_connection_attributes = "key=value;"
 	kms_key_arn = "${data.aws_kms_alias.dms.target_key_arn}"
-	tags {
+	tags = {
 		Name = "tf-test-dms-endpoint-%[1]s"
 		Update = "updated"
 		Add = "added"

@@ -2,6 +2,8 @@ package aws
 
 import (
 	"fmt"
+	"log"
+	"strings"
 	"testing"
 	"time"
 
@@ -50,6 +52,94 @@ func TestValidateIamUserName(t *testing.T) {
 			t.Fatalf("%q should be an invalid IAM User name", v)
 		}
 	}
+}
+
+func init() {
+	resource.AddTestSweepers("aws_iam_user", &resource.Sweeper{
+		Name: "aws_iam_user",
+		F:    testSweepIamUsers,
+	})
+}
+
+func testSweepIamUsers(region string) error {
+	client, err := sharedClientForRegion(region)
+	if err != nil {
+		return fmt.Errorf("error getting client: %s", err)
+	}
+	conn := client.(*AWSClient).iamconn
+	prefixes := []string{
+		"test-user",
+		"tf-acc-test",
+	}
+	users := make([]*iam.User, 0)
+
+	err = conn.ListUsersPages(&iam.ListUsersInput{}, func(page *iam.ListUsersOutput, lastPage bool) bool {
+		for _, user := range page.Users {
+			for _, prefix := range prefixes {
+				if strings.HasPrefix(aws.StringValue(user.UserName), prefix) {
+					users = append(users, user)
+					break
+				}
+			}
+		}
+
+		return !lastPage
+	})
+
+	if testSweepSkipSweepError(err) {
+		log.Printf("[WARN] Skipping IAM User sweep for %s: %s", region, err)
+		return nil
+	}
+
+	if err != nil {
+		return fmt.Errorf("Error retrieving IAM Users: %s", err)
+	}
+
+	if len(users) == 0 {
+		log.Print("[DEBUG] No IAM Users to sweep")
+		return nil
+	}
+
+	for _, user := range users {
+		username := aws.StringValue(user.UserName)
+		log.Printf("[DEBUG] Deleting IAM User: %s", username)
+
+		if err := deleteAwsIamUserGroupMemberships(conn, username); err != nil {
+			return fmt.Errorf("error removing IAM User (%s) group memberships: %s", username, err)
+		}
+
+		if err := deleteAwsIamUserAccessKeys(conn, username); err != nil {
+			return fmt.Errorf("error removing IAM User (%s) access keys: %s", username, err)
+		}
+
+		if err := deleteAwsIamUserSSHKeys(conn, username); err != nil {
+			return fmt.Errorf("error removing IAM User (%s) SSH keys: %s", username, err)
+		}
+
+		if err := deleteAwsIamUserMFADevices(conn, username); err != nil {
+			return fmt.Errorf("error removing IAM User (%s) MFA devices: %s", username, err)
+		}
+
+		if err := deleteAwsIamUserLoginProfile(conn, username); err != nil {
+			return fmt.Errorf("error removing IAM User (%s) login profile: %s", username, err)
+		}
+
+		input := &iam.DeleteUserInput{
+			UserName: aws.String(username),
+		}
+
+		_, err := conn.DeleteUser(input)
+
+		if isAWSErr(err, iam.ErrCodeNoSuchEntityException, "") {
+			continue
+		}
+
+		if err != nil {
+			return fmt.Errorf("Error deleting IAM User (%s): %s", username, err)
+		}
+	}
+
+	return nil
 }
 
 func TestAccAWSUser_importBasic(t *testing.T) {
@@ -345,6 +435,38 @@ func TestAccAWSUser_permissionsBoundary(t *testing.T) {
 	})
 }
 
+func TestAccAWSUser_tags(t *testing.T) {
+	var user iam.GetUserOutput
+
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_iam_user.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSUserDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSUserConfig_tags(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSUserExists(resourceName, &user),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.Name", "test-Name"),
+					resource.TestCheckResourceAttr(resourceName, "tags.tag2", "test-tag2"),
+				),
+			},
+			{
+				Config: testAccAWSUserConfig_tagsUpdate(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSUserExists(resourceName, &user),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.tag2", "test-tagUpdate"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckAWSUserDestroy(s *terraform.State) error {
 	iamconn := testAccProvider.Meta().(*AWSClient).iamconn
 
@@ -563,6 +685,29 @@ func testAccAWSUserConfigForceDestroy(rName string) string {
 resource "aws_iam_user" "test" {
   force_destroy = true
   name = %q
+}
+`, rName)
+}
+
+func testAccAWSUserConfig_tags(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_iam_user" "test" {
+  name = %q
+  tags = {
+    Name = "test-Name"
+    tag2 = "test-tag2"
+  }
+}
+`, rName)
+}
+
+func testAccAWSUserConfig_tagsUpdate(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_iam_user" "test" {
+  name = %q
+  tags = {
+    tag2 = "test-tagUpdate"
+  }
 }
 `, rName)
 }

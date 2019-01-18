@@ -9,6 +9,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awsutil"
 	"github.com/aws/aws-sdk-go/aws/request"
+	"github.com/aws/aws-sdk-go/private/protocol"
+	"github.com/aws/aws-sdk-go/private/protocol/jsonrpc"
 )
 
 const opCreateDeliveryStream = "CreateDeliveryStream"
@@ -188,6 +190,7 @@ func (c *Firehose) DeleteDeliveryStreamRequest(input *DeleteDeliveryStreamInput)
 
 	output = &DeleteDeliveryStreamOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -805,18 +808,22 @@ func (c *Firehose) StartDeliveryStreamEncryptionRequest(input *StartDeliveryStre
 
 	output = &StartDeliveryStreamEncryptionOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
 // StartDeliveryStreamEncryption API operation for Amazon Kinesis Firehose.
 //
-// Enables server-side encryption (SSE) for the delivery stream. This operation
-// is asynchronous. It returns immediately. When you invoke it, Kinesis Firehose
-// first sets the status of the stream to ENABLING then to ENABLED. You can
-// continue to read and write data to your stream while its status is ENABLING
-// but they won't get encrypted. It can take up to 5 seconds after the encryption
-// status changes to ENABLED before all records written to the delivery stream
-// are encrypted.
+// Enables server-side encryption (SSE) for the delivery stream.
+//
+// This operation is asynchronous. It returns immediately. When you invoke it,
+// Kinesis Data Firehose first sets the status of the stream to ENABLING, and
+// then to ENABLED. You can continue to read and write data to your stream while
+// its status is ENABLING, but the data is not encrypted. It can take up to
+// 5 seconds after the encryption status changes to ENABLED before all records
+// written to the delivery stream are encrypted. To find out whether a record
+// or a batch of records was encrypted, check the response elements PutRecordOutput$Encrypted
+// and PutRecordBatchOutput$Encrypted, respectively.
 //
 // To check the encryption state of a delivery stream, use DescribeDeliveryStream.
 //
@@ -825,8 +832,8 @@ func (c *Firehose) StartDeliveryStreamEncryptionRequest(input *StartDeliveryStre
 //
 // The StartDeliveryStreamEncryption and StopDeliveryStreamEncryption operations
 // have a combined limit of 25 calls per delivery stream per 24 hours. For example,
-// you reach the limit if you call StartDeliveryStreamEncryption thirteen times
-// and StopDeliveryStreamEncryption twelve times for the same stream in a 24-hour
+// you reach the limit if you call StartDeliveryStreamEncryption 13 times and
+// StopDeliveryStreamEncryption 12 times for the same delivery stream in a 24-hour
 // period.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
@@ -910,25 +917,29 @@ func (c *Firehose) StopDeliveryStreamEncryptionRequest(input *StopDeliveryStream
 
 	output = &StopDeliveryStreamEncryptionOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
 // StopDeliveryStreamEncryption API operation for Amazon Kinesis Firehose.
 //
-// Disables server-side encryption (SSE) for the delivery stream. This operation
-// is asynchronous. It returns immediately. When you invoke it, Kinesis Firehose
-// first sets the status of the stream to DISABLING then to DISABLED. You can
-// continue to read and write data to your stream while its status is DISABLING.
-// It can take up to 5 seconds after the encryption status changes to DISABLED
-// before all records written to the delivery stream are no longer subject to
-// encryption.
+// Disables server-side encryption (SSE) for the delivery stream.
+//
+// This operation is asynchronous. It returns immediately. When you invoke it,
+// Kinesis Data Firehose first sets the status of the stream to DISABLING, and
+// then to DISABLED. You can continue to read and write data to your stream
+// while its status is DISABLING. It can take up to 5 seconds after the encryption
+// status changes to DISABLED before all records written to the delivery stream
+// are no longer subject to encryption. To find out whether a record or a batch
+// of records was encrypted, check the response elements PutRecordOutput$Encrypted
+// and PutRecordBatchOutput$Encrypted, respectively.
 //
 // To check the encryption state of a delivery stream, use DescribeDeliveryStream.
 //
 // The StartDeliveryStreamEncryption and StopDeliveryStreamEncryption operations
 // have a combined limit of 25 calls per delivery stream per 24 hours. For example,
-// you reach the limit if you call StartDeliveryStreamEncryption thirteen times
-// and StopDeliveryStreamEncryption twelve times for the same stream in a 24-hour
+// you reach the limit if you call StartDeliveryStreamEncryption 13 times and
+// StopDeliveryStreamEncryption 12 times for the same delivery stream in a 24-hour
 // period.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
@@ -1012,18 +1023,19 @@ func (c *Firehose) TagDeliveryStreamRequest(input *TagDeliveryStreamInput) (req 
 
 	output = &TagDeliveryStreamOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
 // TagDeliveryStream API operation for Amazon Kinesis Firehose.
 //
 // Adds or updates tags for the specified delivery stream. A tag is a key-value
-// pair (the value is optional) that you can define and assign to AWS resources.
-// If you specify a tag that already exists, the tag value is replaced with
-// the value that you specify in the request. Tags are metadata. For example,
-// you can add friendly names and descriptions or other types of information
-// that can help you distinguish the delivery stream. For more information about
-// tags, see Using Cost Allocation Tags (https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/cost-alloc-tags.html)
+// pair that you can define and assign to AWS resources. If you specify a tag
+// that already exists, the tag value is replaced with the value that you specify
+// in the request. Tags are metadata. For example, you can add friendly names
+// and descriptions or other types of information that can help you distinguish
+// the delivery stream. For more information about tags, see Using Cost Allocation
+// Tags (https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/cost-alloc-tags.html)
 // in the AWS Billing and Cost Management User Guide.
 //
 // Each delivery stream can have up to 50 tags.
@@ -1111,6 +1123,7 @@ func (c *Firehose) UntagDeliveryStreamRequest(input *UntagDeliveryStreamInput) (
 
 	output = &UntagDeliveryStreamOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -1204,6 +1217,7 @@ func (c *Firehose) UpdateDestinationRequest(input *UpdateDestinationInput) (req 
 
 	output = &UpdateDestinationOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -2241,7 +2255,7 @@ type ElasticsearchDestinationConfiguration struct {
 	// IndexName is a required field
 	IndexName *string `min:"1" type:"string" required:"true"`
 
-	// The Elasticsearch index rotation period. Index rotation appends a time stamp
+	// The Elasticsearch index rotation period. Index rotation appends a timestamp
 	// to the IndexName to facilitate the expiration of old data. For more information,
 	// see Index Rotation for the Amazon ES Destination (http://docs.aws.amazon.com/firehose/latest/dev/basic-deliver.html#es-index-rotation).
 	// The default value is OneDay.
@@ -2551,7 +2565,7 @@ type ElasticsearchDestinationUpdate struct {
 	// The Elasticsearch index name.
 	IndexName *string `min:"1" type:"string"`
 
-	// The Elasticsearch index rotation period. Index rotation appends a time stamp
+	// The Elasticsearch index rotation period. Index rotation appends a timestamp
 	// to IndexName to facilitate the expiration of old data. For more information,
 	// see Index Rotation for the Amazon ES Destination (http://docs.aws.amazon.com/firehose/latest/dev/basic-deliver.html#es-index-rotation).
 	// Default value is OneDay.
@@ -2792,6 +2806,11 @@ type ExtendedS3DestinationConfiguration struct {
 	// encryption.
 	EncryptionConfiguration *EncryptionConfiguration `type:"structure"`
 
+	// A prefix that Kinesis Data Firehose evaluates and adds to failed records
+	// before writing them to S3. This prefix appears immediately following the
+	// bucket name.
+	ErrorOutputPrefix *string `type:"string"`
+
 	// The "YYYY/MM/DD/HH" time format prefix is automatically used for delivered
 	// Amazon S3 files. You can specify an extra prefix to be added in front of
 	// the time format prefix. If the prefix ends with a slash, it appears as a
@@ -2909,6 +2928,12 @@ func (s *ExtendedS3DestinationConfiguration) SetEncryptionConfiguration(v *Encry
 	return s
 }
 
+// SetErrorOutputPrefix sets the ErrorOutputPrefix field's value.
+func (s *ExtendedS3DestinationConfiguration) SetErrorOutputPrefix(v string) *ExtendedS3DestinationConfiguration {
+	s.ErrorOutputPrefix = &v
+	return s
+}
+
 // SetPrefix sets the Prefix field's value.
 func (s *ExtendedS3DestinationConfiguration) SetPrefix(v string) *ExtendedS3DestinationConfiguration {
 	s.Prefix = &v
@@ -2971,6 +2996,11 @@ type ExtendedS3DestinationDescription struct {
 	//
 	// EncryptionConfiguration is a required field
 	EncryptionConfiguration *EncryptionConfiguration `type:"structure" required:"true"`
+
+	// A prefix that Kinesis Data Firehose evaluates and adds to failed records
+	// before writing them to S3. This prefix appears immediately following the
+	// bucket name.
+	ErrorOutputPrefix *string `type:"string"`
 
 	// The "YYYY/MM/DD/HH" time format prefix is automatically used for delivered
 	// Amazon S3 files. You can specify an extra prefix to be added in front of
@@ -3042,6 +3072,12 @@ func (s *ExtendedS3DestinationDescription) SetEncryptionConfiguration(v *Encrypt
 	return s
 }
 
+// SetErrorOutputPrefix sets the ErrorOutputPrefix field's value.
+func (s *ExtendedS3DestinationDescription) SetErrorOutputPrefix(v string) *ExtendedS3DestinationDescription {
+	s.ErrorOutputPrefix = &v
+	return s
+}
+
 // SetPrefix sets the Prefix field's value.
 func (s *ExtendedS3DestinationDescription) SetPrefix(v string) *ExtendedS3DestinationDescription {
 	s.Prefix = &v
@@ -3096,6 +3132,11 @@ type ExtendedS3DestinationUpdate struct {
 	// The encryption configuration. If no value is specified, the default is no
 	// encryption.
 	EncryptionConfiguration *EncryptionConfiguration `type:"structure"`
+
+	// A prefix that Kinesis Data Firehose evaluates and adds to failed records
+	// before writing them to S3. This prefix appears immediately following the
+	// bucket name.
+	ErrorOutputPrefix *string `type:"string"`
 
 	// The "YYYY/MM/DD/HH" time format prefix is automatically used for delivered
 	// Amazon S3 files. You can specify an extra prefix to be added in front of
@@ -3206,6 +3247,12 @@ func (s *ExtendedS3DestinationUpdate) SetEncryptionConfiguration(v *EncryptionCo
 	return s
 }
 
+// SetErrorOutputPrefix sets the ErrorOutputPrefix field's value.
+func (s *ExtendedS3DestinationUpdate) SetErrorOutputPrefix(v string) *ExtendedS3DestinationUpdate {
+	s.ErrorOutputPrefix = &v
+	return s
+}
+
 // SetPrefix sets the Prefix field's value.
 func (s *ExtendedS3DestinationUpdate) SetPrefix(v string) *ExtendedS3DestinationUpdate {
 	s.Prefix = &v
@@ -3244,11 +3291,11 @@ func (s *ExtendedS3DestinationUpdate) SetS3BackupUpdate(v *S3DestinationUpdate) 
 type HiveJsonSerDe struct {
 	_ struct{} `type:"structure"`
 
-	// Indicates how you want Kinesis Data Firehose to parse the date and time stamps
+	// Indicates how you want Kinesis Data Firehose to parse the date and timestamps
 	// that may be present in your input data JSON. To specify these format strings,
 	// follow the pattern syntax of JodaTime's DateTimeFormat format strings. For
 	// more information, see Class DateTimeFormat (https://www.joda.org/joda-time/apidocs/org/joda/time/format/DateTimeFormat.html).
-	// You can also use the special value millis to parse time stamps in epoch milliseconds.
+	// You can also use the special value millis to parse timestamps in epoch milliseconds.
 	// If you don't specify a format, Kinesis Data Firehose uses java.sql.Timestamp::valueOf
 	// by default.
 	TimestampFormats []*string `type:"list"`
@@ -3410,7 +3457,7 @@ type KinesisStreamSourceDescription struct {
 	_ struct{} `type:"structure"`
 
 	// Kinesis Data Firehose starts retrieving records from the Kinesis data stream
-	// starting with this time stamp.
+	// starting with this timestamp.
 	DeliveryStartTimestamp *time.Time `type:"timestamp"`
 
 	// The Amazon Resource Name (ARN) of the source Kinesis data stream. For more
@@ -4488,7 +4535,7 @@ type RedshiftDestinationConfiguration struct {
 	// The user password.
 	//
 	// Password is a required field
-	Password *string `min:"6" type:"string" required:"true"`
+	Password *string `min:"6" type:"string" required:"true" sensitive:"true"`
 
 	// The data processing configuration.
 	ProcessingConfiguration *ProcessingConfiguration `type:"structure"`
@@ -4522,7 +4569,7 @@ type RedshiftDestinationConfiguration struct {
 	// The name of the user.
 	//
 	// Username is a required field
-	Username *string `min:"1" type:"string" required:"true"`
+	Username *string `min:"1" type:"string" required:"true" sensitive:"true"`
 }
 
 // String returns the string representation
@@ -4705,7 +4752,7 @@ type RedshiftDestinationDescription struct {
 	// The name of the user.
 	//
 	// Username is a required field
-	Username *string `min:"1" type:"string" required:"true"`
+	Username *string `min:"1" type:"string" required:"true" sensitive:"true"`
 }
 
 // String returns the string representation
@@ -4792,7 +4839,7 @@ type RedshiftDestinationUpdate struct {
 	CopyCommand *CopyCommand `type:"structure"`
 
 	// The user password.
-	Password *string `min:"6" type:"string"`
+	Password *string `min:"6" type:"string" sensitive:"true"`
 
 	// The data processing configuration.
 	ProcessingConfiguration *ProcessingConfiguration `type:"structure"`
@@ -4819,7 +4866,7 @@ type RedshiftDestinationUpdate struct {
 	S3Update *S3DestinationUpdate `type:"structure"`
 
 	// The name of the user.
-	Username *string `min:"1" type:"string"`
+	Username *string `min:"1" type:"string" sensitive:"true"`
 }
 
 // String returns the string representation
@@ -4997,6 +5044,11 @@ type S3DestinationConfiguration struct {
 	// encryption.
 	EncryptionConfiguration *EncryptionConfiguration `type:"structure"`
 
+	// A prefix that Kinesis Data Firehose evaluates and adds to failed records
+	// before writing them to S3. This prefix appears immediately following the
+	// bucket name.
+	ErrorOutputPrefix *string `type:"string"`
+
 	// The "YYYY/MM/DD/HH" time format prefix is automatically used for delivered
 	// Amazon S3 files. You can specify an extra prefix to be added in front of
 	// the time format prefix. If the prefix ends with a slash, it appears as a
@@ -5084,6 +5136,12 @@ func (s *S3DestinationConfiguration) SetEncryptionConfiguration(v *EncryptionCon
 	return s
 }
 
+// SetErrorOutputPrefix sets the ErrorOutputPrefix field's value.
+func (s *S3DestinationConfiguration) SetErrorOutputPrefix(v string) *S3DestinationConfiguration {
+	s.ErrorOutputPrefix = &v
+	return s
+}
+
 // SetPrefix sets the Prefix field's value.
 func (s *S3DestinationConfiguration) SetPrefix(v string) *S3DestinationConfiguration {
 	s.Prefix = &v
@@ -5125,6 +5183,11 @@ type S3DestinationDescription struct {
 	//
 	// EncryptionConfiguration is a required field
 	EncryptionConfiguration *EncryptionConfiguration `type:"structure" required:"true"`
+
+	// A prefix that Kinesis Data Firehose evaluates and adds to failed records
+	// before writing them to S3. This prefix appears immediately following the
+	// bucket name.
+	ErrorOutputPrefix *string `type:"string"`
 
 	// The "YYYY/MM/DD/HH" time format prefix is automatically used for delivered
 	// Amazon S3 files. You can specify an extra prefix to be added in front of
@@ -5181,6 +5244,12 @@ func (s *S3DestinationDescription) SetEncryptionConfiguration(v *EncryptionConfi
 	return s
 }
 
+// SetErrorOutputPrefix sets the ErrorOutputPrefix field's value.
+func (s *S3DestinationDescription) SetErrorOutputPrefix(v string) *S3DestinationDescription {
+	s.ErrorOutputPrefix = &v
+	return s
+}
+
 // SetPrefix sets the Prefix field's value.
 func (s *S3DestinationDescription) SetPrefix(v string) *S3DestinationDescription {
 	s.Prefix = &v
@@ -5218,6 +5287,11 @@ type S3DestinationUpdate struct {
 	// The encryption configuration. If no value is specified, the default is no
 	// encryption.
 	EncryptionConfiguration *EncryptionConfiguration `type:"structure"`
+
+	// A prefix that Kinesis Data Firehose evaluates and adds to failed records
+	// before writing them to S3. This prefix appears immediately following the
+	// bucket name.
+	ErrorOutputPrefix *string `type:"string"`
 
 	// The "YYYY/MM/DD/HH" time format prefix is automatically used for delivered
 	// Amazon S3 files. You can specify an extra prefix to be added in front of
@@ -5295,6 +5369,12 @@ func (s *S3DestinationUpdate) SetCompressionFormat(v string) *S3DestinationUpdat
 // SetEncryptionConfiguration sets the EncryptionConfiguration field's value.
 func (s *S3DestinationUpdate) SetEncryptionConfiguration(v *EncryptionConfiguration) *S3DestinationUpdate {
 	s.EncryptionConfiguration = v
+	return s
+}
+
+// SetErrorOutputPrefix sets the ErrorOutputPrefix field's value.
+func (s *S3DestinationUpdate) SetErrorOutputPrefix(v string) *S3DestinationUpdate {
+	s.ErrorOutputPrefix = &v
 	return s
 }
 

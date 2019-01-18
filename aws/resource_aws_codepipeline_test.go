@@ -152,10 +152,7 @@ func testAccCheckAWSCodePipelineExists(n string) resource.TestCheckFunc {
 			Name: aws.String(rs.Primary.ID),
 		})
 
-		if err != nil {
-			return err
-		}
-		return nil
+		return err
 	}
 }
 

@@ -378,11 +378,8 @@ func testAccCheckAwsSnsPlatformApplicationExists(name string) resource.TestCheck
 
 		log.Printf("[DEBUG] Reading SNS Platform Application attributes: %s", input)
 		_, err := conn.GetPlatformApplicationAttributes(input)
-		if err != nil {
-			return err
-		}
 
-		return nil
+		return err
 	}
 }
 

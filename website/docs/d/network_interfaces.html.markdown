@@ -24,7 +24,7 @@ The following example retrieves a list of all network interface ids with a custo
 
 ```hcl
 data "aws_network_interfaces" "example" {
-  tags {
+  tags = {
     Name = "test"
   }
 }

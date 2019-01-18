@@ -281,11 +281,7 @@ func testAccCheckCloudWatchEventPermissionExists(pr string) resource.TestCheckFu
 		}
 
 		_, err = findCloudWatchEventPermissionPolicyStatementByID(&policyDoc, rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return err
 	}
 }
 

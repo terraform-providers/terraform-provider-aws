@@ -59,7 +59,7 @@ resource "aws_vpc_peering_connection" "foo" {
   vpc_id        = "${aws_vpc.foo.id}"
   auto_accept   = true
 
-  tags {
+  tags = {
     Name = "VPC Peering between foo and bar"
   }
 }

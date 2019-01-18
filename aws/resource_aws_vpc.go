@@ -33,7 +33,7 @@ func resourceAwsVpc() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateCIDRNetworkAddress,
+				ValidateFunc: validation.CIDRNetwork(16, 28),
 			},
 
 			"instance_tenancy": {
@@ -114,6 +114,11 @@ func resourceAwsVpc() *schema.Resource {
 			},
 
 			"tags": tagsSchema(),
+
+			"owner_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -202,6 +207,8 @@ func resourceAwsVpcRead(d *schema.ResourceData, meta interface{}) error {
 
 	// Tags
 	d.Set("tags", tagsToMap(vpc.Tags))
+
+	d.Set("owner_id", vpc.OwnerId)
 
 	// Make sure those values are set, if an IPv6 block exists it'll be set in the loop
 	d.Set("assign_generated_ipv6_cidr_block", false)

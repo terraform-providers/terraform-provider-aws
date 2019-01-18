@@ -104,7 +104,7 @@ func testAccCheckMainRouteTableAssociation(
 const testAccMainRouteTableAssociationConfig = `
 resource "aws_vpc" "foo" {
 	cidr_block = "10.1.0.0/16"
-	tags {
+	tags = {
 		Name = "terraform-testacc-main-route-table-association"
 	}
 }
@@ -112,7 +112,7 @@ resource "aws_vpc" "foo" {
 resource "aws_subnet" "foo" {
 	vpc_id = "${aws_vpc.foo.id}"
 	cidr_block = "10.1.1.0/24"
-	tags {
+	tags = {
 		Name = "tf-acc-main-route-table-association"
 	}
 }
@@ -138,7 +138,7 @@ resource "aws_main_route_table_association" "foo" {
 const testAccMainRouteTableAssociationConfigUpdate = `
 resource "aws_vpc" "foo" {
 	cidr_block = "10.1.0.0/16"
-	tags {
+	tags = {
 		Name = "terraform-testacc-main-route-table-association-update"
 	}
 }
@@ -146,7 +146,7 @@ resource "aws_vpc" "foo" {
 resource "aws_subnet" "foo" {
 	vpc_id = "${aws_vpc.foo.id}"
 	cidr_block = "10.1.1.0/24"
-	tags {
+	tags = {
 		Name = "tf-acc-main-route-table-association-update"
 	}
 }

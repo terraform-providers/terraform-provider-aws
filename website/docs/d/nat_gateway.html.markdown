@@ -26,7 +26,7 @@ Usage with tags:
 data "aws_nat_gateway" "default" {
   subnet_id = "${aws_subnet.public.id}"
 
-  tags {
+  tags = {
     Name = "gw NAT"
   }
 }

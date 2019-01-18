@@ -104,11 +104,8 @@ func testAccCheckAwsMediaStoreContainerPolicyExists(name string) resource.TestCh
 		}
 
 		_, err := conn.GetContainerPolicy(input)
-		if err != nil {
-			return err
-		}
 
-		return nil
+		return err
 	}
 }
 

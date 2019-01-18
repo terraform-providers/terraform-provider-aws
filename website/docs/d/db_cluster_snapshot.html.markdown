@@ -25,7 +25,7 @@ data "aws_db_cluster_snapshot" "development_final_snapshot" {
 # a new dev database.
 resource "aws_rds_cluster" "aurora" {
   cluster_identifier   = "development_cluster"
-  snapshot_identifier  = "${aws_db_cluster_snapshot.development_final_snapshot.id}"
+  snapshot_identifier  = "${data.aws_db_cluster_snapshot.development_final_snapshot.id}"
   db_subnet_group_name = "my_db_subnet_group"
 
   lifecycle {

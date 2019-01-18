@@ -1948,8 +1948,7 @@ func (c *SecretsManager) TagResourceRequest(input *TagResourceInput) (req *reque
 
 	output = &TagResourceOutput{}
 	req = c.newRequest(op, input, output)
-	req.Handlers.Unmarshal.Remove(jsonrpc.UnmarshalHandler)
-	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -2090,8 +2089,7 @@ func (c *SecretsManager) UntagResourceRequest(input *UntagResourceInput) (req *r
 
 	output = &UntagResourceOutput{}
 	req = c.newRequest(op, input, output)
-	req.Handlers.Unmarshal.Remove(jsonrpc.UnmarshalHandler)
-	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -2668,7 +2666,7 @@ type CreateSecretInput struct {
 	// be accessed only by using the AWS CLI or one of the AWS SDKs.
 	//
 	// SecretBinary is automatically base64 encoded/decoded by the SDK.
-	SecretBinary []byte `type:"blob"`
+	SecretBinary []byte `type:"blob" sensitive:"true"`
 
 	// (Optional) Specifies text data that you want to encrypt and store in this
 	// new version of the secret.
@@ -2692,7 +2690,7 @@ type CreateSecretInput struct {
 	// If your command-line tool or SDK requires quotation marks around the parameter,
 	// you should use single quotes to avoid confusion with the double quotes required
 	// in the JSON text.
-	SecretString *string `type:"string"`
+	SecretString *string `type:"string" sensitive:"true"`
 
 	// (Optional) Specifies a list of user-defined tags that are attached to the
 	// secret. Each tag is a "Key" and "Value" pair of strings. This operation only
@@ -3661,7 +3659,7 @@ type GetSecretValueOutput struct {
 	// in the SecretString or SecretBinary fields.
 	//
 	// SecretBinary is automatically base64 encoded/decoded by the SDK.
-	SecretBinary []byte `type:"blob"`
+	SecretBinary []byte `type:"blob" sensitive:"true"`
 
 	// The decrypted part of the protected secret information that was originally
 	// provided as a string.
@@ -3675,7 +3673,7 @@ type GetSecretValueOutput struct {
 	// UpdateSecret, or PutSecretValue API operations instead of the Secrets Manager
 	// console, or by using the Other secret type in the console, then you must
 	// code your Lambda rotation function to parse and interpret those values.
-	SecretString *string `type:"string"`
+	SecretString *string `type:"string" sensitive:"true"`
 
 	// The unique identifier of this version of the secret.
 	VersionId *string `min:"32" type:"string"`
@@ -4151,7 +4149,7 @@ type PutSecretValueInput struct {
 	// console.
 	//
 	// SecretBinary is automatically base64 encoded/decoded by the SDK.
-	SecretBinary []byte `type:"blob"`
+	SecretBinary []byte `type:"blob" sensitive:"true"`
 
 	// Specifies the secret to which you want to add a new version. You can specify
 	// either the Amazon Resource Name (ARN) or the friendly name of the secret.
@@ -4194,7 +4192,7 @@ type PutSecretValueInput struct {
 	// If your command-line tool or SDK requires quotation marks around the parameter,
 	// you should use single quotes to avoid confusion with the double quotes required
 	// in the JSON text.
-	SecretString *string `type:"string"`
+	SecretString *string `type:"string" sensitive:"true"`
 
 	// (Optional) Specifies a list of staging labels that are attached to this version
 	// of the secret. These staging labels are used to track the versions through
@@ -5110,7 +5108,7 @@ type UpdateSecretInput struct {
 	// This parameter is not accessible using the Secrets Manager console.
 	//
 	// SecretBinary is automatically base64 encoded/decoded by the SDK.
-	SecretBinary []byte `type:"blob"`
+	SecretBinary []byte `type:"blob" sensitive:"true"`
 
 	// Specifies the secret that you want to modify or to which you want to add
 	// a new version. You can specify either the Amazon Resource Name (ARN) or the
@@ -5156,7 +5154,7 @@ type UpdateSecretInput struct {
 	// are escaped:
 	//
 	// "[{\"username\":\"bob\"},{\"password\":\"abc123xyz456\"}]"
-	SecretString *string `type:"string"`
+	SecretString *string `type:"string" sensitive:"true"`
 }
 
 // String returns the string representation

@@ -32,7 +32,7 @@ resource "aws_lb" "test" {
     enabled = true
   }
 
-  tags {
+  tags = {
     Environment = "production"
   }
 }
@@ -49,7 +49,7 @@ resource "aws_lb" "test" {
 
   enable_deletion_protection = true
 
-  tags {
+  tags = {
     Environment = "production"
   }
 }

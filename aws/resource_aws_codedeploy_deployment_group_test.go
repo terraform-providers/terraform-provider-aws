@@ -1633,6 +1633,47 @@ func TestAccAWSCodeDeployDeploymentGroup_blueGreenDeployment_complete(t *testing
 	})
 }
 
+func TestAccAWSCodeDeployDeploymentGroup_ECS_BlueGreen(t *testing.T) {
+	var group codedeploy.DeploymentGroupInfo
+	rName := fmt.Sprintf("tf-acc-test-%s", acctest.RandString(5))
+	ecsClusterResourceName := "aws_ecs_cluster.test"
+	ecsServiceResourceName := "aws_ecs_service.test"
+	lbTargetGroupBlueResourceName := "aws_lb_target_group.blue"
+	lbTargetGroupGreenResourceName := "aws_lb_target_group.green"
+	resourceName := "aws_codedeploy_deployment_group.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSCodeDeployDeploymentGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSCodeDeployDeploymentGroupConfigEcsBlueGreen(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSCodeDeployDeploymentGroupExists(resourceName, &group),
+					resource.TestCheckResourceAttr(resourceName, "ecs_service.#", "1"),
+					resource.TestCheckResourceAttrPair(resourceName, "ecs_service.0.cluster_name", ecsClusterResourceName, "name"),
+					resource.TestCheckResourceAttrPair(resourceName, "ecs_service.0.service_name", ecsServiceResourceName, "name"),
+					resource.TestCheckResourceAttr(resourceName, "load_balancer_info.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "load_balancer_info.0.target_group_pair_info.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "load_balancer_info.0.target_group_pair_info.0.prod_traffic_route.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "load_balancer_info.0.target_group_pair_info.0.prod_traffic_route.0.listener_arns.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "load_balancer_info.0.target_group_pair_info.0.target_group.#", "2"),
+					resource.TestCheckResourceAttrPair(resourceName, "load_balancer_info.0.target_group_pair_info.0.target_group.0.name", lbTargetGroupBlueResourceName, "name"),
+					resource.TestCheckResourceAttrPair(resourceName, "load_balancer_info.0.target_group_pair_info.0.target_group.1.name", lbTargetGroupGreenResourceName, "name"),
+					resource.TestCheckResourceAttr(resourceName, "load_balancer_info.0.target_group_pair_info.0.test_traffic_route.#", "0"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateIdFunc: testAccAWSCodeDeployDeploymentGroupImportStateIdFunc(resourceName),
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAWSCodeDeployDeploymentGroup_buildTriggerConfigs(t *testing.T) {
 	input := []interface{}{
 		map[string]interface{}{
@@ -1875,7 +1916,7 @@ func TestAWSCodeDeployDeploymentGroup_flattenLoadBalancerInfo(t *testing.T) {
 		}),
 	}
 
-	actual := flattenLoadBalancerInfo(input)[0]
+	actual := flattenLoadBalancerInfo(input)[0].(map[string]interface{})
 
 	fatal := false
 
@@ -3023,9 +3064,30 @@ func test_config_blue_green_deployment_config_create_with_asg(rName string) stri
 
   %s
 
+data "aws_ami" "amzn-ami-minimal-hvm-ebs" {
+  most_recent = true
+  owners      = ["amazon"]
+
+  filter {
+    name = "name"
+    values = ["amzn-ami-minimal-hvm-*"]
+  }
+  filter {
+    name = "root-device-type"
+    values = ["ebs"]
+  }
+}
+
+data "aws_availability_zones" "available" {}
+
+data "aws_subnet" "test" {
+  availability_zone = "${data.aws_availability_zones.available.names[0]}"
+  default_for_az    = "true"
+}
+
 resource "aws_launch_configuration" "foo_lc" {
-  image_id = "ami-21f78e11"
-  instance_type = "t1.micro"
+  image_id = "${data.aws_ami.amzn-ami-minimal-hvm-ebs.id}"
+  instance_type = "t2.micro"
   "name_prefix" = "foo-lc-"
 
   lifecycle {
@@ -3039,7 +3101,7 @@ resource "aws_autoscaling_group" "foo_asg" {
   min_size = 0
   desired_capacity = 1
 
-  availability_zones = ["us-west-2a"]
+  vpc_zone_identifier = ["${data.aws_subnet.test.id}"]
 
   launch_configuration = "${aws_launch_configuration.foo_lc.name}"
 
@@ -3078,9 +3140,30 @@ func test_config_blue_green_deployment_config_update_with_asg(rName string) stri
 
   %s
 
+data "aws_ami" "amzn-ami-minimal-hvm-ebs" {
+  most_recent = true
+  owners      = ["amazon"]
+
+  filter {
+    name = "name"
+    values = ["amzn-ami-minimal-hvm-*"]
+  }
+  filter {
+    name = "root-device-type"
+    values = ["ebs"]
+  }
+}
+
+data "aws_availability_zones" "available" {}
+
+data "aws_subnet" "test" {
+  availability_zone = "${data.aws_availability_zones.available.names[0]}"
+  default_for_az    = "true"
+}
+
 resource "aws_launch_configuration" "foo_lc" {
-  image_id = "ami-21f78e11"
-  instance_type = "t1.micro"
+  image_id = "${data.aws_ami.amzn-ami-minimal-hvm-ebs.id}"
+  instance_type = "t2.micro"
   "name_prefix" = "foo-lc-"
 
   lifecycle {
@@ -3094,7 +3177,7 @@ resource "aws_autoscaling_group" "foo_asg" {
   min_size = 0
   desired_capacity = 1
 
-  availability_zones = ["us-west-2a"]
+  vpc_zone_identifier = ["${data.aws_subnet.test.id}"]
 
   launch_configuration = "${aws_launch_configuration.foo_lc.name}"
 
@@ -3254,4 +3337,241 @@ resource "aws_codedeploy_deployment_group" "foo_group" {
     }
   }
 }`, baseCodeDeployConfig(rName), rName)
+}
+
+func testAccAWSCodeDeployDeploymentGroupConfigEcsBase(rName string) string {
+	return fmt.Sprintf(`
+data "aws_availability_zones" "available" {}
+
+resource "aws_vpc" "test" {
+  cidr_block = "10.0.0.0/16"
+
+  tags = {
+    Name = "tf-acc-test-codedeploy-deployment-group-ecs"
+  }
+}
+
+resource "aws_subnet" "test" {
+  count = 2
+
+  availability_zone = "${data.aws_availability_zones.available.names[count.index]}"
+  cidr_block        = "${cidrsubnet(aws_vpc.test.cidr_block, 8, count.index)}"
+  vpc_id            = "${aws_vpc.test.id}"
+
+  tags = {
+    Name = "tf-acc-test-codedeploy-deployment-group-ecs"
+  }
+}
+
+resource "aws_security_group" "test" {
+  name   = %q
+  vpc_id = "${aws_vpc.test.id}"
+
+  ingress {
+    cidr_blocks = ["${aws_vpc.test.cidr_block}"]
+    from_port   = 80
+    protocol    = "6"
+    to_port     = 8000
+  }
+}
+
+resource "aws_lb_target_group" "blue" {
+  name        = "${aws_lb.test.name}-blue"
+  port        = 80
+  protocol    = "HTTP"
+  target_type = "ip"
+  vpc_id      = "${aws_vpc.test.id}"
+}
+
+resource "aws_lb_target_group" "green" {
+  name        = "${aws_lb.test.name}-green"
+  port        = 80
+  protocol    = "HTTP"
+  target_type = "ip"
+  vpc_id      = "${aws_vpc.test.id}"
+}
+
+resource "aws_lb" "test" {
+  internal = true
+  name     = %q
+  subnets  = ["${aws_subnet.test.*.id}"]
+}
+
+resource "aws_lb_listener" "test" {
+  load_balancer_arn = "${aws_lb.test.arn}"
+  port              = "80"
+  protocol          = "HTTP"
+
+  default_action {
+    target_group_arn = "${aws_lb_target_group.blue.arn}"
+    type             = "forward"
+  }
+}
+
+resource "aws_ecs_cluster" "test" {
+  name = %q
+}
+
+resource "aws_ecs_task_definition" "test" {
+  cpu                      = "256"
+  family                   = %q
+  memory                   = "512"
+  network_mode             = "awsvpc"
+  requires_compatibilities = ["FARGATE"]
+
+  container_definitions = <<DEFINITION
+[
+  {
+    "cpu": 256,
+    "essential": true,
+    "image": "mongo:latest",
+    "memory": 512,
+    "name": "test",
+    "networkMode": "awsvpc",
+    "portMappings": [
+      {
+        "containerPort": 80,
+        "hostPort": 80
+      }
+    ]
+  }
+]
+DEFINITION
+}
+
+resource "aws_ecs_service" "test" {
+  cluster         = "${aws_ecs_cluster.test.id}"
+  desired_count   = 1
+  launch_type     = "FARGATE"
+  name            = %q
+  task_definition = "${aws_ecs_task_definition.test.arn}"
+
+  deployment_controller {
+    type = "CODE_DEPLOY"
+  }
+
+  load_balancer {
+    container_name   = "test"
+    container_port   = "80"
+    target_group_arn = "${aws_lb_target_group.blue.id}"
+  }
+
+  network_configuration {
+    assign_public_ip = true
+    security_groups  = ["${aws_security_group.test.id}"]
+    subnets          = ["${aws_subnet.test.*.id}"]
+  }
+}
+
+resource "aws_codedeploy_app" "test" {
+  compute_platform = "ECS"
+  name             = %q
+}
+
+resource "aws_iam_role" "test" {
+  name = %q
+
+  assume_role_policy = <<POLICY
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "",
+      "Effect": "Allow",
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": ["codedeploy.amazonaws.com"]
+      }
+    }
+  ]
+}
+POLICY
+}
+
+resource "aws_iam_role_policy" "test" {
+  role = "${aws_iam_role.test.name}"
+
+  policy = <<POLICY
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": [
+        "cloudwatch:DescribeAlarms",
+        "ecs:CreateTaskSet",
+        "ecs:DeleteTaskSet",
+        "ecs:DescribeServices",
+        "ecs:UpdateServicePrimaryTaskSet",
+        "elasticloadbalancing:DescribeListeners",
+        "elasticloadbalancing:DescribeRules",
+        "elasticloadbalancing:DescribeTargetGroups",
+        "elasticloadbalancing:ModifyListener",
+        "elasticloadbalancing:ModifyRule",
+        "lambda:InvokeFunction",
+        "s3:GetObject",
+        "s3:GetObjectMetadata",
+        "s3:GetObjectVersion",
+        "sns:Publish"
+      ],
+      "Effect": "Allow",
+      "Resource": "*"
+    }
+  ]
+}
+POLICY
+}
+`, rName, rName, rName, rName, rName, rName, rName)
+}
+
+func testAccAWSCodeDeployDeploymentGroupConfigEcsBlueGreen(rName string) string {
+	return testAccAWSCodeDeployDeploymentGroupConfigEcsBase(rName) + fmt.Sprintf(`
+resource "aws_codedeploy_deployment_group" "test" {
+  app_name               = "${aws_codedeploy_app.test.name}"
+  deployment_config_name = "CodeDeployDefault.ECSAllAtOnce"
+  deployment_group_name  = %q
+  service_role_arn       = "${aws_iam_role.test.arn}"
+
+  auto_rollback_configuration {
+    enabled = true
+    events  = ["DEPLOYMENT_FAILURE"]
+  }
+
+  blue_green_deployment_config {
+    deployment_ready_option {
+      action_on_timeout = "CONTINUE_DEPLOYMENT"
+    }
+
+    terminate_blue_instances_on_deployment_success {
+      action                           = "TERMINATE"
+      termination_wait_time_in_minutes = 5
+    }
+  }
+
+  deployment_style {
+    deployment_option = "WITH_TRAFFIC_CONTROL"
+    deployment_type   = "BLUE_GREEN"
+  }
+
+  ecs_service {
+    cluster_name = "${aws_ecs_cluster.test.name}"
+    service_name = "${aws_ecs_service.test.name}"
+  }
+
+  load_balancer_info {
+    target_group_pair_info {
+      prod_traffic_route {
+        listener_arns = ["${aws_lb_listener.test.arn}"]
+      }
+
+      target_group {
+        name = "${aws_lb_target_group.blue.name}"
+      }
+
+      target_group {
+        name = "${aws_lb_target_group.green.name}"
+      }
+    }
+  }
+}
+`, rName)
 }

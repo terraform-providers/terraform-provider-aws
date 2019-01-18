@@ -203,6 +203,12 @@ resource "aws_ses_event_destination" "cloudwatch" {
 	dimension_name = "dimension"
 	value_source = "emailHeader"
   }
+
+  cloudwatch_destination {
+    default_value = "default"
+	dimension_name = "ses:source-ip"
+	value_source = "messageTag"
+  }
 }
 
 resource "aws_ses_event_destination" "sns" {

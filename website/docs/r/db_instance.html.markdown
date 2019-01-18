@@ -81,9 +81,7 @@ encoding in Oracle instances. This can't be changed. See [Oracle Character Sets
 Supported in Amazon
 RDS](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Appendix.OracleCharacterSets.html)
 for more information.
-* `copy_tags_to_snapshot` – (Optional, boolean) On delete, copy all Instance
-`tags` to the final snapshot (if `final_snapshot_identifier` is specified).
-Default is `false`.
+* `copy_tags_to_snapshot` – (Optional, boolean) Copy all Instance `tags` to snapshots. Default is `false`.
 * `db_subnet_group_name` - (Optional) Name of [DB subnet group](/docs/providers/aws/r/db_subnet_group.html). DB instance will
 be created in the VPC associated with the DB subnet group. If unspecified, will
 be created in the `default` VPC, or in EC2 Classic, if available. When working
@@ -94,7 +92,7 @@ for additional read replica contraints.
 * `deletion_protection` - (Optional) If the DB instance should have deletion protection enabled. The database can't be deleted when this value is set to `true`. The default is `false`.
 * `domain` - (Optional) The ID of the Directory Service Active Directory domain to create the instance in.
 * `domain_iam_role_name` - (Optional, but required if domain is provided) The name of the IAM role to be used when making API calls to the Directory Service.
-* `enabled_cloudwatch_logs_exports` - (Optional) List of log types to enable for exporting to CloudWatch logs. If omitted, no logs will be exported. Valid values (depending on `engine`): `alert`, `audit`, `error`, `general`, `listener`, `slowquery`, `trace`.
+* `enabled_cloudwatch_logs_exports` - (Optional) List of log types to enable for exporting to CloudWatch logs. If omitted, no logs will be exported. Valid values (depending on `engine`): `alert`, `audit`, `error`, `general`, `listener`, `slowquery`, `trace`, `postgresql` (PostgreSQL), `upgrade` (PostgreSQL).
 * `engine` - (Required unless a `snapshot_identifier` or `replicate_source_db`
 is provided) The database engine to use.  For supported values, see the Engine parameter in [API action CreateDBInstance](https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_CreateDBInstance.html).
 Note that for Amazon Aurora instances the engine must match the [DB cluster](/docs/providers/aws/r/rds_cluster.html)'s engine'.

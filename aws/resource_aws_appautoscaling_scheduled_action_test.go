@@ -222,7 +222,7 @@ resource "aws_emr_cluster" "hoge" {
   core_instance_type   = "c4.large"
   core_instance_count  = 2
 
-  tags {
+  tags = {
     role = "rolename"
     dns_zone = "env_zone"
     env = "env"
@@ -260,7 +260,7 @@ resource "aws_security_group" "hoge" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
+    self = true
   }
 
   egress {
@@ -280,7 +280,7 @@ resource "aws_security_group" "hoge" {
 resource "aws_vpc" "hoge" {
   cidr_block           = "168.31.0.0/16"
   enable_dns_hostnames = true
-  tags {
+  tags = {
     Name = "terraform-testacc-appautoscaling-scheduled-action-emr"
   }
 }
@@ -288,7 +288,7 @@ resource "aws_vpc" "hoge" {
 resource "aws_subnet" "hoge" {
   vpc_id     = "${aws_vpc.hoge.id}"
   cidr_block = "168.31.0.0/20"
-  tags {
+  tags = {
     Name = "tf-acc-appautoscaling-scheduled-action"
   }
 }
@@ -476,7 +476,7 @@ data "aws_iam_policy_document" "autoscale_role" {
     effect  = "Allow"
     actions = ["sts:AssumeRole"]
 
-    principals = {
+    principals {
       type        = "Service"
       identifiers = ["elasticmapreduce.amazonaws.com","application-autoscaling.amazonaws.com"]
     }

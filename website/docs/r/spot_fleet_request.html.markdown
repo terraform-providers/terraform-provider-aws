@@ -45,7 +45,7 @@ resource "aws_spot_fleet_request" "cheap_compute" {
       volume_type = "gp2"
     }
 
-    tags {
+  tags = {
       Name = "spot-fleet-example"
     }
   }
@@ -128,8 +128,8 @@ across different markets and instance types.
 * `valid_until` - (Optional) The end date and time of the request, in UTC [RFC3339](https://tools.ietf.org/html/rfc3339#section-5.8) format(for example, YYYY-MM-DDTHH:MM:SSZ). At this point, no new Spot instance requests are placed or enabled to fulfill the request. Defaults to 24 hours.
 * `valid_from` - (Optional) The start date and time of the request, in UTC [RFC3339](https://tools.ietf.org/html/rfc3339#section-5.8) format(for example, YYYY-MM-DDTHH:MM:SSZ). The default is to start fulfilling the request immediately.
 * `load_balancers` (Optional) A list of elastic load balancer names to add to the Spot fleet.
-* `target_group_arns` (Optional) A list of `aws_alb_target_group` ARNs, for use with
-Application Load Balancing.
+* `target_group_arns` (Optional) A list of `aws_alb_target_group` ARNs, for use with Application Load Balancing.
+* `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ### Timeouts
 

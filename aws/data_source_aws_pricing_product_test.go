@@ -52,32 +52,40 @@ func testAccDataSourceAwsPricingProductConfigEc2(dataName string, instanceType s
 	return fmt.Sprintf(`data "aws_pricing_product" "%s" {
 		service_code = "AmazonEC2"
 	  
-		filters = [
-		  {
+		filters {
 			field = "instanceType"
 			value = "%s"
-		  },
-		  {
+		}
+
+		filters {
 			field = "operatingSystem"
 			value = "Linux"
-		  },
-		  {
+		}
+
+		filters {
 			field = "location"
 			value = "US East (N. Virginia)"
-		  },
-		  {
+		}
+
+		filters {
 			field = "preInstalledSw"
 			value = "NA"
-		  },
-		  {
+		}
+
+		filters {
 			field = "licenseModel"
 			value = "No License required"
-		  },
-		  {
+		}
+
+		filters {
 			field = "tenancy"
 			value = "Shared"
-		  },
-		]
+		}
+
+		filters {
+			field = "capacitystatus"
+			value = "Used"
+		}
 }
 `, dataName, instanceType)
 }
@@ -86,16 +94,15 @@ func testAccDataSourceAwsPricingProductConfigRedshift() string {
 	return fmt.Sprintf(`data "aws_pricing_product" "test" {
 		service_code = "AmazonRedshift"
 	  
-		filters = [
-		  {
+		filters {
 			field = "instanceType"
 			value = "ds1.xlarge"
-			},
-			{
+		}
+
+		filters {
 			field = "location"
 			value = "US East (N. Virginia)"
-		  },
-		]
+		}
 }
 `)
 }

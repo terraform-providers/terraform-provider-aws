@@ -567,7 +567,7 @@ resource "aws_lambda_function" "test_lambda" {
     function_name = "%s"
     role = "${aws_iam_role.iam_for_lambda.arn}"
     handler = "exports.handler"
-    runtime = "nodejs4.3"
+    runtime = "nodejs8.10"
 }
 
 resource "aws_iam_role" "iam_for_lambda" {
@@ -604,7 +604,7 @@ resource "aws_lambda_function" "test_lambda" {
     function_name = "%s"
     role = "${aws_iam_role.iam_for_lambda.arn}"
     handler = "exports.handler"
-    runtime = "nodejs4.3"
+    runtime = "nodejs8.10"
 }
 
 resource "aws_iam_role" "iam_for_lambda" {
@@ -642,7 +642,7 @@ resource "aws_lambda_function" "test_lambda" {
     function_name = "lambda_function_name_perm"
     role = "${aws_iam_role.iam_for_lambda.arn}"
     handler = "exports.handler"
-    runtime = "nodejs4.3"
+    runtime = "nodejs8.10"
 }
 
 resource "aws_iam_role" "iam_for_lambda" {
@@ -690,7 +690,7 @@ resource "aws_lambda_function" "test_lambda" {
     function_name = "%s"
     role = "${aws_iam_role.iam_for_lambda.arn}"
     handler = "exports.handler"
-    runtime = "nodejs4.3"
+    runtime = "nodejs8.10"
 }
 
 resource "aws_iam_role" "iam_for_lambda" {
@@ -735,7 +735,7 @@ resource "aws_lambda_function" "test_lambda" {
     function_name = "%s"
     role = "${aws_iam_role.iam_for_lambda.arn}"
     handler = "exports.handler"
-    runtime = "nodejs4.3"
+    runtime = "nodejs8.10"
 }
 
 resource "aws_iam_role" "iam_for_lambda" {
@@ -794,7 +794,7 @@ resource "aws_lambda_function" "my-func" {
     function_name = "%s"
     role = "${aws_iam_role.police.arn}"
     handler = "exports.handler"
-    runtime = "nodejs4.3"
+    runtime = "nodejs8.10"
 }
 
 resource "aws_iam_role" "police" {
@@ -843,7 +843,7 @@ resource "aws_lambda_function" "my-func" {
     function_name = "%s"
     role = "${aws_iam_role.police.arn}"
     handler = "exports.handler"
-    runtime = "nodejs4.3"
+    runtime = "nodejs8.10"
 }
 
 resource "aws_iam_role" "police" {
@@ -881,7 +881,7 @@ resource "aws_lambda_function" "my-func" {
     function_name = "%s"
     role = "${aws_iam_role.police.arn}"
     handler = "exports.handler"
-    runtime = "nodejs4.3"
+    runtime = "nodejs8.10"
 }
 
 resource "aws_iam_role" "police" {

@@ -499,7 +499,7 @@ data "aws_region" "current" {}
 resource "aws_vpc" "test" {
   cidr_block = "172.16.0.0/16"
 
-  tags {
+  tags = {
     Name = %q
   }
 }
@@ -508,7 +508,7 @@ resource "aws_subnet" "test" {
   vpc_id     = "${aws_vpc.test.id}"
   cidr_block = "172.16.0.0/24"
 
-  tags {
+  tags = {
     Name = %q
   }
 }
@@ -518,7 +518,7 @@ resource "aws_instance" "test" {
   instance_type = "t2.micro"
   subnet_id     = "${aws_subnet.test.id}"
 
-  tags {
+  tags = {
     Name = %q
   }
 }

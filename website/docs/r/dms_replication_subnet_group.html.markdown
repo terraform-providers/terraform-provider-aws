@@ -22,7 +22,7 @@ resource "aws_dms_replication_subnet_group" "test" {
     "subnet-12345678",
   ]
 
-  tags {
+  tags = {
     Name = "test"
   }
 }

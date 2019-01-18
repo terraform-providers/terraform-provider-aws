@@ -52,6 +52,7 @@ func (c *DataPipeline) ActivatePipelineRequest(input *ActivatePipelineInput) (re
 
 	output = &ActivatePipelineOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -150,6 +151,7 @@ func (c *DataPipeline) AddTagsRequest(input *AddTagsInput) (req *request.Request
 
 	output = &AddTagsOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -326,6 +328,7 @@ func (c *DataPipeline) DeactivatePipelineRequest(input *DeactivatePipelineInput)
 
 	output = &DeactivatePipelineOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -422,8 +425,7 @@ func (c *DataPipeline) DeletePipelineRequest(input *DeletePipelineInput) (req *r
 
 	output = &DeletePipelineOutput{}
 	req = c.newRequest(op, input, output)
-	req.Handlers.Unmarshal.Remove(jsonrpc.UnmarshalHandler)
-	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -1448,6 +1450,7 @@ func (c *DataPipeline) RemoveTagsRequest(input *RemoveTagsInput) (req *request.R
 
 	output = &RemoveTagsOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -1732,8 +1735,7 @@ func (c *DataPipeline) SetStatusRequest(input *SetStatusInput) (req *request.Req
 
 	output = &SetStatusOutput{}
 	req = c.newRequest(op, input, output)
-	req.Handlers.Unmarshal.Remove(jsonrpc.UnmarshalHandler)
-	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -1829,6 +1831,7 @@ func (c *DataPipeline) SetTaskStatusRequest(input *SetTaskStatusInput) (req *req
 
 	output = &SetTaskStatusOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 

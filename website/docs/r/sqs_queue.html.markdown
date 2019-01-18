@@ -19,7 +19,7 @@ resource "aws_sqs_queue" "terraform_queue" {
   receive_wait_time_seconds = 10
   redrive_policy            = "{\"deadLetterTargetArn\":\"${aws_sqs_queue.terraform_queue_deadletter.arn}\",\"maxReceiveCount\":4}"
 
-  tags {
+  tags = {
     Environment = "production"
   }
 }

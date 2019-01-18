@@ -6,7 +6,7 @@ description: |-
   Attaches a load balancer policy to an ELB Listener.
 ---
 
-# aws_elb_load_balancer_listener_policy
+# aws_load_balancer_listener_policy
 
 Attaches a load balancer policy to an ELB Listener.
 
@@ -26,7 +26,7 @@ resource "aws_elb" "wu-tang" {
     ssl_certificate_id = "arn:aws:iam::000000000000:server-certificate/wu-tang.net"
   }
 
-  tags {
+  tags = {
     Name = "wu-tang"
   }
 }

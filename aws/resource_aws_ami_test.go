@@ -219,7 +219,7 @@ data "aws_availability_zones" "available" {}
 resource "aws_ebs_volume" "foo" {
   availability_zone = "${data.aws_availability_zones.available.names[0]}"
   size = 8
-  tags {
+  tags = {
     Name = "testAccAmiConfig_basic"
   }
 }
@@ -227,7 +227,7 @@ resource "aws_ebs_volume" "foo" {
 resource "aws_ebs_snapshot" "foo" {
   volume_id = "${aws_ebs_volume.foo.id}"
 
-  tags {
+  tags = {
     Name = "testAccAmiConfig_basic"
   }
 }
@@ -253,7 +253,7 @@ data "aws_availability_zones" "available" {}
 resource "aws_ebs_volume" "foo" {
   availability_zone = "${data.aws_availability_zones.available.names[0]}"
   size = 20
-  tags {
+  tags = {
     Name = "testAccAmiConfig_snapshotSize"
   }
 }
@@ -261,7 +261,7 @@ resource "aws_ebs_volume" "foo" {
 resource "aws_ebs_snapshot" "foo" {
   volume_id = "${aws_ebs_volume.foo.id}"
 
-  tags {
+  tags = {
     Name = "TestAccAWSAMI_snapshotSize"
   }
 }

@@ -27,6 +27,7 @@ resource "aws_ecr_repository" "foo" {
 The following arguments are supported:
 
 * `name` - (Required) Name of the repository.
+* `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ## Attributes Reference
 

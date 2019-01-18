@@ -56,6 +56,8 @@ Route whose data will be exported as attributes.
 
 * `nat_gateway_id` - (Optional) The NAT Gateway ID of the Route belonging to the Route Table.
 
+* `transit_gateway_id` - (Optional) The EC2 Transit Gateway ID of the Route belonging to the Route Table.
+
 * `vpc_peering_connection_id` - (Optional) The VPC Peering Connection ID of the Route belonging to the Route Table.
 
 * `network_interface_id` - (Optional) The Network Interface ID of the Route belonging to the Route Table.

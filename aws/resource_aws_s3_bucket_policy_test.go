@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
-	"github.com/jen20/awspolicyequivalence"
+	awspolicy "github.com/jen20/awspolicyequivalence"
 )
 
 func TestAccAWSS3BucketPolicy_basic(t *testing.T) {
@@ -38,6 +38,11 @@ func TestAccAWSS3BucketPolicy_basic(t *testing.T) {
 					testAccCheckAWSS3BucketExists("aws_s3_bucket.bucket"),
 					testAccCheckAWSS3BucketHasPolicy("aws_s3_bucket.bucket", expectedPolicyText),
 				),
+			},
+			{
+				ResourceName:      "aws_s3_bucket_policy.bucket",
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -89,6 +94,12 @@ func TestAccAWSS3BucketPolicy_policyUpdate(t *testing.T) {
 					testAccCheckAWSS3BucketHasPolicy("aws_s3_bucket.bucket", expectedPolicyText2),
 				),
 			},
+
+			{
+				ResourceName:      "aws_s3_bucket_policy.bucket",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -132,7 +143,7 @@ func testAccAWSS3BucketPolicyConfig(bucketName string) string {
 	return fmt.Sprintf(`
 resource "aws_s3_bucket" "bucket" {
 	bucket = "%s"
-	tags {
+	tags = {
 		TestName = "TestAccAWSS3BucketPolicy_basic"
 	}
 }
@@ -168,7 +179,7 @@ func testAccAWSS3BucketPolicyConfig_updated(bucketName string) string {
 	return fmt.Sprintf(`
 resource "aws_s3_bucket" "bucket" {
 	bucket = "%s"
-	tags {
+	tags = {
 		TestName = "TestAccAWSS3BucketPolicy_basic"
 	}
 }

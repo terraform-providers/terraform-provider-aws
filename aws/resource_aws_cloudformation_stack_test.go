@@ -395,7 +395,7 @@ resource "aws_cloudformation_stack" "asg-demo" {
 }
 BODY
 
-  parameters {
+  parameters = {
     TopicName = "%[1]s"
   }
 }
@@ -460,7 +460,7 @@ resource "aws_cloudformation_stack" "full" {
   }
 }
 STACK
-  parameters {
+  parameters = {
     VpcCIDR = "10.0.0.0/16"
   }
 
@@ -471,7 +471,7 @@ POLICY
   notification_arns = ["${aws_sns_topic.cf-updates.arn}"]
   on_failure = "DELETE"
   timeout_in_minutes = 10
-  tags {
+  tags = {
     First = "Mickey"
     Second = "Mouse"
   }
@@ -518,7 +518,7 @@ func testAccAWSCloudFormationStackConfig_allAttributesWithBodies_modified(stackN
 var tpl_testAccAWSCloudFormationStackConfig_withParams = `
 resource "aws_cloudformation_stack" "with_params" {
   name = "%[1]s"
-  parameters {
+  parameters = {
     VpcCIDR = "%[2]s"
   }
   template_body = <<STACK
@@ -598,7 +598,7 @@ resource "aws_s3_bucket_object" "object" {
 
 resource "aws_cloudformation_stack" "with-url-and-params" {
   name = "%[1]s"
-  parameters {
+  parameters = {
     VpcCIDR = "%[3]s"
   }
   template_url = "https://${aws_s3_bucket.b.id}.s3-us-west-2.amazonaws.com/${aws_s3_bucket_object.object.key}"
@@ -644,7 +644,7 @@ resource "aws_s3_bucket_object" "object" {
 
 resource "aws_cloudformation_stack" "with-url-and-params-and-yaml" {
   name = "%[1]s"
-  parameters {
+  parameters = {
     VpcCIDR = "%[3]s"
   }
   template_url = "https://${aws_s3_bucket.b.id}.s3-us-west-2.amazonaws.com/${aws_s3_bucket_object.object.key}"

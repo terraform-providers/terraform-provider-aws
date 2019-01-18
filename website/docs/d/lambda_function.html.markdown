@@ -41,6 +41,7 @@ In addition to all arguments above, the following attributes are exported:
 * `invoke_arn` - The ARN to be used for invoking Lambda Function from API Gateway.
 * `kms_key_arn` - The ARN for the KMS encryption key.
 * `last_modified` - The date this resource was last modified.
+* `layers` - A list of Lambda Layer ARNs attached to your Lambda Function.
 * `memory_size` - Amount of memory in MB your Lambda Function can use at runtime.
 * `qualified_arn` - The Amazon Resource Name (ARN) identifying your Lambda Function Version
 * `reserved_concurrent_executions` - The amount of reserved concurrent executions for this lambda function.

@@ -89,7 +89,7 @@ The following arguments are supported:
 * `route_table_ids` - (Optional) One or more route table IDs. Applicable for endpoints of type `Gateway`.
 * `subnet_ids` - (Optional) The ID of one or more subnets in which to create a network interface for the endpoint. Applicable for endpoints of type `Interface`.
 * `security_group_ids` - (Optional) The ID of one or more security groups to associate with the network interface. Required for endpoints of type `Interface`.
-* `private_dns_enabled` - (Optional) Whether or not to associate a private hosted zone with the specified VPC. Applicable for endpoints of type `Interface`.
+* `private_dns_enabled` - (Optional; AWS services and AWS Marketplace partner services only) Whether or not to associate a private hosted zone with the specified VPC. Applicable for endpoints of type `Interface`.
 Defaults to `false`.
 
 ### Timeouts

@@ -38,7 +38,7 @@ data "aws_availability_zones" "available" {}
 
 resource "aws_vpc" "test" {
   cidr_block = "10.0.0.0/16"
-  tags {
+  tags = {
     Name = "terraform-testacc-eni-data-source-basic"
   }
 }
@@ -47,7 +47,7 @@ resource "aws_subnet" "test" {
   cidr_block = "10.0.0.0/24"
   availability_zone = "${data.aws_availability_zones.available.names[0]}"
   vpc_id = "${aws_vpc.test.id}"
-  tags {
+  tags = {
     Name = "tf-acc-eni-data-source-basic"
   }
 }
@@ -92,7 +92,7 @@ data "aws_availability_zones" "available" {}
 
 resource "aws_vpc" "test" {
   cidr_block = "10.0.0.0/16"
-  tags {
+  tags = {
     Name = "terraform-testacc-eni-data-source-filters"
   }
 }
@@ -101,7 +101,7 @@ resource "aws_subnet" "test" {
   cidr_block = "10.0.0.0/24"
   availability_zone = "${data.aws_availability_zones.available.names[0]}"
   vpc_id = "${aws_vpc.test.id}"
-  tags {
+  tags = {
     Name = "tf-acc-eni-data-source-filters"
   }
 }

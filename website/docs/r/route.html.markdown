@@ -51,17 +51,22 @@ resource "aws_route" "r" {
 The following arguments are supported:
 
 * `route_table_id` - (Required) The ID of the routing table.
+
+One of the following destination arguments must be supplied:
+
 * `destination_cidr_block` - (Optional) The destination CIDR block.
 * `destination_ipv6_cidr_block` - (Optional) The destination IPv6 CIDR block.
-* `vpc_peering_connection_id` - (Optional) An ID of a VPC peering connection.
-* `egress_only_gateway_id` - (Optional) An ID of a VPC Egress Only Internet Gateway.
-* `gateway_id` - (Optional) An ID of a VPC internet gateway or a virtual private gateway.
-* `nat_gateway_id` - (Optional) An ID of a VPC NAT gateway.
-* `instance_id` - (Optional) An ID of an EC2 instance.
-* `network_interface_id` - (Optional) An ID of a network interface.
 
-Each route must contain either a `gateway_id`, `egress_only_gateway_id` a `nat_gateway_id`, an
-`instance_id` or a `vpc_peering_connection_id` or a `network_interface_id`.
+One of the following target arguments must be supplied:
+
+* `egress_only_gateway_id` - (Optional) Identifier of a VPC Egress Only Internet Gateway.
+* `gateway_id` - (Optional) Identifier of a VPC internet gateway or a virtual private gateway.
+* `instance_id` - (Optional) Identifier of an EC2 instance.
+* `nat_gateway_id` - (Optional) Identifier of a VPC NAT gateway.
+* `network_interface_id` - (Optional) Identifier of an EC2 network interface.
+* `transit_gateway_id` - (Optional) Identifier of an EC2 Transit Gateway.
+* `vpc_peering_connection_id` - (Optional) Identifier of a VPC peering connection.
+
 Note that the default route, mapping the VPC's CIDR block to "local", is
 created implicitly and cannot be specified.
 
@@ -69,18 +74,10 @@ created implicitly and cannot be specified.
 
 In addition to all arguments above, the following attributes are exported:
 
-~> **NOTE:** Only the target type that is specified (one of the above)
+~> **NOTE:** Only the arguments that are configured (one of the above)
 will be exported as an attribute once the resource is created.
 
-* `route_table_id` - The ID of the routing table.
-* `destination_cidr_block` - The destination CIDR block.
-* `destination_ipv6_cidr_block` - The destination IPv6 CIDR block.
-* `vpc_peering_connection_id` - An ID of a VPC peering connection.
-* `egress_only_gateway_id` - An ID of a VPC Egress Only Internet Gateway.
-* `gateway_id` - An ID of a VPC internet gateway or a virtual private gateway.
-* `nat_gateway_id` - An ID of a VPC NAT gateway.
-* `instance_id` - An ID of a NAT instance.
-* `network_interface_id` - An ID of a network interface.
+* `id` - Route Table identifier and destination
 
 ## Timeouts
 

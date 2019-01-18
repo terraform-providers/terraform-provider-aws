@@ -16,7 +16,7 @@ Provides a resource to create a VPC Internet Gateway.
 resource "aws_internet_gateway" "gw" {
   vpc_id = "${aws_vpc.main.id}"
 
-  tags {
+  tags = {
     Name = "main"
   }
 }
@@ -46,6 +46,7 @@ The following arguments are supported:
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the Internet Gateway.
+* `owner_id` - The ID of the AWS account that owns the internet gateway.
 
 
 ## Import

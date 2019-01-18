@@ -16,6 +16,9 @@ Provides an IAM user.
 resource "aws_iam_user" "lb" {
   name = "loadbalancer"
   path = "/system/"
+  tags = {
+    tag-key = "tag-value"
+  }
 }
 
 resource "aws_iam_access_key" "lb" {
@@ -53,6 +56,7 @@ The following arguments are supported:
 * `force_destroy` - (Optional, default false) When destroying this user, destroy even if it
   has non-Terraform-managed IAM access keys, login profile or MFA devices. Without `force_destroy`
   a user with non-Terraform-managed access keys and login profile will fail to be destroyed.
+* `tags` - Key-value mapping of tags for the IAM user
 
 ## Attributes Reference
 

@@ -65,6 +65,7 @@ In addition to all arguments above, the following attributes are exported:
 [Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
 
 * `create` - (Default `15 minutes`) How long to wait for the EKS Cluster to be created.
+* `update` - (Default `60 minutes`) How long to wait for the EKS Cluster to be updated.
 * `delete` - (Default `15 minutes`) How long to wait for the EKS Cluster to be deleted.
 
 ## Import

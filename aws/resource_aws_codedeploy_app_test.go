@@ -65,17 +65,64 @@ func TestAccAWSCodeDeployApp_computePlatform(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
 				Config: testAccAWSCodeDeployAppConfigComputePlatform(rName, "Server"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSCodeDeployAppExists(resourceName, &application2),
 					testAccCheckAWSCodeDeployAppRecreated(&application1, &application2),
 					resource.TestCheckResourceAttr(resourceName, "compute_platform", "Server"),
 				),
+			},
+		},
+	})
+}
+
+func TestAccAWSCodeDeployApp_computePlatform_ECS(t *testing.T) {
+	var application1 codedeploy.ApplicationInfo
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_codedeploy_app.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSCodeDeployAppDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSCodeDeployAppConfigComputePlatform(rName, "ECS"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSCodeDeployAppExists(resourceName, &application1),
+					resource.TestCheckResourceAttr(resourceName, "compute_platform", "ECS"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSCodeDeployApp_computePlatform_Lambda(t *testing.T) {
+	var application1 codedeploy.ApplicationInfo
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_codedeploy_app.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSCodeDeployAppDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSCodeDeployAppConfigComputePlatform(rName, "Lambda"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSCodeDeployAppExists(resourceName, &application1),
+					resource.TestCheckResourceAttr(resourceName, "compute_platform", "Lambda"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})

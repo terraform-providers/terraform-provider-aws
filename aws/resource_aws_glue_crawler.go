@@ -165,6 +165,10 @@ func resourceAwsGlueCrawler() *schema.Resource {
 				},
 				ValidateFunc: validation.ValidateJsonString,
 			},
+			"security_configuration": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 		},
 	}
 }
@@ -240,6 +244,10 @@ func createCrawlerInput(crawlerName string, d *schema.ResourceData) (*glue.Creat
 		crawlerInput.Configuration = aws.String(configuration)
 	}
 
+	if securityConfiguration, ok := d.GetOk("security_configuration"); ok {
+		crawlerInput.CrawlerSecurityConfiguration = aws.String(securityConfiguration.(string))
+	}
+
 	return crawlerInput, nil
 }
 
@@ -285,7 +293,7 @@ func expandGlueDynamoDBTargets(targets []interface{}) []*glue.DynamoDBTarget {
 		return []*glue.DynamoDBTarget{}
 	}
 
-	perms := make([]*glue.DynamoDBTarget, len(targets), len(targets))
+	perms := make([]*glue.DynamoDBTarget, len(targets))
 	for i, rawCfg := range targets {
 		cfg := rawCfg.(map[string]interface{})
 		perms[i] = expandGlueDynamoDBTarget(cfg)
@@ -306,7 +314,7 @@ func expandGlueS3Targets(targets []interface{}) []*glue.S3Target {
 		return []*glue.S3Target{}
 	}
 
-	perms := make([]*glue.S3Target, len(targets), len(targets))
+	perms := make([]*glue.S3Target, len(targets))
 	for i, rawCfg := range targets {
 		cfg := rawCfg.(map[string]interface{})
 		perms[i] = expandGlueS3Target(cfg)
@@ -330,7 +338,7 @@ func expandGlueJdbcTargets(targets []interface{}) []*glue.JdbcTarget {
 		return []*glue.JdbcTarget{}
 	}
 
-	perms := make([]*glue.JdbcTarget, len(targets), len(targets))
+	perms := make([]*glue.JdbcTarget, len(targets))
 	for i, rawCfg := range targets {
 		cfg := rawCfg.(map[string]interface{})
 		perms[i] = expandGlueJdbcTarget(cfg)
@@ -412,6 +420,7 @@ func resourceAwsGlueCrawlerRead(d *schema.ResourceData, meta interface{}) error 
 	d.Set("role", crawlerOutput.Crawler.Role)
 	d.Set("configuration", crawlerOutput.Crawler.Configuration)
 	d.Set("description", crawlerOutput.Crawler.Description)
+	d.Set("security_configuration", crawlerOutput.Crawler.CrawlerSecurityConfiguration)
 	d.Set("schedule", "")
 	if crawlerOutput.Crawler.Schedule != nil {
 		d.Set("schedule", crawlerOutput.Crawler.Schedule.ScheduleExpression)

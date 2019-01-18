@@ -33,6 +33,35 @@ resource "aws_iam_role" "dlm_lifecycle_role" {
 EOF
 }
 
+resource "aws_iam_role_policy" "dlm_lifecycle" {
+  name = "dlm-lifecycle-policy"
+  role = "${aws_iam_role.dlm_lifecycle_role.id}"
+  policy = <<EOF
+{
+   "Version": "2012-10-17",
+   "Statement": [
+      {
+         "Effect": "Allow",
+         "Action": [
+            "ec2:CreateSnapshot",
+            "ec2:DeleteSnapshot",
+            "ec2:DescribeVolumes",
+            "ec2:DescribeSnapshots"
+         ],
+         "Resource": "*"
+      },
+      {
+         "Effect": "Allow",
+         "Action": [
+            "ec2:CreateTags"
+         ],
+         "Resource": "arn:aws:ec2:*::snapshot/*"
+      }
+   ]
+}
+EOF
+}
+
 resource "aws_dlm_lifecycle_policy" "example" {
   description        = "example DLM lifecycle policy"
   execution_role_arn = "${aws_iam_role.dlm_lifecycle_role.arn}"
@@ -79,7 +108,7 @@ The following arguments are supported:
 
 #### Policy Details arguments
 
-* `resource_types` - (Required) A list of resource types that should be targeted by the lifecycle policy. `VOLUMES` is currently the only allowed value.
+* `resource_types` - (Required) A list of resource types that should be targeted by the lifecycle policy. `VOLUME` is currently the only allowed value.
 * `schedule` - (Required) See the [`schedule` configuration](#schedule-arguments) block.
 * `target_tags` (Required) A mapping of tag keys and their values. Any resources that match the `resource_types` and are tagged with _any_ of these tags will be targeted.
 
@@ -90,7 +119,7 @@ The following arguments are supported:
 * `copy_tags` - (Optional) Copy all user-defined tags on a source volume to snapshots of the volume created by this policy.
 * `create_rule` - (Required) See the [`create_rule`](#create-rule-arguments) block. Max of 1 per schedule.
 * `name` - (Required) A name for the schedule.
-* `retain_rule` - (Required) See the [`create_rule`](#create-rule-arguments) block. Max of 1 per schedule.
+* `retain_rule` - (Required) See the [`retain_rule`](#retain-rule-arguments) block. Max of 1 per schedule.
 * `tags_to_add` - (Optional) A mapping of tag keys and their values. DLM lifecycle policies will already tag the snapshot with the tags on the volume. This configuration adds extra tags on top of these.
 
 #### Create Rule arguments

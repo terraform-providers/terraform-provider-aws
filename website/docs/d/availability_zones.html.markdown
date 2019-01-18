@@ -50,3 +50,6 @@ to which the underlying AWS account has access, regardless of their state.
 In addition to all arguments above, the following attributes are exported:
 
 * `names` - A list of the Availability Zone names available to the account.
+* `zone_ids` - A list of the Availability Zone IDs available to the account.
+
+Note that the indexes of Availability Zone names and IDs correspond.

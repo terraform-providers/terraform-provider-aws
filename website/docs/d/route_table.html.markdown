@@ -65,7 +65,9 @@ which take the following arguments:
 All of the argument attributes except `filter` and `subnet_id` blocks are also exported as
 result attributes. This data source will complete the data by populating
 any fields that are not included in the configuration with the data for
-the selected Route Table.
+the selected Route Table. In addition the following attributes are exported:
+
+* `owner_id` - The ID of the AWS account that owns the route table
 
 `routes` are also exported with the following attributes, when there are relevants:
 Each route supports the following:
@@ -76,6 +78,7 @@ Each route supports the following:
 * `gateway_id` - The Internet Gateway ID.
 * `nat_gateway_id` - The NAT Gateway ID.
 * `instance_id` - The EC2 instance ID.
+* `transit_gateway_id` - The EC2 Transit Gateway ID.
 * `vpc_peering_connection_id` - The VPC Peering ID.
 * `network_interface_id` - The ID of the elastic network interface (eni) to use.
 

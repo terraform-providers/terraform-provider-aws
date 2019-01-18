@@ -414,8 +414,8 @@ func testAccCheckAwsAcmpcaCertificateAuthorityDestroy(s *terraform.State) error 
 			return err
 		}
 
-		if output != nil {
-			return fmt.Errorf("ACMPCA Certificate Authority %q still exists", rs.Primary.ID)
+		if output != nil && output.CertificateAuthority != nil && aws.StringValue(output.CertificateAuthority.Arn) == rs.Primary.ID && aws.StringValue(output.CertificateAuthority.Status) != acmpca.CertificateAuthorityStatusDeleted {
+			return fmt.Errorf("ACMPCA Certificate Authority %q still exists in non-DELETED state: %s", rs.Primary.ID, aws.StringValue(output.CertificateAuthority.Status))
 		}
 	}
 
@@ -460,9 +460,7 @@ func listAcmpcaCertificateAuthorities(conn *acmpca.ACMPCA) ([]*acmpca.Certificat
 		if err != nil {
 			return certificateAuthorities, err
 		}
-		for _, certificateAuthority := range output.CertificateAuthorities {
-			certificateAuthorities = append(certificateAuthorities, certificateAuthority)
-		}
+		certificateAuthorities = append(certificateAuthorities, output.CertificateAuthorities...)
 		if output.NextToken == nil {
 			break
 		}

@@ -26,7 +26,7 @@ resource "aws_kinesis_stream" "test_stream" {
     "OutgoingBytes",
   ]
 
-  tags {
+  tags = {
     Environment = "test"
   }
 }

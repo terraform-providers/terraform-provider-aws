@@ -86,16 +86,31 @@ func TestAccAWSElasticTranscoderPreset_basic(t *testing.T) {
 				),
 			},
 			{
+				ResourceName:      name,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
 				Config: awsElasticTranscoderPresetConfig2,
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(true),
 				),
 			},
 			{
+				ResourceName:      name,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
 				Config: awsElasticTranscoderPresetConfig3,
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(true),
 				),
+			},
+			{
+				ResourceName:      name,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -179,10 +194,12 @@ resource "aws_elastictranscoder_preset" "bar" {
     sizing_policy        = "Fit"
   }
 
-  video_codec_options {
-    Profile            = "main"
-    Level              = "4.1"
-    MaxReferenceFrames = 4
+  video_codec_options = {
+    Profile                  = "main"
+    Level                    = "4.1"
+    MaxReferenceFrames       = 4
+    InterlacedMode           = "Auto"
+    ColorSpaceConversionMode = "None"
   }
 
   thumbnails {
@@ -228,11 +245,11 @@ resource "aws_elastictranscoder_preset" "bar" {
     sizing_policy        = "Fit"
   }
 
-  video_codec_options {
+  video_codec_options = {
     Profile                  = "main"
     Level                    = "2.2"
     MaxReferenceFrames       = 3
-    InterlaceMode            = "Progressive"
+    InterlacedMode           = "Progressive"
     ColorSpaceConversionMode = "None"
   }
 

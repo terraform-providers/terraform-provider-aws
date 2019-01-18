@@ -141,11 +141,7 @@ func testAccCheckServiceCatlaogPortfolioDisappears(dpo *servicecatalog.DescribeP
 		input.Id = dpo.PortfolioDetail.Id
 
 		_, err := conn.DeletePortfolio(&input)
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return err
 	}
 }
 
@@ -174,7 +170,7 @@ resource "aws_servicecatalog_portfolio" "test" {
   name = "%s"
   description = "test-2"
   provider_name = "test-3"
-  tags {
+  tags = {
     Key1 = "Value One"
   }
 }
@@ -187,7 +183,7 @@ resource "aws_servicecatalog_portfolio" "test" {
   name = "%s"
   description = "test-b"
   provider_name = "test-c"
-  tags {
+  tags = {
     Key1 = "Value 1"
     Key2 = "Value Two"
   }
@@ -201,7 +197,7 @@ resource "aws_servicecatalog_portfolio" "test" {
   name = "%s"
   description = "test-only-change-me"
   provider_name = "test-c"
-  tags {
+  tags = {
     Key3 = "Value Three"
   }
 }

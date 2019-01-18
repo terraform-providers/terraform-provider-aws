@@ -43,7 +43,7 @@ data "aws_eip" "by_public_ip" {
 
 ```hcl
 data "aws_eip" "by_tags" {
-  tags {
+  tags = {
     Name = "exampleNameTagValue"
   }
 }
@@ -64,6 +64,13 @@ Elastic IP whose data will be exported as attributes.
 
 In addition to all arguments above, the following attributes are exported:
 
+* `association_id` - The ID representing the association of the address with an instance in a VPC.
+* `domain` - Indicates whether the address is for use in EC2-Classic (standard) or in a VPC (vpc).
 * `id` - If VPC Elastic IP, the allocation identifier. If EC2-Classic Elastic IP, the public IP address.
+* `instance_id` - The ID of the instance that the address is associated with (if any).
+* `network_interface_id` - The ID of the network interface.
+* `network_interface_owner_id` - The ID of the AWS account that owns the network interface.
+* `private_ip` - The private IP address associated with the Elastic IP address.
 * `public_ip` - Public IP address of Elastic IP.
+* `public_ipv4_pool` - The ID of an address pool.
 * `tags` - Key-value map of tags associated with Elastic IP.

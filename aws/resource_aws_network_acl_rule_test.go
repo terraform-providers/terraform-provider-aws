@@ -310,14 +310,14 @@ provider "aws" {
 
 resource "aws_vpc" "foo" {
 	cidr_block = "10.3.0.0/16"
-	tags {
+	tags = {
 		Name = "terraform-testacc-network-acl-rule-basic"
 	}
 }
 
 resource "aws_network_acl" "bar" {
 	vpc_id = "${aws_vpc.foo.id}"
-	tags {
+	tags = {
 		Name = "tf-acc-acl-rule-basic"
 	}
 }
@@ -361,14 +361,14 @@ provider "aws" {
 
 resource "aws_vpc" "foo" {
 	cidr_block = "10.3.0.0/16"
-	tags {
+	tags = {
 		Name = "terraform-testacc-network-acl-rule-missing-param"
 	}
 }
 
 resource "aws_network_acl" "bar" {
 	vpc_id = "${aws_vpc.foo.id}"
-	tags {
+	tags = {
 		Name = "tf-acc-acl-rule-missing-param"
 	}
 }
@@ -387,14 +387,14 @@ resource "aws_network_acl_rule" "baz" {
 const testAccAWSNetworkAclRuleAllProtocolConfigNoRealUpdate = `
 resource "aws_vpc" "foo" {
 	cidr_block = "10.3.0.0/16"
-	tags {
+	tags = {
 		Name = "terraform-testacc-network-acl-rule-all-proto-no-real-upd"
 	}
 }
 
 resource "aws_network_acl" "bar" {
 	vpc_id = "${aws_vpc.foo.id}"
-	tags {
+	tags = {
 		Name = "tf-acc-acl-rule-no-real-update"
 	}
 }
@@ -414,7 +414,7 @@ resource "aws_network_acl_rule" "baz" {
 const testAccAWSNetworkAclRuleTcpProtocolConfigNoRealUpdate = `
 resource "aws_vpc" "foo" {
 	cidr_block = "10.3.0.0/16"
-	tags {
+	tags = {
 		Name = "testAccAWSNetworkAclRuleTcpProtocolConfigNoRealUpdate"
 	}
 }
@@ -436,14 +436,14 @@ resource "aws_network_acl_rule" "baz" {
 const testAccAWSNetworkAclRuleAllProtocolConfig = `
 resource "aws_vpc" "foo" {
 	cidr_block = "10.3.0.0/16"
-	tags {
+	tags = {
 		Name = "terraform-testacc-network-acl-rule-proto"
 	}
 }
 
 resource "aws_network_acl" "bar" {
 	vpc_id = "${aws_vpc.foo.id}"
-	tags {
+	tags = {
 		Name = "tf-acc-acl-rule-all-protocol"
 	}
 }
@@ -463,7 +463,7 @@ resource "aws_network_acl_rule" "baz" {
 const testAccAWSNetworkAclRuleTcpProtocolConfig = `
 resource "aws_vpc" "foo" {
 	cidr_block = "10.3.0.0/16"
-	tags {
+	tags = {
 		Name = "testAccAWSNetworkAclRuleTcpProtocolConfig"
 	}
 }
@@ -485,14 +485,14 @@ resource "aws_network_acl_rule" "baz" {
 const testAccAWSNetworkAclRuleIpv6Config = `
 resource "aws_vpc" "foo" {
 	cidr_block = "10.3.0.0/16"
-	tags {
+	tags = {
 		Name = "terraform-testacc-network-acl-rule-ipv6"
 	}
 }
 
 resource "aws_network_acl" "bar" {
 	vpc_id = "${aws_vpc.foo.id}"
-	tags {
+	tags = {
 		Name = "tf-acc-acl-rule-ipv6"
 	}
 }
@@ -514,7 +514,7 @@ func testAccAWSNetworkAclRuleConfigIpv6ICMP(rName string) string {
 resource "aws_vpc" "test" {
   cidr_block = "10.3.0.0/16"
 
-  tags {
+  tags = {
     Name = %q
   }
 }
@@ -522,7 +522,7 @@ resource "aws_vpc" "test" {
 resource "aws_network_acl" "test" {
   vpc_id = "${aws_vpc.test.id}"
 
-  tags {
+  tags = {
     Name = %q
   }
 }

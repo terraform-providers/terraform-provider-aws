@@ -87,11 +87,7 @@ func testAccCheckAWSAthenaNamedQueryExists(name string) resource.TestCheckFunc {
 		}
 
 		_, err := conn.GetNamedQuery(input)
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return err
 	}
 }
 

@@ -110,7 +110,7 @@ data "aws_region" "current" {
 data "aws_iam_policy_document" "role" {
   statement {
     effect = "Allow"
-    principals = {
+    principals {
       type = "Service"
       identifiers = [
         "logs.${data.aws_region.current.name}.amazonaws.com"
@@ -164,7 +164,7 @@ resource "aws_cloudwatch_log_destination" "test" {
 data "aws_iam_policy_document" "access" {
   statement {
     effect = "Allow"
-    principals = {
+    principals {
       type = "AWS"
       identifiers = [
         "000000000000"

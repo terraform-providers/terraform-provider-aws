@@ -588,7 +588,7 @@ resource "aws_db_parameter_group" "bar" {
 	  name = "character_set_results"
 	  value = "utf8"
 	}
-	tags {
+	tags = {
 		foo = "bar"
 	}
 }`, n)
@@ -608,7 +608,7 @@ resource "aws_db_parameter_group" "bar" {
 	  value = "utf8"
 	  apply_method = "pending-reboot"
 	}
-	tags {
+	tags = {
 		foo = "bar"
 	}
 }`, n)
@@ -640,7 +640,7 @@ resource "aws_db_parameter_group" "bar" {
 	  name = "collation_connection"
 	  value = "utf8_unicode_ci"
 	}
-	tags {
+	tags = {
 		foo = "bar"
 		baz = "foo"
 	}

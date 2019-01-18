@@ -2,6 +2,7 @@ package aws
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -51,6 +52,26 @@ func TestAccAWSServiceDiscoveryPrivateDnsNamespace_longname(t *testing.T) {
 	})
 }
 
+// This acceptance test ensures we properly send back error messaging. References:
+//  * https://github.com/terraform-providers/terraform-provider-aws/issues/2830
+//  * https://github.com/terraform-providers/terraform-provider-aws/issues/5532
+func TestAccAWSServiceDiscoveryPrivateDnsNamespace_error_Overlap(t *testing.T) {
+	rName := acctest.RandString(5) + ".example.com"
+	subDomain := acctest.RandString(5) + "." + rName
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAwsServiceDiscoveryPrivateDnsNamespaceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccServiceDiscoveryPrivateDnsNamespaceConfigOverlapping(rName, subDomain),
+				ExpectError: regexp.MustCompile(`overlapping name space`),
+			},
+		},
+	})
+}
+
 func testAccCheckAwsServiceDiscoveryPrivateDnsNamespaceDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*AWSClient).sdconn
 
@@ -89,7 +110,7 @@ func testAccServiceDiscoveryPrivateDnsNamespaceConfig(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_vpc" "test" {
   cidr_block = "10.0.0.0/16"
-  tags {
+  tags = {
     Name = "terraform-testacc-service-discovery-private-dns-ns"
   }
 }
@@ -100,4 +121,26 @@ resource "aws_service_discovery_private_dns_namespace" "test" {
   vpc = "${aws_vpc.test.id}"
 }
 `, rName)
+}
+
+func testAccServiceDiscoveryPrivateDnsNamespaceConfigOverlapping(topDomain, subDomain string) string {
+	return fmt.Sprintf(`
+resource "aws_vpc" "test" {
+  cidr_block = "10.0.0.0/16"
+  tags = {
+    Name = "terraform-testacc-service-discovery-private-dns-ns"
+  }
+}
+
+resource "aws_service_discovery_private_dns_namespace" "top" {
+  name = %q
+  vpc  = "${aws_vpc.test.id}"
+}
+
+# Ensure ordering after first namespace
+resource "aws_service_discovery_private_dns_namespace" "subdomain" {
+  name = %q
+  vpc  = "${aws_service_discovery_private_dns_namespace.top.vpc}"
+}
+`, topDomain, subDomain)
 }

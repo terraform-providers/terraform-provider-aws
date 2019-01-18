@@ -37,9 +37,7 @@ func TestResourceAWSEFSFileSystem_hasEmptyFileSystems(t *testing.T) {
 		FileSystems: []*efs.FileSystemDescription{},
 	}
 
-	var actual bool
-
-	actual = hasEmptyFileSystems(fs)
+	actual := hasEmptyFileSystems(fs)
 	if !actual {
 		t.Fatalf("Expected return value to be true, got %t", actual)
 	}
@@ -178,7 +176,8 @@ func TestAccAWSEFSFileSystem_pagedTags(t *testing.T) {
 
 func TestAccAWSEFSFileSystem_kmsKey(t *testing.T) {
 	rInt := acctest.RandInt()
-	keyRegex := regexp.MustCompile("^arn:aws:([a-zA-Z0-9\\-])+:([a-z]{2}-[a-z]+-\\d{1})?:(\\d{12})?:(.*)$")
+	kmsKeyResourceName := "aws_kms_key.foo"
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -187,7 +186,7 @@ func TestAccAWSEFSFileSystem_kmsKey(t *testing.T) {
 			{
 				Config: testAccAWSEFSFileSystemConfigWithKmsKey(rInt),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestMatchResourceAttr("aws_efs_file_system.foo-with-kms", "kms_key_id", keyRegex),
+					resource.TestCheckResourceAttrPair("aws_efs_file_system.foo-with-kms", "kms_key_id", kmsKeyResourceName, "arn"),
 					resource.TestCheckResourceAttr("aws_efs_file_system.foo-with-kms", "encrypted", "true"),
 				),
 			},
@@ -320,11 +319,7 @@ func testAccCheckEfsFileSystem(resourceID string) resource.TestCheckFunc {
 			FileSystemId: aws.String(rs.Primary.ID),
 		})
 
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return err
 	}
 }
 
@@ -350,11 +345,7 @@ func testAccCheckEfsCreationToken(resourceID string, expectedToken string) resou
 				expectedToken, *fs.CreationToken)
 		}
 
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return err
 	}
 }
 
@@ -426,7 +417,7 @@ resource "aws_efs_file_system" "foo" {
 func testAccAWSEFSFileSystemConfigPagedTags(rInt int) string {
 	return fmt.Sprintf(`
 	resource "aws_efs_file_system" "foo" {
-		tags {
+	tags = {
 			Name = "foo-efs-%d"
 			Another = "tag"
 			Test = "yes"
@@ -446,7 +437,7 @@ func testAccAWSEFSFileSystemConfigPagedTags(rInt int) string {
 func testAccAWSEFSFileSystemConfigWithTags(rInt int) string {
 	return fmt.Sprintf(`
 	resource "aws_efs_file_system" "foo-with-tags" {
-		tags {
+	tags = {
 			Name = "foo-efs-%d"
 			Another = "tag"
 		}

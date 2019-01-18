@@ -39,7 +39,7 @@ func TestAccDataSourceAWSLBListener_basic(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAWSLBListenerBackwardsCompatibility(t *testing.T) {
+func TestAccDataSourceAWSLBListener_BackwardsCompatibility(t *testing.T) {
 	lbName := fmt.Sprintf("testlistener-basic-%s", acctest.RandStringFromCharSet(13, acctest.CharSetAlphaNum))
 	targetGroupName := fmt.Sprintf("testtargetgroup-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
 
@@ -89,7 +89,7 @@ func TestAccDataSourceAWSLBListener_https(t *testing.T) {
 					resource.TestCheckResourceAttr("data.aws_lb_listener.front_end", "port", "443"),
 					resource.TestCheckResourceAttr("data.aws_lb_listener.front_end", "default_action.#", "1"),
 					resource.TestCheckResourceAttr("data.aws_lb_listener.front_end", "default_action.0.type", "forward"),
-					resource.TestCheckResourceAttr("data.aws_lb_listener.front_end", "ssl_policy", "ELBSecurityPolicy-2015-05"),
+					resource.TestCheckResourceAttr("data.aws_lb_listener.front_end", "ssl_policy", "ELBSecurityPolicy-2016-08"),
 					resource.TestCheckResourceAttrSet("data.aws_lb_listener.from_lb_and_port", "load_balancer_arn"),
 					resource.TestCheckResourceAttrSet("data.aws_lb_listener.from_lb_and_port", "arn"),
 					resource.TestCheckResourceAttrSet("data.aws_lb_listener.from_lb_and_port", "default_action.0.target_group_arn"),
@@ -98,7 +98,7 @@ func TestAccDataSourceAWSLBListener_https(t *testing.T) {
 					resource.TestCheckResourceAttr("data.aws_lb_listener.from_lb_and_port", "port", "443"),
 					resource.TestCheckResourceAttr("data.aws_lb_listener.from_lb_and_port", "default_action.#", "1"),
 					resource.TestCheckResourceAttr("data.aws_lb_listener.from_lb_and_port", "default_action.0.type", "forward"),
-					resource.TestCheckResourceAttr("data.aws_lb_listener.from_lb_and_port", "ssl_policy", "ELBSecurityPolicy-2015-05"),
+					resource.TestCheckResourceAttr("data.aws_lb_listener.from_lb_and_port", "ssl_policy", "ELBSecurityPolicy-2016-08"),
 				),
 			},
 		},
@@ -127,7 +127,7 @@ resource "aws_lb" "alb_test" {
   idle_timeout               = 30
   enable_deletion_protection = false
 
-  tags {
+  tags = {
     TestName = "TestAccAWSALB_basic"
   }
 }
@@ -160,7 +160,7 @@ data "aws_availability_zones" "available" {}
 resource "aws_vpc" "alb_test" {
   cidr_block = "10.0.0.0/16"
 
-  tags {
+  tags = {
     Name = "terraform-testacc-lb-listener-data-source-basic"
   }
 }
@@ -172,7 +172,7 @@ resource "aws_subnet" "alb_test" {
   map_public_ip_on_launch = true
   availability_zone       = "${element(data.aws_availability_zones.available.names, count.index)}"
 
-  tags {
+  tags = {
     Name = "tf-acc-lb-listener-data-source-basic"
   }
 }
@@ -186,7 +186,7 @@ resource "aws_security_group" "alb_test" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
+    self        = true
   }
 
   egress {
@@ -196,7 +196,7 @@ resource "aws_security_group" "alb_test" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags {
+  tags = {
     TestName = "TestAccAWSALB_basic"
   }
 }
@@ -246,7 +246,7 @@ resource "aws_alb" "alb_test" {
   idle_timeout               = 30
   enable_deletion_protection = false
 
-  tags {
+  tags = {
     TestName = "TestAccAWSALB_basic"
   }
 }
@@ -279,7 +279,7 @@ data "aws_availability_zones" "available" {}
 resource "aws_vpc" "alb_test" {
   cidr_block = "10.0.0.0/16"
 
-  tags {
+  tags = {
     Name = "terraform-testacc-lb-listener-data-source-bc"
   }
 }
@@ -291,7 +291,7 @@ resource "aws_subnet" "alb_test" {
   map_public_ip_on_launch = true
   availability_zone       = "${element(data.aws_availability_zones.available.names, count.index)}"
 
-  tags {
+  tags = {
     Name = "tf-acc-lb-listener-data-source-bc"
   }
 }
@@ -305,7 +305,7 @@ resource "aws_security_group" "alb_test" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
+    self        = true
   }
 
   egress {
@@ -315,7 +315,7 @@ resource "aws_security_group" "alb_test" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags {
+  tags = {
     TestName = "TestAccAWSALB_basic"
   }
 }
@@ -336,7 +336,7 @@ resource "aws_lb_listener" "front_end" {
   load_balancer_arn = "${aws_lb.alb_test.id}"
   protocol          = "HTTPS"
   port              = "443"
-  ssl_policy        = "ELBSecurityPolicy-2015-05"
+  ssl_policy        = "ELBSecurityPolicy-2016-08"
   certificate_arn   = "${aws_iam_server_certificate.test_cert.arn}"
 
   default_action {
@@ -354,7 +354,7 @@ resource "aws_lb" "alb_test" {
   idle_timeout               = 30
   enable_deletion_protection = false
 
-  tags {
+  tags = {
     TestName = "TestAccAWSALB_basic"
   }
 
@@ -389,7 +389,7 @@ data "aws_availability_zones" "available" {}
 resource "aws_vpc" "alb_test" {
   cidr_block = "10.0.0.0/16"
 
-  tags {
+  tags = {
     Name = "terraform-testacc-lb-listener-data-source-https"
   }
 }
@@ -397,7 +397,7 @@ resource "aws_vpc" "alb_test" {
 resource "aws_internet_gateway" "gw" {
   vpc_id = "${aws_vpc.alb_test.id}"
 
-  tags {
+  tags = {
     Name     = "terraform-testacc-lb-listener-data-source-https"
     TestName = "TestAccAWSALB_basic"
   }
@@ -410,7 +410,7 @@ resource "aws_subnet" "alb_test" {
   map_public_ip_on_launch = true
   availability_zone       = "${element(data.aws_availability_zones.available.names, count.index)}"
 
-  tags {
+  tags = {
     Name = "tf-acc-lb-listener-data-source-https"
   }
 }
@@ -424,7 +424,7 @@ resource "aws_security_group" "alb_test" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
+    self        = true
   }
 
   egress {
@@ -434,7 +434,7 @@ resource "aws_security_group" "alb_test" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags {
+  tags = {
     TestName = "TestAccAWSALB_basic"
   }
 }

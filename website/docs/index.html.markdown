@@ -243,12 +243,11 @@ In addition to [generic `provider` arguments](https://www.terraform.io/docs/conf
   - [`aws_launch_template` resource](/docs/providers/aws/r/launch_template.html)
   - [`aws_redshift_cluster` resource](/docs/providers/aws/r/redshift_cluster.html)
   - [`aws_redshift_subnet_group` resource](/docs/providers/aws/r/redshift_subnet_group.html)
+  - [`aws_s3_account_public_access_block` resource](/docs/providers/aws/r/s3_account_public_access_block.html)
   - [`aws_ses_domain_identity_verification` resource](/docs/providers/aws/r/ses_domain_identity_verification.html)
   - [`aws_ses_domain_identity` resource](/docs/providers/aws/r/ses_domain_identity.html)
   - [`aws_ssm_document` resource](/docs/providers/aws/r/ssm_document.html)
   - [`aws_ssm_parameter` resource](/docs/providers/aws/r/ssm_parameter.html)
-  - [`aws_subnet` data source](/docs/providers/aws/d/subnet.html)
-  - [`aws_subnet` resource](/docs/providers/aws/r/subnet.html)
   - [`aws_vpc` data source](/docs/providers/aws/d/vpc.html)
   - [`aws_vpc` resource](/docs/providers/aws/r/vpc.html)
   - [`aws_waf_ipset` resource](/docs/providers/aws/r/waf_ipset.html)
@@ -371,6 +370,10 @@ Nested `endpoints` block supports the following:
 * `s3` - (Optional) Use this to override the default endpoint
   URL constructed from the `region`. It's typically used to connect to
   custom S3 endpoints.
+
+* `s3control` - (Optional) Use this to override the default endpoint
+  URL constructed from the `region`. It's typically used to connect to
+  custom S3 Control endpoints (e.g. account-level public access block).
 
 * `sns` - (Optional) Use this to override the default endpoint
   URL constructed from the `region`. It's typically used to connect to

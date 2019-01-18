@@ -982,7 +982,7 @@ resource "aws_security_group" "bar" {
         cidr_blocks = ["0.0.0.0/0"]
     }
 
-		tags {
+	tags = {
 			Name = "TestAccAWSElasticacheCluster_basic"
 		}
 }
@@ -1105,7 +1105,7 @@ resource "aws_elasticache_cluster" "bar" {
 var testAccAWSElasticacheClusterInVPCConfig = fmt.Sprintf(`
 resource "aws_vpc" "foo" {
     cidr_block = "192.168.0.0/16"
-    tags {
+  tags = {
         Name = "terraform-testacc-elasticache-cluster-in-vpc"
     }
 }
@@ -1114,7 +1114,7 @@ resource "aws_subnet" "foo" {
     vpc_id = "${aws_vpc.foo.id}"
     cidr_block = "192.168.0.0/20"
     availability_zone = "us-west-2a"
-    tags {
+  tags = {
         Name = "tf-acc-elasticache-cluster-in-vpc"
     }
 }
@@ -1162,7 +1162,7 @@ resource "aws_sns_topic" "topic_example" {
 var testAccAWSElasticacheClusterMultiAZInVPCConfig = fmt.Sprintf(`
 resource "aws_vpc" "foo" {
     cidr_block = "192.168.0.0/16"
-    tags {
+  tags = {
         Name = "terraform-testacc-elasticache-cluster-multi-az-in-vpc"
     }
 }
@@ -1171,7 +1171,7 @@ resource "aws_subnet" "foo" {
     vpc_id = "${aws_vpc.foo.id}"
     cidr_block = "192.168.0.0/20"
     availability_zone = "us-west-2a"
-    tags {
+  tags = {
         Name = "tf-acc-elasticache-cluster-multi-az-in-vpc-foo"
     }
 }
@@ -1180,7 +1180,7 @@ resource "aws_subnet" "bar" {
     vpc_id = "${aws_vpc.foo.id}"
     cidr_block = "192.168.16.0/20"
     availability_zone = "us-west-2b"
-    tags {
+  tags = {
         Name = "tf-acc-elasticache-cluster-multi-az-in-vpc-bar"
     }
 }

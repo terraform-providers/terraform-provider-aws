@@ -29,12 +29,13 @@ func TestAccAWSDefaultVpc_basic(t *testing.T) {
 						"aws_default_vpc.foo", "tags.Name", "Default VPC"),
 					resource.TestCheckResourceAttrSet(
 						"aws_default_vpc.foo", "arn"),
-					resource.TestCheckNoResourceAttr(
-						"aws_default_vpc.foo", "assign_generated_ipv6_cidr_block"),
-					resource.TestCheckNoResourceAttr(
-						"aws_default_vpc.foo", "ipv6_association_id"),
-					resource.TestCheckNoResourceAttr(
-						"aws_default_vpc.foo", "ipv6_cidr_block"),
+					resource.TestCheckResourceAttr(
+						"aws_default_vpc.foo", "assign_generated_ipv6_cidr_block", "false"),
+					resource.TestCheckResourceAttr(
+						"aws_default_vpc.foo", "ipv6_association_id", ""),
+					resource.TestCheckResourceAttr(
+						"aws_default_vpc.foo", "ipv6_cidr_block", ""),
+					testAccCheckResourceAttrAccountID("aws_default_vpc.foo", "owner_id"),
 				),
 			},
 		},
@@ -52,7 +53,7 @@ provider "aws" {
 }
 
 resource "aws_default_vpc" "foo" {
-	tags {
+	tags = {
 		Name = "Default VPC"
 	}
 }

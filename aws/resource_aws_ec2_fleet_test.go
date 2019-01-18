@@ -19,7 +19,7 @@ func TestAccAWSEc2Fleet_basic(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEc2Fleet(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSEc2FleetDestroy,
 		Steps: []resource.TestStep{
@@ -65,7 +65,7 @@ func TestAccAWSEc2Fleet_disappears(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEc2Fleet(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSEc2FleetDestroy,
 		Steps: []resource.TestStep{
@@ -87,7 +87,7 @@ func TestAccAWSEc2Fleet_ExcessCapacityTerminationPolicy(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEc2Fleet(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSEc2FleetDestroy,
 		Steps: []resource.TestStep{
@@ -124,7 +124,7 @@ func TestAccAWSEc2Fleet_LaunchTemplateConfig_LaunchTemplateSpecification_LaunchT
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEc2Fleet(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSEc2FleetDestroy,
 		Steps: []resource.TestStep{
@@ -167,7 +167,7 @@ func TestAccAWSEc2Fleet_LaunchTemplateConfig_LaunchTemplateSpecification_LaunchT
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEc2Fleet(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSEc2FleetDestroy,
 		Steps: []resource.TestStep{
@@ -210,7 +210,7 @@ func TestAccAWSEc2Fleet_LaunchTemplateConfig_LaunchTemplateSpecification_Version
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEc2Fleet(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSEc2FleetDestroy,
 		Steps: []resource.TestStep{
@@ -258,7 +258,7 @@ func TestAccAWSEc2Fleet_LaunchTemplateConfig_Override_AvailabilityZone(t *testin
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEc2Fleet(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSEc2FleetDestroy,
 		Steps: []resource.TestStep{
@@ -297,7 +297,7 @@ func TestAccAWSEc2Fleet_LaunchTemplateConfig_Override_InstanceType(t *testing.T)
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEc2Fleet(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSEc2FleetDestroy,
 		Steps: []resource.TestStep{
@@ -338,7 +338,7 @@ func TestAccAWSEc2Fleet_LaunchTemplateConfig_Override_MaxPrice(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEc2Fleet(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSEc2FleetDestroy,
 		Steps: []resource.TestStep{
@@ -377,7 +377,7 @@ func TestAccAWSEc2Fleet_LaunchTemplateConfig_Override_Priority(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEc2Fleet(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSEc2FleetDestroy,
 		Steps: []resource.TestStep{
@@ -416,7 +416,7 @@ func TestAccAWSEc2Fleet_LaunchTemplateConfig_Override_Priority_Multiple(t *testi
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEc2Fleet(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSEc2FleetDestroy,
 		Steps: []resource.TestStep{
@@ -459,7 +459,7 @@ func TestAccAWSEc2Fleet_LaunchTemplateConfig_Override_SubnetId(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEc2Fleet(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSEc2FleetDestroy,
 		Steps: []resource.TestStep{
@@ -498,7 +498,7 @@ func TestAccAWSEc2Fleet_LaunchTemplateConfig_Override_WeightedCapacity(t *testin
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEc2Fleet(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSEc2FleetDestroy,
 		Steps: []resource.TestStep{
@@ -537,7 +537,7 @@ func TestAccAWSEc2Fleet_LaunchTemplateConfig_Override_WeightedCapacity_Multiple(
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEc2Fleet(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSEc2FleetDestroy,
 		Steps: []resource.TestStep{
@@ -578,7 +578,7 @@ func TestAccAWSEc2Fleet_OnDemandOptions_AllocationStrategy(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEc2Fleet(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSEc2FleetDestroy,
 		Steps: []resource.TestStep{
@@ -615,7 +615,7 @@ func TestAccAWSEc2Fleet_ReplaceUnhealthyInstances(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEc2Fleet(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSEc2FleetDestroy,
 		Steps: []resource.TestStep{
@@ -650,7 +650,7 @@ func TestAccAWSEc2Fleet_SpotOptions_AllocationStrategy(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEc2Fleet(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSEc2FleetDestroy,
 		Steps: []resource.TestStep{
@@ -687,7 +687,7 @@ func TestAccAWSEc2Fleet_SpotOptions_InstanceInterruptionBehavior(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEc2Fleet(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSEc2FleetDestroy,
 		Steps: []resource.TestStep{
@@ -724,7 +724,7 @@ func TestAccAWSEc2Fleet_SpotOptions_InstancePoolsToUseCount(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEc2Fleet(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSEc2FleetDestroy,
 		Steps: []resource.TestStep{
@@ -761,7 +761,7 @@ func TestAccAWSEc2Fleet_Tags(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEc2Fleet(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSEc2FleetDestroy,
 		Steps: []resource.TestStep{
@@ -798,7 +798,7 @@ func TestAccAWSEc2Fleet_TargetCapacitySpecification_DefaultTargetCapacityType(t 
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEc2Fleet(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSEc2FleetDestroy,
 		Steps: []resource.TestStep{
@@ -829,7 +829,7 @@ func TestAccAWSEc2Fleet_TargetCapacitySpecification_DefaultTargetCapacityType_On
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEc2Fleet(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSEc2FleetDestroy,
 		Steps: []resource.TestStep{
@@ -857,7 +857,7 @@ func TestAccAWSEc2Fleet_TargetCapacitySpecification_DefaultTargetCapacityType_Sp
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEc2Fleet(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSEc2FleetDestroy,
 		Steps: []resource.TestStep{
@@ -885,7 +885,7 @@ func TestAccAWSEc2Fleet_TargetCapacitySpecification_TotalTargetCapacity(t *testi
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEc2Fleet(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSEc2FleetDestroy,
 		Steps: []resource.TestStep{
@@ -922,7 +922,7 @@ func TestAccAWSEc2Fleet_TerminateInstancesWithExpiration(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEc2Fleet(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSEc2FleetDestroy,
 		Steps: []resource.TestStep{
@@ -957,7 +957,7 @@ func TestAccAWSEc2Fleet_Type(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEc2Fleet(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSEc2FleetDestroy,
 		Steps: []resource.TestStep{
@@ -1119,6 +1119,24 @@ func testAccCheckAWSEc2FleetRecreated(i, j *ec2.FleetData) resource.TestCheckFun
 		}
 
 		return nil
+	}
+}
+
+func testAccPreCheckAWSEc2Fleet(t *testing.T) {
+	conn := testAccProvider.Meta().(*AWSClient).ec2conn
+
+	input := &ec2.DescribeFleetsInput{
+		MaxResults: aws.Int64(1),
+	}
+
+	_, err := conn.DescribeFleets(input)
+
+	if testAccPreCheckSkipError(err) {
+		t.Skipf("skipping acceptance testing: %s", err)
+	}
+
+	if err != nil {
+		t.Fatalf("unexpected PreCheck error: %s", err)
 	}
 }
 
@@ -1403,7 +1421,7 @@ variable "TestAccNameTag" {
 resource "aws_vpc" "test" {
   cidr_block = "10.1.0.0/16"
 
-  tags {
+  tags = {
     Name = "${var.TestAccNameTag}"
   }
 }
@@ -1414,7 +1432,7 @@ resource "aws_subnet" "test" {
   cidr_block = "10.1.${count.index}.0/24"
   vpc_id     = "${aws_vpc.test.id}"
 
-  tags {
+  tags = {
     Name = "${var.TestAccNameTag}"
   }
 }
@@ -1607,7 +1625,7 @@ resource "aws_ec2_fleet" "test" {
     }
   }
 
-  tags {
+  tags = {
     %q = %q
   }
 

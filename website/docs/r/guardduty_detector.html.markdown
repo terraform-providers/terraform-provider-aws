@@ -17,6 +17,7 @@ Provides a resource to manage a GuardDuty detector.
 ```hcl
 resource "aws_guardduty_detector" "MyDetector" {
   enable = true
+  finding_publishing_frequency = "SIX_HOURS"
 }
 ```
 
@@ -25,6 +26,7 @@ resource "aws_guardduty_detector" "MyDetector" {
 The following arguments are supported:
 
 * `enable` - (Optional) Enable monitoring and feedback reporting. Setting to `false` is equivalent to "suspending" GuardDuty. Defaults to `true`.
+* `finding_publishing_frequency` - (Optional) Specifies the frequency of notifications sent for subsequent finding occurrences. Valid values: `FIFTEEN_MINUTES, ONE_HOUR, SIX_HOURS`. Default: `SIX_HOURS`. See [AWS Documentation](https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_findings_cloudwatch.html#guardduty_findings_cloudwatch_notification_frequency) for more information.
 
 ## Attributes Reference
 

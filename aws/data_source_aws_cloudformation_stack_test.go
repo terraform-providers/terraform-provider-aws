@@ -42,7 +42,7 @@ func testAccCheckAwsCloudFormationStackDataSourceConfig_basic(stackName string) 
 	return fmt.Sprintf(`
 resource "aws_cloudformation_stack" "cfs" {
   name = "%s"
-  parameters {
+  parameters = {
     CIDR = "10.10.10.0/24"
   }
   timeout_in_minutes = 6
@@ -72,7 +72,7 @@ resource "aws_cloudformation_stack" "cfs" {
   }
 }
 STACK
-  tags {
+  tags = {
     Name = "Form the Cloud"
     Second = "meh"
   }
@@ -117,7 +117,7 @@ func testAccCheckAwsCloudFormationStackDataSourceConfig_yaml(stackName string) s
 	return fmt.Sprintf(`
 resource "aws_cloudformation_stack" "yaml" {
   name = "%s"
-  parameters {
+  parameters = {
     CIDR = "10.10.10.0/24"
   }
   timeout_in_minutes = 6
@@ -141,7 +141,7 @@ Outputs:
     Value: !Ref myvpc
     Description: VPC ID
 STACK
-  tags {
+  tags = {
     Name = "Form the Cloud"
     Second = "meh"
   }

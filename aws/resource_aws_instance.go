@@ -287,7 +287,12 @@ func resourceAwsInstance() *schema.Resource {
 				Computed: true,
 				ForceNew: true,
 			},
-
+			"host_id": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+				ForceNew: true,
+			},
 			"cpu_core_count": {
 				Type:     schema.TypeInt,
 				Optional: true,
@@ -707,6 +712,9 @@ func resourceAwsInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	}
 	if instance.Placement.Tenancy != nil {
 		d.Set("tenancy", instance.Placement.Tenancy)
+	}
+	if instance.Placement.HostId != nil {
+		d.Set("host_id", instance.Placement.HostId)
 	}
 
 	if instance.CpuOptions != nil {
@@ -1206,11 +1214,8 @@ func resourceAwsInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
 func resourceAwsInstanceDelete(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
 
-	if err := awsTerminateInstance(conn, d.Id(), d.Timeout(schema.TimeoutDelete)); err != nil {
-		return err
-	}
-
-	return nil
+	err := awsTerminateInstance(conn, d.Id(), d.Timeout(schema.TimeoutDelete))
+	return err
 }
 
 // InstanceStateRefreshFunc returns a resource.StateRefreshFunc that is used to watch
@@ -1821,6 +1826,9 @@ func buildAwsInstanceOpts(
 	if v := d.Get("tenancy").(string); v != "" {
 		opts.Placement.Tenancy = aws.String(v)
 	}
+	if v := d.Get("host_id").(string); v != "" {
+		opts.Placement.HostId = aws.String(v)
+	}
 
 	if v := d.Get("cpu_core_count").(int); v > 0 {
 		tc := d.Get("cpu_threads_per_core").(int)
@@ -1914,9 +1922,16 @@ func awsTerminateInstance(conn *ec2.EC2, id string, timeout time.Duration) error
 		InstanceIds: []*string{aws.String(id)},
 	}
 	if _, err := conn.TerminateInstances(req); err != nil {
+		if ec2err, ok := err.(awserr.Error); ok && ec2err.Code() == "InvalidInstanceID.NotFound" {
+			return nil
+		}
 		return fmt.Errorf("Error terminating instance: %s", err)
 	}
 
+	return waitForInstanceDeletion(conn, id, timeout)
+}
+
+func waitForInstanceDeletion(conn *ec2.EC2, id string, timeout time.Duration) error {
 	log.Printf("[DEBUG] Waiting for instance (%s) to become terminated", id)
 
 	stateConf := &resource.StateChangeConf{

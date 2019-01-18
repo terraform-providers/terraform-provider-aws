@@ -126,6 +126,20 @@ const (
 	// The user already has a DB instance with the given identifier.
 	ErrCodeDBInstanceAlreadyExistsFault = "DBInstanceAlreadyExists"
 
+	// ErrCodeDBInstanceAutomatedBackupNotFoundFault for service response error code
+	// "DBInstanceAutomatedBackupNotFound".
+	//
+	// No automated backup for this DB instance was found.
+	ErrCodeDBInstanceAutomatedBackupNotFoundFault = "DBInstanceAutomatedBackupNotFound"
+
+	// ErrCodeDBInstanceAutomatedBackupQuotaExceededFault for service response error code
+	// "DBInstanceAutomatedBackupQuotaExceeded".
+	//
+	// The quota for retained automated backups was exceeded. This prevents you
+	// from retaining any additional automated backups. The retained automated backups
+	// quota is the same as your DB Instance quota.
+	ErrCodeDBInstanceAutomatedBackupQuotaExceededFault = "DBInstanceAutomatedBackupQuotaExceeded"
+
 	// ErrCodeDBInstanceNotFoundFault for service response error code
 	// "DBInstanceNotFound".
 	//
@@ -253,6 +267,18 @@ const (
 	// You have reached the maximum number of event subscriptions.
 	ErrCodeEventSubscriptionQuotaExceededFault = "EventSubscriptionQuotaExceeded"
 
+	// ErrCodeGlobalClusterAlreadyExistsFault for service response error code
+	// "GlobalClusterAlreadyExistsFault".
+	ErrCodeGlobalClusterAlreadyExistsFault = "GlobalClusterAlreadyExistsFault"
+
+	// ErrCodeGlobalClusterNotFoundFault for service response error code
+	// "GlobalClusterNotFoundFault".
+	ErrCodeGlobalClusterNotFoundFault = "GlobalClusterNotFoundFault"
+
+	// ErrCodeGlobalClusterQuotaExceededFault for service response error code
+	// "GlobalClusterQuotaExceededFault".
+	ErrCodeGlobalClusterQuotaExceededFault = "GlobalClusterQuotaExceededFault"
+
 	// ErrCodeInstanceQuotaExceededFault for service response error code
 	// "InstanceQuotaExceeded".
 	//
@@ -306,6 +332,13 @@ const (
 	// The requested operation can't be performed while the cluster is in this state.
 	ErrCodeInvalidDBClusterStateFault = "InvalidDBClusterStateFault"
 
+	// ErrCodeInvalidDBInstanceAutomatedBackupStateFault for service response error code
+	// "InvalidDBInstanceAutomatedBackupState".
+	//
+	// The automated backup is in an invalid state. For example, this automated
+	// backup is associated with an active instance.
+	ErrCodeInvalidDBInstanceAutomatedBackupStateFault = "InvalidDBInstanceAutomatedBackupState"
+
 	// ErrCodeInvalidDBInstanceStateFault for service response error code
 	// "InvalidDBInstanceState".
 	//
@@ -357,6 +390,10 @@ const (
 	// This error can occur if someone else is modifying a subscription. You should
 	// retry the action.
 	ErrCodeInvalidEventSubscriptionStateFault = "InvalidEventSubscriptionState"
+
+	// ErrCodeInvalidGlobalClusterStateFault for service response error code
+	// "InvalidGlobalClusterStateFault".
+	ErrCodeInvalidGlobalClusterStateFault = "InvalidGlobalClusterStateFault"
 
 	// ErrCodeInvalidOptionGroupStateFault for service response error code
 	// "InvalidOptionGroupStateFault".

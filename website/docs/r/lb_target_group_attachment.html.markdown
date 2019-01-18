@@ -31,12 +31,39 @@ resource "aws_instance" "test" {
 }
 ```
 
+## Usage with lambda
+
+```hcl
+resource "aws_lambda_permission" "with_lb" {
+  statement_id  = "AllowExecutionFromlb"
+  action        = "lambda:InvokeFunction"
+  function_name = "${aws_lambda_function.test.arn}"
+  principal     = "elasticloadbalancing.amazonaws.com"
+  source_arn    = "${aws_lb_target_group.test.arn}"
+}
+
+resource "aws_lb_target_group" "test" {
+  name        = "test"
+  target_type = "lambda"
+}
+
+resource "aws_lambda_function" "test" {
+  // Other arguments
+}
+
+resource "aws_lb_target_group_attachment" "test" {
+  target_group_arn  = "${aws_lb_target_group.test.arn}"
+  target_id         = "${aws_lambda_function.test.arn}"
+  depends_on        = ["aws_lambda_permission.with_lb"]
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:
 
 * `target_group_arn` - (Required) The ARN of the target group with which to register targets
-* `target_id` (Required) The ID of the target. This is the Instance ID for an instance, or the container ID for an ECS container. If the target type is ip, specify an IP address.
+* `target_id` (Required) The ID of the target. This is the Instance ID for an instance, or the container ID for an ECS container. If the target type is ip, specify an IP address. If the target type is lambda, specify the arn of lambda.
 * `port` - (Optional) The port on which targets receive traffic.
 * `availability_zone` - (Optional) The Availability Zone where the IP address of the target is to be registered.
 

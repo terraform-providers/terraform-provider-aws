@@ -632,7 +632,9 @@ func resourceAwsLbListenerRead(d *schema.ResourceData, meta interface{}) error {
 
 		defaultActions[i] = defaultActionMap
 	}
-	d.Set("default_action", defaultActions)
+	if err := d.Set("default_action", defaultActions); err != nil {
+		return fmt.Errorf("error setting default_action: %s", err)
+	}
 
 	return nil
 }

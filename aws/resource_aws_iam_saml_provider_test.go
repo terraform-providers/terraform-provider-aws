@@ -90,11 +90,7 @@ func testAccCheckIAMSamlProviderExists(id string) resource.TestCheckFunc {
 			SAMLProviderArn: aws.String(rs.Primary.ID),
 		})
 
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return err
 	}
 }
 

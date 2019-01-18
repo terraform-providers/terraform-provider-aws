@@ -557,11 +557,7 @@ func testAccCheckAwsAppsyncGraphqlApiExists(name string) resource.TestCheckFunc 
 		}
 
 		_, err := conn.GetGraphqlApi(input)
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return err
 	}
 }
 

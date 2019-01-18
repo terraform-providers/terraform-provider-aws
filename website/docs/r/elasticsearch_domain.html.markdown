@@ -3,13 +3,39 @@ layout: "aws"
 page_title: "AWS: aws_elasticsearch_domain"
 sidebar_current: "docs-aws-resource-elasticsearch-domain"
 description: |-
-  Provides an Elasticsearch Domain.
+  Terraform resource for managing an AWS Elasticsearch Domain.
 ---
 
 # aws_elasticsearch_domain
 
+Manages an AWS Elasticsearch Domain.
 
 ## Example Usage
+
+### Basic Usage
+
+```hcl
+resource "aws_elasticsearch_domain" "example" {
+  domain_name           = "example"
+  elasticsearch_version = "1.5"
+
+  cluster_config {
+    instance_type = "r4.large.elasticsearch"
+  }
+
+  snapshot_options {
+    automated_snapshot_start_hour = 23
+  }
+
+  tags = {
+    Domain = "TestDomain"
+  }
+}
+```
+
+### Access Policy
+
+-> See also: [`aws_elasticsearch_domain_policy` resource](/docs/providers/aws/r/elasticsearch_domain_policy.html)
 
 ```hcl
 variable "domain" {
@@ -20,41 +46,65 @@ data "aws_region" "current" {}
 
 data "aws_caller_identity" "current" {}
 
-resource "aws_elasticsearch_domain" "es" {
-  domain_name           = "${var.domain}"
-  elasticsearch_version = "1.5"
+resource "aws_elasticsearch_domain" "example" {
+  domain_name = "${var.domain}"
+  # ... other configuration ...
 
-  cluster_config {
-    instance_type = "r4.large.elasticsearch"
-  }
-
-  advanced_options {
-    "rest.action.multi.allow_explicit_index" = "true"
-  }
-
-  access_policies = <<CONFIG
+  access_policies = <<POLICY
 {
-	"Version": "2012-10-17",
-	"Statement": [
-		{
-			"Action": "es:*",
-			"Principal": "*",
-			"Effect": "Allow",
-			"Resource": "arn:aws:es:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:domain/${var.domain}/*",
-			"Condition": {
-				"IpAddress": {"aws:SourceIp": ["66.193.100.22/32"]}
-			}
-		}
-	]
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "es:*",
+      "Principal": "*",
+      "Effect": "Allow",
+      "Resource": "arn:aws:es:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:domain/${var.domain}/*",
+      "Condition": {
+        "IpAddress": {"aws:SourceIp": ["66.193.100.22/32"]}
+      }
+    }
+  ]
+}
+POLICY
+}
+```
+
+### Log Publishing to CloudWatch Logs
+
+```hcl
+resource "aws_cloudwatch_log_group" "example" {
+  name = "example"
+}
+
+resource "aws_cloudwatch_log_resource_policy" "example" {
+  policy_name = "example"
+  policy_document = <<CONFIG
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "es.amazonaws.com"
+      },
+      "Action": [
+        "logs:PutLogEvents",
+        "logs:PutLogEventsBatch",
+        "logs:CreateLogStream"
+      ],
+      "Resource": "arn:aws:logs:*"
+    }
+  ]
 }
 CONFIG
+}
 
-  snapshot_options {
-    automated_snapshot_start_hour = 23
-  }
+resource "aws_elasticsearch_domain" "example" {
+  # .. other configuration ...
 
-  tags {
-    Domain = "TestDomain"
+  log_publishing_options {
+    cloudwatch_log_group_arn = "${aws_cloudwatch_log_group.example.arn}"
+    log_type                 = "INDEX_SLOW_LOGS"
   }
 }
 ```

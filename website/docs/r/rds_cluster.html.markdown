@@ -114,7 +114,7 @@ Default: A 30-minute window selected at random from an 8-hour block of time per 
 * `iam_roles` - (Optional) A List of ARNs for the IAM roles to associate to the RDS Cluster.
 * `iam_database_authentication_enabled` - (Optional) Specifies whether or mappings of AWS Identity and Access Management (IAM) accounts to database accounts is enabled. Please see [AWS Documentation][6] for availability and limitations.
 * `engine` - (Optional) The name of the database engine to be used for this DB cluster. Defaults to `aurora`. Valid Values: `aurora`, `aurora-mysql`, `aurora-postgresql`
-* `engine_mode` - (Optional) The database engine mode. Valid values: `parallelquery`, `provisioned`, `serverless`. Defaults to: `provisioned`. See the [RDS User Guide](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/aurora-serverless.html) for limitations when using `serverless`.
+* `engine_mode` - (Optional) The database engine mode. Valid values: `global`, `parallelquery`, `provisioned`, `serverless`. Defaults to: `provisioned`. See the [RDS User Guide](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/aurora-serverless.html) for limitations when using `serverless`.
 * `engine_version` - (Optional) The database engine version. Updating this argument results in an outage.
 * `source_region` - (Optional) The source region for an encrypted replica DB cluster.
 * `enabled_cloudwatch_logs_exports` - (Optional) List of log types to export to cloudwatch. If omitted, no logs will be exported.

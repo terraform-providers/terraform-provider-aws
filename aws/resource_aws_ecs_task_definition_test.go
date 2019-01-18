@@ -16,6 +16,7 @@ func TestAccAWSEcsTaskDefinition_basic(t *testing.T) {
 
 	rString := acctest.RandString(8)
 	tdName := fmt.Sprintf("tf_acc_td_basic_%s", rString)
+	resourceName := "aws_ecs_task_definition.jenkins"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -25,14 +26,20 @@ func TestAccAWSEcsTaskDefinition_basic(t *testing.T) {
 			{
 				Config: testAccAWSEcsTaskDefinition(tdName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSEcsTaskDefinitionExists("aws_ecs_task_definition.jenkins", &def),
+					testAccCheckAWSEcsTaskDefinitionExists(resourceName, &def),
 				),
 			},
 			{
 				Config: testAccAWSEcsTaskDefinitionModified(tdName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSEcsTaskDefinitionExists("aws_ecs_task_definition.jenkins", &def),
+					testAccCheckAWSEcsTaskDefinitionExists(resourceName, &def),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateIdFunc: testAccAWSEcsTaskDefinitionImportStateIdFunc(resourceName),
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -243,6 +250,56 @@ func TestAccAWSEcsTaskDefinition_withNetworkMode(t *testing.T) {
 	})
 }
 
+func TestAccAWSEcsTaskDefinition_withIPCMode(t *testing.T) {
+	var def ecs.TaskDefinition
+
+	rString := acctest.RandString(8)
+	roleName := fmt.Sprintf("tf_acc_ecs_td_with_ipc_mode_%s", rString)
+	policyName := fmt.Sprintf("tf_acc_ecs_td_with_ipc_mode_%s", rString)
+	tdName := fmt.Sprintf("tf_acc_td_with_ipc_mode_%s", rString)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSEcsTaskDefinitionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSEcsTaskDefinitionWithIpcMode(roleName, policyName, tdName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSEcsTaskDefinitionExists("aws_ecs_task_definition.sleep", &def),
+					resource.TestCheckResourceAttr(
+						"aws_ecs_task_definition.sleep", "ipc_mode", "host"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSEcsTaskDefinition_withPidMode(t *testing.T) {
+	var def ecs.TaskDefinition
+
+	rString := acctest.RandString(8)
+	roleName := fmt.Sprintf("tf_acc_ecs_td_with_pid_mode_%s", rString)
+	policyName := fmt.Sprintf("tf_acc_ecs_td_with_pid_mode_%s", rString)
+	tdName := fmt.Sprintf("tf_acc_td_with_pid_mode_%s", rString)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSEcsTaskDefinitionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSEcsTaskDefinitionWithPidMode(roleName, policyName, tdName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSEcsTaskDefinitionExists("aws_ecs_task_definition.sleep", &def),
+					resource.TestCheckResourceAttr(
+						"aws_ecs_task_definition.sleep", "pid_mode", "host"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAWSEcsTaskDefinition_constraint(t *testing.T) {
 	var def ecs.TaskDefinition
 
@@ -398,6 +455,45 @@ func TestAccAWSEcsTaskDefinition_Inactive(t *testing.T) {
 				Config:    testAccAWSEcsTaskDefinition(tdName),
 				PreConfig: markTaskDefinitionInactive,
 				Check:     resource.TestCheckResourceAttr("aws_ecs_task_definition.jenkins", "revision", "2"), // should get re-created
+			},
+		},
+	})
+}
+
+func TestAccAWSEcsTaskDefinition_Tags(t *testing.T) {
+	var taskDefinition ecs.TaskDefinition
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_ecs_task_definition.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSEcsTaskDefinitionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSEcsTaskDefinitionConfigTags1(rName, "key1", "value1"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSEcsTaskDefinitionExists(resourceName, &taskDefinition),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1"),
+				),
+			},
+			{
+				Config: testAccAWSEcsTaskDefinitionConfigTags2(rName, "key1", "value1updated", "key2", "value2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSEcsTaskDefinitionExists(resourceName, &taskDefinition),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1updated"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
+				),
+			},
+			{
+				Config: testAccAWSEcsTaskDefinitionConfigTags1(rName, "key2", "value2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSEcsTaskDefinitionExists(resourceName, &taskDefinition),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
+				),
 			},
 		},
 	})
@@ -1044,6 +1140,138 @@ TASK_DEFINITION
 }`, roleName, policyName, tdName)
 }
 
+func testAccAWSEcsTaskDefinitionWithIpcMode(roleName, policyName, tdName string) string {
+	return fmt.Sprintf(`
+ resource "aws_iam_role" "role_test" {
+	 name = "%s"
+	 path = "/test/"
+	 assume_role_policy = <<EOF
+{
+ "Version": "2012-10-17",
+ "Statement": [
+	 {
+		 "Action": "sts:AssumeRole",
+		 "Principal": {
+			 "Service": "ec2.amazonaws.com"
+		 },
+		 "Effect": "Allow",
+		 "Sid": ""
+	 }
+ ]
+}
+EOF
+ }
+
+ resource "aws_iam_role_policy" "role_test" {
+	 name = "%s"
+	 role = "${aws_iam_role.role_test.id}"
+	 policy = <<EOF
+{
+ "Version": "2012-10-17",
+ "Statement": [
+	 {
+		 "Effect": "Allow",
+		 "Action": [
+			 "s3:GetBucketLocation",
+			 "s3:ListAllMyBuckets"
+		 ],
+		 "Resource": "arn:aws:s3:::*"
+	 }
+ ]
+}
+ EOF
+ }
+
+ resource "aws_ecs_task_definition" "sleep" {
+	 family = "%s"
+	 task_role_arn = "${aws_iam_role.role_test.arn}"
+	 network_mode = "bridge"
+	 ipc_mode = "host"
+	 container_definitions = <<TASK_DEFINITION
+[
+ {
+	 "name": "sleep",
+	 "image": "busybox",
+	 "cpu": 10,
+	 "command": ["sleep","360"],
+	 "memory": 10,
+	 "essential": true
+ }
+]
+TASK_DEFINITION
+
+	 volume {
+		 name = "database_scratch"
+	 }
+ }`, roleName, policyName, tdName)
+}
+
+func testAccAWSEcsTaskDefinitionWithPidMode(roleName, policyName, tdName string) string {
+	return fmt.Sprintf(`
+ resource "aws_iam_role" "role_test" {
+	 name = "%s"
+	 path = "/test/"
+	 assume_role_policy = <<EOF
+{
+ "Version": "2012-10-17",
+ "Statement": [
+	 {
+		 "Action": "sts:AssumeRole",
+		 "Principal": {
+			 "Service": "ec2.amazonaws.com"
+		 },
+		 "Effect": "Allow",
+		 "Sid": ""
+	 }
+ ]
+}
+EOF
+ }
+
+ resource "aws_iam_role_policy" "role_test" {
+	 name = "%s"
+	 role = "${aws_iam_role.role_test.id}"
+	 policy = <<EOF
+{
+ "Version": "2012-10-17",
+ "Statement": [
+	 {
+		 "Effect": "Allow",
+		 "Action": [
+			 "s3:GetBucketLocation",
+			 "s3:ListAllMyBuckets"
+		 ],
+		 "Resource": "arn:aws:s3:::*"
+	 }
+ ]
+}
+ EOF
+ }
+
+ resource "aws_ecs_task_definition" "sleep" {
+	 family = "%s"
+	 task_role_arn = "${aws_iam_role.role_test.arn}"
+	 network_mode = "bridge"
+	 pid_mode = "host"
+	 container_definitions = <<TASK_DEFINITION
+[
+ {
+	 "name": "sleep",
+	 "image": "busybox",
+	 "cpu": 10,
+	 "command": ["sleep","360"],
+	 "memory": 10,
+	 "essential": true
+ }
+]
+TASK_DEFINITION
+
+	 volume {
+		 name = "database_scratch"
+	 }
+ }`, roleName, policyName, tdName)
+}
+
 func testAccAWSEcsTaskDefinitionWithNetworkMode(roleName, policyName, tdName string) string {
 	return fmt.Sprintf(`
  resource "aws_iam_role" "role_test" {
@@ -1255,3 +1483,71 @@ var testValidateAwsEcsTaskDefinitionInvalidCommandContainerDefinitions = `
   }
 ]
 `
+
+func testAccAWSEcsTaskDefinitionConfigTags1(rName, tag1Key, tag1Value string) string {
+	return fmt.Sprintf(`
+resource "aws_ecs_cluster" "test" {
+  name = %q
+}
+
+resource "aws_ecs_task_definition" "test" {
+  family = %q
+
+  container_definitions = <<DEFINITION
+[
+  {
+    "cpu": 128,
+    "essential": true,
+    "image": "mongo:latest",
+    "memory": 128,
+    "name": "mongodb"
+  }
+]
+DEFINITION
+
+  tags = {
+    %q = %q
+  }
+}
+`, rName, rName, tag1Key, tag1Value)
+}
+
+func testAccAWSEcsTaskDefinitionConfigTags2(rName, tag1Key, tag1Value, tag2Key, tag2Value string) string {
+	return fmt.Sprintf(`
+resource "aws_ecs_cluster" "test" {
+  name = %q
+}
+
+resource "aws_ecs_task_definition" "test" {
+  family = %q
+
+  container_definitions = <<DEFINITION
+[
+  {
+    "cpu": 128,
+    "essential": true,
+    "image": "mongo:latest",
+    "memory": 128,
+    "name": "mongodb"
+  }
+]
+DEFINITION
+
+  tags = {
+    %q = %q
+    %q = %q
+  }
+}
+`, rName, rName, tag1Key, tag1Value, tag2Key, tag2Value)
+}
+
+func testAccAWSEcsTaskDefinitionImportStateIdFunc(resourceName string) resource.ImportStateIdFunc {
+	return func(s *terraform.State) (string, error) {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return "", fmt.Errorf("Not found: %s", resourceName)
+		}
+
+		return rs.Primary.Attributes["arn"], nil
+	}
+}

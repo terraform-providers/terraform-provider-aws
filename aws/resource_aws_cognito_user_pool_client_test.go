@@ -255,11 +255,7 @@ func testAccCheckAWSCognitoUserPoolClientExists(name string) resource.TestCheckF
 
 		_, err := conn.DescribeUserPoolClient(params)
 
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return err
 	}
 }
 

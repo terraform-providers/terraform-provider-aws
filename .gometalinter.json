@@ -4,6 +4,7 @@
         "deadcode",
         "errcheck",
         "gofmt",
+        "gosimple",
         "ineffassign",
         "interfacer",
         "misspell",

@@ -248,7 +248,7 @@ resource "aws_ebs_volume" "test" {
   size              = 10
   type              = "gp2"
 
-  tags {
+  tags = {
     Name = %q
   }
 }
@@ -295,7 +295,7 @@ resource "aws_ebs_volume" "cachevolume" {
   size              = 10
   type              = "gp2"
 
-  tags {
+  tags = {
     Name = %q
   }
 }
@@ -331,7 +331,7 @@ resource "aws_ebs_volume" "snapvolume" {
   size              = 5
   type              = "gp2"
 
-  tags {
+  tags = {
     Name = %q
   }
 }
@@ -339,7 +339,7 @@ resource "aws_ebs_volume" "snapvolume" {
 resource "aws_ebs_snapshot" "test" {
   volume_id = "${aws_ebs_volume.snapvolume.id}"
 
-  tags {
+  tags = {
     Name = %q
   }
 }
@@ -380,7 +380,7 @@ resource "aws_ebs_volume" "test" {
   size              = 10
   type              = "gp2"
 
-  tags {
+  tags = {
     Name = %q
   }
 }

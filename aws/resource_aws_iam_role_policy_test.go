@@ -78,6 +78,33 @@ func TestAccAWSIAMRolePolicy_basic(t *testing.T) {
 	})
 }
 
+func TestAccAWSIAMRolePolicy_disappears(t *testing.T) {
+	var out iam.GetRolePolicyOutput
+	suffix := randomString(10)
+	roleResourceName := fmt.Sprintf("aws_iam_role.role_%s", suffix)
+	rolePolicyResourceName := fmt.Sprintf("aws_iam_role_policy.foo_%s", suffix)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckIAMRolePolicyDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAwsIamRolePolicyConfig(suffix),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckIAMRolePolicyExists(
+						roleResourceName,
+						rolePolicyResourceName,
+						&out,
+					),
+					testAccCheckIAMRolePolicyDisappears(&out),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
 func TestAccAWSIAMRolePolicy_namePrefix(t *testing.T) {
 	var rolePolicy1, rolePolicy2 iam.GetRolePolicyOutput
 	role := acctest.RandString(10)
@@ -201,6 +228,20 @@ func testAccCheckIAMRolePolicyDestroy(s *terraform.State) error {
 	}
 
 	return nil
+}
+
+func testAccCheckIAMRolePolicyDisappears(out *iam.GetRolePolicyOutput) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		iamconn := testAccProvider.Meta().(*AWSClient).iamconn
+
+		params := &iam.DeleteRolePolicyInput{
+			PolicyName: out.PolicyName,
+			RoleName:   out.RoleName,
+		}
+
+		_, err := iamconn.DeleteRolePolicy(params)
+		return err
+	}
 }
 
 func testAccCheckIAMRolePolicyExists(

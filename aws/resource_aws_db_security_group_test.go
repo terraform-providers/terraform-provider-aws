@@ -176,7 +176,7 @@ resource "aws_db_security_group" "bar" {
         cidr = "10.0.0.1/24"
     }
 
-    tags {
+  tags = {
 		foo = "bar"
     }
 }

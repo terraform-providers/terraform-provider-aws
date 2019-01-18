@@ -34,7 +34,7 @@ resource "aws_route53_zone" "main" {
 resource "aws_route53_zone" "dev" {
   name = "dev.example.com"
 
-  tags {
+  tags = {
     Environment = "dev"
   }
 }

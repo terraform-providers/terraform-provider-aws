@@ -253,7 +253,7 @@ func testAccCheckAWSENIAttributes(conf *ec2.NetworkInterface) resource.TestCheck
 			return fmt.Errorf("expected private dns name to be ip-172-16-10-100.us-west-2.compute.internal, but was %s", *conf.PrivateDnsName)
 		}
 
-		if *conf.SourceDestCheck != true {
+		if !*conf.SourceDestCheck {
 			return fmt.Errorf("expected source_dest_check to be true, but was %t", *conf.SourceDestCheck)
 		}
 
@@ -357,7 +357,7 @@ const testAccAWSENIConfig = `
 resource "aws_vpc" "foo" {
 	cidr_block = "172.16.0.0/16"
 	enable_dns_hostnames = true
-	tags {
+	tags = {
 		Name = "terraform-testacc-network-interface"
 	}
 }
@@ -366,7 +366,7 @@ resource "aws_subnet" "foo" {
     vpc_id = "${aws_vpc.foo.id}"
     cidr_block = "172.16.10.0/24"
     availability_zone = "us-west-2a"
-    tags {
+  tags = {
         Name = "tf-acc-network-interface"
     }
 }
@@ -389,7 +389,7 @@ resource "aws_network_interface" "bar" {
     private_ips = ["172.16.10.100"]
     security_groups = ["${aws_security_group.foo.id}"]
     description = "Managed by Terraform"
-    tags {
+  tags = {
         Name = "bar_interface"
     }
 }
@@ -399,7 +399,7 @@ const testAccAWSENIConfigUpdatedDescription = `
 resource "aws_vpc" "foo" {
 	cidr_block = "172.16.0.0/16"
 	enable_dns_hostnames = true
-	tags {
+	tags = {
 		Name = "terraform-testacc-network-interface-update-desc"
 	}
 }
@@ -408,7 +408,7 @@ resource "aws_subnet" "foo" {
     vpc_id = "${aws_vpc.foo.id}"
     cidr_block = "172.16.10.0/24"
     availability_zone = "us-west-2a"
-    tags {
+  tags = {
         Name = "tf-acc-network-interface-update-desc"
     }
 }
@@ -431,7 +431,7 @@ resource "aws_network_interface" "bar" {
     private_ips = ["172.16.10.100"]
     security_groups = ["${aws_security_group.foo.id}"]
     description = "Updated ENI Description"
-    tags {
+  tags = {
         Name = "bar_interface"
     }
 }
@@ -441,7 +441,7 @@ const testAccAWSENIConfigWithSourceDestCheck = `
 resource "aws_vpc" "foo" {
 	cidr_block = "172.16.0.0/16"
 	enable_dns_hostnames = true
-	tags {
+	tags = {
 		Name = "terraform-testacc-network-interface-w-source-dest-check"
 	}
 }
@@ -450,7 +450,7 @@ resource "aws_subnet" "foo" {
     vpc_id = "${aws_vpc.foo.id}"
     cidr_block = "172.16.10.0/24"
     availability_zone = "us-west-2a"
-    tags {
+  tags = {
         Name = "tf-acc-network-interface-w-source-dest-check"
     }
 }
@@ -466,7 +466,7 @@ const testAccAWSENIConfigWithNoPrivateIPs = `
 resource "aws_vpc" "foo" {
 	cidr_block = "172.16.0.0/16"
 	enable_dns_hostnames = true
-	tags {
+	tags = {
 		Name = "terraform-testacc-network-interface-w-no-private-ips"
 	}
 }
@@ -475,7 +475,7 @@ resource "aws_subnet" "foo" {
     vpc_id = "${aws_vpc.foo.id}"
     cidr_block = "172.16.10.0/24"
     availability_zone = "us-west-2a"
-    tags {
+  tags = {
         Name = "tf-acc-network-interface-w-no-private-ips"
     }
 }
@@ -490,7 +490,7 @@ const testAccAWSENIConfigWithAttachment = `
 resource "aws_vpc" "foo" {
 	cidr_block = "172.16.0.0/16"
 	enable_dns_hostnames = true
-    tags {
+  tags = {
         Name = "terraform-testacc-network-interface-w-attachment"
     }
 }
@@ -499,7 +499,7 @@ resource "aws_subnet" "foo" {
     vpc_id = "${aws_vpc.foo.id}"
     cidr_block = "172.16.10.0/24"
     availability_zone = "us-west-2a"
-        tags {
+  tags = {
             Name = "tf-acc-network-interface-w-attachment-foo"
         }
 }
@@ -508,7 +508,7 @@ resource "aws_subnet" "bar" {
     vpc_id = "${aws_vpc.foo.id}"
     cidr_block = "172.16.11.0/24"
     availability_zone = "us-west-2a"
-        tags {
+  tags = {
             Name = "tf-acc-network-interface-w-attachment-bar"
         }
 }
@@ -525,7 +525,7 @@ resource "aws_instance" "foo" {
     subnet_id = "${aws_subnet.bar.id}"
     associate_public_ip_address = false
     private_ip = "172.16.11.50"
-    tags {
+  tags = {
         Name = "foo-tf-eni-test"
     }
 }
@@ -538,7 +538,7 @@ resource "aws_network_interface" "bar" {
         instance = "${aws_instance.foo.id}"
         device_index = 1
     }
-    tags {
+  tags = {
         Name = "bar_interface"
     }
 }
@@ -548,7 +548,7 @@ const testAccAWSENIConfigExternalAttachment = `
 resource "aws_vpc" "foo" {
 	cidr_block = "172.16.0.0/16"
 	enable_dns_hostnames = true
-    tags {
+  tags = {
         Name = "terraform-testacc-network-interface-external-attachment"
     }
 }
@@ -557,7 +557,7 @@ resource "aws_subnet" "foo" {
     vpc_id = "${aws_vpc.foo.id}"
     cidr_block = "172.16.10.0/24"
     availability_zone = "us-west-2a"
-    tags {
+  tags = {
         Name = "tf-acc-network-interface-external-attachment-foo"
     }
 }
@@ -566,7 +566,7 @@ resource "aws_subnet" "bar" {
     vpc_id = "${aws_vpc.foo.id}"
     cidr_block = "172.16.11.0/24"
     availability_zone = "us-west-2a"
-    tags {
+  tags = {
         Name = "tf-acc-network-interface-external-attachment-bar"
     }
 }
@@ -583,7 +583,7 @@ resource "aws_instance" "foo" {
     subnet_id = "${aws_subnet.bar.id}"
     associate_public_ip_address = false
     private_ip = "172.16.11.50"
-    tags {
+  tags = {
         Name = "tf-eni-test"
     }
 }
@@ -592,7 +592,7 @@ resource "aws_network_interface" "bar" {
     subnet_id = "${aws_subnet.foo.id}"
     private_ips = ["172.16.10.100"]
     security_groups = ["${aws_security_group.foo.id}"]
-    tags {
+  tags = {
         Name = "bar_interface"
     }
 }

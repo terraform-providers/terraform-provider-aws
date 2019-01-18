@@ -228,6 +228,7 @@ func flattenFirehoseExtendedS3Configuration(description *firehose.ExtendedS3Dest
 		"cloudwatch_logging_options":           flattenCloudwatchLoggingOptions(description.CloudWatchLoggingOptions),
 		"compression_format":                   aws.StringValue(description.CompressionFormat),
 		"data_format_conversion_configuration": flattenFirehoseDataFormatConversionConfiguration(description.DataFormatConversionConfiguration),
+		"error_output_prefix":                  aws.StringValue(description.ErrorOutputPrefix),
 		"prefix":                               aws.StringValue(description.Prefix),
 		"processing_configuration":             flattenProcessingConfiguration(description.ProcessingConfiguration, aws.StringValue(description.RoleARN)),
 		"role_arn":                             aws.StringValue(description.RoleARN),
@@ -542,7 +543,7 @@ func flattenProcessingConfiguration(pc *firehose.ProcessingConfiguration, roleAr
 		"BufferIntervalInSeconds": "60",
 	}
 
-	processors := make([]interface{}, len(pc.Processors), len(pc.Processors))
+	processors := make([]interface{}, len(pc.Processors))
 	for i, p := range pc.Processors {
 		t := aws.StringValue(p.Type)
 		parameters := make([]interface{}, 0)
@@ -662,6 +663,8 @@ func resourceAwsKinesisFirehoseDeliveryStream() *schema.Resource {
 					return
 				},
 			},
+
+			"tags": tagsSchema(),
 
 			"kinesis_source_configuration": {
 				Type:     schema.TypeList,
@@ -993,6 +996,11 @@ func resourceAwsKinesisFirehoseDeliveryStream() *schema.Resource {
 									},
 								},
 							},
+						},
+
+						"error_output_prefix": {
+							Type:     schema.TypeString,
+							Optional: true,
 						},
 
 						"kms_key_arn": {
@@ -1394,6 +1402,10 @@ func createExtendedS3Config(d *schema.ResourceData) *firehose.ExtendedS3Destinat
 		configuration.CloudWatchLoggingOptions = extractCloudWatchLoggingConfiguration(s3)
 	}
 
+	if v, ok := s3["error_output_prefix"]; ok && v.(string) != "" {
+		configuration.ErrorOutputPrefix = aws.String(v.(string))
+	}
+
 	if s3BackupMode, ok := s3["s3_backup_mode"]; ok {
 		configuration.S3BackupMode = aws.String(s3BackupMode.(string))
 		configuration.S3BackupConfiguration = expandS3BackupConfig(d.Get("extended_s3_configuration").([]interface{})[0].(map[string]interface{}))
@@ -1473,6 +1485,10 @@ func updateExtendedS3Config(d *schema.ResourceData) *firehose.ExtendedS3Destinat
 
 	if _, ok := s3["cloudwatch_logging_options"]; ok {
 		configuration.CloudWatchLoggingOptions = extractCloudWatchLoggingConfiguration(s3)
+	}
+
+	if v, ok := s3["error_output_prefix"]; ok && v.(string) != "" {
+		configuration.ErrorOutputPrefix = aws.String(v.(string))
 	}
 
 	if s3BackupMode, ok := s3["s3_backup_mode"]; ok {
@@ -2111,6 +2127,12 @@ func resourceAwsKinesisFirehoseDeliveryStreamCreate(d *schema.ResourceData, meta
 	d.SetId(*s.DeliveryStreamARN)
 	d.Set("arn", s.DeliveryStreamARN)
 
+	if err := setTagsKinesisFirehose(conn, d, sn); err != nil {
+		return fmt.Errorf(
+			"Error setting for Kinesis Stream (%s) tags: %s",
+			sn, err)
+	}
+
 	return resourceAwsKinesisFirehoseDeliveryStreamRead(d, meta)
 }
 
@@ -2155,7 +2177,6 @@ func resourceAwsKinesisFirehoseDeliveryStreamUpdate(d *schema.ResourceData, meta
 	conn := meta.(*AWSClient).firehoseconn
 
 	sn := d.Get("name").(string)
-
 	updateInput := &firehose.UpdateDestinationInput{
 		DeliveryStreamName:             aws.String(sn),
 		CurrentDeliveryStreamVersionId: aws.String(d.Get("version_id").(string)),
@@ -2223,19 +2244,26 @@ func resourceAwsKinesisFirehoseDeliveryStreamUpdate(d *schema.ResourceData, meta
 			sn, err)
 	}
 
+	if err := setTagsKinesisFirehose(conn, d, sn); err != nil {
+		return fmt.Errorf(
+			"Error Updating Kinesis Firehose Delivery Stream tags: \"%s\"\n%s",
+			sn, err)
+	}
+
 	return resourceAwsKinesisFirehoseDeliveryStreamRead(d, meta)
 }
 
 func resourceAwsKinesisFirehoseDeliveryStreamRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).firehoseconn
 
+	sn := d.Get("name").(string)
 	resp, err := conn.DescribeDeliveryStream(&firehose.DescribeDeliveryStreamInput{
-		DeliveryStreamName: aws.String(d.Get("name").(string)),
+		DeliveryStreamName: aws.String(sn),
 	})
 
 	if err != nil {
 		if isAWSErr(err, firehose.ErrCodeResourceNotFoundException, "") {
-			log.Printf("[WARN] Kinesis Firehose Delivery Stream (%s) not found, removing from state", d.Get("name").(string))
+			log.Printf("[WARN] Kinesis Firehose Delivery Stream (%s) not found, removing from state", sn)
 			d.SetId("")
 			return nil
 		}
@@ -2245,6 +2273,10 @@ func resourceAwsKinesisFirehoseDeliveryStreamRead(d *schema.ResourceData, meta i
 	s := resp.DeliveryStreamDescription
 	err = flattenKinesisFirehoseDeliveryStream(d, s)
 	if err != nil {
+		return err
+	}
+
+	if err := getTagsKinesisFirehose(conn, d, sn); err != nil {
 		return err
 	}
 

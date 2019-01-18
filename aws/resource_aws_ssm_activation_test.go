@@ -44,7 +44,7 @@ func TestAccAWSSSMActivation_expirationDate(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccAWSSSMActivationConfig_expirationDate(rName, "2018-03-01"),
-				ExpectError: regexp.MustCompile(`cannot parse`),
+				ExpectError: regexp.MustCompile(`invalid RFC3339 timestamp`),
 			},
 			{
 				Config: testAccAWSSSMActivationConfig_expirationDate(rName, expirationDateS),

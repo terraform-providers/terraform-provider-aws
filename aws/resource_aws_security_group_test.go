@@ -23,7 +23,10 @@ import (
 func init() {
 	resource.AddTestSweepers("aws_security_group", &resource.Sweeper{
 		Name: "aws_security_group",
-		F:    testSweepSecurityGroups,
+		Dependencies: []string{
+			"aws_subnet",
+		},
+		F: testSweepSecurityGroups,
 	})
 }
 
@@ -2487,7 +2490,7 @@ func testAccAWSSecurityGroupConfigRuleLimit(egressStartIndex, egressRulesCount i
 	c := `
 resource "aws_vpc" "test" {
   cidr_block = "10.1.0.0/16"
-  tags {
+  tags = {
     Name = "terraform-testacc-security-group-rule-limit"
   }
 }
@@ -2497,7 +2500,7 @@ resource "aws_security_group" "test" {
   description = "Used in the terraform acceptance tests"
   vpc_id = "${aws_vpc.test.id}"
 
-	tags {
+	tags = {
     Name = "tf-acc-test"
   }
 
@@ -2524,7 +2527,7 @@ func testAccAWSSecurityGroupConfigCidrBlockRuleLimit(egressStartIndex, egressRul
 	c := `
 resource "aws_vpc" "test" {
   cidr_block = "10.1.0.0/16"
-  tags {
+  tags = {
     Name = "terraform-testacc-security-group-rule-limit"
   }
 }
@@ -2534,7 +2537,7 @@ resource "aws_security_group" "test" {
   description = "Used in the terraform acceptance tests"
   vpc_id = "${aws_vpc.test.id}"
 
-	tags {
+	tags = {
     Name = "tf-acc-test"
   }
 
@@ -2560,7 +2563,7 @@ resource "aws_security_group" "test" {
 const testAccAWSSecurityGroupConfigEmptyRuleDescription = `
 resource "aws_vpc" "foo" {
   cidr_block = "10.1.0.0/16"
-  tags {
+  tags = {
     Name = "terraform-testacc-security-group-empty-rule-description"
   }
 }
@@ -2586,7 +2589,7 @@ resource "aws_security_group" "web" {
     description = ""
   }
 
-  tags {
+  tags = {
     Name = "tf-acc-test"
   }
 }`
@@ -2594,7 +2597,7 @@ resource "aws_security_group" "web" {
 const testAccAWSSecurityGroupConfigIpv6 = `
 resource "aws_vpc" "foo" {
   cidr_block = "10.1.0.0/16"
-  tags {
+  tags = {
     Name = "terraform-testacc-security-group-ipv6"
   }
 }
@@ -2618,7 +2621,7 @@ resource "aws_security_group" "web" {
     ipv6_cidr_blocks = ["::/0"]
   }
 
-	tags {
+	tags = {
 		Name = "tf-acc-test"
 	}
 }
@@ -2627,7 +2630,7 @@ resource "aws_security_group" "web" {
 const testAccAWSSecurityGroupConfig = `
 resource "aws_vpc" "foo" {
   cidr_block = "10.1.0.0/16"
-	tags {
+	tags = {
 		Name = "terraform-testacc-security-group"
 	}
 }
@@ -2644,7 +2647,7 @@ resource "aws_security_group" "web" {
     cidr_blocks = ["10.0.0.0/8"]
   }
 
-	tags {
+	tags = {
 		Name = "tf-acc-revoke-test"
 	}
 }
@@ -2653,7 +2656,7 @@ resource "aws_security_group" "web" {
 const testAccAWSSecurityGroupConfig_revoke_base_removed = `
 resource "aws_vpc" "sg-race-revoke" {
   cidr_block = "10.1.0.0/16"
-	tags {
+	tags = {
 		Name = "terraform-testacc-security-group-revoke"
 	}
 }
@@ -2661,7 +2664,7 @@ resource "aws_vpc" "sg-race-revoke" {
 const testAccAWSSecurityGroupConfig_revoke_base = `
 resource "aws_vpc" "sg-race-revoke" {
   cidr_block = "10.1.0.0/16"
-	tags {
+	tags = {
 		Name = "terraform-testacc-security-group-revoke"
 	}
 }
@@ -2671,7 +2674,7 @@ resource "aws_security_group" "primary" {
   description = "Used in the terraform acceptance tests"
   vpc_id = "${aws_vpc.sg-race-revoke.id}"
 
-	tags {
+	tags = {
 		Name = "tf-acc-revoke-test-primary"
 	}
 }
@@ -2681,7 +2684,7 @@ resource "aws_security_group" "secondary" {
   description = "Used in the terraform acceptance tests"
   vpc_id = "${aws_vpc.sg-race-revoke.id}"
 
-	tags {
+	tags = {
 		Name = "tf-acc-revoke-test-secondary"
 	}
 }
@@ -2690,7 +2693,7 @@ resource "aws_security_group" "secondary" {
 const testAccAWSSecurityGroupConfig_revoke_false = `
 resource "aws_vpc" "sg-race-revoke" {
   cidr_block = "10.1.0.0/16"
-	tags {
+	tags = {
 		Name = "terraform-testacc-security-group-revoke"
 	}
 }
@@ -2700,7 +2703,7 @@ resource "aws_security_group" "primary" {
   description = "Used in the terraform acceptance tests"
   vpc_id = "${aws_vpc.sg-race-revoke.id}"
 
-	tags {
+	tags = {
 		Name = "tf-acc-revoke-test-primary"
 	}
 
@@ -2712,7 +2715,7 @@ resource "aws_security_group" "secondary" {
   description = "Used in the terraform acceptance tests"
   vpc_id = "${aws_vpc.sg-race-revoke.id}"
 
-	tags {
+	tags = {
 		Name = "tf-acc-revoke-test-secondary"
 	}
 
@@ -2723,7 +2726,7 @@ resource "aws_security_group" "secondary" {
 const testAccAWSSecurityGroupConfig_revoke_true = `
 resource "aws_vpc" "sg-race-revoke" {
   cidr_block = "10.1.0.0/16"
-	tags {
+	tags = {
 		Name = "terraform-testacc-security-group-revoke"
 	}
 }
@@ -2733,7 +2736,7 @@ resource "aws_security_group" "primary" {
   description = "Used in the terraform acceptance tests"
   vpc_id = "${aws_vpc.sg-race-revoke.id}"
 
-	tags {
+	tags = {
 		Name = "tf-acc-revoke-test-primary"
 	}
 
@@ -2745,7 +2748,7 @@ resource "aws_security_group" "secondary" {
   description = "Used in the terraform acceptance tests"
   vpc_id = "${aws_vpc.sg-race-revoke.id}"
 
-	tags {
+	tags = {
 		Name = "tf-acc-revoke-test-secondary"
 	}
 
@@ -2756,7 +2759,7 @@ resource "aws_security_group" "secondary" {
 const testAccAWSSecurityGroupConfigChange = `
 resource "aws_vpc" "foo" {
   cidr_block = "10.1.0.0/16"
-  tags {
+  tags = {
     Name = "terraform-testacc-security-group-change"
   }
 }
@@ -2793,7 +2796,7 @@ func testAccAWSSecurityGroupConfigRuleDescription(egressDescription, ingressDesc
 	return fmt.Sprintf(`
 resource "aws_vpc" "foo" {
   cidr_block = "10.1.0.0/16"
-  tags {
+  tags = {
     Name = "terraform-testacc-security-group-description"
   }
 }
@@ -2819,7 +2822,7 @@ resource "aws_security_group" "web" {
     description = "%s"
   }
 
-	tags {
+	tags = {
 		Name = "tf-acc-test"
 	}
 }
@@ -2829,7 +2832,7 @@ resource "aws_security_group" "web" {
 const testAccAWSSecurityGroupConfigSelf = `
 resource "aws_vpc" "foo" {
   cidr_block = "10.1.0.0/16"
-  tags {
+  tags = {
     Name = "terraform-testacc-security-group-self"
   }
 }
@@ -2858,7 +2861,7 @@ resource "aws_security_group" "web" {
 const testAccAWSSecurityGroupConfigVpc = `
 resource "aws_vpc" "foo" {
   cidr_block = "10.1.0.0/16"
-  tags {
+  tags = {
     Name = "terraform-testacc-security-group-vpc"
   }
 }
@@ -2887,7 +2890,7 @@ resource "aws_security_group" "web" {
 const testAccAWSSecurityGroupConfigVpcNegOneIngress = `
 resource "aws_vpc" "foo" {
 	cidr_block = "10.1.0.0/16"
-	tags {
+	tags = {
 		Name = "terraform-testacc-security-group-vpc-neg-one-ingress"
 	}
 }
@@ -2909,7 +2912,7 @@ resource "aws_security_group" "web" {
 const testAccAWSSecurityGroupConfigVpcProtoNumIngress = `
 resource "aws_vpc" "foo" {
 	cidr_block = "10.1.0.0/16"
-	tags {
+	tags = {
 		Name = "terraform-testacc-security-group-vpc-proto-num-ingress"
 	}
 }
@@ -2931,7 +2934,7 @@ resource "aws_security_group" "web" {
 const testAccAWSSecurityGroupConfigMultiIngress = `
 resource "aws_vpc" "foo" {
 	cidr_block = "10.1.0.0/16"
-	tags {
+	tags = {
 		Name = "terraform-testacc-security-group-multi-ingress"
 	}
 }
@@ -2994,7 +2997,7 @@ resource "aws_security_group" "web" {
 const testAccAWSSecurityGroupConfigTags = `
 resource "aws_vpc" "foo" {
 	cidr_block = "10.1.0.0/16"
-	tags {
+	tags = {
 		Name = "terraform-testacc-security-group-tags"
 	}
 }
@@ -3004,7 +3007,7 @@ resource "aws_security_group" "foo" {
   description = "Used in the terraform acceptance tests"
   vpc_id = "${aws_vpc.foo.id}"
 
-  tags {
+  tags = {
     foo = "bar"
   }
 }
@@ -3013,7 +3016,7 @@ resource "aws_security_group" "foo" {
 const testAccAWSSecurityGroupConfigTagsUpdate = `
 resource "aws_vpc" "foo" {
 	cidr_block = "10.1.0.0/16"
-	tags {
+	tags = {
 		Name = "terraform-testacc-security-group-tags"
 	}
 }
@@ -3023,7 +3026,7 @@ resource "aws_security_group" "foo" {
   description = "Used in the terraform acceptance tests"
   vpc_id = "${aws_vpc.foo.id}"
 
-  tags {
+  tags = {
     bar = "baz"
     env = "Production"
   }
@@ -3033,7 +3036,7 @@ resource "aws_security_group" "foo" {
 const testAccAWSSecurityGroupConfig_generatedName = `
 resource "aws_vpc" "foo" {
 	cidr_block = "10.1.0.0/16"
-	tags {
+	tags = {
 		Name = "terraform-testacc-security-group-generated-name"
 	}
 }
@@ -3041,7 +3044,7 @@ resource "aws_vpc" "foo" {
 resource "aws_security_group" "web" {
   vpc_id = "${aws_vpc.foo.id}"
 
-	tags {
+	tags = {
 		Name = "tf-acc-test"
 	}
 }
@@ -3050,7 +3053,7 @@ resource "aws_security_group" "web" {
 const testAccAWSSecurityGroupConfigDefaultEgress = `
 resource "aws_vpc" "tf_sg_egress_test" {
     cidr_block = "10.0.0.0/16"
-    tags {
+  tags = {
         Name = "terraform-testacc-security-group-default-egress"
     }
 }
@@ -3107,7 +3110,7 @@ resource "aws_security_group" "web" {
     cidr_blocks = ["206.0.0.0/8"]
   }
 
-        tags {
+  tags = {
                 Name = "tf-acc-test"
         }
 }
@@ -3118,7 +3121,7 @@ func testAccAWSSecurityGroupConfig_drift_complex() string {
 	return fmt.Sprintf(`
 resource "aws_vpc" "foo" {
 	cidr_block = "10.1.0.0/16"
-	tags {
+	tags = {
 		Name = "terraform-testacc-security-group-drift-complex"
 	}
 }
@@ -3176,7 +3179,7 @@ resource "aws_security_group" "web" {
     security_groups = ["${aws_security_group.otherweb.id}"]
   }
 
-  tags {
+  tags = {
     Name = "tf-acc-test"
   }
 }`, acctest.RandInt(), acctest.RandInt())
@@ -3233,7 +3236,7 @@ resource "aws_security_group" "foo" {
 const testAccAWSSecurityGroupCombindCIDRandGroups = `
 resource "aws_vpc" "foo" {
 	cidr_block = "10.1.0.0/16"
-	tags {
+	tags = {
 		Name = "terraform-testacc-security-group-combine-rand-groups"
 	}
 }
@@ -3241,7 +3244,7 @@ resource "aws_vpc" "foo" {
 resource "aws_security_group" "two" {
 	name = "tf-test-1"
 	vpc_id = "${aws_vpc.foo.id}"
-	tags {
+	tags = {
 		Name = "tf-test-1"
 	}
 }
@@ -3249,7 +3252,7 @@ resource "aws_security_group" "two" {
 resource "aws_security_group" "one" {
 	name = "tf-test-2"
 	vpc_id = "${aws_vpc.foo.id}"
-	tags {
+	tags = {
 		Name = "tf-test-w"
 	}
 }
@@ -3257,7 +3260,7 @@ resource "aws_security_group" "one" {
 resource "aws_security_group" "three" {
 	name = "tf-test-3"
 	vpc_id = "${aws_vpc.foo.id}"
-	tags {
+	tags = {
 		Name = "tf-test-3"
 	}
 }
@@ -3279,7 +3282,7 @@ resource "aws_security_group" "mixed" {
     ]
   }
 
-  tags {
+  tags = {
     Name = "tf-mix-test"
   }
 }
@@ -3288,7 +3291,7 @@ resource "aws_security_group" "mixed" {
 const testAccAWSSecurityGroupConfig_ingressWithCidrAndSGs = `
 resource "aws_vpc" "foo" {
 	cidr_block = "10.1.0.0/16"
-	tags {
+	tags = {
 		Name = "terraform-testacc-security-group-ingress-w-cidr-and-sg"
 	}
 }
@@ -3298,7 +3301,7 @@ resource "aws_security_group" "other_web" {
   description = "Used in the terraform acceptance tests"
   vpc_id = "${aws_vpc.foo.id}"
 
-  tags {
+  tags = {
     Name = "tf-acc-test"
   }
 }
@@ -3333,7 +3336,7 @@ resource "aws_security_group" "web" {
     cidr_blocks = ["10.0.0.0/8"]
   }
 
-  tags {
+  tags = {
     Name = "tf-acc-test"
   }
 }
@@ -3344,7 +3347,7 @@ resource "aws_security_group" "other_web" {
   name        = "tf_other_acc_tests"
   description = "Used in the terraform acceptance tests"
 
-  tags {
+  tags = {
     Name = "tf-acc-test"
   }
 }
@@ -3371,7 +3374,7 @@ resource "aws_security_group" "web" {
     security_groups = ["${aws_security_group.other_web.name}"]
   }
 
-  tags {
+  tags = {
     Name = "tf-acc-test"
   }
 }
@@ -3383,7 +3386,7 @@ const testAccAWSSecurityGroupConfig_failWithDiffMismatch = `
 resource "aws_vpc" "main" {
   cidr_block = "10.0.0.0/16"
 
-  tags {
+  tags = {
     Name = "terraform-testacc-security-group-fail-w-diff-mismatch"
   }
 }
@@ -3427,7 +3430,7 @@ const testAccAWSSecurityGroupConfig_importSelf = `
 resource "aws_vpc" "foo" {
   cidr_block = "10.1.0.0/16"
 
-  tags {
+  tags = {
     Name = "terraform-testacc-security-group-import-self"
   }
 }
@@ -3463,7 +3466,7 @@ const testAccAWSSecurityGroupConfig_importSourceSecurityGroup = `
 resource "aws_vpc" "foo" {
   cidr_block = "10.1.0.0/16"
 
-  tags {
+  tags = {
     Name = "terraform-testacc-security-group-import-source-sg"
   }
 }
@@ -3508,7 +3511,7 @@ const testAccAWSSecurityGroupConfig_importIPRangeAndSecurityGroupWithSameRules =
 resource "aws_vpc" "foo" {
   cidr_block = "10.1.0.0/16"
 
-  tags {
+  tags = {
     Name = "terraform-testacc-security-group-import-ip-range-and-sg"
   }
 }
@@ -3558,7 +3561,7 @@ const testAccAWSSecurityGroupConfig_importIPRangesWithSameRules = `
 resource "aws_vpc" "foo" {
   cidr_block = "10.1.0.0/16"
 
-  tags {
+  tags = {
     Name = "terraform-testacc-security-group-import-ip-ranges"
   }
 }
@@ -3593,7 +3596,7 @@ const testAccAWSSecurityGroupConfigIpv4andIpv6Egress = `
 resource "aws_vpc" "foo" {
   cidr_block = "10.1.0.0/16"
   assign_generated_ipv6_cidr_block = true
-  tags {
+  tags = {
       Name = "terraform-testacc-security-group-ipv4-and-ipv6-egress"
   }
 }
@@ -3622,7 +3625,7 @@ data "aws_region" "current" {}
 
 resource "aws_vpc" "tf_sg_prefix_list_egress_test" {
     cidr_block = "10.0.0.0/16"
-    tags {
+  tags = {
         Name = "terraform-testacc-security-group-prefix-list-egress"
     }
 }
@@ -3670,7 +3673,7 @@ data "aws_region" "current" {}
 
 resource "aws_vpc" "tf_sg_prefix_list_ingress_test" {
     cidr_block = "10.0.0.0/16"
-    tags {
+  tags = {
         Name = "terraform-testacc-security-group-prefix-list-ingress"
     }
 }
@@ -3724,7 +3727,7 @@ data "aws_region" "current" {}
 resource "aws_vpc" "test" {
   cidr_block = "10.0.0.0/16"
 
-  tags {
+  tags = {
     Name = "${var.name}"
   }
 }
@@ -3841,7 +3844,7 @@ resource "aws_security_group" "test" {
 const testAccAWSSecurityGroupConfig_rulesDropOnError_Init = `
 resource "aws_vpc" "test" {
   cidr_block = "10.1.0.0/16"
-  tags {
+  tags = {
     Name = "terraform-testacc-security-group-drop-rules-test"
   }
 }
@@ -3861,7 +3864,7 @@ resource "aws_security_group" "test" {
   description = "Used in the terraform acceptance tests"
   vpc_id = "${aws_vpc.test.id}"
 
-  tags {
+  tags = {
     Name = "tf-acc-test"
   }
 
@@ -3880,7 +3883,7 @@ resource "aws_security_group" "test" {
 const testAccAWSSecurityGroupConfig_rulesDropOnError_AddBadRule = `
 resource "aws_vpc" "test" {
   cidr_block = "10.1.0.0/16"
-  tags {
+  tags = {
     Name = "terraform-testacc-security-group-drop-rules-test"
   }
 }
@@ -3900,7 +3903,7 @@ resource "aws_security_group" "test" {
   description = "Used in the terraform acceptance tests"
   vpc_id = "${aws_vpc.test.id}"
 
-  tags {
+  tags = {
     Name = "tf-acc-test"
   }
 

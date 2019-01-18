@@ -430,6 +430,28 @@ func TestAccAWSLaunchTemplate_creditSpecification_t3(t *testing.T) {
 	})
 }
 
+// Reference: https://github.com/terraform-providers/terraform-provider-aws/issues/6757
+func TestAccAWSLaunchTemplate_IamInstanceProfile_EmptyConfigurationBlock(t *testing.T) {
+	var template1 ec2.LaunchTemplate
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_launch_template.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSLaunchTemplateDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSLaunchTemplateConfigIamInstanceProfileEmptyConfigurationBlock(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSLaunchTemplateExists(resourceName, &template1),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
 func TestAccAWSLaunchTemplate_networkInterface(t *testing.T) {
 	var template ec2.LaunchTemplate
 	resName := "aws_launch_template.test"
@@ -533,6 +555,27 @@ func TestAccAWSLaunchTemplate_instanceMarketOptions(t *testing.T) {
 	})
 }
 
+func TestAccAWSLaunchTemplate_licenseSpecification(t *testing.T) {
+	var template ec2.LaunchTemplate
+	resName := "aws_launch_template.example"
+	rInt := acctest.RandInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSLaunchTemplateDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSLaunchTemplateConfig_licenseSpecification(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSLaunchTemplateExists(resName, &template),
+					resource.TestCheckResourceAttr(resName, "license_specification.#", "1"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckAWSLaunchTemplateExists(n string, t *ec2.LaunchTemplate) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
@@ -610,7 +653,7 @@ func testAccAWSLaunchTemplateConfig_basic(rInt int) string {
 resource "aws_launch_template" "foo" {
   name = "foo_%d"
 
-  tags {
+  tags = {
     foo = "bar"
   }
 }
@@ -791,7 +834,7 @@ resource "aws_launch_template" "foo" {
 
   tag_specifications {
     resource_type = "instance"
-    tags {
+  tags = {
       Name = "test"
     }
   }
@@ -804,7 +847,7 @@ func testAccAWSLaunchTemplateConfig_tagsUpdate(rInt int) string {
 resource "aws_launch_template" "foo" {
   name = "foo_%d"
 
-  tags {
+  tags = {
     bar = "baz"
   }
 }
@@ -857,6 +900,33 @@ resource "aws_launch_template" "foo" {
   }
 }
 `, instanceType, rName, cpuCredits)
+}
+
+func testAccAWSLaunchTemplateConfigIamInstanceProfileEmptyConfigurationBlock(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_launch_template" "test" {
+  name = %q
+
+  iam_instance_profile {}
+}
+`, rName)
+}
+
+func testAccAWSLaunchTemplateConfig_licenseSpecification(rInt int) string {
+	return fmt.Sprintf(`
+resource "aws_licensemanager_license_configuration" "example" {
+  name                  = "Example"
+  license_counting_type = "vCPU"
+}
+
+resource "aws_launch_template" "example" {
+  name = "foo_%d"
+
+	license_specification {
+		license_configuration_arn = "${aws_licensemanager_license_configuration.example.id}"
+	}
+}
+`, rInt)
 }
 
 const testAccAWSLaunchTemplateConfig_networkInterface = `
@@ -923,7 +993,7 @@ resource "aws_autoscaling_group" "bar" {
   desired_capacity = 0
   max_size = 0
   min_size = 0
-  launch_template = {
+  launch_template {
     id = "${aws_launch_template.foo.id}"
     version = "${aws_launch_template.foo.latest_version}"
   }
@@ -958,7 +1028,7 @@ resource "aws_autoscaling_group" "bar" {
   desired_capacity = 0
   max_size = 0
   min_size = 0
-  launch_template = {
+  launch_template {
     id = "${aws_launch_template.foo.id}"
     version = "${aws_launch_template.foo.latest_version}"
   }

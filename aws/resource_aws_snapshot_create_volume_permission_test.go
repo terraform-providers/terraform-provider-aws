@@ -9,23 +9,23 @@ import (
 )
 
 func TestAccAWSSnapshotCreateVolumePermission_Basic(t *testing.T) {
-	var snapshotId, accountId string
+	var snapshotId string
+	accountId := "111122223333"
 
 	resource.ParallelTest(t, resource.TestCase{
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			// Scaffold everything
 			{
-				Config: testAccAWSSnapshotCreateVolumePermissionConfig(true),
+				Config: testAccAWSSnapshotCreateVolumePermissionConfig(true, accountId),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckResourceGetAttr("aws_ebs_snapshot.example_snapshot", "id", &snapshotId),
-					testCheckResourceGetAttr("data.aws_caller_identity.current", "account_id", &accountId),
 					testAccAWSSnapshotCreateVolumePermissionExists(&accountId, &snapshotId),
 				),
 			},
 			// Drop just create volume permission to test destruction
 			{
-				Config: testAccAWSSnapshotCreateVolumePermissionConfig(false),
+				Config: testAccAWSSnapshotCreateVolumePermissionConfig(false, accountId),
 				Check: resource.ComposeTestCheckFunc(
 					testAccAWSSnapshotCreateVolumePermissionDestroyed(&accountId, &snapshotId),
 				),
@@ -58,15 +58,15 @@ func testAccAWSSnapshotCreateVolumePermissionDestroyed(accountId, snapshotId *st
 	}
 }
 
-func testAccAWSSnapshotCreateVolumePermissionConfig(includeCreateVolumePermission bool) string {
+func testAccAWSSnapshotCreateVolumePermissionConfig(includeCreateVolumePermission bool, accountID string) string {
 	base := `
-data "aws_caller_identity" "current" {}
+data "aws_availability_zones" "available" {}
 
 resource "aws_ebs_volume" "example" {
-  availability_zone = "us-west-2a"
-  size              = 40
+  availability_zone = "${data.aws_availability_zones.available.names[0]}"
+  size              = 1
 
-  tags {
+  tags = {
     Name = "ebs_snap_perm"
   }
 }
@@ -83,7 +83,7 @@ resource "aws_ebs_snapshot" "example_snapshot" {
 	return base + fmt.Sprintf(`
 resource "aws_snapshot_create_volume_permission" "self-test" {
   snapshot_id = "${aws_ebs_snapshot.example_snapshot.id}"
-  account_id  = "${data.aws_caller_identity.current.account_id}"
+  account_id  = %q
 }
-`)
+`, accountID)
 }

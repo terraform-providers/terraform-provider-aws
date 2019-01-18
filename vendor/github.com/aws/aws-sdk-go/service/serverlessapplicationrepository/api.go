@@ -422,8 +422,7 @@ func (c *ServerlessApplicationRepository) DeleteApplicationRequest(input *Delete
 
 	output = &DeleteApplicationOutput{}
 	req = c.newRequest(op, input, output)
-	req.Handlers.Unmarshal.Remove(restjson.UnmarshalHandler)
-	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
+	req.Handlers.Unmarshal.Swap(restjson.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -762,6 +761,156 @@ func (c *ServerlessApplicationRepository) GetCloudFormationTemplateWithContext(c
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
+}
+
+const opListApplicationDependencies = "ListApplicationDependencies"
+
+// ListApplicationDependenciesRequest generates a "aws/request.Request" representing the
+// client's request for the ListApplicationDependencies operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See ListApplicationDependencies for more information on using the ListApplicationDependencies
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the ListApplicationDependenciesRequest method.
+//    req, resp := client.ListApplicationDependenciesRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/serverlessrepo-2017-09-08/ListApplicationDependencies
+func (c *ServerlessApplicationRepository) ListApplicationDependenciesRequest(input *ListApplicationDependenciesInput) (req *request.Request, output *ListApplicationDependenciesOutput) {
+	op := &request.Operation{
+		Name:       opListApplicationDependencies,
+		HTTPMethod: "GET",
+		HTTPPath:   "/applications/{applicationId}/dependencies",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"NextToken"},
+			OutputTokens:    []string{"NextToken"},
+			LimitToken:      "MaxItems",
+			TruncationToken: "",
+		},
+	}
+
+	if input == nil {
+		input = &ListApplicationDependenciesInput{}
+	}
+
+	output = &ListApplicationDependenciesOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// ListApplicationDependencies API operation for AWSServerlessApplicationRepository.
+//
+// Retrieves the list of applications nested in the containing application.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWSServerlessApplicationRepository's
+// API operation ListApplicationDependencies for usage and error information.
+//
+// Returned Error Codes:
+//   * ErrCodeNotFoundException "NotFoundException"
+//   The resource (for example, an access policy statement) specified in the request
+//   doesn't exist.
+//
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   The client is sending more than the allowed number of requests per unit of
+//   time.
+//
+//   * ErrCodeBadRequestException "BadRequestException"
+//   One of the parameters in the request is invalid.
+//
+//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   The AWS Serverless Application Repository service encountered an internal
+//   error.
+//
+//   * ErrCodeForbiddenException "ForbiddenException"
+//   The client is not authenticated.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/serverlessrepo-2017-09-08/ListApplicationDependencies
+func (c *ServerlessApplicationRepository) ListApplicationDependencies(input *ListApplicationDependenciesInput) (*ListApplicationDependenciesOutput, error) {
+	req, out := c.ListApplicationDependenciesRequest(input)
+	return out, req.Send()
+}
+
+// ListApplicationDependenciesWithContext is the same as ListApplicationDependencies with the addition of
+// the ability to pass a context and additional request options.
+//
+// See ListApplicationDependencies for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *ServerlessApplicationRepository) ListApplicationDependenciesWithContext(ctx aws.Context, input *ListApplicationDependenciesInput, opts ...request.Option) (*ListApplicationDependenciesOutput, error) {
+	req, out := c.ListApplicationDependenciesRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+// ListApplicationDependenciesPages iterates over the pages of a ListApplicationDependencies operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListApplicationDependencies method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListApplicationDependencies operation.
+//    pageNum := 0
+//    err := client.ListApplicationDependenciesPages(params,
+//        func(page *ListApplicationDependenciesOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *ServerlessApplicationRepository) ListApplicationDependenciesPages(input *ListApplicationDependenciesInput, fn func(*ListApplicationDependenciesOutput, bool) bool) error {
+	return c.ListApplicationDependenciesPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListApplicationDependenciesPagesWithContext same as ListApplicationDependenciesPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *ServerlessApplicationRepository) ListApplicationDependenciesPagesWithContext(ctx aws.Context, input *ListApplicationDependenciesInput, fn func(*ListApplicationDependenciesOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListApplicationDependenciesInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListApplicationDependenciesRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListApplicationDependenciesOutput), !p.HasNextPage())
+	}
+	return p.Err()
 }
 
 const opListApplicationVersions = "ListApplicationVersions"
@@ -1251,6 +1400,43 @@ func (c *ServerlessApplicationRepository) UpdateApplicationWithContext(ctx aws.C
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
+}
+
+// A nested application summary.
+type ApplicationDependencySummary struct {
+	_ struct{} `type:"structure"`
+
+	// The Amazon Resource Name (ARN) of the nested application.
+	//
+	// ApplicationId is a required field
+	ApplicationId *string `locationName:"applicationId" type:"string" required:"true"`
+
+	// The semantic version of the nested application.
+	//
+	// SemanticVersion is a required field
+	SemanticVersion *string `locationName:"semanticVersion" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s ApplicationDependencySummary) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ApplicationDependencySummary) GoString() string {
+	return s.String()
+}
+
+// SetApplicationId sets the ApplicationId field's value.
+func (s *ApplicationDependencySummary) SetApplicationId(v string) *ApplicationDependencySummary {
+	s.ApplicationId = &v
+	return s
+}
+
+// SetSemanticVersion sets the SemanticVersion field's value.
+func (s *ApplicationDependencySummary) SetSemanticVersion(v string) *ApplicationDependencySummary {
+	s.SemanticVersion = &v
+	return s
 }
 
 // Policy statement applied to the application.
@@ -1787,8 +1973,14 @@ func (s *CreateApplicationVersionRequest) Validate() error {
 	if s.ApplicationId == nil {
 		invalidParams.Add(request.NewErrParamRequired("ApplicationId"))
 	}
+	if s.ApplicationId != nil && len(*s.ApplicationId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ApplicationId", 1))
+	}
 	if s.SemanticVersion == nil {
 		invalidParams.Add(request.NewErrParamRequired("SemanticVersion"))
+	}
+	if s.SemanticVersion != nil && len(*s.SemanticVersion) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("SemanticVersion", 1))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -1893,7 +2085,7 @@ type CreateCloudFormationChangeSetRequest struct {
 
 	ResourceTypes []*string `locationName:"resourceTypes" type:"list"`
 
-	// This property corresponds to the AWS CloudFormation  RollbackConfiguration
+	// This property corresponds to the AWS CloudFormation RollbackConfiguration
 	// (https://docs.aws.amazon.com/goto/WebAPI/cloudformation-2010-05-15/RollbackConfiguration)
 	// Data Type.
 	RollbackConfiguration *RollbackConfiguration `locationName:"rollbackConfiguration" type:"structure"`
@@ -1923,6 +2115,9 @@ func (s *CreateCloudFormationChangeSetRequest) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "CreateCloudFormationChangeSetRequest"}
 	if s.ApplicationId == nil {
 		invalidParams.Add(request.NewErrParamRequired("ApplicationId"))
+	}
+	if s.ApplicationId != nil && len(*s.ApplicationId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ApplicationId", 1))
 	}
 	if s.StackName == nil {
 		invalidParams.Add(request.NewErrParamRequired("StackName"))
@@ -2062,6 +2257,9 @@ func (s *CreateCloudFormationTemplateInput) Validate() error {
 	if s.ApplicationId == nil {
 		invalidParams.Add(request.NewErrParamRequired("ApplicationId"))
 	}
+	if s.ApplicationId != nil && len(*s.ApplicationId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ApplicationId", 1))
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -2174,6 +2372,9 @@ func (s *DeleteApplicationInput) Validate() error {
 	if s.ApplicationId == nil {
 		invalidParams.Add(request.NewErrParamRequired("ApplicationId"))
 	}
+	if s.ApplicationId != nil && len(*s.ApplicationId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ApplicationId", 1))
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -2225,6 +2426,9 @@ func (s *GetApplicationInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "GetApplicationInput"}
 	if s.ApplicationId == nil {
 		invalidParams.Add(request.NewErrParamRequired("ApplicationId"))
+	}
+	if s.ApplicationId != nil && len(*s.ApplicationId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ApplicationId", 1))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -2371,6 +2575,9 @@ func (s *GetApplicationPolicyInput) Validate() error {
 	if s.ApplicationId == nil {
 		invalidParams.Add(request.NewErrParamRequired("ApplicationId"))
 	}
+	if s.ApplicationId != nil && len(*s.ApplicationId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ApplicationId", 1))
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -2432,8 +2639,14 @@ func (s *GetCloudFormationTemplateInput) Validate() error {
 	if s.ApplicationId == nil {
 		invalidParams.Add(request.NewErrParamRequired("ApplicationId"))
 	}
+	if s.ApplicationId != nil && len(*s.ApplicationId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ApplicationId", 1))
+	}
 	if s.TemplateId == nil {
 		invalidParams.Add(request.NewErrParamRequired("TemplateId"))
+	}
+	if s.TemplateId != nil && len(*s.TemplateId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("TemplateId", 1))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -2524,6 +2737,102 @@ func (s *GetCloudFormationTemplateOutput) SetTemplateUrl(v string) *GetCloudForm
 	return s
 }
 
+type ListApplicationDependenciesInput struct {
+	_ struct{} `type:"structure"`
+
+	// ApplicationId is a required field
+	ApplicationId *string `location:"uri" locationName:"applicationId" type:"string" required:"true"`
+
+	MaxItems *int64 `location:"querystring" locationName:"maxItems" min:"1" type:"integer"`
+
+	NextToken *string `location:"querystring" locationName:"nextToken" type:"string"`
+
+	SemanticVersion *string `location:"querystring" locationName:"semanticVersion" type:"string"`
+}
+
+// String returns the string representation
+func (s ListApplicationDependenciesInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListApplicationDependenciesInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ListApplicationDependenciesInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ListApplicationDependenciesInput"}
+	if s.ApplicationId == nil {
+		invalidParams.Add(request.NewErrParamRequired("ApplicationId"))
+	}
+	if s.ApplicationId != nil && len(*s.ApplicationId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ApplicationId", 1))
+	}
+	if s.MaxItems != nil && *s.MaxItems < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("MaxItems", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetApplicationId sets the ApplicationId field's value.
+func (s *ListApplicationDependenciesInput) SetApplicationId(v string) *ListApplicationDependenciesInput {
+	s.ApplicationId = &v
+	return s
+}
+
+// SetMaxItems sets the MaxItems field's value.
+func (s *ListApplicationDependenciesInput) SetMaxItems(v int64) *ListApplicationDependenciesInput {
+	s.MaxItems = &v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListApplicationDependenciesInput) SetNextToken(v string) *ListApplicationDependenciesInput {
+	s.NextToken = &v
+	return s
+}
+
+// SetSemanticVersion sets the SemanticVersion field's value.
+func (s *ListApplicationDependenciesInput) SetSemanticVersion(v string) *ListApplicationDependenciesInput {
+	s.SemanticVersion = &v
+	return s
+}
+
+type ListApplicationDependenciesOutput struct {
+	_ struct{} `type:"structure"`
+
+	Dependencies []*ApplicationDependencySummary `locationName:"dependencies" type:"list"`
+
+	NextToken *string `locationName:"nextToken" type:"string"`
+}
+
+// String returns the string representation
+func (s ListApplicationDependenciesOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListApplicationDependenciesOutput) GoString() string {
+	return s.String()
+}
+
+// SetDependencies sets the Dependencies field's value.
+func (s *ListApplicationDependenciesOutput) SetDependencies(v []*ApplicationDependencySummary) *ListApplicationDependenciesOutput {
+	s.Dependencies = v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListApplicationDependenciesOutput) SetNextToken(v string) *ListApplicationDependenciesOutput {
+	s.NextToken = &v
+	return s
+}
+
 type ListApplicationVersionsInput struct {
 	_ struct{} `type:"structure"`
 
@@ -2550,6 +2859,9 @@ func (s *ListApplicationVersionsInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "ListApplicationVersionsInput"}
 	if s.ApplicationId == nil {
 		invalidParams.Add(request.NewErrParamRequired("ApplicationId"))
+	}
+	if s.ApplicationId != nil && len(*s.ApplicationId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ApplicationId", 1))
 	}
 	if s.MaxItems != nil && *s.MaxItems < 1 {
 		invalidParams.Add(request.NewErrParamMinValue("MaxItems", 1))
@@ -2946,6 +3258,9 @@ func (s *PutApplicationPolicyInput) Validate() error {
 	if s.ApplicationId == nil {
 		invalidParams.Add(request.NewErrParamRequired("ApplicationId"))
 	}
+	if s.ApplicationId != nil && len(*s.ApplicationId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ApplicationId", 1))
+	}
 	if s.Statements == nil {
 		invalidParams.Add(request.NewErrParamRequired("Statements"))
 	}
@@ -3000,19 +3315,19 @@ func (s *PutApplicationPolicyOutput) SetStatements(v []*ApplicationPolicyStateme
 	return s
 }
 
-// This property corresponds to the AWS CloudFormation  RollbackConfiguration
+// This property corresponds to the AWS CloudFormation RollbackConfiguration
 // (https://docs.aws.amazon.com/goto/WebAPI/cloudformation-2010-05-15/RollbackConfiguration)
 // Data Type.
 type RollbackConfiguration struct {
 	_ struct{} `type:"structure"`
 
 	// This property corresponds to the content of the same name for the AWS CloudFormation
-	//  RollbackConfiguration (https://docs.aws.amazon.com/goto/WebAPI/cloudformation-2010-05-15/RollbackConfiguration)
+	// RollbackConfiguration (https://docs.aws.amazon.com/goto/WebAPI/cloudformation-2010-05-15/RollbackConfiguration)
 	// Data Type.
 	MonitoringTimeInMinutes *int64 `locationName:"monitoringTimeInMinutes" type:"integer"`
 
 	// This property corresponds to the content of the same name for the AWS CloudFormation
-	//  RollbackConfiguration (https://docs.aws.amazon.com/goto/WebAPI/cloudformation-2010-05-15/RollbackConfiguration)
+	// RollbackConfiguration (https://docs.aws.amazon.com/goto/WebAPI/cloudformation-2010-05-15/RollbackConfiguration)
 	// Data Type.
 	RollbackTriggers []*RollbackTrigger `locationName:"rollbackTriggers" type:"list"`
 }
@@ -3059,20 +3374,20 @@ func (s *RollbackConfiguration) SetRollbackTriggers(v []*RollbackTrigger) *Rollb
 	return s
 }
 
-// This property corresponds to the AWS CloudFormation  RollbackTrigger (https://docs.aws.amazon.com/goto/WebAPI/cloudformation-2010-05-15/RollbackTrigger)
+// This property corresponds to the AWS CloudFormation RollbackTrigger (https://docs.aws.amazon.com/goto/WebAPI/cloudformation-2010-05-15/RollbackTrigger)
 // Data Type.
 type RollbackTrigger struct {
 	_ struct{} `type:"structure"`
 
 	// This property corresponds to the content of the same name for the AWS CloudFormation
-	//  RollbackTrigger (https://docs.aws.amazon.com/goto/WebAPI/cloudformation-2010-05-15/RollbackTrigger)
+	// RollbackTrigger (https://docs.aws.amazon.com/goto/WebAPI/cloudformation-2010-05-15/RollbackTrigger)
 	// Data Type.
 	//
 	// Arn is a required field
 	Arn *string `locationName:"arn" type:"string" required:"true"`
 
 	// This property corresponds to the content of the same name for the AWS CloudFormation
-	//  RollbackTrigger (https://docs.aws.amazon.com/goto/WebAPI/cloudformation-2010-05-15/RollbackTrigger)
+	// RollbackTrigger (https://docs.aws.amazon.com/goto/WebAPI/cloudformation-2010-05-15/RollbackTrigger)
 	// Data Type.
 	//
 	// Type is a required field
@@ -3117,13 +3432,13 @@ func (s *RollbackTrigger) SetType(v string) *RollbackTrigger {
 	return s
 }
 
-// This property corresponds to the AWS CloudFormation  Tag (https://docs.aws.amazon.com/goto/WebAPI/cloudformation-2010-05-15/Tag)
+// This property corresponds to the AWS CloudFormation Tag (https://docs.aws.amazon.com/goto/WebAPI/cloudformation-2010-05-15/Tag)
 // Data Type.
 type Tag struct {
 	_ struct{} `type:"structure"`
 
 	// This property corresponds to the content of the same name for the AWS CloudFormation
-	//  Tag (https://docs.aws.amazon.com/goto/WebAPI/cloudformation-2010-05-15/Tag)
+	// Tag (https://docs.aws.amazon.com/goto/WebAPI/cloudformation-2010-05-15/Tag)
 	// Data Type.
 	//
 	// Key is a required field
@@ -3313,6 +3628,9 @@ func (s *UpdateApplicationRequest) Validate() error {
 	if s.ApplicationId == nil {
 		invalidParams.Add(request.NewErrParamRequired("ApplicationId"))
 	}
+	if s.ApplicationId != nil && len(*s.ApplicationId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ApplicationId", 1))
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -3392,17 +3710,19 @@ type Version struct {
 	// The following resources require you to specify CAPABILITY_IAM or CAPABILITY_NAMED_IAM:
 	// AWS::IAM::Group (https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-iam-group.html),
 	// AWS::IAM::InstanceProfile (https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-iam-instanceprofile.html),
-	// AWS::IAM::Policy (https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-iam-policy.html),
+	// AWS::IAM::Policy (https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-iam-policy.html),
 	// and AWS::IAM::Role (https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-iam-role.html).
 	// If the application contains IAM resources, you can specify either CAPABILITY_IAM
 	// or CAPABILITY_NAMED_IAM. If the application contains IAM resources with custom
 	// names, you must specify CAPABILITY_NAMED_IAM.
 	//
 	// The following resources require you to specify CAPABILITY_RESOURCE_POLICY:
+	// AWS::Lambda::Permission (https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-permission.html),
+	// AWS::IAM:Policy (https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-iam-policy.html),
 	// AWS::ApplicationAutoScaling::ScalingPolicy (https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-applicationautoscaling-scalingpolicy.html),
 	// AWS::S3::BucketPolicy (https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-policy.html),
 	// AWS::SQS::QueuePolicy (https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-sqs-policy.html),
-	// and AWS::SNS:TopicPolicy (https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-sns-policy.html).
+	// and AWS::SNS::TopicPolicy (https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-sns-policy.html).
 	//
 	// If your application template contains any of the above resources, we recommend
 	// that you review all permissions associated with the application before deploying.
@@ -3553,12 +3873,16 @@ func (s *VersionSummary) SetSourceCodeUrl(v string) *VersionSummary {
 	return s
 }
 
+// Values that must be specified in order to deploy some applications.
 const (
 	// CapabilityCapabilityIam is a Capability enum value
 	CapabilityCapabilityIam = "CAPABILITY_IAM"
 
 	// CapabilityCapabilityNamedIam is a Capability enum value
 	CapabilityCapabilityNamedIam = "CAPABILITY_NAMED_IAM"
+
+	// CapabilityCapabilityAutoExpand is a Capability enum value
+	CapabilityCapabilityAutoExpand = "CAPABILITY_AUTO_EXPAND"
 
 	// CapabilityCapabilityResourcePolicy is a Capability enum value
 	CapabilityCapabilityResourcePolicy = "CAPABILITY_RESOURCE_POLICY"

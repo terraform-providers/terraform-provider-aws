@@ -680,7 +680,7 @@ data "aws_availability_zones" "available" {}
 
 resource "aws_vpc" "main" {
   cidr_block = "10.11.0.0/16"
-  tags {
+  tags = {
     Name = "terraform-testacc-mq-broker-all-fields-custom-vpc"
   }
 }
@@ -703,7 +703,7 @@ resource "aws_subnet" "private" {
   cidr_block = "10.11.${count.index}.0/24"
   availability_zone = "${data.aws_availability_zones.available.names[count.index]}"
   vpc_id = "${aws_vpc.main.id}"
-  tags {
+  tags = {
     Name = "tf-acc-mq-broker-all-fields-custom-vpc-${count.index}"
   }
 }

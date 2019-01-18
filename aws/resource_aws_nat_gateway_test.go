@@ -196,7 +196,7 @@ func testAccCheckNatGatewayExists(n string, ng *ec2.NatGateway) resource.TestChe
 const testAccNatGatewayConfig = `
 resource "aws_vpc" "vpc" {
   cidr_block = "10.0.0.0/16"
-  tags {
+  tags = {
     Name = "terraform-testacc-nat-gw-basic"
   }
 }
@@ -205,7 +205,7 @@ resource "aws_subnet" "private" {
   vpc_id = "${aws_vpc.vpc.id}"
   cidr_block = "10.0.1.0/24"
   map_public_ip_on_launch = false
-  tags {
+  tags = {
     Name = "tf-acc-nat-gw-basic-private"
   }
 }
@@ -214,7 +214,7 @@ resource "aws_subnet" "public" {
   vpc_id = "${aws_vpc.vpc.id}"
   cidr_block = "10.0.2.0/24"
   map_public_ip_on_launch = true
-  tags {
+  tags = {
     Name = "tf-acc-nat-gw-basic-public"
   }
 }
@@ -232,7 +232,7 @@ resource "aws_nat_gateway" "gateway" {
   allocation_id = "${aws_eip.nat_gateway.id}"
   subnet_id = "${aws_subnet.public.id}"
 
-  tags {
+  tags = {
     Name = "terraform-testacc-nat-gw-basic"
   }
 
@@ -271,7 +271,7 @@ resource "aws_route_table_association" "public" {
 const testAccNatGatewayConfigTags = `
 resource "aws_vpc" "vpc" {
   cidr_block = "10.0.0.0/16"
-  tags {
+  tags = {
     Name = "terraform-testacc-nat-gw-tags"
   }
 }
@@ -280,7 +280,7 @@ resource "aws_subnet" "private" {
   vpc_id = "${aws_vpc.vpc.id}"
   cidr_block = "10.0.1.0/24"
   map_public_ip_on_launch = false
-  tags {
+  tags = {
     Name = "tf-acc-nat-gw-tags-private"
   }
 }
@@ -289,7 +289,7 @@ resource "aws_subnet" "public" {
   vpc_id = "${aws_vpc.vpc.id}"
   cidr_block = "10.0.2.0/24"
   map_public_ip_on_launch = true
-  tags {
+  tags = {
     Name = "tf-acc-nat-gw-tags-public"
   }
 }
@@ -307,7 +307,7 @@ resource "aws_nat_gateway" "gateway" {
   allocation_id = "${aws_eip.nat_gateway.id}"
   subnet_id = "${aws_subnet.public.id}"
 
-  tags {
+  tags = {
     Name = "terraform-testacc-nat-gw-tags"
     foo = "bar"
   }
@@ -347,7 +347,7 @@ resource "aws_route_table_association" "public" {
 const testAccNatGatewayConfigTagsUpdate = `
 resource "aws_vpc" "vpc" {
   cidr_block = "10.0.0.0/16"
-  tags {
+  tags = {
     Name = "terraform-testacc-nat-gw-tags"
   }
 }
@@ -356,7 +356,7 @@ resource "aws_subnet" "private" {
   vpc_id = "${aws_vpc.vpc.id}"
   cidr_block = "10.0.1.0/24"
   map_public_ip_on_launch = false
-  tags {
+  tags = {
     Name = "tf-acc-nat-gw-tags-private"
   }
 }
@@ -365,7 +365,7 @@ resource "aws_subnet" "public" {
   vpc_id = "${aws_vpc.vpc.id}"
   cidr_block = "10.0.2.0/24"
   map_public_ip_on_launch = true
-  tags {
+  tags = {
     Name = "tf-acc-nat-gw-tags-public"
   }
 }
@@ -383,7 +383,7 @@ resource "aws_nat_gateway" "gateway" {
   allocation_id = "${aws_eip.nat_gateway.id}"
   subnet_id = "${aws_subnet.public.id}"
 
-  tags {
+  tags = {
     Name = "terraform-testacc-nat-gw-tags"
     bar = "baz"
   }

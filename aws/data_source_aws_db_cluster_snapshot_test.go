@@ -121,7 +121,7 @@ data "aws_availability_zones" "available" {}
 resource "aws_vpc" "test" {
   cidr_block = "192.168.0.0/16"
 
-  tags {
+  tags = {
    Name = %q
   }
 }
@@ -133,7 +133,7 @@ resource "aws_subnet" "test" {
   cidr_block        = "192.168.${count.index}.0/24"
   vpc_id            = "${aws_vpc.test.id}"
 
-  tags {
+  tags = {
     Name = %q
   }
 }
@@ -169,7 +169,7 @@ data "aws_availability_zones" "available" {}
 resource "aws_vpc" "test" {
   cidr_block = "192.168.0.0/16"
 
-  tags {
+  tags = {
    Name = %q
   }
 }
@@ -181,7 +181,7 @@ resource "aws_subnet" "test" {
   cidr_block        = "192.168.${count.index}.0/24"
   vpc_id            = "${aws_vpc.test.id}"
 
-  tags {
+  tags = {
     Name = %q
   }
 }
@@ -217,7 +217,7 @@ data "aws_availability_zones" "available" {}
 resource "aws_vpc" "test" {
   cidr_block = "192.168.0.0/16"
 
-  tags {
+  tags = {
    Name = %q
   }
 }
@@ -229,7 +229,7 @@ resource "aws_subnet" "test" {
   cidr_block        = "192.168.${count.index}.0/24"
   vpc_id            = "${aws_vpc.test.id}"
 
-  tags {
+  tags = {
     Name = %q
   }
 }

@@ -1222,7 +1222,7 @@ resource "aws_elb" "bar" {
     lb_protocol = "HttP"
   }
 
-	tags {
+	tags = {
 		bar = "baz"
 	}
 
@@ -1420,7 +1420,7 @@ resource "aws_elb" "bar" {
     lb_protocol = "http"
   }
 
-	tags {
+	tags = {
 		foo = "bar"
 		new = "type"
 	}
@@ -1624,7 +1624,7 @@ resource "aws_security_group" "bar" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-	tags {
+	tags = {
 		Name = "tf_elb_sg_test"
 	}
 }
@@ -1700,7 +1700,7 @@ resource "aws_vpc" "azelb" {
   cidr_block           = "10.1.0.0/16"
   enable_dns_hostnames = true
 
-  tags {
+  tags = {
     Name = "terraform-testacc-elb-subnets"
   }
 }
@@ -1710,7 +1710,7 @@ resource "aws_subnet" "public_a_one" {
 
   cidr_block        = "10.1.1.0/24"
   availability_zone = "us-west-2a"
-  tags {
+  tags = {
     Name = "tf-acc-elb-subnets-a-one"
   }
 }
@@ -1720,7 +1720,7 @@ resource "aws_subnet" "public_b_one" {
 
   cidr_block        = "10.1.7.0/24"
   availability_zone = "us-west-2b"
-  tags {
+  tags = {
     Name = "tf-acc-elb-subnets-b-one"
   }
 }
@@ -1730,7 +1730,7 @@ resource "aws_subnet" "public_a_two" {
 
   cidr_block        = "10.1.2.0/24"
   availability_zone = "us-west-2a"
-  tags {
+  tags = {
     Name = "tf-acc-elb-subnets-a-two"
   }
 }
@@ -1756,7 +1756,7 @@ resource "aws_elb" "ourapp" {
 resource "aws_internet_gateway" "gw" {
   vpc_id = "${aws_vpc.azelb.id}"
 
-  tags {
+  tags = {
     Name = "main"
   }
 }
@@ -1771,7 +1771,7 @@ resource "aws_vpc" "azelb" {
   cidr_block           = "10.1.0.0/16"
   enable_dns_hostnames = true
 
-  tags {
+  tags = {
     Name = "terraform-testacc-elb-subnet-swap"
   }
 }
@@ -1781,7 +1781,7 @@ resource "aws_subnet" "public_a_one" {
 
   cidr_block        = "10.1.1.0/24"
   availability_zone = "us-west-2a"
-  tags {
+  tags = {
     Name = "tf-acc-elb-subnet-swap-a-one"
   }
 }
@@ -1791,7 +1791,7 @@ resource "aws_subnet" "public_b_one" {
 
   cidr_block        = "10.1.7.0/24"
   availability_zone = "us-west-2b"
-  tags {
+  tags = {
     Name = "tf-acc-elb-subnet-swap-b-one"
   }
 }
@@ -1801,7 +1801,7 @@ resource "aws_subnet" "public_a_two" {
 
   cidr_block        = "10.1.2.0/24"
   availability_zone = "us-west-2a"
-  tags {
+  tags = {
     Name = "tf-acc-elb-subnet-swap-a-two"
   }
 }
@@ -1827,7 +1827,7 @@ resource "aws_elb" "ourapp" {
 resource "aws_internet_gateway" "gw" {
   vpc_id = "${aws_vpc.azelb.id}"
 
-  tags {
+  tags = {
     Name = "main"
   }
 }

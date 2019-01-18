@@ -173,7 +173,7 @@ resource "aws_lb_target_group" "test" {
     matcher = "200-299"
   }
 
-  tags {
+  tags = {
     TestName = "TestAccAWSLBTargetGroup_basic"
   }
 }
@@ -202,7 +202,7 @@ resource "aws_lb_target_group" "another_test" {
     matcher = "200-299"
   }
 
-  tags {
+  tags = {
     TestName = "TestAccAWSLBTargetGroup_basic"
   }
 }
@@ -233,7 +233,7 @@ resource "aws_launch_configuration" "as_conf" {
 resource "aws_vpc" "test" {
   cidr_block = "10.0.0.0/16"
 
-  tags {
+  tags = {
     Name = "terraform-testacc-autoscaling-attachment-alb"
   }
 }

@@ -63,10 +63,8 @@ func testAccCheckScalingScheduleDisappears(schedule *autoscaling.ScheduledUpdate
 			AutoScalingGroupName: schedule.AutoScalingGroupName,
 			ScheduledActionName:  schedule.ScheduledActionName,
 		}
-		if _, err := autoscalingconn.DeleteScheduledAction(params); err != nil {
-			return err
-		}
-		return nil
+		_, err := autoscalingconn.DeleteScheduledAction(params)
+		return err
 	}
 }
 
@@ -160,7 +158,7 @@ func testAccCheckScalingScheduleExists(n string, policy *autoscaling.ScheduledUp
 			return fmt.Errorf("Not found: %s", n)
 		}
 
-		autoScalingGroup, _ := rs.Primary.Attributes["autoscaling_group_name"]
+		autoScalingGroup := rs.Primary.Attributes["autoscaling_group_name"]
 		conn := testAccProvider.Meta().(*AWSClient).autoscalingconn
 		params := &autoscaling.DescribeScheduledActionsInput{
 			AutoScalingGroupName: aws.String(autoScalingGroup),
@@ -189,7 +187,7 @@ func testAccCheckAWSAutoscalingScheduleDestroy(s *terraform.State) error {
 			continue
 		}
 
-		autoScalingGroup, _ := rs.Primary.Attributes["autoscaling_group_name"]
+		autoScalingGroup := rs.Primary.Attributes["autoscaling_group_name"]
 		params := &autoscaling.DescribeScheduledActionsInput{
 			AutoScalingGroupName: aws.String(autoScalingGroup),
 			ScheduledActionNames: []*string{aws.String(rs.Primary.ID)},

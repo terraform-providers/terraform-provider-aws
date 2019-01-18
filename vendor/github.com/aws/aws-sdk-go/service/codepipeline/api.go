@@ -409,8 +409,7 @@ func (c *CodePipeline) DeleteCustomActionTypeRequest(input *DeleteCustomActionTy
 
 	output = &DeleteCustomActionTypeOutput{}
 	req = c.newRequest(op, input, output)
-	req.Handlers.Unmarshal.Remove(jsonrpc.UnmarshalHandler)
-	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -497,8 +496,7 @@ func (c *CodePipeline) DeletePipelineRequest(input *DeletePipelineInput) (req *r
 
 	output = &DeletePipelineOutput{}
 	req = c.newRequest(op, input, output)
-	req.Handlers.Unmarshal.Remove(jsonrpc.UnmarshalHandler)
-	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -578,6 +576,7 @@ func (c *CodePipeline) DeleteWebhookRequest(input *DeleteWebhookInput) (req *req
 
 	output = &DeleteWebhookOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -661,6 +660,7 @@ func (c *CodePipeline) DeregisterWebhookWithThirdPartyRequest(input *DeregisterW
 
 	output = &DeregisterWebhookWithThirdPartyOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -745,8 +745,7 @@ func (c *CodePipeline) DisableStageTransitionRequest(input *DisableStageTransiti
 
 	output = &DisableStageTransitionOutput{}
 	req = c.newRequest(op, input, output)
-	req.Handlers.Unmarshal.Remove(jsonrpc.UnmarshalHandler)
-	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -833,8 +832,7 @@ func (c *CodePipeline) EnableStageTransitionRequest(input *EnableStageTransition
 
 	output = &EnableStageTransitionOutput{}
 	req = c.newRequest(op, input, output)
-	req.Handlers.Unmarshal.Remove(jsonrpc.UnmarshalHandler)
-	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -2058,8 +2056,7 @@ func (c *CodePipeline) PutJobFailureResultRequest(input *PutJobFailureResultInpu
 
 	output = &PutJobFailureResultOutput{}
 	req = c.newRequest(op, input, output)
-	req.Handlers.Unmarshal.Remove(jsonrpc.UnmarshalHandler)
-	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -2146,8 +2143,7 @@ func (c *CodePipeline) PutJobSuccessResultRequest(input *PutJobSuccessResultInpu
 
 	output = &PutJobSuccessResultOutput{}
 	req = c.newRequest(op, input, output)
-	req.Handlers.Unmarshal.Remove(jsonrpc.UnmarshalHandler)
-	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -2234,8 +2230,7 @@ func (c *CodePipeline) PutThirdPartyJobFailureResultRequest(input *PutThirdParty
 
 	output = &PutThirdPartyJobFailureResultOutput{}
 	req = c.newRequest(op, input, output)
-	req.Handlers.Unmarshal.Remove(jsonrpc.UnmarshalHandler)
-	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -2325,8 +2320,7 @@ func (c *CodePipeline) PutThirdPartyJobSuccessResultRequest(input *PutThirdParty
 
 	output = &PutThirdPartyJobSuccessResultOutput{}
 	req = c.newRequest(op, input, output)
-	req.Handlers.Unmarshal.Remove(jsonrpc.UnmarshalHandler)
-	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -2515,6 +2509,7 @@ func (c *CodePipeline) RegisterWebhookWithThirdPartyRequest(input *RegisterWebho
 
 	output = &RegisterWebhookWithThirdPartyOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -2840,7 +2835,7 @@ func (c *CodePipeline) UpdatePipelineWithContext(ctx aws.Context, input *UpdateP
 // used to access input and output artifacts in the Amazon S3 bucket used to
 // store artifact for the pipeline in AWS CodePipeline.
 type AWSSessionCredentials struct {
-	_ struct{} `type:"structure"`
+	_ struct{} `type:"structure" sensitive:"true"`
 
 	// The access key for the session.
 	//
@@ -5806,7 +5801,7 @@ type JobData struct {
 	// credentials that are issued by AWS Secure Token Service (STS). They can be
 	// used to access input and output artifacts in the Amazon S3 bucket used to
 	// store artifact for the pipeline in AWS CodePipeline.
-	ArtifactCredentials *AWSSessionCredentials `locationName:"artifactCredentials" type:"structure"`
+	ArtifactCredentials *AWSSessionCredentials `locationName:"artifactCredentials" type:"structure" sensitive:"true"`
 
 	// A system-generated token, such as a AWS CodeDeploy deployment ID, that a
 	// job requires in order to continue the job asynchronously.
@@ -8298,7 +8293,7 @@ type ThirdPartyJobData struct {
 	// credentials that are issued by AWS Secure Token Service (STS). They can be
 	// used to access input and output artifacts in the Amazon S3 bucket used to
 	// store artifact for the pipeline in AWS CodePipeline.
-	ArtifactCredentials *AWSSessionCredentials `locationName:"artifactCredentials" type:"structure"`
+	ArtifactCredentials *AWSSessionCredentials `locationName:"artifactCredentials" type:"structure" sensitive:"true"`
 
 	// A system-generated token, such as a AWS CodeDeploy deployment ID, that a
 	// job requires in order to continue the job asynchronously.

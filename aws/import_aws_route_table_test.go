@@ -69,7 +69,7 @@ resource "aws_vpc" "default" {
   cidr_block           = "10.0.0.0/16"
   enable_dns_hostnames = true
 
-  tags {
+  tags = {
     Name = "terraform-testacc-route-table-import-complex-default"
   }
 }
@@ -79,7 +79,7 @@ resource "aws_subnet" "tf_test_subnet" {
   cidr_block              = "10.0.0.0/24"
   map_public_ip_on_launch = true
 
-  tags {
+  tags = {
     Name = "tf-acc-route-table-import-complex-default"
   }
 }
@@ -92,7 +92,7 @@ resource "aws_eip" "nat" {
 resource "aws_internet_gateway" "gw" {
   vpc_id = "${aws_vpc.default.id}"
 
-  tags {
+  tags = {
     Name = "terraform-testacc-route-table-import-complex-default"
   }
 }
@@ -106,7 +106,7 @@ resource "aws_nat_gateway" "nat" {
   allocation_id = "${element(aws_eip.nat.*.id, count.index)}"
   subnet_id     = "${aws_subnet.tf_test_subnet.id}"
 
-  tags {
+  tags = {
     Name = "terraform-testacc-route-table-import-complex-default"
   }
 }
@@ -115,7 +115,7 @@ resource "aws_route_table" "mod" {
   count  = "${length(split(",", var.private_subnet_cidrs))}"
   vpc_id = "${aws_vpc.default.id}"
 
-  tags {
+  tags = {
     Name = "tf-rt-import-test"
   }
 
@@ -145,7 +145,7 @@ resource "aws_vpc_endpoint" "s3" {
 resource "aws_vpc" "bar" {
   cidr_block = "10.1.0.0/16"
 
-  tags {
+  tags = {
     Name = "terraform-testacc-route-table-import-complex-bar"
   }
 }
@@ -153,7 +153,7 @@ resource "aws_vpc" "bar" {
 resource "aws_internet_gateway" "ogw" {
   vpc_id = "${aws_vpc.bar.id}"
 
-  tags {
+  tags = {
     Name = "terraform-testacc-route-table-import-complex-bar"
   }
 }
@@ -165,7 +165,7 @@ resource "aws_vpc_peering_connection" "foo" {
   peer_vpc_id   = "${aws_vpc.bar.id}"
   peer_owner_id = "187416307283"
 
-  tags {
+  tags = {
     Name = "tf-rt-import-test"
   }
 

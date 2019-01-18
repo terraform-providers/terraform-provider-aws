@@ -39,7 +39,7 @@ can loop through the subnets, putting instances across availability zones.
 data "aws_subnet_ids" "private" {
   vpc_id = "${var.vpc_id}"
 
-  tags {
+  tags = {
     Tier = "Private"
   }
 }

@@ -1,14 +1,15 @@
 package aws
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
 )
 
 func TestAccDataSourceAwsAvailabilityZone(t *testing.T) {
+	ds1ResourceName := "data.aws_availability_zone.by_name"
+	ds2ResourceName := "data.aws_availability_zone.by_zone_id"
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
@@ -16,34 +17,19 @@ func TestAccDataSourceAwsAvailabilityZone(t *testing.T) {
 			{
 				Config: testAccDataSourceAwsAvailabilityZoneConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testAccDataSourceAwsAvailabilityZoneCheck("data.aws_availability_zone.by_name"),
+					resource.TestCheckResourceAttr(ds1ResourceName, "name", "us-west-2a"),
+					resource.TestCheckResourceAttr(ds1ResourceName, "name_suffix", "a"),
+					resource.TestCheckResourceAttr(ds1ResourceName, "region", "us-west-2"),
+					resource.TestCheckResourceAttrSet(ds1ResourceName, "zone_id"),
+
+					resource.TestCheckResourceAttr(ds2ResourceName, "name", "us-west-2a"),
+					resource.TestCheckResourceAttr(ds2ResourceName, "name_suffix", "a"),
+					resource.TestCheckResourceAttr(ds2ResourceName, "region", "us-west-2"),
+					resource.TestCheckResourceAttrPair(ds2ResourceName, "zone_id", ds1ResourceName, "zone_id"),
 				),
 			},
 		},
 	})
-}
-
-func testAccDataSourceAwsAvailabilityZoneCheck(name string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[name]
-		if !ok {
-			return fmt.Errorf("root module has no resource called %s", name)
-		}
-
-		attr := rs.Primary.Attributes
-
-		if attr["name"] != "us-west-2a" {
-			return fmt.Errorf("bad name %s", attr["name"])
-		}
-		if attr["name_suffix"] != "a" {
-			return fmt.Errorf("bad name_suffix %s", attr["name_suffix"])
-		}
-		if attr["region"] != "us-west-2" {
-			return fmt.Errorf("bad region %s", attr["region"])
-		}
-
-		return nil
-	}
 }
 
 const testAccDataSourceAwsAvailabilityZoneConfig = `
@@ -53,5 +39,9 @@ provider "aws" {
 
 data "aws_availability_zone" "by_name" {
   name = "us-west-2a"
+}
+
+data "aws_availability_zone" "by_zone_id" {
+  zone_id = "${data.aws_availability_zone.by_name.zone_id}"
 }
 `

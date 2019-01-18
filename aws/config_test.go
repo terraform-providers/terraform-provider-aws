@@ -68,7 +68,6 @@ func getMockedAwsApiSession(svcName string, endpoints []*awsMockEndpoint) (func(
 		}
 
 		w.WriteHeader(400)
-		return
 	}))
 
 	sc := awsCredentials.NewStaticCredentials("accessKey", "secretKey", "")

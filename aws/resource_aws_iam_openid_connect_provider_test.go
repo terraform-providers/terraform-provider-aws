@@ -154,11 +154,7 @@ func testAccCheckIAMOpenIDConnectProvider(id string) resource.TestCheckFunc {
 			OpenIDConnectProviderArn: aws.String(rs.Primary.ID),
 		})
 
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return err
 	}
 }
 

@@ -251,7 +251,7 @@ resource "aws_glacier_vault" "full" {
   	sns_topic = "${aws_sns_topic.aws_sns_topic.arn}"
   	events = ["ArchiveRetrievalCompleted","InventoryRetrievalCompleted"]
   }
-  tags {
+  tags = {
     Test="Test1"
   }
 }
@@ -266,7 +266,7 @@ resource "aws_sns_topic" "aws_sns_topic" {
 
 resource "aws_glacier_vault" "full" {
   name = "my_test_vault_%d"
-  tags {
+  tags = {
     Test="Test1"
   }
 }

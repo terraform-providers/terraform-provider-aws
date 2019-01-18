@@ -88,11 +88,8 @@ func testAccCheckAwsMediaStoreContainerExists(name string) resource.TestCheckFun
 		}
 
 		_, err := conn.DescribeContainer(input)
-		if err != nil {
-			return err
-		}
 
-		return nil
+		return err
 	}
 }
 

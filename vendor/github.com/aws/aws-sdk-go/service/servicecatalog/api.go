@@ -9,6 +9,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awsutil"
 	"github.com/aws/aws-sdk-go/aws/request"
+	"github.com/aws/aws-sdk-go/private/protocol"
+	"github.com/aws/aws-sdk-go/private/protocol/jsonrpc"
 )
 
 const opAcceptPortfolioShare = "AcceptPortfolioShare"
@@ -50,6 +52,7 @@ func (c *ServiceCatalog) AcceptPortfolioShareRequest(input *AcceptPortfolioShare
 
 	output = &AcceptPortfolioShareOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -137,6 +140,7 @@ func (c *ServiceCatalog) AssociatePrincipalWithPortfolioRequest(input *Associate
 
 	output = &AssociatePrincipalWithPortfolioOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -224,6 +228,7 @@ func (c *ServiceCatalog) AssociateProductWithPortfolioRequest(input *AssociatePr
 
 	output = &AssociateProductWithPortfolioOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -311,6 +316,7 @@ func (c *ServiceCatalog) AssociateServiceActionWithProvisioningArtifactRequest(i
 
 	output = &AssociateServiceActionWithProvisioningArtifactOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -398,6 +404,7 @@ func (c *ServiceCatalog) AssociateTagOptionWithResourceRequest(input *AssociateT
 
 	output = &AssociateTagOptionWithResourceOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -1466,6 +1473,7 @@ func (c *ServiceCatalog) DeleteConstraintRequest(input *DeleteConstraintInput) (
 
 	output = &DeleteConstraintOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -1548,6 +1556,7 @@ func (c *ServiceCatalog) DeletePortfolioRequest(input *DeletePortfolioInput) (re
 
 	output = &DeletePortfolioOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -1729,6 +1738,7 @@ func (c *ServiceCatalog) DeleteProductRequest(input *DeleteProductInput) (req *r
 
 	output = &DeleteProductOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -1823,6 +1833,7 @@ func (c *ServiceCatalog) DeleteProvisionedProductPlanRequest(input *DeleteProvis
 
 	output = &DeleteProvisionedProductPlanOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -1905,6 +1916,7 @@ func (c *ServiceCatalog) DeleteProvisioningArtifactRequest(input *DeleteProvisio
 
 	output = &DeleteProvisioningArtifactOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -1996,6 +2008,7 @@ func (c *ServiceCatalog) DeleteServiceActionRequest(input *DeleteServiceActionIn
 
 	output = &DeleteServiceActionOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -2079,6 +2092,7 @@ func (c *ServiceCatalog) DeleteTagOptionRequest(input *DeleteTagOptionInput) (re
 
 	output = &DeleteTagOptionOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -3312,6 +3326,7 @@ func (c *ServiceCatalog) DisableAWSOrganizationsAccessRequest(input *DisableAWSO
 
 	output = &DisableAWSOrganizationsAccessOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -3403,6 +3418,7 @@ func (c *ServiceCatalog) DisassociatePrincipalFromPortfolioRequest(input *Disass
 
 	output = &DisassociatePrincipalFromPortfolioOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -3485,6 +3501,7 @@ func (c *ServiceCatalog) DisassociateProductFromPortfolioRequest(input *Disassoc
 
 	output = &DisassociateProductFromPortfolioOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -3571,6 +3588,7 @@ func (c *ServiceCatalog) DisassociateServiceActionFromProvisioningArtifactReques
 
 	output = &DisassociateServiceActionFromProvisioningArtifactOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -3651,6 +3669,7 @@ func (c *ServiceCatalog) DisassociateTagOptionFromResourceRequest(input *Disasso
 
 	output = &DisassociateTagOptionFromResourceOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -3735,6 +3754,7 @@ func (c *ServiceCatalog) EnableAWSOrganizationsAccessRequest(input *EnableAWSOrg
 
 	output = &EnableAWSOrganizationsAccessOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -3745,8 +3765,9 @@ func (c *ServiceCatalog) EnableAWSOrganizationsAccessRequest(input *EnableAWSOrg
 // sync your shares with the current structure. This API can only be called
 // by the master account in the organization.
 //
-// By calling this API Service Catalog will use FAS credentials to call organizations:EnableAWSServiceAccess
-// so that your shares can be in sync with any changes in your AWS Organizations.
+// By calling this API Service Catalog will make a call to organizations:EnableAWSServiceAccess
+// on your behalf so that your shares can be in sync with any changes in your
+// AWS Organizations structure.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -6170,6 +6191,7 @@ func (c *ServiceCatalog) RejectPortfolioShareRequest(input *RejectPortfolioShare
 
 	output = &RejectPortfolioShareOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -8120,6 +8142,8 @@ type ConstraintDetail struct {
 	//
 	//    * NOTIFICATION
 	//
+	//    * STACKSET
+	//
 	//    * TEMPLATE
 	Type *string `min:"1" type:"string"`
 }
@@ -8171,6 +8195,8 @@ type ConstraintSummary struct {
 	//
 	//    * NOTIFICATION
 	//
+	//    * STACKSET
+	//
 	//    * TEMPLATE
 	Type *string `min:"1" type:"string"`
 }
@@ -8216,9 +8242,7 @@ type CopyProductInput struct {
 	// A unique identifier that you provide to ensure idempotency. If multiple requests
 	// differ only by the idempotency token, the same response is returned for each
 	// repeated request.
-	//
-	// IdempotencyToken is a required field
-	IdempotencyToken *string `min:"1" type:"string" required:"true" idempotencyToken:"true"`
+	IdempotencyToken *string `min:"1" type:"string" idempotencyToken:"true"`
 
 	// The Amazon Resource Name (ARN) of the source product.
 	//
@@ -8249,9 +8273,6 @@ func (s CopyProductInput) GoString() string {
 // Validate inspects the fields of the type to determine if they are valid.
 func (s *CopyProductInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "CopyProductInput"}
-	if s.IdempotencyToken == nil {
-		invalidParams.Add(request.NewErrParamRequired("IdempotencyToken"))
-	}
 	if s.IdempotencyToken != nil && len(*s.IdempotencyToken) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("IdempotencyToken", 1))
 	}
@@ -8354,20 +8375,34 @@ type CreateConstraintInput struct {
 	// A unique identifier that you provide to ensure idempotency. If multiple requests
 	// differ only by the idempotency token, the same response is returned for each
 	// repeated request.
-	//
-	// IdempotencyToken is a required field
-	IdempotencyToken *string `min:"1" type:"string" required:"true" idempotencyToken:"true"`
+	IdempotencyToken *string `min:"1" type:"string" idempotencyToken:"true"`
 
 	// The constraint parameters, in JSON format. The syntax depends on the constraint
 	// type as follows:
 	//
 	// LAUNCHSpecify the RoleArn property as follows:
 	//
-	// \"RoleArn\" : \"arn:aws:iam::123456789012:role/LaunchRole\"
+	// {"RoleArn" : "arn:aws:iam::123456789012:role/LaunchRole"}
+	//
+	// You cannot have both a LAUNCH and a STACKSET constraint.
+	//
+	// You also cannot have more than one LAUNCH constraint on a product and portfolio.
 	//
 	// NOTIFICATIONSpecify the NotificationArns property as follows:
 	//
-	// \"NotificationArns\" : [\"arn:aws:sns:us-east-1:123456789012:Topic\"]
+	// {"NotificationArns" : ["arn:aws:sns:us-east-1:123456789012:Topic"]}
+	//
+	// STACKSETSpecify the Parameters property as follows:
+	//
+	// {"Version": "String", "Properties": {"AccountList": [ "String" ], "RegionList":
+	// [ "String" ], "AdminRole": "String", "ExecutionRole": "String"}}
+	//
+	// You cannot have both a LAUNCH and a STACKSET constraint.
+	//
+	// You also cannot have more than one STACKSET constraint on a product and portfolio.
+	//
+	// Products with a STACKSET constraint will launch an AWS CloudFormation stack
+	// set.
 	//
 	// TEMPLATESpecify the Rules property. For more information, see Template Constraint
 	// Rules (http://docs.aws.amazon.com/servicecatalog/latest/adminguide/reference-template_constraint_rules.html).
@@ -8391,6 +8426,8 @@ type CreateConstraintInput struct {
 	//
 	//    * NOTIFICATION
 	//
+	//    * STACKSET
+	//
 	//    * TEMPLATE
 	//
 	// Type is a required field
@@ -8410,9 +8447,6 @@ func (s CreateConstraintInput) GoString() string {
 // Validate inspects the fields of the type to determine if they are valid.
 func (s *CreateConstraintInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "CreateConstraintInput"}
-	if s.IdempotencyToken == nil {
-		invalidParams.Add(request.NewErrParamRequired("IdempotencyToken"))
-	}
 	if s.IdempotencyToken != nil && len(*s.IdempotencyToken) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("IdempotencyToken", 1))
 	}
@@ -8550,9 +8584,7 @@ type CreatePortfolioInput struct {
 	// A unique identifier that you provide to ensure idempotency. If multiple requests
 	// differ only by the idempotency token, the same response is returned for each
 	// repeated request.
-	//
-	// IdempotencyToken is a required field
-	IdempotencyToken *string `min:"1" type:"string" required:"true" idempotencyToken:"true"`
+	IdempotencyToken *string `min:"1" type:"string" idempotencyToken:"true"`
 
 	// The name of the portfolio provider.
 	//
@@ -8581,9 +8613,6 @@ func (s *CreatePortfolioInput) Validate() error {
 	}
 	if s.DisplayName != nil && len(*s.DisplayName) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("DisplayName", 1))
-	}
-	if s.IdempotencyToken == nil {
-		invalidParams.Add(request.NewErrParamRequired("IdempotencyToken"))
 	}
 	if s.IdempotencyToken != nil && len(*s.IdempotencyToken) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("IdempotencyToken", 1))
@@ -8802,9 +8831,7 @@ type CreateProductInput struct {
 	// A unique identifier that you provide to ensure idempotency. If multiple requests
 	// differ only by the idempotency token, the same response is returned for each
 	// repeated request.
-	//
-	// IdempotencyToken is a required field
-	IdempotencyToken *string `min:"1" type:"string" required:"true" idempotencyToken:"true"`
+	IdempotencyToken *string `min:"1" type:"string" idempotencyToken:"true"`
 
 	// The name of the product.
 	//
@@ -8852,9 +8879,6 @@ func (s CreateProductInput) GoString() string {
 // Validate inspects the fields of the type to determine if they are valid.
 func (s *CreateProductInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "CreateProductInput"}
-	if s.IdempotencyToken == nil {
-		invalidParams.Add(request.NewErrParamRequired("IdempotencyToken"))
-	}
 	if s.IdempotencyToken != nil && len(*s.IdempotencyToken) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("IdempotencyToken", 1))
 	}
@@ -9020,9 +9044,7 @@ type CreateProvisionedProductPlanInput struct {
 	// A unique identifier that you provide to ensure idempotency. If multiple requests
 	// differ only by the idempotency token, the same response is returned for each
 	// repeated request.
-	//
-	// IdempotencyToken is a required field
-	IdempotencyToken *string `min:"1" type:"string" required:"true" idempotencyToken:"true"`
+	IdempotencyToken *string `min:"1" type:"string" idempotencyToken:"true"`
 
 	// Passed to CloudFormation. The SNS topic ARNs to which to publish stack-related
 	// events.
@@ -9080,9 +9102,6 @@ func (s CreateProvisionedProductPlanInput) GoString() string {
 // Validate inspects the fields of the type to determine if they are valid.
 func (s *CreateProvisionedProductPlanInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "CreateProvisionedProductPlanInput"}
-	if s.IdempotencyToken == nil {
-		invalidParams.Add(request.NewErrParamRequired("IdempotencyToken"))
-	}
 	if s.IdempotencyToken != nil && len(*s.IdempotencyToken) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("IdempotencyToken", 1))
 	}
@@ -9280,9 +9299,7 @@ type CreateProvisioningArtifactInput struct {
 	// A unique identifier that you provide to ensure idempotency. If multiple requests
 	// differ only by the idempotency token, the same response is returned for each
 	// repeated request.
-	//
-	// IdempotencyToken is a required field
-	IdempotencyToken *string `min:"1" type:"string" required:"true" idempotencyToken:"true"`
+	IdempotencyToken *string `min:"1" type:"string" idempotencyToken:"true"`
 
 	// The configuration for the provisioning artifact.
 	//
@@ -9308,9 +9325,6 @@ func (s CreateProvisioningArtifactInput) GoString() string {
 // Validate inspects the fields of the type to determine if they are valid.
 func (s *CreateProvisioningArtifactInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "CreateProvisioningArtifactInput"}
-	if s.IdempotencyToken == nil {
-		invalidParams.Add(request.NewErrParamRequired("IdempotencyToken"))
-	}
 	if s.IdempotencyToken != nil && len(*s.IdempotencyToken) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("IdempotencyToken", 1))
 	}
@@ -9442,9 +9456,7 @@ type CreateServiceActionInput struct {
 	// A unique identifier that you provide to ensure idempotency. If multiple requests
 	// differ only by the idempotency token, the same response is returned for each
 	// repeated request.
-	//
-	// IdempotencyToken is a required field
-	IdempotencyToken *string `min:"1" type:"string" required:"true" idempotencyToken:"true"`
+	IdempotencyToken *string `min:"1" type:"string" idempotencyToken:"true"`
 
 	// The self-service action name.
 	//
@@ -9473,9 +9485,6 @@ func (s *CreateServiceActionInput) Validate() error {
 	}
 	if s.DefinitionType == nil {
 		invalidParams.Add(request.NewErrParamRequired("DefinitionType"))
-	}
-	if s.IdempotencyToken == nil {
-		invalidParams.Add(request.NewErrParamRequired("IdempotencyToken"))
 	}
 	if s.IdempotencyToken != nil && len(*s.IdempotencyToken) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("IdempotencyToken", 1))
@@ -11330,6 +11339,10 @@ type DescribeProvisioningParametersOutput struct {
 	// Information about the parameters used to provision the product.
 	ProvisioningArtifactParameters []*ProvisioningArtifactParameter `type:"list"`
 
+	// An object that contains information about preferences, such as regions and
+	// accounts, for the provisioning artifact.
+	ProvisioningArtifactPreferences *ProvisioningArtifactPreferences `type:"structure"`
+
 	// Information about the TagOptions associated with the resource.
 	TagOptions []*TagOptionSummary `type:"list"`
 
@@ -11357,6 +11370,12 @@ func (s *DescribeProvisioningParametersOutput) SetConstraintSummaries(v []*Const
 // SetProvisioningArtifactParameters sets the ProvisioningArtifactParameters field's value.
 func (s *DescribeProvisioningParametersOutput) SetProvisioningArtifactParameters(v []*ProvisioningArtifactParameter) *DescribeProvisioningParametersOutput {
 	s.ProvisioningArtifactParameters = v
+	return s
+}
+
+// SetProvisioningArtifactPreferences sets the ProvisioningArtifactPreferences field's value.
+func (s *DescribeProvisioningParametersOutput) SetProvisioningArtifactPreferences(v *ProvisioningArtifactPreferences) *DescribeProvisioningParametersOutput {
+	s.ProvisioningArtifactPreferences = v
 	return s
 }
 
@@ -12053,9 +12072,7 @@ type ExecuteProvisionedProductPlanInput struct {
 	// A unique identifier that you provide to ensure idempotency. If multiple requests
 	// differ only by the idempotency token, the same response is returned for each
 	// repeated request.
-	//
-	// IdempotencyToken is a required field
-	IdempotencyToken *string `min:"1" type:"string" required:"true" idempotencyToken:"true"`
+	IdempotencyToken *string `min:"1" type:"string" idempotencyToken:"true"`
 
 	// The plan identifier.
 	//
@@ -12076,9 +12093,6 @@ func (s ExecuteProvisionedProductPlanInput) GoString() string {
 // Validate inspects the fields of the type to determine if they are valid.
 func (s *ExecuteProvisionedProductPlanInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "ExecuteProvisionedProductPlanInput"}
-	if s.IdempotencyToken == nil {
-		invalidParams.Add(request.NewErrParamRequired("IdempotencyToken"))
-	}
 	if s.IdempotencyToken != nil && len(*s.IdempotencyToken) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("IdempotencyToken", 1))
 	}
@@ -12149,9 +12163,7 @@ type ExecuteProvisionedProductServiceActionInput struct {
 	AcceptLanguage *string `type:"string"`
 
 	// An idempotency token that uniquely identifies the execute request.
-	//
-	// ExecuteToken is a required field
-	ExecuteToken *string `min:"1" type:"string" required:"true" idempotencyToken:"true"`
+	ExecuteToken *string `min:"1" type:"string" idempotencyToken:"true"`
 
 	// The identifier of the provisioned product.
 	//
@@ -12177,9 +12189,6 @@ func (s ExecuteProvisionedProductServiceActionInput) GoString() string {
 // Validate inspects the fields of the type to determine if they are valid.
 func (s *ExecuteProvisionedProductServiceActionInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "ExecuteProvisionedProductServiceActionInput"}
-	if s.ExecuteToken == nil {
-		invalidParams.Add(request.NewErrParamRequired("ExecuteToken"))
-	}
 	if s.ExecuteToken != nil && len(*s.ExecuteToken) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("ExecuteToken", 1))
 	}
@@ -14149,11 +14158,14 @@ func (s *ListTagOptionsOutput) SetTagOptionDetails(v []*TagOptionDetail) *ListTa
 	return s
 }
 
+// Information about the organization node.
 type OrganizationNode struct {
 	_ struct{} `type:"structure"`
 
+	// The organization node type.
 	Type *string `type:"string" enum:"OrganizationNodeType"`
 
+	// The identifier of the organization node.
 	Value *string `type:"string"`
 }
 
@@ -14545,9 +14557,7 @@ type ProvisionProductInput struct {
 	ProductId *string `min:"1" type:"string" required:"true"`
 
 	// An idempotency token that uniquely identifies the provisioning request.
-	//
-	// ProvisionToken is a required field
-	ProvisionToken *string `min:"1" type:"string" required:"true" idempotencyToken:"true"`
+	ProvisionToken *string `min:"1" type:"string" idempotencyToken:"true"`
 
 	// A user-friendly name for the provisioned product. This value must be unique
 	// for the AWS account and cannot be updated after the product is provisioned.
@@ -14563,6 +14573,10 @@ type ProvisionProductInput struct {
 	// Parameters specified by the administrator that are required for provisioning
 	// the product.
 	ProvisioningParameters []*ProvisioningParameter `type:"list"`
+
+	// An object that contains information about the provisioning preferences for
+	// a stack set.
+	ProvisioningPreferences *ProvisioningPreferences `type:"structure"`
 
 	// One or more tags.
 	Tags []*Tag `type:"list"`
@@ -14590,9 +14604,6 @@ func (s *ProvisionProductInput) Validate() error {
 	if s.ProductId != nil && len(*s.ProductId) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("ProductId", 1))
 	}
-	if s.ProvisionToken == nil {
-		invalidParams.Add(request.NewErrParamRequired("ProvisionToken"))
-	}
 	if s.ProvisionToken != nil && len(*s.ProvisionToken) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("ProvisionToken", 1))
 	}
@@ -14616,6 +14627,11 @@ func (s *ProvisionProductInput) Validate() error {
 			if err := v.Validate(); err != nil {
 				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "ProvisioningParameters", i), err.(request.ErrInvalidParams))
 			}
+		}
+	}
+	if s.ProvisioningPreferences != nil {
+		if err := s.ProvisioningPreferences.Validate(); err != nil {
+			invalidParams.AddNested("ProvisioningPreferences", err.(request.ErrInvalidParams))
 		}
 	}
 	if s.Tags != nil {
@@ -14680,6 +14696,12 @@ func (s *ProvisionProductInput) SetProvisioningArtifactId(v string) *ProvisionPr
 // SetProvisioningParameters sets the ProvisioningParameters field's value.
 func (s *ProvisionProductInput) SetProvisioningParameters(v []*ProvisioningParameter) *ProvisionProductInput {
 	s.ProvisioningParameters = v
+	return s
+}
+
+// SetProvisioningPreferences sets the ProvisioningPreferences field's value.
+func (s *ProvisionProductInput) SetProvisioningPreferences(v *ProvisioningPreferences) *ProvisionProductInput {
+	s.ProvisioningPreferences = v
 	return s
 }
 
@@ -14770,7 +14792,7 @@ type ProvisionedProductAttribute struct {
 	// One or more tags.
 	Tags []*Tag `type:"list"`
 
-	// The type of provisioned product. The supported value is CFN_STACK.
+	// The type of provisioned product. The supported values are CFN_STACK and CFN_STACKSET.
 	Type *string `type:"string"`
 
 	// The Amazon Resource Name (ARN) of the IAM user.
@@ -14932,7 +14954,7 @@ type ProvisionedProductDetail struct {
 	// The current status message of the provisioned product.
 	StatusMessage *string `type:"string"`
 
-	// The type of provisioned product. The supported value is CFN_STACK.
+	// The type of provisioned product. The supported values are CFN_STACK and CFN_STACKSET.
 	Type *string `type:"string"`
 }
 
@@ -15434,6 +15456,52 @@ func (s *ProvisioningArtifactParameter) SetParameterType(v string) *Provisioning
 	return s
 }
 
+// The user-defined preferences that will be applied during product provisioning,
+// unless overridden by ProvisioningPreferences or UpdateProvisioningPreferences.
+//
+// For more information on maximum concurrent accounts and failure tolerance,
+// see Stack set operation options (https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-concepts.html#stackset-ops-options)
+// in the AWS CloudFormation User Guide.
+type ProvisioningArtifactPreferences struct {
+	_ struct{} `type:"structure"`
+
+	// One or more AWS accounts where stack instances are deployed from the stack
+	// set. These accounts can be scoped in ProvisioningPreferences$StackSetAccounts
+	// and UpdateProvisioningPreferences$StackSetAccounts.
+	//
+	// Applicable only to a CFN_STACKSET provisioned product type.
+	StackSetAccounts []*string `type:"list"`
+
+	// One or more AWS Regions where stack instances are deployed from the stack
+	// set. These regions can be scoped in ProvisioningPreferences$StackSetRegions
+	// and UpdateProvisioningPreferences$StackSetRegions.
+	//
+	// Applicable only to a CFN_STACKSET provisioned product type.
+	StackSetRegions []*string `type:"list"`
+}
+
+// String returns the string representation
+func (s ProvisioningArtifactPreferences) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ProvisioningArtifactPreferences) GoString() string {
+	return s.String()
+}
+
+// SetStackSetAccounts sets the StackSetAccounts field's value.
+func (s *ProvisioningArtifactPreferences) SetStackSetAccounts(v []*string) *ProvisioningArtifactPreferences {
+	s.StackSetAccounts = v
+	return s
+}
+
+// SetStackSetRegions sets the StackSetRegions field's value.
+func (s *ProvisioningArtifactPreferences) SetStackSetRegions(v []*string) *ProvisioningArtifactPreferences {
+	s.StackSetRegions = v
+	return s
+}
+
 // Information about a provisioning artifact (also known as a version) for a
 // product.
 type ProvisioningArtifactProperties struct {
@@ -15658,6 +15726,157 @@ func (s *ProvisioningParameter) SetValue(v string) *ProvisioningParameter {
 	return s
 }
 
+// The user-defined preferences that will be applied when updating a provisioned
+// product. Not all preferences are applicable to all provisioned product types.
+type ProvisioningPreferences struct {
+	_ struct{} `type:"structure"`
+
+	// One or more AWS accounts that will have access to the provisioned product.
+	//
+	// Applicable only to a CFN_STACKSET provisioned product type.
+	//
+	// The AWS accounts specified should be within the list of accounts in the STACKSET
+	// constraint. To get the list of accounts in the STACKSET constraint, use the
+	// DescribeProvisioningParameters operation.
+	//
+	// If no values are specified, the default value is all accounts from the STACKSET
+	// constraint.
+	StackSetAccounts []*string `type:"list"`
+
+	// The number of accounts, per region, for which this operation can fail before
+	// AWS Service Catalog stops the operation in that region. If the operation
+	// is stopped in a region, AWS Service Catalog doesn't attempt the operation
+	// in any subsequent regions.
+	//
+	// Applicable only to a CFN_STACKSET provisioned product type.
+	//
+	// Conditional: You must specify either StackSetFailureToleranceCount or StackSetFailureTolerancePercentage,
+	// but not both.
+	//
+	// The default value is 0 if no value is specified.
+	StackSetFailureToleranceCount *int64 `type:"integer"`
+
+	// The percentage of accounts, per region, for which this stack operation can
+	// fail before AWS Service Catalog stops the operation in that region. If the
+	// operation is stopped in a region, AWS Service Catalog doesn't attempt the
+	// operation in any subsequent regions.
+	//
+	// When calculating the number of accounts based on the specified percentage,
+	// AWS Service Catalog rounds down to the next whole number.
+	//
+	// Applicable only to a CFN_STACKSET provisioned product type.
+	//
+	// Conditional: You must specify either StackSetFailureToleranceCount or StackSetFailureTolerancePercentage,
+	// but not both.
+	StackSetFailureTolerancePercentage *int64 `type:"integer"`
+
+	// The maximum number of accounts in which to perform this operation at one
+	// time. This is dependent on the value of StackSetFailureToleranceCount. StackSetMaxConcurrentCount
+	// is at most one more than the StackSetFailureToleranceCount.
+	//
+	// Note that this setting lets you specify the maximum for operations. For large
+	// deployments, under certain circumstances the actual number of accounts acted
+	// upon concurrently may be lower due to service throttling.
+	//
+	// Applicable only to a CFN_STACKSET provisioned product type.
+	//
+	// Conditional: You must specify either StackSetMaxConcurrentCount or StackSetMaxConcurrentPercentage,
+	// but not both.
+	StackSetMaxConcurrencyCount *int64 `min:"1" type:"integer"`
+
+	// The maximum percentage of accounts in which to perform this operation at
+	// one time.
+	//
+	// When calculating the number of accounts based on the specified percentage,
+	// AWS Service Catalog rounds down to the next whole number. This is true except
+	// in cases where rounding down would result is zero. In this case, AWS Service
+	// Catalog sets the number as 1 instead.
+	//
+	// Note that this setting lets you specify the maximum for operations. For large
+	// deployments, under certain circumstances the actual number of accounts acted
+	// upon concurrently may be lower due to service throttling.
+	//
+	// Applicable only to a CFN_STACKSET provisioned product type.
+	//
+	// Conditional: You must specify either StackSetMaxConcurrentCount or StackSetMaxConcurrentPercentage,
+	// but not both.
+	StackSetMaxConcurrencyPercentage *int64 `min:"1" type:"integer"`
+
+	// One or more AWS Regions where the provisioned product will be available.
+	//
+	// Applicable only to a CFN_STACKSET provisioned product type.
+	//
+	// The specified regions should be within the list of regions from the STACKSET
+	// constraint. To get the list of regions in the STACKSET constraint, use the
+	// DescribeProvisioningParameters operation.
+	//
+	// If no values are specified, the default value is all regions from the STACKSET
+	// constraint.
+	StackSetRegions []*string `type:"list"`
+}
+
+// String returns the string representation
+func (s ProvisioningPreferences) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ProvisioningPreferences) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ProvisioningPreferences) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ProvisioningPreferences"}
+	if s.StackSetMaxConcurrencyCount != nil && *s.StackSetMaxConcurrencyCount < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("StackSetMaxConcurrencyCount", 1))
+	}
+	if s.StackSetMaxConcurrencyPercentage != nil && *s.StackSetMaxConcurrencyPercentage < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("StackSetMaxConcurrencyPercentage", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetStackSetAccounts sets the StackSetAccounts field's value.
+func (s *ProvisioningPreferences) SetStackSetAccounts(v []*string) *ProvisioningPreferences {
+	s.StackSetAccounts = v
+	return s
+}
+
+// SetStackSetFailureToleranceCount sets the StackSetFailureToleranceCount field's value.
+func (s *ProvisioningPreferences) SetStackSetFailureToleranceCount(v int64) *ProvisioningPreferences {
+	s.StackSetFailureToleranceCount = &v
+	return s
+}
+
+// SetStackSetFailureTolerancePercentage sets the StackSetFailureTolerancePercentage field's value.
+func (s *ProvisioningPreferences) SetStackSetFailureTolerancePercentage(v int64) *ProvisioningPreferences {
+	s.StackSetFailureTolerancePercentage = &v
+	return s
+}
+
+// SetStackSetMaxConcurrencyCount sets the StackSetMaxConcurrencyCount field's value.
+func (s *ProvisioningPreferences) SetStackSetMaxConcurrencyCount(v int64) *ProvisioningPreferences {
+	s.StackSetMaxConcurrencyCount = &v
+	return s
+}
+
+// SetStackSetMaxConcurrencyPercentage sets the StackSetMaxConcurrencyPercentage field's value.
+func (s *ProvisioningPreferences) SetStackSetMaxConcurrencyPercentage(v int64) *ProvisioningPreferences {
+	s.StackSetMaxConcurrencyPercentage = &v
+	return s
+}
+
+// SetStackSetRegions sets the StackSetRegions field's value.
+func (s *ProvisioningPreferences) SetStackSetRegions(v []*string) *ProvisioningPreferences {
+	s.StackSetRegions = v
+	return s
+}
+
 // Information about a request operation.
 type RecordDetail struct {
 	_ struct{} `type:"structure"`
@@ -15677,7 +15896,7 @@ type RecordDetail struct {
 	// The user-friendly name of the provisioned product.
 	ProvisionedProductName *string `min:"1" type:"string"`
 
-	// The type of provisioned product. The supported value is CFN_STACK.
+	// The type of provisioned product. The supported values are CFN_STACK and CFN_STACKSET.
 	ProvisionedProductType *string `type:"string"`
 
 	// The identifier of the provisioning artifact.
@@ -17125,9 +17344,7 @@ type TerminateProvisionedProductInput struct {
 	// token is only valid during the termination process. After the provisioned
 	// product is terminated, subsequent requests to terminate the same provisioned
 	// product always return ResourceNotFound.
-	//
-	// TerminateToken is a required field
-	TerminateToken *string `min:"1" type:"string" required:"true" idempotencyToken:"true"`
+	TerminateToken *string `min:"1" type:"string" idempotencyToken:"true"`
 }
 
 // String returns the string representation
@@ -17148,9 +17365,6 @@ func (s *TerminateProvisionedProductInput) Validate() error {
 	}
 	if s.ProvisionedProductName != nil && len(*s.ProvisionedProductName) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("ProvisionedProductName", 1))
-	}
-	if s.TerminateToken == nil {
-		invalidParams.Add(request.NewErrParamRequired("TerminateToken"))
 	}
 	if s.TerminateToken != nil && len(*s.TerminateToken) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("TerminateToken", 1))
@@ -17682,10 +17896,12 @@ type UpdateProvisionedProductInput struct {
 	// The new parameters.
 	ProvisioningParameters []*UpdateProvisioningParameter `type:"list"`
 
+	// An object that contains information about the provisioning preferences for
+	// a stack set.
+	ProvisioningPreferences *UpdateProvisioningPreferences `type:"structure"`
+
 	// The idempotency token that uniquely identifies the provisioning update request.
-	//
-	// UpdateToken is a required field
-	UpdateToken *string `min:"1" type:"string" required:"true" idempotencyToken:"true"`
+	UpdateToken *string `min:"1" type:"string" idempotencyToken:"true"`
 }
 
 // String returns the string representation
@@ -17716,9 +17932,6 @@ func (s *UpdateProvisionedProductInput) Validate() error {
 	if s.ProvisioningArtifactId != nil && len(*s.ProvisioningArtifactId) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("ProvisioningArtifactId", 1))
 	}
-	if s.UpdateToken == nil {
-		invalidParams.Add(request.NewErrParamRequired("UpdateToken"))
-	}
 	if s.UpdateToken != nil && len(*s.UpdateToken) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("UpdateToken", 1))
 	}
@@ -17730,6 +17943,11 @@ func (s *UpdateProvisionedProductInput) Validate() error {
 			if err := v.Validate(); err != nil {
 				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "ProvisioningParameters", i), err.(request.ErrInvalidParams))
 			}
+		}
+	}
+	if s.ProvisioningPreferences != nil {
+		if err := s.ProvisioningPreferences.Validate(); err != nil {
+			invalidParams.AddNested("ProvisioningPreferences", err.(request.ErrInvalidParams))
 		}
 	}
 
@@ -17778,6 +17996,12 @@ func (s *UpdateProvisionedProductInput) SetProvisioningArtifactId(v string) *Upd
 // SetProvisioningParameters sets the ProvisioningParameters field's value.
 func (s *UpdateProvisionedProductInput) SetProvisioningParameters(v []*UpdateProvisioningParameter) *UpdateProvisionedProductInput {
 	s.ProvisioningParameters = v
+	return s
+}
+
+// SetProvisioningPreferences sets the ProvisioningPreferences field's value.
+func (s *UpdateProvisionedProductInput) SetProvisioningPreferences(v *UpdateProvisioningPreferences) *UpdateProvisionedProductInput {
+	s.ProvisioningPreferences = v
 	return s
 }
 
@@ -18003,6 +18227,181 @@ func (s *UpdateProvisioningParameter) SetUsePreviousValue(v bool) *UpdateProvisi
 // SetValue sets the Value field's value.
 func (s *UpdateProvisioningParameter) SetValue(v string) *UpdateProvisioningParameter {
 	s.Value = &v
+	return s
+}
+
+// The user-defined preferences that will be applied when updating a provisioned
+// product. Not all preferences are applicable to all provisioned product types.
+type UpdateProvisioningPreferences struct {
+	_ struct{} `type:"structure"`
+
+	// One or more AWS accounts that will have access to the provisioned product.
+	//
+	// Applicable only to a CFN_STACKSET provisioned product type.
+	//
+	// The AWS accounts specified should be within the list of accounts in the STACKSET
+	// constraint. To get the list of accounts in the STACKSET constraint, use the
+	// DescribeProvisioningParameters operation.
+	//
+	// If no values are specified, the default value is all accounts from the STACKSET
+	// constraint.
+	StackSetAccounts []*string `type:"list"`
+
+	// The number of accounts, per region, for which this operation can fail before
+	// AWS Service Catalog stops the operation in that region. If the operation
+	// is stopped in a region, AWS Service Catalog doesn't attempt the operation
+	// in any subsequent regions.
+	//
+	// Applicable only to a CFN_STACKSET provisioned product type.
+	//
+	// Conditional: You must specify either StackSetFailureToleranceCount or StackSetFailureTolerancePercentage,
+	// but not both.
+	//
+	// The default value is 0 if no value is specified.
+	StackSetFailureToleranceCount *int64 `type:"integer"`
+
+	// The percentage of accounts, per region, for which this stack operation can
+	// fail before AWS Service Catalog stops the operation in that region. If the
+	// operation is stopped in a region, AWS Service Catalog doesn't attempt the
+	// operation in any subsequent regions.
+	//
+	// When calculating the number of accounts based on the specified percentage,
+	// AWS Service Catalog rounds down to the next whole number.
+	//
+	// Applicable only to a CFN_STACKSET provisioned product type.
+	//
+	// Conditional: You must specify either StackSetFailureToleranceCount or StackSetFailureTolerancePercentage,
+	// but not both.
+	StackSetFailureTolerancePercentage *int64 `type:"integer"`
+
+	// The maximum number of accounts in which to perform this operation at one
+	// time. This is dependent on the value of StackSetFailureToleranceCount. StackSetMaxConcurrentCount
+	// is at most one more than the StackSetFailureToleranceCount.
+	//
+	// Note that this setting lets you specify the maximum for operations. For large
+	// deployments, under certain circumstances the actual number of accounts acted
+	// upon concurrently may be lower due to service throttling.
+	//
+	// Applicable only to a CFN_STACKSET provisioned product type.
+	//
+	// Conditional: You must specify either StackSetMaxConcurrentCount or StackSetMaxConcurrentPercentage,
+	// but not both.
+	StackSetMaxConcurrencyCount *int64 `min:"1" type:"integer"`
+
+	// The maximum percentage of accounts in which to perform this operation at
+	// one time.
+	//
+	// When calculating the number of accounts based on the specified percentage,
+	// AWS Service Catalog rounds down to the next whole number. This is true except
+	// in cases where rounding down would result is zero. In this case, AWS Service
+	// Catalog sets the number as 1 instead.
+	//
+	// Note that this setting lets you specify the maximum for operations. For large
+	// deployments, under certain circumstances the actual number of accounts acted
+	// upon concurrently may be lower due to service throttling.
+	//
+	// Applicable only to a CFN_STACKSET provisioned product type.
+	//
+	// Conditional: You must specify either StackSetMaxConcurrentCount or StackSetMaxConcurrentPercentage,
+	// but not both.
+	StackSetMaxConcurrencyPercentage *int64 `min:"1" type:"integer"`
+
+	// Determines what action AWS Service Catalog performs to a stack set or a stack
+	// instance represented by the provisioned product. The default value is UPDATE
+	// if nothing is specified.
+	//
+	// Applicable only to a CFN_STACKSET provisioned product type.
+	//
+	// CREATECreates a new stack instance in the stack set represented by the provisioned
+	// product. In this case, only new stack instances are created based on accounts
+	// and regions; if new ProductId or ProvisioningArtifactID are passed, they
+	// will be ignored.
+	//
+	// UPDATEUpdates the stack set represented by the provisioned product and also
+	// its stack instances.
+	//
+	// DELETEDeletes a stack instance in the stack set represented by the provisioned
+	// product.
+	StackSetOperationType *string `type:"string" enum:"StackSetOperationType"`
+
+	// One or more AWS Regions where the provisioned product will be available.
+	//
+	// Applicable only to a CFN_STACKSET provisioned product type.
+	//
+	// The specified regions should be within the list of regions from the STACKSET
+	// constraint. To get the list of regions in the STACKSET constraint, use the
+	// DescribeProvisioningParameters operation.
+	//
+	// If no values are specified, the default value is all regions from the STACKSET
+	// constraint.
+	StackSetRegions []*string `type:"list"`
+}
+
+// String returns the string representation
+func (s UpdateProvisioningPreferences) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateProvisioningPreferences) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *UpdateProvisioningPreferences) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "UpdateProvisioningPreferences"}
+	if s.StackSetMaxConcurrencyCount != nil && *s.StackSetMaxConcurrencyCount < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("StackSetMaxConcurrencyCount", 1))
+	}
+	if s.StackSetMaxConcurrencyPercentage != nil && *s.StackSetMaxConcurrencyPercentage < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("StackSetMaxConcurrencyPercentage", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetStackSetAccounts sets the StackSetAccounts field's value.
+func (s *UpdateProvisioningPreferences) SetStackSetAccounts(v []*string) *UpdateProvisioningPreferences {
+	s.StackSetAccounts = v
+	return s
+}
+
+// SetStackSetFailureToleranceCount sets the StackSetFailureToleranceCount field's value.
+func (s *UpdateProvisioningPreferences) SetStackSetFailureToleranceCount(v int64) *UpdateProvisioningPreferences {
+	s.StackSetFailureToleranceCount = &v
+	return s
+}
+
+// SetStackSetFailureTolerancePercentage sets the StackSetFailureTolerancePercentage field's value.
+func (s *UpdateProvisioningPreferences) SetStackSetFailureTolerancePercentage(v int64) *UpdateProvisioningPreferences {
+	s.StackSetFailureTolerancePercentage = &v
+	return s
+}
+
+// SetStackSetMaxConcurrencyCount sets the StackSetMaxConcurrencyCount field's value.
+func (s *UpdateProvisioningPreferences) SetStackSetMaxConcurrencyCount(v int64) *UpdateProvisioningPreferences {
+	s.StackSetMaxConcurrencyCount = &v
+	return s
+}
+
+// SetStackSetMaxConcurrencyPercentage sets the StackSetMaxConcurrencyPercentage field's value.
+func (s *UpdateProvisioningPreferences) SetStackSetMaxConcurrencyPercentage(v int64) *UpdateProvisioningPreferences {
+	s.StackSetMaxConcurrencyPercentage = &v
+	return s
+}
+
+// SetStackSetOperationType sets the StackSetOperationType field's value.
+func (s *UpdateProvisioningPreferences) SetStackSetOperationType(v string) *UpdateProvisioningPreferences {
+	s.StackSetOperationType = &v
+	return s
+}
+
+// SetStackSetRegions sets the StackSetRegions field's value.
+func (s *UpdateProvisioningPreferences) SetStackSetRegions(v []*string) *UpdateProvisioningPreferences {
+	s.StackSetRegions = v
 	return s
 }
 
@@ -18539,6 +18938,17 @@ const (
 
 	// SortOrderDescending is a SortOrder enum value
 	SortOrderDescending = "DESCENDING"
+)
+
+const (
+	// StackSetOperationTypeCreate is a StackSetOperationType enum value
+	StackSetOperationTypeCreate = "CREATE"
+
+	// StackSetOperationTypeUpdate is a StackSetOperationType enum value
+	StackSetOperationTypeUpdate = "UPDATE"
+
+	// StackSetOperationTypeDelete is a StackSetOperationType enum value
+	StackSetOperationTypeDelete = "DELETE"
 )
 
 const (

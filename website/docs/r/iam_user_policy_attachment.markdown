@@ -37,3 +37,11 @@ The following arguments are supported:
 
 * `user`        (Required) - The user the policy should be applied to
 * `policy_arn`  (Required) - The ARN of the policy you want to apply
+
+## Import
+
+IAM user policy attachments can be imported using the user name and policy arn separated by `/`.
+
+```
+$ terraform import aws_iam_user_policy_attachment.test-attach test-user/arn:aws:iam::xxxxxxxxxxxx:policy/test-policy
+```

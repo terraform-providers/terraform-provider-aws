@@ -1376,7 +1376,7 @@ resource "aws_security_group" "web" {
     name = "terraform_test_%d"
     description = "Used in the terraform acceptance tests"
 
-    tags {
+  tags = {
       Name = "tf-acc-test"
     }
 }
@@ -1397,7 +1397,7 @@ const testAccAWSSecurityGroupRuleIngress_ipv6Config = `
 resource "aws_vpc" "tftest" {
   cidr_block = "10.0.0.0/16"
 
-  tags {
+  tags = {
     Name = "terraform-testacc-security-group-rule-ingress-ipv6"
   }
 }
@@ -1405,7 +1405,7 @@ resource "aws_vpc" "tftest" {
 resource "aws_security_group" "web" {
   vpc_id = "${aws_vpc.tftest.id}"
 
-  tags {
+  tags = {
     Name = "tf-acc-test"
   }
 }
@@ -1425,7 +1425,7 @@ const testAccAWSSecurityGroupRuleIngress_protocolConfig = `
 resource "aws_vpc" "tftest" {
   cidr_block = "10.0.0.0/16"
 
-  tags {
+  tags = {
     Name = "terraform-testacc-security-group-rule-ingress-protocol"
   }
 }
@@ -1433,7 +1433,7 @@ resource "aws_vpc" "tftest" {
 resource "aws_security_group" "web" {
   vpc_id = "${aws_vpc.tftest.id}"
 
-  tags {
+  tags = {
     Name = "tf-acc-test"
   }
 }
@@ -1472,7 +1472,7 @@ resource "aws_security_group" "web" {
     name = "terraform_test_%d"
     description = "Used in the terraform acceptance tests"
 
-    tags {
+  tags = {
         Name = "tf-acc-test"
     }
 }
@@ -1495,7 +1495,7 @@ resource "aws_security_group" "web" {
     name = "terraform_test_%d"
     description = "Used in the terraform acceptance tests"
 
-                tags {
+  tags = {
                                 Name = "tf-acc-test"
                 }
 }
@@ -1550,7 +1550,7 @@ func testAccAWSSecurityGroupRuleMultiDescription(rInt int, rType string) string 
 	b.WriteString(fmt.Sprintf(`
 resource "aws_vpc" "tf_sgrule_description_test" {
     cidr_block = "10.0.0.0/16"
-    tags {
+  tags = {
         Name = "terraform-testacc-security-group-rule-multi-desc"
     }
 }
@@ -1564,14 +1564,14 @@ resource "aws_security_group" "worker" {
     name = "terraform_test_%[1]d"
     vpc_id = "${aws_vpc.tf_sgrule_description_test.id}"
     description = "Used in the terraform acceptance tests"
-    tags { Name = "tf-sg-rule-description" }
+  tags = { Name = "tf-sg-rule-description" }
 }
 
 resource "aws_security_group" "nat" {
     name = "terraform_test_%[1]d_nat"
     vpc_id = "${aws_vpc.tf_sgrule_description_test.id}"
     description = "Used in the terraform acceptance tests"
-    tags { Name = "tf-sg-rule-description" }
+  tags = { Name = "tf-sg-rule-description" }
 }
 
 resource "aws_security_group_rule" "%[2]s_rule_1" {
@@ -1626,7 +1626,7 @@ resource "aws_security_group_rule" "egress_rule_4" {
 const testAccAWSSecurityGroupRuleConfigSelfReference = `
 resource "aws_vpc" "main" {
   cidr_block = "10.0.0.0/16"
-  tags {
+  tags = {
     Name = "terraform-testacc-security-group-rule-self-ref"
   }
 }
@@ -1634,7 +1634,7 @@ resource "aws_vpc" "main" {
 resource "aws_security_group" "web" {
   name = "main"
   vpc_id = "${aws_vpc.main.id}"
-  tags {
+  tags = {
     Name = "sg-self-test"
   }
 }
@@ -1653,7 +1653,7 @@ func testAccAWSSecurityGroupRulePartialMatchingConfig(rInt int) string {
 	return fmt.Sprintf(`
 resource "aws_vpc" "default" {
     cidr_block = "10.0.0.0/16"
-    tags {
+  tags = {
         Name = "terraform-testacc-security-group-rule-partial-match"
     }
 }
@@ -1661,7 +1661,7 @@ resource "aws_vpc" "default" {
 resource "aws_security_group" "web" {
         name = "tf-other-%d"
         vpc_id = "${aws_vpc.default.id}"
-        tags {
+  tags = {
                 Name        = "tf-other-sg"
         }
 }
@@ -1669,7 +1669,7 @@ resource "aws_security_group" "web" {
 resource "aws_security_group" "nat" {
         name = "tf-nat-%d"
         vpc_id = "${aws_vpc.default.id}"
-        tags {
+  tags = {
                 Name        = "tf-nat-sg"
         }
 }
@@ -1711,7 +1711,7 @@ func testAccAWSSecurityGroupRulePartialMatching_SourceConfig(rInt int) string {
 	return fmt.Sprintf(`
 resource "aws_vpc" "default" {
     cidr_block = "10.0.0.0/16"
-    tags {
+  tags = {
         Name = "terraform-testacc-security-group-rule-partial-match"
     }
 }
@@ -1719,7 +1719,7 @@ resource "aws_vpc" "default" {
 resource "aws_security_group" "web" {
         name = "tf-other-%d"
         vpc_id = "${aws_vpc.default.id}"
-        tags {
+  tags = {
                 Name        = "tf-other-sg"
         }
 }
@@ -1727,7 +1727,7 @@ resource "aws_security_group" "web" {
 resource "aws_security_group" "nat" {
         name = "tf-nat-%d"
         vpc_id = "${aws_vpc.default.id}"
-        tags {
+  tags = {
                 Name        = "tf-nat-sg"
         }
 }
@@ -1758,7 +1758,7 @@ const testAccAWSSecurityGroupRulePrefixListEgressConfig = `
 
 resource "aws_vpc" "tf_sg_prefix_list_egress_test" {
     cidr_block = "10.0.0.0/16"
-    tags {
+  tags = {
         Name = "terraform-testacc-security-group-rule-prefix-list-egress"
     }
 }
@@ -1809,7 +1809,7 @@ resource "aws_security_group" "web" {
     name = "terraform_test_%d"
     description = "Used in the terraform acceptance tests"
 
-                tags {
+  tags = {
                                 Name = "tf-acc-test"
                 }
 }
@@ -1833,7 +1833,7 @@ resource "aws_security_group" "web" {
     name = "terraform_test_%d"
     description = "Used in the terraform acceptance tests"
 
-                tags {
+  tags = {
                                 Name = "tf-acc-test"
                 }
 }
@@ -1857,7 +1857,7 @@ resource "aws_security_group" "web" {
     name = "terraform_test_%d"
     description = "Used in the terraform acceptance tests"
 
-                tags {
+  tags = {
                                 Name = "tf-acc-test"
                 }
 }
@@ -1881,7 +1881,7 @@ resource "aws_security_group" "web" {
     name = "terraform_test_%d"
     description = "Used in the terraform acceptance tests"
 
-                tags {
+  tags = {
                                 Name = "tf-acc-test"
                 }
 }
@@ -1904,7 +1904,7 @@ func testAccAWSSecurityGroupRuleConfigDescriptionAllPorts(rName, description str
 resource "aws_security_group" "test" {
   name = %q
 
-  tags {
+  tags = {
     Name = "tf-acc-test-ec2-security-group-rule"
   }
 }
@@ -1926,7 +1926,7 @@ func testAccAWSSecurityGroupRuleConfigDescriptionAllPortsNonZeroPorts(rName, des
 resource "aws_security_group" "test" {
   name = %q
 
-  tags {
+  tags = {
     Name = "tf-acc-test-ec2-security-group-rule"
   }
 }
@@ -1948,7 +1948,7 @@ func testAccAWSSecurityGroupRuleConfigMultipleRuleSearchingAllProtocolCrash(rNam
 resource "aws_security_group" "test" {
   name = %q
 
-  tags {
+  tags = {
     Name = "tf-acc-test-ec2-security-group-rule"
   }
 }
@@ -1979,7 +1979,7 @@ var testAccAWSSecurityGroupRuleRace = func() string {
 	b.WriteString(fmt.Sprintf(`
 resource "aws_vpc" "default" {
     cidr_block = "10.0.0.0/16"
-    tags {
+  tags = {
         Name = "terraform-testacc-security-group-rule-race"
     }
 }
@@ -2018,7 +2018,7 @@ func testAccAWSSecurityGroupRuleSelfInSource(rInt int) string {
 resource "aws_vpc" "foo" {
     cidr_block = "10.1.0.0/16"
 
-    tags {
+  tags = {
         Name = "terraform-testacc-security-group-rule-self-ingress"
     }
 }
@@ -2045,7 +2045,7 @@ func testAccAWSSecurityGroupRuleExpectInvalidType(rInt int) string {
 resource "aws_vpc" "foo" {
     cidr_block = "10.1.0.0/16"
 
-    tags {
+  tags = {
         Name = "terraform-testacc-security-group-rule-invalid-type"
     }
 }

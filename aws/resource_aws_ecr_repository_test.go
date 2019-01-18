@@ -39,6 +39,37 @@ func TestAccAWSEcrRepository_basic(t *testing.T) {
 	})
 }
 
+func TestAccAWSEcrRepository_tags(t *testing.T) {
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_ecr_repository.default"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSEcrRepositoryDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSEcrRepositoryConfig_tags(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSEcrRepositoryExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.Usage", "original"),
+				),
+			},
+			{
+				Config: testAccAWSEcrRepositoryConfig_tagsChanged(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSEcrRepositoryExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.Usage", "changed"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckAWSEcrRepositoryDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*AWSClient).ecrconn
 
@@ -99,7 +130,32 @@ func testAccCheckAWSEcrRepositoryRepositoryURL(resourceName, repositoryName stri
 func testAccAWSEcrRepositoryConfig(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_ecr_repository" "default" {
-	name = %q
+  name = %q
+}
+`, rName)
+}
+
+func testAccAWSEcrRepositoryConfig_tags(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_ecr_repository" "default" {
+  name = %q
+
+  tags = {
+    Environment = "production"
+    Usage = "original"
+  }
+}
+`, rName)
+}
+
+func testAccAWSEcrRepositoryConfig_tagsChanged(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_ecr_repository" "default" {
+  name = %q
+
+  tags = {
+    Usage = "changed"
+  }
 }
 `, rName)
 }

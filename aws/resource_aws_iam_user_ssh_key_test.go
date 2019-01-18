@@ -17,6 +17,7 @@ func TestAccAWSUserSSHKey_basic(t *testing.T) {
 
 	ri := acctest.RandInt()
 	config := fmt.Sprintf(testAccAWSSSHKeyConfig_sshEncoding, ri)
+	resourceName := "aws_iam_user_ssh_key.user"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -26,8 +27,14 @@ func TestAccAWSUserSSHKey_basic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSUserSSHKeyExists("aws_iam_user_ssh_key.user", "Inactive", &conf),
+					testAccCheckAWSUserSSHKeyExists(resourceName, "Inactive", &conf),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateIdFunc: testAccAWSUserSSHKeyImportStateIdFunc(resourceName),
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -38,6 +45,7 @@ func TestAccAWSUserSSHKey_pemEncoding(t *testing.T) {
 
 	ri := acctest.RandInt()
 	config := fmt.Sprintf(testAccAWSSSHKeyConfig_pemEncoding, ri)
+	resourceName := "aws_iam_user_ssh_key.user"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -47,8 +55,14 @@ func TestAccAWSUserSSHKey_pemEncoding(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSUserSSHKeyExists("aws_iam_user_ssh_key.user", "Active", &conf),
+					testAccCheckAWSUserSSHKeyExists(resourceName, "Active", &conf),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateIdFunc: testAccAWSUserSSHKeyImportStateIdFunc(resourceName),
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -122,6 +136,21 @@ func testAccCheckAWSUserSSHKeyExists(n, status string, res *iam.GetSSHPublicKeyO
 	}
 }
 
+func testAccAWSUserSSHKeyImportStateIdFunc(resourceName string) resource.ImportStateIdFunc {
+	return func(s *terraform.State) (string, error) {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return "", fmt.Errorf("not found: %s", resourceName)
+		}
+
+		username := rs.Primary.Attributes["username"]
+		sshPublicKeyId := rs.Primary.Attributes["ssh_public_key_id"]
+		encoding := rs.Primary.Attributes["encoding"]
+
+		return fmt.Sprintf("%s:%s:%s", username, sshPublicKeyId, encoding), nil
+	}
+}
+
 const testAccAWSSSHKeyConfig_sshEncoding = `
 resource "aws_iam_user" "user" {
 	name = "test-user-%d"
@@ -145,6 +174,16 @@ resource "aws_iam_user" "user" {
 resource "aws_iam_user_ssh_key" "user" {
 	username = "${aws_iam_user.user.name}"
 	encoding = "PEM"
-	public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD3F6tyPEFEzV0LX3X8BsXdMsQz1x2cEikKDEY0aIj41qgxMCP/iteneqXSIFZBp5vizPvaoIR3Um9xK7PGoW8giupGn+EPuxIA4cDM4vzOqOkiMPhz5XK0whEjkVzTo4+S0puvDZuwIsdiW9mxhJc7tgBNL0cYlWSYVkz4G/fslNfRPW5mYAM49f4fhtxPb5ok4Q2Lg9dPKVHO/Bgeu5woMc7RY0p1ej6D4CKFE6lymSDJpW0YHX/wqE9+cfEauh7xZcG0q9t2ta6F6fmX0agvpFyZo8aFbXeUBr7osSCJNgvavWbM/06niWrOvYX2xwWdhXmXSrbX8ZbabVohBK41 phodgson@thoughtworks.com"
+	public_key = <<EOF
+-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA9xercjxBRM1dC191/AbF
+3TLEM9cdnBIpCgxGNGiI+NaoMTAj/4rXp3ql0iBWQaeb4sz72qCEd1JvcSuzxqFv
+IIrqRp/hD7sSAOHAzOL8zqjpIjD4c+VytMIRI5Fc06OPktKbrw2bsCLHYlvZsYSX
+O7YATS9HGJVkmFZM+Bv37JTX0T1uZmADOPX+H4bcT2+aJOENi4PXTylRzvwYHruc
+KDHO0WNKdXo+g+AihROpcpkgyaVtGB1/8KhPfnHxGroe8WXBtKvbdrWuhen5l9Go
+L6RcmaPGhW13lAa+6LEgiTYL2r1mzP9Op4lqzr2F9scFnYV5l0q21/GW2m1aIQSu
+NQIDAQAB
+-----END PUBLIC KEY-----
+EOF
 }
 `

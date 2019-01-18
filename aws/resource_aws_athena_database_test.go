@@ -249,11 +249,7 @@ func testAccAWSAthenaDatabaseCreateTables(dbName string) resource.TestCheckFunc 
 		}
 
 		_, err = queryExecutionResult(*resp.QueryExecutionId, athenaconn)
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return err
 	}
 }
 
@@ -282,11 +278,7 @@ func testAccAWSAthenaDatabaseDestroyTables(dbName string) resource.TestCheckFunc
 		}
 
 		_, err = queryExecutionResult(*resp.QueryExecutionId, athenaconn)
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return err
 	}
 }
 

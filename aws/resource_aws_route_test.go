@@ -380,6 +380,33 @@ func TestAccAWSRoute_doesNotCrashWithVPCEndpoint(t *testing.T) {
 	})
 }
 
+func TestAccAWSRoute_TransitGatewayID_DestinationCidrBlock(t *testing.T) {
+	var route ec2.Route
+	resourceName := "aws_route.test"
+	transitGatewayResourceName := "aws_ec2_transit_gateway.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSRouteDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSRouteConfigTransitGatewayIDDestinatationCidrBlock(),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSRouteExists(resourceName, &route),
+					resource.TestCheckResourceAttrPair(resourceName, "transit_gateway_id", transitGatewayResourceName, "id"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateIdFunc: testAccAWSRouteImportStateIdFunc(resourceName),
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func testAccCheckAWSRouteExists(n string, res *ec2.Route) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
@@ -454,7 +481,7 @@ func testAccAWSRouteImportStateIdFunc(resourceName string) resource.ImportStateI
 var testAccAWSRouteBasicConfig = fmt.Sprint(`
 resource "aws_vpc" "foo" {
 	cidr_block = "10.1.0.0/16"
-	tags {
+	tags = {
 		Name = "terraform-testacc-route-basic"
 	}
 }
@@ -462,7 +489,7 @@ resource "aws_vpc" "foo" {
 resource "aws_internet_gateway" "foo" {
 	vpc_id = "${aws_vpc.foo.id}"
 
-	tags {
+	tags = {
 		Name = "terraform-testacc-route-basic"
 	}
 }
@@ -482,7 +509,7 @@ var testAccAWSRouteConfigIpv6InternetGateway = fmt.Sprintf(`
 resource "aws_vpc" "foo" {
   cidr_block = "10.1.0.0/16"
   assign_generated_ipv6_cidr_block = true
-  tags {
+  tags = {
     Name = "terraform-testacc-route-ipv6-igw"
   }
 }
@@ -494,7 +521,7 @@ resource "aws_egress_only_internet_gateway" "foo" {
 resource "aws_internet_gateway" "foo" {
 	vpc_id = "${aws_vpc.foo.id}"
 
-	tags {
+	tags = {
 		Name = "terraform-testacc-route-ipv6-igw"
 	}
 }
@@ -516,7 +543,7 @@ resource "aws_vpc" "examplevpc" {
   cidr_block = "10.100.0.0/16"
   enable_dns_hostnames = true
   assign_generated_ipv6_cidr_block = true
-  tags {
+  tags = {
     Name = "terraform-testacc-route-ipv6-network-interface"
   }
 }
@@ -526,7 +553,7 @@ data "aws_availability_zones" "available" {}
 resource "aws_internet_gateway" "internet" {
   vpc_id = "${aws_vpc.examplevpc.id}"
 
-  tags {
+  tags = {
     Name = "terraform-testacc-route-ipv6-network-interface"
   }
 }
@@ -550,7 +577,7 @@ resource "aws_subnet" "router-network" {
   assign_ipv6_address_on_creation = true
   map_public_ip_on_launch = true
   availability_zone = "${data.aws_availability_zones.available.names[0]}"
-  tags {
+  tags = {
     Name = "tf-acc-route-ipv6-network-interface-router"
   }
 }
@@ -562,7 +589,7 @@ resource "aws_subnet" "client-network" {
   assign_ipv6_address_on_creation = true
   map_public_ip_on_launch = false
   availability_zone = "${data.aws_availability_zones.available.names[0]}"
-  tags {
+  tags = {
     Name = "tf-acc-route-ipv6-network-interface-client"
   }
 }
@@ -625,7 +652,7 @@ resource "aws_vpc" "examplevpc" {
   cidr_block = "10.100.0.0/16"
   enable_dns_hostnames = true
   assign_generated_ipv6_cidr_block = true
-  tags {
+  tags = {
     Name = "terraform-testacc-route-ipv6-instance"
   }
 }
@@ -635,7 +662,7 @@ data "aws_availability_zones" "available" {}
 resource "aws_internet_gateway" "internet" {
   vpc_id = "${aws_vpc.examplevpc.id}"
 
-  tags {
+  tags = {
     Name = "terraform-testacc-route-ipv6-instance"
   }
 }
@@ -659,7 +686,7 @@ resource "aws_subnet" "router-network" {
   assign_ipv6_address_on_creation = true
   map_public_ip_on_launch = true
   availability_zone = "${data.aws_availability_zones.available.names[0]}"
-  tags {
+  tags = {
     Name = "tf-acc-route-ipv6-instance-router"
   }
 }
@@ -671,7 +698,7 @@ resource "aws_subnet" "client-network" {
   assign_ipv6_address_on_creation = true
   map_public_ip_on_launch = false
   availability_zone = "${data.aws_availability_zones.available.names[0]}"
-  tags {
+  tags = {
     Name = "tf-acc-route-ipv6-instance-client"
   }
 }
@@ -722,7 +749,7 @@ var testAccAWSRouteConfigIpv6PeeringConnection = fmt.Sprintf(`
 resource "aws_vpc" "foo" {
 	cidr_block = "10.0.0.0/16"
 	assign_generated_ipv6_cidr_block = true
-	tags {
+	tags = {
 		Name = "terraform-testacc-route-ipv6-peering-connection"
 	}
 }
@@ -754,7 +781,7 @@ var testAccAWSRouteConfigIpv6 = fmt.Sprintf(`
 resource "aws_vpc" "foo" {
   cidr_block = "10.1.0.0/16"
   assign_generated_ipv6_cidr_block = true
-  tags {
+  tags = {
     Name = "terraform-testacc-route-ipv6"
   }
 }
@@ -779,7 +806,7 @@ resource "aws_route" "bar" {
 var testAccAWSRouteBasicConfigChangeCidr = fmt.Sprint(`
 resource "aws_vpc" "foo" {
 	cidr_block = "10.1.0.0/16"
-	tags {
+	tags = {
 		Name = "terraform-testacc-route-change-cidr"
 	}
 }
@@ -787,7 +814,7 @@ resource "aws_vpc" "foo" {
 resource "aws_internet_gateway" "foo" {
 	vpc_id = "${aws_vpc.foo.id}"
 
-	tags {
+	tags = {
 		Name = "terraform-testacc-route-change-cidr"
 	}
 }
@@ -806,7 +833,7 @@ resource "aws_route" "bar" {
 var testAccAWSRouteNoopChange = fmt.Sprint(`
 resource "aws_vpc" "test" {
   cidr_block = "10.10.0.0/16"
-  tags {
+  tags = {
     Name = "terraform-testacc-route-noop-change"
   }
 }
@@ -818,7 +845,7 @@ resource "aws_route_table" "test" {
 resource "aws_subnet" "test" {
   vpc_id = "${aws_vpc.test.id}"
   cidr_block = "10.10.10.0/24"
-  tags {
+  tags = {
     Name = "tf-acc-route-noop-change"
   }
 }
@@ -839,7 +866,7 @@ resource "aws_instance" "nat" {
 var testAccAWSRouteWithVPCEndpoint = fmt.Sprint(`
 resource "aws_vpc" "foo" {
   cidr_block = "10.1.0.0/16"
-  tags {
+  tags = {
     Name = "terraform-testacc-route-with-vpc-endpoint"
   }
 }
@@ -847,7 +874,7 @@ resource "aws_vpc" "foo" {
 resource "aws_internet_gateway" "foo" {
   vpc_id = "${aws_vpc.foo.id}"
 
-  tags {
+  tags = {
     Name = "terraform-testacc-route-with-vpc-endpoint"
   }
 }
@@ -875,14 +902,14 @@ resource "aws_vpc_endpoint" "baz" {
 var testAccAWSRouteNewRouteTable = fmt.Sprint(`
 resource "aws_vpc" "foo" {
 	cidr_block = "10.1.0.0/16"
-	tags {
+	tags = {
 		Name = "terraform-testacc-route-basic"
 	}
 }
 
 resource "aws_vpc" "bar" {
 	cidr_block = "10.2.0.0/16"
-	tags {
+	tags = {
 		Name = "terraform-testacc-route-new-route-table"
 	}
 }
@@ -890,7 +917,7 @@ resource "aws_vpc" "bar" {
 resource "aws_internet_gateway" "foo" {
 	vpc_id = "${aws_vpc.foo.id}"
 
-	tags {
+	tags = {
 		Name = "terraform-testacc-route-basic"
 	}
 }
@@ -898,7 +925,7 @@ resource "aws_internet_gateway" "foo" {
 resource "aws_internet_gateway" "bar" {
 	vpc_id = "${aws_vpc.bar.id}"
 
-	tags {
+	tags = {
 		Name = "terraform-testacc-route-new-route-table"
 	}
 }
@@ -906,7 +933,7 @@ resource "aws_internet_gateway" "bar" {
 resource "aws_route_table" "foo" {
 	vpc_id = "${aws_vpc.foo.id}"
 
-	tags {
+	tags = {
 		Name = "terraform-testacc-route-basic"
 	}
 }
@@ -914,7 +941,7 @@ resource "aws_route_table" "foo" {
 resource "aws_route_table" "bar" {
 	vpc_id = "${aws_vpc.bar.id}"
 
-	tags {
+	tags = {
 		Name = "terraform-testacc-route-new-route-table"
 	}
 }
@@ -925,3 +952,38 @@ resource "aws_route" "bar" {
 	gateway_id = "${aws_internet_gateway.bar.id}"
 }
 `)
+
+func testAccAWSRouteConfigTransitGatewayIDDestinatationCidrBlock() string {
+	return fmt.Sprintf(`
+resource "aws_vpc" "test" {
+  cidr_block = "10.0.0.0/16"
+
+  tags = {
+    Name = "tf-acc-test-ec2-route-transit-gateway-id"
+  }
+}
+
+resource "aws_subnet" "test" {
+  cidr_block = "10.0.0.0/24"
+  vpc_id     = "${aws_vpc.test.id}"
+
+  tags = {
+    Name = "tf-acc-test-ec2-route-transit-gateway-id"
+  }
+}
+
+resource "aws_ec2_transit_gateway" "test" {}
+
+resource "aws_ec2_transit_gateway_vpc_attachment" "test" {
+  subnet_ids         = ["${aws_subnet.test.id}"]
+  transit_gateway_id = "${aws_ec2_transit_gateway.test.id}"
+  vpc_id             = "${aws_vpc.test.id}"
+}
+
+resource "aws_route" "test" {
+  destination_cidr_block = "0.0.0.0/0"
+  route_table_id         = "${aws_vpc.test.default_route_table_id}"
+  transit_gateway_id     = "${aws_ec2_transit_gateway_vpc_attachment.test.transit_gateway_id}"
+}
+`)
+}

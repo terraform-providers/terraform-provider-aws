@@ -4,7 +4,9 @@ services:
   - docker
 language: go
 go:
-- "1.11.1"
+- "1.11.x"
+env:
+  GOFLAGS=-mod=vendor
 
 git:
   depth: 1
@@ -20,7 +22,6 @@ install:
 script:
 - make lint
 - make test
-- make vendor-status
 - make website-lint
 - make website-test
 

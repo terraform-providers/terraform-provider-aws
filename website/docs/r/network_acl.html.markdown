@@ -41,7 +41,7 @@ resource "aws_network_acl" "main" {
     to_port    = 80
   }
 
-  tags {
+  tags = {
     Name = "main"
   }
 }
@@ -80,6 +80,7 @@ valid network mask.
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the network ACL
+* `owner_id` - The ID of the AWS account that owns the network ACL.
 
 
 ## Import

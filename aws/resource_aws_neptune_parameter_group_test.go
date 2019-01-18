@@ -275,7 +275,7 @@ resource "aws_neptune_parameter_group" "test" {
   family = "neptune1"
   name   = %q
 
-  tags {
+  tags = {
     %s = %q
   }
 }
@@ -288,7 +288,7 @@ resource "aws_neptune_parameter_group" "test" {
   family = "neptune1"
   name   = %q
 
-  tags {
+  tags = {
     %s = %q
     %s = %q
   }

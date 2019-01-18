@@ -12,7 +12,7 @@ Provides a Cognito User Pool Client resource.
 
 ## Example Usage
 
-### Create a basic user pool client client
+### Create a basic user pool client
 
 ```hcl
 resource "aws_cognito_user_pool" "pool" {

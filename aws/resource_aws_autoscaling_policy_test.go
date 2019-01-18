@@ -314,7 +314,7 @@ data "aws_ami" "amzn" {
 
   filter {
     name   = "name"
-    values = ["amzn2-ami-hvm-*"]
+    values = ["amzn2-ami-hvm-*-x86_64-gp2"]
   }
 }
 
@@ -327,7 +327,7 @@ resource "aws_launch_configuration" "test" {
 }
 
 resource "aws_autoscaling_group" "test" {
-  availability_zones   = ["${data.aws_availability_zones.available.names}"]
+  availability_zones   = ["${data.aws_availability_zones.available.names[0]}", "${data.aws_availability_zones.available.names[1]}"]
   name                 = "%s"
   max_size             = 0
   min_size             = 0

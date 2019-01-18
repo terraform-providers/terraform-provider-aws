@@ -34,6 +34,7 @@ The following arguments are supported:
 
 * `snapshot_copy_grant_name` - (Required, Forces new resource) A friendly name for identifying the grant.
 * `kms_key_id` - (Optional, Forces new resource) The unique identifier for the customer master key (CMK) that the grant applies to. Specify the key ID or the Amazon Resource Name (ARN) of the CMK. To specify a CMK in a different AWS account, you must use the key ARN. If not specified, the default key is used.
+* `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ## Attributes Reference
 

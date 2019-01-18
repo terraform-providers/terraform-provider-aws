@@ -142,11 +142,7 @@ func testAccCheckAWSKmsGrantDestroy(s *terraform.State) error {
 		}
 
 		err := waitForKmsGrantToBeRevoked(conn, rs.Primary.Attributes["key_id"], rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return err
 	}
 
 	return nil

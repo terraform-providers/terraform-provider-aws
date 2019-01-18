@@ -592,7 +592,7 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
 	viewer_certificate {
 		cloudfront_default_certificate = true
 	}
-	tags {
+	tags = {
             environment = "production"
             account = "main"
 	}
@@ -644,7 +644,7 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
 	viewer_certificate {
 		cloudfront_default_certificate = true
 	}
-	tags {
+	tags = {
             environment = "dev"
 	}
 	%s

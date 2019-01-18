@@ -127,11 +127,7 @@ func testAccCheckAwsGuardDutyIpsetExists(name string) resource.TestCheckFunc {
 
 		conn := testAccProvider.Meta().(*AWSClient).guarddutyconn
 		_, err = conn.GetIPSet(input)
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return err
 	}
 }
 

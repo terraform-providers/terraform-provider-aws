@@ -62,6 +62,7 @@ func resourceAwsIamUser() *schema.Resource {
 				Default:     false,
 				Description: "Delete user even if it has non-Terraform-managed IAM access keys, login profile or MFA devices",
 			},
+			"tags": tagsSchema(),
 		},
 	}
 }
@@ -78,6 +79,11 @@ func resourceAwsIamUserCreate(d *schema.ResourceData, meta interface{}) error {
 
 	if v, ok := d.GetOk("permissions_boundary"); ok && v.(string) != "" {
 		request.PermissionsBoundary = aws.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("tags"); ok {
+		tags := tagsFromMapIAM(v.(map[string]interface{}))
+		request.Tags = tags
 	}
 
 	log.Println("[DEBUG] Create IAM User request:", request)
@@ -121,6 +127,9 @@ func resourceAwsIamUserRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("permissions_boundary", output.User.PermissionsBoundary.PermissionsBoundaryArn)
 	}
 	d.Set("unique_id", output.User.UserId)
+	if err := d.Set("tags", tagsToMapIAM(output.User.Tags)); err != nil {
+		return fmt.Errorf("error setting tags: %s", err)
+	}
 
 	return nil
 }
@@ -174,6 +183,35 @@ func resourceAwsIamUserUpdate(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
+	if d.HasChange("tags") {
+		// Reset all tags to empty set
+		oraw, nraw := d.GetChange("tags")
+		o := oraw.(map[string]interface{})
+		n := nraw.(map[string]interface{})
+		c, r := diffTagsIAM(tagsFromMapIAM(o), tagsFromMapIAM(n))
+
+		if len(r) > 0 {
+			_, err := iamconn.UntagUser(&iam.UntagUserInput{
+				UserName: aws.String(d.Id()),
+				TagKeys:  tagKeysIam(r),
+			})
+			if err != nil {
+				return fmt.Errorf("error deleting IAM user tags: %s", err)
+			}
+		}
+
+		if len(c) > 0 {
+			input := &iam.TagUserInput{
+				UserName: aws.String(d.Id()),
+				Tags:     c,
+			}
+			_, err := iamconn.TagUser(input)
+			if err != nil {
+				return fmt.Errorf("error update IAM user tags: %s", err)
+			}
+		}
+	}
+
 	return resourceAwsIamUserRead(d, meta)
 }
 
@@ -181,49 +219,26 @@ func resourceAwsIamUserDelete(d *schema.ResourceData, meta interface{}) error {
 	iamconn := meta.(*AWSClient).iamconn
 
 	// IAM Users must be removed from all groups before they can be deleted
-	var groups []string
-	listGroups := &iam.ListGroupsForUserInput{
-		UserName: aws.String(d.Id()),
-	}
-	pageOfGroups := func(page *iam.ListGroupsForUserOutput, lastPage bool) (shouldContinue bool) {
-		for _, g := range page.Groups {
-			groups = append(groups, *g.GroupName)
-		}
-		return !lastPage
-	}
-	err := iamconn.ListGroupsForUserPages(listGroups, pageOfGroups)
-	if err != nil {
-		return fmt.Errorf("Error removing user %q from all groups: %s", d.Id(), err)
-	}
-	for _, g := range groups {
-		// use iam group membership func to remove user from all groups
-		log.Printf("[DEBUG] Removing IAM User %s from IAM Group %s", d.Id(), g)
-		if err := removeUsersFromGroup(iamconn, []*string{aws.String(d.Id())}, g); err != nil {
-			return err
-		}
+	if err := deleteAwsIamUserGroupMemberships(iamconn, d.Id()); err != nil {
+		return fmt.Errorf("error removing IAM User (%s) group memberships: %s", d.Id(), err)
 	}
 
 	// All access keys, MFA devices and login profile for the user must be removed
 	if d.Get("force_destroy").(bool) {
-
-		err = deleteAwsIamUserAccessKeys(iamconn, d.Id())
-		if err != nil {
-			return err
+		if err := deleteAwsIamUserAccessKeys(iamconn, d.Id()); err != nil {
+			return fmt.Errorf("error removing IAM User (%s) access keys: %s", d.Id(), err)
 		}
 
-		err = deleteAwsIamUserSSHKeys(iamconn, d.Id())
-		if err != nil {
-			return err
+		if err := deleteAwsIamUserSSHKeys(iamconn, d.Id()); err != nil {
+			return fmt.Errorf("error removing IAM User (%s) SSH keys: %s", d.Id(), err)
 		}
 
-		err = deleteAwsIamUserMFADevices(iamconn, d.Id())
-		if err != nil {
-			return err
+		if err := deleteAwsIamUserMFADevices(iamconn, d.Id()); err != nil {
+			return fmt.Errorf("error removing IAM User (%s) MFA devices: %s", d.Id(), err)
 		}
 
-		err = deleteAwsIamUserLoginProfile(iamconn, d.Id())
-		if err != nil {
-			return err
+		if err := deleteAwsIamUserLoginProfile(iamconn, d.Id()); err != nil {
+			return fmt.Errorf("error removing IAM User (%s) login profile: %s", d.Id(), err)
 		}
 	}
 
@@ -232,11 +247,13 @@ func resourceAwsIamUserDelete(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	log.Println("[DEBUG] Delete IAM User request:", deleteUserInput)
-	_, err = iamconn.DeleteUser(deleteUserInput)
+	_, err := iamconn.DeleteUser(deleteUserInput)
+
+	if isAWSErr(err, iam.ErrCodeNoSuchEntityException, "") {
+		return nil
+	}
+
 	if err != nil {
-		if isAWSErr(err, iam.ErrCodeNoSuchEntityException, "") {
-			return nil
-		}
 		return fmt.Errorf("Error deleting IAM User %s: %s", d.Id(), err)
 	}
 
@@ -251,6 +268,32 @@ func validateAwsIamUserName(v interface{}, k string) (ws []string, errors []erro
 			k, value))
 	}
 	return
+}
+
+func deleteAwsIamUserGroupMemberships(conn *iam.IAM, username string) error {
+	var groups []string
+	listGroups := &iam.ListGroupsForUserInput{
+		UserName: aws.String(username),
+	}
+	pageOfGroups := func(page *iam.ListGroupsForUserOutput, lastPage bool) (shouldContinue bool) {
+		for _, g := range page.Groups {
+			groups = append(groups, *g.GroupName)
+		}
+		return !lastPage
+	}
+	err := conn.ListGroupsForUserPages(listGroups, pageOfGroups)
+	if err != nil {
+		return fmt.Errorf("Error removing user %q from all groups: %s", username, err)
+	}
+	for _, g := range groups {
+		// use iam group membership func to remove user from all groups
+		log.Printf("[DEBUG] Removing IAM User %s from IAM Group %s", username, g)
+		if err := removeUsersFromGroup(conn, []*string{aws.String(username)}, g); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func deleteAwsIamUserSSHKeys(svc *iam.IAM, username string) error {

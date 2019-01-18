@@ -31,6 +31,33 @@ the `regional_domain_name` attribute.
 
 ## Example Usage
 
+-> For information about regions that support AWS Certificate Manager (ACM), see the [Regions and Endpoints Documentation](https://docs.aws.amazon.com/general/latest/gr/rande.html#acm_region).
+
+### Edge Optimized (ACM Certificate)
+
+```hcl
+resource "aws_api_gateway_domain_name" "example" {
+  certificate_arn = "${aws_acm_certificate_validation.example.certificate_arn}"
+  domain_name     = "api.example.com"
+}
+
+# Example DNS record using Route53.
+# Route53 is not specifically required; any DNS host can be used.
+resource "aws_route53_record" "example" {
+  name    = "${aws_api_gateway_domain_name.example.domain_name}"
+  type    = "A"
+  zone_id = "${aws_route53_zone.example.id}"
+
+  alias {
+    evaluate_target_health = true
+    name                   = "${aws_api_gateway_domain_name.example.cloudfront_domain_name}"
+    zone_id                = "${aws_api_gateway_domain_name.example.cloudfront_zone_id}"
+  }
+}
+```
+
+### Edge Optimized (Uploaded Certificate)
+
 ```hcl
 resource "aws_api_gateway_domain_name" "example" {
   domain_name = "api.example.com"
@@ -57,11 +84,77 @@ resource "aws_route53_record" "example" {
 }
 ```
 
+### Regional (ACM Certificate)
+
+```hcl
+resource "aws_api_gateway_domain_name" "example" {
+  domain_name              = "api.example.com"
+  regional_certificate_arn = "${aws_acm_certificate_validation.example.certificate_arn}"
+
+  endpoint_configuration {
+    types = ["REGIONAL"]
+  }
+}
+
+# Example DNS record using Route53.
+# Route53 is not specifically required; any DNS host can be used.
+resource "aws_route53_record" "example" {
+  name    = "${aws_api_gateway_domain_name.example.domain_name}"
+  type    = "A"
+  zone_id = "${aws_route53_zone.example.id}"
+
+  alias {
+    evaluate_target_health = true
+    name                   = "${aws_api_gateway_domain_name.example.regional_domain_name}"
+    zone_id                = "${aws_api_gateway_domain_name.example.regional_zone_id}"
+  }
+}
+```
+
+### Regional (Uploaded Certificate)
+
+```hcl
+resource "aws_api_gateway_domain_name" "example" {
+  certificate_body          = "${file("${path.module}/example.com/example.crt")}"
+  certificate_chain         = "${file("${path.module}/example.com/ca.crt")}"
+  certificate_private_key   = "${file("${path.module}/example.com/example.key")}"
+  domain_name               = "api.example.com"
+  regional_certificate_name = "example-api"
+
+  endpoint_configuration {
+    types = ["REGIONAL"]
+  }
+}
+
+# Example DNS record using Route53.
+# Route53 is not specifically required; any DNS host can be used.
+resource "aws_route53_record" "example" {
+  name    = "${aws_api_gateway_domain_name.example.domain_name}"
+  type    = "A"
+  zone_id = "${aws_route53_zone.example.id}"
+
+  alias {
+    evaluate_target_health = true
+    name                   = "${aws_api_gateway_domain_name.example.regional_domain_name}"
+    zone_id                = "${aws_api_gateway_domain_name.example.regional_zone_id}"
+  }
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:
 
 * `domain_name` - (Required) The fully-qualified domain name to register
+* `endpoint_configuration` - (Optional) Configuration block defining API endpoint information including type. Defined below.
+
+When referencing an AWS-managed certificate, the following arguments are supported:
+
+* `certificate_arn` - (Optional) The ARN for an AWS-managed certificate. AWS Certificate Manager is the only supported source. Used when an edge-optimized domain name is desired. Conflicts with `certificate_name`, `certificate_body`, `certificate_chain`, `certificate_private_key`, `regional_certificate_arn`, and `regional_certificate_name`.
+* `regional_certificate_arn` - (Optional) The ARN for an AWS-managed certificate. AWS Certificate Manager is the only supported source. Used when a regional domain name is desired. Conflicts with `certificate_arn`, `certificate_name`, `certificate_body`, `certificate_chain`, and `certificate_private_key`.
+
+When uploading a certificate, the following arguments are supported:
+
 * `certificate_name` - (Optional) The unique name to use when registering this
   certificate as an IAM server certificate. Conflicts with `certificate_arn`, `regional_certificate_arn`, and
   `regional_certificate_name`. Required if `certificate_arn` is not set.
@@ -74,13 +167,6 @@ The following arguments are supported:
   `regional_certificate_arn`, and `regional_certificate_name`.
 * `certificate_private_key` - (Optional) The private key associated with the
   domain certificate given in `certificate_body`. Only valid for `EDGE` endpoint configuration type. Conflicts with `certificate_arn`, `regional_certificate_arn`, and `regional_certificate_name`.
-* `certificate_arn` - (Optional) The ARN for an AWS-managed certificate. Used when an edge-optimized domain name is
-  desired. Conflicts with `certificate_name`, `certificate_body`, `certificate_chain`, `certificate_private_key`,
-  `regional_certificate_arn`, and `regional_certificate_name`.
-* `endpoint_configuration` - (Optional) Nested argument defining API endpoint configuration including endpoint type. Defined below.
-* `regional_certificate_arn` - (Optional) The ARN for an AWS-managed certificate. Used when a regional domain name is
-  desired. Conflicts with `certificate_arn`, `certificate_name`, `certificate_body`, `certificate_chain`, and
-  `certificate_private_key`.
 * `regional_certificate_name` - (Optional) The user-friendly name of the certificate that will be used by regional endpoint for this domain name. Conflicts with `certificate_arn`, `certificate_name`, `certificate_body`, `certificate_chain`, and
   `certificate_private_key`.
 
