@@ -3,6 +3,7 @@
 package redshift
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -12,12 +13,112 @@ import (
 	"github.com/aws/aws-sdk-go/private/protocol/query"
 )
 
+const opAcceptReservedNodeExchange = "AcceptReservedNodeExchange"
+
+// AcceptReservedNodeExchangeRequest generates a "aws/request.Request" representing the
+// client's request for the AcceptReservedNodeExchange operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See AcceptReservedNodeExchange for more information on using the AcceptReservedNodeExchange
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the AcceptReservedNodeExchangeRequest method.
+//    req, resp := client.AcceptReservedNodeExchangeRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/AcceptReservedNodeExchange
+func (c *Redshift) AcceptReservedNodeExchangeRequest(input *AcceptReservedNodeExchangeInput) (req *request.Request, output *AcceptReservedNodeExchangeOutput) {
+	op := &request.Operation{
+		Name:       opAcceptReservedNodeExchange,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &AcceptReservedNodeExchangeInput{}
+	}
+
+	output = &AcceptReservedNodeExchangeOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// AcceptReservedNodeExchange API operation for Amazon Redshift.
+//
+// Exchanges a DC1 Reserved Node for a DC2 Reserved Node with no changes to
+// the configuration (term, payment type, or number of nodes) and no additional
+// costs.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Redshift's
+// API operation AcceptReservedNodeExchange for usage and error information.
+//
+// Returned Error Codes:
+//   * ErrCodeReservedNodeNotFoundFault "ReservedNodeNotFound"
+//   The specified reserved compute node not found.
+//
+//   * ErrCodeInvalidReservedNodeStateFault "InvalidReservedNodeState"
+//   Indicates that the Reserved Node being exchanged is not in an active state.
+//
+//   * ErrCodeReservedNodeAlreadyMigratedFault "ReservedNodeAlreadyMigrated"
+//   Indicates that the reserved node has already been exchanged.
+//
+//   * ErrCodeReservedNodeOfferingNotFoundFault "ReservedNodeOfferingNotFound"
+//   Specified offering does not exist.
+//
+//   * ErrCodeUnsupportedOperationFault "UnsupportedOperation"
+//   The requested operation isn't supported.
+//
+//   * ErrCodeDependentServiceUnavailableFault "DependentServiceUnavailableFault"
+//   Your request cannot be completed because a dependent internal service is
+//   temporarily unavailable. Wait 30 to 60 seconds and try again.
+//
+//   * ErrCodeReservedNodeAlreadyExistsFault "ReservedNodeAlreadyExists"
+//   User already has a reservation with the given identifier.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/AcceptReservedNodeExchange
+func (c *Redshift) AcceptReservedNodeExchange(input *AcceptReservedNodeExchangeInput) (*AcceptReservedNodeExchangeOutput, error) {
+	req, out := c.AcceptReservedNodeExchangeRequest(input)
+	return out, req.Send()
+}
+
+// AcceptReservedNodeExchangeWithContext is the same as AcceptReservedNodeExchange with the addition of
+// the ability to pass a context and additional request options.
+//
+// See AcceptReservedNodeExchange for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Redshift) AcceptReservedNodeExchangeWithContext(ctx aws.Context, input *AcceptReservedNodeExchangeInput, opts ...request.Option) (*AcceptReservedNodeExchangeOutput, error) {
+	req, out := c.AcceptReservedNodeExchangeRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opAuthorizeClusterSecurityGroupIngress = "AuthorizeClusterSecurityGroupIngress"
 
 // AuthorizeClusterSecurityGroupIngressRequest generates a "aws/request.Request" representing the
 // client's request for the AuthorizeClusterSecurityGroupIngress operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -65,7 +166,7 @@ func (c *Redshift) AuthorizeClusterSecurityGroupIngressRequest(input *AuthorizeC
 //
 // If you authorize access to an Amazon EC2 security group, specify EC2SecurityGroupName
 // and EC2SecurityGroupOwnerId. The Amazon EC2 security group and Amazon Redshift
-// cluster must be in the same AWS region.
+// cluster must be in the same AWS Region.
 //
 // If you authorize access to a CIDR/IP address range, specify CIDRIP. For an
 // overview of CIDR blocks, see the Wikipedia article on Classless Inter-Domain
@@ -125,8 +226,8 @@ const opAuthorizeSnapshotAccess = "AuthorizeSnapshotAccess"
 
 // AuthorizeSnapshotAccessRequest generates a "aws/request.Request" representing the
 // client's request for the AuthorizeSnapshotAccess operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -222,12 +323,265 @@ func (c *Redshift) AuthorizeSnapshotAccessWithContext(ctx aws.Context, input *Au
 	return out, req.Send()
 }
 
+const opBatchDeleteClusterSnapshots = "BatchDeleteClusterSnapshots"
+
+// BatchDeleteClusterSnapshotsRequest generates a "aws/request.Request" representing the
+// client's request for the BatchDeleteClusterSnapshots operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See BatchDeleteClusterSnapshots for more information on using the BatchDeleteClusterSnapshots
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the BatchDeleteClusterSnapshotsRequest method.
+//    req, resp := client.BatchDeleteClusterSnapshotsRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/BatchDeleteClusterSnapshots
+func (c *Redshift) BatchDeleteClusterSnapshotsRequest(input *BatchDeleteClusterSnapshotsInput) (req *request.Request, output *BatchDeleteClusterSnapshotsOutput) {
+	op := &request.Operation{
+		Name:       opBatchDeleteClusterSnapshots,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &BatchDeleteClusterSnapshotsInput{}
+	}
+
+	output = &BatchDeleteClusterSnapshotsOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// BatchDeleteClusterSnapshots API operation for Amazon Redshift.
+//
+// Deletes a set of cluster snapshots.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Redshift's
+// API operation BatchDeleteClusterSnapshots for usage and error information.
+//
+// Returned Error Codes:
+//   * ErrCodeBatchDeleteRequestSizeExceededFault "BatchDeleteRequestSizeExceeded"
+//   The maximum number for a batch delete of snapshots has been reached. The
+//   limit is 100.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/BatchDeleteClusterSnapshots
+func (c *Redshift) BatchDeleteClusterSnapshots(input *BatchDeleteClusterSnapshotsInput) (*BatchDeleteClusterSnapshotsOutput, error) {
+	req, out := c.BatchDeleteClusterSnapshotsRequest(input)
+	return out, req.Send()
+}
+
+// BatchDeleteClusterSnapshotsWithContext is the same as BatchDeleteClusterSnapshots with the addition of
+// the ability to pass a context and additional request options.
+//
+// See BatchDeleteClusterSnapshots for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Redshift) BatchDeleteClusterSnapshotsWithContext(ctx aws.Context, input *BatchDeleteClusterSnapshotsInput, opts ...request.Option) (*BatchDeleteClusterSnapshotsOutput, error) {
+	req, out := c.BatchDeleteClusterSnapshotsRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opBatchModifyClusterSnapshots = "BatchModifyClusterSnapshots"
+
+// BatchModifyClusterSnapshotsRequest generates a "aws/request.Request" representing the
+// client's request for the BatchModifyClusterSnapshots operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See BatchModifyClusterSnapshots for more information on using the BatchModifyClusterSnapshots
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the BatchModifyClusterSnapshotsRequest method.
+//    req, resp := client.BatchModifyClusterSnapshotsRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/BatchModifyClusterSnapshots
+func (c *Redshift) BatchModifyClusterSnapshotsRequest(input *BatchModifyClusterSnapshotsInput) (req *request.Request, output *BatchModifyClusterSnapshotsOutput) {
+	op := &request.Operation{
+		Name:       opBatchModifyClusterSnapshots,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &BatchModifyClusterSnapshotsInput{}
+	}
+
+	output = &BatchModifyClusterSnapshotsOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// BatchModifyClusterSnapshots API operation for Amazon Redshift.
+//
+// Modifies the settings for a list of snapshots.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Redshift's
+// API operation BatchModifyClusterSnapshots for usage and error information.
+//
+// Returned Error Codes:
+//   * ErrCodeInvalidRetentionPeriodFault "InvalidRetentionPeriodFault"
+//   The retention period specified is either in the past or is not a valid value.
+//
+//   The value must be either -1 or an integer between 1 and 3,653.
+//
+//   * ErrCodeBatchModifyClusterSnapshotsLimitExceededFault "BatchModifyClusterSnapshotsLimitExceededFault"
+//   The maximum number for snapshot identifiers has been reached. The limit is
+//   100.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/BatchModifyClusterSnapshots
+func (c *Redshift) BatchModifyClusterSnapshots(input *BatchModifyClusterSnapshotsInput) (*BatchModifyClusterSnapshotsOutput, error) {
+	req, out := c.BatchModifyClusterSnapshotsRequest(input)
+	return out, req.Send()
+}
+
+// BatchModifyClusterSnapshotsWithContext is the same as BatchModifyClusterSnapshots with the addition of
+// the ability to pass a context and additional request options.
+//
+// See BatchModifyClusterSnapshots for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Redshift) BatchModifyClusterSnapshotsWithContext(ctx aws.Context, input *BatchModifyClusterSnapshotsInput, opts ...request.Option) (*BatchModifyClusterSnapshotsOutput, error) {
+	req, out := c.BatchModifyClusterSnapshotsRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opCancelResize = "CancelResize"
+
+// CancelResizeRequest generates a "aws/request.Request" representing the
+// client's request for the CancelResize operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See CancelResize for more information on using the CancelResize
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the CancelResizeRequest method.
+//    req, resp := client.CancelResizeRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/CancelResize
+func (c *Redshift) CancelResizeRequest(input *CancelResizeInput) (req *request.Request, output *CancelResizeOutput) {
+	op := &request.Operation{
+		Name:       opCancelResize,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &CancelResizeInput{}
+	}
+
+	output = &CancelResizeOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// CancelResize API operation for Amazon Redshift.
+//
+// Cancels a resize operation.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Redshift's
+// API operation CancelResize for usage and error information.
+//
+// Returned Error Codes:
+//   * ErrCodeClusterNotFoundFault "ClusterNotFound"
+//   The ClusterIdentifier parameter does not refer to an existing cluster.
+//
+//   * ErrCodeResizeNotFoundFault "ResizeNotFound"
+//   A resize operation for the specified cluster is not found.
+//
+//   * ErrCodeInvalidClusterStateFault "InvalidClusterState"
+//   The specified cluster is not in the available state.
+//
+//   * ErrCodeUnsupportedOperationFault "UnsupportedOperation"
+//   The requested operation isn't supported.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/CancelResize
+func (c *Redshift) CancelResize(input *CancelResizeInput) (*CancelResizeOutput, error) {
+	req, out := c.CancelResizeRequest(input)
+	return out, req.Send()
+}
+
+// CancelResizeWithContext is the same as CancelResize with the addition of
+// the ability to pass a context and additional request options.
+//
+// See CancelResize for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Redshift) CancelResizeWithContext(ctx aws.Context, input *CancelResizeInput, opts ...request.Option) (*CancelResizeOutput, error) {
+	req, out := c.CancelResizeRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opCopyClusterSnapshot = "CopyClusterSnapshot"
 
 // CopyClusterSnapshotRequest generates a "aws/request.Request" representing the
 // client's request for the CopyClusterSnapshot operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -303,6 +657,11 @@ func (c *Redshift) CopyClusterSnapshotRequest(input *CopyClusterSnapshotInput) (
 //   The request would result in the user exceeding the allowed number of cluster
 //   snapshots.
 //
+//   * ErrCodeInvalidRetentionPeriodFault "InvalidRetentionPeriodFault"
+//   The retention period specified is either in the past or is not a valid value.
+//
+//   The value must be either -1 or an integer between 1 and 3,653.
+//
 // See also, https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/CopyClusterSnapshot
 func (c *Redshift) CopyClusterSnapshot(input *CopyClusterSnapshotInput) (*CopyClusterSnapshotOutput, error) {
 	req, out := c.CopyClusterSnapshotRequest(input)
@@ -329,8 +688,8 @@ const opCreateCluster = "CreateCluster"
 
 // CreateClusterRequest generates a "aws/request.Request" representing the
 // client's request for the CreateCluster operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -371,10 +730,10 @@ func (c *Redshift) CreateClusterRequest(input *CreateClusterInput) (req *request
 //
 // Creates a new cluster.
 //
-// To create the cluster in Virtual Private Cloud (VPC), you must provide a
-// cluster subnet group name. The cluster subnet group identifies the subnets
-// of your VPC that Amazon Redshift uses when creating the cluster. For more
-// information about managing clusters, go to Amazon Redshift Clusters (http://docs.aws.amazon.com/redshift/latest/mgmt/working-with-clusters.html)
+// To create a cluster in Virtual Private Cloud (VPC), you must provide a cluster
+// subnet group name. The cluster subnet group identifies the subnets of your
+// VPC that Amazon Redshift uses when creating the cluster. For more information
+// about managing clusters, go to Amazon Redshift Clusters (http://docs.aws.amazon.com/redshift/latest/mgmt/working-with-clusters.html)
 // in the Amazon Redshift Cluster Management Guide.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
@@ -440,7 +799,7 @@ func (c *Redshift) CreateClusterRequest(input *CreateClusterInput) (req *request
 //   The Elastic IP (EIP) is invalid or cannot be found.
 //
 //   * ErrCodeTagLimitExceededFault "TagLimitExceededFault"
-//   The request exceeds the limit of 10 tags for the resource.
+//   You have exceeded the number of tags allowed.
 //
 //   * ErrCodeInvalidTagFault "InvalidTagFault"
 //   The tag is invalid.
@@ -451,6 +810,17 @@ func (c *Redshift) CreateClusterRequest(input *CreateClusterInput) (req *request
 //   * ErrCodeDependentServiceRequestThrottlingFault "DependentServiceRequestThrottlingFault"
 //   The request cannot be completed because a dependent service is throttling
 //   requests made by Amazon Redshift on your behalf. Wait and retry the request.
+//
+//   * ErrCodeInvalidClusterTrackFault "InvalidClusterTrack"
+//   The provided cluster track name is not valid.
+//
+//   * ErrCodeSnapshotScheduleNotFoundFault "SnapshotScheduleNotFound"
+//   We could not find the specified snapshot schedule.
+//
+//   * ErrCodeInvalidRetentionPeriodFault "InvalidRetentionPeriodFault"
+//   The retention period specified is either in the past or is not a valid value.
+//
+//   The value must be either -1 or an integer between 1 and 3,653.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/CreateCluster
 func (c *Redshift) CreateCluster(input *CreateClusterInput) (*CreateClusterOutput, error) {
@@ -478,8 +848,8 @@ const opCreateClusterParameterGroup = "CreateClusterParameterGroup"
 
 // CreateClusterParameterGroupRequest generates a "aws/request.Request" representing the
 // client's request for the CreateClusterParameterGroup operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -548,7 +918,7 @@ func (c *Redshift) CreateClusterParameterGroupRequest(input *CreateClusterParame
 //   A cluster parameter group with the same name already exists.
 //
 //   * ErrCodeTagLimitExceededFault "TagLimitExceededFault"
-//   The request exceeds the limit of 10 tags for the resource.
+//   You have exceeded the number of tags allowed.
 //
 //   * ErrCodeInvalidTagFault "InvalidTagFault"
 //   The tag is invalid.
@@ -579,8 +949,8 @@ const opCreateClusterSecurityGroup = "CreateClusterSecurityGroup"
 
 // CreateClusterSecurityGroupRequest generates a "aws/request.Request" representing the
 // client's request for the CreateClusterSecurityGroup operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -644,7 +1014,7 @@ func (c *Redshift) CreateClusterSecurityGroupRequest(input *CreateClusterSecurit
 //   in the Amazon Redshift Cluster Management Guide.
 //
 //   * ErrCodeTagLimitExceededFault "TagLimitExceededFault"
-//   The request exceeds the limit of 10 tags for the resource.
+//   You have exceeded the number of tags allowed.
 //
 //   * ErrCodeInvalidTagFault "InvalidTagFault"
 //   The tag is invalid.
@@ -675,8 +1045,8 @@ const opCreateClusterSnapshot = "CreateClusterSnapshot"
 
 // CreateClusterSnapshotRequest generates a "aws/request.Request" representing the
 // client's request for the CreateClusterSnapshot operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -745,10 +1115,15 @@ func (c *Redshift) CreateClusterSnapshotRequest(input *CreateClusterSnapshotInpu
 //   snapshots.
 //
 //   * ErrCodeTagLimitExceededFault "TagLimitExceededFault"
-//   The request exceeds the limit of 10 tags for the resource.
+//   You have exceeded the number of tags allowed.
 //
 //   * ErrCodeInvalidTagFault "InvalidTagFault"
 //   The tag is invalid.
+//
+//   * ErrCodeInvalidRetentionPeriodFault "InvalidRetentionPeriodFault"
+//   The retention period specified is either in the past or is not a valid value.
+//
+//   The value must be either -1 or an integer between 1 and 3,653.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/CreateClusterSnapshot
 func (c *Redshift) CreateClusterSnapshot(input *CreateClusterSnapshotInput) (*CreateClusterSnapshotOutput, error) {
@@ -776,8 +1151,8 @@ const opCreateClusterSubnetGroup = "CreateClusterSubnetGroup"
 
 // CreateClusterSubnetGroupRequest generates a "aws/request.Request" representing the
 // client's request for the CreateClusterSubnetGroup operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -855,7 +1230,7 @@ func (c *Redshift) CreateClusterSubnetGroupRequest(input *CreateClusterSubnetGro
 //   Your account is not authorized to perform the requested operation.
 //
 //   * ErrCodeTagLimitExceededFault "TagLimitExceededFault"
-//   The request exceeds the limit of 10 tags for the resource.
+//   You have exceeded the number of tags allowed.
 //
 //   * ErrCodeInvalidTagFault "InvalidTagFault"
 //   The tag is invalid.
@@ -890,8 +1265,8 @@ const opCreateEventSubscription = "CreateEventSubscription"
 
 // CreateEventSubscriptionRequest generates a "aws/request.Request" representing the
 // client's request for the CreateEventSubscription operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -999,7 +1374,7 @@ func (c *Redshift) CreateEventSubscriptionRequest(input *CreateEventSubscription
 //   The specified Amazon Redshift event source could not be found.
 //
 //   * ErrCodeTagLimitExceededFault "TagLimitExceededFault"
-//   The request exceeds the limit of 10 tags for the resource.
+//   You have exceeded the number of tags allowed.
 //
 //   * ErrCodeInvalidTagFault "InvalidTagFault"
 //   The tag is invalid.
@@ -1030,8 +1405,8 @@ const opCreateHsmClientCertificate = "CreateHsmClientCertificate"
 
 // CreateHsmClientCertificateRequest generates a "aws/request.Request" representing the
 // client's request for the CreateHsmClientCertificate operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -1098,7 +1473,7 @@ func (c *Redshift) CreateHsmClientCertificateRequest(input *CreateHsmClientCerti
 //   in the Amazon Redshift Cluster Management Guide.
 //
 //   * ErrCodeTagLimitExceededFault "TagLimitExceededFault"
-//   The request exceeds the limit of 10 tags for the resource.
+//   You have exceeded the number of tags allowed.
 //
 //   * ErrCodeInvalidTagFault "InvalidTagFault"
 //   The tag is invalid.
@@ -1129,8 +1504,8 @@ const opCreateHsmConfiguration = "CreateHsmConfiguration"
 
 // CreateHsmConfigurationRequest generates a "aws/request.Request" representing the
 // client's request for the CreateHsmConfiguration operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -1198,7 +1573,7 @@ func (c *Redshift) CreateHsmConfigurationRequest(input *CreateHsmConfigurationIn
 //   in the Amazon Redshift Cluster Management Guide.
 //
 //   * ErrCodeTagLimitExceededFault "TagLimitExceededFault"
-//   The request exceeds the limit of 10 tags for the resource.
+//   You have exceeded the number of tags allowed.
 //
 //   * ErrCodeInvalidTagFault "InvalidTagFault"
 //   The tag is invalid.
@@ -1229,8 +1604,8 @@ const opCreateSnapshotCopyGrant = "CreateSnapshotCopyGrant"
 
 // CreateSnapshotCopyGrantRequest generates a "aws/request.Request" representing the
 // client's request for the CreateSnapshotCopyGrant operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -1297,7 +1672,7 @@ func (c *Redshift) CreateSnapshotCopyGrantRequest(input *CreateSnapshotCopyGrant
 //   The encryption key has exceeded its grant limit in AWS KMS.
 //
 //   * ErrCodeTagLimitExceededFault "TagLimitExceededFault"
-//   The request exceeds the limit of 10 tags for the resource.
+//   You have exceeded the number of tags allowed.
 //
 //   * ErrCodeInvalidTagFault "InvalidTagFault"
 //   The tag is invalid.
@@ -1328,12 +1703,103 @@ func (c *Redshift) CreateSnapshotCopyGrantWithContext(ctx aws.Context, input *Cr
 	return out, req.Send()
 }
 
+const opCreateSnapshotSchedule = "CreateSnapshotSchedule"
+
+// CreateSnapshotScheduleRequest generates a "aws/request.Request" representing the
+// client's request for the CreateSnapshotSchedule operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See CreateSnapshotSchedule for more information on using the CreateSnapshotSchedule
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the CreateSnapshotScheduleRequest method.
+//    req, resp := client.CreateSnapshotScheduleRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/CreateSnapshotSchedule
+func (c *Redshift) CreateSnapshotScheduleRequest(input *CreateSnapshotScheduleInput) (req *request.Request, output *CreateSnapshotScheduleOutput) {
+	op := &request.Operation{
+		Name:       opCreateSnapshotSchedule,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &CreateSnapshotScheduleInput{}
+	}
+
+	output = &CreateSnapshotScheduleOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// CreateSnapshotSchedule API operation for Amazon Redshift.
+//
+// Creates a new snapshot schedule.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Redshift's
+// API operation CreateSnapshotSchedule for usage and error information.
+//
+// Returned Error Codes:
+//   * ErrCodeSnapshotScheduleAlreadyExistsFault "SnapshotScheduleAlreadyExists"
+//   The specified snapshot schedule already exists.
+//
+//   * ErrCodeInvalidScheduleFault "InvalidSchedule"
+//   The schedule you submitted isn't valid.
+//
+//   * ErrCodeSnapshotScheduleQuotaExceededFault "SnapshotScheduleQuotaExceeded"
+//   You have exceeded the quota of snapshot schedules.
+//
+//   * ErrCodeTagLimitExceededFault "TagLimitExceededFault"
+//   You have exceeded the number of tags allowed.
+//
+//   * ErrCodeScheduleDefinitionTypeUnsupportedFault "ScheduleDefinitionTypeUnsupported"
+//   The definition you submitted is not supported.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/CreateSnapshotSchedule
+func (c *Redshift) CreateSnapshotSchedule(input *CreateSnapshotScheduleInput) (*CreateSnapshotScheduleOutput, error) {
+	req, out := c.CreateSnapshotScheduleRequest(input)
+	return out, req.Send()
+}
+
+// CreateSnapshotScheduleWithContext is the same as CreateSnapshotSchedule with the addition of
+// the ability to pass a context and additional request options.
+//
+// See CreateSnapshotSchedule for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Redshift) CreateSnapshotScheduleWithContext(ctx aws.Context, input *CreateSnapshotScheduleInput, opts ...request.Option) (*CreateSnapshotScheduleOutput, error) {
+	req, out := c.CreateSnapshotScheduleRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opCreateTags = "CreateTags"
 
 // CreateTagsRequest generates a "aws/request.Request" representing the
 // client's request for the CreateTags operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -1367,8 +1833,7 @@ func (c *Redshift) CreateTagsRequest(input *CreateTagsInput) (req *request.Reque
 
 	output = &CreateTagsOutput{}
 	req = c.newRequest(op, input, output)
-	req.Handlers.Unmarshal.Remove(query.UnmarshalHandler)
-	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
+	req.Handlers.Unmarshal.Swap(query.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -1376,7 +1841,7 @@ func (c *Redshift) CreateTagsRequest(input *CreateTagsInput) (req *request.Reque
 //
 // Adds one or more tags to a specified resource.
 //
-// A resource can have up to 10 tags. If you try to create more than 10 tags
+// A resource can have up to 50 tags. If you try to create more than 50 tags
 // for a resource, you will receive an error and the attempt will fail.
 //
 // If you specify a key that already exists for the resource, the value for
@@ -1391,7 +1856,7 @@ func (c *Redshift) CreateTagsRequest(input *CreateTagsInput) (req *request.Reque
 //
 // Returned Error Codes:
 //   * ErrCodeTagLimitExceededFault "TagLimitExceededFault"
-//   The request exceeds the limit of 10 tags for the resource.
+//   You have exceeded the number of tags allowed.
 //
 //   * ErrCodeResourceNotFoundFault "ResourceNotFoundFault"
 //   The resource could not be found.
@@ -1425,8 +1890,8 @@ const opDeleteCluster = "DeleteCluster"
 
 // DeleteClusterRequest generates a "aws/request.Request" representing the
 // client's request for the DeleteCluster operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -1505,6 +1970,11 @@ func (c *Redshift) DeleteClusterRequest(input *DeleteClusterInput) (req *request
 //   The request would result in the user exceeding the allowed number of cluster
 //   snapshots.
 //
+//   * ErrCodeInvalidRetentionPeriodFault "InvalidRetentionPeriodFault"
+//   The retention period specified is either in the past or is not a valid value.
+//
+//   The value must be either -1 or an integer between 1 and 3,653.
+//
 // See also, https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DeleteCluster
 func (c *Redshift) DeleteCluster(input *DeleteClusterInput) (*DeleteClusterOutput, error) {
 	req, out := c.DeleteClusterRequest(input)
@@ -1531,8 +2001,8 @@ const opDeleteClusterParameterGroup = "DeleteClusterParameterGroup"
 
 // DeleteClusterParameterGroupRequest generates a "aws/request.Request" representing the
 // client's request for the DeleteClusterParameterGroup operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -1566,8 +2036,7 @@ func (c *Redshift) DeleteClusterParameterGroupRequest(input *DeleteClusterParame
 
 	output = &DeleteClusterParameterGroupOutput{}
 	req = c.newRequest(op, input, output)
-	req.Handlers.Unmarshal.Remove(query.UnmarshalHandler)
-	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
+	req.Handlers.Unmarshal.Swap(query.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -1619,8 +2088,8 @@ const opDeleteClusterSecurityGroup = "DeleteClusterSecurityGroup"
 
 // DeleteClusterSecurityGroupRequest generates a "aws/request.Request" representing the
 // client's request for the DeleteClusterSecurityGroup operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -1654,8 +2123,7 @@ func (c *Redshift) DeleteClusterSecurityGroupRequest(input *DeleteClusterSecurit
 
 	output = &DeleteClusterSecurityGroupOutput{}
 	req = c.newRequest(op, input, output)
-	req.Handlers.Unmarshal.Remove(query.UnmarshalHandler)
-	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
+	req.Handlers.Unmarshal.Swap(query.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -1711,8 +2179,8 @@ const opDeleteClusterSnapshot = "DeleteClusterSnapshot"
 
 // DeleteClusterSnapshotRequest generates a "aws/request.Request" representing the
 // client's request for the DeleteClusterSnapshot operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -1801,8 +2269,8 @@ const opDeleteClusterSubnetGroup = "DeleteClusterSubnetGroup"
 
 // DeleteClusterSubnetGroupRequest generates a "aws/request.Request" representing the
 // client's request for the DeleteClusterSubnetGroup operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -1836,8 +2304,7 @@ func (c *Redshift) DeleteClusterSubnetGroupRequest(input *DeleteClusterSubnetGro
 
 	output = &DeleteClusterSubnetGroupOutput{}
 	req = c.newRequest(op, input, output)
-	req.Handlers.Unmarshal.Remove(query.UnmarshalHandler)
-	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
+	req.Handlers.Unmarshal.Swap(query.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -1889,8 +2356,8 @@ const opDeleteEventSubscription = "DeleteEventSubscription"
 
 // DeleteEventSubscriptionRequest generates a "aws/request.Request" representing the
 // client's request for the DeleteEventSubscription operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -1924,8 +2391,7 @@ func (c *Redshift) DeleteEventSubscriptionRequest(input *DeleteEventSubscription
 
 	output = &DeleteEventSubscriptionOutput{}
 	req = c.newRequest(op, input, output)
-	req.Handlers.Unmarshal.Remove(query.UnmarshalHandler)
-	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
+	req.Handlers.Unmarshal.Swap(query.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -1975,8 +2441,8 @@ const opDeleteHsmClientCertificate = "DeleteHsmClientCertificate"
 
 // DeleteHsmClientCertificateRequest generates a "aws/request.Request" representing the
 // client's request for the DeleteHsmClientCertificate operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -2010,8 +2476,7 @@ func (c *Redshift) DeleteHsmClientCertificateRequest(input *DeleteHsmClientCerti
 
 	output = &DeleteHsmClientCertificateOutput{}
 	req = c.newRequest(op, input, output)
-	req.Handlers.Unmarshal.Remove(query.UnmarshalHandler)
-	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
+	req.Handlers.Unmarshal.Swap(query.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -2060,8 +2525,8 @@ const opDeleteHsmConfiguration = "DeleteHsmConfiguration"
 
 // DeleteHsmConfigurationRequest generates a "aws/request.Request" representing the
 // client's request for the DeleteHsmConfiguration operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -2095,8 +2560,7 @@ func (c *Redshift) DeleteHsmConfigurationRequest(input *DeleteHsmConfigurationIn
 
 	output = &DeleteHsmConfigurationOutput{}
 	req = c.newRequest(op, input, output)
-	req.Handlers.Unmarshal.Remove(query.UnmarshalHandler)
-	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
+	req.Handlers.Unmarshal.Swap(query.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -2145,8 +2609,8 @@ const opDeleteSnapshotCopyGrant = "DeleteSnapshotCopyGrant"
 
 // DeleteSnapshotCopyGrantRequest generates a "aws/request.Request" representing the
 // client's request for the DeleteSnapshotCopyGrant operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -2180,8 +2644,7 @@ func (c *Redshift) DeleteSnapshotCopyGrantRequest(input *DeleteSnapshotCopyGrant
 
 	output = &DeleteSnapshotCopyGrantOutput{}
 	req = c.newRequest(op, input, output)
-	req.Handlers.Unmarshal.Remove(query.UnmarshalHandler)
-	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
+	req.Handlers.Unmarshal.Swap(query.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -2227,12 +2690,95 @@ func (c *Redshift) DeleteSnapshotCopyGrantWithContext(ctx aws.Context, input *De
 	return out, req.Send()
 }
 
+const opDeleteSnapshotSchedule = "DeleteSnapshotSchedule"
+
+// DeleteSnapshotScheduleRequest generates a "aws/request.Request" representing the
+// client's request for the DeleteSnapshotSchedule operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DeleteSnapshotSchedule for more information on using the DeleteSnapshotSchedule
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the DeleteSnapshotScheduleRequest method.
+//    req, resp := client.DeleteSnapshotScheduleRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DeleteSnapshotSchedule
+func (c *Redshift) DeleteSnapshotScheduleRequest(input *DeleteSnapshotScheduleInput) (req *request.Request, output *DeleteSnapshotScheduleOutput) {
+	op := &request.Operation{
+		Name:       opDeleteSnapshotSchedule,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &DeleteSnapshotScheduleInput{}
+	}
+
+	output = &DeleteSnapshotScheduleOutput{}
+	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(query.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
+	return
+}
+
+// DeleteSnapshotSchedule API operation for Amazon Redshift.
+//
+// Deletes a snapshot schedule.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Redshift's
+// API operation DeleteSnapshotSchedule for usage and error information.
+//
+// Returned Error Codes:
+//   * ErrCodeInvalidClusterSnapshotScheduleStateFault "InvalidClusterSnapshotScheduleState"
+//   The cluster snapshot schedule state is not valid.
+//
+//   * ErrCodeSnapshotScheduleNotFoundFault "SnapshotScheduleNotFound"
+//   We could not find the specified snapshot schedule.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DeleteSnapshotSchedule
+func (c *Redshift) DeleteSnapshotSchedule(input *DeleteSnapshotScheduleInput) (*DeleteSnapshotScheduleOutput, error) {
+	req, out := c.DeleteSnapshotScheduleRequest(input)
+	return out, req.Send()
+}
+
+// DeleteSnapshotScheduleWithContext is the same as DeleteSnapshotSchedule with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DeleteSnapshotSchedule for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Redshift) DeleteSnapshotScheduleWithContext(ctx aws.Context, input *DeleteSnapshotScheduleInput, opts ...request.Option) (*DeleteSnapshotScheduleOutput, error) {
+	req, out := c.DeleteSnapshotScheduleRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opDeleteTags = "DeleteTags"
 
 // DeleteTagsRequest generates a "aws/request.Request" representing the
 // client's request for the DeleteTags operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -2266,8 +2812,7 @@ func (c *Redshift) DeleteTagsRequest(input *DeleteTagsInput) (req *request.Reque
 
 	output = &DeleteTagsOutput{}
 	req = c.newRequest(op, input, output)
-	req.Handlers.Unmarshal.Remove(query.UnmarshalHandler)
-	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
+	req.Handlers.Unmarshal.Swap(query.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -2312,12 +2857,168 @@ func (c *Redshift) DeleteTagsWithContext(ctx aws.Context, input *DeleteTagsInput
 	return out, req.Send()
 }
 
+const opDescribeAccountAttributes = "DescribeAccountAttributes"
+
+// DescribeAccountAttributesRequest generates a "aws/request.Request" representing the
+// client's request for the DescribeAccountAttributes operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DescribeAccountAttributes for more information on using the DescribeAccountAttributes
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the DescribeAccountAttributesRequest method.
+//    req, resp := client.DescribeAccountAttributesRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeAccountAttributes
+func (c *Redshift) DescribeAccountAttributesRequest(input *DescribeAccountAttributesInput) (req *request.Request, output *DescribeAccountAttributesOutput) {
+	op := &request.Operation{
+		Name:       opDescribeAccountAttributes,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &DescribeAccountAttributesInput{}
+	}
+
+	output = &DescribeAccountAttributesOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// DescribeAccountAttributes API operation for Amazon Redshift.
+//
+// Returns a list of attributes attached to an account
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Redshift's
+// API operation DescribeAccountAttributes for usage and error information.
+// See also, https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeAccountAttributes
+func (c *Redshift) DescribeAccountAttributes(input *DescribeAccountAttributesInput) (*DescribeAccountAttributesOutput, error) {
+	req, out := c.DescribeAccountAttributesRequest(input)
+	return out, req.Send()
+}
+
+// DescribeAccountAttributesWithContext is the same as DescribeAccountAttributes with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DescribeAccountAttributes for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Redshift) DescribeAccountAttributesWithContext(ctx aws.Context, input *DescribeAccountAttributesInput, opts ...request.Option) (*DescribeAccountAttributesOutput, error) {
+	req, out := c.DescribeAccountAttributesRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opDescribeClusterDbRevisions = "DescribeClusterDbRevisions"
+
+// DescribeClusterDbRevisionsRequest generates a "aws/request.Request" representing the
+// client's request for the DescribeClusterDbRevisions operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DescribeClusterDbRevisions for more information on using the DescribeClusterDbRevisions
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the DescribeClusterDbRevisionsRequest method.
+//    req, resp := client.DescribeClusterDbRevisionsRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeClusterDbRevisions
+func (c *Redshift) DescribeClusterDbRevisionsRequest(input *DescribeClusterDbRevisionsInput) (req *request.Request, output *DescribeClusterDbRevisionsOutput) {
+	op := &request.Operation{
+		Name:       opDescribeClusterDbRevisions,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &DescribeClusterDbRevisionsInput{}
+	}
+
+	output = &DescribeClusterDbRevisionsOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// DescribeClusterDbRevisions API operation for Amazon Redshift.
+//
+// Returns an array of ClusterDbRevision objects.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Redshift's
+// API operation DescribeClusterDbRevisions for usage and error information.
+//
+// Returned Error Codes:
+//   * ErrCodeClusterNotFoundFault "ClusterNotFound"
+//   The ClusterIdentifier parameter does not refer to an existing cluster.
+//
+//   * ErrCodeInvalidClusterStateFault "InvalidClusterState"
+//   The specified cluster is not in the available state.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeClusterDbRevisions
+func (c *Redshift) DescribeClusterDbRevisions(input *DescribeClusterDbRevisionsInput) (*DescribeClusterDbRevisionsOutput, error) {
+	req, out := c.DescribeClusterDbRevisionsRequest(input)
+	return out, req.Send()
+}
+
+// DescribeClusterDbRevisionsWithContext is the same as DescribeClusterDbRevisions with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DescribeClusterDbRevisions for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Redshift) DescribeClusterDbRevisionsWithContext(ctx aws.Context, input *DescribeClusterDbRevisionsInput, opts ...request.Option) (*DescribeClusterDbRevisionsOutput, error) {
+	req, out := c.DescribeClusterDbRevisionsRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opDescribeClusterParameterGroups = "DescribeClusterParameterGroups"
 
 // DescribeClusterParameterGroupsRequest generates a "aws/request.Request" representing the
 // client's request for the DescribeClusterParameterGroups operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -2472,8 +3173,8 @@ const opDescribeClusterParameters = "DescribeClusterParameters"
 
 // DescribeClusterParametersRequest generates a "aws/request.Request" representing the
 // client's request for the DescribeClusterParameters operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -2618,8 +3319,8 @@ const opDescribeClusterSecurityGroups = "DescribeClusterSecurityGroups"
 
 // DescribeClusterSecurityGroupsRequest generates a "aws/request.Request" representing the
 // client's request for the DescribeClusterSecurityGroups operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -2773,8 +3474,8 @@ const opDescribeClusterSnapshots = "DescribeClusterSnapshots"
 
 // DescribeClusterSnapshotsRequest generates a "aws/request.Request" representing the
 // client's request for the DescribeClusterSnapshots operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -2928,8 +3629,8 @@ const opDescribeClusterSubnetGroups = "DescribeClusterSubnetGroups"
 
 // DescribeClusterSubnetGroupsRequest generates a "aws/request.Request" representing the
 // client's request for the DescribeClusterSubnetGroups operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -3075,12 +3776,94 @@ func (c *Redshift) DescribeClusterSubnetGroupsPagesWithContext(ctx aws.Context, 
 	return p.Err()
 }
 
+const opDescribeClusterTracks = "DescribeClusterTracks"
+
+// DescribeClusterTracksRequest generates a "aws/request.Request" representing the
+// client's request for the DescribeClusterTracks operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DescribeClusterTracks for more information on using the DescribeClusterTracks
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the DescribeClusterTracksRequest method.
+//    req, resp := client.DescribeClusterTracksRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeClusterTracks
+func (c *Redshift) DescribeClusterTracksRequest(input *DescribeClusterTracksInput) (req *request.Request, output *DescribeClusterTracksOutput) {
+	op := &request.Operation{
+		Name:       opDescribeClusterTracks,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &DescribeClusterTracksInput{}
+	}
+
+	output = &DescribeClusterTracksOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// DescribeClusterTracks API operation for Amazon Redshift.
+//
+// Returns a list of all the available maintenance tracks.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Redshift's
+// API operation DescribeClusterTracks for usage and error information.
+//
+// Returned Error Codes:
+//   * ErrCodeInvalidClusterTrackFault "InvalidClusterTrack"
+//   The provided cluster track name is not valid.
+//
+//   * ErrCodeUnauthorizedOperation "UnauthorizedOperation"
+//   Your account is not authorized to perform the requested operation.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeClusterTracks
+func (c *Redshift) DescribeClusterTracks(input *DescribeClusterTracksInput) (*DescribeClusterTracksOutput, error) {
+	req, out := c.DescribeClusterTracksRequest(input)
+	return out, req.Send()
+}
+
+// DescribeClusterTracksWithContext is the same as DescribeClusterTracks with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DescribeClusterTracks for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Redshift) DescribeClusterTracksWithContext(ctx aws.Context, input *DescribeClusterTracksInput, opts ...request.Option) (*DescribeClusterTracksOutput, error) {
+	req, out := c.DescribeClusterTracksRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opDescribeClusterVersions = "DescribeClusterVersions"
 
 // DescribeClusterVersionsRequest generates a "aws/request.Request" representing the
 // client's request for the DescribeClusterVersions operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -3213,8 +3996,8 @@ const opDescribeClusters = "DescribeClusters"
 
 // DescribeClustersRequest generates a "aws/request.Request" representing the
 // client's request for the DescribeClusters operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -3364,8 +4147,8 @@ const opDescribeDefaultClusterParameters = "DescribeDefaultClusterParameters"
 
 // DescribeDefaultClusterParametersRequest generates a "aws/request.Request" representing the
 // client's request for the DescribeDefaultClusterParameters operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -3498,8 +4281,8 @@ const opDescribeEventCategories = "DescribeEventCategories"
 
 // DescribeEventCategoriesRequest generates a "aws/request.Request" representing the
 // client's request for the DescribeEventCategories operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -3574,8 +4357,8 @@ const opDescribeEventSubscriptions = "DescribeEventSubscriptions"
 
 // DescribeEventSubscriptionsRequest generates a "aws/request.Request" representing the
 // client's request for the DescribeEventSubscriptions operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -3725,8 +4508,8 @@ const opDescribeEvents = "DescribeEvents"
 
 // DescribeEventsRequest generates a "aws/request.Request" representing the
 // client's request for the DescribeEvents operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -3858,8 +4641,8 @@ const opDescribeHsmClientCertificates = "DescribeHsmClientCertificates"
 
 // DescribeHsmClientCertificatesRequest generates a "aws/request.Request" representing the
 // client's request for the DescribeHsmClientCertificates operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -4008,8 +4791,8 @@ const opDescribeHsmConfigurations = "DescribeHsmConfigurations"
 
 // DescribeHsmConfigurationsRequest generates a "aws/request.Request" representing the
 // client's request for the DescribeHsmConfigurations operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -4158,8 +4941,8 @@ const opDescribeLoggingStatus = "DescribeLoggingStatus"
 
 // DescribeLoggingStatusRequest generates a "aws/request.Request" representing the
 // client's request for the DescribeLoggingStatus operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -4238,8 +5021,8 @@ const opDescribeOrderableClusterOptions = "DescribeOrderableClusterOptions"
 
 // DescribeOrderableClusterOptionsRequest generates a "aws/request.Request" representing the
 // client's request for the DescribeOrderableClusterOptions operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -4286,7 +5069,7 @@ func (c *Redshift) DescribeOrderableClusterOptionsRequest(input *DescribeOrderab
 //
 // Returns a list of orderable cluster options. Before you create a new cluster
 // you can use this operation to find what options are available, such as the
-// EC2 Availability Zones (AZ) in the specific AWS region that you can specify,
+// EC2 Availability Zones (AZ) in the specific AWS Region that you can specify,
 // and the node types you can request. The node types differ by available storage,
 // memory, CPU and price. With the cost involved you might want to obtain a
 // list of cluster options in the specific region and specify values when creating
@@ -4376,8 +5159,8 @@ const opDescribeReservedNodeOfferings = "DescribeReservedNodeOfferings"
 
 // DescribeReservedNodeOfferingsRequest generates a "aws/request.Request" representing the
 // client's request for the DescribeReservedNodeOfferings operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -4527,8 +5310,8 @@ const opDescribeReservedNodes = "DescribeReservedNodes"
 
 // DescribeReservedNodesRequest generates a "aws/request.Request" representing the
 // client's request for the DescribeReservedNodes operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -4666,8 +5449,8 @@ const opDescribeResize = "DescribeResize"
 
 // DescribeResizeRequest generates a "aws/request.Request" representing the
 // client's request for the DescribeResize operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -4754,8 +5537,8 @@ const opDescribeSnapshotCopyGrants = "DescribeSnapshotCopyGrants"
 
 // DescribeSnapshotCopyGrantsRequest generates a "aws/request.Request" representing the
 // client's request for the DescribeSnapshotCopyGrants operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -4838,12 +5621,161 @@ func (c *Redshift) DescribeSnapshotCopyGrantsWithContext(ctx aws.Context, input 
 	return out, req.Send()
 }
 
+const opDescribeSnapshotSchedules = "DescribeSnapshotSchedules"
+
+// DescribeSnapshotSchedulesRequest generates a "aws/request.Request" representing the
+// client's request for the DescribeSnapshotSchedules operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DescribeSnapshotSchedules for more information on using the DescribeSnapshotSchedules
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the DescribeSnapshotSchedulesRequest method.
+//    req, resp := client.DescribeSnapshotSchedulesRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeSnapshotSchedules
+func (c *Redshift) DescribeSnapshotSchedulesRequest(input *DescribeSnapshotSchedulesInput) (req *request.Request, output *DescribeSnapshotSchedulesOutput) {
+	op := &request.Operation{
+		Name:       opDescribeSnapshotSchedules,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &DescribeSnapshotSchedulesInput{}
+	}
+
+	output = &DescribeSnapshotSchedulesOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// DescribeSnapshotSchedules API operation for Amazon Redshift.
+//
+// Returns a list of snapshot schedules.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Redshift's
+// API operation DescribeSnapshotSchedules for usage and error information.
+// See also, https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeSnapshotSchedules
+func (c *Redshift) DescribeSnapshotSchedules(input *DescribeSnapshotSchedulesInput) (*DescribeSnapshotSchedulesOutput, error) {
+	req, out := c.DescribeSnapshotSchedulesRequest(input)
+	return out, req.Send()
+}
+
+// DescribeSnapshotSchedulesWithContext is the same as DescribeSnapshotSchedules with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DescribeSnapshotSchedules for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Redshift) DescribeSnapshotSchedulesWithContext(ctx aws.Context, input *DescribeSnapshotSchedulesInput, opts ...request.Option) (*DescribeSnapshotSchedulesOutput, error) {
+	req, out := c.DescribeSnapshotSchedulesRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opDescribeStorage = "DescribeStorage"
+
+// DescribeStorageRequest generates a "aws/request.Request" representing the
+// client's request for the DescribeStorage operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DescribeStorage for more information on using the DescribeStorage
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the DescribeStorageRequest method.
+//    req, resp := client.DescribeStorageRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeStorage
+func (c *Redshift) DescribeStorageRequest(input *DescribeStorageInput) (req *request.Request, output *DescribeStorageOutput) {
+	op := &request.Operation{
+		Name:       opDescribeStorage,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &DescribeStorageInput{}
+	}
+
+	output = &DescribeStorageOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// DescribeStorage API operation for Amazon Redshift.
+//
+// Returns the total amount of snapshot usage and provisioned storage for a
+// user in megabytes.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Redshift's
+// API operation DescribeStorage for usage and error information.
+// See also, https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeStorage
+func (c *Redshift) DescribeStorage(input *DescribeStorageInput) (*DescribeStorageOutput, error) {
+	req, out := c.DescribeStorageRequest(input)
+	return out, req.Send()
+}
+
+// DescribeStorageWithContext is the same as DescribeStorage with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DescribeStorage for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Redshift) DescribeStorageWithContext(ctx aws.Context, input *DescribeStorageInput, opts ...request.Option) (*DescribeStorageOutput, error) {
+	req, out := c.DescribeStorageRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opDescribeTableRestoreStatus = "DescribeTableRestoreStatus"
 
 // DescribeTableRestoreStatusRequest generates a "aws/request.Request" representing the
 // client's request for the DescribeTableRestoreStatus operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -4928,8 +5860,8 @@ const opDescribeTags = "DescribeTags"
 
 // DescribeTagsRequest generates a "aws/request.Request" representing the
 // client's request for the DescribeTags operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -5032,8 +5964,8 @@ const opDisableLogging = "DisableLogging"
 
 // DisableLoggingRequest generates a "aws/request.Request" representing the
 // client's request for the DisableLogging operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -5112,8 +6044,8 @@ const opDisableSnapshotCopy = "DisableSnapshotCopy"
 
 // DisableSnapshotCopyRequest generates a "aws/request.Request" representing the
 // client's request for the DisableSnapshotCopy operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -5205,8 +6137,8 @@ const opEnableLogging = "EnableLogging"
 
 // EnableLoggingRequest generates a "aws/request.Request" representing the
 // client's request for the EnableLogging operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -5301,8 +6233,8 @@ const opEnableSnapshotCopy = "EnableSnapshotCopy"
 
 // EnableSnapshotCopyRequest generates a "aws/request.Request" representing the
 // client's request for the EnableSnapshotCopy operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -5384,6 +6316,11 @@ func (c *Redshift) EnableSnapshotCopyRequest(input *EnableSnapshotCopyInput) (re
 //   The request cannot be completed because a dependent service is throttling
 //   requests made by Amazon Redshift on your behalf. Wait and retry the request.
 //
+//   * ErrCodeInvalidRetentionPeriodFault "InvalidRetentionPeriodFault"
+//   The retention period specified is either in the past or is not a valid value.
+//
+//   The value must be either -1 or an integer between 1 and 3,653.
+//
 // See also, https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/EnableSnapshotCopy
 func (c *Redshift) EnableSnapshotCopy(input *EnableSnapshotCopyInput) (*EnableSnapshotCopyOutput, error) {
 	req, out := c.EnableSnapshotCopyRequest(input)
@@ -5410,8 +6347,8 @@ const opGetClusterCredentials = "GetClusterCredentials"
 
 // GetClusterCredentialsRequest generates a "aws/request.Request" representing the
 // client's request for the GetClusterCredentials operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -5511,12 +6448,108 @@ func (c *Redshift) GetClusterCredentialsWithContext(ctx aws.Context, input *GetC
 	return out, req.Send()
 }
 
+const opGetReservedNodeExchangeOfferings = "GetReservedNodeExchangeOfferings"
+
+// GetReservedNodeExchangeOfferingsRequest generates a "aws/request.Request" representing the
+// client's request for the GetReservedNodeExchangeOfferings operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See GetReservedNodeExchangeOfferings for more information on using the GetReservedNodeExchangeOfferings
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the GetReservedNodeExchangeOfferingsRequest method.
+//    req, resp := client.GetReservedNodeExchangeOfferingsRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/GetReservedNodeExchangeOfferings
+func (c *Redshift) GetReservedNodeExchangeOfferingsRequest(input *GetReservedNodeExchangeOfferingsInput) (req *request.Request, output *GetReservedNodeExchangeOfferingsOutput) {
+	op := &request.Operation{
+		Name:       opGetReservedNodeExchangeOfferings,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &GetReservedNodeExchangeOfferingsInput{}
+	}
+
+	output = &GetReservedNodeExchangeOfferingsOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// GetReservedNodeExchangeOfferings API operation for Amazon Redshift.
+//
+// Returns an array of DC2 ReservedNodeOfferings that matches the payment type,
+// term, and usage price of the given DC1 reserved node.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Redshift's
+// API operation GetReservedNodeExchangeOfferings for usage and error information.
+//
+// Returned Error Codes:
+//   * ErrCodeReservedNodeNotFoundFault "ReservedNodeNotFound"
+//   The specified reserved compute node not found.
+//
+//   * ErrCodeInvalidReservedNodeStateFault "InvalidReservedNodeState"
+//   Indicates that the Reserved Node being exchanged is not in an active state.
+//
+//   * ErrCodeReservedNodeAlreadyMigratedFault "ReservedNodeAlreadyMigrated"
+//   Indicates that the reserved node has already been exchanged.
+//
+//   * ErrCodeReservedNodeOfferingNotFoundFault "ReservedNodeOfferingNotFound"
+//   Specified offering does not exist.
+//
+//   * ErrCodeUnsupportedOperationFault "UnsupportedOperation"
+//   The requested operation isn't supported.
+//
+//   * ErrCodeDependentServiceUnavailableFault "DependentServiceUnavailableFault"
+//   Your request cannot be completed because a dependent internal service is
+//   temporarily unavailable. Wait 30 to 60 seconds and try again.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/GetReservedNodeExchangeOfferings
+func (c *Redshift) GetReservedNodeExchangeOfferings(input *GetReservedNodeExchangeOfferingsInput) (*GetReservedNodeExchangeOfferingsOutput, error) {
+	req, out := c.GetReservedNodeExchangeOfferingsRequest(input)
+	return out, req.Send()
+}
+
+// GetReservedNodeExchangeOfferingsWithContext is the same as GetReservedNodeExchangeOfferings with the addition of
+// the ability to pass a context and additional request options.
+//
+// See GetReservedNodeExchangeOfferings for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Redshift) GetReservedNodeExchangeOfferingsWithContext(ctx aws.Context, input *GetReservedNodeExchangeOfferingsInput, opts ...request.Option) (*GetReservedNodeExchangeOfferingsOutput, error) {
+	req, out := c.GetReservedNodeExchangeOfferingsRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opModifyCluster = "ModifyCluster"
 
 // ModifyClusterRequest generates a "aws/request.Request" representing the
 // client's request for the ModifyCluster operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -5628,6 +6661,18 @@ func (c *Redshift) ModifyClusterRequest(input *ModifyClusterInput) (req *request
 //   * ErrCodeInvalidElasticIpFault "InvalidElasticIpFault"
 //   The Elastic IP (EIP) is invalid or cannot be found.
 //
+//   * ErrCodeTableLimitExceededFault "TableLimitExceeded"
+//   The number of tables in the cluster exceeds the limit for the requested new
+//   cluster node type.
+//
+//   * ErrCodeInvalidClusterTrackFault "InvalidClusterTrack"
+//   The provided cluster track name is not valid.
+//
+//   * ErrCodeInvalidRetentionPeriodFault "InvalidRetentionPeriodFault"
+//   The retention period specified is either in the past or is not a valid value.
+//
+//   The value must be either -1 or an integer between 1 and 3,653.
+//
 // See also, https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/ModifyCluster
 func (c *Redshift) ModifyCluster(input *ModifyClusterInput) (*ModifyClusterOutput, error) {
 	req, out := c.ModifyClusterRequest(input)
@@ -5650,12 +6695,98 @@ func (c *Redshift) ModifyClusterWithContext(ctx aws.Context, input *ModifyCluste
 	return out, req.Send()
 }
 
+const opModifyClusterDbRevision = "ModifyClusterDbRevision"
+
+// ModifyClusterDbRevisionRequest generates a "aws/request.Request" representing the
+// client's request for the ModifyClusterDbRevision operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See ModifyClusterDbRevision for more information on using the ModifyClusterDbRevision
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the ModifyClusterDbRevisionRequest method.
+//    req, resp := client.ModifyClusterDbRevisionRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/ModifyClusterDbRevision
+func (c *Redshift) ModifyClusterDbRevisionRequest(input *ModifyClusterDbRevisionInput) (req *request.Request, output *ModifyClusterDbRevisionOutput) {
+	op := &request.Operation{
+		Name:       opModifyClusterDbRevision,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &ModifyClusterDbRevisionInput{}
+	}
+
+	output = &ModifyClusterDbRevisionOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// ModifyClusterDbRevision API operation for Amazon Redshift.
+//
+// Modifies the database revision of a cluster. The database revision is a unique
+// revision of the database running in a cluster.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Redshift's
+// API operation ModifyClusterDbRevision for usage and error information.
+//
+// Returned Error Codes:
+//   * ErrCodeClusterNotFoundFault "ClusterNotFound"
+//   The ClusterIdentifier parameter does not refer to an existing cluster.
+//
+//   * ErrCodeClusterOnLatestRevisionFault "ClusterOnLatestRevision"
+//   Cluster is already on the latest database revision.
+//
+//   * ErrCodeInvalidClusterStateFault "InvalidClusterState"
+//   The specified cluster is not in the available state.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/ModifyClusterDbRevision
+func (c *Redshift) ModifyClusterDbRevision(input *ModifyClusterDbRevisionInput) (*ModifyClusterDbRevisionOutput, error) {
+	req, out := c.ModifyClusterDbRevisionRequest(input)
+	return out, req.Send()
+}
+
+// ModifyClusterDbRevisionWithContext is the same as ModifyClusterDbRevision with the addition of
+// the ability to pass a context and additional request options.
+//
+// See ModifyClusterDbRevision for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Redshift) ModifyClusterDbRevisionWithContext(ctx aws.Context, input *ModifyClusterDbRevisionInput, opts ...request.Option) (*ModifyClusterDbRevisionOutput, error) {
+	req, out := c.ModifyClusterDbRevisionRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opModifyClusterIamRoles = "ModifyClusterIamRoles"
 
 // ModifyClusterIamRolesRequest generates a "aws/request.Request" representing the
 // client's request for the ModifyClusterIamRoles operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -5735,12 +6866,92 @@ func (c *Redshift) ModifyClusterIamRolesWithContext(ctx aws.Context, input *Modi
 	return out, req.Send()
 }
 
+const opModifyClusterMaintenance = "ModifyClusterMaintenance"
+
+// ModifyClusterMaintenanceRequest generates a "aws/request.Request" representing the
+// client's request for the ModifyClusterMaintenance operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See ModifyClusterMaintenance for more information on using the ModifyClusterMaintenance
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the ModifyClusterMaintenanceRequest method.
+//    req, resp := client.ModifyClusterMaintenanceRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/ModifyClusterMaintenance
+func (c *Redshift) ModifyClusterMaintenanceRequest(input *ModifyClusterMaintenanceInput) (req *request.Request, output *ModifyClusterMaintenanceOutput) {
+	op := &request.Operation{
+		Name:       opModifyClusterMaintenance,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &ModifyClusterMaintenanceInput{}
+	}
+
+	output = &ModifyClusterMaintenanceOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// ModifyClusterMaintenance API operation for Amazon Redshift.
+//
+// Modifies the maintenance settings of a cluster. For example, you can defer
+// a maintenance window. You can also update or cancel a deferment.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Redshift's
+// API operation ModifyClusterMaintenance for usage and error information.
+//
+// Returned Error Codes:
+//   * ErrCodeClusterNotFoundFault "ClusterNotFound"
+//   The ClusterIdentifier parameter does not refer to an existing cluster.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/ModifyClusterMaintenance
+func (c *Redshift) ModifyClusterMaintenance(input *ModifyClusterMaintenanceInput) (*ModifyClusterMaintenanceOutput, error) {
+	req, out := c.ModifyClusterMaintenanceRequest(input)
+	return out, req.Send()
+}
+
+// ModifyClusterMaintenanceWithContext is the same as ModifyClusterMaintenance with the addition of
+// the ability to pass a context and additional request options.
+//
+// See ModifyClusterMaintenance for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Redshift) ModifyClusterMaintenanceWithContext(ctx aws.Context, input *ModifyClusterMaintenanceInput, opts ...request.Option) (*ModifyClusterMaintenanceOutput, error) {
+	req, out := c.ModifyClusterMaintenanceRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opModifyClusterParameterGroup = "ModifyClusterParameterGroup"
 
 // ModifyClusterParameterGroupRequest generates a "aws/request.Request" representing the
 // client's request for the ModifyClusterParameterGroup operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -5823,12 +7034,186 @@ func (c *Redshift) ModifyClusterParameterGroupWithContext(ctx aws.Context, input
 	return out, req.Send()
 }
 
+const opModifyClusterSnapshot = "ModifyClusterSnapshot"
+
+// ModifyClusterSnapshotRequest generates a "aws/request.Request" representing the
+// client's request for the ModifyClusterSnapshot operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See ModifyClusterSnapshot for more information on using the ModifyClusterSnapshot
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the ModifyClusterSnapshotRequest method.
+//    req, resp := client.ModifyClusterSnapshotRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/ModifyClusterSnapshot
+func (c *Redshift) ModifyClusterSnapshotRequest(input *ModifyClusterSnapshotInput) (req *request.Request, output *ModifyClusterSnapshotOutput) {
+	op := &request.Operation{
+		Name:       opModifyClusterSnapshot,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &ModifyClusterSnapshotInput{}
+	}
+
+	output = &ModifyClusterSnapshotOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// ModifyClusterSnapshot API operation for Amazon Redshift.
+//
+// Modifies the settings for a snapshot.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Redshift's
+// API operation ModifyClusterSnapshot for usage and error information.
+//
+// Returned Error Codes:
+//   * ErrCodeInvalidClusterSnapshotStateFault "InvalidClusterSnapshotState"
+//   The specified cluster snapshot is not in the available state, or other accounts
+//   are authorized to access the snapshot.
+//
+//   * ErrCodeClusterSnapshotNotFoundFault "ClusterSnapshotNotFound"
+//   The snapshot identifier does not refer to an existing cluster snapshot.
+//
+//   * ErrCodeInvalidRetentionPeriodFault "InvalidRetentionPeriodFault"
+//   The retention period specified is either in the past or is not a valid value.
+//
+//   The value must be either -1 or an integer between 1 and 3,653.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/ModifyClusterSnapshot
+func (c *Redshift) ModifyClusterSnapshot(input *ModifyClusterSnapshotInput) (*ModifyClusterSnapshotOutput, error) {
+	req, out := c.ModifyClusterSnapshotRequest(input)
+	return out, req.Send()
+}
+
+// ModifyClusterSnapshotWithContext is the same as ModifyClusterSnapshot with the addition of
+// the ability to pass a context and additional request options.
+//
+// See ModifyClusterSnapshot for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Redshift) ModifyClusterSnapshotWithContext(ctx aws.Context, input *ModifyClusterSnapshotInput, opts ...request.Option) (*ModifyClusterSnapshotOutput, error) {
+	req, out := c.ModifyClusterSnapshotRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opModifyClusterSnapshotSchedule = "ModifyClusterSnapshotSchedule"
+
+// ModifyClusterSnapshotScheduleRequest generates a "aws/request.Request" representing the
+// client's request for the ModifyClusterSnapshotSchedule operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See ModifyClusterSnapshotSchedule for more information on using the ModifyClusterSnapshotSchedule
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the ModifyClusterSnapshotScheduleRequest method.
+//    req, resp := client.ModifyClusterSnapshotScheduleRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/ModifyClusterSnapshotSchedule
+func (c *Redshift) ModifyClusterSnapshotScheduleRequest(input *ModifyClusterSnapshotScheduleInput) (req *request.Request, output *ModifyClusterSnapshotScheduleOutput) {
+	op := &request.Operation{
+		Name:       opModifyClusterSnapshotSchedule,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &ModifyClusterSnapshotScheduleInput{}
+	}
+
+	output = &ModifyClusterSnapshotScheduleOutput{}
+	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(query.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
+	return
+}
+
+// ModifyClusterSnapshotSchedule API operation for Amazon Redshift.
+//
+// Modifies a snapshot schedule for a cluster.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Redshift's
+// API operation ModifyClusterSnapshotSchedule for usage and error information.
+//
+// Returned Error Codes:
+//   * ErrCodeClusterNotFoundFault "ClusterNotFound"
+//   The ClusterIdentifier parameter does not refer to an existing cluster.
+//
+//   * ErrCodeSnapshotScheduleNotFoundFault "SnapshotScheduleNotFound"
+//   We could not find the specified snapshot schedule.
+//
+//   * ErrCodeInvalidClusterSnapshotScheduleStateFault "InvalidClusterSnapshotScheduleState"
+//   The cluster snapshot schedule state is not valid.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/ModifyClusterSnapshotSchedule
+func (c *Redshift) ModifyClusterSnapshotSchedule(input *ModifyClusterSnapshotScheduleInput) (*ModifyClusterSnapshotScheduleOutput, error) {
+	req, out := c.ModifyClusterSnapshotScheduleRequest(input)
+	return out, req.Send()
+}
+
+// ModifyClusterSnapshotScheduleWithContext is the same as ModifyClusterSnapshotSchedule with the addition of
+// the ability to pass a context and additional request options.
+//
+// See ModifyClusterSnapshotSchedule for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Redshift) ModifyClusterSnapshotScheduleWithContext(ctx aws.Context, input *ModifyClusterSnapshotScheduleInput, opts ...request.Option) (*ModifyClusterSnapshotScheduleOutput, error) {
+	req, out := c.ModifyClusterSnapshotScheduleRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opModifyClusterSubnetGroup = "ModifyClusterSubnetGroup"
 
 // ModifyClusterSubnetGroupRequest generates a "aws/request.Request" representing the
 // client's request for the ModifyClusterSubnetGroup operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -5929,8 +7314,8 @@ const opModifyEventSubscription = "ModifyEventSubscription"
 
 // ModifyEventSubscriptionRequest generates a "aws/request.Request" representing the
 // client's request for the ModifyEventSubscription operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -6040,8 +7425,8 @@ const opModifySnapshotCopyRetentionPeriod = "ModifySnapshotCopyRetentionPeriod"
 
 // ModifySnapshotCopyRetentionPeriodRequest generates a "aws/request.Request" representing the
 // client's request for the ModifySnapshotCopyRetentionPeriod operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -6080,8 +7465,13 @@ func (c *Redshift) ModifySnapshotCopyRetentionPeriodRequest(input *ModifySnapsho
 
 // ModifySnapshotCopyRetentionPeriod API operation for Amazon Redshift.
 //
-// Modifies the number of days to retain automated snapshots in the destination
-// region after they are copied from the source region.
+// Modifies the number of days to retain snapshots in the destination AWS Region
+// after they are copied from the source AWS Region. By default, this operation
+// only changes the retention period of copied automated snapshots. The retention
+// periods for both new and existing copied automated snapshots are updated
+// with the new retention period. You can set the manual option to change only
+// the retention periods of copied manual snapshots. If you set this option,
+// only newly copied manual snapshots have the new retention period.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -6102,6 +7492,11 @@ func (c *Redshift) ModifySnapshotCopyRetentionPeriodRequest(input *ModifySnapsho
 //
 //   * ErrCodeInvalidClusterStateFault "InvalidClusterState"
 //   The specified cluster is not in the available state.
+//
+//   * ErrCodeInvalidRetentionPeriodFault "InvalidRetentionPeriodFault"
+//   The retention period specified is either in the past or is not a valid value.
+//
+//   The value must be either -1 or an integer between 1 and 3,653.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/ModifySnapshotCopyRetentionPeriod
 func (c *Redshift) ModifySnapshotCopyRetentionPeriod(input *ModifySnapshotCopyRetentionPeriodInput) (*ModifySnapshotCopyRetentionPeriodOutput, error) {
@@ -6125,12 +7520,98 @@ func (c *Redshift) ModifySnapshotCopyRetentionPeriodWithContext(ctx aws.Context,
 	return out, req.Send()
 }
 
+const opModifySnapshotSchedule = "ModifySnapshotSchedule"
+
+// ModifySnapshotScheduleRequest generates a "aws/request.Request" representing the
+// client's request for the ModifySnapshotSchedule operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See ModifySnapshotSchedule for more information on using the ModifySnapshotSchedule
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the ModifySnapshotScheduleRequest method.
+//    req, resp := client.ModifySnapshotScheduleRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/ModifySnapshotSchedule
+func (c *Redshift) ModifySnapshotScheduleRequest(input *ModifySnapshotScheduleInput) (req *request.Request, output *ModifySnapshotScheduleOutput) {
+	op := &request.Operation{
+		Name:       opModifySnapshotSchedule,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &ModifySnapshotScheduleInput{}
+	}
+
+	output = &ModifySnapshotScheduleOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// ModifySnapshotSchedule API operation for Amazon Redshift.
+//
+// Modifies a snapshot schedule. Any schedule associated with a cluster is modified
+// asynchronously.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Redshift's
+// API operation ModifySnapshotSchedule for usage and error information.
+//
+// Returned Error Codes:
+//   * ErrCodeInvalidScheduleFault "InvalidSchedule"
+//   The schedule you submitted isn't valid.
+//
+//   * ErrCodeSnapshotScheduleNotFoundFault "SnapshotScheduleNotFound"
+//   We could not find the specified snapshot schedule.
+//
+//   * ErrCodeSnapshotScheduleUpdateInProgressFault "SnapshotScheduleUpdateInProgress"
+//   The specified snapshot schedule is already being updated.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/ModifySnapshotSchedule
+func (c *Redshift) ModifySnapshotSchedule(input *ModifySnapshotScheduleInput) (*ModifySnapshotScheduleOutput, error) {
+	req, out := c.ModifySnapshotScheduleRequest(input)
+	return out, req.Send()
+}
+
+// ModifySnapshotScheduleWithContext is the same as ModifySnapshotSchedule with the addition of
+// the ability to pass a context and additional request options.
+//
+// See ModifySnapshotSchedule for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Redshift) ModifySnapshotScheduleWithContext(ctx aws.Context, input *ModifySnapshotScheduleInput, opts ...request.Option) (*ModifySnapshotScheduleOutput, error) {
+	req, out := c.ModifySnapshotScheduleRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opPurchaseReservedNodeOffering = "PurchaseReservedNodeOffering"
 
 // PurchaseReservedNodeOfferingRequest generates a "aws/request.Request" representing the
 // client's request for the PurchaseReservedNodeOffering operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -6227,8 +7708,8 @@ const opRebootCluster = "RebootCluster"
 
 // RebootClusterRequest generates a "aws/request.Request" representing the
 // client's request for the RebootCluster operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -6315,8 +7796,8 @@ const opResetClusterParameterGroup = "ResetClusterParameterGroup"
 
 // ResetClusterParameterGroupRequest generates a "aws/request.Request" representing the
 // client's request for the ResetClusterParameterGroup operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -6398,12 +7879,135 @@ func (c *Redshift) ResetClusterParameterGroupWithContext(ctx aws.Context, input 
 	return out, req.Send()
 }
 
+const opResizeCluster = "ResizeCluster"
+
+// ResizeClusterRequest generates a "aws/request.Request" representing the
+// client's request for the ResizeCluster operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See ResizeCluster for more information on using the ResizeCluster
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the ResizeClusterRequest method.
+//    req, resp := client.ResizeClusterRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/ResizeCluster
+func (c *Redshift) ResizeClusterRequest(input *ResizeClusterInput) (req *request.Request, output *ResizeClusterOutput) {
+	op := &request.Operation{
+		Name:       opResizeCluster,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &ResizeClusterInput{}
+	}
+
+	output = &ResizeClusterOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// ResizeCluster API operation for Amazon Redshift.
+//
+// Changes the size of the cluster. You can change the cluster's type, or change
+// the number or type of nodes. The default behavior is to use the elastic resize
+// method. With an elastic resize, your cluster is available for read and write
+// operations more quickly than with the classic resize method.
+//
+// Elastic resize operations have the following restrictions:
+//
+//    * You can only resize clusters of the following types:
+//
+// dc2.large
+//
+// dc2.8xlarge
+//
+// ds2.xlarge
+//
+// ds2.8xlarge
+//
+//    * The type of nodes that you add must match the node type for the cluster.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Redshift's
+// API operation ResizeCluster for usage and error information.
+//
+// Returned Error Codes:
+//   * ErrCodeInvalidClusterStateFault "InvalidClusterState"
+//   The specified cluster is not in the available state.
+//
+//   * ErrCodeClusterNotFoundFault "ClusterNotFound"
+//   The ClusterIdentifier parameter does not refer to an existing cluster.
+//
+//   * ErrCodeNumberOfNodesQuotaExceededFault "NumberOfNodesQuotaExceeded"
+//   The operation would exceed the number of nodes allotted to the account. For
+//   information about increasing your quota, go to Limits in Amazon Redshift
+//   (http://docs.aws.amazon.com/redshift/latest/mgmt/amazon-redshift-limits.html)
+//   in the Amazon Redshift Cluster Management Guide.
+//
+//   * ErrCodeNumberOfNodesPerClusterLimitExceededFault "NumberOfNodesPerClusterLimitExceeded"
+//   The operation would exceed the number of nodes allowed for a cluster.
+//
+//   * ErrCodeInsufficientClusterCapacityFault "InsufficientClusterCapacity"
+//   The number of nodes specified exceeds the allotted capacity of the cluster.
+//
+//   * ErrCodeUnsupportedOptionFault "UnsupportedOptionFault"
+//   A request option was specified that is not supported.
+//
+//   * ErrCodeUnsupportedOperationFault "UnsupportedOperation"
+//   The requested operation isn't supported.
+//
+//   * ErrCodeUnauthorizedOperation "UnauthorizedOperation"
+//   Your account is not authorized to perform the requested operation.
+//
+//   * ErrCodeLimitExceededFault "LimitExceededFault"
+//   The encryption key has exceeded its grant limit in AWS KMS.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/ResizeCluster
+func (c *Redshift) ResizeCluster(input *ResizeClusterInput) (*ResizeClusterOutput, error) {
+	req, out := c.ResizeClusterRequest(input)
+	return out, req.Send()
+}
+
+// ResizeClusterWithContext is the same as ResizeCluster with the addition of
+// the ability to pass a context and additional request options.
+//
+// See ResizeCluster for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Redshift) ResizeClusterWithContext(ctx aws.Context, input *ResizeClusterInput, opts ...request.Option) (*ResizeClusterOutput, error) {
+	req, out := c.ResizeClusterRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opRestoreFromClusterSnapshot = "RestoreFromClusterSnapshot"
 
 // RestoreFromClusterSnapshotRequest generates a "aws/request.Request" representing the
 // client's request for the RestoreFromClusterSnapshot operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -6541,6 +8145,12 @@ func (c *Redshift) RestoreFromClusterSnapshotRequest(input *RestoreFromClusterSn
 //   The request cannot be completed because a dependent service is throttling
 //   requests made by Amazon Redshift on your behalf. Wait and retry the request.
 //
+//   * ErrCodeInvalidClusterTrackFault "InvalidClusterTrack"
+//   The provided cluster track name is not valid.
+//
+//   * ErrCodeSnapshotScheduleNotFoundFault "SnapshotScheduleNotFound"
+//   We could not find the specified snapshot schedule.
+//
 // See also, https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/RestoreFromClusterSnapshot
 func (c *Redshift) RestoreFromClusterSnapshot(input *RestoreFromClusterSnapshotInput) (*RestoreFromClusterSnapshotOutput, error) {
 	req, out := c.RestoreFromClusterSnapshotRequest(input)
@@ -6567,8 +8177,8 @@ const opRestoreTableFromClusterSnapshot = "RestoreTableFromClusterSnapshot"
 
 // RestoreTableFromClusterSnapshotRequest generates a "aws/request.Request" representing the
 // client's request for the RestoreTableFromClusterSnapshot operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -6679,8 +8289,8 @@ const opRevokeClusterSecurityGroupIngress = "RevokeClusterSecurityGroupIngress"
 
 // RevokeClusterSecurityGroupIngressRequest generates a "aws/request.Request" representing the
 // client's request for the RevokeClusterSecurityGroupIngress operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -6770,8 +8380,8 @@ const opRevokeSnapshotAccess = "RevokeSnapshotAccess"
 
 // RevokeSnapshotAccessRequest generates a "aws/request.Request" representing the
 // client's request for the RevokeSnapshotAccess operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -6863,8 +8473,8 @@ const opRotateEncryptionKey = "RotateEncryptionKey"
 
 // RotateEncryptionKeyRequest generates a "aws/request.Request" representing the
 // client's request for the RotateEncryptionKey operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -6945,6 +8555,117 @@ func (c *Redshift) RotateEncryptionKeyWithContext(ctx aws.Context, input *Rotate
 	return out, req.Send()
 }
 
+type AcceptReservedNodeExchangeInput struct {
+	_ struct{} `type:"structure"`
+
+	// A string representing the node identifier of the DC1 Reserved Node to be
+	// exchanged.
+	//
+	// ReservedNodeId is a required field
+	ReservedNodeId *string `type:"string" required:"true"`
+
+	// The unique identifier of the DC2 Reserved Node offering to be used for the
+	// exchange. You can obtain the value for the parameter by calling GetReservedNodeExchangeOfferings
+	//
+	// TargetReservedNodeOfferingId is a required field
+	TargetReservedNodeOfferingId *string `type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s AcceptReservedNodeExchangeInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AcceptReservedNodeExchangeInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *AcceptReservedNodeExchangeInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "AcceptReservedNodeExchangeInput"}
+	if s.ReservedNodeId == nil {
+		invalidParams.Add(request.NewErrParamRequired("ReservedNodeId"))
+	}
+	if s.TargetReservedNodeOfferingId == nil {
+		invalidParams.Add(request.NewErrParamRequired("TargetReservedNodeOfferingId"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetReservedNodeId sets the ReservedNodeId field's value.
+func (s *AcceptReservedNodeExchangeInput) SetReservedNodeId(v string) *AcceptReservedNodeExchangeInput {
+	s.ReservedNodeId = &v
+	return s
+}
+
+// SetTargetReservedNodeOfferingId sets the TargetReservedNodeOfferingId field's value.
+func (s *AcceptReservedNodeExchangeInput) SetTargetReservedNodeOfferingId(v string) *AcceptReservedNodeExchangeInput {
+	s.TargetReservedNodeOfferingId = &v
+	return s
+}
+
+type AcceptReservedNodeExchangeOutput struct {
+	_ struct{} `type:"structure"`
+
+	// Describes a reserved node. You can call the DescribeReservedNodeOfferings
+	// API to obtain the available reserved node offerings.
+	ExchangedReservedNode *ReservedNode `type:"structure"`
+}
+
+// String returns the string representation
+func (s AcceptReservedNodeExchangeOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AcceptReservedNodeExchangeOutput) GoString() string {
+	return s.String()
+}
+
+// SetExchangedReservedNode sets the ExchangedReservedNode field's value.
+func (s *AcceptReservedNodeExchangeOutput) SetExchangedReservedNode(v *ReservedNode) *AcceptReservedNodeExchangeOutput {
+	s.ExchangedReservedNode = v
+	return s
+}
+
+// A name value pair that describes an aspect of an account.
+type AccountAttribute struct {
+	_ struct{} `type:"structure"`
+
+	// The name of the attribute.
+	AttributeName *string `type:"string"`
+
+	// A list of attribute values.
+	AttributeValues []*AttributeValueTarget `locationNameList:"AttributeValueTarget" type:"list"`
+}
+
+// String returns the string representation
+func (s AccountAttribute) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AccountAttribute) GoString() string {
+	return s.String()
+}
+
+// SetAttributeName sets the AttributeName field's value.
+func (s *AccountAttribute) SetAttributeName(v string) *AccountAttribute {
+	s.AttributeName = &v
+	return s
+}
+
+// SetAttributeValues sets the AttributeValues field's value.
+func (s *AccountAttribute) SetAttributeValues(v []*AttributeValueTarget) *AccountAttribute {
+	s.AttributeValues = v
+	return s
+}
+
 // Describes an AWS customer account authorized to restore a snapshot.
 type AccountWithRestoreAccess struct {
 	_ struct{} `type:"structure"`
@@ -6976,6 +8697,30 @@ func (s *AccountWithRestoreAccess) SetAccountAlias(v string) *AccountWithRestore
 // SetAccountId sets the AccountId field's value.
 func (s *AccountWithRestoreAccess) SetAccountId(v string) *AccountWithRestoreAccess {
 	s.AccountId = &v
+	return s
+}
+
+// Describes an attribute value.
+type AttributeValueTarget struct {
+	_ struct{} `type:"structure"`
+
+	// The value of the attribute.
+	AttributeValue *string `type:"string"`
+}
+
+// String returns the string representation
+func (s AttributeValueTarget) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AttributeValueTarget) GoString() string {
+	return s.String()
+}
+
+// SetAttributeValue sets the AttributeValue field's value.
+func (s *AttributeValueTarget) SetAttributeValue(v string) *AttributeValueTarget {
+	s.AttributeValue = &v
 	return s
 }
 
@@ -7192,11 +8937,404 @@ func (s *AvailabilityZone) SetSupportedPlatforms(v []*SupportedPlatform) *Availa
 	return s
 }
 
+type BatchDeleteClusterSnapshotsInput struct {
+	_ struct{} `type:"structure"`
+
+	// A list of identifiers for the snapshots that you want to delete.
+	//
+	// Identifiers is a required field
+	Identifiers []*DeleteClusterSnapshotMessage `locationNameList:"DeleteClusterSnapshotMessage" type:"list" required:"true"`
+}
+
+// String returns the string representation
+func (s BatchDeleteClusterSnapshotsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s BatchDeleteClusterSnapshotsInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *BatchDeleteClusterSnapshotsInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "BatchDeleteClusterSnapshotsInput"}
+	if s.Identifiers == nil {
+		invalidParams.Add(request.NewErrParamRequired("Identifiers"))
+	}
+	if s.Identifiers != nil {
+		for i, v := range s.Identifiers {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Identifiers", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetIdentifiers sets the Identifiers field's value.
+func (s *BatchDeleteClusterSnapshotsInput) SetIdentifiers(v []*DeleteClusterSnapshotMessage) *BatchDeleteClusterSnapshotsInput {
+	s.Identifiers = v
+	return s
+}
+
+type BatchDeleteClusterSnapshotsOutput struct {
+	_ struct{} `type:"structure"`
+
+	// A list of any errors returned.
+	Errors []*SnapshotErrorMessage `locationNameList:"SnapshotErrorMessage" type:"list"`
+
+	// A list of the snapshot identifiers that were deleted.
+	Resources []*string `locationNameList:"String" type:"list"`
+}
+
+// String returns the string representation
+func (s BatchDeleteClusterSnapshotsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s BatchDeleteClusterSnapshotsOutput) GoString() string {
+	return s.String()
+}
+
+// SetErrors sets the Errors field's value.
+func (s *BatchDeleteClusterSnapshotsOutput) SetErrors(v []*SnapshotErrorMessage) *BatchDeleteClusterSnapshotsOutput {
+	s.Errors = v
+	return s
+}
+
+// SetResources sets the Resources field's value.
+func (s *BatchDeleteClusterSnapshotsOutput) SetResources(v []*string) *BatchDeleteClusterSnapshotsOutput {
+	s.Resources = v
+	return s
+}
+
+type BatchModifyClusterSnapshotsInput struct {
+	_ struct{} `type:"structure"`
+
+	// A boolean value indicating whether to override an exception if the retention
+	// period has passed.
+	Force *bool `type:"boolean"`
+
+	// The number of days that a manual snapshot is retained. If you specify the
+	// value -1, the manual snapshot is retained indefinitely.
+	//
+	// The number must be either -1 or an integer between 1 and 3,653.
+	//
+	// If you decrease the manual snapshot retention period from its current value,
+	// existing manual snapshots that fall outside of the new retention period will
+	// return an error. If you want to suppress the errors and delete the snapshots,
+	// use the force option.
+	ManualSnapshotRetentionPeriod *int64 `type:"integer"`
+
+	// A list of snapshot identifiers you want to modify.
+	//
+	// SnapshotIdentifierList is a required field
+	SnapshotIdentifierList []*string `locationNameList:"String" type:"list" required:"true"`
+}
+
+// String returns the string representation
+func (s BatchModifyClusterSnapshotsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s BatchModifyClusterSnapshotsInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *BatchModifyClusterSnapshotsInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "BatchModifyClusterSnapshotsInput"}
+	if s.SnapshotIdentifierList == nil {
+		invalidParams.Add(request.NewErrParamRequired("SnapshotIdentifierList"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetForce sets the Force field's value.
+func (s *BatchModifyClusterSnapshotsInput) SetForce(v bool) *BatchModifyClusterSnapshotsInput {
+	s.Force = &v
+	return s
+}
+
+// SetManualSnapshotRetentionPeriod sets the ManualSnapshotRetentionPeriod field's value.
+func (s *BatchModifyClusterSnapshotsInput) SetManualSnapshotRetentionPeriod(v int64) *BatchModifyClusterSnapshotsInput {
+	s.ManualSnapshotRetentionPeriod = &v
+	return s
+}
+
+// SetSnapshotIdentifierList sets the SnapshotIdentifierList field's value.
+func (s *BatchModifyClusterSnapshotsInput) SetSnapshotIdentifierList(v []*string) *BatchModifyClusterSnapshotsInput {
+	s.SnapshotIdentifierList = v
+	return s
+}
+
+type BatchModifyClusterSnapshotsOutput struct {
+	_ struct{} `type:"structure"`
+
+	// A list of any errors returned.
+	Errors []*SnapshotErrorMessage `locationNameList:"SnapshotErrorMessage" type:"list"`
+
+	// A list of the snapshots that were modified.
+	Resources []*string `locationNameList:"String" type:"list"`
+}
+
+// String returns the string representation
+func (s BatchModifyClusterSnapshotsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s BatchModifyClusterSnapshotsOutput) GoString() string {
+	return s.String()
+}
+
+// SetErrors sets the Errors field's value.
+func (s *BatchModifyClusterSnapshotsOutput) SetErrors(v []*SnapshotErrorMessage) *BatchModifyClusterSnapshotsOutput {
+	s.Errors = v
+	return s
+}
+
+// SetResources sets the Resources field's value.
+func (s *BatchModifyClusterSnapshotsOutput) SetResources(v []*string) *BatchModifyClusterSnapshotsOutput {
+	s.Resources = v
+	return s
+}
+
+type CancelResizeInput struct {
+	_ struct{} `type:"structure"`
+
+	// The unique identifier for the cluster that you want to cancel a resize operation
+	// for.
+	//
+	// ClusterIdentifier is a required field
+	ClusterIdentifier *string `type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s CancelResizeInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CancelResizeInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *CancelResizeInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "CancelResizeInput"}
+	if s.ClusterIdentifier == nil {
+		invalidParams.Add(request.NewErrParamRequired("ClusterIdentifier"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetClusterIdentifier sets the ClusterIdentifier field's value.
+func (s *CancelResizeInput) SetClusterIdentifier(v string) *CancelResizeInput {
+	s.ClusterIdentifier = &v
+	return s
+}
+
+// Describes the result of a cluster resize operation.
+type CancelResizeOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The average rate of the resize operation over the last few minutes, measured
+	// in megabytes per second. After the resize operation completes, this value
+	// shows the average rate of the entire resize operation.
+	AvgResizeRateInMegaBytesPerSecond *float64 `type:"double"`
+
+	// The amount of seconds that have elapsed since the resize operation began.
+	// After the resize operation completes, this value shows the total actual time,
+	// in seconds, for the resize operation.
+	ElapsedTimeInSeconds *int64 `type:"long"`
+
+	// The estimated time remaining, in seconds, until the resize operation is complete.
+	// This value is calculated based on the average resize rate and the estimated
+	// amount of data remaining to be processed. Once the resize operation is complete,
+	// this value will be 0.
+	EstimatedTimeToCompletionInSeconds *int64 `type:"long"`
+
+	// The names of tables that have been completely imported .
+	//
+	// Valid Values: List of table names.
+	ImportTablesCompleted []*string `type:"list"`
+
+	// The names of tables that are being currently imported.
+	//
+	// Valid Values: List of table names.
+	ImportTablesInProgress []*string `type:"list"`
+
+	// The names of tables that have not been yet imported.
+	//
+	// Valid Values: List of table names
+	ImportTablesNotStarted []*string `type:"list"`
+
+	// An optional string to provide additional details about the resize action.
+	Message *string `type:"string"`
+
+	// While the resize operation is in progress, this value shows the current amount
+	// of data, in megabytes, that has been processed so far. When the resize operation
+	// is complete, this value shows the total amount of data, in megabytes, on
+	// the cluster, which may be more or less than TotalResizeDataInMegaBytes (the
+	// estimated total amount of data before resize).
+	ProgressInMegaBytes *int64 `type:"long"`
+
+	// An enum with possible values of ClassicResize and ElasticResize. These values
+	// describe the type of resize operation being performed.
+	ResizeType *string `type:"string"`
+
+	// The status of the resize operation.
+	//
+	// Valid Values: NONE | IN_PROGRESS | FAILED | SUCCEEDED | CANCELLING
+	Status *string `type:"string"`
+
+	// The cluster type after the resize operation is complete.
+	//
+	// Valid Values: multi-node | single-node
+	TargetClusterType *string `type:"string"`
+
+	// The type of encryption for the cluster after the resize is complete.
+	//
+	// Possible values are KMS and None. In the China region possible values are:
+	// Legacy and None.
+	TargetEncryptionType *string `type:"string"`
+
+	// The node type that the cluster will have after the resize operation is complete.
+	TargetNodeType *string `type:"string"`
+
+	// The number of nodes that the cluster will have after the resize operation
+	// is complete.
+	TargetNumberOfNodes *int64 `type:"integer"`
+
+	// The estimated total amount of data, in megabytes, on the cluster before the
+	// resize operation began.
+	TotalResizeDataInMegaBytes *int64 `type:"long"`
+}
+
+// String returns the string representation
+func (s CancelResizeOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CancelResizeOutput) GoString() string {
+	return s.String()
+}
+
+// SetAvgResizeRateInMegaBytesPerSecond sets the AvgResizeRateInMegaBytesPerSecond field's value.
+func (s *CancelResizeOutput) SetAvgResizeRateInMegaBytesPerSecond(v float64) *CancelResizeOutput {
+	s.AvgResizeRateInMegaBytesPerSecond = &v
+	return s
+}
+
+// SetElapsedTimeInSeconds sets the ElapsedTimeInSeconds field's value.
+func (s *CancelResizeOutput) SetElapsedTimeInSeconds(v int64) *CancelResizeOutput {
+	s.ElapsedTimeInSeconds = &v
+	return s
+}
+
+// SetEstimatedTimeToCompletionInSeconds sets the EstimatedTimeToCompletionInSeconds field's value.
+func (s *CancelResizeOutput) SetEstimatedTimeToCompletionInSeconds(v int64) *CancelResizeOutput {
+	s.EstimatedTimeToCompletionInSeconds = &v
+	return s
+}
+
+// SetImportTablesCompleted sets the ImportTablesCompleted field's value.
+func (s *CancelResizeOutput) SetImportTablesCompleted(v []*string) *CancelResizeOutput {
+	s.ImportTablesCompleted = v
+	return s
+}
+
+// SetImportTablesInProgress sets the ImportTablesInProgress field's value.
+func (s *CancelResizeOutput) SetImportTablesInProgress(v []*string) *CancelResizeOutput {
+	s.ImportTablesInProgress = v
+	return s
+}
+
+// SetImportTablesNotStarted sets the ImportTablesNotStarted field's value.
+func (s *CancelResizeOutput) SetImportTablesNotStarted(v []*string) *CancelResizeOutput {
+	s.ImportTablesNotStarted = v
+	return s
+}
+
+// SetMessage sets the Message field's value.
+func (s *CancelResizeOutput) SetMessage(v string) *CancelResizeOutput {
+	s.Message = &v
+	return s
+}
+
+// SetProgressInMegaBytes sets the ProgressInMegaBytes field's value.
+func (s *CancelResizeOutput) SetProgressInMegaBytes(v int64) *CancelResizeOutput {
+	s.ProgressInMegaBytes = &v
+	return s
+}
+
+// SetResizeType sets the ResizeType field's value.
+func (s *CancelResizeOutput) SetResizeType(v string) *CancelResizeOutput {
+	s.ResizeType = &v
+	return s
+}
+
+// SetStatus sets the Status field's value.
+func (s *CancelResizeOutput) SetStatus(v string) *CancelResizeOutput {
+	s.Status = &v
+	return s
+}
+
+// SetTargetClusterType sets the TargetClusterType field's value.
+func (s *CancelResizeOutput) SetTargetClusterType(v string) *CancelResizeOutput {
+	s.TargetClusterType = &v
+	return s
+}
+
+// SetTargetEncryptionType sets the TargetEncryptionType field's value.
+func (s *CancelResizeOutput) SetTargetEncryptionType(v string) *CancelResizeOutput {
+	s.TargetEncryptionType = &v
+	return s
+}
+
+// SetTargetNodeType sets the TargetNodeType field's value.
+func (s *CancelResizeOutput) SetTargetNodeType(v string) *CancelResizeOutput {
+	s.TargetNodeType = &v
+	return s
+}
+
+// SetTargetNumberOfNodes sets the TargetNumberOfNodes field's value.
+func (s *CancelResizeOutput) SetTargetNumberOfNodes(v int64) *CancelResizeOutput {
+	s.TargetNumberOfNodes = &v
+	return s
+}
+
+// SetTotalResizeDataInMegaBytes sets the TotalResizeDataInMegaBytes field's value.
+func (s *CancelResizeOutput) SetTotalResizeDataInMegaBytes(v int64) *CancelResizeOutput {
+	s.TotalResizeDataInMegaBytes = &v
+	return s
+}
+
 // Describes a cluster.
 type Cluster struct {
 	_ struct{} `type:"structure"`
 
-	// A Boolean value that, if true, indicates that major version upgrades will
+	// A boolean value that, if true, indicates that major version upgrades will
 	// be applied automatically to the cluster during the maintenance window.
 	AllowVersionUpgrade *bool `type:"boolean"`
 
@@ -7207,7 +9345,7 @@ type Cluster struct {
 	AvailabilityZone *string `type:"string"`
 
 	// The date and time that the cluster was created.
-	ClusterCreateTime *time.Time `type:"timestamp" timestampFormat:"iso8601"`
+	ClusterCreateTime *time.Time `type:"timestamp"`
 
 	// The unique identifier of the cluster.
 	ClusterIdentifier *string `type:"string"`
@@ -7241,6 +9379,12 @@ type Cluster struct {
 	// The current state of the cluster. Possible values are the following:
 	//
 	//    * available
+	//
+	//    * available, prep-for-resize
+	//
+	//    * available, resize-cleanup
+	//
+	//    * cancelling-resize
 	//
 	//    * creating
 	//
@@ -7285,10 +9429,21 @@ type Cluster struct {
 	// was not specified, a database named devdev was created by default.
 	DBName *string `type:"string"`
 
+	// Describes the status of a cluster while it is in the process of resizing
+	// with an incremental resize.
+	DataTransferProgress *DataTransferProgress `type:"structure"`
+
+	// Describes a group of DeferredMaintenanceWindow objects.
+	DeferredMaintenanceWindows []*DeferredMaintenanceWindow `locationNameList:"DeferredMaintenanceWindow" type:"list"`
+
 	// The status of the elastic IP (EIP) address.
 	ElasticIpStatus *ElasticIpStatus `type:"structure"`
 
-	// A Boolean value that, if true, indicates that data in the cluster is encrypted
+	// The number of nodes that you can resize the cluster to with the elastic resize
+	// method.
+	ElasticResizeNumberOfNodeOptions *string `type:"string"`
+
+	// A boolean value that, if true, indicates that data in the cluster is encrypted
 	// at rest.
 	Encrypted *bool `type:"boolean"`
 
@@ -7321,6 +9476,16 @@ type Cluster struct {
 	// to encrypt data in the cluster.
 	KmsKeyId *string `type:"string"`
 
+	// The name of the maintenance track for the cluster.
+	MaintenanceTrackName *string `type:"string"`
+
+	// The default number of days to retain a manual snapshot. If the value is -1,
+	// the snapshot is retained indefinitely. This setting doesn't change the retention
+	// period of existing snapshots.
+	//
+	// The value must be either -1 or an integer between 1 and 3,653.
+	ManualSnapshotRetentionPeriod *int64 `type:"integer"`
+
 	// The master user name for the cluster. This name is used to connect to the
 	// database that is specified in the DBName parameter.
 	MasterUsername *string `type:"string"`
@@ -7334,6 +9499,9 @@ type Cluster struct {
 	// The number of compute nodes in the cluster.
 	NumberOfNodes *int64 `type:"integer"`
 
+	// Cluster operations that are waiting to be started.
+	PendingActions []*string `type:"list"`
+
 	// A value that, if present, indicates that changes to the cluster are pending.
 	// Specific pending changes are identified by subelements.
 	PendingModifiedValues *PendingModifiedValues `type:"structure"`
@@ -7342,13 +9510,27 @@ type Cluster struct {
 	// system maintenance can occur.
 	PreferredMaintenanceWindow *string `type:"string"`
 
-	// A Boolean value that, if true, indicates that the cluster can be accessed
+	// A boolean value that, if true, indicates that the cluster can be accessed
 	// from a public network.
 	PubliclyAccessible *bool `type:"boolean"`
+
+	// Returns the following:
+	//
+	//    * AllowCancelResize: a boolean value indicating if the resize operation
+	//    can be cancelled.
+	//
+	//    * ResizeType: Returns ClassicResize
+	ResizeInfo *ResizeInfo `type:"structure"`
 
 	// A value that describes the status of a cluster restore action. This parameter
 	// returns null if the cluster was not created by restoring a snapshot.
 	RestoreStatus *RestoreStatus `type:"structure"`
+
+	// A unique identifier for the cluster snapshot schedule.
+	SnapshotScheduleIdentifier *string `type:"string"`
+
+	// The current state of the cluster snapshot schedule.
+	SnapshotScheduleState *string `type:"string" enum:"ScheduleState"`
 
 	// The list of tags for the cluster.
 	Tags []*Tag `locationNameList:"Tag" type:"list"`
@@ -7462,9 +9644,27 @@ func (s *Cluster) SetDBName(v string) *Cluster {
 	return s
 }
 
+// SetDataTransferProgress sets the DataTransferProgress field's value.
+func (s *Cluster) SetDataTransferProgress(v *DataTransferProgress) *Cluster {
+	s.DataTransferProgress = v
+	return s
+}
+
+// SetDeferredMaintenanceWindows sets the DeferredMaintenanceWindows field's value.
+func (s *Cluster) SetDeferredMaintenanceWindows(v []*DeferredMaintenanceWindow) *Cluster {
+	s.DeferredMaintenanceWindows = v
+	return s
+}
+
 // SetElasticIpStatus sets the ElasticIpStatus field's value.
 func (s *Cluster) SetElasticIpStatus(v *ElasticIpStatus) *Cluster {
 	s.ElasticIpStatus = v
+	return s
+}
+
+// SetElasticResizeNumberOfNodeOptions sets the ElasticResizeNumberOfNodeOptions field's value.
+func (s *Cluster) SetElasticResizeNumberOfNodeOptions(v string) *Cluster {
+	s.ElasticResizeNumberOfNodeOptions = &v
 	return s
 }
 
@@ -7504,6 +9704,18 @@ func (s *Cluster) SetKmsKeyId(v string) *Cluster {
 	return s
 }
 
+// SetMaintenanceTrackName sets the MaintenanceTrackName field's value.
+func (s *Cluster) SetMaintenanceTrackName(v string) *Cluster {
+	s.MaintenanceTrackName = &v
+	return s
+}
+
+// SetManualSnapshotRetentionPeriod sets the ManualSnapshotRetentionPeriod field's value.
+func (s *Cluster) SetManualSnapshotRetentionPeriod(v int64) *Cluster {
+	s.ManualSnapshotRetentionPeriod = &v
+	return s
+}
+
 // SetMasterUsername sets the MasterUsername field's value.
 func (s *Cluster) SetMasterUsername(v string) *Cluster {
 	s.MasterUsername = &v
@@ -7528,6 +9740,12 @@ func (s *Cluster) SetNumberOfNodes(v int64) *Cluster {
 	return s
 }
 
+// SetPendingActions sets the PendingActions field's value.
+func (s *Cluster) SetPendingActions(v []*string) *Cluster {
+	s.PendingActions = v
+	return s
+}
+
 // SetPendingModifiedValues sets the PendingModifiedValues field's value.
 func (s *Cluster) SetPendingModifiedValues(v *PendingModifiedValues) *Cluster {
 	s.PendingModifiedValues = v
@@ -7546,9 +9764,27 @@ func (s *Cluster) SetPubliclyAccessible(v bool) *Cluster {
 	return s
 }
 
+// SetResizeInfo sets the ResizeInfo field's value.
+func (s *Cluster) SetResizeInfo(v *ResizeInfo) *Cluster {
+	s.ResizeInfo = v
+	return s
+}
+
 // SetRestoreStatus sets the RestoreStatus field's value.
 func (s *Cluster) SetRestoreStatus(v *RestoreStatus) *Cluster {
 	s.RestoreStatus = v
+	return s
+}
+
+// SetSnapshotScheduleIdentifier sets the SnapshotScheduleIdentifier field's value.
+func (s *Cluster) SetSnapshotScheduleIdentifier(v string) *Cluster {
+	s.SnapshotScheduleIdentifier = &v
+	return s
+}
+
+// SetSnapshotScheduleState sets the SnapshotScheduleState field's value.
+func (s *Cluster) SetSnapshotScheduleState(v string) *Cluster {
+	s.SnapshotScheduleState = &v
 	return s
 }
 
@@ -7567,6 +9803,88 @@ func (s *Cluster) SetVpcId(v string) *Cluster {
 // SetVpcSecurityGroups sets the VpcSecurityGroups field's value.
 func (s *Cluster) SetVpcSecurityGroups(v []*VpcSecurityGroupMembership) *Cluster {
 	s.VpcSecurityGroups = v
+	return s
+}
+
+type ClusterAssociatedToSchedule struct {
+	_ struct{} `type:"structure"`
+
+	ClusterIdentifier *string `type:"string"`
+
+	ScheduleAssociationState *string `type:"string" enum:"ScheduleState"`
+}
+
+// String returns the string representation
+func (s ClusterAssociatedToSchedule) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ClusterAssociatedToSchedule) GoString() string {
+	return s.String()
+}
+
+// SetClusterIdentifier sets the ClusterIdentifier field's value.
+func (s *ClusterAssociatedToSchedule) SetClusterIdentifier(v string) *ClusterAssociatedToSchedule {
+	s.ClusterIdentifier = &v
+	return s
+}
+
+// SetScheduleAssociationState sets the ScheduleAssociationState field's value.
+func (s *ClusterAssociatedToSchedule) SetScheduleAssociationState(v string) *ClusterAssociatedToSchedule {
+	s.ScheduleAssociationState = &v
+	return s
+}
+
+// Describes a ClusterDbRevision.
+type ClusterDbRevision struct {
+	_ struct{} `type:"structure"`
+
+	// The unique identifier of the cluster.
+	ClusterIdentifier *string `type:"string"`
+
+	// A string representing the current cluster version.
+	CurrentDatabaseRevision *string `type:"string"`
+
+	// The date on which the database revision was released.
+	DatabaseRevisionReleaseDate *time.Time `type:"timestamp"`
+
+	// A list of RevisionTarget objects, where each object describes the database
+	// revision that a cluster can be updated to.
+	RevisionTargets []*RevisionTarget `locationNameList:"RevisionTarget" type:"list"`
+}
+
+// String returns the string representation
+func (s ClusterDbRevision) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ClusterDbRevision) GoString() string {
+	return s.String()
+}
+
+// SetClusterIdentifier sets the ClusterIdentifier field's value.
+func (s *ClusterDbRevision) SetClusterIdentifier(v string) *ClusterDbRevision {
+	s.ClusterIdentifier = &v
+	return s
+}
+
+// SetCurrentDatabaseRevision sets the CurrentDatabaseRevision field's value.
+func (s *ClusterDbRevision) SetCurrentDatabaseRevision(v string) *ClusterDbRevision {
+	s.CurrentDatabaseRevision = &v
+	return s
+}
+
+// SetDatabaseRevisionReleaseDate sets the DatabaseRevisionReleaseDate field's value.
+func (s *ClusterDbRevision) SetDatabaseRevisionReleaseDate(v time.Time) *ClusterDbRevision {
+	s.DatabaseRevisionReleaseDate = &v
+	return s
+}
+
+// SetRevisionTargets sets the RevisionTargets field's value.
+func (s *ClusterDbRevision) SetRevisionTargets(v []*RevisionTarget) *ClusterDbRevision {
+	s.RevisionTargets = v
 	return s
 }
 
@@ -7958,6 +10276,13 @@ type ClusterSnapshotCopyStatus struct {
 	DestinationRegion *string `type:"string"`
 
 	// The number of days that automated snapshots are retained in the destination
+	// region after they are copied from a source region. If the value is -1, the
+	// manual snapshot is retained indefinitely.
+	//
+	// The value must be either -1 or an integer between 1 and 3,653.
+	ManualSnapshotRetentionPeriod *int64 `type:"integer"`
+
+	// The number of days that automated snapshots are retained in the destination
 	// region after they are copied from a source region.
 	RetentionPeriod *int64 `type:"long"`
 
@@ -7978,6 +10303,12 @@ func (s ClusterSnapshotCopyStatus) GoString() string {
 // SetDestinationRegion sets the DestinationRegion field's value.
 func (s *ClusterSnapshotCopyStatus) SetDestinationRegion(v string) *ClusterSnapshotCopyStatus {
 	s.DestinationRegion = &v
+	return s
+}
+
+// SetManualSnapshotRetentionPeriod sets the ManualSnapshotRetentionPeriod field's value.
+func (s *ClusterSnapshotCopyStatus) SetManualSnapshotRetentionPeriod(v int64) *ClusterSnapshotCopyStatus {
+	s.ManualSnapshotRetentionPeriod = &v
 	return s
 }
 
@@ -8109,6 +10440,14 @@ func (s *ClusterVersion) SetDescription(v string) *ClusterVersion {
 type CopyClusterSnapshotInput struct {
 	_ struct{} `type:"structure"`
 
+	// The number of days that a manual snapshot is retained. If the value is -1,
+	// the manual snapshot is retained indefinitely.
+	//
+	// The value must be either -1 or an integer between 1 and 3,653.
+	//
+	// The default value is -1.
+	ManualSnapshotRetentionPeriod *int64 `type:"integer"`
+
 	// The identifier of the cluster the source snapshot was created from. This
 	// parameter is required if your IAM user has a policy containing a snapshot
 	// resource element that specifies anything other than * for the cluster name.
@@ -8170,6 +10509,12 @@ func (s *CopyClusterSnapshotInput) Validate() error {
 		return invalidParams
 	}
 	return nil
+}
+
+// SetManualSnapshotRetentionPeriod sets the ManualSnapshotRetentionPeriod field's value.
+func (s *CopyClusterSnapshotInput) SetManualSnapshotRetentionPeriod(v int64) *CopyClusterSnapshotInput {
+	s.ManualSnapshotRetentionPeriod = &v
+	return s
 }
 
 // SetSourceSnapshotClusterIdentifier sets the SourceSnapshotClusterIdentifier field's value.
@@ -8384,6 +10729,18 @@ type CreateClusterInput struct {
 	// want to use to encrypt data in the cluster.
 	KmsKeyId *string `type:"string"`
 
+	// An optional parameter for the name of the maintenance track for the cluster.
+	// If you don't provide a maintenance track name, the cluster is assigned to
+	// the current track.
+	MaintenanceTrackName *string `type:"string"`
+
+	// The default number of days to retain a manual snapshot. If the value is -1,
+	// the snapshot is retained indefinitely. This setting doesn't change the retention
+	// period of existing snapshots.
+	//
+	// The value must be either -1 or an integer between 1 and 3,653.
+	ManualSnapshotRetentionPeriod *int64 `type:"integer"`
+
 	// The password associated with the master user account for the cluster that
 	// is being created.
 	//
@@ -8473,6 +10830,9 @@ type CreateClusterInput struct {
 
 	// If true, the cluster can be accessed from a public network.
 	PubliclyAccessible *bool `type:"boolean"`
+
+	// A unique identifier for the snapshot schedule.
+	SnapshotScheduleIdentifier *string `type:"string"`
 
 	// A list of tag instances.
 	Tags []*Tag `locationNameList:"Tag" type:"list"`
@@ -8624,6 +10984,18 @@ func (s *CreateClusterInput) SetKmsKeyId(v string) *CreateClusterInput {
 	return s
 }
 
+// SetMaintenanceTrackName sets the MaintenanceTrackName field's value.
+func (s *CreateClusterInput) SetMaintenanceTrackName(v string) *CreateClusterInput {
+	s.MaintenanceTrackName = &v
+	return s
+}
+
+// SetManualSnapshotRetentionPeriod sets the ManualSnapshotRetentionPeriod field's value.
+func (s *CreateClusterInput) SetManualSnapshotRetentionPeriod(v int64) *CreateClusterInput {
+	s.ManualSnapshotRetentionPeriod = &v
+	return s
+}
+
 // SetMasterUserPassword sets the MasterUserPassword field's value.
 func (s *CreateClusterInput) SetMasterUserPassword(v string) *CreateClusterInput {
 	s.MasterUserPassword = &v
@@ -8663,6 +11035,12 @@ func (s *CreateClusterInput) SetPreferredMaintenanceWindow(v string) *CreateClus
 // SetPubliclyAccessible sets the PubliclyAccessible field's value.
 func (s *CreateClusterInput) SetPubliclyAccessible(v bool) *CreateClusterInput {
 	s.PubliclyAccessible = &v
+	return s
+}
+
+// SetSnapshotScheduleIdentifier sets the SnapshotScheduleIdentifier field's value.
+func (s *CreateClusterInput) SetSnapshotScheduleIdentifier(v string) *CreateClusterInput {
+	s.SnapshotScheduleIdentifier = &v
 	return s
 }
 
@@ -8923,6 +11301,14 @@ type CreateClusterSnapshotInput struct {
 	// ClusterIdentifier is a required field
 	ClusterIdentifier *string `type:"string" required:"true"`
 
+	// The number of days that a manual snapshot is retained. If the value is -1,
+	// the manual snapshot is retained indefinitely.
+	//
+	// The value must be either -1 or an integer between 1 and 3,653.
+	//
+	// The default value is -1.
+	ManualSnapshotRetentionPeriod *int64 `type:"integer"`
+
 	// A unique identifier for the snapshot that you are requesting. This identifier
 	// must be unique for all snapshots within the AWS account.
 	//
@@ -8974,6 +11360,12 @@ func (s *CreateClusterSnapshotInput) Validate() error {
 // SetClusterIdentifier sets the ClusterIdentifier field's value.
 func (s *CreateClusterSnapshotInput) SetClusterIdentifier(v string) *CreateClusterSnapshotInput {
 	s.ClusterIdentifier = &v
+	return s
+}
+
+// SetManualSnapshotRetentionPeriod sets the ManualSnapshotRetentionPeriod field's value.
+func (s *CreateClusterSnapshotInput) SetManualSnapshotRetentionPeriod(v int64) *CreateClusterSnapshotInput {
+	s.ManualSnapshotRetentionPeriod = &v
 	return s
 }
 
@@ -9125,14 +11517,14 @@ func (s *CreateClusterSubnetGroupOutput) SetClusterSubnetGroup(v *ClusterSubnetG
 type CreateEventSubscriptionInput struct {
 	_ struct{} `type:"structure"`
 
-	// A Boolean value; set to true to activate the subscription, set to false to
-	// create the subscription but not active it.
+	// A boolean value; set to true to activate the subscription, and set to false
+	// to create the subscription but not activate it.
 	Enabled *bool `type:"boolean"`
 
 	// Specifies the Amazon Redshift event categories to be published by the event
 	// notification subscription.
 	//
-	// Values: Configuration, Management, Monitoring, Security
+	// Values: configuration, management, monitoring, security
 	EventCategories []*string `locationNameList:"EventCategory" type:"list"`
 
 	// Specifies the Amazon Redshift event severity to be published by the event
@@ -9602,6 +11994,149 @@ func (s *CreateSnapshotCopyGrantOutput) SetSnapshotCopyGrant(v *SnapshotCopyGran
 	return s
 }
 
+type CreateSnapshotScheduleInput struct {
+	_ struct{} `type:"structure"`
+
+	DryRun *bool `type:"boolean"`
+
+	NextInvocations *int64 `type:"integer"`
+
+	// The definition of the snapshot schedule. The definition is made up of schedule
+	// expressions, for example "cron(30 12 *)" or "rate(12 hours)".
+	ScheduleDefinitions []*string `locationNameList:"ScheduleDefinition" type:"list"`
+
+	// The description of the snapshot schedule.
+	ScheduleDescription *string `type:"string"`
+
+	// A unique identifier for a snapshot schedule. Only alphanumeric characters
+	// are allowed for the identifier.
+	ScheduleIdentifier *string `type:"string"`
+
+	Tags []*Tag `locationNameList:"Tag" type:"list"`
+}
+
+// String returns the string representation
+func (s CreateSnapshotScheduleInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateSnapshotScheduleInput) GoString() string {
+	return s.String()
+}
+
+// SetDryRun sets the DryRun field's value.
+func (s *CreateSnapshotScheduleInput) SetDryRun(v bool) *CreateSnapshotScheduleInput {
+	s.DryRun = &v
+	return s
+}
+
+// SetNextInvocations sets the NextInvocations field's value.
+func (s *CreateSnapshotScheduleInput) SetNextInvocations(v int64) *CreateSnapshotScheduleInput {
+	s.NextInvocations = &v
+	return s
+}
+
+// SetScheduleDefinitions sets the ScheduleDefinitions field's value.
+func (s *CreateSnapshotScheduleInput) SetScheduleDefinitions(v []*string) *CreateSnapshotScheduleInput {
+	s.ScheduleDefinitions = v
+	return s
+}
+
+// SetScheduleDescription sets the ScheduleDescription field's value.
+func (s *CreateSnapshotScheduleInput) SetScheduleDescription(v string) *CreateSnapshotScheduleInput {
+	s.ScheduleDescription = &v
+	return s
+}
+
+// SetScheduleIdentifier sets the ScheduleIdentifier field's value.
+func (s *CreateSnapshotScheduleInput) SetScheduleIdentifier(v string) *CreateSnapshotScheduleInput {
+	s.ScheduleIdentifier = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *CreateSnapshotScheduleInput) SetTags(v []*Tag) *CreateSnapshotScheduleInput {
+	s.Tags = v
+	return s
+}
+
+// Describes a snapshot schedule. You can set a regular interval for creating
+// snapshots of a cluster. You can also schedule snapshots for specific dates.
+type CreateSnapshotScheduleOutput struct {
+	_ struct{} `type:"structure"`
+
+	AssociatedClusterCount *int64 `type:"integer"`
+
+	AssociatedClusters []*ClusterAssociatedToSchedule `locationNameList:"ClusterAssociatedToSchedule" type:"list"`
+
+	NextInvocations []*time.Time `locationNameList:"SnapshotTime" type:"list"`
+
+	// A list of ScheduleDefinitions
+	ScheduleDefinitions []*string `locationNameList:"ScheduleDefinition" type:"list"`
+
+	// The description of the schedule.
+	ScheduleDescription *string `type:"string"`
+
+	// A unique identifier for the schedule.
+	ScheduleIdentifier *string `type:"string"`
+
+	// An optional set of tags describing the schedule.
+	Tags []*Tag `locationNameList:"Tag" type:"list"`
+}
+
+// String returns the string representation
+func (s CreateSnapshotScheduleOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateSnapshotScheduleOutput) GoString() string {
+	return s.String()
+}
+
+// SetAssociatedClusterCount sets the AssociatedClusterCount field's value.
+func (s *CreateSnapshotScheduleOutput) SetAssociatedClusterCount(v int64) *CreateSnapshotScheduleOutput {
+	s.AssociatedClusterCount = &v
+	return s
+}
+
+// SetAssociatedClusters sets the AssociatedClusters field's value.
+func (s *CreateSnapshotScheduleOutput) SetAssociatedClusters(v []*ClusterAssociatedToSchedule) *CreateSnapshotScheduleOutput {
+	s.AssociatedClusters = v
+	return s
+}
+
+// SetNextInvocations sets the NextInvocations field's value.
+func (s *CreateSnapshotScheduleOutput) SetNextInvocations(v []*time.Time) *CreateSnapshotScheduleOutput {
+	s.NextInvocations = v
+	return s
+}
+
+// SetScheduleDefinitions sets the ScheduleDefinitions field's value.
+func (s *CreateSnapshotScheduleOutput) SetScheduleDefinitions(v []*string) *CreateSnapshotScheduleOutput {
+	s.ScheduleDefinitions = v
+	return s
+}
+
+// SetScheduleDescription sets the ScheduleDescription field's value.
+func (s *CreateSnapshotScheduleOutput) SetScheduleDescription(v string) *CreateSnapshotScheduleOutput {
+	s.ScheduleDescription = &v
+	return s
+}
+
+// SetScheduleIdentifier sets the ScheduleIdentifier field's value.
+func (s *CreateSnapshotScheduleOutput) SetScheduleIdentifier(v string) *CreateSnapshotScheduleOutput {
+	s.ScheduleIdentifier = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *CreateSnapshotScheduleOutput) SetTags(v []*Tag) *CreateSnapshotScheduleOutput {
+	s.Tags = v
+	return s
+}
+
 // Contains the output from the CreateTags action.
 type CreateTagsInput struct {
 	_ struct{} `type:"structure"`
@@ -9674,6 +12209,77 @@ func (s CreateTagsOutput) GoString() string {
 	return s.String()
 }
 
+// Describes the status of a cluster while it is in the process of resizing
+// with an incremental resize.
+type DataTransferProgress struct {
+	_ struct{} `type:"structure"`
+
+	// Describes the data transfer rate in MB's per second.
+	CurrentRateInMegaBytesPerSecond *float64 `type:"double"`
+
+	// Describes the total amount of data that has been transfered in MB's.
+	DataTransferredInMegaBytes *int64 `type:"long"`
+
+	// Describes the number of seconds that have elapsed during the data transfer.
+	ElapsedTimeInSeconds *int64 `type:"long"`
+
+	// Describes the estimated number of seconds remaining to complete the transfer.
+	EstimatedTimeToCompletionInSeconds *int64 `type:"long"`
+
+	// Describes the status of the cluster. While the transfer is in progress the
+	// status is transferringdata.
+	Status *string `type:"string"`
+
+	// Describes the total amount of data to be transfered in megabytes.
+	TotalDataInMegaBytes *int64 `type:"long"`
+}
+
+// String returns the string representation
+func (s DataTransferProgress) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DataTransferProgress) GoString() string {
+	return s.String()
+}
+
+// SetCurrentRateInMegaBytesPerSecond sets the CurrentRateInMegaBytesPerSecond field's value.
+func (s *DataTransferProgress) SetCurrentRateInMegaBytesPerSecond(v float64) *DataTransferProgress {
+	s.CurrentRateInMegaBytesPerSecond = &v
+	return s
+}
+
+// SetDataTransferredInMegaBytes sets the DataTransferredInMegaBytes field's value.
+func (s *DataTransferProgress) SetDataTransferredInMegaBytes(v int64) *DataTransferProgress {
+	s.DataTransferredInMegaBytes = &v
+	return s
+}
+
+// SetElapsedTimeInSeconds sets the ElapsedTimeInSeconds field's value.
+func (s *DataTransferProgress) SetElapsedTimeInSeconds(v int64) *DataTransferProgress {
+	s.ElapsedTimeInSeconds = &v
+	return s
+}
+
+// SetEstimatedTimeToCompletionInSeconds sets the EstimatedTimeToCompletionInSeconds field's value.
+func (s *DataTransferProgress) SetEstimatedTimeToCompletionInSeconds(v int64) *DataTransferProgress {
+	s.EstimatedTimeToCompletionInSeconds = &v
+	return s
+}
+
+// SetStatus sets the Status field's value.
+func (s *DataTransferProgress) SetStatus(v string) *DataTransferProgress {
+	s.Status = &v
+	return s
+}
+
+// SetTotalDataInMegaBytes sets the TotalDataInMegaBytes field's value.
+func (s *DataTransferProgress) SetTotalDataInMegaBytes(v int64) *DataTransferProgress {
+	s.TotalDataInMegaBytes = &v
+	return s
+}
+
 // Describes the default cluster parameters for a parameter group family.
 type DefaultClusterParameters struct {
 	_ struct{} `type:"structure"`
@@ -9721,6 +12327,48 @@ func (s *DefaultClusterParameters) SetParameters(v []*Parameter) *DefaultCluster
 	return s
 }
 
+// Describes a deferred maintenance window
+type DeferredMaintenanceWindow struct {
+	_ struct{} `type:"structure"`
+
+	// A timestamp for the end of the time period when we defer maintenance.
+	DeferMaintenanceEndTime *time.Time `type:"timestamp"`
+
+	// A unique identifier for the maintenance window.
+	DeferMaintenanceIdentifier *string `type:"string"`
+
+	// A timestamp for the beginning of the time period when we defer maintenance.
+	DeferMaintenanceStartTime *time.Time `type:"timestamp"`
+}
+
+// String returns the string representation
+func (s DeferredMaintenanceWindow) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeferredMaintenanceWindow) GoString() string {
+	return s.String()
+}
+
+// SetDeferMaintenanceEndTime sets the DeferMaintenanceEndTime field's value.
+func (s *DeferredMaintenanceWindow) SetDeferMaintenanceEndTime(v time.Time) *DeferredMaintenanceWindow {
+	s.DeferMaintenanceEndTime = &v
+	return s
+}
+
+// SetDeferMaintenanceIdentifier sets the DeferMaintenanceIdentifier field's value.
+func (s *DeferredMaintenanceWindow) SetDeferMaintenanceIdentifier(v string) *DeferredMaintenanceWindow {
+	s.DeferMaintenanceIdentifier = &v
+	return s
+}
+
+// SetDeferMaintenanceStartTime sets the DeferMaintenanceStartTime field's value.
+func (s *DeferredMaintenanceWindow) SetDeferMaintenanceStartTime(v time.Time) *DeferredMaintenanceWindow {
+	s.DeferMaintenanceStartTime = &v
+	return s
+}
+
 type DeleteClusterInput struct {
 	_ struct{} `type:"structure"`
 
@@ -9751,6 +12399,14 @@ type DeleteClusterInput struct {
 	//
 	//    * Cannot end with a hyphen or contain two consecutive hyphens.
 	FinalClusterSnapshotIdentifier *string `type:"string"`
+
+	// The number of days that a manual snapshot is retained. If the value is -1,
+	// the manual snapshot is retained indefinitely.
+	//
+	// The value must be either -1 or an integer between 1 and 3,653.
+	//
+	// The default value is -1.
+	FinalClusterSnapshotRetentionPeriod *int64 `type:"integer"`
 
 	// Determines whether a final snapshot of the cluster is created before Amazon
 	// Redshift deletes the cluster. If true, a final cluster snapshot is not created.
@@ -9795,6 +12451,12 @@ func (s *DeleteClusterInput) SetClusterIdentifier(v string) *DeleteClusterInput 
 // SetFinalClusterSnapshotIdentifier sets the FinalClusterSnapshotIdentifier field's value.
 func (s *DeleteClusterInput) SetFinalClusterSnapshotIdentifier(v string) *DeleteClusterInput {
 	s.FinalClusterSnapshotIdentifier = &v
+	return s
+}
+
+// SetFinalClusterSnapshotRetentionPeriod sets the FinalClusterSnapshotRetentionPeriod field's value.
+func (s *DeleteClusterInput) SetFinalClusterSnapshotRetentionPeriod(v int64) *DeleteClusterInput {
+	s.FinalClusterSnapshotRetentionPeriod = &v
 	return s
 }
 
@@ -9949,8 +12611,8 @@ type DeleteClusterSnapshotInput struct {
 
 	// The unique identifier of the manual snapshot to be deleted.
 	//
-	// Constraints: Must be the name of an existing snapshot that is in the available
-	// state.
+	// Constraints: Must be the name of an existing snapshot that is in the available,
+	// failed, or cancelled state.
 	//
 	// SnapshotIdentifier is a required field
 	SnapshotIdentifier *string `type:"string" required:"true"`
@@ -9987,6 +12649,60 @@ func (s *DeleteClusterSnapshotInput) SetSnapshotClusterIdentifier(v string) *Del
 
 // SetSnapshotIdentifier sets the SnapshotIdentifier field's value.
 func (s *DeleteClusterSnapshotInput) SetSnapshotIdentifier(v string) *DeleteClusterSnapshotInput {
+	s.SnapshotIdentifier = &v
+	return s
+}
+
+type DeleteClusterSnapshotMessage struct {
+	_ struct{} `type:"structure"`
+
+	// The unique identifier of the cluster the snapshot was created from. This
+	// parameter is required if your IAM user has a policy containing a snapshot
+	// resource element that specifies anything other than * for the cluster name.
+	//
+	// Constraints: Must be the name of valid cluster.
+	SnapshotClusterIdentifier *string `type:"string"`
+
+	// The unique identifier of the manual snapshot to be deleted.
+	//
+	// Constraints: Must be the name of an existing snapshot that is in the available,
+	// failed, or cancelled state.
+	//
+	// SnapshotIdentifier is a required field
+	SnapshotIdentifier *string `type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s DeleteClusterSnapshotMessage) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteClusterSnapshotMessage) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DeleteClusterSnapshotMessage) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DeleteClusterSnapshotMessage"}
+	if s.SnapshotIdentifier == nil {
+		invalidParams.Add(request.NewErrParamRequired("SnapshotIdentifier"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetSnapshotClusterIdentifier sets the SnapshotClusterIdentifier field's value.
+func (s *DeleteClusterSnapshotMessage) SetSnapshotClusterIdentifier(v string) *DeleteClusterSnapshotMessage {
+	s.SnapshotClusterIdentifier = &v
+	return s
+}
+
+// SetSnapshotIdentifier sets the SnapshotIdentifier field's value.
+func (s *DeleteClusterSnapshotMessage) SetSnapshotIdentifier(v string) *DeleteClusterSnapshotMessage {
 	s.SnapshotIdentifier = &v
 	return s
 }
@@ -10275,6 +12991,58 @@ func (s DeleteSnapshotCopyGrantOutput) GoString() string {
 	return s.String()
 }
 
+type DeleteSnapshotScheduleInput struct {
+	_ struct{} `type:"structure"`
+
+	// A unique identifier of the snapshot schedule to delete.
+	//
+	// ScheduleIdentifier is a required field
+	ScheduleIdentifier *string `type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s DeleteSnapshotScheduleInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteSnapshotScheduleInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DeleteSnapshotScheduleInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DeleteSnapshotScheduleInput"}
+	if s.ScheduleIdentifier == nil {
+		invalidParams.Add(request.NewErrParamRequired("ScheduleIdentifier"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetScheduleIdentifier sets the ScheduleIdentifier field's value.
+func (s *DeleteSnapshotScheduleInput) SetScheduleIdentifier(v string) *DeleteSnapshotScheduleInput {
+	s.ScheduleIdentifier = &v
+	return s
+}
+
+type DeleteSnapshotScheduleOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s DeleteSnapshotScheduleOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteSnapshotScheduleOutput) GoString() string {
+	return s.String()
+}
+
 // Contains the output from the DeleteTags action.
 type DeleteTagsInput struct {
 	_ struct{} `type:"structure"`
@@ -10341,6 +13109,146 @@ func (s DeleteTagsOutput) String() string {
 // GoString returns the string representation
 func (s DeleteTagsOutput) GoString() string {
 	return s.String()
+}
+
+type DescribeAccountAttributesInput struct {
+	_ struct{} `type:"structure"`
+
+	// A list of attribute names.
+	AttributeNames []*string `locationNameList:"AttributeName" type:"list"`
+}
+
+// String returns the string representation
+func (s DescribeAccountAttributesInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeAccountAttributesInput) GoString() string {
+	return s.String()
+}
+
+// SetAttributeNames sets the AttributeNames field's value.
+func (s *DescribeAccountAttributesInput) SetAttributeNames(v []*string) *DescribeAccountAttributesInput {
+	s.AttributeNames = v
+	return s
+}
+
+type DescribeAccountAttributesOutput struct {
+	_ struct{} `type:"structure"`
+
+	// A list of attributes assigned to an account.
+	AccountAttributes []*AccountAttribute `locationNameList:"AccountAttribute" type:"list"`
+}
+
+// String returns the string representation
+func (s DescribeAccountAttributesOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeAccountAttributesOutput) GoString() string {
+	return s.String()
+}
+
+// SetAccountAttributes sets the AccountAttributes field's value.
+func (s *DescribeAccountAttributesOutput) SetAccountAttributes(v []*AccountAttribute) *DescribeAccountAttributesOutput {
+	s.AccountAttributes = v
+	return s
+}
+
+type DescribeClusterDbRevisionsInput struct {
+	_ struct{} `type:"structure"`
+
+	// A unique identifier for a cluster whose ClusterDbRevisions you are requesting.
+	// This parameter is case sensitive. All clusters defined for an account are
+	// returned by default.
+	ClusterIdentifier *string `type:"string"`
+
+	// An optional parameter that specifies the starting point for returning a set
+	// of response records. When the results of a DescribeClusterDbRevisions request
+	// exceed the value specified in MaxRecords, Amazon Redshift returns a value
+	// in the marker field of the response. You can retrieve the next set of response
+	// records by providing the returned marker value in the marker parameter and
+	// retrying the request.
+	//
+	// Constraints: You can specify either the ClusterIdentifier parameter, or the
+	// marker parameter, but not both.
+	Marker *string `type:"string"`
+
+	// The maximum number of response records to return in each call. If the number
+	// of remaining response records exceeds the specified MaxRecords value, a value
+	// is returned in the marker field of the response. You can retrieve the next
+	// set of response records by providing the returned marker value in the marker
+	// parameter and retrying the request.
+	//
+	// Default: 100
+	//
+	// Constraints: minimum 20, maximum 100.
+	MaxRecords *int64 `type:"integer"`
+}
+
+// String returns the string representation
+func (s DescribeClusterDbRevisionsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeClusterDbRevisionsInput) GoString() string {
+	return s.String()
+}
+
+// SetClusterIdentifier sets the ClusterIdentifier field's value.
+func (s *DescribeClusterDbRevisionsInput) SetClusterIdentifier(v string) *DescribeClusterDbRevisionsInput {
+	s.ClusterIdentifier = &v
+	return s
+}
+
+// SetMarker sets the Marker field's value.
+func (s *DescribeClusterDbRevisionsInput) SetMarker(v string) *DescribeClusterDbRevisionsInput {
+	s.Marker = &v
+	return s
+}
+
+// SetMaxRecords sets the MaxRecords field's value.
+func (s *DescribeClusterDbRevisionsInput) SetMaxRecords(v int64) *DescribeClusterDbRevisionsInput {
+	s.MaxRecords = &v
+	return s
+}
+
+type DescribeClusterDbRevisionsOutput struct {
+	_ struct{} `type:"structure"`
+
+	// A list of revisions.
+	ClusterDbRevisions []*ClusterDbRevision `locationNameList:"ClusterDbRevision" type:"list"`
+
+	// A string representing the starting point for the next set of revisions. If
+	// a value is returned in a response, you can retrieve the next set of revisions
+	// by providing the value in the marker parameter and retrying the command.
+	// If the marker field is empty, all revisions have already been returned.
+	Marker *string `type:"string"`
+}
+
+// String returns the string representation
+func (s DescribeClusterDbRevisionsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeClusterDbRevisionsOutput) GoString() string {
+	return s.String()
+}
+
+// SetClusterDbRevisions sets the ClusterDbRevisions field's value.
+func (s *DescribeClusterDbRevisionsOutput) SetClusterDbRevisions(v []*ClusterDbRevision) *DescribeClusterDbRevisionsOutput {
+	s.ClusterDbRevisions = v
+	return s
+}
+
+// SetMarker sets the Marker field's value.
+func (s *DescribeClusterDbRevisionsOutput) SetMarker(v string) *DescribeClusterDbRevisionsOutput {
+	s.Marker = &v
+	return s
 }
 
 type DescribeClusterParameterGroupsInput struct {
@@ -10725,7 +13633,7 @@ type DescribeClusterSnapshotsInput struct {
 	// about ISO 8601, go to the ISO8601 Wikipedia page. (http://en.wikipedia.org/wiki/ISO_8601)
 	//
 	// Example: 2012-07-16T18:00:00Z
-	EndTime *time.Time `type:"timestamp" timestampFormat:"iso8601"`
+	EndTime *time.Time `type:"timestamp"`
 
 	// An optional parameter that specifies the starting point to return a set of
 	// response records. When the results of a DescribeClusterSnapshots request
@@ -10760,12 +13668,14 @@ type DescribeClusterSnapshotsInput struct {
 	// Valid Values: automated | manual
 	SnapshotType *string `type:"string"`
 
+	SortingEntities []*SnapshotSortingEntity `locationNameList:"SnapshotSortingEntity" type:"list"`
+
 	// A value that requests only snapshots created at or after the specified time.
 	// The time value is specified in ISO 8601 format. For more information about
 	// ISO 8601, go to the ISO8601 Wikipedia page. (http://en.wikipedia.org/wiki/ISO_8601)
 	//
 	// Example: 2012-07-16T18:00:00Z
-	StartTime *time.Time `type:"timestamp" timestampFormat:"iso8601"`
+	StartTime *time.Time `type:"timestamp"`
 
 	// A tag key or keys for which you want to return all matching cluster snapshots
 	// that are associated with the specified key or keys. For example, suppose
@@ -10792,6 +13702,26 @@ func (s DescribeClusterSnapshotsInput) String() string {
 // GoString returns the string representation
 func (s DescribeClusterSnapshotsInput) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DescribeClusterSnapshotsInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DescribeClusterSnapshotsInput"}
+	if s.SortingEntities != nil {
+		for i, v := range s.SortingEntities {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "SortingEntities", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // SetClusterExists sets the ClusterExists field's value.
@@ -10839,6 +13769,12 @@ func (s *DescribeClusterSnapshotsInput) SetSnapshotIdentifier(v string) *Describ
 // SetSnapshotType sets the SnapshotType field's value.
 func (s *DescribeClusterSnapshotsInput) SetSnapshotType(v string) *DescribeClusterSnapshotsInput {
 	s.SnapshotType = &v
+	return s
+}
+
+// SetSortingEntities sets the SortingEntities field's value.
+func (s *DescribeClusterSnapshotsInput) SetSortingEntities(v []*SnapshotSortingEntity) *DescribeClusterSnapshotsInput {
+	s.SortingEntities = v
 	return s
 }
 
@@ -11011,6 +13947,86 @@ func (s *DescribeClusterSubnetGroupsOutput) SetClusterSubnetGroups(v []*ClusterS
 
 // SetMarker sets the Marker field's value.
 func (s *DescribeClusterSubnetGroupsOutput) SetMarker(v string) *DescribeClusterSubnetGroupsOutput {
+	s.Marker = &v
+	return s
+}
+
+type DescribeClusterTracksInput struct {
+	_ struct{} `type:"structure"`
+
+	// The name of the maintenance track.
+	MaintenanceTrackName *string `type:"string"`
+
+	// An optional parameter that specifies the starting point to return a set of
+	// response records. When the results of a DescribeClusterTracks request exceed
+	// the value specified in MaxRecords, Amazon Redshift returns a value in the
+	// Marker field of the response. You can retrieve the next set of response records
+	// by providing the returned marker value in the Marker parameter and retrying
+	// the request.
+	Marker *string `type:"string"`
+
+	// An integer value for the maximum number of maintenance tracks to return.
+	MaxRecords *int64 `type:"integer"`
+}
+
+// String returns the string representation
+func (s DescribeClusterTracksInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeClusterTracksInput) GoString() string {
+	return s.String()
+}
+
+// SetMaintenanceTrackName sets the MaintenanceTrackName field's value.
+func (s *DescribeClusterTracksInput) SetMaintenanceTrackName(v string) *DescribeClusterTracksInput {
+	s.MaintenanceTrackName = &v
+	return s
+}
+
+// SetMarker sets the Marker field's value.
+func (s *DescribeClusterTracksInput) SetMarker(v string) *DescribeClusterTracksInput {
+	s.Marker = &v
+	return s
+}
+
+// SetMaxRecords sets the MaxRecords field's value.
+func (s *DescribeClusterTracksInput) SetMaxRecords(v int64) *DescribeClusterTracksInput {
+	s.MaxRecords = &v
+	return s
+}
+
+type DescribeClusterTracksOutput struct {
+	_ struct{} `type:"structure"`
+
+	// A list of maintenance tracks output by the DescribeClusterTracks operation.
+	MaintenanceTracks []*MaintenanceTrack `locationNameList:"MaintenanceTrack" type:"list"`
+
+	// The starting point to return a set of response tracklist records. You can
+	// retrieve the next set of response records by providing the returned marker
+	// value in the Marker parameter and retrying the request.
+	Marker *string `type:"string"`
+}
+
+// String returns the string representation
+func (s DescribeClusterTracksOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeClusterTracksOutput) GoString() string {
+	return s.String()
+}
+
+// SetMaintenanceTracks sets the MaintenanceTracks field's value.
+func (s *DescribeClusterTracksOutput) SetMaintenanceTracks(v []*MaintenanceTrack) *DescribeClusterTracksOutput {
+	s.MaintenanceTracks = v
+	return s
+}
+
+// SetMarker sets the Marker field's value.
+func (s *DescribeClusterTracksOutput) SetMarker(v string) *DescribeClusterTracksOutput {
 	s.Marker = &v
 	return s
 }
@@ -11518,7 +14534,7 @@ type DescribeEventsInput struct {
 	// page. (http://en.wikipedia.org/wiki/ISO_8601)
 	//
 	// Example: 2009-07-08T18:00Z
-	EndTime *time.Time `type:"timestamp" timestampFormat:"iso8601"`
+	EndTime *time.Time `type:"timestamp"`
 
 	// An optional parameter that specifies the starting point to return a set of
 	// response records. When the results of a DescribeEvents request exceed the
@@ -11577,7 +14593,7 @@ type DescribeEventsInput struct {
 	// page. (http://en.wikipedia.org/wiki/ISO_8601)
 	//
 	// Example: 2009-07-08T18:00Z
-	StartTime *time.Time `type:"timestamp" timestampFormat:"iso8601"`
+	StartTime *time.Time `type:"timestamp"`
 }
 
 // String returns the string representation
@@ -12308,6 +15324,9 @@ type DescribeResizeOutput struct {
 	// Valid Values: List of table names
 	ImportTablesNotStarted []*string `type:"list"`
 
+	// An optional string to provide additional details about the resize action.
+	Message *string `type:"string"`
+
 	// While the resize operation is in progress, this value shows the current amount
 	// of data, in megabytes, that has been processed so far. When the resize operation
 	// is complete, this value shows the total amount of data, in megabytes, on
@@ -12315,15 +15334,25 @@ type DescribeResizeOutput struct {
 	// estimated total amount of data before resize).
 	ProgressInMegaBytes *int64 `type:"long"`
 
+	// An enum with possible values of ClassicResize and ElasticResize. These values
+	// describe the type of resize operation being performed.
+	ResizeType *string `type:"string"`
+
 	// The status of the resize operation.
 	//
-	// Valid Values: NONE | IN_PROGRESS | FAILED | SUCCEEDED
+	// Valid Values: NONE | IN_PROGRESS | FAILED | SUCCEEDED | CANCELLING
 	Status *string `type:"string"`
 
 	// The cluster type after the resize operation is complete.
 	//
 	// Valid Values: multi-node | single-node
 	TargetClusterType *string `type:"string"`
+
+	// The type of encryption for the cluster after the resize is complete.
+	//
+	// Possible values are KMS and None. In the China region possible values are:
+	// Legacy and None.
+	TargetEncryptionType *string `type:"string"`
 
 	// The node type that the cluster will have after the resize operation is complete.
 	TargetNodeType *string `type:"string"`
@@ -12383,9 +15412,21 @@ func (s *DescribeResizeOutput) SetImportTablesNotStarted(v []*string) *DescribeR
 	return s
 }
 
+// SetMessage sets the Message field's value.
+func (s *DescribeResizeOutput) SetMessage(v string) *DescribeResizeOutput {
+	s.Message = &v
+	return s
+}
+
 // SetProgressInMegaBytes sets the ProgressInMegaBytes field's value.
 func (s *DescribeResizeOutput) SetProgressInMegaBytes(v int64) *DescribeResizeOutput {
 	s.ProgressInMegaBytes = &v
+	return s
+}
+
+// SetResizeType sets the ResizeType field's value.
+func (s *DescribeResizeOutput) SetResizeType(v string) *DescribeResizeOutput {
+	s.ResizeType = &v
 	return s
 }
 
@@ -12398,6 +15439,12 @@ func (s *DescribeResizeOutput) SetStatus(v string) *DescribeResizeOutput {
 // SetTargetClusterType sets the TargetClusterType field's value.
 func (s *DescribeResizeOutput) SetTargetClusterType(v string) *DescribeResizeOutput {
 	s.TargetClusterType = &v
+	return s
+}
+
+// SetTargetEncryptionType sets the TargetEncryptionType field's value.
+func (s *DescribeResizeOutput) SetTargetEncryptionType(v string) *DescribeResizeOutput {
+	s.TargetEncryptionType = &v
 	return s
 }
 
@@ -12541,6 +15588,164 @@ func (s *DescribeSnapshotCopyGrantsOutput) SetMarker(v string) *DescribeSnapshot
 // SetSnapshotCopyGrants sets the SnapshotCopyGrants field's value.
 func (s *DescribeSnapshotCopyGrantsOutput) SetSnapshotCopyGrants(v []*SnapshotCopyGrant) *DescribeSnapshotCopyGrantsOutput {
 	s.SnapshotCopyGrants = v
+	return s
+}
+
+type DescribeSnapshotSchedulesInput struct {
+	_ struct{} `type:"structure"`
+
+	// The unique identifier for the cluster whose snapshot schedules you want to
+	// view.
+	ClusterIdentifier *string `type:"string"`
+
+	// A value that indicates the starting point for the next set of response records
+	// in a subsequent request. If a value is returned in a response, you can retrieve
+	// the next set of records by providing this returned marker value in the marker
+	// parameter and retrying the command. If the marker field is empty, all response
+	// records have been retrieved for the request.
+	Marker *string `type:"string"`
+
+	// The maximum number or response records to return in each call. If the number
+	// of remaining response records exceeds the specified MaxRecords value, a value
+	// is returned in a marker field of the response. You can retrieve the next
+	// set of records by retrying the command with the returned marker value.
+	MaxRecords *int64 `type:"integer"`
+
+	// A unique identifier for a snapshot schedule.
+	ScheduleIdentifier *string `type:"string"`
+
+	// The key value for a snapshot schedule tag.
+	TagKeys []*string `locationNameList:"TagKey" type:"list"`
+
+	// The value corresponding to the key of the snapshot schedule tag.
+	TagValues []*string `locationNameList:"TagValue" type:"list"`
+}
+
+// String returns the string representation
+func (s DescribeSnapshotSchedulesInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeSnapshotSchedulesInput) GoString() string {
+	return s.String()
+}
+
+// SetClusterIdentifier sets the ClusterIdentifier field's value.
+func (s *DescribeSnapshotSchedulesInput) SetClusterIdentifier(v string) *DescribeSnapshotSchedulesInput {
+	s.ClusterIdentifier = &v
+	return s
+}
+
+// SetMarker sets the Marker field's value.
+func (s *DescribeSnapshotSchedulesInput) SetMarker(v string) *DescribeSnapshotSchedulesInput {
+	s.Marker = &v
+	return s
+}
+
+// SetMaxRecords sets the MaxRecords field's value.
+func (s *DescribeSnapshotSchedulesInput) SetMaxRecords(v int64) *DescribeSnapshotSchedulesInput {
+	s.MaxRecords = &v
+	return s
+}
+
+// SetScheduleIdentifier sets the ScheduleIdentifier field's value.
+func (s *DescribeSnapshotSchedulesInput) SetScheduleIdentifier(v string) *DescribeSnapshotSchedulesInput {
+	s.ScheduleIdentifier = &v
+	return s
+}
+
+// SetTagKeys sets the TagKeys field's value.
+func (s *DescribeSnapshotSchedulesInput) SetTagKeys(v []*string) *DescribeSnapshotSchedulesInput {
+	s.TagKeys = v
+	return s
+}
+
+// SetTagValues sets the TagValues field's value.
+func (s *DescribeSnapshotSchedulesInput) SetTagValues(v []*string) *DescribeSnapshotSchedulesInput {
+	s.TagValues = v
+	return s
+}
+
+type DescribeSnapshotSchedulesOutput struct {
+	_ struct{} `type:"structure"`
+
+	// A value that indicates the starting point for the next set of response records
+	// in a subsequent request. If a value is returned in a response, you can retrieve
+	// the next set of records by providing this returned marker value in the marker
+	// parameter and retrying the command. If the marker field is empty, all response
+	// records have been retrieved for the request.
+	Marker *string `type:"string"`
+
+	// A list of SnapshotSchedules.
+	SnapshotSchedules []*SnapshotSchedule `locationNameList:"SnapshotSchedule" type:"list"`
+}
+
+// String returns the string representation
+func (s DescribeSnapshotSchedulesOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeSnapshotSchedulesOutput) GoString() string {
+	return s.String()
+}
+
+// SetMarker sets the Marker field's value.
+func (s *DescribeSnapshotSchedulesOutput) SetMarker(v string) *DescribeSnapshotSchedulesOutput {
+	s.Marker = &v
+	return s
+}
+
+// SetSnapshotSchedules sets the SnapshotSchedules field's value.
+func (s *DescribeSnapshotSchedulesOutput) SetSnapshotSchedules(v []*SnapshotSchedule) *DescribeSnapshotSchedulesOutput {
+	s.SnapshotSchedules = v
+	return s
+}
+
+type DescribeStorageInput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s DescribeStorageInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeStorageInput) GoString() string {
+	return s.String()
+}
+
+type DescribeStorageOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The total amount of storage currently used for snapshots.
+	TotalBackupSizeInMegaBytes *float64 `type:"double"`
+
+	// The total amount of storage currently provisioned.
+	TotalProvisionedStorageInMegaBytes *float64 `type:"double"`
+}
+
+// String returns the string representation
+func (s DescribeStorageOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeStorageOutput) GoString() string {
+	return s.String()
+}
+
+// SetTotalBackupSizeInMegaBytes sets the TotalBackupSizeInMegaBytes field's value.
+func (s *DescribeStorageOutput) SetTotalBackupSizeInMegaBytes(v float64) *DescribeStorageOutput {
+	s.TotalBackupSizeInMegaBytes = &v
+	return s
+}
+
+// SetTotalProvisionedStorageInMegaBytes sets the TotalProvisionedStorageInMegaBytes field's value.
+func (s *DescribeStorageOutput) SetTotalProvisionedStorageInMegaBytes(v float64) *DescribeStorageOutput {
+	s.TotalProvisionedStorageInMegaBytes = &v
 	return s
 }
 
@@ -13069,14 +16274,21 @@ type EnableSnapshotCopyInput struct {
 	// ClusterIdentifier is a required field
 	ClusterIdentifier *string `type:"string" required:"true"`
 
-	// The destination region that you want to copy snapshots to.
+	// The destination AWS Region that you want to copy snapshots to.
 	//
-	// Constraints: Must be the name of a valid region. For more information, see
-	// Regions and Endpoints (http://docs.aws.amazon.com/general/latest/gr/rande.html#redshift_region)
+	// Constraints: Must be the name of a valid AWS Region. For more information,
+	// see Regions and Endpoints (http://docs.aws.amazon.com/general/latest/gr/rande.html#redshift_region)
 	// in the Amazon Web Services General Reference.
 	//
 	// DestinationRegion is a required field
 	DestinationRegion *string `type:"string" required:"true"`
+
+	// The number of days to retain newly copied snapshots in the destination AWS
+	// Region after they are copied from the source AWS Region. If the value is
+	// -1, the manual snapshot is retained indefinitely.
+	//
+	// The value must be either -1 or an integer between 1 and 3,653.
+	ManualSnapshotRetentionPeriod *int64 `type:"integer"`
 
 	// The number of days to retain automated snapshots in the destination region
 	// after they are copied from the source region.
@@ -13126,6 +16338,12 @@ func (s *EnableSnapshotCopyInput) SetClusterIdentifier(v string) *EnableSnapshot
 // SetDestinationRegion sets the DestinationRegion field's value.
 func (s *EnableSnapshotCopyInput) SetDestinationRegion(v string) *EnableSnapshotCopyInput {
 	s.DestinationRegion = &v
+	return s
+}
+
+// SetManualSnapshotRetentionPeriod sets the ManualSnapshotRetentionPeriod field's value.
+func (s *EnableSnapshotCopyInput) SetManualSnapshotRetentionPeriod(v int64) *EnableSnapshotCopyInput {
+	s.ManualSnapshotRetentionPeriod = &v
 	return s
 }
 
@@ -13202,7 +16420,7 @@ type Event struct {
 	_ struct{} `type:"structure"`
 
 	// The date and time of the event.
-	Date *time.Time `type:"timestamp" timestampFormat:"iso8601"`
+	Date *time.Time `type:"timestamp"`
 
 	// A list of the event categories.
 	//
@@ -13377,8 +16595,8 @@ type EventSubscription struct {
 	// subscription.
 	CustomerAwsId *string `type:"string"`
 
-	// A Boolean value indicating whether the subscription is enabled. true indicates
-	// the subscription is enabled.
+	// A boolean value indicating whether the subscription is enabled; true indicates
+	// that the subscription is enabled.
 	Enabled *bool `type:"boolean"`
 
 	// The list of Amazon Redshift event categories specified in the event notification
@@ -13417,7 +16635,7 @@ type EventSubscription struct {
 
 	// The date and time the Amazon Redshift event notification subscription was
 	// created.
-	SubscriptionCreationTime *time.Time `type:"timestamp" timestampFormat:"iso8601"`
+	SubscriptionCreationTime *time.Time `type:"timestamp"`
 
 	// The list of tags for the event subscription.
 	Tags []*Tag `locationNameList:"Tag" type:"list"`
@@ -13659,7 +16877,7 @@ type GetClusterCredentialsOutput struct {
 
 	// A temporary password that authorizes the user name returned by DbUser to
 	// log on to the database DbName.
-	DbPassword *string `type:"string"`
+	DbPassword *string `type:"string" sensitive:"true"`
 
 	// A database user name that is authorized to log on to the database DbName
 	// using the password DbPassword. If the specified DbUser exists in the database,
@@ -13670,7 +16888,7 @@ type GetClusterCredentialsOutput struct {
 	DbUser *string `type:"string"`
 
 	// The date and time the password in DbPassword expires.
-	Expiration *time.Time `type:"timestamp" timestampFormat:"iso8601"`
+	Expiration *time.Time `type:"timestamp"`
 }
 
 // String returns the string representation
@@ -13698,6 +16916,100 @@ func (s *GetClusterCredentialsOutput) SetDbUser(v string) *GetClusterCredentials
 // SetExpiration sets the Expiration field's value.
 func (s *GetClusterCredentialsOutput) SetExpiration(v time.Time) *GetClusterCredentialsOutput {
 	s.Expiration = &v
+	return s
+}
+
+type GetReservedNodeExchangeOfferingsInput struct {
+	_ struct{} `type:"structure"`
+
+	// A value that indicates the starting point for the next set of ReservedNodeOfferings.
+	Marker *string `type:"string"`
+
+	// An integer setting the maximum number of ReservedNodeOfferings to retrieve.
+	MaxRecords *int64 `type:"integer"`
+
+	// A string representing the node identifier for the DC1 Reserved Node to be
+	// exchanged.
+	//
+	// ReservedNodeId is a required field
+	ReservedNodeId *string `type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s GetReservedNodeExchangeOfferingsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetReservedNodeExchangeOfferingsInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *GetReservedNodeExchangeOfferingsInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "GetReservedNodeExchangeOfferingsInput"}
+	if s.ReservedNodeId == nil {
+		invalidParams.Add(request.NewErrParamRequired("ReservedNodeId"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetMarker sets the Marker field's value.
+func (s *GetReservedNodeExchangeOfferingsInput) SetMarker(v string) *GetReservedNodeExchangeOfferingsInput {
+	s.Marker = &v
+	return s
+}
+
+// SetMaxRecords sets the MaxRecords field's value.
+func (s *GetReservedNodeExchangeOfferingsInput) SetMaxRecords(v int64) *GetReservedNodeExchangeOfferingsInput {
+	s.MaxRecords = &v
+	return s
+}
+
+// SetReservedNodeId sets the ReservedNodeId field's value.
+func (s *GetReservedNodeExchangeOfferingsInput) SetReservedNodeId(v string) *GetReservedNodeExchangeOfferingsInput {
+	s.ReservedNodeId = &v
+	return s
+}
+
+type GetReservedNodeExchangeOfferingsOutput struct {
+	_ struct{} `type:"structure"`
+
+	// An optional parameter that specifies the starting point for returning a set
+	// of response records. When the results of a GetReservedNodeExchangeOfferings
+	// request exceed the value specified in MaxRecords, Amazon Redshift returns
+	// a value in the marker field of the response. You can retrieve the next set
+	// of response records by providing the returned marker value in the marker
+	// parameter and retrying the request.
+	Marker *string `type:"string"`
+
+	// Returns an array of ReservedNodeOffering objects.
+	ReservedNodeOfferings []*ReservedNodeOffering `locationNameList:"ReservedNodeOffering" type:"list"`
+}
+
+// String returns the string representation
+func (s GetReservedNodeExchangeOfferingsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetReservedNodeExchangeOfferingsOutput) GoString() string {
+	return s.String()
+}
+
+// SetMarker sets the Marker field's value.
+func (s *GetReservedNodeExchangeOfferingsOutput) SetMarker(v string) *GetReservedNodeExchangeOfferingsOutput {
+	s.Marker = &v
+	return s
+}
+
+// SetReservedNodeOfferings sets the ReservedNodeOfferings field's value.
+func (s *GetReservedNodeExchangeOfferingsOutput) SetReservedNodeOfferings(v []*ReservedNodeOffering) *GetReservedNodeExchangeOfferingsOutput {
+	s.ReservedNodeOfferings = v
 	return s
 }
 
@@ -13909,10 +17221,10 @@ type LoggingStatus struct {
 	LastFailureMessage *string `type:"string"`
 
 	// The last time when logs failed to be delivered.
-	LastFailureTime *time.Time `type:"timestamp" timestampFormat:"iso8601"`
+	LastFailureTime *time.Time `type:"timestamp"`
 
 	// The last time that logs were delivered.
-	LastSuccessfulDeliveryTime *time.Time `type:"timestamp" timestampFormat:"iso8601"`
+	LastSuccessfulDeliveryTime *time.Time `type:"timestamp"`
 
 	// true if logging is on, false if logging is off.
 	LoggingEnabled *bool `type:"boolean"`
@@ -13964,6 +17276,130 @@ func (s *LoggingStatus) SetLoggingEnabled(v bool) *LoggingStatus {
 // SetS3KeyPrefix sets the S3KeyPrefix field's value.
 func (s *LoggingStatus) SetS3KeyPrefix(v string) *LoggingStatus {
 	s.S3KeyPrefix = &v
+	return s
+}
+
+// Defines a maintenance track that determines which Amazon Redshift version
+// to apply during a maintenance window. If the value for MaintenanceTrack is
+// current, the cluster is updated to the most recently certified maintenance
+// release. If the value is trailing, the cluster is updated to the previously
+// certified maintenance release.
+type MaintenanceTrack struct {
+	_ struct{} `type:"structure"`
+
+	// The version number for the cluster release.
+	DatabaseVersion *string `type:"string"`
+
+	// The name of the maintenance track. Possible values are current and trailing.
+	MaintenanceTrackName *string `type:"string"`
+
+	// An array of UpdateTarget objects to update with the maintenance track.
+	UpdateTargets []*UpdateTarget `locationNameList:"UpdateTarget" type:"list"`
+}
+
+// String returns the string representation
+func (s MaintenanceTrack) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s MaintenanceTrack) GoString() string {
+	return s.String()
+}
+
+// SetDatabaseVersion sets the DatabaseVersion field's value.
+func (s *MaintenanceTrack) SetDatabaseVersion(v string) *MaintenanceTrack {
+	s.DatabaseVersion = &v
+	return s
+}
+
+// SetMaintenanceTrackName sets the MaintenanceTrackName field's value.
+func (s *MaintenanceTrack) SetMaintenanceTrackName(v string) *MaintenanceTrack {
+	s.MaintenanceTrackName = &v
+	return s
+}
+
+// SetUpdateTargets sets the UpdateTargets field's value.
+func (s *MaintenanceTrack) SetUpdateTargets(v []*UpdateTarget) *MaintenanceTrack {
+	s.UpdateTargets = v
+	return s
+}
+
+type ModifyClusterDbRevisionInput struct {
+	_ struct{} `type:"structure"`
+
+	// The unique identifier of a cluster whose database revision you want to modify.
+	//
+	// Example: examplecluster
+	//
+	// ClusterIdentifier is a required field
+	ClusterIdentifier *string `type:"string" required:"true"`
+
+	// The identifier of the database revision. You can retrieve this value from
+	// the response to the DescribeClusterDbRevisions request.
+	//
+	// RevisionTarget is a required field
+	RevisionTarget *string `type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s ModifyClusterDbRevisionInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ModifyClusterDbRevisionInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ModifyClusterDbRevisionInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ModifyClusterDbRevisionInput"}
+	if s.ClusterIdentifier == nil {
+		invalidParams.Add(request.NewErrParamRequired("ClusterIdentifier"))
+	}
+	if s.RevisionTarget == nil {
+		invalidParams.Add(request.NewErrParamRequired("RevisionTarget"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetClusterIdentifier sets the ClusterIdentifier field's value.
+func (s *ModifyClusterDbRevisionInput) SetClusterIdentifier(v string) *ModifyClusterDbRevisionInput {
+	s.ClusterIdentifier = &v
+	return s
+}
+
+// SetRevisionTarget sets the RevisionTarget field's value.
+func (s *ModifyClusterDbRevisionInput) SetRevisionTarget(v string) *ModifyClusterDbRevisionInput {
+	s.RevisionTarget = &v
+	return s
+}
+
+type ModifyClusterDbRevisionOutput struct {
+	_ struct{} `type:"structure"`
+
+	// Describes a cluster.
+	Cluster *Cluster `type:"structure"`
+}
+
+// String returns the string representation
+func (s ModifyClusterDbRevisionOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ModifyClusterDbRevisionOutput) GoString() string {
+	return s.String()
+}
+
+// SetCluster sets the Cluster field's value.
+func (s *ModifyClusterDbRevisionOutput) SetCluster(v *Cluster) *ModifyClusterDbRevisionOutput {
+	s.Cluster = v
 	return s
 }
 
@@ -14135,6 +17571,13 @@ type ModifyClusterInput struct {
 	// in the Amazon Redshift Cluster Management Guide.
 	ElasticIp *string `type:"string"`
 
+	// Indicates whether the cluster is encrypted. If the cluster is encrypted and
+	// you provide a value for the KmsKeyId parameter, we will encrypt the cluster
+	// with the provided KmsKeyId. If you don't provide a KmsKeyId, we will encrypt
+	// with the default key. In the China region we will use legacy encryption if
+	// you specify that the cluster is encrypted.
+	Encrypted *bool `type:"boolean"`
+
 	// An option that specifies whether to create the cluster with enhanced VPC
 	// routing enabled. To create a cluster that uses enhanced VPC routing, the
 	// cluster must be in a VPC. For more information, see Enhanced VPC Routing
@@ -14153,6 +17596,26 @@ type ModifyClusterInput struct {
 	// Specifies the name of the HSM configuration that contains the information
 	// the Amazon Redshift cluster can use to retrieve and store keys in an HSM.
 	HsmConfigurationIdentifier *string `type:"string"`
+
+	// The AWS Key Management Service (KMS) key ID of the encryption key that you
+	// want to use to encrypt data in the cluster.
+	KmsKeyId *string `type:"string"`
+
+	// The name for the maintenance track that you want to assign for the cluster.
+	// This name change is asynchronous. The new track name stays in the PendingModifiedValues
+	// for the cluster until the next maintenance window. When the maintenance track
+	// changes, the cluster is switched to the latest cluster release available
+	// for the maintenance track. At this point, the maintenance track name is applied.
+	MaintenanceTrackName *string `type:"string"`
+
+	// The default for number of days that a newly created manual snapshot is retained.
+	// If the value is -1, the manual snapshot is retained indefinitely. This value
+	// doesn't retroactively change the retention periods of existing manual snapshots.
+	//
+	// The value must be either -1 or an integer between 1 and 3,653.
+	//
+	// The default value is -1.
+	ManualSnapshotRetentionPeriod *int64 `type:"integer"`
 
 	// The new password for the cluster master user. This change is asynchronously
 	// applied as soon as possible. Between the time of the request and the completion
@@ -14248,7 +17711,7 @@ type ModifyClusterInput struct {
 	PubliclyAccessible *bool `type:"boolean"`
 
 	// A list of virtual private cloud (VPC) security groups to be associated with
-	// the cluster.
+	// the cluster. This change is asynchronously applied as soon as possible.
 	VpcSecurityGroupIds []*string `locationNameList:"VpcSecurityGroupId" type:"list"`
 }
 
@@ -14323,6 +17786,12 @@ func (s *ModifyClusterInput) SetElasticIp(v string) *ModifyClusterInput {
 	return s
 }
 
+// SetEncrypted sets the Encrypted field's value.
+func (s *ModifyClusterInput) SetEncrypted(v bool) *ModifyClusterInput {
+	s.Encrypted = &v
+	return s
+}
+
 // SetEnhancedVpcRouting sets the EnhancedVpcRouting field's value.
 func (s *ModifyClusterInput) SetEnhancedVpcRouting(v bool) *ModifyClusterInput {
 	s.EnhancedVpcRouting = &v
@@ -14338,6 +17807,24 @@ func (s *ModifyClusterInput) SetHsmClientCertificateIdentifier(v string) *Modify
 // SetHsmConfigurationIdentifier sets the HsmConfigurationIdentifier field's value.
 func (s *ModifyClusterInput) SetHsmConfigurationIdentifier(v string) *ModifyClusterInput {
 	s.HsmConfigurationIdentifier = &v
+	return s
+}
+
+// SetKmsKeyId sets the KmsKeyId field's value.
+func (s *ModifyClusterInput) SetKmsKeyId(v string) *ModifyClusterInput {
+	s.KmsKeyId = &v
+	return s
+}
+
+// SetMaintenanceTrackName sets the MaintenanceTrackName field's value.
+func (s *ModifyClusterInput) SetMaintenanceTrackName(v string) *ModifyClusterInput {
+	s.MaintenanceTrackName = &v
+	return s
+}
+
+// SetManualSnapshotRetentionPeriod sets the ManualSnapshotRetentionPeriod field's value.
+func (s *ModifyClusterInput) SetManualSnapshotRetentionPeriod(v int64) *ModifyClusterInput {
+	s.ManualSnapshotRetentionPeriod = &v
 	return s
 }
 
@@ -14380,6 +17867,115 @@ func (s *ModifyClusterInput) SetPubliclyAccessible(v bool) *ModifyClusterInput {
 // SetVpcSecurityGroupIds sets the VpcSecurityGroupIds field's value.
 func (s *ModifyClusterInput) SetVpcSecurityGroupIds(v []*string) *ModifyClusterInput {
 	s.VpcSecurityGroupIds = v
+	return s
+}
+
+type ModifyClusterMaintenanceInput struct {
+	_ struct{} `type:"structure"`
+
+	// A unique identifier for the cluster.
+	//
+	// ClusterIdentifier is a required field
+	ClusterIdentifier *string `type:"string" required:"true"`
+
+	// A boolean indicating whether to enable the deferred maintenance window.
+	DeferMaintenance *bool `type:"boolean"`
+
+	// An integer indicating the duration of the maintenance window in days. If
+	// you specify a duration, you can't specify an end time. The duration must
+	// be 14 days or less.
+	DeferMaintenanceDuration *int64 `type:"integer"`
+
+	// A timestamp indicating end time for the deferred maintenance window. If you
+	// specify an end time, you can't specify a duration.
+	DeferMaintenanceEndTime *time.Time `type:"timestamp"`
+
+	// A unique identifier for the deferred maintenance window.
+	DeferMaintenanceIdentifier *string `type:"string"`
+
+	// A timestamp indicating the start time for the deferred maintenance window.
+	DeferMaintenanceStartTime *time.Time `type:"timestamp"`
+}
+
+// String returns the string representation
+func (s ModifyClusterMaintenanceInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ModifyClusterMaintenanceInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ModifyClusterMaintenanceInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ModifyClusterMaintenanceInput"}
+	if s.ClusterIdentifier == nil {
+		invalidParams.Add(request.NewErrParamRequired("ClusterIdentifier"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetClusterIdentifier sets the ClusterIdentifier field's value.
+func (s *ModifyClusterMaintenanceInput) SetClusterIdentifier(v string) *ModifyClusterMaintenanceInput {
+	s.ClusterIdentifier = &v
+	return s
+}
+
+// SetDeferMaintenance sets the DeferMaintenance field's value.
+func (s *ModifyClusterMaintenanceInput) SetDeferMaintenance(v bool) *ModifyClusterMaintenanceInput {
+	s.DeferMaintenance = &v
+	return s
+}
+
+// SetDeferMaintenanceDuration sets the DeferMaintenanceDuration field's value.
+func (s *ModifyClusterMaintenanceInput) SetDeferMaintenanceDuration(v int64) *ModifyClusterMaintenanceInput {
+	s.DeferMaintenanceDuration = &v
+	return s
+}
+
+// SetDeferMaintenanceEndTime sets the DeferMaintenanceEndTime field's value.
+func (s *ModifyClusterMaintenanceInput) SetDeferMaintenanceEndTime(v time.Time) *ModifyClusterMaintenanceInput {
+	s.DeferMaintenanceEndTime = &v
+	return s
+}
+
+// SetDeferMaintenanceIdentifier sets the DeferMaintenanceIdentifier field's value.
+func (s *ModifyClusterMaintenanceInput) SetDeferMaintenanceIdentifier(v string) *ModifyClusterMaintenanceInput {
+	s.DeferMaintenanceIdentifier = &v
+	return s
+}
+
+// SetDeferMaintenanceStartTime sets the DeferMaintenanceStartTime field's value.
+func (s *ModifyClusterMaintenanceInput) SetDeferMaintenanceStartTime(v time.Time) *ModifyClusterMaintenanceInput {
+	s.DeferMaintenanceStartTime = &v
+	return s
+}
+
+type ModifyClusterMaintenanceOutput struct {
+	_ struct{} `type:"structure"`
+
+	// Describes a cluster.
+	Cluster *Cluster `type:"structure"`
+}
+
+// String returns the string representation
+func (s ModifyClusterMaintenanceOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ModifyClusterMaintenanceOutput) GoString() string {
+	return s.String()
+}
+
+// SetCluster sets the Cluster field's value.
+func (s *ModifyClusterMaintenanceOutput) SetCluster(v *Cluster) *ModifyClusterMaintenanceOutput {
+	s.Cluster = v
 	return s
 }
 
@@ -14463,6 +18059,164 @@ func (s *ModifyClusterParameterGroupInput) SetParameterGroupName(v string) *Modi
 func (s *ModifyClusterParameterGroupInput) SetParameters(v []*Parameter) *ModifyClusterParameterGroupInput {
 	s.Parameters = v
 	return s
+}
+
+type ModifyClusterSnapshotInput struct {
+	_ struct{} `type:"structure"`
+
+	// A Boolean option to override an exception if the retention period has already
+	// passed.
+	Force *bool `type:"boolean"`
+
+	// The number of days that a manual snapshot is retained. If the value is -1,
+	// the manual snapshot is retained indefinitely.
+	//
+	// If the manual snapshot falls outside of the new retention period, you can
+	// specify the force option to immediately delete the snapshot.
+	//
+	// The value must be either -1 or an integer between 1 and 3,653.
+	ManualSnapshotRetentionPeriod *int64 `type:"integer"`
+
+	// The identifier of the snapshot whose setting you want to modify.
+	//
+	// SnapshotIdentifier is a required field
+	SnapshotIdentifier *string `type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s ModifyClusterSnapshotInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ModifyClusterSnapshotInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ModifyClusterSnapshotInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ModifyClusterSnapshotInput"}
+	if s.SnapshotIdentifier == nil {
+		invalidParams.Add(request.NewErrParamRequired("SnapshotIdentifier"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetForce sets the Force field's value.
+func (s *ModifyClusterSnapshotInput) SetForce(v bool) *ModifyClusterSnapshotInput {
+	s.Force = &v
+	return s
+}
+
+// SetManualSnapshotRetentionPeriod sets the ManualSnapshotRetentionPeriod field's value.
+func (s *ModifyClusterSnapshotInput) SetManualSnapshotRetentionPeriod(v int64) *ModifyClusterSnapshotInput {
+	s.ManualSnapshotRetentionPeriod = &v
+	return s
+}
+
+// SetSnapshotIdentifier sets the SnapshotIdentifier field's value.
+func (s *ModifyClusterSnapshotInput) SetSnapshotIdentifier(v string) *ModifyClusterSnapshotInput {
+	s.SnapshotIdentifier = &v
+	return s
+}
+
+type ModifyClusterSnapshotOutput struct {
+	_ struct{} `type:"structure"`
+
+	// Describes a snapshot.
+	Snapshot *Snapshot `type:"structure"`
+}
+
+// String returns the string representation
+func (s ModifyClusterSnapshotOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ModifyClusterSnapshotOutput) GoString() string {
+	return s.String()
+}
+
+// SetSnapshot sets the Snapshot field's value.
+func (s *ModifyClusterSnapshotOutput) SetSnapshot(v *Snapshot) *ModifyClusterSnapshotOutput {
+	s.Snapshot = v
+	return s
+}
+
+type ModifyClusterSnapshotScheduleInput struct {
+	_ struct{} `type:"structure"`
+
+	// A unique identifier for the cluster whose snapshot schedule you want to modify.
+	//
+	// ClusterIdentifier is a required field
+	ClusterIdentifier *string `type:"string" required:"true"`
+
+	// A boolean to indicate whether to remove the assoiciation between the cluster
+	// and the schedule.
+	DisassociateSchedule *bool `type:"boolean"`
+
+	// A unique alphanumeric identifier for the schedule that you want to associate
+	// with the cluster.
+	ScheduleIdentifier *string `type:"string"`
+}
+
+// String returns the string representation
+func (s ModifyClusterSnapshotScheduleInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ModifyClusterSnapshotScheduleInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ModifyClusterSnapshotScheduleInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ModifyClusterSnapshotScheduleInput"}
+	if s.ClusterIdentifier == nil {
+		invalidParams.Add(request.NewErrParamRequired("ClusterIdentifier"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetClusterIdentifier sets the ClusterIdentifier field's value.
+func (s *ModifyClusterSnapshotScheduleInput) SetClusterIdentifier(v string) *ModifyClusterSnapshotScheduleInput {
+	s.ClusterIdentifier = &v
+	return s
+}
+
+// SetDisassociateSchedule sets the DisassociateSchedule field's value.
+func (s *ModifyClusterSnapshotScheduleInput) SetDisassociateSchedule(v bool) *ModifyClusterSnapshotScheduleInput {
+	s.DisassociateSchedule = &v
+	return s
+}
+
+// SetScheduleIdentifier sets the ScheduleIdentifier field's value.
+func (s *ModifyClusterSnapshotScheduleInput) SetScheduleIdentifier(v string) *ModifyClusterSnapshotScheduleInput {
+	s.ScheduleIdentifier = &v
+	return s
+}
+
+type ModifyClusterSnapshotScheduleOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s ModifyClusterSnapshotScheduleOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ModifyClusterSnapshotScheduleOutput) GoString() string {
+	return s.String()
 }
 
 type ModifyClusterSubnetGroupInput struct {
@@ -14560,7 +18314,7 @@ type ModifyEventSubscriptionInput struct {
 	// Specifies the Amazon Redshift event categories to be published by the event
 	// notification subscription.
 	//
-	// Values: Configuration, Management, Monitoring, Security
+	// Values: configuration, management, monitoring, security
 	EventCategories []*string `locationNameList:"EventCategory" type:"list"`
 
 	// Specifies the Amazon Redshift event severity to be published by the event
@@ -14692,7 +18446,8 @@ type ModifySnapshotCopyRetentionPeriodInput struct {
 	_ struct{} `type:"structure"`
 
 	// The unique identifier of the cluster for which you want to change the retention
-	// period for automated snapshots that are copied to a destination region.
+	// period for either automated or manual snapshots that are copied to a destination
+	// AWS Region.
 	//
 	// Constraints: Must be the valid name of an existing cluster that has cross-region
 	// snapshot copy enabled.
@@ -14700,15 +18455,30 @@ type ModifySnapshotCopyRetentionPeriodInput struct {
 	// ClusterIdentifier is a required field
 	ClusterIdentifier *string `type:"string" required:"true"`
 
-	// The number of days to retain automated snapshots in the destination region
-	// after they are copied from the source region.
+	// Indicates whether to apply the snapshot retention period to newly copied
+	// manual snapshots instead of automated snapshots.
+	Manual *bool `type:"boolean"`
+
+	// The number of days to retain automated snapshots in the destination AWS Region
+	// after they are copied from the source AWS Region.
+	//
+	// By default, this only changes the retention period of copied automated snapshots.
 	//
 	// If you decrease the retention period for automated snapshots that are copied
-	// to a destination region, Amazon Redshift will delete any existing automated
-	// snapshots that were copied to the destination region and that fall outside
+	// to a destination AWS Region, Amazon Redshift deletes any existing automated
+	// snapshots that were copied to the destination AWS Region and that fall outside
 	// of the new retention period.
 	//
-	// Constraints: Must be at least 1 and no more than 35.
+	// Constraints: Must be at least 1 and no more than 35 for automated snapshots.
+	//
+	// If you specify the manual option, only newly copied manual snapshots will
+	// have the new retention period.
+	//
+	// If you specify the value of -1 newly copied manual snapshots are retained
+	// indefinitely.
+	//
+	// Constraints: The number of days must be either -1 or an integer between 1
+	// and 3,653 for manual snapshots.
 	//
 	// RetentionPeriod is a required field
 	RetentionPeriod *int64 `type:"integer" required:"true"`
@@ -14746,6 +18516,12 @@ func (s *ModifySnapshotCopyRetentionPeriodInput) SetClusterIdentifier(v string) 
 	return s
 }
 
+// SetManual sets the Manual field's value.
+func (s *ModifySnapshotCopyRetentionPeriodInput) SetManual(v bool) *ModifySnapshotCopyRetentionPeriodInput {
+	s.Manual = &v
+	return s
+}
+
 // SetRetentionPeriod sets the RetentionPeriod field's value.
 func (s *ModifySnapshotCopyRetentionPeriodInput) SetRetentionPeriod(v int64) *ModifySnapshotCopyRetentionPeriodInput {
 	s.RetentionPeriod = &v
@@ -14772,6 +18548,135 @@ func (s ModifySnapshotCopyRetentionPeriodOutput) GoString() string {
 // SetCluster sets the Cluster field's value.
 func (s *ModifySnapshotCopyRetentionPeriodOutput) SetCluster(v *Cluster) *ModifySnapshotCopyRetentionPeriodOutput {
 	s.Cluster = v
+	return s
+}
+
+type ModifySnapshotScheduleInput struct {
+	_ struct{} `type:"structure"`
+
+	// An updated list of schedule definitions. A schedule definition is made up
+	// of schedule expressions, for example, "cron(30 12 *)" or "rate(12 hours)".
+	//
+	// ScheduleDefinitions is a required field
+	ScheduleDefinitions []*string `locationNameList:"ScheduleDefinition" type:"list" required:"true"`
+
+	// A unique alphanumeric identifier of the schedule to modify.
+	//
+	// ScheduleIdentifier is a required field
+	ScheduleIdentifier *string `type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s ModifySnapshotScheduleInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ModifySnapshotScheduleInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ModifySnapshotScheduleInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ModifySnapshotScheduleInput"}
+	if s.ScheduleDefinitions == nil {
+		invalidParams.Add(request.NewErrParamRequired("ScheduleDefinitions"))
+	}
+	if s.ScheduleIdentifier == nil {
+		invalidParams.Add(request.NewErrParamRequired("ScheduleIdentifier"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetScheduleDefinitions sets the ScheduleDefinitions field's value.
+func (s *ModifySnapshotScheduleInput) SetScheduleDefinitions(v []*string) *ModifySnapshotScheduleInput {
+	s.ScheduleDefinitions = v
+	return s
+}
+
+// SetScheduleIdentifier sets the ScheduleIdentifier field's value.
+func (s *ModifySnapshotScheduleInput) SetScheduleIdentifier(v string) *ModifySnapshotScheduleInput {
+	s.ScheduleIdentifier = &v
+	return s
+}
+
+// Describes a snapshot schedule. You can set a regular interval for creating
+// snapshots of a cluster. You can also schedule snapshots for specific dates.
+type ModifySnapshotScheduleOutput struct {
+	_ struct{} `type:"structure"`
+
+	AssociatedClusterCount *int64 `type:"integer"`
+
+	AssociatedClusters []*ClusterAssociatedToSchedule `locationNameList:"ClusterAssociatedToSchedule" type:"list"`
+
+	NextInvocations []*time.Time `locationNameList:"SnapshotTime" type:"list"`
+
+	// A list of ScheduleDefinitions
+	ScheduleDefinitions []*string `locationNameList:"ScheduleDefinition" type:"list"`
+
+	// The description of the schedule.
+	ScheduleDescription *string `type:"string"`
+
+	// A unique identifier for the schedule.
+	ScheduleIdentifier *string `type:"string"`
+
+	// An optional set of tags describing the schedule.
+	Tags []*Tag `locationNameList:"Tag" type:"list"`
+}
+
+// String returns the string representation
+func (s ModifySnapshotScheduleOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ModifySnapshotScheduleOutput) GoString() string {
+	return s.String()
+}
+
+// SetAssociatedClusterCount sets the AssociatedClusterCount field's value.
+func (s *ModifySnapshotScheduleOutput) SetAssociatedClusterCount(v int64) *ModifySnapshotScheduleOutput {
+	s.AssociatedClusterCount = &v
+	return s
+}
+
+// SetAssociatedClusters sets the AssociatedClusters field's value.
+func (s *ModifySnapshotScheduleOutput) SetAssociatedClusters(v []*ClusterAssociatedToSchedule) *ModifySnapshotScheduleOutput {
+	s.AssociatedClusters = v
+	return s
+}
+
+// SetNextInvocations sets the NextInvocations field's value.
+func (s *ModifySnapshotScheduleOutput) SetNextInvocations(v []*time.Time) *ModifySnapshotScheduleOutput {
+	s.NextInvocations = v
+	return s
+}
+
+// SetScheduleDefinitions sets the ScheduleDefinitions field's value.
+func (s *ModifySnapshotScheduleOutput) SetScheduleDefinitions(v []*string) *ModifySnapshotScheduleOutput {
+	s.ScheduleDefinitions = v
+	return s
+}
+
+// SetScheduleDescription sets the ScheduleDescription field's value.
+func (s *ModifySnapshotScheduleOutput) SetScheduleDescription(v string) *ModifySnapshotScheduleOutput {
+	s.ScheduleDescription = &v
+	return s
+}
+
+// SetScheduleIdentifier sets the ScheduleIdentifier field's value.
+func (s *ModifySnapshotScheduleOutput) SetScheduleIdentifier(v string) *ModifySnapshotScheduleOutput {
+	s.ScheduleIdentifier = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *ModifySnapshotScheduleOutput) SetTags(v []*Tag) *ModifySnapshotScheduleOutput {
+	s.Tags = v
 	return s
 }
 
@@ -14945,6 +18850,10 @@ type PendingModifiedValues struct {
 	// The pending or in-progress change of the service version.
 	ClusterVersion *string `type:"string"`
 
+	// The encryption type for a cluster. Possible values are: KMS and None. For
+	// the China region the possible values are None, and Legacy.
+	EncryptionType *string `type:"string"`
+
 	// An option that specifies whether to create the cluster with enhanced VPC
 	// routing enabled. To create a cluster that uses enhanced VPC routing, the
 	// cluster must be in a VPC. For more information, see Enhanced VPC Routing
@@ -14955,6 +18864,10 @@ type PendingModifiedValues struct {
 	//
 	// Default: false
 	EnhancedVpcRouting *bool `type:"boolean"`
+
+	// The name of the maintenance track that the cluster will change to during
+	// the next maintenance window.
+	MaintenanceTrackName *string `type:"string"`
 
 	// The pending or in-progress change of the master user password for the cluster.
 	MasterUserPassword *string `type:"string"`
@@ -15004,9 +18917,21 @@ func (s *PendingModifiedValues) SetClusterVersion(v string) *PendingModifiedValu
 	return s
 }
 
+// SetEncryptionType sets the EncryptionType field's value.
+func (s *PendingModifiedValues) SetEncryptionType(v string) *PendingModifiedValues {
+	s.EncryptionType = &v
+	return s
+}
+
 // SetEnhancedVpcRouting sets the EnhancedVpcRouting field's value.
 func (s *PendingModifiedValues) SetEnhancedVpcRouting(v bool) *PendingModifiedValues {
 	s.EnhancedVpcRouting = &v
+	return s
+}
+
+// SetMaintenanceTrackName sets the MaintenanceTrackName field's value.
+func (s *PendingModifiedValues) SetMaintenanceTrackName(v string) *PendingModifiedValues {
+	s.MaintenanceTrackName = &v
 	return s
 }
 
@@ -15239,7 +19164,7 @@ type ReservedNode struct {
 
 	// The time the reservation started. You purchase a reserved node offering for
 	// a duration. This is the start time of that duration.
-	StartTime *time.Time `type:"timestamp" timestampFormat:"iso8601"`
+	StartTime *time.Time `type:"timestamp"`
 
 	// The state of the reserved compute node.
 	//
@@ -15252,6 +19177,11 @@ type ReservedNode struct {
 	//    use.
 	//
 	//    * payment-failed-Payment failed for the purchase attempt.
+	//
+	//    * retired-The reserved node is no longer available.
+	//
+	//    * exchanging-The owner is exchanging the reserved node for another reserved
+	//    node.
 	State *string `type:"string"`
 
 	// The hourly rate Amazon Redshift charges you for this reserved node.
@@ -15508,6 +19438,143 @@ func (s *ResetClusterParameterGroupInput) SetResetAllParameters(v bool) *ResetCl
 	return s
 }
 
+type ResizeClusterInput struct {
+	_ struct{} `type:"structure"`
+
+	// A boolean value indicating whether the resize operation is using the classic
+	// resize process. If you don't provide this parameter or set the value to false,
+	// the resize type is elastic.
+	Classic *bool `type:"boolean"`
+
+	// The unique identifier for the cluster to resize.
+	//
+	// ClusterIdentifier is a required field
+	ClusterIdentifier *string `type:"string" required:"true"`
+
+	// The new cluster type for the specified cluster.
+	ClusterType *string `type:"string"`
+
+	// The new node type for the nodes you are adding.
+	NodeType *string `type:"string"`
+
+	// The new number of nodes for the cluster.
+	//
+	// NumberOfNodes is a required field
+	NumberOfNodes *int64 `type:"integer" required:"true"`
+}
+
+// String returns the string representation
+func (s ResizeClusterInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResizeClusterInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ResizeClusterInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ResizeClusterInput"}
+	if s.ClusterIdentifier == nil {
+		invalidParams.Add(request.NewErrParamRequired("ClusterIdentifier"))
+	}
+	if s.NumberOfNodes == nil {
+		invalidParams.Add(request.NewErrParamRequired("NumberOfNodes"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetClassic sets the Classic field's value.
+func (s *ResizeClusterInput) SetClassic(v bool) *ResizeClusterInput {
+	s.Classic = &v
+	return s
+}
+
+// SetClusterIdentifier sets the ClusterIdentifier field's value.
+func (s *ResizeClusterInput) SetClusterIdentifier(v string) *ResizeClusterInput {
+	s.ClusterIdentifier = &v
+	return s
+}
+
+// SetClusterType sets the ClusterType field's value.
+func (s *ResizeClusterInput) SetClusterType(v string) *ResizeClusterInput {
+	s.ClusterType = &v
+	return s
+}
+
+// SetNodeType sets the NodeType field's value.
+func (s *ResizeClusterInput) SetNodeType(v string) *ResizeClusterInput {
+	s.NodeType = &v
+	return s
+}
+
+// SetNumberOfNodes sets the NumberOfNodes field's value.
+func (s *ResizeClusterInput) SetNumberOfNodes(v int64) *ResizeClusterInput {
+	s.NumberOfNodes = &v
+	return s
+}
+
+type ResizeClusterOutput struct {
+	_ struct{} `type:"structure"`
+
+	// Describes a cluster.
+	Cluster *Cluster `type:"structure"`
+}
+
+// String returns the string representation
+func (s ResizeClusterOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResizeClusterOutput) GoString() string {
+	return s.String()
+}
+
+// SetCluster sets the Cluster field's value.
+func (s *ResizeClusterOutput) SetCluster(v *Cluster) *ResizeClusterOutput {
+	s.Cluster = v
+	return s
+}
+
+// Describes a resize operation.
+type ResizeInfo struct {
+	_ struct{} `type:"structure"`
+
+	// A boolean value indicating if the resize operation can be cancelled.
+	AllowCancelResize *bool `type:"boolean"`
+
+	// Returns the value ClassicResize.
+	ResizeType *string `type:"string"`
+}
+
+// String returns the string representation
+func (s ResizeInfo) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResizeInfo) GoString() string {
+	return s.String()
+}
+
+// SetAllowCancelResize sets the AllowCancelResize field's value.
+func (s *ResizeInfo) SetAllowCancelResize(v bool) *ResizeInfo {
+	s.AllowCancelResize = &v
+	return s
+}
+
+// SetResizeType sets the ResizeType field's value.
+func (s *ResizeInfo) SetResizeType(v string) *ResizeInfo {
+	s.ResizeType = &v
+	return s
+}
+
 type RestoreFromClusterSnapshotInput struct {
 	_ struct{} `type:"structure"`
 
@@ -15616,6 +19683,17 @@ type RestoreFromClusterSnapshotInput struct {
 	// snapshot.
 	KmsKeyId *string `type:"string"`
 
+	// The name of the maintenance track for the restored cluster. When you take
+	// a snapshot, the snapshot inherits the MaintenanceTrack value from the cluster.
+	// The snapshot might be on a different track than the cluster that was the
+	// source for the snapshot. For example, suppose that you take a snapshot of
+	// a cluster that is on the current track and then change the cluster to be
+	// on the trailing track. In this case, the snapshot and the source cluster
+	// are on different tracks.
+	MaintenanceTrackName *string `type:"string"`
+
+	ManualSnapshotRetentionPeriod *int64 `type:"integer"`
+
 	// The node type that the restored cluster will be provisioned with.
 	//
 	// Default: The node type of the cluster from which the snapshot was taken.
@@ -15672,6 +19750,9 @@ type RestoreFromClusterSnapshotInput struct {
 	//
 	// SnapshotIdentifier is a required field
 	SnapshotIdentifier *string `type:"string" required:"true"`
+
+	// A unique identifier for the snapshot schedule.
+	SnapshotScheduleIdentifier *string `type:"string"`
 
 	// A list of Virtual Private Cloud (VPC) security groups to be associated with
 	// the cluster.
@@ -15792,6 +19873,18 @@ func (s *RestoreFromClusterSnapshotInput) SetKmsKeyId(v string) *RestoreFromClus
 	return s
 }
 
+// SetMaintenanceTrackName sets the MaintenanceTrackName field's value.
+func (s *RestoreFromClusterSnapshotInput) SetMaintenanceTrackName(v string) *RestoreFromClusterSnapshotInput {
+	s.MaintenanceTrackName = &v
+	return s
+}
+
+// SetManualSnapshotRetentionPeriod sets the ManualSnapshotRetentionPeriod field's value.
+func (s *RestoreFromClusterSnapshotInput) SetManualSnapshotRetentionPeriod(v int64) *RestoreFromClusterSnapshotInput {
+	s.ManualSnapshotRetentionPeriod = &v
+	return s
+}
+
 // SetNodeType sets the NodeType field's value.
 func (s *RestoreFromClusterSnapshotInput) SetNodeType(v string) *RestoreFromClusterSnapshotInput {
 	s.NodeType = &v
@@ -15831,6 +19924,12 @@ func (s *RestoreFromClusterSnapshotInput) SetSnapshotClusterIdentifier(v string)
 // SetSnapshotIdentifier sets the SnapshotIdentifier field's value.
 func (s *RestoreFromClusterSnapshotInput) SetSnapshotIdentifier(v string) *RestoreFromClusterSnapshotInput {
 	s.SnapshotIdentifier = &v
+	return s
+}
+
+// SetSnapshotScheduleIdentifier sets the SnapshotScheduleIdentifier field's value.
+func (s *RestoreFromClusterSnapshotInput) SetSnapshotScheduleIdentifier(v string) *RestoreFromClusterSnapshotInput {
+	s.SnapshotScheduleIdentifier = &v
 	return s
 }
 
@@ -16081,6 +20180,50 @@ func (s RestoreTableFromClusterSnapshotOutput) GoString() string {
 // SetTableRestoreStatus sets the TableRestoreStatus field's value.
 func (s *RestoreTableFromClusterSnapshotOutput) SetTableRestoreStatus(v *TableRestoreStatus) *RestoreTableFromClusterSnapshotOutput {
 	s.TableRestoreStatus = v
+	return s
+}
+
+// Describes a RevisionTarget.
+type RevisionTarget struct {
+	_ struct{} `type:"structure"`
+
+	// A unique string that identifies the version to update the cluster to. You
+	// can use this value in ModifyClusterDbRevision.
+	DatabaseRevision *string `type:"string"`
+
+	// The date on which the database revision was released.
+	DatabaseRevisionReleaseDate *time.Time `type:"timestamp"`
+
+	// A string that describes the changes and features that will be applied to
+	// the cluster when it is updated to the corresponding ClusterDbRevision.
+	Description *string `type:"string"`
+}
+
+// String returns the string representation
+func (s RevisionTarget) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s RevisionTarget) GoString() string {
+	return s.String()
+}
+
+// SetDatabaseRevision sets the DatabaseRevision field's value.
+func (s *RevisionTarget) SetDatabaseRevision(v string) *RevisionTarget {
+	s.DatabaseRevision = &v
+	return s
+}
+
+// SetDatabaseRevisionReleaseDate sets the DatabaseRevisionReleaseDate field's value.
+func (s *RevisionTarget) SetDatabaseRevisionReleaseDate(v time.Time) *RevisionTarget {
+	s.DatabaseRevisionReleaseDate = &v
+	return s
+}
+
+// SetDescription sets the Description field's value.
+func (s *RevisionTarget) SetDescription(v string) *RevisionTarget {
+	s.Description = &v
 	return s
 }
 
@@ -16350,7 +20493,7 @@ type Snapshot struct {
 	BackupProgressInMegaBytes *float64 `type:"double"`
 
 	// The time (UTC) when the cluster was originally created.
-	ClusterCreateTime *time.Time `type:"timestamp" timestampFormat:"iso8601"`
+	ClusterCreateTime *time.Time `type:"timestamp"`
 
 	// The identifier of the cluster for which the snapshot was taken.
 	ClusterIdentifier *string `type:"string"`
@@ -16396,6 +20539,18 @@ type Snapshot struct {
 	// used to encrypt data in the cluster from which the snapshot was taken.
 	KmsKeyId *string `type:"string"`
 
+	// The name of the maintenance track for the snapshot.
+	MaintenanceTrackName *string `type:"string"`
+
+	// The number of days until a manual snapshot will pass its retention period.
+	ManualSnapshotRemainingDays *int64 `type:"integer"`
+
+	// The number of days that a manual snapshot is retained. If the value is -1,
+	// the manual snapshot is retained indefinitely.
+	//
+	// The value must be either -1 or an integer between 1 and 3,653.
+	ManualSnapshotRetentionPeriod *int64 `type:"integer"`
+
 	// The master user name for the cluster.
 	MasterUsername *string `type:"string"`
 
@@ -16416,22 +20571,25 @@ type Snapshot struct {
 	// The list of node types that this cluster snapshot is able to restore into.
 	RestorableNodeTypes []*string `locationNameList:"NodeType" type:"list"`
 
-	// The time (UTC) when Amazon Redshift began the snapshot. A snapshot contains
-	// a copy of the cluster data as of this exact time.
-	SnapshotCreateTime *time.Time `type:"timestamp" timestampFormat:"iso8601"`
+	// The time (in UTC format) when Amazon Redshift began the snapshot. A snapshot
+	// contains a copy of the cluster data as of this exact time.
+	SnapshotCreateTime *time.Time `type:"timestamp"`
 
 	// The snapshot identifier that is provided in the request.
 	SnapshotIdentifier *string `type:"string"`
 
+	// A timestamp representing the start of the retention period for the snapshot.
+	SnapshotRetentionStartTime *time.Time `type:"timestamp"`
+
 	// The snapshot type. Snapshots created using CreateClusterSnapshot and CopyClusterSnapshot
-	// will be of type "manual".
+	// are of type "manual".
 	SnapshotType *string `type:"string"`
 
 	// The source region from which the snapshot was copied.
 	SourceRegion *string `type:"string"`
 
 	// The snapshot status. The value of the status depends on the API operation
-	// used.
+	// used:
 	//
 	//    * CreateClusterSnapshot and CopyClusterSnapshot returns status as "creating".
 	//
@@ -16554,6 +20712,24 @@ func (s *Snapshot) SetKmsKeyId(v string) *Snapshot {
 	return s
 }
 
+// SetMaintenanceTrackName sets the MaintenanceTrackName field's value.
+func (s *Snapshot) SetMaintenanceTrackName(v string) *Snapshot {
+	s.MaintenanceTrackName = &v
+	return s
+}
+
+// SetManualSnapshotRemainingDays sets the ManualSnapshotRemainingDays field's value.
+func (s *Snapshot) SetManualSnapshotRemainingDays(v int64) *Snapshot {
+	s.ManualSnapshotRemainingDays = &v
+	return s
+}
+
+// SetManualSnapshotRetentionPeriod sets the ManualSnapshotRetentionPeriod field's value.
+func (s *Snapshot) SetManualSnapshotRetentionPeriod(v int64) *Snapshot {
+	s.ManualSnapshotRetentionPeriod = &v
+	return s
+}
+
 // SetMasterUsername sets the MasterUsername field's value.
 func (s *Snapshot) SetMasterUsername(v string) *Snapshot {
 	s.MasterUsername = &v
@@ -16599,6 +20775,12 @@ func (s *Snapshot) SetSnapshotCreateTime(v time.Time) *Snapshot {
 // SetSnapshotIdentifier sets the SnapshotIdentifier field's value.
 func (s *Snapshot) SetSnapshotIdentifier(v string) *Snapshot {
 	s.SnapshotIdentifier = &v
+	return s
+}
+
+// SetSnapshotRetentionStartTime sets the SnapshotRetentionStartTime field's value.
+func (s *Snapshot) SetSnapshotRetentionStartTime(v time.Time) *Snapshot {
+	s.SnapshotRetentionStartTime = &v
 	return s
 }
 
@@ -16687,6 +20869,181 @@ func (s *SnapshotCopyGrant) SetTags(v []*Tag) *SnapshotCopyGrant {
 	return s
 }
 
+// Describes the errors returned by a snapshot.
+type SnapshotErrorMessage struct {
+	_ struct{} `type:"structure"`
+
+	// The failure code for the error.
+	FailureCode *string `type:"string"`
+
+	// The text message describing the error.
+	FailureReason *string `type:"string"`
+
+	// A unique identifier for the cluster.
+	SnapshotClusterIdentifier *string `type:"string"`
+
+	// A unique identifier for the snapshot returning the error.
+	SnapshotIdentifier *string `type:"string"`
+}
+
+// String returns the string representation
+func (s SnapshotErrorMessage) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s SnapshotErrorMessage) GoString() string {
+	return s.String()
+}
+
+// SetFailureCode sets the FailureCode field's value.
+func (s *SnapshotErrorMessage) SetFailureCode(v string) *SnapshotErrorMessage {
+	s.FailureCode = &v
+	return s
+}
+
+// SetFailureReason sets the FailureReason field's value.
+func (s *SnapshotErrorMessage) SetFailureReason(v string) *SnapshotErrorMessage {
+	s.FailureReason = &v
+	return s
+}
+
+// SetSnapshotClusterIdentifier sets the SnapshotClusterIdentifier field's value.
+func (s *SnapshotErrorMessage) SetSnapshotClusterIdentifier(v string) *SnapshotErrorMessage {
+	s.SnapshotClusterIdentifier = &v
+	return s
+}
+
+// SetSnapshotIdentifier sets the SnapshotIdentifier field's value.
+func (s *SnapshotErrorMessage) SetSnapshotIdentifier(v string) *SnapshotErrorMessage {
+	s.SnapshotIdentifier = &v
+	return s
+}
+
+// Describes a snapshot schedule. You can set a regular interval for creating
+// snapshots of a cluster. You can also schedule snapshots for specific dates.
+type SnapshotSchedule struct {
+	_ struct{} `type:"structure"`
+
+	AssociatedClusterCount *int64 `type:"integer"`
+
+	AssociatedClusters []*ClusterAssociatedToSchedule `locationNameList:"ClusterAssociatedToSchedule" type:"list"`
+
+	NextInvocations []*time.Time `locationNameList:"SnapshotTime" type:"list"`
+
+	// A list of ScheduleDefinitions
+	ScheduleDefinitions []*string `locationNameList:"ScheduleDefinition" type:"list"`
+
+	// The description of the schedule.
+	ScheduleDescription *string `type:"string"`
+
+	// A unique identifier for the schedule.
+	ScheduleIdentifier *string `type:"string"`
+
+	// An optional set of tags describing the schedule.
+	Tags []*Tag `locationNameList:"Tag" type:"list"`
+}
+
+// String returns the string representation
+func (s SnapshotSchedule) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s SnapshotSchedule) GoString() string {
+	return s.String()
+}
+
+// SetAssociatedClusterCount sets the AssociatedClusterCount field's value.
+func (s *SnapshotSchedule) SetAssociatedClusterCount(v int64) *SnapshotSchedule {
+	s.AssociatedClusterCount = &v
+	return s
+}
+
+// SetAssociatedClusters sets the AssociatedClusters field's value.
+func (s *SnapshotSchedule) SetAssociatedClusters(v []*ClusterAssociatedToSchedule) *SnapshotSchedule {
+	s.AssociatedClusters = v
+	return s
+}
+
+// SetNextInvocations sets the NextInvocations field's value.
+func (s *SnapshotSchedule) SetNextInvocations(v []*time.Time) *SnapshotSchedule {
+	s.NextInvocations = v
+	return s
+}
+
+// SetScheduleDefinitions sets the ScheduleDefinitions field's value.
+func (s *SnapshotSchedule) SetScheduleDefinitions(v []*string) *SnapshotSchedule {
+	s.ScheduleDefinitions = v
+	return s
+}
+
+// SetScheduleDescription sets the ScheduleDescription field's value.
+func (s *SnapshotSchedule) SetScheduleDescription(v string) *SnapshotSchedule {
+	s.ScheduleDescription = &v
+	return s
+}
+
+// SetScheduleIdentifier sets the ScheduleIdentifier field's value.
+func (s *SnapshotSchedule) SetScheduleIdentifier(v string) *SnapshotSchedule {
+	s.ScheduleIdentifier = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *SnapshotSchedule) SetTags(v []*Tag) *SnapshotSchedule {
+	s.Tags = v
+	return s
+}
+
+// Describes a sorting entity
+type SnapshotSortingEntity struct {
+	_ struct{} `type:"structure"`
+
+	// The category for sorting the snapshots.
+	//
+	// Attribute is a required field
+	Attribute *string `type:"string" required:"true" enum:"SnapshotAttributeToSortBy"`
+
+	// The order for listing the attributes.
+	SortOrder *string `type:"string" enum:"SortByOrder"`
+}
+
+// String returns the string representation
+func (s SnapshotSortingEntity) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s SnapshotSortingEntity) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *SnapshotSortingEntity) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "SnapshotSortingEntity"}
+	if s.Attribute == nil {
+		invalidParams.Add(request.NewErrParamRequired("Attribute"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetAttribute sets the Attribute field's value.
+func (s *SnapshotSortingEntity) SetAttribute(v string) *SnapshotSortingEntity {
+	s.Attribute = &v
+	return s
+}
+
+// SetSortOrder sets the SortOrder field's value.
+func (s *SnapshotSortingEntity) SetSortOrder(v string) *SnapshotSortingEntity {
+	s.SortOrder = &v
+	return s
+}
+
 // Describes a subnet.
 type Subnet struct {
 	_ struct{} `type:"structure"`
@@ -16726,6 +21083,30 @@ func (s *Subnet) SetSubnetIdentifier(v string) *Subnet {
 // SetSubnetStatus sets the SubnetStatus field's value.
 func (s *Subnet) SetSubnetStatus(v string) *Subnet {
 	s.SubnetStatus = &v
+	return s
+}
+
+// Describes the operations that are allowed on a maintenance track.
+type SupportedOperation struct {
+	_ struct{} `type:"structure"`
+
+	// A list of the supported operations.
+	OperationName *string `type:"string"`
+}
+
+// String returns the string representation
+func (s SupportedOperation) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s SupportedOperation) GoString() string {
+	return s.String()
+}
+
+// SetOperationName sets the OperationName field's value.
+func (s *SupportedOperation) SetOperationName(v string) *SupportedOperation {
+	s.OperationName = &v
 	return s
 }
 
@@ -16772,7 +21153,7 @@ type TableRestoreStatus struct {
 
 	// The time that the table restore request was made, in Universal Coordinated
 	// Time (UTC).
-	RequestTime *time.Time `type:"timestamp" timestampFormat:"iso8601"`
+	RequestTime *time.Time `type:"timestamp"`
 
 	// The identifier of the snapshot that the table is being restored from.
 	SnapshotIdentifier *string `type:"string"`
@@ -16935,7 +21316,7 @@ func (s *Tag) SetValue(v string) *Tag {
 type TaggedResource struct {
 	_ struct{} `type:"structure"`
 
-	// The Amazon Resource Name (ARN) with which the tag is associated. For example,
+	// The Amazon Resource Name (ARN) with which the tag is associated, for example:
 	// arn:aws:redshift:us-east-1:123456789:cluster:t1.
 	ResourceName *string `type:"string"`
 
@@ -16997,6 +21378,48 @@ func (s *TaggedResource) SetTag(v *Tag) *TaggedResource {
 	return s
 }
 
+// A maintenance track that you can switch the current track to.
+type UpdateTarget struct {
+	_ struct{} `type:"structure"`
+
+	// The cluster version for the new maintenance track.
+	DatabaseVersion *string `type:"string"`
+
+	// The name of the new maintenance track.
+	MaintenanceTrackName *string `type:"string"`
+
+	// A list of operations supported by the maintenance track.
+	SupportedOperations []*SupportedOperation `locationNameList:"SupportedOperation" type:"list"`
+}
+
+// String returns the string representation
+func (s UpdateTarget) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateTarget) GoString() string {
+	return s.String()
+}
+
+// SetDatabaseVersion sets the DatabaseVersion field's value.
+func (s *UpdateTarget) SetDatabaseVersion(v string) *UpdateTarget {
+	s.DatabaseVersion = &v
+	return s
+}
+
+// SetMaintenanceTrackName sets the MaintenanceTrackName field's value.
+func (s *UpdateTarget) SetMaintenanceTrackName(v string) *UpdateTarget {
+	s.MaintenanceTrackName = &v
+	return s
+}
+
+// SetSupportedOperations sets the SupportedOperations field's value.
+func (s *UpdateTarget) SetSupportedOperations(v []*SupportedOperation) *UpdateTarget {
+	s.SupportedOperations = v
+	return s
+}
+
 // Describes the members of a VPC security group.
 type VpcSecurityGroupMembership struct {
 	_ struct{} `type:"structure"`
@@ -17044,6 +21467,36 @@ const (
 
 	// ReservedNodeOfferingTypeUpgradable is a ReservedNodeOfferingType enum value
 	ReservedNodeOfferingTypeUpgradable = "Upgradable"
+)
+
+const (
+	// ScheduleStateModifying is a ScheduleState enum value
+	ScheduleStateModifying = "MODIFYING"
+
+	// ScheduleStateActive is a ScheduleState enum value
+	ScheduleStateActive = "ACTIVE"
+
+	// ScheduleStateFailed is a ScheduleState enum value
+	ScheduleStateFailed = "FAILED"
+)
+
+const (
+	// SnapshotAttributeToSortBySourceType is a SnapshotAttributeToSortBy enum value
+	SnapshotAttributeToSortBySourceType = "SOURCE_TYPE"
+
+	// SnapshotAttributeToSortByTotalSize is a SnapshotAttributeToSortBy enum value
+	SnapshotAttributeToSortByTotalSize = "TOTAL_SIZE"
+
+	// SnapshotAttributeToSortByCreateTime is a SnapshotAttributeToSortBy enum value
+	SnapshotAttributeToSortByCreateTime = "CREATE_TIME"
+)
+
+const (
+	// SortByOrderAsc is a SortByOrder enum value
+	SortByOrderAsc = "ASC"
+
+	// SortByOrderDesc is a SortByOrder enum value
+	SortByOrderDesc = "DESC"
 )
 
 const (

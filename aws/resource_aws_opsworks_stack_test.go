@@ -13,6 +13,29 @@ import (
 	"github.com/aws/aws-sdk-go/service/opsworks"
 )
 
+func TestAccAWSOpsworksStackImportBasic(t *testing.T) {
+	name := acctest.RandString(10)
+
+	resourceName := "aws_opsworks_stack.tf-acc"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAwsOpsworksStackDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAwsOpsworksStackConfigVpcCreate(name),
+			},
+
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 ///////////////////////////////
 //// Tests for the No-VPC case
 ///////////////////////////////
@@ -20,7 +43,7 @@ import (
 func TestAccAWSOpsworksStackNoVpc(t *testing.T) {
 	stackName := fmt.Sprintf("tf-opsworks-acc-%d", acctest.RandInt())
 	var opsstack opsworks.Stack
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsOpsworksStackDestroy,
@@ -43,7 +66,7 @@ func TestAccAWSOpsworksStackNoVpc(t *testing.T) {
 func TestAccAWSOpsworksStackNoVpcChangeServiceRoleForceNew(t *testing.T) {
 	stackName := fmt.Sprintf("tf-opsworks-acc-%d", acctest.RandInt())
 	var before, after opsworks.Stack
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsOpsworksStackDestroy,
@@ -70,7 +93,7 @@ func TestAccAWSOpsworksStackNoVpcChangeServiceRoleForceNew(t *testing.T) {
 func TestAccAWSOpsworksStackVpc(t *testing.T) {
 	stackName := fmt.Sprintf("tf-opsworks-acc-%d", acctest.RandInt())
 	var opsstack opsworks.Stack
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsOpsworksStackDestroy,
@@ -104,7 +127,7 @@ func TestAccAWSOpsworksStackVpc(t *testing.T) {
 func TestAccAWSOpsworksStackNoVpcCreateTags(t *testing.T) {
 	stackName := fmt.Sprintf("tf-opsworks-acc-%d", acctest.RandInt())
 	var opsstack opsworks.Stack
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsOpsworksStackDestroy,
@@ -138,7 +161,7 @@ func TestAccAWSOpsWorksStack_classic_endpoints(t *testing.T) {
 	stackName := fmt.Sprintf("tf-opsworks-acc-%d", acctest.RandInt())
 	rInt := acctest.RandInt()
 	var opsstack opsworks.Stack
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsOpsworksStackDestroy,
@@ -710,7 +733,7 @@ resource "aws_opsworks_stack" "tf-acc" {
   custom_json = "{\"key\": \"value\"}"
   configuration_manager_version = "11.10"
   use_opsworks_security_groups = false
-  tags {
+  tags = {
     foo = "bar"
   }
 }
@@ -799,7 +822,7 @@ resource "aws_opsworks_stack" "tf-acc" {
   custom_json = "{\"key\": \"value\"}"
   configuration_manager_version = "11.10"
   use_opsworks_security_groups = false
-  tags {
+  tags = {
     wut = "asdf"
   }
 }
@@ -1004,7 +1027,7 @@ func testAccAwsOpsworksStackConfigVpcCreate(name string) string {
 	return fmt.Sprintf(`
 resource "aws_vpc" "tf-acc" {
   cidr_block = "10.3.5.0/24"
-  tags {
+  tags = {
     Name = "terraform-testacc-opsworks-stack-vpc-create"
   }
 }
@@ -1012,7 +1035,7 @@ resource "aws_subnet" "tf-acc" {
   vpc_id = "${aws_vpc.tf-acc.id}"
   cidr_block = "${aws_vpc.tf-acc.cidr_block}"
   availability_zone = "us-west-2a"
-  tags {
+  tags = {
     Name = "tf-acc-opsworks-stack-vpc-create"
   }
 }
@@ -1101,7 +1124,7 @@ func testAccAWSOpsworksStackConfigVpcUpdate(name string) string {
 	return fmt.Sprintf(`
 resource "aws_vpc" "tf-acc" {
   cidr_block = "10.3.5.0/24"
-  tags {
+  tags = {
     Name = "terraform-testacc-opsworks-stack-vpc-update"
   }
 }
@@ -1109,7 +1132,7 @@ resource "aws_subnet" "tf-acc" {
   vpc_id = "${aws_vpc.tf-acc.id}"
   cidr_block = "${aws_vpc.tf-acc.cidr_block}"
   availability_zone = "us-west-2a"
-  tags {
+  tags = {
     Name = "tf-acc-opsworks-stack-vpc-update"
   }
 }

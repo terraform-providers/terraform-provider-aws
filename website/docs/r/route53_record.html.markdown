@@ -107,7 +107,7 @@ The following arguments are supported:
 * `geolocation_routing_policy` - (Optional) A block indicating a routing policy based on the geolocation of the requestor. Conflicts with any other routing policy. Documented below.
 * `latency_routing_policy` - (Optional) A block indicating a routing policy based on the latency between the requestor and an AWS region. Conflicts with any other routing policy. Documented below.
 * `weighted_routing_policy` - (Optional) A block indicating a weighted routing policy. Conflicts with any other routing policy. Documented below.
-* `multivalue_answer_routing_policy` - (Optional) A block indicating a multivalue answer routing policy. Conflicts with any other routing policy.
+* `multivalue_answer_routing_policy` - (Optional) Set to `true` to indicate a multivalue answer routing policy. Conflicts with any other routing policy.
 * `allow_overwrite` - (Optional) Allow creation of this record in Terraform to overwrite an existing record, if any. This does not prevent other resources within Terraform or manual Route53 changes from overwriting this record. `true` by default.
 
 Exactly one of `records` or `alias` must be specified: this determines whether it's an alias record.
@@ -138,7 +138,10 @@ Weighted routing policies support the following:
 
 ## Attributes Reference
 
-* `fqdn` - [FQDN](https://en.wikipedia.org/wiki/Fully_qualified_domain_name) built using the zone domain and `name`
+In addition to all arguments above, the following attributes are exported:
+
+* `name` - The name of the record.
+* `fqdn` - [FQDN](https://en.wikipedia.org/wiki/Fully_qualified_domain_name) built using the zone domain and `name`.
 
 
 ## Import

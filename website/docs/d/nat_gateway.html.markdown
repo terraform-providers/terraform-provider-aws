@@ -26,7 +26,7 @@ Usage with tags:
 data "aws_nat_gateway" "default" {
   subnet_id = "${aws_subnet.public.id}"
 
-  tags {
+  tags = {
     Name = "gw NAT"
   }
 }
@@ -42,9 +42,13 @@ Nat Gateway whose data will be exported as attributes.
 * `subnet_id` - (Optional) The id of subnet that the Nat Gateway resides in.
 * `vpc_id` - (Optional) The id of the VPC that the Nat Gateway resides in.
 * `state` - (Optional) The state of the NAT gateway (pending | failed | available | deleting | deleted ).
+* `tags` - (Optional) A mapping of tags, each pair of which must exactly match
+  a pair on the desired Nat Gateway.
 * `filter` - (Optional) Custom filter block as described below.
+
 More complex filters can be expressed using one or more `filter` sub-blocks,
 which take the following arguments:
+
 * `name` - (Required) The name of the field to filter by, as defined by
   [the underlying AWS API](https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeNatGateways.html).
 * `values` - (Required) Set of values that are accepted for the given field.

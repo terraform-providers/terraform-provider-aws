@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ecr"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
@@ -13,17 +12,58 @@ import (
 )
 
 func TestAccAWSEcrRepository_basic(t *testing.T) {
-	randString := acctest.RandString(10)
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_ecr_repository.default"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSEcrRepositoryDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSEcrRepository(randString),
+				Config: testAccAWSEcrRepositoryConfig(rName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSEcrRepositoryExists("aws_ecr_repository.default"),
+					testAccCheckAWSEcrRepositoryExists(resourceName),
+					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "ecr", fmt.Sprintf("repository/%s", rName)),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					testAccCheckAWSEcrRepositoryRegistryID(resourceName),
+					testAccCheckAWSEcrRepositoryRepositoryURL(resourceName, rName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSEcrRepository_tags(t *testing.T) {
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_ecr_repository.default"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSEcrRepositoryDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSEcrRepositoryConfig_tags(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSEcrRepositoryExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.Usage", "original"),
+				),
+			},
+			{
+				Config: testAccAWSEcrRepositoryConfig_tagsChanged(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSEcrRepositoryExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.Usage", "changed"),
 				),
 			},
 		},
@@ -44,16 +84,17 @@ func testAccCheckAWSEcrRepositoryDestroy(s *terraform.State) error {
 
 		out, err := conn.DescribeRepositories(&input)
 
+		if isAWSErr(err, ecr.ErrCodeRepositoryNotFoundException, "") {
+			return nil
+		}
+
 		if err != nil {
-			if ecrerr, ok := err.(awserr.Error); ok && ecrerr.Code() == "RepositoryNotFoundException" {
-				return nil
-			}
 			return err
 		}
 
 		for _, repository := range out.Repositories {
-			if repository.RepositoryName == aws.String(rs.Primary.Attributes["name"]) {
-				return fmt.Errorf("ECR repository still exists:\n%#v", repository)
+			if aws.StringValue(repository.RepositoryName) == rs.Primary.Attributes["name"] {
+				return fmt.Errorf("ECR repository still exists: %s", rs.Primary.Attributes["name"])
 			}
 		}
 	}
@@ -72,10 +113,49 @@ func testAccCheckAWSEcrRepositoryExists(name string) resource.TestCheckFunc {
 	}
 }
 
-func testAccAWSEcrRepository(randString string) string {
+func testAccCheckAWSEcrRepositoryRegistryID(resourceName string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		attributeValue := testAccGetAccountID()
+		return resource.TestCheckResourceAttr(resourceName, "registry_id", attributeValue)(s)
+	}
+}
+
+func testAccCheckAWSEcrRepositoryRepositoryURL(resourceName, repositoryName string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		attributeValue := fmt.Sprintf("%s.dkr.ecr.%s.amazonaws.com/%s", testAccGetAccountID(), testAccGetRegion(), repositoryName)
+		return resource.TestCheckResourceAttr(resourceName, "repository_url", attributeValue)(s)
+	}
+}
+
+func testAccAWSEcrRepositoryConfig(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_ecr_repository" "default" {
-	name = "tf-acc-test-ecr-%s"
+  name = %q
 }
-`, randString)
+`, rName)
+}
+
+func testAccAWSEcrRepositoryConfig_tags(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_ecr_repository" "default" {
+  name = %q
+
+  tags = {
+    Environment = "production"
+    Usage = "original"
+  }
+}
+`, rName)
+}
+
+func testAccAWSEcrRepositoryConfig_tagsChanged(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_ecr_repository" "default" {
+  name = %q
+
+  tags = {
+    Usage = "changed"
+  }
+}
+`, rName)
 }

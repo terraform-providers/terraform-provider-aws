@@ -18,43 +18,53 @@ resource "aws_vpc" "example" {
 }
 
 resource "aws_service_discovery_private_dns_namespace" "example" {
-  name = "example.terraform.local"
+  name        = "example.terraform.local"
   description = "example"
-  vpc = "${aws_vpc.example.id}"
+  vpc         = "${aws_vpc.example.id}"
 }
 
 resource "aws_service_discovery_service" "example" {
   name = "example"
+
   dns_config {
     namespace_id = "${aws_service_discovery_private_dns_namespace.example.id}"
+
     dns_records {
-      ttl = 10
+      ttl  = 10
       type = "A"
     }
+
     routing_policy = "MULTIVALUE"
+  }
+
+  health_check_custom_config {
+    failure_threshold = 1
   }
 }
 ```
 
 ```hcl
 resource "aws_service_discovery_public_dns_namespace" "example" {
-  name = "example.terraform.com"
+  name        = "example.terraform.com"
   description = "example"
 }
 
 resource "aws_service_discovery_service" "example" {
   name = "example"
+
   dns_config {
     namespace_id = "${aws_service_discovery_public_dns_namespace.example.id}"
+
     dns_records {
-      ttl = 10
+      ttl  = 10
       type = "A"
     }
   }
+
   health_check_config {
-    failure_threshold = 100
-    resource_path = "path"
-    type = "HTTP"
+    failure_threshold = 10
+    resource_path     = "path"
+    type              = "HTTP"
   }
 }
 ```
@@ -67,6 +77,7 @@ The following arguments are supported:
 * `description` - (Optional) The description of the service.
 * `dns_config` - (Required) A complex type that contains information about the resource record sets that you want Amazon Route 53 to create when you register an instance.
 * `health_check_config` - (Optional) A complex type that contains settings for an optional health check. Only for Public DNS namespaces.
+* `health_check_custom_config` - (Optional, ForceNew) A complex type that contains settings for ECS managed health checks.
 
 ### dns_config
 
@@ -88,12 +99,18 @@ The following arguments are supported:
 The following arguments are supported:
 
 * `failure_threshold` - (Optional) The number of consecutive health checks. Maximum value of 10.
-* `resource_path` - (Optional) An array that contains one DnsRecord object for each resource record set.
-* `type` - (Optional, ForceNew) An array that contains one DnsRecord object for each resource record set.
+* `resource_path` - (Optional) The path that you want Route 53 to request when performing health checks. Route 53 automatically adds the DNS name for the service. If you don't specify a value, the default value is /.
+* `type` - (Optional, ForceNew) The type of health check that you want to create, which indicates how Route 53 determines whether an endpoint is healthy. Valid Values: HTTP, HTTPS, TCP
+
+### health_check_custom_config
+
+The following arguments are supported:
+
+* `failure_threshold` - (Optional, ForceNew) The number of 30-second intervals that you want service discovery to wait before it changes the health status of a service instance.  Maximum value of 10.
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the service.
 * `arn` - The ARN of the service.

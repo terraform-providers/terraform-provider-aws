@@ -1,14 +1,11 @@
 package aws
 
 import (
-	"fmt"
 	"reflect"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/kms"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
 )
 
 // go test -v -run="TestDiffKMSTags"
@@ -78,28 +75,5 @@ func TestIgnoringTagsKMS(t *testing.T) {
 		if !tagIgnoredKMS(tag) {
 			t.Fatalf("Tag %v with value %v not ignored, but should be!", *tag.TagKey, *tag.TagValue)
 		}
-	}
-}
-
-// testAccCheckTags can be used to check the tags on a resource.
-func testAccCheckKMSTags(
-	ts []*kms.Tag, key string, value string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		m := tagsToMapKMS(ts)
-		v, ok := m[key]
-		if value != "" && !ok {
-			return fmt.Errorf("Missing tag: %s", key)
-		} else if value == "" && ok {
-			return fmt.Errorf("Extra tag: %s", key)
-		}
-		if value == "" {
-			return nil
-		}
-
-		if v != value {
-			return fmt.Errorf("%s: bad value: %s", key, v)
-		}
-
-		return nil
 	}
 }

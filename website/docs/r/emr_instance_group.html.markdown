@@ -21,7 +21,7 @@ Terraform will resize any Instance Group to zero when destroying the resource.
 resource "aws_emr_instance_group" "task" {
   cluster_id     = "${aws_emr_cluster.tf-test-cluster.id}"
   instance_count = 1
-  instance_type  = "m3.xlarge"
+  instance_type  = "m5.xlarge"
   name           = "my little instance group"
 }
 ```
@@ -46,7 +46,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The EMR Instance ID
 * `running_instance_count` The number of instances currently running in this instance group.

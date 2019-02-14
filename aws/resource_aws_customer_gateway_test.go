@@ -15,11 +15,34 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
+func TestAccAWSCustomerGateway_importBasic(t *testing.T) {
+	resourceName := "aws_customer_gateway.foo"
+	rInt := acctest.RandInt()
+	rBgpAsn := acctest.RandIntRange(64512, 65534)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCustomerGatewayDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCustomerGatewayConfig(rInt, rBgpAsn),
+			},
+
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAWSCustomerGateway_basic(t *testing.T) {
 	var gateway ec2.CustomerGateway
 	rBgpAsn := acctest.RandIntRange(64512, 65534)
 	rInt := acctest.RandInt()
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		IDRefreshName: "aws_customer_gateway.foo",
 		Providers:     testAccProviders,
@@ -51,7 +74,7 @@ func TestAccAWSCustomerGateway_similarAlreadyExists(t *testing.T) {
 	var gateway ec2.CustomerGateway
 	rInt := acctest.RandInt()
 	rBgpAsn := acctest.RandIntRange(64512, 65534)
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		IDRefreshName: "aws_customer_gateway.foo",
 		Providers:     testAccProviders,
@@ -75,7 +98,7 @@ func TestAccAWSCustomerGateway_disappears(t *testing.T) {
 	rInt := acctest.RandInt()
 	rBgpAsn := acctest.RandIntRange(64512, 65534)
 	var gateway ec2.CustomerGateway
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckCustomerGatewayDestroy,
@@ -203,7 +226,7 @@ func testAccCustomerGatewayConfig(rInt, rBgpAsn int) string {
 			bgp_asn = %d
 			ip_address = "172.0.0.1"
 			type = "ipsec.1"
-			tags {
+	tags = {
 				Name = "foo-gateway-%d"
 			}
 		}
@@ -216,7 +239,7 @@ func testAccCustomerGatewayConfigIdentical(randInt, rBgpAsn int) string {
 			bgp_asn = %d
 			ip_address = "172.0.0.1"
 			type = "ipsec.1"
-			tags {
+	tags = {
 				Name = "foo-gateway-%d"
 			}
 		}
@@ -224,7 +247,7 @@ func testAccCustomerGatewayConfigIdentical(randInt, rBgpAsn int) string {
 			bgp_asn = %d
 			ip_address = "172.0.0.1"
 			type = "ipsec.1"
-			tags {
+	tags = {
 				Name = "foo-gateway-identical-%d"
 			}
 		}
@@ -238,7 +261,7 @@ func testAccCustomerGatewayConfigUpdateTags(rInt, rBgpAsn int) string {
 		bgp_asn = %d
 		ip_address = "172.0.0.1"
 		type = "ipsec.1"
-		tags {
+	tags = {
 			Name = "foo-gateway-%d"
 			Another = "tag"
 		}
@@ -253,7 +276,7 @@ func testAccCustomerGatewayConfigForceReplace(rInt, rBgpAsn int) string {
 			bgp_asn = %d
 			ip_address = "172.10.10.1"
 			type = "ipsec.1"
-			tags {
+	tags = {
 				Name = "foo-gateway-%d"
 				Another = "tag"
 			}

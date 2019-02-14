@@ -7,6 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/codecommit"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 )
 
 func resourceAwsCodeCommitRepository() *schema.Resource {
@@ -24,13 +25,13 @@ func resourceAwsCodeCommitRepository() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateMaxLength(100),
+				ValidateFunc: validation.StringLenBetween(0, 100),
 			},
 
 			"description": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateMaxLength(1000),
+				ValidateFunc: validation.StringLenBetween(0, 1000),
 			},
 
 			"arn": {
@@ -112,7 +113,13 @@ func resourceAwsCodeCommitRepositoryRead(d *schema.ResourceData, meta interface{
 
 	out, err := conn.GetRepository(input)
 	if err != nil {
-		return fmt.Errorf("Error reading CodeCommit Repository: %s", err.Error())
+		if isAWSErr(err, codecommit.ErrCodeRepositoryDoesNotExistException, "") {
+			log.Printf("[WARN] CodeCommit Repository (%s) not found, removing from state", d.Id())
+			d.SetId("")
+			return nil
+		} else {
+			return fmt.Errorf("Error reading CodeCommit Repository: %s", err.Error())
+		}
 	}
 
 	d.Set("repository_id", out.RepositoryMetadata.RepositoryId)

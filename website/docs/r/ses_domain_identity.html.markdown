@@ -18,7 +18,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `arn` - The ARN of the domain identity.
 
@@ -46,3 +46,10 @@ resource "aws_route53_record" "example_amazonses_verification_record" {
 }
 ```
 
+## Import
+
+SES domain identities can be imported using the domain name.
+
+```
+$ terraform import aws_ses_domain_identity.example example.com
+```

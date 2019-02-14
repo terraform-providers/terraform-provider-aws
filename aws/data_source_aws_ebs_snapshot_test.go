@@ -9,34 +9,64 @@ import (
 )
 
 func TestAccAWSEbsSnapshotDataSource_basic(t *testing.T) {
-	resource.Test(t, resource.TestCase{
+	dataSourceName := "data.aws_ebs_snapshot.test"
+	resourceName := "aws_ebs_snapshot.test"
+
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckAwsEbsSnapshotDataSourceConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAwsEbsSnapshotDataSourceID("data.aws_ebs_snapshot.snapshot"),
-					resource.TestCheckResourceAttr("data.aws_ebs_snapshot.snapshot", "volume_size", "40"),
-					resource.TestCheckResourceAttr("data.aws_ebs_snapshot.snapshot", "tags.%", "0"),
+					testAccCheckAwsEbsSnapshotDataSourceID(dataSourceName),
+					resource.TestCheckResourceAttrPair(dataSourceName, "id", resourceName, "id"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "description", resourceName, "description"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "encrypted", resourceName, "encrypted"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "kms_key_id", resourceName, "kms_key_id"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "owner_alias", resourceName, "owner_alias"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "owner_id", resourceName, "owner_id"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "tags.%", resourceName, "tags.%"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "volume_id", resourceName, "volume_id"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "volume_size", resourceName, "volume_size"),
 				),
 			},
 		},
 	})
 }
 
-func TestAccAWSEbsSnapshotDataSource_multipleFilters(t *testing.T) {
-	resource.Test(t, resource.TestCase{
+func TestAccAWSEbsSnapshotDataSource_Filter(t *testing.T) {
+	dataSourceName := "data.aws_ebs_snapshot.test"
+	resourceName := "aws_ebs_snapshot.test"
+
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckAwsEbsSnapshotDataSourceConfigWithMultipleFilters,
+				Config: testAccCheckAwsEbsSnapshotDataSourceConfigFilter,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAwsEbsSnapshotDataSourceID("data.aws_ebs_snapshot.snapshot"),
-					resource.TestCheckResourceAttr("data.aws_ebs_snapshot.snapshot", "volume_size", "10"),
-					resource.TestCheckResourceAttr("data.aws_ebs_snapshot.snapshot", "tags.%", "1"),
-					resource.TestCheckResourceAttr("data.aws_ebs_snapshot.snapshot", "tags.Name", "TF ACC Snapshot"),
+					testAccCheckAwsEbsSnapshotDataSourceID(dataSourceName),
+					resource.TestCheckResourceAttrPair(dataSourceName, "id", resourceName, "id"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSEbsSnapshotDataSource_MostRecent(t *testing.T) {
+	dataSourceName := "data.aws_ebs_snapshot.test"
+	resourceName := "aws_ebs_snapshot.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckAwsEbsSnapshotDataSourceConfigMostRecent,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsEbsSnapshotDataSourceID(dataSourceName),
+					resource.TestCheckResourceAttrPair(dataSourceName, "id", resourceName, "id"),
 				),
 			},
 		},
@@ -58,48 +88,75 @@ func testAccCheckAwsEbsSnapshotDataSourceID(n string) resource.TestCheckFunc {
 }
 
 const testAccCheckAwsEbsSnapshotDataSourceConfig = `
-resource "aws_ebs_volume" "example" {
-  availability_zone = "us-west-2a"
+data "aws_availability_zones" "available" {}
+
+resource "aws_ebs_volume" "test" {
+  availability_zone = "${data.aws_availability_zones.available.names[0]}"
   type = "gp2"
-  size = 40
-  tags {
-    Name = "External Volume"
-  }
+  size = 1
 }
 
-resource "aws_ebs_snapshot" "snapshot" {
-  volume_id = "${aws_ebs_volume.example.id}"
+resource "aws_ebs_snapshot" "test" {
+  volume_id = "${aws_ebs_volume.test.id}"
 }
 
-data "aws_ebs_snapshot" "snapshot" {
-  most_recent = true
-  snapshot_ids = ["${aws_ebs_snapshot.snapshot.id}"]
+data "aws_ebs_snapshot" "test" {
+  snapshot_ids = ["${aws_ebs_snapshot.test.id}"]
 }
 `
 
-const testAccCheckAwsEbsSnapshotDataSourceConfigWithMultipleFilters = `
-resource "aws_ebs_volume" "external1" {
-  availability_zone = "us-west-2a"
+const testAccCheckAwsEbsSnapshotDataSourceConfigFilter = `
+data "aws_availability_zones" "available" {}
+
+resource "aws_ebs_volume" "test" {
+  availability_zone = "${data.aws_availability_zones.available.names[0]}"
   type = "gp2"
-  size = 10
-  tags {
-    Name = "External Volume 1"
-  }
+  size = 1
 }
 
-resource "aws_ebs_snapshot" "snapshot" {
-  volume_id = "${aws_ebs_volume.external1.id}"
-  tags {
-    Name = "TF ACC Snapshot"
-  }
+resource "aws_ebs_snapshot" "test" {
+  volume_id = "${aws_ebs_volume.test.id}"
 }
 
-data "aws_ebs_snapshot" "snapshot" {
-  most_recent = true
-  snapshot_ids = ["${aws_ebs_snapshot.snapshot.id}"]
+data "aws_ebs_snapshot" "test" {
   filter {
-    name = "volume-size"
-    values = ["10"]
+    name = "snapshot-id"
+    values = ["${aws_ebs_snapshot.test.id}"]
+  }
+}
+`
+
+const testAccCheckAwsEbsSnapshotDataSourceConfigMostRecent = `
+data "aws_availability_zones" "available" {}
+
+resource "aws_ebs_volume" "test" {
+  availability_zone = "${data.aws_availability_zones.available.names[0]}"
+  type = "gp2"
+  size = 1
+}
+
+resource "aws_ebs_snapshot" "incorrect" {
+  volume_id = "${aws_ebs_volume.test.id}"
+
+  tags = {
+    Name = "tf-acc-test-ec2-ebs-snapshot-data-source-most-recent"
+  }
+}
+
+resource "aws_ebs_snapshot" "test" {
+  volume_id = "${aws_ebs_snapshot.incorrect.volume_id}"
+
+  tags = {
+    Name = "tf-acc-test-ec2-ebs-snapshot-data-source-most-recent"
+  }
+}
+
+data "aws_ebs_snapshot" "test" {
+  most_recent = true
+
+  filter {
+    name   = "tag:Name"
+    values = ["${aws_ebs_snapshot.test.tags.Name}"]
   }
 }
 `

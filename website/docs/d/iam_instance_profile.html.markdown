@@ -9,7 +9,7 @@ description: |-
 # Data Source: aws_iam_instance_profile
 
 This data source can be used to fetch information about a specific
-IAM instance profile. By using this data source, you can reference IAM 
+IAM instance profile. By using this data source, you can reference IAM
 instance profile properties without having to hard code ARNs as input.
 
 ## Example Usage
@@ -33,4 +33,8 @@ data "aws_iam_instance_profile" "example" {
 
 * `path` - The path to the instance profile.
 
+* `role_arn` - The role arn associated with this instance profile.
+
 * `role_id` - The role id associated with this instance profile.
+
+* `role_name` - The role name associated with this instance profile.

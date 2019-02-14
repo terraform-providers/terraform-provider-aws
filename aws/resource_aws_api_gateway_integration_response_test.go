@@ -14,12 +14,12 @@ import (
 func TestAccAWSAPIGatewayIntegrationResponse_basic(t *testing.T) {
 	var conf apigateway.IntegrationResponse
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSAPIGatewayIntegrationResponseDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: testAccAWSAPIGatewayIntegrationResponseConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSAPIGatewayIntegrationResponseExists("aws_api_gateway_integration_response.test", &conf),
@@ -28,12 +28,12 @@ func TestAccAWSAPIGatewayIntegrationResponse_basic(t *testing.T) {
 						"aws_api_gateway_integration_response.test", "response_templates.application/json", ""),
 					resource.TestCheckResourceAttr(
 						"aws_api_gateway_integration_response.test", "response_templates.application/xml", "#set($inputRoot = $input.path('$'))\n{ }"),
-					resource.TestCheckNoResourceAttr(
-						"aws_api_gateway_integration_response.test", "content_handling"),
+					resource.TestCheckResourceAttr(
+						"aws_api_gateway_integration_response.test", "content_handling", ""),
 				),
 			},
 
-			resource.TestStep{
+			{
 				Config: testAccAWSAPIGatewayIntegrationResponseConfigUpdate,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSAPIGatewayIntegrationResponseExists("aws_api_gateway_integration_response.test", &conf),
@@ -45,6 +45,12 @@ func TestAccAWSAPIGatewayIntegrationResponse_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"aws_api_gateway_integration_response.test", "content_handling", "CONVERT_TO_BINARY"),
 				),
+			},
+			{
+				ResourceName:      "aws_api_gateway_integration_response.test",
+				ImportState:       true,
+				ImportStateIdFunc: testAccAWSAPIGatewayIntegrationResponseImportStateIdFunc("aws_api_gateway_integration_response.test"),
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -155,6 +161,17 @@ func testAccCheckAWSAPIGatewayIntegrationResponseDestroy(s *terraform.State) err
 	}
 
 	return nil
+}
+
+func testAccAWSAPIGatewayIntegrationResponseImportStateIdFunc(resourceName string) resource.ImportStateIdFunc {
+	return func(s *terraform.State) (string, error) {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return "", fmt.Errorf("Not found: %s", resourceName)
+		}
+
+		return fmt.Sprintf("%s/%s/%s/%s", rs.Primary.Attributes["rest_api_id"], rs.Primary.Attributes["resource_id"], rs.Primary.Attributes["http_method"], rs.Primary.Attributes["status_code"]), nil
+	}
 }
 
 const testAccAWSAPIGatewayIntegrationResponseConfig = `

@@ -18,7 +18,7 @@ func TestAccAWSIAMInstanceProfile_importBasic(t *testing.T) {
 	resourceName := "aws_iam_instance_profile.test"
 	rName := acctest.RandString(5)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSInstanceProfileDestroy,
@@ -41,7 +41,7 @@ func TestAccAWSIAMInstanceProfile_basic(t *testing.T) {
 	var conf iam.GetInstanceProfileOutput
 
 	rName := acctest.RandString(5)
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -59,7 +59,7 @@ func TestAccAWSIAMInstanceProfile_withRoleNotRoles(t *testing.T) {
 	var conf iam.GetInstanceProfileOutput
 
 	rName := acctest.RandString(5)
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -75,7 +75,7 @@ func TestAccAWSIAMInstanceProfile_withRoleNotRoles(t *testing.T) {
 
 func TestAccAWSIAMInstanceProfile_missingRoleThrowsError(t *testing.T) {
 	rName := acctest.RandString(5)
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -91,7 +91,7 @@ func TestAccAWSIAMInstanceProfile_namePrefix(t *testing.T) {
 	var conf iam.GetInstanceProfileOutput
 	rName := acctest.RandString(5)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:        func() { testAccPreCheck(t) },
 		IDRefreshName:   "aws_iam_instance_profile.test",
 		IDRefreshIgnore: []string{"name_prefix"},

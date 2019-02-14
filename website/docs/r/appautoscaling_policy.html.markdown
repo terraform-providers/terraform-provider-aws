@@ -54,10 +54,11 @@ resource "aws_appautoscaling_target" "ecs_target" {
 }
 
 resource "aws_appautoscaling_policy" "ecs_policy" {
-  name                    = "scale-down"
-  resource_id             = "service/clusterName/serviceName"
-  scalable_dimension      = "ecs:service:DesiredCount"
-  service_namespace       = "ecs"
+  name               = "scale-down"
+  policy_type        = "StepScaling"
+  resource_id        = "service/clusterName/serviceName"
+  scalable_dimension = "ecs:service:DesiredCount"
+  service_namespace  = "ecs"
 
   step_scaling_policy_configuration {
     adjustment_type         = "ChangeInCapacity"
@@ -78,13 +79,43 @@ resource "aws_appautoscaling_policy" "ecs_policy" {
 
 ```hcl
 resource "aws_ecs_service" "ecs_service" {
-  name = "serviceName"
-  cluster = "clusterName"
+  name            = "serviceName"
+  cluster         = "clusterName"
   task_definition = "taskDefinitionFamily:1"
-  desired_count = 2
+  desired_count   = 2
 
   lifecycle {
     ignore_changes = ["desired_count"]
+  }
+}
+```
+
+### Aurora Read Replica Autoscaling
+
+```hcl
+resource "aws_appautoscaling_target" "replicas" {
+  service_namespace  = "rds"
+  scalable_dimension = "rds:cluster:ReadReplicaCount"
+  resource_id        = "cluster:${aws_rds_cluster.example.id}"
+  min_capacity       = 1
+  max_capacity       = 15
+}
+
+resource "aws_appautoscaling_policy" "replicas" {
+  name               = "cpu-auto-scaling"
+  service_namespace  = "${aws_appautoscaling_target.replicas.service_namespace}"
+  scalable_dimension = "${aws_appautoscaling_target.replicas.scalable_dimension}"
+  resource_id        = "${aws_appautoscaling_target.replicas.resource_id}"
+  policy_type        = "TargetTrackingScaling"
+
+  target_tracking_scaling_policy_configuration {
+    predefined_metric_specification {
+      predefined_metric_type = "RDSReaderAverageCPUUtilization"
+    }
+
+    target_value       = 75
+    scale_in_cooldown  = 300
+    scale_out_cooldown = 300
   }
 }
 ```
@@ -94,7 +125,7 @@ resource "aws_ecs_service" "ecs_service" {
 The following arguments are supported:
 
 * `name` - (Required) The name of the policy.
-* `policy_type` - (Optional) For DynamoDB, only `TargetTrackingScaling` is supported. For any other service, only `StepScaling` is supported. Defaults to `StepScaling`.
+* `policy_type` - (Optional) For DynamoDB, only `TargetTrackingScaling` is supported. For Amazon ECS, Spot Fleet, and Amazon RDS, both `StepScaling` and `TargetTrackingScaling` are supported. For any other service, only `StepScaling` is supported. Defaults to `StepScaling`.
 * `resource_id` - (Required) The resource type and unique identifier string for the resource associated with the scaling policy. Documentation can be found in the `ResourceId` parameter at: [AWS Application Auto Scaling API Reference](http://docs.aws.amazon.com/ApplicationAutoScaling/latest/APIReference/API_RegisterScalableTarget.html#API_RegisterScalableTarget_RequestParameters)
 * `scalable_dimension` - (Required) The scalable dimension of the scalable target. Documentation can be found in the `ScalableDimension` parameter at: [AWS Application Auto Scaling API Reference](http://docs.aws.amazon.com/ApplicationAutoScaling/latest/APIReference/API_RegisterScalableTarget.html#API_RegisterScalableTarget_RequestParameters)
 * `service_namespace` - (Required) The AWS service namespace of the scalable target. Documentation can be found in the `ServiceNamespace` parameter at: [AWS Application Auto Scaling API Reference](http://docs.aws.amazon.com/ApplicationAutoScaling/latest/APIReference/API_RegisterScalableTarget.html#API_RegisterScalableTarget_RequestParameters)
@@ -111,20 +142,29 @@ The following arguments are supported:
 * `min_adjustment_magnitude` - (Optional) The minimum number to adjust your scalable dimension as a result of a scaling activity. If the adjustment type is PercentChangeInCapacity, the scaling policy changes the scalable dimension of the scalable target by this amount.
 * `step_adjustment` - (Optional) A set of adjustments that manage scaling. These have the following structure:
 
-  ```hcl
-  step_adjustment {
-    metric_interval_lower_bound = 1.0
-    metric_interval_upper_bound = 2.0
-    scaling_adjustment = -1
-  }
-  step_adjustment {
-    metric_interval_lower_bound = 2.0
-    metric_interval_upper_bound = 3.0
-    scaling_adjustment = 1
-  }
-  ```
+ ```hcl
+resource "aws_appautoscaling_policy" "ecs_policy" {
+  # ...
 
-  * `metric_interval_lower_bound` - (Optional) The lower bound for the difference between the alarm threshold and the CloudWatch metric. Without a value, AWS will treat this bound as infinity.
+  step_scaling_policy_configuration {
+    # insert config here
+
+    step_adjustment {
+      metric_interval_lower_bound = 1.0
+      metric_interval_upper_bound = 2.0
+      scaling_adjustment          = -1
+    }
+
+    step_adjustment {
+      metric_interval_lower_bound = 2.0
+      metric_interval_upper_bound = 3.0
+      scaling_adjustment          = 1
+    }
+  }
+}
+```
+
+  * `metric_interval_lower_bound` - (Optional) The lower bound for the difference between the alarm threshold and the CloudWatch metric. Without a value, AWS will treat this bound as negative infinity.
   * `metric_interval_upper_bound` - (Optional) The upper bound for the difference between the alarm threshold and the CloudWatch metric. Without a value, AWS will treat this bound as infinity. The upper bound must be greater than the lower bound.
   * `scaling_adjustment` - (Required) The number of members by which to scale, when the adjustment bounds are breached. A positive value scales up. A negative value scales down.
 

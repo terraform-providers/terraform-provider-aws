@@ -12,14 +12,33 @@ Provides an VPC subnet resource.
 
 ## Example Usage
 
+### Basic Usage
+
 ```hcl
 resource "aws_subnet" "main" {
   vpc_id     = "${aws_vpc.main.id}"
   cidr_block = "10.0.1.0/24"
 
-  tags {
+  tags = {
     Name = "Main"
   }
+}
+```
+
+### Subnets In Secondary VPC CIDR Blocks
+
+When managing subnets in one of a VPC's secondary CIDR blocks created using a [`aws_vpc_ipv4_cidr_block_association`](vpc_ipv4_cidr_block_association.html)
+resource, it is recommended to reference that resource's `vpc_id` attribute to ensure correct dependency ordering.
+
+```hcl
+resource "aws_vpc_ipv4_cidr_block_association" "secondary_cidr" {
+  vpc_id     = "${aws_vpc.main.id}"
+  cidr_block = "172.2.0.0/16"
+}
+
+resource "aws_subnet" "in_secondary_cidr" {
+  vpc_id     = "${aws_vpc_ipv4_cidr_block_association.secondary_cidr.vpc_id}"
+  cidr_block = "172.2.0.0/24"
 }
 ```
 
@@ -27,7 +46,8 @@ resource "aws_subnet" "main" {
 
 The following arguments are supported:
 
-* `availability_zone`- (Optional) The AZ for the subnet.
+* `availability_zone` - (Optional) The AZ for the subnet.
+* `availability_zone_id` - (Optional) The AZ ID of the subnet.
 * `cidr_block` - (Required) The CIDR block for the subnet.
 * `ipv6_cidr_block` - (Optional) The IPv6 network range for the subnet,
     in CIDR notation. The subnet size must use a /64 prefix length.
@@ -42,14 +62,12 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the subnet
-* `availability_zone`- The AZ for the subnet.
-* `cidr_block` - The CIDR block for the subnet.
-* `vpc_id` - The VPC ID.
-* `ipv6_association_id` - The association ID for the IPv6 CIDR block.
-* `ipv6_cidr_block` - The IPv6 CIDR block.
+* `arn` - The ARN of the subnet.
+* `ipv6_cidr_block_association_id` - The association ID for the IPv6 CIDR block.
+* `owner_id` - The ID of the AWS account that owns the subnet.
 
 ## Import
 

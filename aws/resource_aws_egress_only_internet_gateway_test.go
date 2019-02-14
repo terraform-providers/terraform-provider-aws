@@ -12,7 +12,7 @@ import (
 
 func TestAccAWSEgressOnlyInternetGateway_basic(t *testing.T) {
 	var igw ec2.EgressOnlyInternetGateway
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSEgressOnlyInternetGatewayDestroy,
@@ -84,7 +84,7 @@ const testAccAWSEgressOnlyInternetGatewayConfig_basic = `
 resource "aws_vpc" "foo" {
 	cidr_block = "10.1.0.0/16"
 	assign_generated_ipv6_cidr_block = true
-	tags {
+	tags = {
 		Name = "terraform-testacc-egress-only-igw-basic"
 	}
 }

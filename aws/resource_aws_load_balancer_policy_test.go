@@ -16,8 +16,12 @@ import (
 )
 
 func TestAccAWSLoadBalancerPolicy_basic(t *testing.T) {
+	var policy elb.PolicyDescription
+	loadBalancerResourceName := "aws_elb.test-lb"
+	resourceName := "aws_load_balancer_policy.test-policy"
 	rInt := acctest.RandInt()
-	resource.Test(t, resource.TestCase{
+
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSLoadBalancerPolicyDestroy,
@@ -25,16 +29,55 @@ func TestAccAWSLoadBalancerPolicy_basic(t *testing.T) {
 			{
 				Config: testAccAWSLoadBalancerPolicyConfig_basic(rInt),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSLoadBalancerPolicyState("aws_elb.test-lb", "aws_load_balancer_policy.test-policy"),
+					testAccCheckAWSLoadBalancerPolicyExists(resourceName, &policy),
+					testAccCheckAWSLoadBalancerPolicyState(loadBalancerResourceName, resourceName),
 				),
 			},
 		},
 	})
 }
 
-func TestAccAWSLoadBalancerPolicy_updateWhileAssigned(t *testing.T) {
+func TestAccAWSLoadBalancerPolicy_disappears(t *testing.T) {
+	var loadBalancer elb.LoadBalancerDescription
+	var policy elb.PolicyDescription
+	loadBalancerResourceName := "aws_elb.test-lb"
+	resourceName := "aws_load_balancer_policy.test-policy"
 	rInt := acctest.RandInt()
-	resource.Test(t, resource.TestCase{
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSLoadBalancerPolicyDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSLoadBalancerPolicyConfig_basic(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSELBExists(loadBalancerResourceName, &loadBalancer),
+					testAccCheckAWSLoadBalancerPolicyExists(resourceName, &policy),
+					testAccCheckAWSLoadBalancerPolicyDisappears(&loadBalancer, &policy),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+			{
+				Config: testAccAWSLoadBalancerPolicyConfig_basic(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSELBExists(loadBalancerResourceName, &loadBalancer),
+					testAccCheckAWSLoadBalancerPolicyExists(resourceName, &policy),
+					testAccCheckAWSELBDisappears(&loadBalancer),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSLoadBalancerPolicy_updateWhileAssigned(t *testing.T) {
+	var policy elb.PolicyDescription
+	loadBalancerResourceName := "aws_elb.test-lb"
+	resourceName := "aws_load_balancer_policy.test-policy"
+	rInt := acctest.RandInt()
+
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSLoadBalancerPolicyDestroy,
@@ -42,17 +85,55 @@ func TestAccAWSLoadBalancerPolicy_updateWhileAssigned(t *testing.T) {
 			{
 				Config: testAccAWSLoadBalancerPolicyConfig_updateWhileAssigned0(rInt),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSLoadBalancerPolicyState("aws_elb.test-lb", "aws_load_balancer_policy.test-policy"),
+					testAccCheckAWSLoadBalancerPolicyExists(resourceName, &policy),
+					testAccCheckAWSLoadBalancerPolicyState(loadBalancerResourceName, resourceName),
 				),
 			},
 			{
 				Config: testAccAWSLoadBalancerPolicyConfig_updateWhileAssigned1(rInt),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSLoadBalancerPolicyState("aws_elb.test-lb", "aws_load_balancer_policy.test-policy"),
+					testAccCheckAWSLoadBalancerPolicyExists(resourceName, &policy),
+					testAccCheckAWSLoadBalancerPolicyState(loadBalancerResourceName, resourceName),
 				),
 			},
 		},
 	})
+}
+
+func testAccCheckAWSLoadBalancerPolicyExists(resourceName string, policyDescription *elb.PolicyDescription) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("Not found: %s", resourceName)
+		}
+
+		if rs.Primary.ID == "" {
+			return fmt.Errorf("No Load Balancer Policy ID is set for %s", resourceName)
+		}
+
+		loadBalancerName, policyName := resourceAwsLoadBalancerPolicyParseId(rs.Primary.ID)
+
+		conn := testAccProvider.Meta().(*AWSClient).elbconn
+
+		input := &elb.DescribeLoadBalancerPoliciesInput{
+			LoadBalancerName: aws.String(loadBalancerName),
+			PolicyNames:      []*string{aws.String(policyName)},
+		}
+
+		output, err := conn.DescribeLoadBalancerPolicies(input)
+
+		if err != nil {
+			return err
+		}
+
+		if output == nil || len(output.PolicyDescriptions) == 0 {
+			return fmt.Errorf("Load Balancer Policy (%s) not found", rs.Primary.ID)
+		}
+
+		*policyDescription = *output.PolicyDescriptions[0]
+
+		return nil
+	}
 }
 
 func testAccCheckAWSLoadBalancerPolicyDestroy(s *terraform.State) error {
@@ -81,6 +162,20 @@ func testAccCheckAWSLoadBalancerPolicyDestroy(s *terraform.State) error {
 		}
 	}
 	return nil
+}
+
+func testAccCheckAWSLoadBalancerPolicyDisappears(loadBalancer *elb.LoadBalancerDescription, policy *elb.PolicyDescription) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		conn := testAccProvider.Meta().(*AWSClient).elbconn
+
+		input := elb.DeleteLoadBalancerPolicyInput{
+			LoadBalancerName: loadBalancer.LoadBalancerName,
+			PolicyName:       policy.PolicyName,
+		}
+		_, err := conn.DeleteLoadBalancerPolicy(&input)
+
+		return err
+	}
 }
 
 func testAccCheckAWSLoadBalancerPolicyState(elbResource string, policyResource string) resource.TestCheckFunc {
@@ -155,7 +250,7 @@ func testAccAWSLoadBalancerPolicyConfig_basic(rInt int) string {
 			lb_protocol = "http"
 		}
 
-		tags {
+	tags = {
 			Name = "tf-acc-test"
 		}
 	}
@@ -164,7 +259,7 @@ func testAccAWSLoadBalancerPolicyConfig_basic(rInt int) string {
 		load_balancer_name = "${aws_elb.test-lb.name}"
 		policy_name = "test-policy-%d"
 		policy_type_name = "AppCookieStickinessPolicyType"
-		policy_attribute = {
+		policy_attribute {
 			name = "CookieName"
 			value = "magic_cookie"
 		}
@@ -184,7 +279,7 @@ func testAccAWSLoadBalancerPolicyConfig_updateWhileAssigned0(rInt int) string {
 			lb_protocol = "http"
 		}
 
-		tags {
+	tags = {
 			Name = "tf-acc-test"
 		}
 	}
@@ -193,7 +288,7 @@ func testAccAWSLoadBalancerPolicyConfig_updateWhileAssigned0(rInt int) string {
 		load_balancer_name = "${aws_elb.test-lb.name}"
 		policy_name = "test-policy-%d"
 		policy_type_name = "AppCookieStickinessPolicyType"
-		policy_attribute = {
+		policy_attribute {
 			name = "CookieName"
 			value = "magic_cookie"
 		}
@@ -221,7 +316,7 @@ func testAccAWSLoadBalancerPolicyConfig_updateWhileAssigned1(rInt int) string {
 			lb_protocol = "http"
 		}
 
-		tags {
+	tags = {
 			Name = "tf-acc-test"
 		}
 	}
@@ -230,7 +325,7 @@ func testAccAWSLoadBalancerPolicyConfig_updateWhileAssigned1(rInt int) string {
 		load_balancer_name = "${aws_elb.test-lb.name}"
 		policy_name = "test-policy-%d"
 		policy_type_name = "AppCookieStickinessPolicyType"
-		policy_attribute = {
+		policy_attribute {
 			name = "CookieName"
 			value = "unicorn_cookie"
 		}

@@ -14,13 +14,15 @@ Provides an Gamelift Build resource.
 
 ```hcl
 resource "aws_gamelift_build" "test" {
-  name = "example-build"
+  name             = "example-build"
   operating_system = "WINDOWS_2012"
+
   storage_location {
-    bucket = "${aws_s3_bucket.test.bucket}"
-    key = "${aws_s3_bucket_object.test.key}"
+    bucket   = "${aws_s3_bucket.test.bucket}"
+    key      = "${aws_s3_bucket_object.test.key}"
     role_arn = "${aws_iam_role.test.arn}"
   }
+
   depends_on = ["aws_iam_role_policy.test"]
 }
 ```
@@ -44,7 +46,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - Build ID.
 

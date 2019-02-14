@@ -15,12 +15,12 @@ import (
 func TestAccAWSBeanstalkConfigurationTemplate_basic(t *testing.T) {
 	var config elasticbeanstalk.ConfigurationSettingsDescription
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckBeanstalkConfigurationTemplateDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: testAccBeanstalkConfigurationTemplateConfig(acctest.RandString(5)),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckBeanstalkConfigurationTemplateExists("aws_elastic_beanstalk_configuration_template.tf_template", &config),
@@ -33,12 +33,12 @@ func TestAccAWSBeanstalkConfigurationTemplate_basic(t *testing.T) {
 func TestAccAWSBeanstalkConfigurationTemplate_VPC(t *testing.T) {
 	var config elasticbeanstalk.ConfigurationSettingsDescription
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckBeanstalkConfigurationTemplateDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: testAccBeanstalkConfigurationTemplateConfig_VPC(acctest.RandString(5)),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckBeanstalkConfigurationTemplateExists("aws_elastic_beanstalk_configuration_template.tf_template", &config),
@@ -51,12 +51,12 @@ func TestAccAWSBeanstalkConfigurationTemplate_VPC(t *testing.T) {
 func TestAccAWSBeanstalkConfigurationTemplate_Setting(t *testing.T) {
 	var config elasticbeanstalk.ConfigurationSettingsDescription
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckBeanstalkConfigurationTemplateDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: testAccBeanstalkConfigurationTemplateConfig_Setting(acctest.RandString(5)),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckBeanstalkConfigurationTemplateExists("aws_elastic_beanstalk_configuration_template.tf_template", &config),
@@ -161,7 +161,7 @@ func testAccBeanstalkConfigurationTemplateConfig_VPC(name string) string {
 resource "aws_vpc" "tf_b_test" {
   cidr_block = "10.0.0.0/16"
 
-  tags {
+  tags = {
     Name = "terraform-testacc-elastic-beanstalk-cfg-tpl-vpc"
   }
 }
@@ -170,7 +170,7 @@ resource "aws_subnet" "main" {
   vpc_id     = "${aws_vpc.tf_b_test.id}"
   cidr_block = "10.0.0.0/24"
 
-  tags {
+  tags = {
     Name = "tf-acc-elastic-beanstalk-cfg-tpl-vpc"
   }
 }

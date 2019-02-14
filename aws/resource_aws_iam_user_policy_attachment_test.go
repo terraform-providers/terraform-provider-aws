@@ -19,7 +19,7 @@ func TestAccAWSUserPolicyAttachment_basic(t *testing.T) {
 	policyName2 := fmt.Sprintf("test-policy-%s", acctest.RandString(10))
 	policyName3 := fmt.Sprintf("test-policy-%s", acctest.RandString(10))
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSUserPolicyAttachmentDestroy,
@@ -30,6 +30,27 @@ func TestAccAWSUserPolicyAttachment_basic(t *testing.T) {
 					testAccCheckAWSUserPolicyAttachmentExists("aws_iam_user_policy_attachment.test-attach", 1, &out),
 					testAccCheckAWSUserPolicyAttachmentAttributes([]string{policyName1}, &out),
 				),
+			},
+			{
+				ResourceName:      "aws_iam_user_policy_attachment.test-attach",
+				ImportState:       true,
+				ImportStateIdFunc: testAccAWSIAMUserPolicyAttachmentImportStateIdFunc("aws_iam_user_policy_attachment.test-attach"),
+				// We do not have a way to align IDs since the Create function uses resource.PrefixedUniqueId()
+				// Failed state verification, resource with ID USER-POLICYARN not found
+				// ImportStateVerify: true,
+				ImportStateCheck: func(s []*terraform.InstanceState) error {
+					if len(s) != 1 {
+						return fmt.Errorf("expected 1 state: %#v", s)
+					}
+
+					rs := s[0]
+
+					if !strings.HasPrefix(rs.Attributes["policy_arn"], "arn:") {
+						return fmt.Errorf("expected policy_arn attribute to be set and begin with arn:, received: %s", rs.Attributes["policy_arn"])
+					}
+
+					return nil
+				},
 			},
 			{
 				Config: testAccAWSUserPolicyAttachConfigUpdate(rName, policyName1, policyName2, policyName3),
@@ -90,6 +111,17 @@ func testAccCheckAWSUserPolicyAttachmentAttributes(policies []string, out *iam.L
 			return fmt.Errorf("Error: Number of attached policies was incorrect: expected %d matched policies, matched %d of %d", len(policies), matched, len(out.AttachedPolicies))
 		}
 		return nil
+	}
+}
+
+func testAccAWSIAMUserPolicyAttachmentImportStateIdFunc(resourceName string) resource.ImportStateIdFunc {
+	return func(s *terraform.State) (string, error) {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return "", fmt.Errorf("Not found: %s", resourceName)
+		}
+
+		return fmt.Sprintf("%s/%s", rs.Primary.Attributes["user"], rs.Primary.Attributes["policy_arn"]), nil
 	}
 }
 

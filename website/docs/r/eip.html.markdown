@@ -12,6 +12,8 @@ Provides an Elastic IP resource.
 
 ~> **Note:** EIP may require IGW to exist prior to association. Use `depends_on` to set an explicit dependency on the IGW.
 
+~> **Note:** Do not use `network_interface` to associate the EIP to `aws_lb` or `aws_nat_gateway` resources. Instead use the `allocation_id` available in those resources to allow AWS to manage the association, otherwise you will see `AuthFailure` errors.
+
 ## Example Usage
 
 Single EIP associated with an instance:
@@ -82,6 +84,15 @@ resource "aws_eip" "bar" {
 }
 ```
 
+Allocating EIP from the BYOIP pool:
+
+```hcl
+resource "aws_eip" "byoip-ip" {
+  vpc              = true
+  public_ipv4_pool = "ipv4pool-ec2-012345"
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -93,6 +104,7 @@ The following arguments are supported:
   associate with the Elastic IP address. If no private IP address is specified,
   the Elastic IP address is associated with the primary private IP address.
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+* `public_ipv4_pool` - (Optional) EC2 IPv4 address pool identifier or `amazon`. This option is only available for VPC EIPs.
 
 ~> **NOTE:** You can specify either the `instance` ID or the `network_interface` ID,
 but not both. Including both will **not** return an error from the AWS API, but will
@@ -101,7 +113,7 @@ more information.
 
 ## Attributes Reference
 
-The following additional attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - Contains the EIP allocation ID.
 * `private_ip` - Contains the private IP address (if in VPC).
@@ -110,6 +122,7 @@ The following additional attributes are exported:
 * `public_ip` - Contains the public IP address.
 * `instance` - Contains the ID of the attached instance.
 * `network_interface` - Contains the ID of the attached network interface.
+* `public_ipv4_pool` - EC2 IPv4 address pool identifier (if in VPC).
 
 ## Timeouts
 `aws_eip` provides the following [Timeouts](/docs/configuration/resources.html#timeouts) configuration options:

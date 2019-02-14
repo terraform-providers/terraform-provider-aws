@@ -15,7 +15,7 @@ func TestAccAWSCloudWatchLogStream_basic(t *testing.T) {
 	var ls cloudwatchlogs.LogStream
 	rName := acctest.RandString(15)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCloudWatchLogStreamDestroy,
@@ -34,7 +34,7 @@ func TestAccAWSCloudWatchLogStream_disappears(t *testing.T) {
 	var ls cloudwatchlogs.LogStream
 	rName := acctest.RandString(15)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCloudWatchLogStreamDestroy,
@@ -58,11 +58,32 @@ func testAccCheckCloudWatchLogStreamDisappears(ls *cloudwatchlogs.LogStream, lgn
 			LogGroupName:  aws.String(lgn),
 			LogStreamName: ls.LogStreamName,
 		}
-		if _, err := conn.DeleteLogStream(opts); err != nil {
-			return err
-		}
-		return nil
+		_, err := conn.DeleteLogStream(opts)
+		return err
 	}
+}
+
+func TestAccAWSCloudWatchLogStream_disappears_LogGroup(t *testing.T) {
+	var ls cloudwatchlogs.LogStream
+	var lg cloudwatchlogs.LogGroup
+	rName := acctest.RandString(15)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSCloudWatchLogStreamDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSCloudWatchLogStreamConfig(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudWatchLogStreamExists("aws_cloudwatch_log_stream.foobar", &ls),
+					testAccCheckCloudWatchLogGroupExists("aws_cloudwatch_log_group.foobar", &lg),
+					testAccCheckCloudWatchLogGroupDisappears(&lg),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
 }
 
 func testAccCheckCloudWatchLogStreamExists(n string, ls *cloudwatchlogs.LogStream) resource.TestCheckFunc {

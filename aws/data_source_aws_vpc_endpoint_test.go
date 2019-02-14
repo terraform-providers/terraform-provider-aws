@@ -9,7 +9,7 @@ import (
 )
 
 func TestAccDataSourceAwsVpcEndpoint_gatewayBasic(t *testing.T) {
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -32,7 +32,7 @@ func TestAccDataSourceAwsVpcEndpoint_gatewayBasic(t *testing.T) {
 }
 
 func TestAccDataSourceAwsVpcEndpoint_byId(t *testing.T) {
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -47,7 +47,7 @@ func TestAccDataSourceAwsVpcEndpoint_byId(t *testing.T) {
 }
 
 func TestAccDataSourceAwsVpcEndpoint_gatewayWithRouteTable(t *testing.T) {
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -66,7 +66,7 @@ func TestAccDataSourceAwsVpcEndpoint_gatewayWithRouteTable(t *testing.T) {
 }
 
 func TestAccDataSourceAwsVpcEndpoint_interface(t *testing.T) {
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -122,7 +122,7 @@ provider "aws" {
 resource "aws_vpc" "foo" {
   cidr_block = "10.1.0.0/16"
 
-  tags {
+  tags = {
     Name = "terraform-testacc-vpc-endpoint-data-source-gw-basic"
   }
 }
@@ -147,7 +147,7 @@ provider "aws" {
 resource "aws_vpc" "foo" {
   cidr_block = "10.1.0.0/16"
 
-  tags {
+  tags = {
     Name = "terraform-testacc-vpc-endpoint-data-source-by-id"
   }
 }
@@ -170,7 +170,7 @@ provider "aws" {
 resource "aws_vpc" "foo" {
   cidr_block = "10.1.0.0/16"
 
-  tags {
+  tags = {
     Name = "terraform-testacc-vpc-endpoint-data-source-with-route-table"
   }
 }
@@ -200,7 +200,7 @@ provider "aws" {
 resource "aws_vpc" "foo" {
   cidr_block = "10.1.0.0/16"
 
-  tags {
+  tags = {
     Name = "terraform-testacc-vpc-endpoint-data-source-interface"
   }
 }
@@ -209,7 +209,7 @@ resource "aws_subnet" "sn" {
   vpc_id = "${aws_vpc.foo.id}"
   cidr_block = "${aws_vpc.foo.cidr_block}"
   availability_zone = "us-west-2a"
-  tags {
+  tags = {
     Name = "tf-acc-vpc-endpoint-data-source-interface"
   }
 }

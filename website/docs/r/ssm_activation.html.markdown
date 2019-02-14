@@ -46,7 +46,7 @@ resource "aws_ssm_activation" "foo" {
 
 The following arguments are supported:
 
-* `name` - (Optional) The default name of the registerd managed instance.
+* `name` - (Optional) The default name of the registered managed instance.
 * `description` - (Optional) The description of the resource that you want to register.
 * `expiration_date` - (Optional) A timestamp in [RFC3339 format](https://tools.ietf.org/html/rfc3339#section-5.8) by which this activation request should expire. The default value is 24 hours from resource creation time.
 * `iam_role` - (Required) The IAM Role to attach to the managed instance.
@@ -54,10 +54,10 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `activation_code` - The code the system generates when it processes the activation.
-* `name` - The default name of the registerd managed instance.
+* `name` - The default name of the registered managed instance.
 * `description` - The description of the resource that was registered.
 * `expired` - If the current activation has expired.
 * `expiration_date` - The date by which this activation request should expire. The default value is 24 hours.

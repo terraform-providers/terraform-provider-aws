@@ -88,7 +88,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following additional attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The name of the DynamoDB Global Table
 * `arn` - The ARN of the DynamoDB Global Table

@@ -15,7 +15,7 @@ func TestAccAWSEcrLifecyclePolicy_basic(t *testing.T) {
 	randString := acctest.RandString(10)
 	rName := fmt.Sprintf("tf-acc-test-lifecycle-%s", randString)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSEcrLifecyclePolicyDestroy,
@@ -35,16 +35,16 @@ func TestAccAWSEcrLifecyclePolicy_import(t *testing.T) {
 	randString := acctest.RandString(10)
 	rName := fmt.Sprintf("tf-acc-test-lifecycle-%s", randString)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSEcrLifecyclePolicyDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: testAccEcrLifecyclePolicyConfig(rName),
 			},
 
-			resource.TestStep{
+			{
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
@@ -94,11 +94,7 @@ func testAccCheckAWSEcrLifecyclePolicyExists(name string) resource.TestCheckFunc
 		}
 
 		_, err := conn.GetLifecyclePolicy(input)
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return err
 	}
 }
 

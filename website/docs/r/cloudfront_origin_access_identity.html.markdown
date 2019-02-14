@@ -31,7 +31,7 @@ resource "aws_cloudfront_origin_access_identity" "origin_access_identity" {
 
 ## Attribute Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The identifier for the distribution. For example: `EDFDVBD632BHDS5`.
 * `caller_reference` - Internal value used by CloudFront to allow future
@@ -53,7 +53,7 @@ Normally, when referencing an origin access identity in CloudFront, you need to
 prefix the ID with the `origin-access-identity/cloudfront/` special path.
 The `cloudfront_access_identity_path` allows this to be circumvented.
 The below snippet demonstrates use with the `s3_origin_config` structure for the
-[`aws_cloudfront_web_distribution`][3] resource:
+[`aws_cloudfront_distribution`][3] resource:
 
 ```hcl
 s3_origin_config {
@@ -72,7 +72,7 @@ you see this behaviour, use the `iam_arn` instead:
 data "aws_iam_policy_document" "s3_policy" {
   statement {
     actions   = ["s3:GetObject"]
-    resources = ["${module.names.s3_endpoint_arn_base}/*"]
+    resources = ["${aws_s3_bucket.example.arn}/*"]
 
     principals {
       type        = "AWS"
@@ -82,7 +82,7 @@ data "aws_iam_policy_document" "s3_policy" {
 
   statement {
     actions   = ["s3:ListBucket"]
-    resources = ["${module.names.s3_endpoint_arn_base}"]
+    resources = ["${aws_s3_bucket.example.arn}"]
 
     principals {
       type        = "AWS"
@@ -91,8 +91,8 @@ data "aws_iam_policy_document" "s3_policy" {
   }
 }
 
-resource "aws_s3_bucket" "bucket" {
-  # ...
+resource "aws_s3_bucket_policy" "example" {
+  bucket = "${aws_s3_bucket.example.id}"
   policy = "${data.aws_iam_policy_document.s3_policy.json}"
 }
 ```

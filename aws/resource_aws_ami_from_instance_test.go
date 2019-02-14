@@ -19,7 +19,7 @@ func TestAccAWSAMIFromInstance(t *testing.T) {
 	snapshots := []string{}
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -150,7 +150,7 @@ func testAccAWSAMIFromInstanceConfig(rInt int) string {
 			// one snapshot in our created AMI.
 			ami = "ami-408c7f28"
 			instance_type = "t1.micro"
-			tags {
+	tags = {
 				Name = "testAccAWSAMIFromInstanceConfig_TestAMI"
 			}
 	}

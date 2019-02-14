@@ -14,6 +14,28 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
+func TestAccAWSIAMUserPolicy_importBasic(t *testing.T) {
+	suffix := randomString(10)
+	resourceName := fmt.Sprintf("aws_iam_user_policy.foo_%s", suffix)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckIAMUserPolicyDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAwsIamUserPolicyConfig(suffix),
+			},
+
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAWSIAMUserPolicy_basic(t *testing.T) {
 	rInt := acctest.RandInt()
 	policy1 := `{"Version":"2012-10-17","Statement":{"Effect":"Allow","Action":"*","Resource":"*"}}`
@@ -23,7 +45,7 @@ func TestAccAWSIAMUserPolicy_basic(t *testing.T) {
 	userResourceName := "aws_iam_user.user"
 	userName := fmt.Sprintf("test_user_%d", rInt)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckIAMUserPolicyDestroy,
@@ -55,6 +77,28 @@ func TestAccAWSIAMUserPolicy_basic(t *testing.T) {
 	})
 }
 
+func TestAccAWSIAMUserPolicy_disappears(t *testing.T) {
+	var out iam.GetUserPolicyOutput
+	suffix := randomString(10)
+	resourceName := fmt.Sprintf("aws_iam_user_policy.foo_%s", suffix)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckIAMUserPolicyDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAwsIamUserPolicyConfig(suffix),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckIAMUserPolicyExists(resourceName, &out),
+					testAccCheckIAMUserPolicyDisappears(&out),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
 func TestAccAWSIAMUserPolicy_namePrefix(t *testing.T) {
 	rInt := acctest.RandInt()
 	policy1 := `{"Version":"2012-10-17","Statement":{"Effect":"Allow","Action":"*","Resource":"*"}}`
@@ -64,7 +108,7 @@ func TestAccAWSIAMUserPolicy_namePrefix(t *testing.T) {
 	userResourceName := "aws_iam_user.user"
 	userName := fmt.Sprintf("test_user_%d", rInt)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		IDRefreshName: policyResourceName,
 		Providers:     testAccProviders,
@@ -100,7 +144,7 @@ func TestAccAWSIAMUserPolicy_generatedName(t *testing.T) {
 	userResourceName := "aws_iam_user.user"
 	userName := fmt.Sprintf("test_user_%d", rInt)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		IDRefreshName: policyResourceName,
 		Providers:     testAccProviders,
@@ -137,7 +181,7 @@ func TestAccAWSIAMUserPolicy_multiplePolicies(t *testing.T) {
 	policyResourceName2 := "aws_iam_user_policy.bar"
 	userResourceName := "aws_iam_user.user"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckIAMUserPolicyDestroy,
@@ -182,6 +226,38 @@ func TestAccAWSIAMUserPolicy_multiplePolicies(t *testing.T) {
 	})
 }
 
+func testAccCheckIAMUserPolicyExists(resource string, res *iam.GetUserPolicyOutput) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[resource]
+		if !ok {
+			return fmt.Errorf("Not found: %s", resource)
+		}
+
+		if rs.Primary.ID == "" {
+			return fmt.Errorf("No Policy name is set")
+		}
+
+		user, name, err := resourceAwsIamUserPolicyParseId(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
+
+		iamconn := testAccProvider.Meta().(*AWSClient).iamconn
+
+		resp, err := iamconn.GetUserPolicy(&iam.GetUserPolicyInput{
+			PolicyName: aws.String(name),
+			UserName:   aws.String(user),
+		})
+		if err != nil {
+			return err
+		}
+
+		*res = *resp
+
+		return nil
+	}
+}
+
 func testAccCheckIAMUserPolicyDestroy(s *terraform.State) error {
 	iamconn := testAccProvider.Meta().(*AWSClient).iamconn
 
@@ -217,6 +293,20 @@ func testAccCheckIAMUserPolicyDestroy(s *terraform.State) error {
 	return nil
 }
 
+func testAccCheckIAMUserPolicyDisappears(out *iam.GetUserPolicyOutput) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		iamconn := testAccProvider.Meta().(*AWSClient).iamconn
+
+		params := &iam.DeleteUserPolicyInput{
+			PolicyName: out.PolicyName,
+			UserName:   out.UserName,
+		}
+
+		_, err := iamconn.DeleteUserPolicy(params)
+		return err
+	}
+}
+
 func testAccCheckIAMUserPolicy(
 	iamUserResource string,
 	iamUserPolicyResource string) resource.TestCheckFunc {
@@ -246,11 +336,7 @@ func testAccCheckIAMUserPolicy(
 			PolicyName: aws.String(name),
 		})
 
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return err
 	}
 }
 
@@ -280,6 +366,30 @@ func testAccCheckIAMUserPolicyExpectedPolicies(iamUserResource string, expected 
 
 		return nil
 	}
+}
+
+func testAccAwsIamUserPolicyConfig(suffix string) string {
+	return fmt.Sprintf(`
+resource "aws_iam_user" "user_%[1]s" {
+	name = "tf_test_user_test_%[1]s"
+	path = "/"
+}
+
+resource "aws_iam_user_policy" "foo_%[1]s" {
+	name = "tf_test_policy_test_%[1]s"
+	user = "${aws_iam_user.user_%[1]s.name}"
+	policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": {
+    "Effect": "Allow",
+    "Action": "*",
+    "Resource": "*"
+  }
+}
+EOF
+}
+`, suffix)
 }
 
 func testAccIAMUserPolicyConfig_name(rInt int, policy string) string {

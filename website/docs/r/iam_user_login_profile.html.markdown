@@ -45,7 +45,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `key_fingerprint` - The fingerprint of the PGP key used to encrypt
   the password

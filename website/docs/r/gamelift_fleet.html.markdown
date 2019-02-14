@@ -14,13 +14,14 @@ Provides a Gamelift Fleet resource.
 
 ```hcl
 resource "aws_gamelift_fleet" "example" {
-  build_id = "${aws_gamelift_build.example.id}"
+  build_id          = "${aws_gamelift_build.example.id}"
   ec2_instance_type = "t2.micro"
-  name = "example-fleet-name"
+  name              = "example-fleet-name"
+
   runtime_configuration {
     server_process {
       concurrent_executions = 1
-      launch_path = "C:\\game\\GomokuServer.exe"
+      launch_path           = "C:\\game\\GomokuServer.exe"
     }
   }
 }
@@ -68,7 +69,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - Fleet ID.
 * `arn` - Fleet ARN.

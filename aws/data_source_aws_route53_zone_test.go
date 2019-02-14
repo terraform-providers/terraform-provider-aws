@@ -16,9 +16,10 @@ func TestAccDataSourceAwsRoute53Zone(t *testing.T) {
 	privateResourceName := "aws_route53_zone.test_private"
 	privateDomain := fmt.Sprintf("test.acc-%d.", rInt)
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckRoute53ZoneDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAwsRoute53ZoneConfig(rInt),
@@ -54,15 +55,15 @@ func testAccDataSourceAwsRoute53ZoneCheck(rsName, dsName, zName string) resource
 
 		attr := rs.Primary.Attributes
 		if attr["id"] != hostedZone.Primary.Attributes["id"] {
-			return fmt.Errorf(
-				"id is %s; want %s",
-				attr["id"],
-				hostedZone.Primary.Attributes["id"],
-			)
+			return fmt.Errorf("Route53 Zone id is %s; want %s", attr["id"], hostedZone.Primary.Attributes["id"])
 		}
 
 		if attr["name"] != zName {
 			return fmt.Errorf("Route53 Zone name is %q; want %q", attr["name"], zName)
+		}
+
+		if attr["private_zone"] == "false" && len(attr["name_servers"]) == 0 {
+			return fmt.Errorf("Route53 Zone %s has no name_servers", zName)
 		}
 
 		return nil
@@ -77,7 +78,7 @@ func testAccDataSourceAwsRoute53ZoneConfig(rInt int) string {
 
 	resource "aws_vpc" "test" {
 		cidr_block = "172.16.0.0/16"
-		tags {
+	tags = {
 			Name = "terraform-testacc-r53-zone-data-source"
 		}
 	}
@@ -85,7 +86,7 @@ func testAccDataSourceAwsRoute53ZoneConfig(rInt int) string {
 	resource "aws_route53_zone" "test_private" {
 		name = "test.acc-%d."
 		vpc_id = "${aws_vpc.test.id}"
-		tags {
+	tags = {
 			Environment = "dev-%d"
 		}
 	}
@@ -98,7 +99,7 @@ func testAccDataSourceAwsRoute53ZoneConfig(rInt int) string {
 	data "aws_route53_zone" "by_tag" {
 	 name = "${aws_route53_zone.test_private.name}"
 	 private_zone = true
-	 tags {
+	 tags = {
 		 Environment = "dev-%d"
 	 }
 	}

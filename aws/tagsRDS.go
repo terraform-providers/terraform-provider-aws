@@ -22,7 +22,7 @@ func setTagsRDS(conn *rds.RDS, d *schema.ResourceData, arn string) error {
 		// Set tags
 		if len(remove) > 0 {
 			log.Printf("[DEBUG] Removing tags: %s", remove)
-			k := make([]*string, len(remove), len(remove))
+			k := make([]*string, len(remove))
 			for i, t := range remove {
 				k[i] = t.Key
 			}
@@ -107,7 +107,7 @@ func saveTagsRDS(conn *rds.RDS, d *schema.ResourceData, arn string) error {
 	})
 
 	if err != nil {
-		return fmt.Errorf("[DEBUG] Error retreiving tags for ARN: %s", arn)
+		return fmt.Errorf("Error retreiving tags for ARN: %s", arn)
 	}
 
 	var dt []*rds.Tag
@@ -124,7 +124,8 @@ func tagIgnoredRDS(t *rds.Tag) bool {
 	filter := []string{"^aws:"}
 	for _, v := range filter {
 		log.Printf("[DEBUG] Matching %v with %v\n", v, *t.Key)
-		if r, _ := regexp.MatchString(v, *t.Key); r == true {
+		r, _ := regexp.MatchString(v, *t.Key)
+		if r {
 			log.Printf("[DEBUG] Found AWS specific tag %s (val: %s), ignoring.\n", *t.Key, *t.Value)
 			return true
 		}

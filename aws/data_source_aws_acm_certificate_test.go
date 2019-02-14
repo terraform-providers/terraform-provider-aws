@@ -34,7 +34,7 @@ func TestAccAWSAcmCertificateDataSource_singleIssued(t *testing.T) {
 
 	resourceName := "data.aws_acm_certificate.test"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -100,7 +100,7 @@ func TestAccAWSAcmCertificateDataSource_multipleIssued(t *testing.T) {
 
 	resourceName := "data.aws_acm_certificate.test"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -145,7 +145,7 @@ func TestAccAWSAcmCertificateDataSource_noMatchReturnsError(t *testing.T) {
 
 	domain := fmt.Sprintf("tf-acc-nonexistent.%s", os.Getenv("ACM_CERTIFICATE_ROOT_DOMAIN"))
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{

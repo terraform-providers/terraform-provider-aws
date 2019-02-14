@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"os"
 
 	"github.com/aws/aws-sdk-go/aws/awserr"
 )
@@ -85,33 +84,11 @@ func decodeV3Endpoints(modelDef modelDefinition, opts DecodeModelOptions) (Resol
 		custAddEC2Metadata(p)
 		custAddS3DualStack(p)
 		custRmIotDataService(p)
-
-		custFixCloudHSMv2SigningName(p)
-		custFixRuntimeSagemakerSigningName(p)
+		custFixAppAutoscalingChina(p)
+		custFixAppAutoscalingUsGov(p)
 	}
 
 	return ps, nil
-}
-
-func custFixCloudHSMv2SigningName(p *partition) {
-	// Workaround for aws/aws-sdk-go#1745 until the endpoint model can be
-	// fixed upstream. TODO remove this once the endpoints model is updated.
-
-	s, ok := p.Services["cloudhsmv2"]
-	if !ok {
-		return
-	}
-
-	if len(s.Defaults.CredentialScope.Service) != 0 {
-		fmt.Fprintf(os.Stderr, "cloudhsmv2 signing name already set, ignoring override.\n")
-		// If the value is already set don't override
-		return
-	}
-
-	s.Defaults.CredentialScope.Service = "cloudhsm"
-	fmt.Fprintf(os.Stderr, "cloudhsmv2 signing name not set, overriding.\n")
-
-	p.Services["cloudhsmv2"] = s
 }
 
 func custAddS3DualStack(p *partition) {
@@ -119,7 +96,12 @@ func custAddS3DualStack(p *partition) {
 		return
 	}
 
-	s, ok := p.Services["s3"]
+	custAddDualstack(p, "s3")
+	custAddDualstack(p, "s3-control")
+}
+
+func custAddDualstack(p *partition, svcName string) {
+	s, ok := p.Services[svcName]
 	if !ok {
 		return
 	}
@@ -127,7 +109,7 @@ func custAddS3DualStack(p *partition) {
 	s.Defaults.HasDualStack = boxedTrue
 	s.Defaults.DualStackHostname = "{service}.dualstack.{region}.{dnsSuffix}"
 
-	p.Services["s3"] = s
+	p.Services[svcName] = s
 }
 
 func custAddEC2Metadata(p *partition) {
@@ -147,24 +129,52 @@ func custRmIotDataService(p *partition) {
 	delete(p.Services, "data.iot")
 }
 
-func custFixRuntimeSagemakerSigningName(p *partition) {
-	// Workaround for aws/aws-sdk-go#1836
+func custFixAppAutoscalingChina(p *partition) {
+	if p.ID != "aws-cn" {
+		return
+	}
 
-	s, ok := p.Services["runtime.sagemaker"]
+	const serviceName = "application-autoscaling"
+	s, ok := p.Services[serviceName]
 	if !ok {
 		return
 	}
 
-	if len(s.Defaults.CredentialScope.Service) != 0 {
-		fmt.Fprintf(os.Stderr, "runtime.sagemaker signing name already set, ignoring override.\n")
-		// If the value is already set don't override
+	const expectHostname = `autoscaling.{region}.amazonaws.com`
+	if e, a := s.Defaults.Hostname, expectHostname; e != a {
+		fmt.Printf("custFixAppAutoscalingChina: ignoring customization, expected %s, got %s\n", e, a)
 		return
 	}
 
-	s.Defaults.CredentialScope.Service = "sagemaker"
-	fmt.Fprintf(os.Stderr, "sagemaker signing name not set, overriding.\n")
+	s.Defaults.Hostname = expectHostname + ".cn"
+	p.Services[serviceName] = s
+}
 
-	p.Services["runtime.sagemaker"] = s
+func custFixAppAutoscalingUsGov(p *partition) {
+	if p.ID != "aws-us-gov" {
+		return
+	}
+
+	const serviceName = "application-autoscaling"
+	s, ok := p.Services[serviceName]
+	if !ok {
+		return
+	}
+
+	if a := s.Defaults.CredentialScope.Service; a != "" {
+		fmt.Printf("custFixAppAutoscalingUsGov: ignoring customization, expected empty credential scope service, got %s\n", a)
+		return
+	}
+
+	if a := s.Defaults.Hostname; a != "" {
+		fmt.Printf("custFixAppAutoscalingUsGov: ignoring customization, expected empty hostname, got %s\n", a)
+		return
+	}
+
+	s.Defaults.CredentialScope.Service = "application-autoscaling"
+	s.Defaults.Hostname = "autoscaling.{region}.amazonaws.com"
+
+	p.Services[serviceName] = s
 }
 
 type decodeModelError struct {

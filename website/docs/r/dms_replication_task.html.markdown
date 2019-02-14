@@ -23,7 +23,7 @@ resource "aws_dms_replication_task" "test" {
   source_endpoint_arn       = "${aws_dms_endpoint.test-dms-source-endpoint-tf.endpoint_arn}"
   table_mappings            = "{\"rules\":[{\"rule-type\":\"selection\",\"rule-id\":\"1\",\"rule-name\":\"1\",\"object-locator\":{\"schema-name\":\"%\",\"table-name\":\"%\"},\"rule-action\":\"include\"}]}"
 
-  tags {
+  tags = {
     Name = "test"
   }
 
@@ -53,7 +53,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `replication_task_arn` - The Amazon Resource Name (ARN) for the replication task.
 

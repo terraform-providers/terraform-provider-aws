@@ -4,25 +4,35 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
 )
 
 func TestAccAWSPlacementGroup_basic(t *testing.T) {
-	resource.Test(t, resource.TestCase{
+	resourceName := "aws_placement_group.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSPlacementGroupDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
-				Config: testAccAWSPlacementGroupConfig,
+			{
+				Config: testAccAWSPlacementGroupConfig(rName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSPlacementGroupExists("aws_placement_group.pg"),
+					testAccCheckAWSPlacementGroupExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "strategy", "cluster"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -39,11 +49,12 @@ func testAccCheckAWSPlacementGroupDestroy(s *terraform.State) error {
 		_, err := conn.DescribePlacementGroups(&ec2.DescribePlacementGroupsInput{
 			GroupNames: []*string{aws.String(rs.Primary.Attributes["name"])},
 		})
+
+		if isAWSErr(err, "InvalidPlacementGroup.Unknown", "") {
+			continue
+		}
+
 		if err != nil {
-			// Verify the error is what we want
-			if ae, ok := err.(awserr.Error); ok && ae.Code() == "InvalidPlacementGroup.Unknown" {
-				continue
-			}
 			return err
 		}
 
@@ -75,32 +86,11 @@ func testAccCheckAWSPlacementGroupExists(n string) resource.TestCheckFunc {
 	}
 }
 
-func testAccCheckAWSDestroyPlacementGroup(n string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[n]
-		if !ok {
-			return fmt.Errorf("Not found: %s", n)
-		}
-
-		if rs.Primary.ID == "" {
-			return fmt.Errorf("No Placement Group ID is set")
-		}
-
-		conn := testAccProvider.Meta().(*AWSClient).ec2conn
-		_, err := conn.DeletePlacementGroup(&ec2.DeletePlacementGroupInput{
-			GroupName: aws.String(rs.Primary.ID),
-		})
-
-		if err != nil {
-			return fmt.Errorf("Error destroying Placement Group (%s): %s", rs.Primary.ID, err)
-		}
-		return nil
-	}
+func testAccAWSPlacementGroupConfig(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_placement_group" "test" {
+  name     = %q
+  strategy = "cluster"
 }
-
-var testAccAWSPlacementGroupConfig = `
-resource "aws_placement_group" "pg" {
-	name = "tf-test-pg"
-	strategy = "cluster"
+`, rName)
 }
-`

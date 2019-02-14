@@ -6,7 +6,7 @@ description: |-
   Attaches a load balancer policy to an ELB Listener.
 ---
 
-# aws_elb_load_balancer_listener_policy
+# aws_load_balancer_listener_policy
 
 Attaches a load balancer policy to an ELB Listener.
 
@@ -26,7 +26,7 @@ resource "aws_elb" "wu-tang" {
     ssl_certificate_id = "arn:aws:iam::000000000000:server-certificate/wu-tang.net"
   }
 
-  tags {
+  tags = {
     Name = "wu-tang"
   }
 }
@@ -36,12 +36,12 @@ resource "aws_load_balancer_policy" "wu-tang-ssl" {
   policy_name        = "wu-tang-ssl"
   policy_type_name   = "SSLNegotiationPolicyType"
 
-  policy_attribute = {
+  policy_attribute {
     name  = "ECDHE-ECDSA-AES128-GCM-SHA256"
     value = "true"
   }
 
-  policy_attribute = {
+  policy_attribute {
     name  = "Protocol-TLSv1.2"
     value = "true"
   }
@@ -69,7 +69,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the policy.
 * `load_balancer_name` - The load balancer on which the policy is defined.

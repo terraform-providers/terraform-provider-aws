@@ -14,10 +14,33 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
+func TestAccAWSVPCPeeringConnection_importBasic(t *testing.T) {
+	resourceName := "aws_vpc_peering_connection.foo"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSVpcPeeringConnectionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccVpcPeeringConfig,
+			},
+
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"auto_accept"},
+			},
+		},
+	})
+}
+
 func TestAccAWSVPCPeeringConnection_basic(t *testing.T) {
 	var connection ec2.VpcPeeringConnection
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:        func() { testAccPreCheck(t) },
 		IDRefreshName:   "aws_vpc_peering_connection.foo",
 		IDRefreshIgnore: []string{"auto_accept"},
@@ -25,7 +48,7 @@ func TestAccAWSVPCPeeringConnection_basic(t *testing.T) {
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSVpcPeeringConnectionDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: testAccVpcPeeringConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSVpcPeeringConnectionExists(
@@ -48,19 +71,17 @@ func TestAccAWSVPCPeeringConnection_plan(t *testing.T) {
 			&ec2.DeleteVpcPeeringConnectionInput{
 				VpcPeeringConnectionId: connection.VpcPeeringConnectionId,
 			})
-		if err != nil {
-			return err
-		}
-		return nil
+
+		return err
 	}
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:        func() { testAccPreCheck(t) },
 		IDRefreshIgnore: []string{"auto_accept"},
 		Providers:       testAccProviders,
 		CheckDestroy:    testAccCheckAWSVpcPeeringConnectionDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: testAccVpcPeeringConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSVpcPeeringConnectionExists(
@@ -77,7 +98,7 @@ func TestAccAWSVPCPeeringConnection_plan(t *testing.T) {
 func TestAccAWSVPCPeeringConnection_tags(t *testing.T) {
 	var connection ec2.VpcPeeringConnection
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:        func() { testAccPreCheck(t) },
 		IDRefreshName:   "aws_vpc_peering_connection.foo",
 		IDRefreshIgnore: []string{"auto_accept"},
@@ -85,7 +106,7 @@ func TestAccAWSVPCPeeringConnection_tags(t *testing.T) {
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckVpcDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: testAccVpcPeeringConfigTags,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSVpcPeeringConnectionExists(
@@ -112,13 +133,11 @@ func TestAccAWSVPCPeeringConnection_options(t *testing.T) {
 					AllowDnsResolutionFromRemoteVpc: aws.Bool(false),
 				},
 			})
-		if err != nil {
-			return err
-		}
-		return nil
+
+		return err
 	}
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:        func() { testAccPreCheck(t) },
 		IDRefreshName:   "aws_vpc_peering_connection.foo",
 		IDRefreshIgnore: []string{"auto_accept"},
@@ -126,7 +145,7 @@ func TestAccAWSVPCPeeringConnection_options(t *testing.T) {
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSVpcPeeringConnectionDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: testAccVpcPeeringConfigOptions,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSVpcPeeringConnectionExists(
@@ -166,7 +185,7 @@ func TestAccAWSVPCPeeringConnection_options(t *testing.T) {
 				),
 				ExpectNonEmptyPlan: true,
 			},
-			resource.TestStep{
+			{
 				Config: testAccVpcPeeringConfigOptions,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSVpcPeeringConnectionExists(
@@ -193,13 +212,13 @@ func TestAccAWSVPCPeeringConnection_options(t *testing.T) {
 }
 
 func TestAccAWSVPCPeeringConnection_failedState(t *testing.T) {
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:        func() { testAccPreCheck(t) },
 		IDRefreshIgnore: []string{"auto_accept"},
 		Providers:       testAccProviders,
 		CheckDestroy:    testAccCheckAWSVpcPeeringConnectionDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config:      testAccVpcPeeringConfigFailedState,
 				ExpectError: regexp.MustCompile(`.*Error waiting.*\(pcx-\w+\).*incorrect.*VPC-ID.*`),
 			},
@@ -317,13 +336,13 @@ func testAccCheckAWSVpcPeeringConnectionOptions(n, block string, options *ec2.Vp
 }
 
 func TestAccAWSVPCPeeringConnection_peerRegionAndAutoAccept(t *testing.T) {
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:        func() { testAccPreCheck(t) },
 		IDRefreshIgnore: []string{"auto_accept"},
 		Providers:       testAccProviders,
 		CheckDestroy:    testAccCheckAWSVpcPeeringConnectionDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config:      testAccVpcPeeringConfigRegionAutoAccept,
 				ExpectError: regexp.MustCompile(`.*peer_region cannot be set whilst auto_accept is true when creating a vpc peering connection.*`),
 			},
@@ -336,7 +355,7 @@ func TestAccAWSVPCPeeringConnection_region(t *testing.T) {
 
 	var providers []*schema.Provider
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:        func() { testAccPreCheck(t) },
 		IDRefreshName:   "aws_vpc_peering_connection.foo",
 		IDRefreshIgnore: []string{"auto_accept"},
@@ -344,7 +363,7 @@ func TestAccAWSVPCPeeringConnection_region(t *testing.T) {
 		ProviderFactories: testAccProviderFactories(&providers),
 		CheckDestroy:      testAccCheckAWSVpcPeeringConnectionDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: testAccVpcPeeringConfigRegion,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSVpcPeeringConnectionExists(
@@ -358,171 +377,171 @@ func TestAccAWSVPCPeeringConnection_region(t *testing.T) {
 
 const testAccVpcPeeringConfig = `
 resource "aws_vpc" "foo" {
-	cidr_block = "10.0.0.0/16"
-	tags {
-		Name = "terraform-testacc-vpc-peering-conn-foo"
-	}
+  cidr_block = "10.0.0.0/16"
+  tags = {
+    Name = "terraform-testacc-vpc-peering-conn-foo"
+  }
 }
 
 resource "aws_vpc" "bar" {
-	cidr_block = "10.1.0.0/16"
-	tags {
-		Name = "terraform-testacc-vpc-peering-conn-bar"
-	}
+  cidr_block = "10.1.0.0/16"
+  tags = {
+    Name = "terraform-testacc-vpc-peering-conn-bar"
+  }
 }
 
 resource "aws_vpc_peering_connection" "foo" {
-	vpc_id = "${aws_vpc.foo.id}"
-	peer_vpc_id = "${aws_vpc.bar.id}"
-	auto_accept = true
+  vpc_id = "${aws_vpc.foo.id}"
+  peer_vpc_id = "${aws_vpc.bar.id}"
+  auto_accept = true
 }
 `
 
 const testAccVpcPeeringConfigTags = `
 resource "aws_vpc" "foo" {
-	cidr_block = "10.0.0.0/16"
-	tags {
-		Name = "terraform-testacc-vpc-peering-conn-tags-foo"
-	}
+  cidr_block = "10.0.0.0/16"
+  tags = {
+    Name = "terraform-testacc-vpc-peering-conn-tags-foo"
+  }
 }
 
 resource "aws_vpc" "bar" {
-	cidr_block = "10.1.0.0/16"
-	tags {
-		Name = "terraform-testacc-vpc-peering-conn-tags-bar"
-	}
+  cidr_block = "10.1.0.0/16"
+  tags = {
+    Name = "terraform-testacc-vpc-peering-conn-tags-bar"
+  }
 }
 
 resource "aws_vpc_peering_connection" "foo" {
-	vpc_id = "${aws_vpc.foo.id}"
-	peer_vpc_id = "${aws_vpc.bar.id}"
-	auto_accept = true
-	tags {
-		foo = "bar"
-	}
+  vpc_id = "${aws_vpc.foo.id}"
+  peer_vpc_id = "${aws_vpc.bar.id}"
+  auto_accept = true
+  tags = {
+    foo = "bar"
+  }
 }
 `
 
 const testAccVpcPeeringConfigOptions = `
 resource "aws_vpc" "foo" {
-	cidr_block = "10.0.0.0/16"
-	tags {
-		Name = "terraform-testacc-vpc-peering-conn-options-foo"
-	}
+  cidr_block = "10.0.0.0/16"
+  tags = {
+    Name = "terraform-testacc-vpc-peering-conn-options-foo"
+  }
 }
 
 resource "aws_vpc" "bar" {
-	cidr_block = "10.1.0.0/16"
-	enable_dns_hostnames = true
-	tags {
-		Name = "terraform-testacc-vpc-peering-conn-options-bar"
-	}
+  cidr_block = "10.1.0.0/16"
+  enable_dns_hostnames = true
+  tags = {
+    Name = "terraform-testacc-vpc-peering-conn-options-bar"
+  }
 }
 
 resource "aws_vpc_peering_connection" "foo" {
-	vpc_id = "${aws_vpc.foo.id}"
-	peer_vpc_id = "${aws_vpc.bar.id}"
-	auto_accept = true
+  vpc_id = "${aws_vpc.foo.id}"
+  peer_vpc_id = "${aws_vpc.bar.id}"
+  auto_accept = true
 
-	accepter {
-		allow_remote_vpc_dns_resolution = true
-	}
+  accepter {
+    allow_remote_vpc_dns_resolution = true
+  }
 
-	requester {
-		allow_vpc_to_remote_classic_link = true
-		allow_classic_link_to_remote_vpc = true
-	}
+  requester {
+    allow_vpc_to_remote_classic_link = true
+    allow_classic_link_to_remote_vpc = true
+  }
 }
 `
 
 const testAccVpcPeeringConfigFailedState = `
 resource "aws_vpc" "foo" {
-	cidr_block = "10.0.0.0/16"
-	tags {
-		Name = "terraform-testacc-vpc-peering-conn-failed-state-foo"
-	}
+  cidr_block = "10.0.0.0/16"
+  tags = {
+    Name = "terraform-testacc-vpc-peering-conn-failed-state-foo"
+  }
 }
 
 resource "aws_vpc" "bar" {
-	cidr_block = "10.0.0.0/16"
-	tags {
-		Name = "terraform-testacc-vpc-peering-conn-failed-state-bar"
-	}
+  cidr_block = "10.0.0.0/16"
+  tags = {
+    Name = "terraform-testacc-vpc-peering-conn-failed-state-bar"
+  }
 }
 
 resource "aws_vpc_peering_connection" "foo" {
-	vpc_id = "${aws_vpc.foo.id}"
-	peer_vpc_id = "${aws_vpc.bar.id}"
+  vpc_id = "${aws_vpc.foo.id}"
+  peer_vpc_id = "${aws_vpc.bar.id}"
 }
 `
 
 const testAccVpcPeeringConfigRegionAutoAccept = `
 provider "aws" {
-	alias = "main"
+  alias = "main"
   region = "us-west-2"
 }
 
 provider "aws" {
-	alias = "peer"
+  alias = "peer"
   region = "us-east-1"
 }
 
 resource "aws_vpc" "foo" {
-	provider = "aws.main"
-	cidr_block = "10.0.0.0/16"
-	tags {
-		Name = "terraform-testacc-vpc-peering-conn-region-auto-accept-foo"
-	}
+  provider = "aws.main"
+  cidr_block = "10.0.0.0/16"
+  tags = {
+    Name = "terraform-testacc-vpc-peering-conn-region-auto-accept-foo"
+  }
 }
 
 resource "aws_vpc" "bar" {
-	provider = "aws.peer"
-	cidr_block = "10.1.0.0/16"
-	tags {
-		Name = "terraform-testacc-vpc-peering-conn-region-auto-accept-bar"
-	}
+  provider = "aws.peer"
+  cidr_block = "10.1.0.0/16"
+  tags = {
+    Name = "terraform-testacc-vpc-peering-conn-region-auto-accept-bar"
+  }
 }
 
 resource "aws_vpc_peering_connection" "foo" {
-	provider = "aws.main"
-	vpc_id = "${aws_vpc.foo.id}"
-	peer_vpc_id = "${aws_vpc.bar.id}"
-	peer_region = "us-east-1"
-	auto_accept = true
+  provider = "aws.main"
+  vpc_id = "${aws_vpc.foo.id}"
+  peer_vpc_id = "${aws_vpc.bar.id}"
+  peer_region = "us-east-1"
+  auto_accept = true
 }
 `
 
 const testAccVpcPeeringConfigRegion = `
 provider "aws" {
-	alias = "main"
+  alias = "main"
   region = "us-west-2"
 }
 
 provider "aws" {
-	alias = "peer"
+  alias = "peer"
   region = "us-east-1"
 }
 
 resource "aws_vpc" "foo" {
-	provider = "aws.main"
-	cidr_block = "10.0.0.0/16"
-	tags {
-		Name = "terraform-testacc-vpc-peering-conn-region-foo"
-	}
+  provider = "aws.main"
+  cidr_block = "10.0.0.0/16"
+  tags = {
+    Name = "terraform-testacc-vpc-peering-conn-region-foo"
+  }
 }
 
 resource "aws_vpc" "bar" {
-	provider = "aws.peer"
-	cidr_block = "10.1.0.0/16"
-	tags {
-		Name = "terraform-testacc-vpc-peering-conn-region-bar"
-	}
+  provider = "aws.peer"
+  cidr_block = "10.1.0.0/16"
+  tags = {
+    Name = "terraform-testacc-vpc-peering-conn-region-bar"
+  }
 }
 
 resource "aws_vpc_peering_connection" "foo" {
-	provider = "aws.main"
-	vpc_id = "${aws_vpc.foo.id}"
-	peer_vpc_id = "${aws_vpc.bar.id}"
-	peer_region = "us-east-1"
+  provider = "aws.main"
+  vpc_id = "${aws_vpc.foo.id}"
+  peer_vpc_id = "${aws_vpc.bar.id}"
+  peer_region = "us-east-1"
 }
 `

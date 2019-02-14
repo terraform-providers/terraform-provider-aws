@@ -18,7 +18,7 @@ func TestAccAWSRouteTable_importBasic(t *testing.T) {
 		return nil
 	}
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckRouteTableDestroy,
@@ -46,7 +46,7 @@ func TestAccAWSRouteTable_complex(t *testing.T) {
 		return nil
 	}
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckRouteTableDestroy,
@@ -69,7 +69,7 @@ resource "aws_vpc" "default" {
   cidr_block           = "10.0.0.0/16"
   enable_dns_hostnames = true
 
-  tags {
+  tags = {
     Name = "terraform-testacc-route-table-import-complex-default"
   }
 }
@@ -79,7 +79,7 @@ resource "aws_subnet" "tf_test_subnet" {
   cidr_block              = "10.0.0.0/24"
   map_public_ip_on_launch = true
 
-  tags {
+  tags = {
     Name = "tf-acc-route-table-import-complex-default"
   }
 }
@@ -92,30 +92,24 @@ resource "aws_eip" "nat" {
 resource "aws_internet_gateway" "gw" {
   vpc_id = "${aws_vpc.default.id}"
 
-  tags {
+  tags = {
     Name = "terraform-testacc-route-table-import-complex-default"
   }
 }
 
-variable "private_subnet_cidrs" {
-  default = "10.0.0.0/24"
-}
-
 resource "aws_nat_gateway" "nat" {
-  count         = "${length(split(",", var.private_subnet_cidrs))}"
-  allocation_id = "${element(aws_eip.nat.*.id, count.index)}"
+  allocation_id = "${aws_eip.nat.id}"
   subnet_id     = "${aws_subnet.tf_test_subnet.id}"
 
-  tags {
+  tags = {
     Name = "terraform-testacc-route-table-import-complex-default"
   }
 }
 
 resource "aws_route_table" "mod" {
-  count  = "${length(split(",", var.private_subnet_cidrs))}"
   vpc_id = "${aws_vpc.default.id}"
 
-  tags {
+  tags = {
     Name = "tf-rt-import-test"
   }
 
@@ -125,7 +119,7 @@ resource "aws_route_table" "mod" {
 resource "aws_route" "mod-1" {
   route_table_id         = "${aws_route_table.mod.id}"
   destination_cidr_block = "0.0.0.0/0"
-  nat_gateway_id         = "${element(aws_nat_gateway.nat.*.id, count.index)}"
+  nat_gateway_id         = "${aws_nat_gateway.nat.id}"
 }
 
 resource "aws_route" "mod" {
@@ -137,7 +131,7 @@ resource "aws_route" "mod" {
 resource "aws_vpc_endpoint" "s3" {
   vpc_id          = "${aws_vpc.default.id}"
   service_name    = "com.amazonaws.us-west-2.s3"
-  route_table_ids = ["${aws_route_table.mod.*.id}"]
+  route_table_ids = ["${aws_route_table.mod.id}"]
 }
 
 ### vpc bar
@@ -145,7 +139,7 @@ resource "aws_vpc_endpoint" "s3" {
 resource "aws_vpc" "bar" {
   cidr_block = "10.1.0.0/16"
 
-  tags {
+  tags = {
     Name = "terraform-testacc-route-table-import-complex-bar"
   }
 }
@@ -153,7 +147,7 @@ resource "aws_vpc" "bar" {
 resource "aws_internet_gateway" "ogw" {
   vpc_id = "${aws_vpc.bar.id}"
 
-  tags {
+  tags = {
     Name = "terraform-testacc-route-table-import-complex-bar"
   }
 }
@@ -165,7 +159,7 @@ resource "aws_vpc_peering_connection" "foo" {
   peer_vpc_id   = "${aws_vpc.bar.id}"
   peer_owner_id = "187416307283"
 
-  tags {
+  tags = {
     Name = "tf-rt-import-test"
   }
 

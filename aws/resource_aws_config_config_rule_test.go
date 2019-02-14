@@ -122,11 +122,11 @@ func testAccConfigConfigRule_importAws(t *testing.T) {
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckConfigConfigRuleDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: testAccConfigConfigRuleConfig_ownerAws(rInt),
 			},
 
-			resource.TestStep{
+			{
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
@@ -146,14 +146,94 @@ func testAccConfigConfigRule_importLambda(t *testing.T) {
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckConfigConfigRuleDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: testAccConfigConfigRuleConfig_customLambda(rInt, path),
 			},
 
-			resource.TestStep{
+			{
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func testAccConfigConfigRule_Scope_TagKey(t *testing.T) {
+	var configRule configservice.ConfigRule
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_config_config_rule.test"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckConfigConfigRuleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccConfigConfigRuleConfig_Scope_TagKey(rName, "key1"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckConfigConfigRuleExists(resourceName, &configRule),
+					resource.TestCheckResourceAttr(resourceName, "scope.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "scope.0.tag_key", "key1"),
+				),
+			},
+			{
+				Config: testAccConfigConfigRuleConfig_Scope_TagKey(rName, "key2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckConfigConfigRuleExists(resourceName, &configRule),
+					resource.TestCheckResourceAttr(resourceName, "scope.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "scope.0.tag_key", "key2"),
+				),
+			},
+		},
+	})
+}
+
+func testAccConfigConfigRule_Scope_TagKey_Empty(t *testing.T) {
+	var configRule configservice.ConfigRule
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_config_config_rule.test"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckConfigConfigRuleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccConfigConfigRuleConfig_Scope_TagKey(rName, ""),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckConfigConfigRuleExists(resourceName, &configRule),
+				),
+			},
+		},
+	})
+}
+
+func testAccConfigConfigRule_Scope_TagValue(t *testing.T) {
+	var configRule configservice.ConfigRule
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_config_config_rule.test"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckConfigConfigRuleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccConfigConfigRuleConfig_Scope_TagValue(rName, "value1"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckConfigConfigRuleExists(resourceName, &configRule),
+					resource.TestCheckResourceAttr(resourceName, "scope.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "scope.0.tag_value", "value1"),
+				),
+			},
+			{
+				Config: testAccConfigConfigRuleConfig_Scope_TagValue(rName, "value2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckConfigConfigRuleExists(resourceName, &configRule),
+					resource.TestCheckResourceAttr(resourceName, "scope.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "scope.0.tag_value", "value2"),
+				),
 			},
 		},
 	})
@@ -222,6 +302,42 @@ func testAccCheckConfigConfigRuleDestroy(s *terraform.State) error {
 	}
 
 	return nil
+}
+
+func testAccConfigConfigRuleConfig_base(rName string) string {
+	return fmt.Sprintf(`
+data "aws_partition" "current" {}
+
+resource "aws_config_configuration_recorder" "test" {
+  name     = %q
+  role_arn = "${aws_iam_role.test.arn}"
+}
+
+resource "aws_iam_role" "test" {
+  name = %q
+
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "config.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy_attachment" "test" {
+  policy_arn = "arn:${data.aws_partition.current.partition}:iam::aws:policy/service-role/AWSConfigRole"
+  role       = "${aws_iam_role.test.name}"
+}
+`, rName, rName)
 }
 
 func testAccConfigConfigRuleConfig_basic(randInt int) string {
@@ -369,7 +485,7 @@ resource "aws_lambda_function" "f" {
   function_name = "tf_acc_lambda_awsconfig_%d"
   role = "${aws_iam_role.iam_for_lambda.arn}"
   handler = "exports.example"
-  runtime = "nodejs4.3"
+  runtime = "nodejs8.10"
 }
 
 resource "aws_lambda_permission" "p" {
@@ -470,4 +586,43 @@ resource "aws_iam_role_policy" "p" {
 }
 POLICY
 }`, randInt, path, randInt, randInt, randInt, randInt, randInt, randInt, randInt)
+}
+
+func testAccConfigConfigRuleConfig_Scope_TagKey(rName, tagKey string) string {
+	return testAccConfigConfigRuleConfig_base(rName) + fmt.Sprintf(`
+resource "aws_config_config_rule" "test" {
+  name = %q
+
+  scope {
+    tag_key = %q
+  }
+
+  source {
+    owner = "AWS"
+    source_identifier = "S3_BUCKET_VERSIONING_ENABLED"
+  }
+
+  depends_on = ["aws_config_configuration_recorder.test"]
+}
+`, rName, tagKey)
+}
+
+func testAccConfigConfigRuleConfig_Scope_TagValue(rName, tagValue string) string {
+	return testAccConfigConfigRuleConfig_base(rName) + fmt.Sprintf(`
+resource "aws_config_config_rule" "test" {
+  name = %q
+
+  scope {
+    tag_key   = "key"
+    tag_value = %q
+  }
+
+  source {
+    owner = "AWS"
+    source_identifier = "S3_BUCKET_VERSIONING_ENABLED"
+  }
+
+  depends_on = ["aws_config_configuration_recorder.test"]
+}
+`, rName, tagValue)
 }

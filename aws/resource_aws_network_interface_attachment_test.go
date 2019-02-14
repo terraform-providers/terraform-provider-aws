@@ -13,7 +13,7 @@ func TestAccAWSNetworkInterfaceAttachment_basic(t *testing.T) {
 	var conf ec2.NetworkInterface
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		IDRefreshName: "aws_network_interface.bar",
 		Providers:     testAccProviders,
@@ -43,7 +43,7 @@ func testAccAWSNetworkInterfaceAttachmentConfig_basic(rInt int) string {
 	return fmt.Sprintf(`
 resource "aws_vpc" "foo" {
     cidr_block = "172.16.0.0/16"
-	tags {
+	tags = {
 		Name = "terraform-testacc-network-iface-attachment-basic"
 	}
 }
@@ -52,7 +52,7 @@ resource "aws_subnet" "foo" {
     vpc_id = "${aws_vpc.foo.id}"
     cidr_block = "172.16.10.0/24"
     availability_zone = "us-west-2a"
-    tags {
+  tags = {
         Name = "tf-acc-network-iface-attachment-basic"
     }
 }
@@ -75,7 +75,7 @@ resource "aws_network_interface" "bar" {
     private_ips = ["172.16.10.100"]
     security_groups = ["${aws_security_group.foo.id}"]
     description = "Managed by Terraform"
-    tags {
+  tags = {
         Name = "bar_interface"
     }
 }
@@ -84,7 +84,7 @@ resource "aws_instance" "foo" {
     ami = "ami-c5eabbf5"
     instance_type = "t2.micro"
     subnet_id = "${aws_subnet.foo.id}"
-    tags {
+  tags = {
         Name = "foo-%d"
     }
 }

@@ -16,7 +16,7 @@ func TestAccAWSIotThing_basic(t *testing.T) {
 	rString := acctest.RandString(8)
 	thingName := fmt.Sprintf("tf_acc_thing_%s", rString)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSIotThingDestroy,
@@ -43,7 +43,7 @@ func TestAccAWSIotThing_full(t *testing.T) {
 	thingName := fmt.Sprintf("tf_acc_thing_%s", rString)
 	typeName := fmt.Sprintf("tf_acc_type_%s", rString)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSIotThingDestroy,
@@ -99,7 +99,7 @@ func TestAccAWSIotThing_importBasic(t *testing.T) {
 	rString := acctest.RandString(8)
 	thingName := fmt.Sprintf("tf_acc_thing_%s", rString)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSIotThingTypeDestroy,
@@ -180,7 +180,7 @@ func testAccAWSIotThingConfig_full(thingName, typeName, answer string) string {
 	return fmt.Sprintf(`
 resource "aws_iot_thing" "test" {
   name       = "%s"
-  attributes {
+  attributes = {
   	One = "11111"
   	Two = "TwoTwo"
   	Answer = "%s"

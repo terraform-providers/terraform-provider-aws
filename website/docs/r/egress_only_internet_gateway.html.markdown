@@ -17,8 +17,8 @@ outside of your VPC from initiating an IPv6 connection with your instance.
 
 ```hcl
 resource "aws_vpc" "foo" {
-	cidr_block = "10.1.0.0/16"
-	assign_generated_ipv6_cidr_block = true
+  cidr_block                       = "10.1.0.0/16"
+  assign_generated_ipv6_cidr_block = true
 }
 
 resource "aws_egress_only_internet_gateway" "foo" {
@@ -34,6 +34,6 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the Egress Only Internet Gateway.

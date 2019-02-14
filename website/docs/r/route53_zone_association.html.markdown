@@ -3,12 +3,16 @@ layout: "aws"
 page_title: "AWS: aws_route53_zone_association"
 sidebar_current: "docs-aws-resource-route53-zone-association"
 description: |-
-  Provides a Route53 private Hosted Zone to VPC association resource.
+  Manages a Route53 Hosted Zone VPC association
 ---
 
 # aws_route53_zone_association
 
-Provides a Route53 private Hosted Zone to VPC association resource.
+Manages a Route53 Hosted Zone VPC association. VPC associations can only be made on private zones.
+
+~> **NOTE:** Unless explicit association ordering is required (e.g. a separate cross-account association authorization), usage of this resource is not recommended. Use the `vpc` configuration blocks available within the [`aws_route53_zone` resource](/docs/providers/aws/r/route53_zone.html) instead.
+
+~> **NOTE:** Terraform provides both this standalone Zone VPC Association resource and exclusive VPC associations defined in-line in the [`aws_route53_zone` resource](/docs/providers/aws/r/route53_zone.html) via `vpc` configuration blocks. At this time, you cannot use those in-line VPC associations in conjunction with this resource and the same zone ID otherwise it will cause a perpetual difference in plan output. You can optionally use the generic Terraform resource [lifecycle configuration block](/docs/configuration/resources.html#lifecycle) with `ignore_changes` in the `aws_route53_zone` resource to manage additional associations via this resource.
 
 ## Example Usage
 
@@ -26,8 +30,20 @@ resource "aws_vpc" "secondary" {
 }
 
 resource "aws_route53_zone" "example" {
-  name   = "example.com"
-  vpc_id = "${aws_vpc.primary.id}"
+  name = "example.com"
+
+  # NOTE: The aws_route53_zone vpc argument accepts multiple configuration
+  #       blocks. The below usage of the single vpc configuration, the
+  #       lifecycle configuration, and the aws_route53_zone_association
+  #       resource is for illustrative purposes (e.g. for a separate
+  #       cross-account authorization process, which is not shown here).
+  vpc {
+    vpc_id = "${aws_vpc.primary.id}"
+  }
+
+  lifecycle {
+    ignore_changes = ["vpc"]
+  }
 }
 
 resource "aws_route53_zone_association" "secondary" {
@@ -46,7 +62,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The calculated unique identifier for the association.
 * `zone_id` - The ID of the hosted zone for the association.

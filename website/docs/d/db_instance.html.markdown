@@ -26,9 +26,9 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
-* `address` - The address of the RDS instance.
+* `address` - The hostname of the RDS instance. See also `endpoint` and `port`.
 * `allocated_storage` - Specifies the allocated storage size specified in gigabytes.
 * `auto_minor_version_upgrade` - Indicates that minor version patches are applied automatically.
 * `availability_zone` - Specifies the name of the Availability Zone the DB instance is located in.
@@ -41,7 +41,8 @@ The following attributes are exported:
 * `db_security_groups` - Provides List of DB security groups associated to this DB instance.
 * `db_subnet_group` - Specifies the name of the subnet group associated with the DB instance.
 * `db_instance_port` - Specifies the port that the DB instance listens on.
-* `endpoint` - The connection endpoint.
+* `enabled_cloudwatch_logs_exports` - List of log types to export to cloudwatch.
+* `endpoint` - The connection endpoint in `address:port` format.
 * `engine` - Provides the name of the database engine to be used for this DB instance.
 * `engine_version` - Indicates the database engine version.
 * `hosted_zone_id` - The canonical hosted zone ID of the DB instance (to be used in a Route 53 Alias record).

@@ -1,11 +1,11 @@
 package aws
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
 	dms "github.com/aws/aws-sdk-go/service/databasemigrationservice"
-	"reflect"
 )
 
 func TestDmsTagsToMap(t *testing.T) {

@@ -13,11 +13,11 @@ This resource allows you to automatically place messages sent to SNS topics in S
 to a given endpoint, send SMS messages, or notify devices / applications. The most likely use case for Terraform users will
 probably be SQS queues.
 
-~> **NOTE:** If SNS topic and SQS queue are in different AWS regions it is important to place the "aws_sns_topic_subscription" into the terraform configuration of the region with the SQS queue. If "aws_sns_topic_subscription" is placed in the terraform configuration of the region with the SNS topic terraform will fail to create the subscription.
+~> **NOTE:** If the SNS topic and SQS queue are in different AWS regions, it is important for the "aws_sns_topic_subscription" to use an AWS provider that is in the same region of the SNS topic. If the "aws_sns_topic_subscription" is using a provider with a different region than the SNS topic, terraform will fail to create the subscription.
 
 ~> **NOTE:** Setup of cross-account subscriptions from SNS topics to SQS queues requires Terraform to have access to BOTH accounts.
 
-~> **NOTE:** If SNS topic and SQS queue are in different AWS accounts but the same region it is important to place the "aws_sns_topic_subscription" into the terraform configuration of the account with the SQS queue. If "aws_sns_topic_subscription" is placed in the terraform configuration of the account with the SNS topic terraform creates the subscriptions but does not keep state and tries to re-create the subscription at every apply.
+~> **NOTE:** If SNS topic and SQS queue are in different AWS accounts but the same region it is important for the "aws_sns_topic_subscription" to use the AWS provider of the account with the SQS queue. If "aws_sns_topic_subscription" is using a Provider with a different account than the SNS topic, terraform creates the subscriptions but does not keep state and tries to re-create the subscription at every apply.
 
 ~> **NOTE:** If SNS topic and SQS queue are in different AWS accounts and different AWS regions it is important to recognize that the subscription needs to be initiated from the account with the SQS queue but in the region of the SNS topic.
 
@@ -61,20 +61,20 @@ You can subscribe SNS topics to SQS queues in different Amazon accounts and regi
 */
 variable "sns" {
   default = {
-    account-id    = "111111111111"
-    role-name     = "service/service-hashicorp-terraform"
-    name          = "example-sns-topic"
-    display_name  = "example"
-    region        = "us-west-1"
+    account-id   = "111111111111"
+    role-name    = "service/service-hashicorp-terraform"
+    name         = "example-sns-topic"
+    display_name = "example"
+    region       = "us-west-1"
   }
 }
 
 variable "sqs" {
   default = {
-    account-id    = "222222222222"
-    role-name     = "service/service-hashicorp-terraform"
-    name          = "example-sqs-queue"
-    region        = "us-east-1"
+    account-id = "222222222222"
+    role-name  = "service/service-hashicorp-terraform"
+    name       = "example-sqs-queue"
+    region     = "us-east-1"
   }
 }
 
@@ -242,7 +242,8 @@ The following arguments are supported:
 * `endpoint_auto_confirms` - (Optional) Boolean indicating whether the end point is capable of [auto confirming subscription](http://docs.aws.amazon.com/sns/latest/dg/SendMessageToHttp.html#SendMessageToHttp.prepare) e.g., PagerDuty (default is false)
 * `confirmation_timeout_in_minutes` - (Optional) Integer indicating number of minutes to wait in retying mode for fetching subscription arn before marking it as failure. Only applicable for http and https protocols (default is 1 minute).
 * `raw_message_delivery` - (Optional) Boolean indicating whether or not to enable raw message delivery (the original message is directly passed, not wrapped in JSON with the original message in the message property) (default is false).
-* `filter_policy` - (Optional) The text of a filter policy to the topic subscription.
+* `filter_policy` - (Optional) JSON String with the filter policy that will be used in the subscription to filter messages seen by the target resource. Refer to the [SNS docs](https://docs.aws.amazon.com/sns/latest/dg/message-filtering.html) for more details.
+* `delivery_policy` - (Optional) JSON String with the delivery policy (retries, backoff, etc.) that will be used in the subscription - this only applies to HTTP/S subscriptions. Refer to the [SNS docs](https://docs.aws.amazon.com/sns/latest/dg/DeliveryPolicies.html) for more details.
 
 ### Protocols supported
 
@@ -276,7 +277,7 @@ Endpoints have different format requirements according to the protocol that is c
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ARN of the subscription
 * `topic_arn` - The ARN of the topic the subscription belongs to

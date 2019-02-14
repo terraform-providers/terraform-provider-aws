@@ -2,7 +2,9 @@ package aws
 
 import (
 	"fmt"
+	"log"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -13,13 +15,76 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
+func init() {
+	resource.AddTestSweepers("aws_elasticache_security_group", &resource.Sweeper{
+		Name: "aws_elasticache_security_group",
+		F:    testSweepElasticacheCacheSecurityGroups,
+		Dependencies: []string{
+			"aws_elasticache_cluster",
+			"aws_elasticache_replication_group",
+		},
+	})
+}
+
+func testSweepElasticacheCacheSecurityGroups(region string) error {
+	client, err := sharedClientForRegion(region)
+	if err != nil {
+		return fmt.Errorf("error getting client: %s", err)
+	}
+	conn := client.(*AWSClient).elasticacheconn
+
+	prefixes := []string{
+		"tf-",
+		"tf-test-",
+		"tf-acc-test-",
+	}
+
+	err = conn.DescribeCacheSecurityGroupsPages(&elasticache.DescribeCacheSecurityGroupsInput{}, func(page *elasticache.DescribeCacheSecurityGroupsOutput, isLast bool) bool {
+		if len(page.CacheSecurityGroups) == 0 {
+			log.Print("[DEBUG] No Elasticache Cache Security Groups to sweep")
+			return false
+		}
+
+		for _, securityGroup := range page.CacheSecurityGroups {
+			name := aws.StringValue(securityGroup.CacheSecurityGroupName)
+			skip := true
+			for _, prefix := range prefixes {
+				if strings.HasPrefix(name, prefix) {
+					skip = false
+					break
+				}
+			}
+			if skip {
+				log.Printf("[INFO] Skipping Elasticache Cache Security Group: %s", name)
+				continue
+			}
+			log.Printf("[INFO] Deleting Elasticache Cache Security Group: %s", name)
+			_, err := conn.DeleteCacheSecurityGroup(&elasticache.DeleteCacheSecurityGroupInput{
+				CacheSecurityGroupName: aws.String(name),
+			})
+			if err != nil {
+				log.Printf("[ERROR] Failed to delete Elasticache Cache Security Group (%s): %s", name, err)
+			}
+		}
+		return !isLast
+	})
+	if err != nil {
+		if testSweepSkipSweepError(err) {
+			log.Printf("[WARN] Skipping Elasticache Cache Security Group sweep for %s: %s", region, err)
+			return nil
+		}
+		return fmt.Errorf("Error retrieving Elasticache Cache Security Groups: %s", err)
+	}
+	return nil
+}
+
 func TestAccAWSElasticacheSecurityGroup_basic(t *testing.T) {
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSElasticacheSecurityGroupDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: testAccAWSElasticacheSecurityGroupConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSElasticacheSecurityGroupExists("aws_elasticache_security_group.bar"),
@@ -37,16 +102,16 @@ func TestAccAWSElasticacheSecurityGroup_Import(t *testing.T) {
 	os.Setenv("AWS_DEFAULT_REGION", "us-east-1")
 	defer os.Setenv("AWS_DEFAULT_REGION", oldRegion)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSElasticacheSecurityGroupDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: testAccAWSElasticacheSecurityGroupConfig,
 			},
 
-			resource.TestStep{
+			{
 				ResourceName:      "aws_elasticache_security_group.bar",
 				ImportState:       true,
 				ImportStateVerify: true,

@@ -50,6 +50,30 @@ func TestValidateIamGroupName(t *testing.T) {
 	}
 }
 
+func TestAccAWSIAMGroup_importBasic(t *testing.T) {
+	resourceName := "aws_iam_group.group"
+
+	rString := acctest.RandString(8)
+	groupName := fmt.Sprintf("tf-acc-group-import-%s", rString)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSGroupConfig(groupName),
+			},
+
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAWSIAMGroup_basic(t *testing.T) {
 	var conf iam.GetGroupOutput
 
@@ -57,7 +81,7 @@ func TestAccAWSIAMGroup_basic(t *testing.T) {
 	groupName := fmt.Sprintf("tf-acc-group-basic-%s", rString)
 	groupName2 := fmt.Sprintf("tf-acc-group-basic-2-%s", rString)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSGroupDestroy,

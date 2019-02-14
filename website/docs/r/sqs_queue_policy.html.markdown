@@ -49,7 +49,7 @@ POLICY
 The following arguments are supported:
 
 * `queue_url` - (Required) The URL of the SQS Queue to which to attach the policy
-* `policy` - (Required) The JSON policy for the SQS queue
+* `policy` - (Required) The JSON policy for the SQS queue. For more information about building AWS IAM policy documents with Terraform, see the [AWS IAM Policy Document Guide](/docs/providers/aws/guides/iam-policy-documents.html).
 
 ## Import
 

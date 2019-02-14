@@ -13,6 +13,31 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
+func TestAccAWSCodePipeline_Import_basic(t *testing.T) {
+	if os.Getenv("GITHUB_TOKEN") == "" {
+		t.Skip("Environment variable GITHUB_TOKEN is not set")
+	}
+
+	name := acctest.RandString(10)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSCodePipelineDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSCodePipelineConfig_basic(name),
+			},
+
+			{
+				ResourceName:      "aws_codepipeline.bar",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAWSCodePipeline_basic(t *testing.T) {
 	if os.Getenv("GITHUB_TOKEN") == "" {
 		t.Skip("Environment variable GITHUB_TOKEN is not set")
@@ -20,7 +45,7 @@ func TestAccAWSCodePipeline_basic(t *testing.T) {
 
 	name := acctest.RandString(10)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodePipelineDestroy,
@@ -56,7 +81,7 @@ func TestAccAWSCodePipeline_emptyArtifacts(t *testing.T) {
 
 	name := acctest.RandString(10)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodePipelineDestroy,
@@ -90,7 +115,7 @@ func TestAccAWSCodePipeline_deployWithServiceRole(t *testing.T) {
 
 	name := acctest.RandString(10)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodePipelineDestroy,
@@ -127,10 +152,7 @@ func testAccCheckAWSCodePipelineExists(n string) resource.TestCheckFunc {
 			Name: aws.String(rs.Primary.ID),
 		})
 
-		if err != nil {
-			return err
-		}
-		return nil
+		return err
 	}
 }
 
@@ -239,7 +261,7 @@ resource "aws_codepipeline" "bar" {
       version          = "1"
       output_artifacts = ["test"]
 
-      configuration {
+      configuration = {
         Owner  = "lifesum-terraform"
         Repo   = "test"
         Branch = "master"
@@ -258,7 +280,7 @@ resource "aws_codepipeline" "bar" {
       input_artifacts = ["test"]
       version         = "1"
 
-      configuration {
+      configuration = {
         ProjectName = "test"
       }
     }
@@ -351,7 +373,7 @@ resource "aws_codepipeline" "bar" {
       version          = "1"
       output_artifacts = ["bar"]
 
-      configuration {
+      configuration = {
         Owner  = "foo-terraform"
         Repo   = "bar"
         Branch = "stable"
@@ -370,7 +392,7 @@ resource "aws_codepipeline" "bar" {
       input_artifacts = ["bar"]
       version         = "1"
 
-      configuration {
+      configuration = {
         ProjectName = "foo"
       }
     }
@@ -458,7 +480,7 @@ resource "aws_codepipeline" "bar" {
       version          = "1"
       output_artifacts = ["test"]
 
-      configuration {
+      configuration = {
         Owner  = "lifesum-terraform"
         Repo   = "test"
         Branch = "master"
@@ -478,7 +500,7 @@ resource "aws_codepipeline" "bar" {
       output_artifacts = [""]
       version          = "1"
 
-      configuration {
+      configuration = {
         ProjectName = "test"
       }
     }
@@ -624,7 +646,7 @@ resource "aws_codepipeline" "bar" {
       version          = "1"
       output_artifacts = ["bar"]
 
-      configuration {
+      configuration = {
         Owner  = "foo-terraform"
         Repo   = "bar"
         Branch = "stable"
@@ -644,7 +666,7 @@ resource "aws_codepipeline" "bar" {
       output_artifacts = ["baz"]
       version          = "1"
 
-      configuration {
+      configuration = {
         ProjectName = "foo"
       }
     }
@@ -662,13 +684,14 @@ resource "aws_codepipeline" "bar" {
       role_arn        = "${aws_iam_role.codepipeline_action_role.arn}"
       version         = "1"
 
-      configuration {
+      configuration = {
         ActionMode    = "CHANGE_SET_REPLACE"
         ChangeSetName = "changeset"
         StackName     = "stack"
         TemplatePath  = "baz::template.yaml"
       }
     }
-  }}
+  }
+}
 `, rName, rName, rName, rName)
 }

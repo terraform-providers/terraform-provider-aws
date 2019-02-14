@@ -29,8 +29,9 @@ var initRequest func(*request.Request)
 
 // Service information constants
 const (
-	ServiceName = "mediapackage" // Service endpoint prefix API calls made to.
-	EndpointsID = ServiceName    // Service ID for Regions and Endpoints metadata.
+	ServiceName = "mediapackage" // Name of service.
+	EndpointsID = ServiceName    // ID to lookup a service endpoint with.
+	ServiceID   = "MediaPackage" // ServiceID is a unique identifer of a specific service.
 )
 
 // New creates a new instance of the MediaPackage client with a session.
@@ -45,19 +46,20 @@ const (
 //     svc := mediapackage.New(mySession, aws.NewConfig().WithRegion("us-west-2"))
 func New(p client.ConfigProvider, cfgs ...*aws.Config) *MediaPackage {
 	c := p.ClientConfig(EndpointsID, cfgs...)
+	if c.SigningNameDerived || len(c.SigningName) == 0 {
+		c.SigningName = "mediapackage"
+	}
 	return newClient(*c.Config, c.Handlers, c.Endpoint, c.SigningRegion, c.SigningName)
 }
 
 // newClient creates, initializes and returns a new service client instance.
 func newClient(cfg aws.Config, handlers request.Handlers, endpoint, signingRegion, signingName string) *MediaPackage {
-	if len(signingName) == 0 {
-		signingName = "mediapackage"
-	}
 	svc := &MediaPackage{
 		Client: client.New(
 			cfg,
 			metadata.ClientInfo{
 				ServiceName:   ServiceName,
+				ServiceID:     ServiceID,
 				SigningName:   signingName,
 				SigningRegion: signingRegion,
 				Endpoint:      endpoint,

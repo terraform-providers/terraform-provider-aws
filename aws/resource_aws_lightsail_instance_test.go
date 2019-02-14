@@ -18,7 +18,7 @@ func TestAccAWSLightsailInstance_basic(t *testing.T) {
 	var conf lightsail.Instance
 	lightsailName := fmt.Sprintf("tf-test-lightsail-%d", acctest.RandInt())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		IDRefreshName: "aws_lightsail_instance.lightsail_instance_test",
 		Providers:     testAccProviders,
@@ -42,7 +42,7 @@ func TestAccAWSLightsailInstance_euRegion(t *testing.T) {
 	var conf lightsail.Instance
 	lightsailName := fmt.Sprintf("tf-test-lightsail-%d", acctest.RandInt())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		IDRefreshName: "aws_lightsail_instance.lightsail_instance_test",
 		Providers:     testAccProviders,
@@ -83,7 +83,7 @@ func TestAccAWSLightsailInstance_disapear(t *testing.T) {
 		return nil
 	}
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSLightsailInstanceDestroy,

@@ -23,13 +23,13 @@ data "aws_s3_bucket" "selected" {
 }
 
 data "aws_route53_zone" "test_zone" {
-  name         = "test.com."
+  name = "test.com."
 }
 
 resource "aws_route53_record" "example" {
-  zone_id   = "${data.aws_route53_zone.test_zone.id}"
-  name      = "bucket"
-  type      = "A"
+  zone_id = "${data.aws_route53_zone.test_zone.id}"
+  name    = "bucket"
+  type    = "A"
 
   alias {
     name    = "${data.aws_s3_bucket.selected.website_domain}"
@@ -61,7 +61,7 @@ The following arguments are supported:
 
 ## Attribute Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The name of the bucket.
 * `arn` - The ARN of the bucket. Will be of format `arn:aws:s3:::bucketname`.

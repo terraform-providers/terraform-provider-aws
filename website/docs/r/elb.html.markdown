@@ -62,7 +62,7 @@ resource "aws_elb" "bar" {
   connection_draining         = true
   connection_draining_timeout = 400
 
-  tags {
+  tags = {
     Name = "foobar-terraform-elb"
   }
 }
@@ -132,7 +132,7 @@ browser.
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The name of the ELB
 * `arn` - The ARN of the ELB

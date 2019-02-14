@@ -143,8 +143,8 @@ resource "aws_security_group" "instance_sg" {
 
   ingress {
     protocol  = "tcp"
-    from_port = 8080
-    to_port   = 8080
+    from_port = 32768
+    to_port   = 61000
 
     security_groups = [
       "${aws_security_group.lb_sg.id}",
@@ -185,7 +185,7 @@ resource "aws_ecs_service" "test" {
   name            = "tf-example-ecs-ghost"
   cluster         = "${aws_ecs_cluster.main.id}"
   task_definition = "${aws_ecs_task_definition.ghost.arn}"
-  desired_count   = 1
+  desired_count   = "${var.service_desired}"
   iam_role        = "${aws_iam_role.ecs_service.name}"
 
   load_balancer {
@@ -291,7 +291,7 @@ resource "aws_iam_role_policy" "instance" {
 
 resource "aws_alb_target_group" "test" {
   name     = "tf-example-ecs-ghost"
-  port     = 80
+  port     = 8080
   protocol = "HTTP"
   vpc_id   = "${aws_vpc.main.id}"
 }

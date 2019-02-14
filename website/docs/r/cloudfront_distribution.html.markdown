@@ -29,15 +29,19 @@ resource "aws_s3_bucket" "b" {
   bucket = "mybucket"
   acl    = "private"
 
-  tags {
+  tags = {
     Name = "My bucket"
   }
 }
 
+locals {
+  s3_origin_id = "myS3Origin"
+}
+
 resource "aws_cloudfront_distribution" "s3_distribution" {
   origin {
-    domain_name = "${aws_s3_bucket.b.bucket_domain_name}"
-    origin_id   = "myS3Origin"
+    domain_name = "${aws_s3_bucket.b.bucket_regional_domain_name}"
+    origin_id   = "${local.s3_origin_id}"
 
     s3_origin_config {
       origin_access_identity = "origin-access-identity/cloudfront/ABCDEFG1234567"
@@ -60,7 +64,7 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
   default_cache_behavior {
     allowed_methods  = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
     cached_methods   = ["GET", "HEAD"]
-    target_origin_id = "myS3Origin"
+    target_origin_id = "${local.s3_origin_id}"
 
     forwarded_values {
       query_string = false
@@ -76,6 +80,51 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
     max_ttl                = 86400
   }
 
+  # Cache behavior with precedence 0
+  ordered_cache_behavior {
+    path_pattern     = "/content/immutable/*"
+    allowed_methods  = ["GET", "HEAD", "OPTIONS"]
+    cached_methods   = ["GET", "HEAD", "OPTIONS"]
+    target_origin_id = "${local.s3_origin_id}"
+
+    forwarded_values {
+      query_string = false
+      headers      = ["Origin"]
+
+      cookies {
+        forward = "none"
+      }
+    }
+
+    min_ttl                = 0
+    default_ttl            = 86400
+    max_ttl                = 31536000
+    compress               = true
+    viewer_protocol_policy = "redirect-to-https"
+  }
+
+  # Cache behavior with precedence 1
+  ordered_cache_behavior {
+    path_pattern     = "/content/*"
+    allowed_methods  = ["GET", "HEAD", "OPTIONS"]
+    cached_methods   = ["GET", "HEAD"]
+    target_origin_id = "${local.s3_origin_id}"
+
+    forwarded_values {
+      query_string = false
+
+      cookies {
+        forward = "none"
+      }
+    }
+
+    min_ttl                = 0
+    default_ttl            = 3600
+    max_ttl                = 86400
+    compress               = true
+    viewer_protocol_policy = "redirect-to-https"
+  }
+
   price_class = "PriceClass_200"
 
   restrictions {
@@ -85,7 +134,7 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
     }
   }
 
-  tags {
+  tags = {
     Environment = "production"
   }
 
@@ -105,8 +154,11 @@ of several sub-resources - these resources are laid out below.
   * `aliases` (Optional) - Extra CNAMEs (alternate domain names), if any, for
     this distribution.
 
-  * `cache_behavior` (Optional) - A [cache behavior](#cache-behavior-arguments)
-    resource for this distribution (multiples allowed).
+  * `cache_behavior` (Optional) - **Deprecated**, use `ordered_cache_behavior` instead.
+
+  * `ordered_cache_behavior` (Optional) - An ordered list of [cache behaviors](#cache-behavior-arguments)
+    resource for this distribution. List from top to bottom
++    in order of precedence. The topmost cache behavior will have precedence 0.
 
   * `comment` (Optional) - Any comments you want to include about the
     distribution.
@@ -172,6 +224,8 @@ of several sub-resources - these resources are laid out below.
     in the absence of an `Cache-Control max-age` or `Expires` header. Defaults to
     1 day.
 
+  * `field_level_encryption_id` (Optional) - Field level encryption configuration ID
+
   * `forwarded_values` (Required) - The [forwarded values configuration](#forwarded-values-arguments) that specifies how CloudFront
     handles query strings, cookies and headers (maximum one).
 
@@ -229,13 +283,32 @@ of several sub-resources - these resources are laid out below.
 Lambda@Edge allows you to associate an AWS Lambda Function with a predefined
 event. You can associate a single function per event type. See [What is
 Lambda@Edge](http://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/what-is-lambda-at-edge.html)
-for more information
+for more information.
 
-  * `event_type` (Required) - The specific event to trigger this function.
+Example configuration:
+
+```hcl
+resource "aws_cloudfront_distribution" "example" {
+  # ... other configuration ...
+
+  # lambda_function_association is also supported by default_cache_behavior
+  ordered_cache_behavior {
+    # ... other configuration ...
+
+    lambda_function_association {
+      event_type   = "viewer-request"
+      lambda_arn   = "${aws_lambda_function.example.qualified_arn}"
+      include_body = false
+    }
+  }
+}
+```
+
+* `event_type` (Required) - The specific event to trigger this function.
   Valid values: `viewer-request`, `origin-request`, `viewer-response`,
   `origin-response`
-
-  * `lambda_arn` (Required) - ARN of the Lambda function.
+* `lambda_arn` (Required) - ARN of the Lambda function.
+* `include_body` (Optional) - When set to true it exposes the request body to the lambda function. Defaults to false. Valid values: `true`, `false`.
 
 ##### Cookies Arguments
 
@@ -266,7 +339,7 @@ for more information
 #### Default Cache Behavior Arguments
 
 The arguments for `default_cache_behavior` are the same as for
-[`cache_behavior`](#cache-behavior-arguments), except for the `path_pattern`
+[`ordered_cache_behavior`](#cache-behavior-arguments), except for the `path_pattern`
 argument is not required.
 
 #### Logging Config Arguments
@@ -372,7 +445,7 @@ The arguments of `geo_restriction` are:
 
 ## Attribute Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
   * `id` - The identifier for the distribution. For example: `EDFDVBD632BHDS5`.
 
@@ -406,7 +479,7 @@ The following attributes are exported:
 
 
 [1]: http://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/Introduction.html
-[2]: http://docs.aws.amazon.com/AmazonCloudFront/latest/APIReference/CreateDistribution.html
+[2]: https://docs.aws.amazon.com/cloudfront/latest/APIReference/API_CreateDistribution.html
 [3]: http://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-restricting-access-to-s3.html
 [4]: http://www.iso.org/iso/country_codes/iso_3166_code_lists/country_names_and_code_elements.htm
 [5]: /docs/providers/aws/r/cloudfront_origin_access_identity.html

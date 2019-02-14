@@ -23,10 +23,11 @@ resource "aws_sfn_activity" "sfn_activity" {
 The following arguments are supported:
 
 * `name` - (Required) The name of the activity to create.
+* `tags` - (Optional) Key-value mapping of resource tags
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The Amazon Resource Name (ARN) that identifies the created activity.
 * `name` - The name of the activity.

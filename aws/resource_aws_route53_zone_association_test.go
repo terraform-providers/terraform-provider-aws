@@ -15,12 +15,12 @@ import (
 func TestAccAWSRoute53ZoneAssociation_basic(t *testing.T) {
 	var zone route53.HostedZone
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckRoute53ZoneAssociationDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: testAccRoute53ZoneAssociationConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckRoute53ZoneAssociationExists("aws_route53_zone_association.foobar", &zone),
@@ -37,12 +37,12 @@ func TestAccAWSRoute53ZoneAssociation_region(t *testing.T) {
 	// check for the instances in each region
 	var providers []*schema.Provider
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories(&providers),
 		CheckDestroy:      testAccCheckWithProviders(testAccCheckRoute53ZoneAssociationDestroyWithProvider, &providers),
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: testAccRoute53ZoneAssociationRegionConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckRoute53ZoneAssociationExistsWithProvider("aws_route53_zone_association.foobar", &zone,
@@ -126,7 +126,7 @@ resource "aws_vpc" "foo" {
 	cidr_block = "10.6.0.0/16"
 	enable_dns_hostnames = true
 	enable_dns_support = true
-	tags {
+	tags = {
 		Name = "terraform-testacc-route53-zone-association-foo"
 	}
 }
@@ -135,7 +135,7 @@ resource "aws_vpc" "bar" {
 	cidr_block = "10.7.0.0/16"
 	enable_dns_hostnames = true
 	enable_dns_support = true
-	tags {
+	tags = {
 		Name = "terraform-testacc-route53-zone-association-bar"
 	}
 }
@@ -167,7 +167,7 @@ resource "aws_vpc" "foo" {
 	cidr_block = "10.6.0.0/16"
 	enable_dns_hostnames = true
 	enable_dns_support = true
-	tags {
+	tags = {
 		Name = "terraform-testacc-route53-zone-association-region-foo"
 	}
 }
@@ -177,7 +177,7 @@ resource "aws_vpc" "bar" {
 	cidr_block = "10.7.0.0/16"
 	enable_dns_hostnames = true
 	enable_dns_support = true
-	tags {
+	tags = {
 		Name = "terraform-testacc-route53-zone-association-region-bar"
 	}
 }

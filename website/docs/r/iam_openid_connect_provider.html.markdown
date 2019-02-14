@@ -14,11 +14,13 @@ Provides an IAM OpenID Connect provider.
 
 ```hcl
 resource "aws_iam_openid_connect_provider" "default" {
-    url = "https://accounts.google.com"
-    client_id_list = [
-     "266362248691-342342xasdasdasda-apps.googleusercontent.com"
-    ]
-    thumbprint_list = []
+  url = "https://accounts.google.com"
+
+  client_id_list = [
+    "266362248691-342342xasdasdasda-apps.googleusercontent.com",
+  ]
+
+  thumbprint_list = []
 }
 ```
 
@@ -32,7 +34,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `arn` - The ARN assigned by AWS for this provider.
 

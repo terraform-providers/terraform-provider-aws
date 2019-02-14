@@ -14,6 +14,8 @@ For information about Lambda and how to use it, see [What is AWS Lambda?][1]
 
 ## Example Usage
 
+### Basic Example
+
 ```hcl
 resource "aws_iam_role" "iam_for_lambda" {
   name = "iam_for_lambda"
@@ -41,13 +43,69 @@ resource "aws_lambda_function" "test_lambda" {
   role             = "${aws_iam_role.iam_for_lambda.arn}"
   handler          = "exports.test"
   source_code_hash = "${base64sha256(file("lambda_function_payload.zip"))}"
-  runtime          = "nodejs4.3"
+  runtime          = "nodejs8.10"
 
   environment {
     variables = {
       foo = "bar"
     }
   }
+}
+```
+
+### Lambda Layers
+
+~> **NOTE:** The `aws_lambda_layer_version` attribute values for `arn` and `layer_arn` will be swapped in version 2.0.0 of the Terraform AWS Provider. For version 1.x, use `layer_arn` references. For version 2.x, use `arn` references.
+
+```hcl
+resource "aws_lambda_layer_version" "example" {
+  # ... other configuration ...
+}
+
+resource "aws_lambda_function" "example" {
+  # ... other configuration ...
+  layers = ["${aws_lambda_layer_version.example.layer_arn}"]
+}
+```
+
+## CloudWatch Logging and Permissions
+
+For more information about CloudWatch Logs for Lambda, see the [Lambda User Guide](https://docs.aws.amazon.com/lambda/latest/dg/monitoring-functions-logs.html).
+
+```hcl
+# This is to optionally manage the CloudWatch Log Group for the Lambda Function.
+# If skipping this resource configuration, also add "logs:CreateLogGroup" to the IAM policy below.
+resource "aws_cloudwatch_log_group" "example" {
+  name              = "/aws/lambda/${aws_lambda_function.test_lambda.function_name}"
+  retention_in_days = 14
+}
+
+# See also the following AWS managed policy: AWSLambdaBasicExecutionRole
+resource "aws_iam_policy" "lambda_logging" {
+  name = "lambda_logging"
+  path = "/"
+  description = "IAM policy for logging from a lambda"
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": [
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+      ],
+      "Resource": "arn:aws:logs:*:*:*",
+      "Effect": "Allow"
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy_attachment" "lambda_logs" {
+  role = "${aws_iam_role.iam_for_lambda.name}"
+  policy_arn = "${aws_iam_policy.lambda_logging.arn}"
 }
 ```
 
@@ -67,7 +125,7 @@ large files efficiently.
 ## Argument Reference
 
 * `filename` - (Optional) The path to the function's deployment package within the local filesystem. If defined, The `s3_`-prefixed options cannot be used.
-* `s3_bucket` - (Optional) The S3 bucket location containing the function's deployment package. Conflicts with `filename`.
+* `s3_bucket` - (Optional) The S3 bucket location containing the function's deployment package. Conflicts with `filename`. This bucket must reside in the same AWS region where you are creating the Lambda function.
 * `s3_key` - (Optional) The S3 key of an object containing the function's deployment package. Conflicts with `filename`.
 * `s3_object_version` - (Optional) The object version containing the function's deployment package. Conflicts with `filename`.
 * `function_name` - (Required) A unique name for your Lambda Function.
@@ -75,6 +133,7 @@ large files efficiently.
 * `handler` - (Required) The function [entrypoint][3] in your code.
 * `role` - (Required) IAM role attached to the Lambda Function. This governs both who / what can invoke your Lambda Function, as well as what resources our Lambda Function has access to. See [Lambda Permission Model][4] for more details.
 * `description` - (Optional) Description of what your Lambda Function does.
+* `layers` - (Optional) List of Lambda Layer Version ARNs (maximum of 5) to attach to your Lambda Function. See [Lambda Layers][10]
 * `memory_size` - (Optional) Amount of memory in MB your Lambda Function can use at runtime. Defaults to `128`. See [Limits][5]
 * `runtime` - (Required) See [Runtimes][6] for valid values.
 * `timeout` - (Optional) The amount of time your Lambda Function has to run in seconds. Defaults to `3`. See [Limits][5]
@@ -121,8 +180,8 @@ For **environment** the following attributes are supported:
 * `version` - Latest published version of your Lambda Function.
 * `last_modified` - The date this resource was last modified.
 * `kms_key_arn` - (Optional) The ARN for the KMS encryption key.
-* `source_code_hash` - Base64-encoded representation of raw SHA-256 sum of the zip file
-  provided either via `filename` or `s3_*` parameters.
+* `source_code_hash` - Base64-encoded representation of raw SHA-256 sum of the zip file, provided either via `filename` or `s3_*` parameters.
+* `source_code_size` - The size in bytes of the function .zip file.
 
 [1]: https://docs.aws.amazon.com/lambda/latest/dg/welcome.html
 [2]: https://docs.aws.amazon.com/lambda/latest/dg/walkthrough-s3-events-adminuser-create-test-function-create-function.html
@@ -133,6 +192,13 @@ For **environment** the following attributes are supported:
 [7]: http://docs.aws.amazon.com/lambda/latest/dg/vpc.html
 [8]: https://docs.aws.amazon.com/lambda/latest/dg/deployment-package-v2.html
 [9]: https://docs.aws.amazon.com/lambda/latest/dg/concurrent-executions.html
+[10]: https://docs.aws.amazon.com/lambda/latest/dg/configuration-layers.html
+
+## Timeouts
+
+`aws_lambda_function` provides the following [Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+
+* `create` - (Default `10m`) How long to wait for slow uploads or EC2 throttling errors.
 
 ## Import
 

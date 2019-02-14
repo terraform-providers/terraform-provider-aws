@@ -36,7 +36,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `certificate_arn` - The Amazon Resource Name (ARN) for the certificate.
 

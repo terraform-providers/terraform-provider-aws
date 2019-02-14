@@ -59,6 +59,29 @@ resource "aws_iam_role" "r" {
 }
 POLICY
 }
+
+resource "aws_iam_role_policy" "p" {
+  name = "awsconfig-example"
+  role = "${aws_iam_role.r.id}"
+
+  policy = <<POLICY
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": [
+        "s3:*"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+        "${aws_s3_bucket.b.arn}",
+        "${aws_s3_bucket.b.arn}/*"
+      ]
+    }
+  ]
+}
+POLICY
+}
 ```
 
 ## Argument Reference

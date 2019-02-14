@@ -266,6 +266,15 @@ type TestStep struct {
 	// below.
 	PreConfig func()
 
+	// Taint is a list of resource addresses to taint prior to the execution of
+	// the step. Be sure to only include this at a step where the referenced
+	// address will be present in state, as it will fail the test if the resource
+	// is missing.
+	//
+	// This option is ignored on ImportState tests, and currently only works for
+	// resources in the root module path.
+	Taint []string
+
 	//---------------------------------------------------------------
 	// Test modes. One of the following groups of settings must be
 	// set to determine what the test step will do. Ideally we would've
@@ -407,6 +416,17 @@ func LogOutput(t TestT) (logOutput io.Writer, err error) {
 	}
 
 	return
+}
+
+// ParallelTest performs an acceptance test on a resource, allowing concurrency
+// with other ParallelTest.
+//
+// Tests will fail if they do not properly handle conditions to allow multiple
+// tests to occur against the same resource or service (e.g. random naming).
+// All other requirements of the Test function also apply to this function.
+func ParallelTest(t TestT, c TestCase) {
+	t.Parallel()
+	Test(t, c)
 }
 
 // Test performs an acceptance test on a resource.
@@ -1119,6 +1139,7 @@ type TestT interface {
 	Fatal(args ...interface{})
 	Skip(args ...interface{})
 	Name() string
+	Parallel()
 }
 
 // This is set to true by unit tests to alter some behavior

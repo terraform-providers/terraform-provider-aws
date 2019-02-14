@@ -6,7 +6,6 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/waf"
-	"github.com/hashicorp/errwrap"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
@@ -18,12 +17,12 @@ func resourceAwsWafGeoMatchSet() *schema.Resource {
 		Delete: resourceAwsWafGeoMatchSetDelete,
 
 		Schema: map[string]*schema.Schema{
-			"name": &schema.Schema{
+			"name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
-			"geo_match_constraint": &schema.Schema{
+			"geo_match_constraint": {
 				Type:     schema.TypeSet,
 				Optional: true,
 				Elem: &schema.Resource{
@@ -48,7 +47,7 @@ func resourceAwsWafGeoMatchSetCreate(d *schema.ResourceData, meta interface{}) e
 
 	log.Printf("[INFO] Creating GeoMatchSet: %s", d.Get("name").(string))
 
-	wr := newWafRetryer(conn, "global")
+	wr := newWafRetryer(conn)
 	out, err := wr.RetryWithToken(func(token *string) (interface{}, error) {
 		params := &waf.CreateGeoMatchSetInput{
 			ChangeToken: token,
@@ -58,7 +57,7 @@ func resourceAwsWafGeoMatchSetCreate(d *schema.ResourceData, meta interface{}) e
 		return conn.CreateGeoMatchSet(params)
 	})
 	if err != nil {
-		return errwrap.Wrapf("[ERROR] Error creating GeoMatchSet: {{err}}", err)
+		return fmt.Errorf("Error creating GeoMatchSet: %s", err)
 	}
 	resp := out.(*waf.CreateGeoMatchSetOutput)
 
@@ -76,6 +75,8 @@ func resourceAwsWafGeoMatchSetRead(d *schema.ResourceData, meta interface{}) err
 
 	resp, err := conn.GetGeoMatchSet(params)
 	if err != nil {
+		// TODO: Replace with constant once it's available
+		// See https://github.com/aws/aws-sdk-go/issues/1856
 		if isAWSErr(err, "WAFNonexistentItemException", "") {
 			log.Printf("[WARN] WAF GeoMatchSet (%s) not found, removing from state", d.Id())
 			d.SetId("")
@@ -100,7 +101,7 @@ func resourceAwsWafGeoMatchSetUpdate(d *schema.ResourceData, meta interface{}) e
 
 		err := updateGeoMatchSetResource(d.Id(), oldT, newT, conn)
 		if err != nil {
-			return errwrap.Wrapf("[ERROR] Error updating GeoMatchSet: {{err}}", err)
+			return fmt.Errorf("Error updating GeoMatchSet: %s", err)
 		}
 	}
 
@@ -119,7 +120,7 @@ func resourceAwsWafGeoMatchSetDelete(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
-	wr := newWafRetryer(conn, "global")
+	wr := newWafRetryer(conn)
 	_, err := wr.RetryWithToken(func(token *string) (interface{}, error) {
 		req := &waf.DeleteGeoMatchSetInput{
 			ChangeToken:   token,
@@ -129,14 +130,14 @@ func resourceAwsWafGeoMatchSetDelete(d *schema.ResourceData, meta interface{}) e
 		return conn.DeleteGeoMatchSet(req)
 	})
 	if err != nil {
-		return errwrap.Wrapf("[ERROR] Error deleting GeoMatchSet: {{err}}", err)
+		return fmt.Errorf("Error deleting GeoMatchSet: %s", err)
 	}
 
 	return nil
 }
 
 func updateGeoMatchSetResource(id string, oldT, newT []interface{}, conn *waf.WAF) error {
-	wr := newWafRetryer(conn, "global")
+	wr := newWafRetryer(conn)
 	_, err := wr.RetryWithToken(func(token *string) (interface{}, error) {
 		req := &waf.UpdateGeoMatchSetInput{
 			ChangeToken:   token,
@@ -148,53 +149,8 @@ func updateGeoMatchSetResource(id string, oldT, newT []interface{}, conn *waf.WA
 		return conn.UpdateGeoMatchSet(req)
 	})
 	if err != nil {
-		return errwrap.Wrapf("[ERROR] Error updating GeoMatchSet: {{err}}", err)
+		return fmt.Errorf("Error updating GeoMatchSet: %s", err)
 	}
 
 	return nil
-}
-
-func flattenWafGeoMatchConstraint(ts []*waf.GeoMatchConstraint) []interface{} {
-	out := make([]interface{}, len(ts), len(ts))
-	for i, t := range ts {
-		m := make(map[string]interface{})
-		m["type"] = *t.Type
-		m["value"] = *t.Value
-		out[i] = m
-	}
-	return out
-}
-
-func diffWafGeoMatchSetConstraints(oldT, newT []interface{}) []*waf.GeoMatchSetUpdate {
-	updates := make([]*waf.GeoMatchSetUpdate, 0)
-
-	for _, od := range oldT {
-		constraint := od.(map[string]interface{})
-
-		if idx, contains := sliceContainsMap(newT, constraint); contains {
-			newT = append(newT[:idx], newT[idx+1:]...)
-			continue
-		}
-
-		updates = append(updates, &waf.GeoMatchSetUpdate{
-			Action: aws.String(waf.ChangeActionDelete),
-			GeoMatchConstraint: &waf.GeoMatchConstraint{
-				Type:  aws.String(constraint["type"].(string)),
-				Value: aws.String(constraint["value"].(string)),
-			},
-		})
-	}
-
-	for _, nd := range newT {
-		constraint := nd.(map[string]interface{})
-
-		updates = append(updates, &waf.GeoMatchSetUpdate{
-			Action: aws.String(waf.ChangeActionInsert),
-			GeoMatchConstraint: &waf.GeoMatchConstraint{
-				Type:  aws.String(constraint["type"].(string)),
-				Value: aws.String(constraint["value"].(string)),
-			},
-		})
-	}
-	return updates
 }

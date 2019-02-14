@@ -18,9 +18,9 @@ resource "aws_vpc" "example" {
 }
 
 resource "aws_service_discovery_private_dns_namespace" "example" {
-  name = "hoge.example.local"
+  name        = "hoge.example.local"
   description = "example"
-  vpc = "${aws_vpc.example.id}"
+  vpc         = "${aws_vpc.example.id}"
 }
 ```
 
@@ -34,7 +34,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of a namespace.
 * `arn` - The ARN that Amazon Route 53 assigns to the namespace when you create it.

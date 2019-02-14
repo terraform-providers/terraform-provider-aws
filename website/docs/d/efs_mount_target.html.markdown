@@ -14,7 +14,7 @@ Provides information about an Elastic File System Mount Target (EFS).
 
 ```hcl
 variable "mount_target_id" {
-  type = "string"
+  type    = "string"
   default = ""
 }
 
@@ -31,8 +31,9 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
+* `file_system_arn` - Amazon Resource Name of the file system for which the mount target is intended.
 * `file_system_id` - ID of the file system for which the mount target is intended.
 * `subnet_id` - ID of the mount target's subnet.
 * `ip_address` - Address at which the file system may be mounted via the mount target.

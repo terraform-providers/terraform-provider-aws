@@ -1,7 +1,7 @@
 ---
 layout: "aws"
 page_title: "AWS: aws_network_interface"
-sidebar_current: "docs-aws-datasource-network-interface"
+sidebar_current: "docs-aws-datasource-network-interface-x"
 description: |-  
   Get information on a Network Interface resource.
 ---
@@ -33,11 +33,19 @@ Additionally, the following attributes are exported:
 
 * `association` - The association information for an Elastic IP address (IPv4) associated with the network interface. See supported fields below.
 * `availability_zone` - The Availability Zone.
+* `description` - Description of the network interface.
 * `interface_type` - The type of interface.
 * `ipv6_addresses` - List of IPv6 addresses to assign to the ENI.
 * `mac_address` - The MAC address.
 * `owner_id` - The AWS account ID of the owner of the network interface.
+* `private_dns_name` - The private DNS name.
+* `private_ip` - The private IPv4 address of the network interface within the subnet.
+* `private_ips` - The private IPv4 addresses associated with the network interface.
 * `requester_id` - The ID of the entity that launched the instance on your behalf.
+* `security_groups` - The list of security groups for the network interface.
+* `subnet_id` - The ID of the subnet.
+* `tags` - Any tags assigned to the network interface.
+* `vpc_id` - The ID of the VPC.
 
 ### `association`
 

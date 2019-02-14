@@ -19,7 +19,7 @@ resource "aws_opsworks_stack" "main" {
   service_role_arn             = "${aws_iam_role.opsworks.arn}"
   default_instance_profile_arn = "${aws_iam_instance_profile.opsworks.arn}"
 
-  tags {
+  tags = {
     Name = "foobar-terraform-stack"
   }
 
@@ -79,7 +79,7 @@ The `custom_cookbooks_source` block supports the following arguments:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The id of the stack.
 

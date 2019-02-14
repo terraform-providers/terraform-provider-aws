@@ -15,7 +15,7 @@ import (
 
 func TestAccAWSSSMActivation_basic(t *testing.T) {
 	name := acctest.RandString(10)
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSSMActivationDestroy,
@@ -37,14 +37,14 @@ func TestAccAWSSSMActivation_expirationDate(t *testing.T) {
 	expirationDateS := expirationTime.Format(time.RFC3339)
 	resourceName := "aws_ssm_activation.foo"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSSMActivationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccAWSSSMActivationConfig_expirationDate(rName, "2018-03-01"),
-				ExpectError: regexp.MustCompile(`cannot parse`),
+				ExpectError: regexp.MustCompile(`invalid RFC3339 timestamp`),
 			},
 			{
 				Config: testAccAWSSSMActivationConfig_expirationDate(rName, expirationDateS),
@@ -150,7 +150,7 @@ resource "aws_iam_role_policy_attachment" "test_attach" {
 }
 
 resource "aws_ssm_activation" "foo" {
-  name               = "test_ssm_activation-%s",
+  name               = "test_ssm_activation-%s"
   description        = "Test"
   iam_role           = "${aws_iam_role.test_role.name}"
   registration_limit = "5"
@@ -185,7 +185,7 @@ resource "aws_iam_role_policy_attachment" "test_attach" {
 }
 
 resource "aws_ssm_activation" "foo" {
-  name               = "test_ssm_activation-%[1]s",
+  name               = "test_ssm_activation-%[1]s"
   description        = "Test"
   expiration_date    = "%[2]s"
   iam_role           = "${aws_iam_role.test_role.name}"

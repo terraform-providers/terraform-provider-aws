@@ -18,18 +18,25 @@ import (
 
 func TestAccAWSElasticTranscoderPipeline_basic(t *testing.T) {
 	pipeline := &elastictranscoder.Pipeline{}
+	resourceName := "aws_elastictranscoder_pipeline.bar"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		IDRefreshName: "aws_elastictranscoder_pipeline.bar",
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckElasticTranscoderPipelineDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: awsElasticTranscoderPipelineConfigBasic,
+				Config: awsElasticTranscoderPipelineConfigBasic(rName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSElasticTranscoderPipelineExists("aws_elastictranscoder_pipeline.bar", pipeline),
+					testAccCheckAWSElasticTranscoderPipelineExists(resourceName, pipeline),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -39,9 +46,9 @@ func TestAccAWSElasticTranscoderPipeline_kmsKey(t *testing.T) {
 	pipeline := &elastictranscoder.Pipeline{}
 	ri := acctest.RandInt()
 	config := fmt.Sprintf(awsElasticTranscoderPipelineConfigKmsKey, ri, ri, ri)
-	keyRegex := regexp.MustCompile("^arn:aws:([a-zA-Z0-9\\-])+:([a-z]{2}-[a-z]+-\\d{1})?:(\\d{12})?:(.*)$")
+	keyRegex := regexp.MustCompile(`^arn:aws:([a-zA-Z0-9\-])+:([a-z]{2}-[a-z]+-\d{1})?:(\d{12})?:(.*)$`)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		IDRefreshName: "aws_elastictranscoder_pipeline.bar",
 		Providers:     testAccProviders,
@@ -63,7 +70,7 @@ func TestAccAWSElasticTranscoderPipeline_notifications(t *testing.T) {
 
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		IDRefreshName: "aws_elastictranscoder_pipeline.bar",
 		Providers:     testAccProviders,
@@ -78,7 +85,7 @@ func TestAccAWSElasticTranscoderPipeline_notifications(t *testing.T) {
 			},
 
 			// update and check that we have 1 less notification
-			resource.TestStep{
+			{
 				Config: awsElasticTranscoderNotifications_update(rInt),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSElasticTranscoderPipelineExists("aws_elastictranscoder_pipeline.bar", &pipeline),
@@ -128,7 +135,7 @@ func TestAccAWSElasticTranscoderPipeline_withContentConfig(t *testing.T) {
 
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		IDRefreshName: "aws_elastictranscoder_pipeline.bar",
 		Providers:     testAccProviders,
@@ -155,7 +162,7 @@ func TestAccAWSElasticTranscoderPipeline_withPermissions(t *testing.T) {
 
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		IDRefreshName: "aws_elastictranscoder_pipeline.baz",
 		Providers:     testAccProviders,
@@ -229,16 +236,17 @@ func testAccCheckElasticTranscoderPipelineDestroy(s *terraform.State) error {
 	return nil
 }
 
-const awsElasticTranscoderPipelineConfigBasic = `
+func awsElasticTranscoderPipelineConfigBasic(rName string) string {
+	return fmt.Sprintf(`
 resource "aws_elastictranscoder_pipeline" "bar" {
   input_bucket  = "${aws_s3_bucket.test_bucket.bucket}"
   output_bucket = "${aws_s3_bucket.test_bucket.bucket}"
-  name          = "aws_elastictranscoder_pipeline_tf_test_"
+  name          = %[1]q
   role          = "${aws_iam_role.test_role.arn}"
 }
 
 resource "aws_iam_role" "test_role" {
-  name = "aws_elastictranscoder_pipeline_tf_test_role_"
+  name = %[1]q
 
   assume_role_policy = <<EOF
 {
@@ -258,10 +266,11 @@ EOF
 }
 
 resource "aws_s3_bucket" "test_bucket" {
-  bucket = "aws-elasticencoder-pipeline-tf-test-bucket"
+  bucket = %[1]q
   acl    = "private"
 }
-`
+`, rName)
+}
 
 const awsElasticTranscoderPipelineConfigKmsKey = `
 resource "aws_kms_key" "foo" {
@@ -439,7 +448,7 @@ resource "aws_elastictranscoder_pipeline" "baz" {
     storage_class = "Standard"
   }
 
-  content_config_permissions = {
+  content_config_permissions {
     grantee_type = "Group"
     grantee      = "AuthenticatedUsers"
     access       = ["FullControl"]
@@ -450,7 +459,7 @@ resource "aws_elastictranscoder_pipeline" "baz" {
     storage_class = "Standard"
   }
 
-  thumbnail_config_permissions = {
+  thumbnail_config_permissions {
     grantee_type = "Group"
     grantee      = "AuthenticatedUsers"
     access       = ["FullControl"]

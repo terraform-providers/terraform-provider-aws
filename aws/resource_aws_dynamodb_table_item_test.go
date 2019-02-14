@@ -24,7 +24,7 @@ func TestAccAWSDynamoDbTableItem_basic(t *testing.T) {
 	"four": {"N": "44444"}
 }`
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSDynamoDbItemDestroy,
@@ -58,7 +58,7 @@ func TestAccAWSDynamoDbTableItem_rangeKey(t *testing.T) {
 	"four": {"N": "44444"}
 }`
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSDynamoDbItemDestroy,
@@ -101,7 +101,7 @@ func TestAccAWSDynamoDbTableItem_withMultipleItems(t *testing.T) {
 	"four": {"S": "four"}
 }`
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSDynamoDbItemDestroy,
@@ -148,7 +148,7 @@ func TestAccAWSDynamoDbTableItem_update(t *testing.T) {
 	"new": {"S": "shiny new one"}
 }`
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSDynamoDbItemDestroy,
@@ -169,6 +169,55 @@ func TestAccAWSDynamoDbTableItem_update(t *testing.T) {
 					testAccCheckAWSDynamoDbTableItemExists("aws_dynamodb_table_item.test", &conf),
 					testAccCheckAWSDynamoDbTableItemCount(tableName, 1),
 					resource.TestCheckResourceAttr("aws_dynamodb_table_item.test", "hash_key", hashKey),
+					resource.TestCheckResourceAttr("aws_dynamodb_table_item.test", "table_name", tableName),
+					resource.TestCheckResourceAttr("aws_dynamodb_table_item.test", "item", itemAfter+"\n"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSDynamoDbTableItem_updateWithRangeKey(t *testing.T) {
+	var conf dynamodb.GetItemOutput
+
+	tableName := fmt.Sprintf("tf-acc-test-%s", acctest.RandString(8))
+	hashKey := "hashKey"
+	rangeKey := "rangeKey"
+
+	itemBefore := `{
+	"hashKey": {"S": "before"},
+	"rangeKey": {"S": "rangeBefore"},
+	"value": {"S": "valueBefore"}
+}`
+	itemAfter := `{
+	"hashKey": {"S": "before"},
+	"rangeKey": {"S": "rangeAfter"},
+	"value": {"S": "valueAfter"}
+}`
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSDynamoDbItemDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSDynamoDbItemConfigWithRangeKey(tableName, hashKey, rangeKey, itemBefore),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSDynamoDbTableItemExists("aws_dynamodb_table_item.test", &conf),
+					testAccCheckAWSDynamoDbTableItemCount(tableName, 1),
+					resource.TestCheckResourceAttr("aws_dynamodb_table_item.test", "hash_key", hashKey),
+					resource.TestCheckResourceAttr("aws_dynamodb_table_item.test", "range_key", rangeKey),
+					resource.TestCheckResourceAttr("aws_dynamodb_table_item.test", "table_name", tableName),
+					resource.TestCheckResourceAttr("aws_dynamodb_table_item.test", "item", itemBefore+"\n"),
+				),
+			},
+			{
+				Config: testAccAWSDynamoDbItemConfigWithRangeKey(tableName, hashKey, rangeKey, itemAfter),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSDynamoDbTableItemExists("aws_dynamodb_table_item.test", &conf),
+					testAccCheckAWSDynamoDbTableItemCount(tableName, 1),
+					resource.TestCheckResourceAttr("aws_dynamodb_table_item.test", "hash_key", hashKey),
+					resource.TestCheckResourceAttr("aws_dynamodb_table_item.test", "range_key", rangeKey),
 					resource.TestCheckResourceAttr("aws_dynamodb_table_item.test", "table_name", tableName),
 					resource.TestCheckResourceAttr("aws_dynamodb_table_item.test", "item", itemAfter+"\n"),
 				),
@@ -241,7 +290,7 @@ func testAccCheckAWSDynamoDbTableItemExists(n string, item *dynamodb.GetItemOutp
 			ExpressionAttributeNames: buildDynamoDbExpressionAttributeNames(attributes),
 		})
 		if err != nil {
-			return fmt.Errorf("[ERROR] Problem getting table item '%s': %s", rs.Primary.ID, err)
+			return fmt.Errorf("Problem getting table item '%s': %s", rs.Primary.ID, err)
 		}
 
 		*item = *result

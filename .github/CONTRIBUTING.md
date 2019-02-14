@@ -237,6 +237,13 @@ existing resources, but you still get to implement something completely new.
    covering their behavior. See [Writing Acceptance
    Tests](#writing-acceptance-tests) below for a detailed guide on how to
    approach these.
+ - [ ] __Naming__: Resources should be named `aws_<service>_<name>` where 
+   `service` is the AWS short service name and `name` is a short, preferably
+   single word, description of the resource. Use `_` as a separator.
+   resources. We therefore encourage you to only submit **1 resource at a time**.
+ - [ ] __Arguments_and_Attributes__: The HCL for arguments and attributes should
+   mimic the types and structs presented by the AWS API. API arguments should be
+   converted from `CamelCase` to `camel_case`.
  - [ ] __Documentation__: Each resource gets a page in the Terraform
    documentation. The [Terraform website][website] source is in this
    repo and includes instructions for getting a local copy of the site up and
@@ -389,7 +396,7 @@ ok  	github.com/terraform-providers/terraform-provider-aws/aws	55.619s
 
 Terraform has a framework for writing acceptance tests which minimises the
 amount of boilerplate code necessary to use common testing patterns. The entry
-point to the framework is the `resource.Test()` function.
+point to the framework is the `resource.ParallelTest()` function.
 
 Tests are divided into `TestStep`s. Each `TestStep` proceeds by applying some
 Terraform configuration using the provider under test, and then verifying that
@@ -403,14 +410,14 @@ to a single resource. Most tests follow a similar structure.
    to running acceptance tests. This is common to all tests exercising a single
    provider.
 
-Each `TestStep` is defined in the call to `resource.Test()`. Most assertion
+Each `TestStep` is defined in the call to `resource.ParallelTest()`. Most assertion
 functions are defined out of band with the tests. This keeps the tests
 readable, and allows reuse of assertion functions across different tests of the
 same type of resource. The definition of a complete test looks like this:
 
 ```go
 func TestAccAzureRMPublicIpStatic_update(t *testing.T) {
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,

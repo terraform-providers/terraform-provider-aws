@@ -3,7 +3,9 @@ package aws
 import (
 	"fmt"
 	"log"
+	"regexp"
 	"testing"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -20,6 +22,7 @@ func init() {
 			"aws_internet_gateway",
 			"aws_nat_gateway",
 			"aws_network_acl",
+			"aws_route_table",
 			"aws_security_group",
 			"aws_subnet",
 			"aws_vpn_gateway",
@@ -41,12 +44,17 @@ func testSweepVPCs(region string) error {
 				Name: aws.String("tag-value"),
 				Values: []*string{
 					aws.String("terraform-testacc-*"),
+					aws.String("tf-acc-test-*"),
 				},
 			},
 		},
 	}
 	resp, err := conn.DescribeVpcs(req)
 	if err != nil {
+		if testSweepSkipSweepError(err) {
+			log.Printf("[WARN] Skipping EC2 VPC sweep for %s: %s", region, err)
+			return nil
+		}
 		return fmt.Errorf("Error describing vpcs: %s", err)
 	}
 
@@ -56,14 +64,25 @@ func testSweepVPCs(region string) error {
 	}
 
 	for _, vpc := range resp.Vpcs {
-		// delete the vpc
-		_, err := conn.DeleteVpc(&ec2.DeleteVpcInput{
+		input := &ec2.DeleteVpcInput{
 			VpcId: vpc.VpcId,
+		}
+		log.Printf("[DEBUG] Deleting VPC: %s", input)
+
+		// Handle EC2 eventual consistency
+		err := resource.Retry(1*time.Minute, func() *resource.RetryError {
+			_, err := conn.DeleteVpc(input)
+			if isAWSErr(err, "DependencyViolation", "") {
+				return resource.RetryableError(err)
+			}
+			if err != nil {
+				return resource.NonRetryableError(err)
+			}
+			return nil
 		})
+
 		if err != nil {
-			return fmt.Errorf(
-				"Error deleting VPC (%s): %s",
-				*vpc.VpcId, err)
+			return fmt.Errorf("Error deleting VPC (%s): %s", aws.StringValue(vpc.VpcId), err)
 		}
 	}
 
@@ -72,8 +91,9 @@ func testSweepVPCs(region string) error {
 
 func TestAccAWSVpc_basic(t *testing.T) {
 	var vpc ec2.Vpc
+	resourceName := "aws_vpc.test"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckVpcDestroy,
@@ -81,77 +101,86 @@ func TestAccAWSVpc_basic(t *testing.T) {
 			{
 				Config: testAccVpcConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckVpcExists("aws_vpc.foo", &vpc),
+					testAccCheckVpcExists(resourceName, &vpc),
 					testAccCheckVpcCidr(&vpc, "10.1.0.0/16"),
-					resource.TestCheckResourceAttr(
-						"aws_vpc.foo", "cidr_block", "10.1.0.0/16"),
-					resource.TestCheckResourceAttrSet(
-						"aws_vpc.foo", "default_route_table_id"),
-					resource.TestCheckResourceAttr(
-						"aws_vpc.foo", "enable_dns_support", "true"),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "ec2", regexp.MustCompile(`vpc/vpc-.+`)),
+					resource.TestCheckResourceAttr(resourceName, "assign_generated_ipv6_cidr_block", "false"),
+					resource.TestMatchResourceAttr(resourceName, "default_route_table_id", regexp.MustCompile(`^rtb-.+`)),
+					resource.TestCheckResourceAttr(resourceName, "cidr_block", "10.1.0.0/16"),
+					resource.TestCheckResourceAttr(resourceName, "enable_dns_support", "true"),
+					resource.TestCheckResourceAttr(resourceName, "instance_tenancy", "default"),
+					resource.TestCheckResourceAttr(resourceName, "ipv6_association_id", ""),
+					resource.TestCheckResourceAttr(resourceName, "ipv6_cidr_block", ""),
+					resource.TestMatchResourceAttr(resourceName, "main_route_table_id", regexp.MustCompile(`^rtb-.+`)),
+					testAccCheckResourceAttrAccountID(resourceName, "owner_id"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
 }
 
-func TestAccAWSVpc_enableIpv6(t *testing.T) {
+func TestAccAWSVpc_AssignGeneratedIpv6CidrBlock(t *testing.T) {
 	var vpc ec2.Vpc
+	resourceName := "aws_vpc.test"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckVpcDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccVpcConfigIpv6Enabled,
+				Config: testAccVpcConfigAssignGeneratedIpv6CidrBlock(true),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckVpcExists("aws_vpc.foo", &vpc),
+					testAccCheckVpcExists(resourceName, &vpc),
 					testAccCheckVpcCidr(&vpc, "10.1.0.0/16"),
-					resource.TestCheckResourceAttr(
-						"aws_vpc.foo", "cidr_block", "10.1.0.0/16"),
-					resource.TestCheckResourceAttrSet(
-						"aws_vpc.foo", "ipv6_association_id"),
-					resource.TestCheckResourceAttrSet(
-						"aws_vpc.foo", "ipv6_cidr_block"),
-					resource.TestCheckResourceAttr(
-						"aws_vpc.foo", "assign_generated_ipv6_cidr_block", "true"),
+					resource.TestCheckResourceAttr(resourceName, "assign_generated_ipv6_cidr_block", "true"),
+					resource.TestCheckResourceAttr(resourceName, "cidr_block", "10.1.0.0/16"),
+					resource.TestMatchResourceAttr(resourceName, "ipv6_association_id", regexp.MustCompile(`^vpc-cidr-assoc-.+`)),
+					resource.TestMatchResourceAttr(resourceName, "ipv6_cidr_block", regexp.MustCompile(`/56$`)),
 				),
 			},
 			{
-				Config: testAccVpcConfigIpv6Disabled,
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccVpcConfigAssignGeneratedIpv6CidrBlock(false),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckVpcExists("aws_vpc.foo", &vpc),
+					testAccCheckVpcExists(resourceName, &vpc),
 					testAccCheckVpcCidr(&vpc, "10.1.0.0/16"),
-					resource.TestCheckResourceAttr(
-						"aws_vpc.foo", "cidr_block", "10.1.0.0/16"),
-					resource.TestCheckResourceAttr(
-						"aws_vpc.foo", "assign_generated_ipv6_cidr_block", "false"),
+					resource.TestCheckResourceAttr(resourceName, "assign_generated_ipv6_cidr_block", "false"),
+					resource.TestCheckResourceAttr(resourceName, "cidr_block", "10.1.0.0/16"),
+					resource.TestCheckResourceAttr(resourceName, "ipv6_association_id", ""),
+					resource.TestCheckResourceAttr(resourceName, "ipv6_cidr_block", ""),
 				),
 			},
 			{
-				Config: testAccVpcConfigIpv6Enabled,
+				Config: testAccVpcConfigAssignGeneratedIpv6CidrBlock(true),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckVpcExists("aws_vpc.foo", &vpc),
+					testAccCheckVpcExists(resourceName, &vpc),
 					testAccCheckVpcCidr(&vpc, "10.1.0.0/16"),
-					resource.TestCheckResourceAttr(
-						"aws_vpc.foo", "cidr_block", "10.1.0.0/16"),
-					resource.TestCheckResourceAttrSet(
-						"aws_vpc.foo", "ipv6_association_id"),
-					resource.TestCheckResourceAttrSet(
-						"aws_vpc.foo", "ipv6_cidr_block"),
-					resource.TestCheckResourceAttr(
-						"aws_vpc.foo", "assign_generated_ipv6_cidr_block", "true"),
+					resource.TestCheckResourceAttr(resourceName, "assign_generated_ipv6_cidr_block", "true"),
+					resource.TestCheckResourceAttr(resourceName, "cidr_block", "10.1.0.0/16"),
+					resource.TestMatchResourceAttr(resourceName, "ipv6_association_id", regexp.MustCompile(`^vpc-cidr-assoc-.+`)),
+					resource.TestMatchResourceAttr(resourceName, "ipv6_cidr_block", regexp.MustCompile(`/56$`)),
 				),
 			},
 		},
 	})
 }
 
-func TestAccAWSVpc_dedicatedTenancy(t *testing.T) {
-	var vpc ec2.Vpc
+func TestAccAWSVpc_Tenancy(t *testing.T) {
+	var vpcDedicated ec2.Vpc
+	var vpcDefault ec2.Vpc
+	resourceName := "aws_vpc.test"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckVpcDestroy,
@@ -159,9 +188,29 @@ func TestAccAWSVpc_dedicatedTenancy(t *testing.T) {
 			{
 				Config: testAccVpcDedicatedConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckVpcExists("aws_vpc.bar", &vpc),
-					resource.TestCheckResourceAttr(
-						"aws_vpc.bar", "instance_tenancy", "dedicated"),
+					testAccCheckVpcExists(resourceName, &vpcDedicated),
+					resource.TestCheckResourceAttr(resourceName, "instance_tenancy", "dedicated"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccVpcConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckVpcExists(resourceName, &vpcDefault),
+					resource.TestCheckResourceAttr(resourceName, "instance_tenancy", "default"),
+					testAccCheckVpcIdsEqual(&vpcDedicated, &vpcDefault),
+				),
+			},
+			{
+				Config: testAccVpcDedicatedConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckVpcExists(resourceName, &vpcDedicated),
+					resource.TestCheckResourceAttr(resourceName, "instance_tenancy", "dedicated"),
+					testAccCheckVpcIdsNotEqual(&vpcDedicated, &vpcDefault),
 				),
 			},
 		},
@@ -170,8 +219,9 @@ func TestAccAWSVpc_dedicatedTenancy(t *testing.T) {
 
 func TestAccAWSVpc_tags(t *testing.T) {
 	var vpc ec2.Vpc
+	resourceName := "aws_vpc.test"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckVpcDestroy,
@@ -179,18 +229,21 @@ func TestAccAWSVpc_tags(t *testing.T) {
 			{
 				Config: testAccVpcConfigTags,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckVpcExists("aws_vpc.foo", &vpc),
+					testAccCheckVpcExists(resourceName, &vpc),
 					testAccCheckVpcCidr(&vpc, "10.1.0.0/16"),
-					resource.TestCheckResourceAttr(
-						"aws_vpc.foo", "cidr_block", "10.1.0.0/16"),
+					resource.TestCheckResourceAttr(resourceName, "cidr_block", "10.1.0.0/16"),
 					testAccCheckTags(&vpc.Tags, "foo", "bar"),
 				),
 			},
-
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 			{
 				Config: testAccVpcConfigTagsUpdate,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckVpcExists("aws_vpc.foo", &vpc),
+					testAccCheckVpcExists(resourceName, &vpc),
 					testAccCheckTags(&vpc.Tags, "foo", ""),
 					testAccCheckTags(&vpc.Tags, "bar", "baz"),
 				),
@@ -201,8 +254,9 @@ func TestAccAWSVpc_tags(t *testing.T) {
 
 func TestAccAWSVpc_update(t *testing.T) {
 	var vpc ec2.Vpc
+	resourceName := "aws_vpc.test"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckVpcDestroy,
@@ -210,18 +264,16 @@ func TestAccAWSVpc_update(t *testing.T) {
 			{
 				Config: testAccVpcConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckVpcExists("aws_vpc.foo", &vpc),
+					testAccCheckVpcExists(resourceName, &vpc),
 					testAccCheckVpcCidr(&vpc, "10.1.0.0/16"),
-					resource.TestCheckResourceAttr(
-						"aws_vpc.foo", "cidr_block", "10.1.0.0/16"),
+					resource.TestCheckResourceAttr(resourceName, "cidr_block", "10.1.0.0/16"),
 				),
 			},
 			{
 				Config: testAccVpcConfigUpdate,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckVpcExists("aws_vpc.foo", &vpc),
-					resource.TestCheckResourceAttr(
-						"aws_vpc.foo", "enable_dns_hostnames", "true"),
+					testAccCheckVpcExists(resourceName, &vpc),
+					resource.TestCheckResourceAttr(resourceName, "enable_dns_hostnames", "true"),
 				),
 			},
 		},
@@ -264,9 +316,28 @@ func testAccCheckVpcDestroy(s *terraform.State) error {
 
 func testAccCheckVpcCidr(vpc *ec2.Vpc, expected string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		CIDRBlock := vpc.CidrBlock
-		if *CIDRBlock != expected {
-			return fmt.Errorf("Bad cidr: %s", *vpc.CidrBlock)
+		if aws.StringValue(vpc.CidrBlock) != expected {
+			return fmt.Errorf("Bad cidr: %s", aws.StringValue(vpc.CidrBlock))
+		}
+
+		return nil
+	}
+}
+
+func testAccCheckVpcIdsEqual(vpc1, vpc2 *ec2.Vpc) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		if aws.StringValue(vpc1.VpcId) != aws.StringValue(vpc2.VpcId) {
+			return fmt.Errorf("VPC IDs not equal")
+		}
+
+		return nil
+	}
+}
+
+func testAccCheckVpcIdsNotEqual(vpc1, vpc2 *ec2.Vpc) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		if aws.StringValue(vpc1.VpcId) == aws.StringValue(vpc2.VpcId) {
+			return fmt.Errorf("VPC IDs are equal")
 		}
 
 		return nil
@@ -292,7 +363,7 @@ func testAccCheckVpcExists(n string, vpc *ec2.Vpc) resource.TestCheckFunc {
 		if err != nil {
 			return err
 		}
-		if len(resp.Vpcs) == 0 {
+		if len(resp.Vpcs) == 0 || resp.Vpcs[0] == nil {
 			return fmt.Errorf("VPC not found")
 		}
 
@@ -304,7 +375,10 @@ func testAccCheckVpcExists(n string, vpc *ec2.Vpc) resource.TestCheckFunc {
 
 // https://github.com/hashicorp/terraform/issues/1301
 func TestAccAWSVpc_bothDnsOptionsSet(t *testing.T) {
-	resource.Test(t, resource.TestCase{
+	var vpc ec2.Vpc
+	resourceName := "aws_vpc.test"
+
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckVpcDestroy,
@@ -312,11 +386,15 @@ func TestAccAWSVpc_bothDnsOptionsSet(t *testing.T) {
 			{
 				Config: testAccVpcConfig_BothDnsOptions,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(
-						"aws_vpc.bar", "enable_dns_hostnames", "true"),
-					resource.TestCheckResourceAttr(
-						"aws_vpc.bar", "enable_dns_support", "true"),
+					testAccCheckVpcExists(resourceName, &vpc),
+					resource.TestCheckResourceAttr(resourceName, "enable_dns_hostnames", "true"),
+					resource.TestCheckResourceAttr(resourceName, "enable_dns_support", "true"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -324,7 +402,10 @@ func TestAccAWSVpc_bothDnsOptionsSet(t *testing.T) {
 
 // https://github.com/hashicorp/terraform/issues/10168
 func TestAccAWSVpc_DisabledDnsSupport(t *testing.T) {
-	resource.Test(t, resource.TestCase{
+	var vpc ec2.Vpc
+	resourceName := "aws_vpc.test"
+
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckVpcDestroy,
@@ -332,16 +413,24 @@ func TestAccAWSVpc_DisabledDnsSupport(t *testing.T) {
 			{
 				Config: testAccVpcConfig_DisabledDnsSupport,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(
-						"aws_vpc.bar", "enable_dns_support", "false"),
+					testAccCheckVpcExists(resourceName, &vpc),
+					resource.TestCheckResourceAttr(resourceName, "enable_dns_support", "false"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
 }
 
 func TestAccAWSVpc_classiclinkOptionSet(t *testing.T) {
-	resource.Test(t, resource.TestCase{
+	var vpc ec2.Vpc
+	resourceName := "aws_vpc.test"
+
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckVpcDestroy,
@@ -349,16 +438,24 @@ func TestAccAWSVpc_classiclinkOptionSet(t *testing.T) {
 			{
 				Config: testAccVpcConfig_ClassiclinkOption,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(
-						"aws_vpc.bar", "enable_classiclink", "true"),
+					testAccCheckVpcExists(resourceName, &vpc),
+					resource.TestCheckResourceAttr(resourceName, "enable_classiclink", "true"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
 }
 
 func TestAccAWSVpc_classiclinkDnsSupportOptionSet(t *testing.T) {
-	resource.Test(t, resource.TestCase{
+	var vpc ec2.Vpc
+	resourceName := "aws_vpc.test"
+
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckVpcDestroy,
@@ -366,57 +463,56 @@ func TestAccAWSVpc_classiclinkDnsSupportOptionSet(t *testing.T) {
 			{
 				Config: testAccVpcConfig_ClassiclinkDnsSupportOption,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(
-						"aws_vpc.bar", "enable_classiclink_dns_support", "true"),
+					testAccCheckVpcExists(resourceName, &vpc),
+					resource.TestCheckResourceAttr(resourceName, "enable_classiclink_dns_support", "true"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
 }
 
 const testAccVpcConfig = `
-resource "aws_vpc" "foo" {
+resource "aws_vpc" "test" {
 	cidr_block = "10.1.0.0/16"
-	tags {
+	tags = {
 		Name = "terraform-testacc-vpc"
 	}
 }
 `
 
-const testAccVpcConfigIpv6Enabled = `
-resource "aws_vpc" "foo" {
-	cidr_block = "10.1.0.0/16"
-	assign_generated_ipv6_cidr_block = true
-	tags {
-		Name = "terraform-testacc-vpc-ipv6"
-	}
-}
-`
+func testAccVpcConfigAssignGeneratedIpv6CidrBlock(assignGeneratedIpv6CidrBlock bool) string {
+	return fmt.Sprintf(`
+resource "aws_vpc" "test" {
+  assign_generated_ipv6_cidr_block = %t
+  cidr_block                       = "10.1.0.0/16"
 
-const testAccVpcConfigIpv6Disabled = `
-resource "aws_vpc" "foo" {
-	cidr_block = "10.1.0.0/16"
-	tags {
-		Name = "terraform-testacc-vpc-ipv6"
-	}
+  tags = {
+    Name = "terraform-testacc-vpc-ipv6"
+  }
 }
-`
+`, assignGeneratedIpv6CidrBlock)
+}
 
 const testAccVpcConfigUpdate = `
-resource "aws_vpc" "foo" {
+resource "aws_vpc" "test" {
 	cidr_block = "10.1.0.0/16"
 	enable_dns_hostnames = true
-	tags {
+	tags = {
 		Name = "terraform-testacc-vpc"
 	}
 }
 `
 
 const testAccVpcConfigTags = `
-resource "aws_vpc" "foo" {
+resource "aws_vpc" "test" {
 	cidr_block = "10.1.0.0/16"
 
-	tags {
+	tags = {
 		foo = "bar"
 		Name = "terraform-testacc-vpc-tags"
 	}
@@ -424,66 +520,62 @@ resource "aws_vpc" "foo" {
 `
 
 const testAccVpcConfigTagsUpdate = `
-resource "aws_vpc" "foo" {
+resource "aws_vpc" "test" {
 	cidr_block = "10.1.0.0/16"
 
-	tags {
+	tags = {
 		bar = "baz"
 		Name = "terraform-testacc-vpc-tags"
 	}
 }
 `
 const testAccVpcDedicatedConfig = `
-resource "aws_vpc" "bar" {
+resource "aws_vpc" "test" {
 	instance_tenancy = "dedicated"
-	cidr_block = "10.2.0.0/16"
-	tags {
+	cidr_block = "10.1.0.0/16"
+	tags = {
 		Name = "terraform-testacc-vpc-dedicated"
 	}
 }
 `
 
 const testAccVpcConfig_BothDnsOptions = `
-provider "aws" {
-	region = "eu-central-1"
-}
-
-resource "aws_vpc" "bar" {
+resource "aws_vpc" "test" {
 	cidr_block = "10.2.0.0/16"
 	enable_dns_hostnames = true
 	enable_dns_support = true
-	tags {
+	tags = {
 		Name = "terraform-testacc-vpc-both-dns-opts"
 	}
 }
 `
 
 const testAccVpcConfig_DisabledDnsSupport = `
-resource "aws_vpc" "bar" {
+resource "aws_vpc" "test" {
 	cidr_block = "10.2.0.0/16"
 	enable_dns_support = false
-	tags {
+	tags = {
 		Name = "terraform-testacc-vpc-disabled-dns-support"
 	}
 }
 `
 
 const testAccVpcConfig_ClassiclinkOption = `
-resource "aws_vpc" "bar" {
+resource "aws_vpc" "test" {
 	cidr_block = "172.2.0.0/16"
 	enable_classiclink = true
-	tags {
+	tags = {
 		Name = "terraform-testacc-vpc-classic-link"
 	}
 }
 `
 
 const testAccVpcConfig_ClassiclinkDnsSupportOption = `
-resource "aws_vpc" "bar" {
+resource "aws_vpc" "test" {
 	cidr_block = "172.2.0.0/16"
 	enable_classiclink = true
 	enable_classiclink_dns_support = true
-	tags {
+	tags = {
 		Name = "terraform-testacc-vpc-classic-link-support"
 	}
 }

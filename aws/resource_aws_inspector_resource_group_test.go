@@ -9,20 +9,20 @@ import (
 )
 
 func TestAccAWSInspectorResourceGroup_basic(t *testing.T) {
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: testAccAWSInspectorResourceGroup,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSInspectorResourceGroupExists("aws_inspector_resource_group.foo"),
 				),
 			},
-			resource.TestStep{
+			{
 				Config: testAccCheckAWSInspectorResourceGroupModified,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSInspectorTargetExists("aws_inspector_resource_group.foo"),
+					testAccCheckAWSInspectorResourceGroupExists("aws_inspector_resource_group.foo"),
 				),
 			},
 		},
@@ -42,14 +42,14 @@ func testAccCheckAWSInspectorResourceGroupExists(name string) resource.TestCheck
 
 var testAccAWSInspectorResourceGroup = `
 resource "aws_inspector_resource_group" "foo" {
-	tags {
+	tags = {
 	  Name  = "foo"
   }
 }`
 
 var testAccCheckAWSInspectorResourceGroupModified = `
 resource "aws_inspector_resource_group" "foo" {
-	tags {
+	tags = {
 	  Name  = "bar"
   }
 }`

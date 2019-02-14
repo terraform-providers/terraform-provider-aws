@@ -15,7 +15,7 @@ func TestAccAWSAutoscalingAttachment_elb(t *testing.T) {
 
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -57,7 +57,7 @@ func TestAccAWSAutoscalingAttachment_albTargetGroup(t *testing.T) {
 
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -136,7 +136,7 @@ func testAccCheckAWSAutocalingAlbAttachmentExists(asgname string, targetGroupCou
 		})
 
 		if err != nil {
-			return fmt.Errorf("Recieved an error when attempting to load %s:  %s", asg, err)
+			return fmt.Errorf("Received an error when attempting to load %s:  %s", asg, err)
 		}
 
 		if targetGroupCount != len(actual.AutoScalingGroups[0].TargetGroupARNs) {
@@ -173,7 +173,7 @@ resource "aws_lb_target_group" "test" {
     matcher = "200-299"
   }
 
-  tags {
+  tags = {
     TestName = "TestAccAWSLBTargetGroup_basic"
   }
 }
@@ -202,7 +202,7 @@ resource "aws_lb_target_group" "another_test" {
     matcher = "200-299"
   }
 
-  tags {
+  tags = {
     TestName = "TestAccAWSLBTargetGroup_basic"
   }
 }
@@ -233,7 +233,7 @@ resource "aws_launch_configuration" "as_conf" {
 resource "aws_vpc" "test" {
   cidr_block = "10.0.0.0/16"
 
-  tags {
+  tags = {
     Name = "terraform-testacc-autoscaling-attachment-alb"
   }
 }

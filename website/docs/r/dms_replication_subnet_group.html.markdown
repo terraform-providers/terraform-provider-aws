@@ -21,6 +21,10 @@ resource "aws_dms_replication_subnet_group" "test" {
   subnet_ids = [
     "subnet-12345678",
   ]
+
+  tags = {
+    Name = "test"
+  }
 }
 ```
 
@@ -35,10 +39,11 @@ The following arguments are supported:
     - Must not be "default".
 
 * `subnet_ids` - (Required) A list of the EC2 subnet IDs for the subnet group.
+* `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `vpc_id` - The ID of the VPC the subnet group is in.
 

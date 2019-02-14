@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/elasticache"
 	"github.com/hashicorp/terraform/helper/schema"
 )
@@ -205,17 +206,20 @@ func dataSourceAwsElastiCacheClusterRead(d *schema.ResourceData, meta interface{
 	if cluster.ConfigurationEndpoint != nil {
 		d.Set("port", cluster.ConfigurationEndpoint.Port)
 		d.Set("configuration_endpoint", aws.String(fmt.Sprintf("%s:%d", *cluster.ConfigurationEndpoint.Address, *cluster.ConfigurationEndpoint.Port)))
-		d.Set("cluster_address", aws.String(fmt.Sprintf("%s", *cluster.ConfigurationEndpoint.Address)))
+		d.Set("cluster_address", aws.String(*cluster.ConfigurationEndpoint.Address))
 	}
 
 	if err := setCacheNodeData(d, cluster); err != nil {
 		return err
 	}
 
-	arn, err := buildECARN(d.Id(), meta.(*AWSClient).partition, meta.(*AWSClient).accountid, meta.(*AWSClient).region)
-	if err != nil {
-		log.Printf("[DEBUG] Error building ARN for ElastiCache Cluster %s", *cluster.CacheClusterId)
-	}
+	arn := arn.ARN{
+		Partition: meta.(*AWSClient).partition,
+		Service:   "elasticache",
+		Region:    meta.(*AWSClient).region,
+		AccountID: meta.(*AWSClient).accountid,
+		Resource:  fmt.Sprintf("cluster:%s", d.Id()),
+	}.String()
 	d.Set("arn", arn)
 
 	tagResp, err := conn.ListTagsForResource(&elasticache.ListTagsForResourceInput{

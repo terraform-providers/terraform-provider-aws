@@ -19,7 +19,7 @@ func resourceAwsSesReceiptRuleSet() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"rule_set_name": &schema.Schema{
+			"rule_set_name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
@@ -73,11 +73,7 @@ func resourceAwsSesReceiptRuleSetDelete(d *schema.ResourceData, meta interface{}
 		RuleSetName: aws.String(d.Id()),
 	})
 
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
 
 func findRuleSet(name string, token *string, meta interface{}) (bool, error) {

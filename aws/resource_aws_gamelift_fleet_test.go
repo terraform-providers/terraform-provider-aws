@@ -34,7 +34,7 @@ func testSweepGameliftFleets(region string) error {
 	}
 	conn := client.(*AWSClient).gameliftconn
 
-	return testAccGameliftListFleets(conn, nil, func(fleetIds []*string) error {
+	return testAccGameliftListFleets(conn, nil, region, func(fleetIds []*string) error {
 		if len(fleetIds) == 0 {
 			log.Print("[DEBUG] No Gamelift Fleets to sweep")
 			return nil
@@ -83,11 +83,15 @@ func testSweepGameliftFleets(region string) error {
 	})
 }
 
-func testAccGameliftListFleets(conn *gamelift.GameLift, nextToken *string, f func([]*string) error) error {
+func testAccGameliftListFleets(conn *gamelift.GameLift, nextToken *string, region string, f func([]*string) error) error {
 	resp, err := conn.ListFleets(&gamelift.ListFleetsInput{
 		NextToken: nextToken,
 	})
 	if err != nil {
+		if testSweepSkipSweepError(err) {
+			log.Printf("[WARN] Skipping Gamelift Fleet sweep for %s: %s", region, err)
+			return nil
+		}
 		return fmt.Errorf("Error listing Gamelift Fleets: %s", err)
 	}
 
@@ -96,7 +100,7 @@ func testAccGameliftListFleets(conn *gamelift.GameLift, nextToken *string, f fun
 		return err
 	}
 	if nextToken != nil {
-		return testAccGameliftListFleets(conn, nextToken, f)
+		return testAccGameliftListFleets(conn, nextToken, region, f)
 	}
 	return nil
 }
@@ -259,7 +263,7 @@ func TestAccAWSGameliftFleet_basic(t *testing.T) {
 	launchPath := g.LaunchPath
 	params := g.Parameters(33435)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSGameliftFleetDestroy,
@@ -336,7 +340,7 @@ func TestAccAWSGameliftFleet_allFields(t *testing.T) {
 		g.Parameters(33436),
 	}
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSGameliftFleetDestroy,

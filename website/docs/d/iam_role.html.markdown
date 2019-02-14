@@ -30,4 +30,5 @@ data "aws_iam_role" "example" {
 * `arn` - The Amazon Resource Name (ARN) specifying the role.
 * `assume_role_policy` - The policy document associated with the role.
 * `path` - The path to the role.
+* `permissions_boundary` - The ARN of the policy that is used to set the permissions boundary for the role.
 * `unique_id` - The stable and unique string identifying the role.

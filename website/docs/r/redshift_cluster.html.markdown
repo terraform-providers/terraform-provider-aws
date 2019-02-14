@@ -2,6 +2,8 @@
 layout: "aws"
 page_title: "AWS: aws_redshift_cluster"
 sidebar_current: "docs-aws-resource-redshift-cluster"
+description: |-
+  Provides a Redshift Cluster resource.
 ---
 
 # aws_redshift_cluster
@@ -88,7 +90,7 @@ For more information on the permissions required for the bucket, please read the
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The Redshift Cluster ID.
 * `cluster_identifier` - The Cluster Identifier
@@ -102,6 +104,7 @@ The following attributes are exported:
 * `encrypted` - Whether the data in the cluster is encrypted
 * `cluster_security_groups` - The security groups associated with the cluster
 * `vpc_security_group_ids` - The VPC security group Ids associated with the cluster
+* `dns_name` - The DNS name of the cluster
 * `port` - The Port the cluster responds on
 * `cluster_version` - The version of Redshift engine software
 * `cluster_parameter_group_name` - The name of the parameter group to be associated with this cluster

@@ -15,21 +15,21 @@ import (
 func TestAccAWSInspectorTemplate_basic(t *testing.T) {
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSInspectorTemplateDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: testAccAWSInspectorTemplateAssessment(rInt),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSInspectorTemplateExists("aws_inspector_assessment_template.foo"),
 				),
 			},
-			resource.TestStep{
+			{
 				Config: testAccCheckAWSInspectorTemplatetModified(rInt),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSInspectorTargetExists("aws_inspector_assessment_template.foo"),
+					testAccCheckAWSInspectorTemplateExists("aws_inspector_assessment_template.foo"),
 				),
 			},
 		},
@@ -80,7 +80,7 @@ func testAccCheckAWSInspectorTemplateExists(name string) resource.TestCheckFunc 
 func testAccAWSInspectorTemplateAssessment(rInt int) string {
 	return fmt.Sprintf(`
 resource "aws_inspector_resource_group" "foo" {
-	tags {
+	tags = {
 	  Name  = "tf-acc-test-%d"
   }
 }
@@ -107,7 +107,7 @@ resource "aws_inspector_assessment_template" "foo" {
 func testAccCheckAWSInspectorTemplatetModified(rInt int) string {
 	return fmt.Sprintf(`
 resource "aws_inspector_resource_group" "foo" {
-	tags {
+	tags = {
 	  Name  = "tf-acc-test-%d"
   }
 }

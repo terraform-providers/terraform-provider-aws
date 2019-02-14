@@ -56,7 +56,7 @@ whose data will be exported as attributes.
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the selected prefix list.
 

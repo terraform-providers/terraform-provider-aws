@@ -34,7 +34,7 @@ resource "aws_cognito_identity_pool" "main" {
     server_side_token_check = false
   }
 
-  supported_login_providers {
+  supported_login_providers = {
     "graph.facebook.com"  = "7346241598935552"
     "accounts.google.com" = "123456789012.apps.googleusercontent.com"
   }
@@ -68,6 +68,7 @@ backend and the Cognito service to communicate about the developer provider.
 In addition to the arguments, which are exported, the following attributes are exported:
 
 * `id` - An identity pool ID in the format REGION:GUID.
+* `arn` - The ARN of the identity pool.
 
 ## Import
 

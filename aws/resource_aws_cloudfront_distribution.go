@@ -8,7 +8,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/cloudfront"
-	"github.com/hashicorp/errwrap"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -36,9 +35,11 @@ func resourceAwsCloudFrontDistribution() *schema.Resource {
 				Set:      aliasesHash,
 			},
 			"cache_behavior": {
-				Type:     schema.TypeSet,
-				Optional: true,
-				Set:      cacheBehaviorHash,
+				Type:          schema.TypeSet,
+				Optional:      true,
+				Set:           cacheBehaviorHash,
+				ConflictsWith: []string{"ordered_cache_behavior"},
+				Deprecated:    "Use `ordered_cache_behavior` instead",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"allowed_methods": {
@@ -60,6 +61,10 @@ func resourceAwsCloudFrontDistribution() *schema.Resource {
 							Type:     schema.TypeInt,
 							Optional: true,
 							Default:  86400,
+						},
+						"field_level_encryption_id": {
+							Type:     schema.TypeString,
+							Optional: true,
 						},
 						"forwarded_values": {
 							Type:     schema.TypeSet,
@@ -117,6 +122,141 @@ func resourceAwsCloudFrontDistribution() *schema.Resource {
 									"lambda_arn": {
 										Type:     schema.TypeString,
 										Required: true,
+									},
+									"include_body": {
+										Type:     schema.TypeBool,
+										Optional: true,
+										Default:  false,
+									},
+								},
+							},
+							Set: lambdaFunctionAssociationHash,
+						},
+						"max_ttl": {
+							Type:     schema.TypeInt,
+							Optional: true,
+							Default:  31536000,
+						},
+						"min_ttl": {
+							Type:     schema.TypeInt,
+							Optional: true,
+							Default:  0,
+						},
+						"path_pattern": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"smooth_streaming": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"target_origin_id": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"trusted_signers": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
+						"viewer_protocol_policy": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+					},
+				},
+			},
+			"ordered_cache_behavior": {
+				Type:          schema.TypeList,
+				Optional:      true,
+				ConflictsWith: []string{"cache_behavior"},
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"allowed_methods": {
+							Type:     schema.TypeSet,
+							Required: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
+						"cached_methods": {
+							Type:     schema.TypeSet,
+							Required: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
+						"compress": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+						"default_ttl": {
+							Type:     schema.TypeInt,
+							Optional: true,
+							Default:  86400,
+						},
+						"field_level_encryption_id": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"forwarded_values": {
+							Type:     schema.TypeSet,
+							Required: true,
+							Set:      forwardedValuesHash,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"cookies": {
+										Type:     schema.TypeSet,
+										Required: true,
+										Set:      cookiePreferenceHash,
+										MaxItems: 1,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"forward": {
+													Type:     schema.TypeString,
+													Required: true,
+												},
+												"whitelisted_names": {
+													Type:     schema.TypeList,
+													Optional: true,
+													Elem:     &schema.Schema{Type: schema.TypeString},
+												},
+											},
+										},
+									},
+									"headers": {
+										Type:     schema.TypeList,
+										Optional: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+									},
+									"query_string": {
+										Type:     schema.TypeBool,
+										Required: true,
+									},
+									"query_string_cache_keys": {
+										Type:     schema.TypeList,
+										Optional: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+									},
+								},
+							},
+						},
+						"lambda_function_association": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							MaxItems: 4,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"event_type": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+									"lambda_arn": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+									"include_body": {
+										Type:     schema.TypeBool,
+										Optional: true,
+										Default:  false,
 									},
 								},
 							},
@@ -212,6 +352,10 @@ func resourceAwsCloudFrontDistribution() *schema.Resource {
 							Optional: true,
 							Default:  86400,
 						},
+						"field_level_encryption_id": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
 						"forwarded_values": {
 							Type:     schema.TypeSet,
 							Required: true,
@@ -268,6 +412,11 @@ func resourceAwsCloudFrontDistribution() *schema.Resource {
 									"lambda_arn": {
 										Type:     schema.TypeString,
 										Required: true,
+									},
+									"include_body": {
+										Type:     schema.TypeBool,
+										Optional: true,
+										Default:  false,
 									},
 								},
 							},
@@ -567,10 +716,25 @@ func resourceAwsCloudFrontDistributionCreate(d *schema.ResourceData, meta interf
 		},
 	}
 
-	resp, err := conn.CreateDistributionWithTags(params)
+	var resp *cloudfront.CreateDistributionWithTagsOutput
+	// Handle eventual consistency issues
+	err := resource.Retry(1*time.Minute, func() *resource.RetryError {
+		var err error
+		resp, err = conn.CreateDistributionWithTags(params)
+		if err != nil {
+			// ACM and IAM certificate eventual consistency
+			// InvalidViewerCertificate: The specified SSL certificate doesn't exist, isn't in us-east-1 region, isn't valid, or doesn't include a valid certificate chain.
+			if isAWSErr(err, cloudfront.ErrCodeInvalidViewerCertificate, "") {
+				return resource.RetryableError(err)
+			}
+			return resource.NonRetryableError(err)
+		}
+		return nil
+	})
 	if err != nil {
-		return err
+		return fmt.Errorf("error creating CloudFront Distribution: %s", err)
 	}
+
 	d.SetId(*resp.Distribution.Id)
 	return resourceAwsCloudFrontDistributionRead(d, meta)
 }
@@ -598,7 +762,6 @@ func resourceAwsCloudFrontDistributionRead(d *schema.ResourceData, meta interfac
 		return err
 	}
 	// Update other attributes outside of DistributionConfig
-	d.SetId(*resp.Distribution.Id)
 	err = d.Set("active_trusted_signers", flattenActiveTrustedSigners(resp.Distribution.ActiveTrustedSigners))
 	if err != nil {
 		return err
@@ -615,9 +778,9 @@ func resourceAwsCloudFrontDistributionRead(d *schema.ResourceData, meta interfac
 	})
 
 	if err != nil {
-		return errwrap.Wrapf(fmt.Sprintf(
-			"Error retrieving EC2 tags for CloudFront Distribution %q (ARN: %q): {{err}}",
-			d.Id(), d.Get("arn").(string)), err)
+		return fmt.Errorf(
+			"Error retrieving EC2 tags for CloudFront Distribution %q (ARN: %q): %s",
+			d.Id(), d.Get("arn").(string), err)
 	}
 
 	if err := d.Set("tags", tagsToMapCloudFront(tagResp.Tags)); err != nil {
@@ -634,9 +797,22 @@ func resourceAwsCloudFrontDistributionUpdate(d *schema.ResourceData, meta interf
 		DistributionConfig: expandDistributionConfig(d),
 		IfMatch:            aws.String(d.Get("etag").(string)),
 	}
-	_, err := conn.UpdateDistribution(params)
+
+	// Handle eventual consistency issues
+	err := resource.Retry(1*time.Minute, func() *resource.RetryError {
+		_, err := conn.UpdateDistribution(params)
+		if err != nil {
+			// ACM and IAM certificate eventual consistency
+			// InvalidViewerCertificate: The specified SSL certificate doesn't exist, isn't in us-east-1 region, isn't valid, or doesn't include a valid certificate chain.
+			if isAWSErr(err, cloudfront.ErrCodeInvalidViewerCertificate, "") {
+				return resource.RetryableError(err)
+			}
+			return resource.NonRetryableError(err)
+		}
+		return nil
+	})
 	if err != nil {
-		return err
+		return fmt.Errorf("error updating CloudFront Distribution (%s): %s", d.Id(), err)
 	}
 
 	if err := setTagsCloudFront(conn, d, d.Get("arn").(string)); err != nil {
@@ -659,7 +835,6 @@ func resourceAwsCloudFrontDistributionDelete(d *schema.ResourceData, meta interf
 	// skip delete if retain_on_delete is enabled
 	if d.Get("retain_on_delete").(bool) {
 		log.Printf("[WARN] Removing CloudFront Distribution ID %q with `retain_on_delete` set. Please delete this distribution manually.", d.Id())
-		d.SetId("")
 		return nil
 	}
 
@@ -690,8 +865,6 @@ func resourceAwsCloudFrontDistributionDelete(d *schema.ResourceData, meta interf
 		return fmt.Errorf("CloudFront Distribution %s cannot be deleted: %s", d.Id(), err)
 	}
 
-	// Done
-	d.SetId("")
 	return nil
 }
 

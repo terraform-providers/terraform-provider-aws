@@ -17,7 +17,7 @@ import (
 
 func TestAccAWSOpsworksRailsAppLayer(t *testing.T) {
 	stackName := fmt.Sprintf("tf-%d", acctest.RandInt())
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsOpsworksRailsAppLayerDestroy,

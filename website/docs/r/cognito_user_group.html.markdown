@@ -1,7 +1,7 @@
 ---
 layout: "aws"
 page_title: "AWS: aws_cognito_user_group"
-side_bar_current: "docs-aws-resource-cognito-user-group"
+sidebar_current: "docs-aws-resource-cognito-user-group"
 description: |-
   Provides a Cognito User Group resource.
 ---
@@ -19,6 +19,7 @@ resource "aws_cognito_user_pool" "main" {
 
 resource "aws_iam_role" "group_role" {
   name = "user-group-role"
+
   assume_role_policy = <<EOF
 {
   "Version": "2012-10-17",

@@ -15,10 +15,12 @@ Provides a WAF Regional Byte Match Set Resource for use with Application Load Ba
 ```hcl
 resource "aws_wafregional_byte_match_set" "byte_set" {
   name = "tf_waf_byte_match_set"
-  byte_match_tuple {
-    text_transformation = "NONE"
-    target_string = "badrefer1"
+
+  byte_match_tuples {
+    text_transformation   = "NONE"
+    target_string         = "badrefer1"
     positional_constraint = "CONTAINS"
+
     field_to_match {
       type = "HEADER"
       data = "referer"
@@ -32,9 +34,11 @@ resource "aws_wafregional_byte_match_set" "byte_set" {
 The following arguments are supported:
 
 * `name` - (Required) The name or description of the ByteMatchSet.
-* `byte_match_tuple` - (Optional)Settings for the ByteMatchSet, such as the bytes (typically a string that corresponds with ASCII characters) that you want AWS WAF to search for in web requests. ByteMatchTuple documented below.
+* `byte_match_tuple` - **Deprecated**, use `byte_match_tuples` instead.
+* `byte_match_tuples` - (Optional)Settings for the ByteMatchSet, such as the bytes (typically a string that corresponds with ASCII characters) that you want AWS WAF to search for in web requests. ByteMatchTuple documented below.
 
-ByteMatchTuple(byte_match_tuple) support the following:
+
+ByteMatchTuples(byte_match_tuples) support the following:
 
 * `field_to_match` - (Required) Settings for the ByteMatchTuple. FieldToMatch documented below.
 * `positional_constraint` - (Required) Within the portion of a web request that you want to search.
@@ -50,6 +54,6 @@ FieldToMatch(field_to_match) support following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the WAF ByteMatchSet.

@@ -29,7 +29,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `image` - The docker image in use, including the digest
 * `image_digest` - The digest of the docker image in use

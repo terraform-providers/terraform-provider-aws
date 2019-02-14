@@ -9,10 +9,10 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
-	"github.com/hashicorp/errwrap"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/structure"
+	"github.com/hashicorp/terraform/helper/validation"
 )
 
 func resourceAwsCloudFormationStack() *schema.Resource {
@@ -87,7 +87,7 @@ func resourceAwsCloudFormationStack() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validateJsonString,
+				ValidateFunc: validation.ValidateJsonString,
 				StateFunc: func(v interface{}) string {
 					json, _ := structure.NormalizeJsonString(v)
 					return json
@@ -123,7 +123,7 @@ func resourceAwsCloudFormationStackCreate(d *schema.ResourceData, meta interface
 	if v, ok := d.GetOk("template_body"); ok {
 		template, err := normalizeCloudFormationTemplate(v)
 		if err != nil {
-			return errwrap.Wrapf("template body contains an invalid JSON or YAML: {{err}}", err)
+			return fmt.Errorf("template body contains an invalid JSON or YAML: %s", err)
 		}
 		input.TemplateBody = aws.String(template)
 	}
@@ -148,7 +148,7 @@ func resourceAwsCloudFormationStackCreate(d *schema.ResourceData, meta interface
 	if v, ok := d.GetOk("policy_body"); ok {
 		policy, err := structure.NormalizeJsonString(v)
 		if err != nil {
-			return errwrap.Wrapf("policy body contains an invalid JSON: {{err}}", err)
+			return fmt.Errorf("policy body contains an invalid JSON: %s", err)
 		}
 		input.StackPolicyBody = aws.String(policy)
 	}
@@ -300,7 +300,7 @@ func resourceAwsCloudFormationStackRead(d *schema.ResourceData, meta interface{}
 
 	template, err := normalizeCloudFormationTemplate(*out.TemplateBody)
 	if err != nil {
-		return errwrap.Wrapf("template body contains an invalid JSON or YAML: {{err}}", err)
+		return fmt.Errorf("template body contains an invalid JSON or YAML: %s", err)
 	}
 	d.Set("template_body", template)
 
@@ -308,7 +308,6 @@ func resourceAwsCloudFormationStackRead(d *schema.ResourceData, meta interface{}
 	log.Printf("[DEBUG] Received CloudFormation stack: %s", stack)
 
 	d.Set("name", stack.StackName)
-	d.Set("arn", stack.StackId)
 	d.Set("iam_role_arn", stack.RoleARN)
 
 	if stack.TimeoutInMinutes != nil {
@@ -367,7 +366,7 @@ func resourceAwsCloudFormationStackUpdate(d *schema.ResourceData, meta interface
 	if v, ok := d.GetOk("template_body"); ok && input.TemplateURL == nil {
 		template, err := normalizeCloudFormationTemplate(v)
 		if err != nil {
-			return errwrap.Wrapf("template body contains an invalid JSON or YAML: {{err}}", err)
+			return fmt.Errorf("template body contains an invalid JSON or YAML: %s", err)
 		}
 		input.TemplateBody = aws.String(template)
 	}
@@ -393,7 +392,7 @@ func resourceAwsCloudFormationStackUpdate(d *schema.ResourceData, meta interface
 	if d.HasChange("policy_body") {
 		policy, err := structure.NormalizeJsonString(d.Get("policy_body"))
 		if err != nil {
-			return errwrap.Wrapf("policy body contains an invalid JSON: {{err}}", err)
+			return fmt.Errorf("policy body contains an invalid JSON: %s", err)
 		}
 		input.StackPolicyBody = aws.String(policy)
 	}
@@ -559,8 +558,6 @@ func resourceAwsCloudFormationStackDelete(d *schema.ResourceData, meta interface
 	}
 
 	log.Printf("[DEBUG] CloudFormation stack %q has been deleted", d.Id())
-
-	d.SetId("")
 
 	return nil
 }

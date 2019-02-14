@@ -111,11 +111,11 @@ func resourceAwsDxLagRead(d *schema.ResourceData, meta interface{}) error {
 		return nil
 	}
 	if len(resp.Lags) != 1 {
-		return fmt.Errorf("[ERROR] Number of Direct Connect LAGs (%s) isn't one, got %d", d.Id(), len(resp.Lags))
+		return fmt.Errorf("Number of Direct Connect LAGs (%s) isn't one, got %d", d.Id(), len(resp.Lags))
 	}
 	lag := resp.Lags[0]
 	if d.Id() != aws.StringValue(lag.LagId) {
-		return fmt.Errorf("[ERROR] Direct Connect LAG (%s) not found", d.Id())
+		return fmt.Errorf("Direct Connect LAG (%s) not found", d.Id())
 	}
 
 	if aws.StringValue(lag.LagState) == directconnect.LagStateDeleted {
@@ -136,11 +136,8 @@ func resourceAwsDxLagRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("connections_bandwidth", lag.ConnectionsBandwidth)
 	d.Set("location", lag.Location)
 
-	if err := getTagsDX(conn, d, arn); err != nil {
-		return err
-	}
-
-	return nil
+	err1 := getTagsDX(conn, d, arn)
+	return err1
 }
 
 func resourceAwsDxLagUpdate(d *schema.ResourceData, meta interface{}) error {

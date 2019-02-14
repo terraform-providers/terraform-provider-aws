@@ -14,13 +14,15 @@ Provides a Load Balancer resource.
 
 ## Example Usage
 
+### Application Load Balancer
+
 ```hcl
-# Create a new application load balancer
 resource "aws_lb" "test" {
-  name            = "test-lb-tf"
-  internal        = false
-  security_groups = ["${aws_security_group.lb_sg.id}"]
-  subnets         = ["${aws_subnet.public.*.id}"]
+  name               = "test-lb-tf"
+  internal           = false
+  load_balancer_type = "application"
+  security_groups    = ["${aws_security_group.lb_sg.id}"]
+  subnets            = ["${aws_subnet.public.*.id}"]
 
   enable_deletion_protection = true
 
@@ -30,15 +32,46 @@ resource "aws_lb" "test" {
     enabled = true
   }
 
-  tags {
+  tags = {
     Environment = "production"
   }
 }
 ```
 
-```hcl
-# Create a new network load balancer
+### Network Load Balancer
 
+```hcl
+resource "aws_lb" "test" {
+  name               = "test-lb-tf"
+  internal           = false
+  load_balancer_type = "network"
+  subnets            = ["${aws_subnet.public.*.id}"]
+
+  enable_deletion_protection = true
+
+  tags = {
+    Environment = "production"
+  }
+}
+```
+
+### Specifying Elastic IPs
+
+```hcl
+resource "aws_lb" "example" {
+  name               = "example"
+  load_balancer_type = "network"
+
+  subnet_mapping {
+    subnet_id     = "${aws_subnet.example1.id}"
+    allocation_id = "${aws_eip.example1.id}"
+  }
+
+  subnet_mapping {
+    subnet_id     = "${aws_subnet.example2.id}"
+    allocation_id = "${aws_eip.example2.id}"
+  }
+}
 ```
 
 ## Argument Reference
@@ -52,12 +85,12 @@ Terraform will autogenerate a name beginning with `tf-lb`.
 * `internal` - (Optional) If true, the LB will be internal.
 * `load_balancer_type` - (Optional) The type of load balancer to create. Possible values are `application` or `network`. The default value is `application`.
 * `security_groups` - (Optional) A list of security group IDs to assign to the LB. Only valid for Load Balancers of type `application`.
-* `access_logs` - (Optional) An Access Logs block. Access Logs documented below.
+* `access_logs` - (Optional) An Access Logs block. Access Logs documented below. Only valid for Load Balancers of type `application`.
 * `subnets` - (Optional) A list of subnet IDs to attach to the LB. Subnets
 cannot be updated for Load Balancers of type `network`. Changing this value 
 for load balancers of type `network` will force a recreation of the resource. 
 * `subnet_mapping` - (Optional) A subnet mapping block as documented below.
-* `idle_timeout` - (Optional) The time in seconds that the connection is allowed to be idle. Default: 60.
+* `idle_timeout` - (Optional) The time in seconds that the connection is allowed to be idle. Only valid for Load Balancers of type `application`. Default: 60.
 * `enable_deletion_protection` - (Optional) If true, deletion of the load balancer will be disabled via
    the AWS API. This will prevent Terraform from deleting the load balancer. Defaults to `false`.
 * `enable_cross_zone_load_balancing` - (Optional) If true, cross-zone load balancing of the load balancer will be enabled.
@@ -87,7 +120,6 @@ The following attributes are exported in addition to the arguments listed above:
 * `arn` - The ARN of the load balancer (matches `id`).
 * `arn_suffix` - The ARN suffix for use with CloudWatch Metrics.
 * `dns_name` - The DNS name of the load balancer.
-* `canonical_hosted_zone_id` - The canonical hosted zone ID of the load balancer.
 * `zone_id` - The canonical hosted zone ID of the load balancer (to be used in a Route 53 Alias record).
 
 ## Timeouts

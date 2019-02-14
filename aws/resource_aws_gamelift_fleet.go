@@ -301,10 +301,10 @@ func resourceAwsGameliftFleetUpdate(d *schema.ResourceData, meta interface{}) er
 	if d.HasChange("description") || d.HasChange("metric_groups") || d.HasChange("name") ||
 		d.HasChange("new_game_session_protection_policy") || d.HasChange("resource_creation_limit_policy") {
 		_, err := conn.UpdateFleetAttributes(&gamelift.UpdateFleetAttributesInput{
-			Description:  aws.String(d.Get("description").(string)),
-			FleetId:      aws.String(d.Id()),
-			MetricGroups: expandStringList(d.Get("metric_groups").([]interface{})),
-			Name:         aws.String(d.Get("name").(string)),
+			Description:                    aws.String(d.Get("description").(string)),
+			FleetId:                        aws.String(d.Id()),
+			MetricGroups:                   expandStringList(d.Get("metric_groups").([]interface{})),
+			Name:                           aws.String(d.Get("name").(string)),
 			NewGameSessionProtectionPolicy: aws.String(d.Get("new_game_session_protection_policy").(string)),
 			ResourceCreationLimitPolicy:    expandGameliftResourceCreationLimitPolicy(d.Get("resource_creation_limit_policy").([]interface{})),
 		})
@@ -318,7 +318,7 @@ func resourceAwsGameliftFleetUpdate(d *schema.ResourceData, meta interface{}) er
 		authorizations, revocations := diffGameliftPortSettings(oldPerms.([]interface{}), newPerms.([]interface{}))
 
 		_, err := conn.UpdateFleetPortSettings(&gamelift.UpdateFleetPortSettingsInput{
-			FleetId: aws.String(d.Id()),
+			FleetId:                         aws.String(d.Id()),
 			InboundPermissionAuthorizations: authorizations,
 			InboundPermissionRevocations:    revocations,
 		})
@@ -415,7 +415,7 @@ func expandGameliftIpPermissions(cfgs []interface{}) []*gamelift.IpPermission {
 		return []*gamelift.IpPermission{}
 	}
 
-	perms := make([]*gamelift.IpPermission, len(cfgs), len(cfgs))
+	perms := make([]*gamelift.IpPermission, len(cfgs))
 	for i, rawCfg := range cfgs {
 		cfg := rawCfg.(map[string]interface{})
 		perms[i] = expandGameliftIpPermission(cfg)
@@ -430,21 +430,6 @@ func expandGameliftIpPermission(cfg map[string]interface{}) *gamelift.IpPermissi
 		Protocol: aws.String(cfg["protocol"].(string)),
 		ToPort:   aws.Int64(int64(cfg["to_port"].(int))),
 	}
-}
-
-func flattenGameliftIpPermissions(ipps []*gamelift.IpPermission) []interface{} {
-	perms := make([]interface{}, len(ipps), len(ipps))
-
-	for i, ipp := range ipps {
-		m := make(map[string]interface{}, 0)
-		m["from_port"] = *ipp.FromPort
-		m["ip_range"] = *ipp.IpRange
-		m["protocol"] = *ipp.Protocol
-		m["to_port"] = *ipp.ToPort
-		perms[i] = m
-	}
-
-	return perms
 }
 
 func expandGameliftResourceCreationLimitPolicy(cfg []interface{}) *gamelift.ResourceCreationLimitPolicy {
@@ -469,7 +454,7 @@ func flattenGameliftResourceCreationLimitPolicy(policy *gamelift.ResourceCreatio
 		return []interface{}{}
 	}
 
-	m := make(map[string]interface{}, 0)
+	m := make(map[string]interface{})
 	m["new_game_sessions_per_creator"] = *policy.NewGameSessionsPerCreator
 	m["policy_period_in_minutes"] = *policy.PolicyPeriodInMinutes
 
@@ -501,7 +486,7 @@ func expandGameliftServerProcesses(cfgs []interface{}) []*gamelift.ServerProcess
 		return []*gamelift.ServerProcess{}
 	}
 
-	processes := make([]*gamelift.ServerProcess, len(cfgs), len(cfgs))
+	processes := make([]*gamelift.ServerProcess, len(cfgs))
 	for i, rawCfg := range cfgs {
 		cfg := rawCfg.(map[string]interface{})
 		process := &gamelift.ServerProcess{

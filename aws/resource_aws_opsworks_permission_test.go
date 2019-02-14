@@ -15,7 +15,7 @@ import (
 func TestAccAWSOpsworksPermission(t *testing.T) {
 	sName := fmt.Sprintf("tf-ops-perm-%d", acctest.RandInt())
 	var opsperm opsworks.Permission
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsOpsworksPermissionDestroy,

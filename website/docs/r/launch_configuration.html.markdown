@@ -141,14 +141,15 @@ The following arguments are supported:
   prefix. Conflicts with `name`.
 * `image_id` - (Required) The EC2 image ID to launch.
 * `instance_type` - (Required) The size of instance to launch.
-* `iam_instance_profile` - (Optional) The IAM instance profile to associate
+* `iam_instance_profile` - (Optional) The name attribute of the IAM instance profile to associate
      with launched instances.
 * `key_name` - (Optional) The key name that should be used for the instance.
 * `security_groups` - (Optional) A list of associated security group IDS.
 * `associate_public_ip_address` - (Optional) Associate a public ip address with an instance in a VPC.
 * `vpc_classic_link_id` - (Optional) The ID of a ClassicLink-enabled VPC. Only applies to EC2-Classic instances. (eg. `vpc-2730681a`)
 * `vpc_classic_link_security_groups` - (Optional) The IDs of one or more security groups for the specified ClassicLink-enabled VPC (eg. `sg-46ae3d11`).
-* `user_data` - (Optional) The user data to provide when launching the instance.
+* `user_data` - (Optional) The user data to provide when launching the instance. Do not pass gzip-compressed data via this argument; see `user_data_base64` instead.
+* `user_data_base64` - (Optional) Can be used instead of `user_data` to pass base64-encoded binary data directly. Use this instead of `user_data` whenever the value is not a valid UTF-8 string. For example, gzip-encoded user data must be base64-encoded and passed via this argument to avoid corruption.
 * `enable_monitoring` - (Optional) Enables/disables detailed monitoring. This is enabled by default.
 * `ebs_optimized` - (Optional) If true, the launched EC2 instance will be EBS-optimized.
 * `root_block_device` - (Optional) Customize details about the root block
@@ -157,7 +158,7 @@ The following arguments are supported:
   instance.  See [Block Devices](#block-devices) below for details.
 * `ephemeral_block_device` - (Optional) Customize Ephemeral (also known as
   "Instance Store") volumes on the instance. See [Block Devices](#block-devices) below for details.
-* `spot_price` - (Optional) The price to use for reserving spot instances.
+* `spot_price` - (Optional; Default: On-demand price) The maximum price to use for reserving spot instances.
 * `placement_tenancy` - (Optional) The tenancy of the instance. Valid values are
   `"default"` or `"dedicated"`, see [AWS's Create Launch Configuration](http://docs.aws.amazon.com/AutoScaling/latest/APIReference/API_CreateLaunchConfiguration.html)
   for more details
@@ -219,7 +220,7 @@ configuration, resource recreation can be manually triggered by using the
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the launch configuration.
 * `name` - The name of the launch configuration.

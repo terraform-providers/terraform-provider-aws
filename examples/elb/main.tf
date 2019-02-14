@@ -7,7 +7,7 @@ resource "aws_vpc" "default" {
   cidr_block           = "10.0.0.0/16"
   enable_dns_hostnames = true
 
-  tags {
+  tags = {
     Name = "tf_test"
   }
 }
@@ -17,7 +17,7 @@ resource "aws_subnet" "tf_test_subnet" {
   cidr_block              = "10.0.0.0/24"
   map_public_ip_on_launch = true
 
-  tags {
+  tags = {
     Name = "tf_test_subnet"
   }
 }
@@ -25,7 +25,7 @@ resource "aws_subnet" "tf_test_subnet" {
 resource "aws_internet_gateway" "gw" {
   vpc_id = "${aws_vpc.default.id}"
 
-  tags {
+  tags = {
     Name = "tf_test_ig"
   }
 }
@@ -38,7 +38,7 @@ resource "aws_route_table" "r" {
     gateway_id = "${aws_internet_gateway.gw.id}"
   }
 
-  tags {
+  tags = {
     Name = "aws_route_table"
   }
 }
@@ -168,7 +168,7 @@ resource "aws_instance" "web" {
 
   #Instance tags
 
-  tags {
+  tags = {
     Name = "elb-example"
   }
 }

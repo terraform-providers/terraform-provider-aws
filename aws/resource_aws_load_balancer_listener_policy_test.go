@@ -16,28 +16,28 @@ import (
 
 func TestAccAWSLoadBalancerListenerPolicy_basic(t *testing.T) {
 	rChar := acctest.RandStringFromCharSet(6, acctest.CharSetAlpha)
-	lbName := fmt.Sprintf("%s", rChar)
-	mcName := fmt.Sprintf("%s", rChar)
-	resource.Test(t, resource.TestCase{
+	lbName := rChar
+	mcName := rChar
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSLoadBalancerListenerPolicyDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: testAccAWSLoadBalancerListenerPolicyConfig_basic0(lbName, mcName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSLoadBalancerPolicyState("aws_elb.test-lb", "aws_load_balancer_policy.magic-cookie-sticky"),
 					testAccCheckAWSLoadBalancerListenerPolicyState(lbName, int64(80), mcName, true),
 				),
 			},
-			resource.TestStep{
+			{
 				Config: testAccAWSLoadBalancerListenerPolicyConfig_basic1(lbName, mcName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSLoadBalancerPolicyState("aws_elb.test-lb", "aws_load_balancer_policy.magic-cookie-sticky"),
 					testAccCheckAWSLoadBalancerListenerPolicyState(lbName, int64(80), mcName, true),
 				),
 			},
-			resource.TestStep{
+			{
 				Config: testAccAWSLoadBalancerListenerPolicyConfig_basic2(lbName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSLoadBalancerListenerPolicyState(lbName, int64(80), mcName, false),
@@ -90,7 +90,7 @@ func testAccCheckAWSLoadBalancerListenerPolicyDestroy(s *terraform.State) error 
 				return err
 			}
 			policyNames := []string{}
-			for k, _ := range rs.Primary.Attributes {
+			for k := range rs.Primary.Attributes {
 				if strings.HasPrefix(k, "policy_names.") && strings.HasSuffix(k, ".name") {
 					value_key := fmt.Sprintf("%s.value", strings.TrimSuffix(k, ".name"))
 					policyNames = append(policyNames, rs.Primary.Attributes[value_key])
@@ -159,7 +159,7 @@ resource "aws_elb" "test-lb" {
     lb_protocol = "http"
   }
 
-  tags {
+  tags = {
     Name = "tf-acc-test"
   }
 }
@@ -168,7 +168,7 @@ resource "aws_load_balancer_policy" "magic-cookie-sticky" {
   load_balancer_name = "${aws_elb.test-lb.name}"
   policy_name = "%s"
   policy_type_name = "AppCookieStickinessPolicyType"
-  policy_attribute = {
+  policy_attribute {
     name = "CookieName"
     value = "magic_cookie"
   }
@@ -196,7 +196,7 @@ resource "aws_elb" "test-lb" {
     lb_protocol = "http"
   }
 
-  tags {
+  tags = {
     Name = "tf-acc-test"
   }
 }
@@ -205,7 +205,7 @@ resource "aws_load_balancer_policy" "magic-cookie-sticky" {
   load_balancer_name = "${aws_elb.test-lb.name}"
   policy_name = "%s"
   policy_type_name = "AppCookieStickinessPolicyType"
-  policy_attribute = {
+  policy_attribute {
     name = "CookieName"
     value = "unicorn_cookie"
   }
@@ -233,7 +233,7 @@ resource "aws_elb" "test-lb" {
     lb_protocol = "http"
   }
 
-  tags {
+  tags = {
     Name = "tf-acc-test"
   }
 }`, lbName)

@@ -2,11 +2,15 @@
 layout: "aws"
 page_title: "AWS: aws_elasticache_parameter_group"
 sidebar_current: "docs-aws-resource-elasticache-parameter-group"
+description: |-
+  Provides an ElastiCache parameter group resource.
 ---
 
 # aws_elasticache_parameter_group
 
 Provides an ElastiCache parameter group resource.
+
+~> **NOTE:** Attempting to remove the `reserved-memory` parameter when `family` is set to `redis2.6` or `redis2.8` may show a perpetual difference in Terraform due to an Elasticache API limitation. Leave that parameter configured with any value to workaround the issue.
 
 ## Example Usage
 
@@ -43,7 +47,7 @@ Parameter blocks support the following:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ElastiCache parameter group name.
 

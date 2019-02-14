@@ -34,8 +34,16 @@ The following arguments are supported:
 * `vpc_endpoint_id` - (Required) The ID of the VPC endpoint with which the subnet will be associated.
 * `subnet_id` - (Required) The ID of the subnet to be associated with the VPC endpoint.
 
+### Timeouts
+
+`aws_vpc_endpoint_subnet_association` provides the following
+[Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+
+- `create` - (Default `10 minutes`) Used for creating the association
+- `delete` - (Default `10 minutes`) Used for destroying the association
+
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the association.

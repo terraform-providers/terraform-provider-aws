@@ -12,13 +12,65 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
-func TestAccAWSAPIGatewayBasePath_basic(t *testing.T) {
+func TestDecodeApiGatewayBasePathMappingId(t *testing.T) {
+	var testCases = []struct {
+		Input      string
+		DomainName string
+		BasePath   string
+		ErrCount   int
+	}{
+		{
+			Input:    "no-slash",
+			ErrCount: 1,
+		},
+		{
+			Input:    "/missing-domain-name",
+			ErrCount: 1,
+		},
+		{
+			Input:      "domain-name/base-path",
+			DomainName: "domain-name",
+			BasePath:   "base-path",
+			ErrCount:   0,
+		},
+		{
+			Input:      "domain-name/base/path",
+			DomainName: "domain-name",
+			BasePath:   "base/path",
+			ErrCount:   0,
+		},
+		{
+			Input:      "domain-name/",
+			DomainName: "domain-name",
+			BasePath:   emptyBasePathMappingValue,
+			ErrCount:   0,
+		},
+	}
+
+	for _, tc := range testCases {
+		domainName, basePath, err := decodeApiGatewayBasePathMappingId(tc.Input)
+		if tc.ErrCount == 0 && err != nil {
+			t.Fatalf("expected %q not to trigger an error, received: %s", tc.Input, err)
+		}
+		if tc.ErrCount > 0 && err == nil {
+			t.Fatalf("expected %q to trigger an error", tc.Input)
+		}
+		if domainName != tc.DomainName {
+			t.Fatalf("expected domain name %q to be %q", domainName, tc.DomainName)
+		}
+		if basePath != tc.BasePath {
+			t.Fatalf("expected base path %q to be %q", basePath, tc.BasePath)
+		}
+	}
+}
+
+func TestAccAWSAPIGatewayBasePathMapping_basic(t *testing.T) {
 	var conf apigateway.BasePathMapping
 
 	// Our test cert is for a wildcard on this domain
 	name := fmt.Sprintf("tf-acc-%s.terraformtest.com", acctest.RandString(8))
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProvidersWithTLS,
 		CheckDestroy: testAccCheckAWSAPIGatewayBasePathDestroy(name),
@@ -29,18 +81,23 @@ func TestAccAWSAPIGatewayBasePath_basic(t *testing.T) {
 					testAccCheckAWSAPIGatewayBasePathExists("aws_api_gateway_base_path_mapping.test", name, &conf),
 				),
 			},
+			{
+				ResourceName:      "aws_api_gateway_base_path_mapping.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
 
 // https://github.com/hashicorp/terraform/issues/9212
-func TestAccAWSAPIGatewayEmptyBasePath_basic(t *testing.T) {
+func TestAccAWSAPIGatewayBasePathMapping_BasePath_Empty(t *testing.T) {
 	var conf apigateway.BasePathMapping
 
 	// Our test cert is for a wildcard on this domain
 	name := fmt.Sprintf("tf-acc-%s.terraformtest.com", acctest.RandString(8))
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProvidersWithTLS,
 		CheckDestroy: testAccCheckAWSAPIGatewayBasePathDestroy(name),
@@ -48,8 +105,13 @@ func TestAccAWSAPIGatewayEmptyBasePath_basic(t *testing.T) {
 			{
 				Config: testAccAWSAPIGatewayEmptyBasePathConfig(name),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSAPIGatewayEmptyBasePathExists("aws_api_gateway_base_path_mapping.test", name, &conf),
+					testAccCheckAWSAPIGatewayBasePathExists("aws_api_gateway_base_path_mapping.test", name, &conf),
 				),
+			},
+			{
+				ResourceName:      "aws_api_gateway_base_path_mapping.test",
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -68,41 +130,14 @@ func testAccCheckAWSAPIGatewayBasePathExists(n string, name string, res *apigate
 
 		conn := testAccProvider.Meta().(*AWSClient).apigateway
 
-		req := &apigateway.GetBasePathMappingInput{
-			DomainName: aws.String(name),
-			BasePath:   aws.String("tf-acc"),
-		}
-		describe, err := conn.GetBasePathMapping(req)
+		domainName, basePath, err := decodeApiGatewayBasePathMappingId(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 
-		if *describe.BasePath != "tf-acc" {
-			return fmt.Errorf("base path mapping not found")
-		}
-
-		*res = *describe
-
-		return nil
-	}
-}
-
-func testAccCheckAWSAPIGatewayEmptyBasePathExists(n string, name string, res *apigateway.BasePathMapping) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[n]
-		if !ok {
-			return fmt.Errorf("Not found: %s", n)
-		}
-
-		if rs.Primary.ID == "" {
-			return fmt.Errorf("No API Gateway ID is set")
-		}
-
-		conn := testAccProvider.Meta().(*AWSClient).apigateway
-
 		req := &apigateway.GetBasePathMappingInput{
-			DomainName: aws.String(name),
-			BasePath:   aws.String(""),
+			DomainName: aws.String(domainName),
+			BasePath:   aws.String(basePath),
 		}
 		describe, err := conn.GetBasePathMapping(req)
 		if err != nil {
@@ -120,14 +155,20 @@ func testAccCheckAWSAPIGatewayBasePathDestroy(name string) resource.TestCheckFun
 		conn := testAccProvider.Meta().(*AWSClient).apigateway
 
 		for _, rs := range s.RootModule().Resources {
-			if rs.Type != "aws_api_gateway_rest_api" {
+			if rs.Type != "aws_api_gateway_base_path_mapping" {
 				continue
 			}
 
-			req := &apigateway.GetBasePathMappingsInput{
-				DomainName: aws.String(name),
+			domainName, basePath, err := decodeApiGatewayBasePathMappingId(rs.Primary.ID)
+			if err != nil {
+				return err
 			}
-			_, err := conn.GetBasePathMappings(req)
+
+			req := &apigateway.GetBasePathMappingInput{
+				DomainName: aws.String(domainName),
+				BasePath:   aws.String(basePath),
+			}
+			_, err = conn.GetBasePathMapping(req)
 
 			if err != nil {
 				if err, ok := err.(awserr.Error); ok && err.Code() == "NotFoundException" {

@@ -18,7 +18,7 @@ func TestAccAWSSESDomainDkim_basic(t *testing.T) {
 		"%s.terraformtesting.com",
 		acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() {
 			testAccPreCheck(t)
 		},
@@ -70,7 +70,7 @@ func testAccCheckAwsSESDomainDkimExists(n string) resource.TestCheckFunc {
 
 func testAccCheckAwsSESDomainDkimTokens(n string, domain string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		rs, _ := s.RootModule().Resources[n]
+		rs := s.RootModule().Resources[n]
 
 		expectedNum := 3
 		expectedFormat := regexp.MustCompile("[a-z0-9]{32}")
@@ -81,7 +81,7 @@ func testAccCheckAwsSESDomainDkimTokens(n string, domain string) resource.TestCh
 		}
 		for i := 0; i < expectedNum; i++ {
 			key := fmt.Sprintf("dkim_tokens.%d", i)
-			token, _ := rs.Primary.Attributes[key]
+			token := rs.Primary.Attributes[key]
 			if !expectedFormat.MatchString(token) {
 				return fmt.Errorf("Incorrect format of DKIM token: %v", token)
 			}

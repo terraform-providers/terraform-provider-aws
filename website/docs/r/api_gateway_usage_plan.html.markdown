@@ -17,16 +17,16 @@ resource "aws_api_gateway_rest_api" "myapi" {
   name = "MyDemoAPI"
 }
 
-...
+# ...
 
 resource "aws_api_gateway_deployment" "dev" {
   rest_api_id = "${aws_api_gateway_rest_api.myapi.id}"
-  stage_name = "dev"
+  stage_name  = "dev"
 }
 
 resource "aws_api_gateway_deployment" "prod" {
   rest_api_id = "${aws_api_gateway_rest_api.myapi.id}"
-  stage_name = "prod"
+  stage_name  = "prod"
 }
 
 resource "aws_api_gateway_usage_plan" "MyUsagePlan" {
@@ -64,7 +64,7 @@ The API Gateway Usage Plan argument layout is a structure composed of several su
 ### Top-Level Arguments
 
 * `name` - (Required) The name of the usage plan.
-* `description` - (Required) The description of a usage plan.
+* `description` - (Optional) The description of a usage plan.
 * `api_stages` - (Optional) The associated [API stages](#api-stages-arguments) of the usage plan.
 * `quota_settings` - (Optional) The [quota settings](#quota-settings-arguments) of the usage plan.
 * `throttle_settings` - (Optional) The [throttling limits](#throttling-settings-arguments) of the usage plan.
@@ -88,7 +88,7 @@ The API Gateway Usage Plan argument layout is a structure composed of several su
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the API resource
 * `name` - The name of the usage plan.
@@ -102,6 +102,6 @@ The following attributes are exported:
 
 AWS API Gateway Usage Plan can be imported using the `id`, e.g.
 
-```
+```sh
 $ terraform import aws_api_gateway_usage_plan.myusageplan <usage_plan_id>
 ```

@@ -13,12 +13,12 @@ import (
 
 func TestAccAWSProxyProtocolPolicy_basic(t *testing.T) {
 	lbName := fmt.Sprintf("tf-test-lb-%s", acctest.RandString(5))
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckProxyProtocolPolicyDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: testAccProxyProtocolPolicyConfig(lbName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(
@@ -29,7 +29,7 @@ func TestAccAWSProxyProtocolPolicy_basic(t *testing.T) {
 						"aws_proxy_protocol_policy.smtp", "instance_ports.4196041389", "25"),
 				),
 			},
-			resource.TestStep{
+			{
 				Config: testAccProxyProtocolPolicyConfigUpdate(lbName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(

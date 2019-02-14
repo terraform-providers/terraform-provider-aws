@@ -32,7 +32,7 @@ func TestAccAWSKinesisStreamDataSource(t *testing.T) {
 		}
 	}
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckKinesisStreamDestroy,
@@ -77,7 +77,7 @@ resource "aws_kinesis_stream" "test_stream" {
 	name = "%s"
 	shard_count = 2
 	retention_period = 72
-	tags {
+	tags = {
 		Name = "tf-test"
 	}
 	shard_level_metrics = [

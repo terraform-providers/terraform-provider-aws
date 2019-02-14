@@ -42,10 +42,15 @@ func resourceAwsNetworkAclRule() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-					if old == "all" && new == "-1" || old == "-1" && new == "all" {
-						return true
+					pi := protocolIntegers()
+					if val, ok := pi[old]; ok {
+						old = strconv.Itoa(val)
 					}
-					return false
+					if val, ok := pi[new]; ok {
+						new = strconv.Itoa(val)
+					}
+
+					return old == new
 				},
 			},
 			"rule_action": {
@@ -54,14 +59,16 @@ func resourceAwsNetworkAclRule() *schema.Resource {
 				ForceNew: true,
 			},
 			"cidr_block": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
+				Type:          schema.TypeString,
+				Optional:      true,
+				ForceNew:      true,
+				ConflictsWith: []string{"ipv6_cidr_block"},
 			},
 			"ipv6_cidr_block": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
+				Type:          schema.TypeString,
+				Optional:      true,
+				ForceNew:      true,
+				ConflictsWith: []string{"cidr_block"},
 			},
 			"from_port": {
 				Type:     schema.TypeInt,
@@ -118,7 +125,7 @@ func resourceAwsNetworkAclRuleCreate(d *schema.ResourceData, meta interface{}) e
 	cidr, hasCidr := d.GetOk("cidr_block")
 	ipv6Cidr, hasIpv6Cidr := d.GetOk("ipv6_cidr_block")
 
-	if hasCidr == false && hasIpv6Cidr == false {
+	if !hasCidr && !hasIpv6Cidr {
 		return fmt.Errorf("Either `cidr_block` or `ipv6_cidr_block` must be defined")
 	}
 
@@ -131,8 +138,8 @@ func resourceAwsNetworkAclRuleCreate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	// Specify additional required fields for ICMP. For the list
-	// of ICMP codes and types, see: http://www.nthelp.com/icmp.html
-	if p == 1 {
+	// of ICMP codes and types, see: https://www.iana.org/assignments/icmp-parameters/icmp-parameters.xhtml
+	if p == 1 || p == 58 {
 		params.IcmpTypeCode = &ec2.IcmpTypeCode{}
 		if v, ok := d.GetOk("icmp_type"); ok {
 			icmpType, err := strconv.Atoi(v.(string))

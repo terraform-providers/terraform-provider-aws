@@ -14,7 +14,7 @@ import (
 func TestAccAWSAutoscalingLifecycleHook_basic(t *testing.T) {
 	resourceName := fmt.Sprintf("tf-test-%s", acctest.RandString(10))
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSAutoscalingLifecycleHookDestroy,
@@ -36,7 +36,7 @@ func TestAccAWSAutoscalingLifecycleHook_basic(t *testing.T) {
 func TestAccAWSAutoscalingLifecycleHook_omitDefaultResult(t *testing.T) {
 	rName := acctest.RandString(10)
 	rInt := acctest.RandInt()
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSAutoscalingLifecycleHookDestroy,

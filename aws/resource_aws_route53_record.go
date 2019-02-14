@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
-	"github.com/hashicorp/errwrap"
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -20,8 +20,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/route53"
 )
 
-var r53NoRecordsFound = errors.New("No matching Hosted Zone found")
-var r53NoHostedZoneFound = errors.New("No matching records found")
+var r53NoRecordsFound = errors.New("No matching records found")
+var r53NoHostedZoneFound = errors.New("No matching Hosted Zone found")
 var r53ValidRecordTypes = regexp.MustCompile("^(A|AAAA|CAA|CNAME|MX|NAPTR|NS|PTR|SOA|SPF|SRV|TXT)$")
 
 func resourceAwsRoute53Record() *schema.Resource {
@@ -110,7 +110,7 @@ func resourceAwsRoute53Record() *schema.Resource {
 							Required:  true,
 							StateFunc: normalizeAwsAliasName,
 							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-								return strings.ToLower(old) == strings.ToLower(new)
+								return strings.EqualFold(old, new)
 							},
 						},
 
@@ -262,7 +262,7 @@ func resourceAwsRoute53RecordUpdate(d *schema.ResourceData, meta interface{}) er
 
 	if !d.HasChange("type") && !d.HasChange("set_identifier") {
 		// If neither type nor set_identifier changed we use UPSERT,
-		// for resouce update here we simply fall through to
+		// for resource update here we simply fall through to
 		// our resource create function.
 		return resourceAwsRoute53RecordCreate(d, meta)
 	}
@@ -278,7 +278,7 @@ func resourceAwsRoute53RecordUpdate(d *schema.ResourceData, meta interface{}) er
 		return err
 	}
 	if zoneRecord.HostedZone == nil {
-		return fmt.Errorf("[WARN] No Route53 Zone found for id (%s)", zone)
+		return fmt.Errorf("No Route53 Zone found for id (%s)", zone)
 	}
 
 	// Build the to be deleted record
@@ -352,7 +352,7 @@ func resourceAwsRoute53RecordUpdate(d *schema.ResourceData, meta interface{}) er
 
 	respRaw, err := changeRoute53RecordSet(conn, req)
 	if err != nil {
-		return errwrap.Wrapf("[ERR]: Error building changeset: {{err}}", err)
+		return fmt.Errorf("[ERR]: Error building changeset: %s", err)
 	}
 
 	changeInfo := respRaw.(*route53.ChangeResourceRecordSetsOutput).ChangeInfo
@@ -374,7 +374,8 @@ func resourceAwsRoute53RecordUpdate(d *schema.ResourceData, meta interface{}) er
 		return err
 	}
 
-	return resourceAwsRoute53RecordRead(d, meta)
+	_, err = findRecord(d, meta)
+	return err
 }
 
 func resourceAwsRoute53RecordCreate(d *schema.ResourceData, meta interface{}) error {
@@ -387,7 +388,7 @@ func resourceAwsRoute53RecordCreate(d *schema.ResourceData, meta interface{}) er
 		return err
 	}
 	if zoneRecord.HostedZone == nil {
-		return fmt.Errorf("[WARN] No Route53 Zone found for id (%s)", zone)
+		return fmt.Errorf("No Route53 Zone found for id (%s)", zone)
 	}
 
 	// Build the record
@@ -429,7 +430,7 @@ func resourceAwsRoute53RecordCreate(d *schema.ResourceData, meta interface{}) er
 
 	respRaw, err := changeRoute53RecordSet(conn, req)
 	if err != nil {
-		return errwrap.Wrapf("[ERR]: Error building changeset: {{err}}", err)
+		return fmt.Errorf("[ERR]: Error building changeset: %s", err)
 	}
 
 	changeInfo := respRaw.(*route53.ChangeResourceRecordSetsOutput).ChangeInfo
@@ -451,7 +452,8 @@ func resourceAwsRoute53RecordCreate(d *schema.ResourceData, meta interface{}) er
 		return err
 	}
 
-	return resourceAwsRoute53RecordRead(d, meta)
+	_, err = findRecord(d, meta)
+	return err
 }
 
 func changeRoute53RecordSet(conn *route53.Route53, input *route53.ChangeResourceRecordSetsInput) (interface{}, error) {
@@ -531,15 +533,15 @@ func resourceAwsRoute53RecordRead(d *schema.ResourceData, meta interface{}) erro
 
 	err = d.Set("records", flattenResourceRecords(record.ResourceRecords, *record.Type))
 	if err != nil {
-		return fmt.Errorf("[DEBUG] Error setting records for: %s, error: %#v", d.Id(), err)
+		return fmt.Errorf("Error setting records for: %s, error: %#v", d.Id(), err)
 	}
 
 	if alias := record.AliasTarget; alias != nil {
 		name := normalizeAwsAliasName(*alias.DNSName)
 		d.Set("alias", []interface{}{
 			map[string]interface{}{
-				"zone_id": *alias.HostedZoneId,
-				"name":    name,
+				"zone_id":                *alias.HostedZoneId,
+				"name":                   name,
 				"evaluate_target_health": *alias.EvaluateTargetHealth,
 			},
 		})
@@ -552,7 +554,7 @@ func resourceAwsRoute53RecordRead(d *schema.ResourceData, meta interface{}) erro
 			"type": aws.StringValue(record.Failover),
 		}}
 		if err := d.Set("failover_routing_policy", v); err != nil {
-			return fmt.Errorf("[DEBUG] Error setting failover records for: %s, error: %#v", d.Id(), err)
+			return fmt.Errorf("Error setting failover records for: %s, error: %#v", d.Id(), err)
 		}
 	}
 
@@ -563,7 +565,7 @@ func resourceAwsRoute53RecordRead(d *schema.ResourceData, meta interface{}) erro
 			"subdivision": aws.StringValue(record.GeoLocation.SubdivisionCode),
 		}}
 		if err := d.Set("geolocation_routing_policy", v); err != nil {
-			return fmt.Errorf("[DEBUG] Error setting gelocation records for: %s, error: %#v", d.Id(), err)
+			return fmt.Errorf("Error setting gelocation records for: %s, error: %#v", d.Id(), err)
 		}
 	}
 
@@ -572,7 +574,7 @@ func resourceAwsRoute53RecordRead(d *schema.ResourceData, meta interface{}) erro
 			"region": aws.StringValue(record.Region),
 		}}
 		if err := d.Set("latency_routing_policy", v); err != nil {
-			return fmt.Errorf("[DEBUG] Error setting latency records for: %s, error: %#v", d.Id(), err)
+			return fmt.Errorf("Error setting latency records for: %s, error: %#v", d.Id(), err)
 		}
 	}
 
@@ -581,13 +583,13 @@ func resourceAwsRoute53RecordRead(d *schema.ResourceData, meta interface{}) erro
 			"weight": aws.Int64Value((record.Weight)),
 		}}
 		if err := d.Set("weighted_routing_policy", v); err != nil {
-			return fmt.Errorf("[DEBUG] Error setting weighted records for: %s, error: %#v", d.Id(), err)
+			return fmt.Errorf("Error setting weighted records for: %s, error: %#v", d.Id(), err)
 		}
 	}
 
 	if record.MultiValueAnswer != nil {
 		if err := d.Set("multivalue_answer_routing_policy", *record.MultiValueAnswer); err != nil {
-			return fmt.Errorf("[DEBUG] Error setting multivalue answer records for: %s, error: %#v", d.Id(), err)
+			return fmt.Errorf("Error setting multivalue answer records for: %s, error: %#v", d.Id(), err)
 		}
 	}
 
@@ -630,35 +632,77 @@ func findRecord(d *schema.ResourceData, meta interface{}) (*route53.ResourceReco
 	log.Printf("[DEBUG] Expanded record name: %s", en)
 	d.Set("fqdn", en)
 
+	recordName := FQDN(strings.ToLower(en))
+	recordType := d.Get("type").(string)
+	recordSetIdentifier := d.Get("set_identifier")
+
+	// If this isn't a Weighted, Latency, Geo, or Failover resource with
+	// a SetIdentifier we only need to look at the first record in the response since there can be
+	// only one
+	maxItems := "1"
+	if recordSetIdentifier != "" {
+		maxItems = "100"
+	}
+
 	lopts := &route53.ListResourceRecordSetsInput{
 		HostedZoneId:    aws.String(cleanZoneID(zone)),
-		StartRecordName: aws.String(en),
-		StartRecordType: aws.String(d.Get("type").(string)),
+		StartRecordName: aws.String(recordName),
+		StartRecordType: aws.String(recordType),
+		MaxItems:        aws.String(maxItems),
 	}
 
 	log.Printf("[DEBUG] List resource records sets for zone: %s, opts: %s",
 		zone, lopts)
-	resp, err := conn.ListResourceRecordSets(lopts)
+
+	var record *route53.ResourceRecordSet
+
+	// We need to loop over all records starting from the record we are looking for because
+	// Weighted, Latency, Geo, and Failover resource record sets have a special option
+	// called SetIdentifier which allows multiple entries with the same name and type but
+	// a different SetIdentifier
+	// For all other records we are setting the maxItems to 1 so that we don't return extra
+	// unneeded records
+	err = conn.ListResourceRecordSetsPages(lopts, func(resp *route53.ListResourceRecordSetsOutput, lastPage bool) bool {
+		for _, recordSet := range resp.ResourceRecordSets {
+
+			responseName := strings.ToLower(cleanRecordName(*recordSet.Name))
+			responseType := strings.ToUpper(*recordSet.Type)
+
+			if recordName != responseName {
+				continue
+			}
+			if recordType != responseType {
+				continue
+			}
+			if recordSet.SetIdentifier != nil && *recordSet.SetIdentifier != recordSetIdentifier {
+				continue
+			}
+
+			record = recordSet
+			return false
+		}
+
+		nextRecordName := strings.ToLower(cleanRecordName(aws.StringValue(resp.NextRecordName)))
+		nextRecordType := strings.ToUpper(aws.StringValue(resp.NextRecordType))
+
+		if nextRecordName != recordName {
+			return false
+		}
+
+		if nextRecordType != recordType {
+			return false
+		}
+
+		return !lastPage
+	})
+
 	if err != nil {
 		return nil, err
 	}
-
-	for _, record := range resp.ResourceRecordSets {
-		name := cleanRecordName(*record.Name)
-		if FQDN(strings.ToLower(name)) != FQDN(strings.ToLower(*lopts.StartRecordName)) {
-			continue
-		}
-		if strings.ToUpper(*record.Type) != strings.ToUpper(*lopts.StartRecordType) {
-			continue
-		}
-
-		if record.SetIdentifier != nil && *record.SetIdentifier != d.Get("set_identifier") {
-			continue
-		}
-		// The only safe return where a record is found
-		return record, nil
+	if record == nil {
+		return nil, r53NoRecordsFound
 	}
-	return nil, r53NoRecordsFound
+	return record, nil
 }
 
 func resourceAwsRoute53RecordDelete(d *schema.ResourceData, meta interface{}) error {
@@ -668,8 +712,6 @@ func resourceAwsRoute53RecordDelete(d *schema.ResourceData, meta interface{}) er
 	if err != nil {
 		switch err {
 		case r53NoHostedZoneFound, r53NoRecordsFound:
-			log.Printf("[DEBUG] %s for: %s, removing from state file", err, d.Id())
-			d.SetId("")
 			return nil
 		default:
 			return err
@@ -696,7 +738,7 @@ func resourceAwsRoute53RecordDelete(d *schema.ResourceData, meta interface{}) er
 
 	respRaw, err := deleteRoute53RecordSet(conn, req)
 	if err != nil {
-		return errwrap.Wrapf("[ERR]: Error building changeset: {{err}}", err)
+		return fmt.Errorf("[ERR]: Error building changeset: %s", err)
 	}
 
 	changeInfo := respRaw.(*route53.ChangeResourceRecordSetsOutput).ChangeInfo
@@ -706,10 +748,6 @@ func resourceAwsRoute53RecordDelete(d *schema.ResourceData, meta interface{}) er
 	}
 
 	err = waitForRoute53RecordSetToSync(conn, cleanChangeID(*changeInfo.Id))
-	if err != nil {
-		return err
-	}
-
 	return err
 }
 
@@ -875,16 +913,17 @@ func FQDN(name string) string {
 	}
 }
 
-// Route 53 stores the "*" wildcard indicator as ASCII 42 and returns the
-// octal equivalent, "\\052". Here we look for that, and convert back to "*"
-// as needed.
+// Route 53 stores certain characters with the octal equivalent in ASCII format.
+// This function converts all of these characters back into the original character
+// E.g. "*" is stored as "\\052" and "@" as "\\100"
+
 func cleanRecordName(name string) string {
 	str := name
-	if strings.HasPrefix(name, "\\052") {
-		str = strings.Replace(name, "\\052", "*", 1)
-		log.Printf("[DEBUG] Replacing octal \\052 for * in: %s", name)
+	s, err := strconv.Unquote(`"` + str + `"`)
+	if err != nil {
+		return str
 	}
-	return str
+	return s
 }
 
 // Check if the current record name contains the zone suffix.
@@ -897,7 +936,7 @@ func expandRecordName(name, zone string) string {
 		if len(name) == 0 {
 			rn = zone
 		} else {
-			rn = strings.Join([]string{name, zone}, ".")
+			rn = strings.Join([]string{rn, zone}, ".")
 		}
 	}
 	return rn

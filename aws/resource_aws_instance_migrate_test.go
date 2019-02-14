@@ -17,7 +17,7 @@ func TestAWSInstanceMigrateState(t *testing.T) {
 			StateVersion: 0,
 			Attributes: map[string]string{
 				// EBS
-				"block_device.#":                                "2",
+				"block_device.#": "2",
 				"block_device.3851383343.delete_on_termination": "true",
 				"block_device.3851383343.device_name":           "/dev/sdx",
 				"block_device.3851383343.encrypted":             "false",
@@ -42,7 +42,7 @@ func TestAWSInstanceMigrateState(t *testing.T) {
 				"block_device.56575650.volume_type":           "standard",
 			},
 			Expected: map[string]string{
-				"ebs_block_device.#":                                 "1",
+				"ebs_block_device.#": "1",
 				"ebs_block_device.3851383343.delete_on_termination":  "true",
 				"ebs_block_device.3851383343.device_name":            "/dev/sdx",
 				"ebs_block_device.3851383343.encrypted":              "false",
@@ -64,7 +64,7 @@ func TestAWSInstanceMigrateState(t *testing.T) {
 			StateVersion: 0,
 			Attributes: map[string]string{
 				// EBS
-				"block_device.#":                                "2",
+				"block_device.#": "2",
 				"block_device.3851383343.delete_on_termination": "true",
 				"block_device.3851383343.device_name":           "/dev/sdx",
 				"block_device.3851383343.encrypted":             "false",
@@ -92,7 +92,7 @@ func TestAWSInstanceMigrateState(t *testing.T) {
 				"root_block_device.3018388612.iops":                  "1000",
 			},
 			Expected: map[string]string{
-				"ebs_block_device.#":                                 "1",
+				"ebs_block_device.#": "1",
 				"ebs_block_device.3851383343.delete_on_termination":  "true",
 				"ebs_block_device.3851383343.device_name":            "/dev/sdx",
 				"ebs_block_device.3851383343.encrypted":              "false",
@@ -151,7 +151,7 @@ func TestAWSInstanceMigrateState_empty(t *testing.T) {
 
 	// should handle non-nil but empty
 	is = &terraform.InstanceState{}
-	is, err = resourceAwsInstanceMigrateState(0, is, meta)
+	_, err = resourceAwsInstanceMigrateState(0, is, meta)
 
 	if err != nil {
 		t.Fatalf("err: %#v", err)

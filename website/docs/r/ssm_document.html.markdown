@@ -50,12 +50,13 @@ The following arguments are supported:
 * `name` - (Required) The name of the document.
 * `content` - (Required) The JSON or YAML content of the document.
 * `document_format` - (Optional, defaults to JSON) The format of the document. Valid document types include: `JSON` and `YAML`
-* `document_type` - (Required) The type of the document. Valid document types include: `Command`, `Policy` and `Automation`
+* `document_type` - (Required) The type of the document. Valid document types include: `Command`, `Policy`, `Automation` and `Session`
 * `permissions` - (Optional) Additional Permissions to attach to the document. See [Permissions](#permissions) below for details.
+* `tags` - (Optional) A mapping of tags to assign to the object.
 
 ## Attributes Reference
 
-The following additional attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `created_date` - The date the document was created.
 * `description` - The description of the document.

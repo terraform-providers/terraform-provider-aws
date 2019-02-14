@@ -15,11 +15,12 @@ Provides a settings of an API Gateway Documentation Part.
 ```hcl
 resource "aws_api_gateway_documentation_part" "example" {
   location {
-    type = "METHOD"
+    type   = "METHOD"
     method = "GET"
-    path = "/example"
+    path   = "/example"
   }
-  properties = "{\"description\":\"Example description\"}"
+
+  properties  = "{\"description\":\"Example description\"}"
   rest_api_id = "${aws_api_gateway_rest_api.example.id}"
 }
 

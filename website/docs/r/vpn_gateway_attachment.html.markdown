@@ -23,7 +23,7 @@ resource "aws_vpc" "network" {
 }
 
 resource "aws_vpn_gateway" "vpn" {
-  tags {
+  tags = {
     Name = "example-vpn-gateway"
   }
 }
@@ -47,7 +47,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `vpc_id` - The ID of the VPC that Virtual Private Gateway is attached to.
 * `vpn_gateway_id` - The ID of the Virtual Private Gateway.

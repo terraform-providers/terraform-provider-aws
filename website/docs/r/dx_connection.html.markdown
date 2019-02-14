@@ -14,9 +14,9 @@ Provides a Connection of Direct Connect.
 
 ```hcl
 resource "aws_dx_connection" "hoge" {
-  name = "tf-dx-connection"
+  name      = "tf-dx-connection"
   bandwidth = "1Gbps"
-  location = "EqDC2"
+  location  = "EqDC2"
 }
 ```
 
@@ -31,10 +31,11 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the connection.
 * `arn` - The ARN of the connection.
+* `jumbo_frame_capable` - Boolean value representing if jumbo frames have been enabled for this connection.
 
 ## Import
 

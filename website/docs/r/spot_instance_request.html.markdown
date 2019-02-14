@@ -11,13 +11,17 @@ description: |-
 Provides an EC2 Spot Instance Request resource. This allows instances to be
 requested on the spot market.
 
-Terraform always creates Spot Instance Requests with a `persistent` type, which
-means that for the duration of their lifetime, AWS will launch an instance
-with the configured details if and when the spot market will accept the
-requested price.
+By default Terraform creates Spot Instance Requests with a `persistent` type,
+which means that for the duration of their lifetime, AWS will launch an
+instance with the configured details if and when the spot market will accept
+the requested price.
 
 On destruction, Terraform will make an attempt to terminate the associated Spot
 Instance if there is one present.
+
+Spot Instances requests with a `one-time` type will close the spot request
+when the instance is terminated either by the request being below the current spot
+price availability or by a user.
 
 ~> **NOTE:** Because their behavior depends on the live status of the spot
 market, Spot Instance Requests have a unique lifecycle that makes them behave
@@ -37,7 +41,7 @@ resource "aws_spot_instance_request" "cheap_worker" {
   spot_price    = "0.03"
   instance_type = "c4.xlarge"
 
-  tags {
+  tags = {
     Name = "CheapWorker"
   }
 }
@@ -48,19 +52,21 @@ resource "aws_spot_instance_request" "cheap_worker" {
 Spot Instance Requests support all the same arguments as
 [`aws_instance`](instance.html), with the addition of:
 
-* `spot_price` - (Required) The price to request on the spot market.
+* `spot_price` - (Optional; Default: On-demand price) The maximum price to request on the spot market.
 * `wait_for_fulfillment` - (Optional; Default: false) If set, Terraform will
   wait for the Spot Request to be fulfilled, and will throw an error if the
   timeout of 10m is reached.
-* `spot_type` - (Optional; Default: "persistent") If set to "one-time", after
-  the instance is terminated, the spot request will be closed. Also, Terraform
-  can't manage one-time spot requests, just launch them.
+* `spot_type` - (Optional; Default: `persistent`) If set to `one-time`, after
+  the instance is terminated, the spot request will be closed.
 * `launch_group` - (Optional) A launch group is a group of spot instances that launch together and terminate together.
   If left empty instances are launched and terminated individually.
 * `block_duration_minutes` - (Optional) The required duration for the Spot instances, in minutes. This value must be a multiple of 60 (60, 120, 180, 240, 300, or 360).
   The duration period starts as soon as your Spot instance receives its instance ID. At the end of the duration period, Amazon EC2 marks the Spot instance for termination and provides a Spot instance termination notice, which gives the instance a two-minute warning before it terminates.
   Note that you can't specify an Availability Zone group or a launch group if you specify a duration.
-* `instance_interruption_behavior` - (Optional) Indicates whether a Spot instance stops or terminates when it is interrupted. Default is `terminate` as this is the current AWS behaviour.
+* `instance_interruption_behaviour` - (Optional) Indicates whether a Spot instance stops or terminates when it is interrupted. Default is `terminate` as this is the current AWS behaviour.
+* `valid_until` - (Optional) The end date and time of the request, in UTC [RFC3339](https://tools.ietf.org/html/rfc3339#section-5.8) format(for example, YYYY-MM-DDTHH:MM:SSZ). At this point, no new Spot instance requests are placed or enabled to fulfill the request. The default end date is 7 days from the current date.
+* `valid_from` - (Optional) The start date and time of the request, in UTC [RFC3339](https://tools.ietf.org/html/rfc3339#section-5.8) format(for example, YYYY-MM-DDTHH:MM:SSZ). The default is to start fulfilling the request immediately.
+* `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ### Timeouts
 
@@ -71,7 +77,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The Spot Instance Request ID.
 

@@ -14,17 +14,18 @@ Provides an SSM Maintenance Window Target resource
 
 ```hcl
 resource "aws_ssm_maintenance_window" "window" {
-  name = "maintenance-window-webapp"
+  name     = "maintenance-window-webapp"
   schedule = "cron(0 16 ? * TUE *)"
   duration = 3
-  cutoff = 1
+  cutoff   = 1
 }
 
 resource "aws_ssm_maintenance_window_target" "target1" {
-  window_id = "${aws_ssm_maintenance_window.window.id}"
+  window_id     = "${aws_ssm_maintenance_window.window.id}"
   resource_type = "INSTANCE"
+
   targets {
-    key = "tag:Name"
+    key    = "tag:Name"
     values = ["acceptance_test"]
   }
 }
@@ -41,6 +42,6 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the maintenance window target.

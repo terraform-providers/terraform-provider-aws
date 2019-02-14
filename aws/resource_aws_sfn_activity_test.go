@@ -3,6 +3,7 @@ package aws
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -10,13 +11,34 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
-	"time"
 )
+
+func TestAccAWSSfnActivity_importBasic(t *testing.T) {
+	resourceName := "aws_sfn_activity.foo"
+	rName := acctest.RandString(10)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSSfnActivityDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSSfnActivityBasicConfig(rName),
+			},
+
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
 
 func TestAccAWSSfnActivity_basic(t *testing.T) {
 	name := acctest.RandString(10)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSfnActivityDestroy,
@@ -27,6 +49,43 @@ func TestAccAWSSfnActivity_basic(t *testing.T) {
 					testAccCheckAWSSfnActivityExists("aws_sfn_activity.foo"),
 					resource.TestCheckResourceAttr("aws_sfn_activity.foo", "name", name),
 					resource.TestCheckResourceAttrSet("aws_sfn_activity.foo", "creation_date"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSSfnActivity_Tags(t *testing.T) {
+	name := acctest.RandString(10)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSSfnActivityDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSSfnActivityBasicConfigTags1(name, "key1", "value1"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSSfnActivityExists("aws_sfn_activity.foo"),
+					resource.TestCheckResourceAttr("aws_sfn_activity.foo", "tags.%", "1"),
+					resource.TestCheckResourceAttr("aws_sfn_activity.foo", "tags.key1", "value1"),
+				),
+			},
+			{
+				Config: testAccAWSSfnActivityBasicConfigTags2(name, "key1", "value1updated", "key2", "value2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSSfnActivityExists("aws_sfn_activity.foo"),
+					resource.TestCheckResourceAttr("aws_sfn_activity.foo", "tags.%", "2"),
+					resource.TestCheckResourceAttr("aws_sfn_activity.foo", "tags.key1", "value1updated"),
+					resource.TestCheckResourceAttr("aws_sfn_activity.foo", "tags.key2", "value2"),
+				),
+			},
+			{
+				Config: testAccAWSSfnActivityBasicConfigTags1(name, "key2", "value2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSSfnActivityExists("aws_sfn_activity.foo"),
+					resource.TestCheckResourceAttr("aws_sfn_activity.foo", "tags.%", "1"),
+					resource.TestCheckResourceAttr("aws_sfn_activity.foo", "tags.key2", "value2"),
 				),
 			},
 		},
@@ -50,11 +109,7 @@ func testAccCheckAWSSfnActivityExists(n string) resource.TestCheckFunc {
 			ActivityArn: aws.String(rs.Primary.ID),
 		})
 
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return err
 	}
 }
 
@@ -87,11 +142,7 @@ func testAccCheckAWSSfnActivityDestroy(s *terraform.State) error {
 			return resource.RetryableError(fmt.Errorf("Expected AWS Step Function Activity to be destroyed, but was still found, retrying"))
 		})
 
-		if retryErr != nil {
-			return retryErr
-		}
-
-		return nil
+		return retryErr
 	}
 
 	return fmt.Errorf("Default error in Step Function Test")
@@ -103,4 +154,27 @@ resource "aws_sfn_activity" "foo" {
   name = "%s"
 }
 `, rName)
+}
+
+func testAccAWSSfnActivityBasicConfigTags1(rName, tag1Key, tag1Value string) string {
+	return fmt.Sprintf(`
+resource "aws_sfn_activity" "foo" {
+  name = "%s"
+  tags = {
+	%q = %q
+}
+}
+`, rName, tag1Key, tag1Value)
+}
+
+func testAccAWSSfnActivityBasicConfigTags2(rName, tag1Key, tag1Value, tag2Key, tag2Value string) string {
+	return fmt.Sprintf(`
+resource "aws_sfn_activity" "foo" {
+  name = "%s"
+  tags = {
+	%q = %q
+	%q = %q
+}
+}
+`, rName, tag1Key, tag1Value, tag2Key, tag2Value)
 }

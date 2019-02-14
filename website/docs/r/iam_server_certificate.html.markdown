@@ -97,12 +97,12 @@ The following arguments are supported:
   path in this value. If omitted, Terraform will assign a random, unique name.
 * `name_prefix` - (Optional) Creates a unique name beginning with the specified
   prefix. Conflicts with `name`.
-* `certificate_body` – (Required) The contents of the public key certificate in
+* `certificate_body` – (Required) The contents of the public key certificate in
   PEM-encoded format.
-* `certificate_chain` – (Optional) The contents of the certificate chain.
+* `certificate_chain` – (Optional) The contents of the certificate chain.
   This is typically a concatenation of the PEM-encoded public key certificates
   of the chain.
-* `private_key` – (Required) The contents of the private key in PEM-encoded format.
+* `private_key` – (Required) The contents of the private key in PEM-encoded format.
 * `path` - (Optional) The IAM path for the server certificate.  If it is not
     included, it defaults to a slash (/). If this certificate is for use with
     AWS CloudFront, the path must be in format `/cloudfront/your_path_here`.

@@ -16,20 +16,19 @@ func TestDiffTags(t *testing.T) {
 		Old, New       map[string]interface{}
 		Create, Remove map[string]string
 	}{
-		// Basic add/remove
+		// Add
 		{
 			Old: map[string]interface{}{
 				"foo": "bar",
 			},
 			New: map[string]interface{}{
+				"foo": "bar",
 				"bar": "baz",
 			},
 			Create: map[string]string{
 				"bar": "baz",
 			},
-			Remove: map[string]string{
-				"foo": "bar",
-			},
+			Remove: map[string]string{},
 		},
 
 		// Modify
@@ -45,6 +44,39 @@ func TestDiffTags(t *testing.T) {
 			},
 			Remove: map[string]string{
 				"foo": "bar",
+			},
+		},
+
+		// Overlap
+		{
+			Old: map[string]interface{}{
+				"foo":   "bar",
+				"hello": "world",
+			},
+			New: map[string]interface{}{
+				"foo":   "baz",
+				"hello": "world",
+			},
+			Create: map[string]string{
+				"foo": "baz",
+			},
+			Remove: map[string]string{
+				"foo": "bar",
+			},
+		},
+
+		// Remove
+		{
+			Old: map[string]interface{}{
+				"foo": "bar",
+				"bar": "baz",
+			},
+			New: map[string]interface{}{
+				"foo": "bar",
+			},
+			Create: map[string]string{},
+			Remove: map[string]string{
+				"bar": "baz",
 			},
 		},
 	}
@@ -76,6 +108,50 @@ func TestIgnoringTags(t *testing.T) {
 	for _, tag := range ignoredTags {
 		if !tagIgnored(tag) {
 			t.Fatalf("Tag %v with value %v not ignored, but should be!", *tag.Key, *tag.Value)
+		}
+	}
+}
+
+func TestTagsMapToHash(t *testing.T) {
+	cases := []struct {
+		Left, Right map[string]interface{}
+		MustBeEqual bool
+	}{
+		{
+			Left:        map[string]interface{}{},
+			Right:       map[string]interface{}{},
+			MustBeEqual: true,
+		},
+		{
+			Left: map[string]interface{}{
+				"foo": "bar",
+				"bar": "baz",
+			},
+			Right: map[string]interface{}{
+				"bar": "baz",
+				"foo": "bar",
+			},
+			MustBeEqual: true,
+		},
+		{
+			Left: map[string]interface{}{
+				"foo": "bar",
+			},
+			Right: map[string]interface{}{
+				"bar": "baz",
+			},
+			MustBeEqual: false,
+		},
+	}
+
+	for i, tc := range cases {
+		l := tagsMapToHash(tc.Left)
+		r := tagsMapToHash(tc.Right)
+		if tc.MustBeEqual && (l != r) {
+			t.Fatalf("%d: Hashes don't match", i)
+		}
+		if !tc.MustBeEqual && (l == r) {
+			t.Logf("%d: Hashes match", i)
 		}
 	}
 }

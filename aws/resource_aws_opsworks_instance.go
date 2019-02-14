@@ -99,7 +99,6 @@ func resourceAwsOpsworksInstance() *schema.Resource {
 
 			"ec2_instance_id": {
 				Type:     schema.TypeString,
-				Optional: true,
 				Computed: true,
 			},
 
@@ -532,12 +531,12 @@ func resourceAwsOpsworksInstanceRead(d *schema.ResourceData, meta interface{}) e
 	for _, v := range instance.LayerIds {
 		layerIds = append(layerIds, *v)
 	}
-	layerIds, err = sortListBasedonTFFile(layerIds, d, "layer_ids")
+	layerIds, err = sortListBasedonTFFile(layerIds, d)
 	if err != nil {
-		return fmt.Errorf("[DEBUG] Error sorting layer_ids attribute: %#v", err)
+		return fmt.Errorf("Error sorting layer_ids attribute: %#v", err)
 	}
 	if err := d.Set("layer_ids", layerIds); err != nil {
-		return fmt.Errorf("[DEBUG] Error setting layer_ids attribute: %#v, error: %#v", layerIds, err)
+		return fmt.Errorf("Error setting layer_ids attribute: %#v, error: %#v", layerIds, err)
 	}
 	d.Set("os", instance.Os)
 	d.Set("platform", instance.Platform)
@@ -562,7 +561,7 @@ func resourceAwsOpsworksInstanceRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("virtualization_type", instance.VirtualizationType)
 
 	// Read BlockDeviceMapping
-	ibds, err := readOpsworksBlockDevices(d, instance, meta)
+	ibds, err := readOpsworksBlockDevices(instance)
 	if err != nil {
 		return err
 	}
@@ -586,11 +585,8 @@ func resourceAwsOpsworksInstanceRead(d *schema.ResourceData, meta interface{}) e
 	for _, sg := range instance.SecurityGroupIds {
 		sgs = append(sgs, *sg)
 	}
-	if err := d.Set("security_group_ids", sgs); err != nil {
-		return err
-	}
-
-	return nil
+	err1 := d.Set("security_group_ids", sgs)
+	return err1
 }
 
 func resourceAwsOpsworksInstanceCreate(d *schema.ResourceData, meta interface{}) error {
@@ -826,7 +822,7 @@ func resourceAwsOpsworksInstanceUpdate(d *schema.ResourceData, meta interface{})
 			}
 		} else {
 			if status != "stopped" && status != "stopping" && status != "shutting_down" {
-				err := stopOpsworksInstance(d, meta, true, d.Timeout(schema.TimeoutUpdate))
+				err := stopOpsworksInstance(d, meta, d.Timeout(schema.TimeoutUpdate))
 				if err != nil {
 					return err
 				}
@@ -841,7 +837,7 @@ func resourceAwsOpsworksInstanceDelete(d *schema.ResourceData, meta interface{})
 	client := meta.(*AWSClient).opsworksconn
 
 	if v, ok := d.GetOk("status"); ok && v.(string) != "stopped" {
-		err := stopOpsworksInstance(d, meta, true, d.Timeout(schema.TimeoutDelete))
+		err := stopOpsworksInstance(d, meta, d.Timeout(schema.TimeoutDelete))
 		if err != nil {
 			return err
 		}
@@ -856,12 +852,7 @@ func resourceAwsOpsworksInstanceDelete(d *schema.ResourceData, meta interface{})
 	log.Printf("[DEBUG] Deleting OpsWorks instance: %s", d.Id())
 
 	_, err := client.DeleteInstance(req)
-	if err != nil {
-		return err
-	}
-
-	d.SetId("")
-	return nil
+	return err
 }
 
 func resourceAwsOpsworksInstanceImport(
@@ -912,7 +903,7 @@ func startOpsworksInstance(d *schema.ResourceData, meta interface{}, wait bool, 
 	return nil
 }
 
-func stopOpsworksInstance(d *schema.ResourceData, meta interface{}, wait bool, timeout time.Duration) error {
+func stopOpsworksInstance(d *schema.ResourceData, meta interface{}, timeout time.Duration) error {
 	client := meta.(*AWSClient).opsworksconn
 
 	instanceId := d.Id()
@@ -929,29 +920,26 @@ func stopOpsworksInstance(d *schema.ResourceData, meta interface{}, wait bool, t
 		return err
 	}
 
-	if wait {
-		log.Printf("[DEBUG] Waiting for instance (%s) to become stopped", instanceId)
+	log.Printf("[DEBUG] Waiting for instance (%s) to become stopped", instanceId)
 
-		stateConf := &resource.StateChangeConf{
-			Pending:    []string{"stopping", "terminating", "shutting_down", "terminated"},
-			Target:     []string{"stopped"},
-			Refresh:    OpsworksInstanceStateRefreshFunc(client, instanceId),
-			Timeout:    timeout,
-			Delay:      10 * time.Second,
-			MinTimeout: 3 * time.Second,
-		}
-		_, err = stateConf.WaitForState()
-		if err != nil {
-			return fmt.Errorf("Error waiting for instance (%s) to become stopped: %s",
-				instanceId, err)
-		}
+	stateConf := &resource.StateChangeConf{
+		Pending:    []string{"stopping", "terminating", "shutting_down", "terminated"},
+		Target:     []string{"stopped"},
+		Refresh:    OpsworksInstanceStateRefreshFunc(client, instanceId),
+		Timeout:    timeout,
+		Delay:      10 * time.Second,
+		MinTimeout: 3 * time.Second,
+	}
+	_, err = stateConf.WaitForState()
+	if err != nil {
+		return fmt.Errorf("Error waiting for instance (%s) to become stopped: %s",
+			instanceId, err)
 	}
 
 	return nil
 }
 
-func readOpsworksBlockDevices(d *schema.ResourceData, instance *opsworks.Instance, meta interface{}) (
-	map[string]interface{}, error) {
+func readOpsworksBlockDevices(instance *opsworks.Instance) (map[string]interface{}, error) {
 
 	blockDevices := make(map[string]interface{})
 	blockDevices["ebs"] = make([]map[string]interface{}, 0)

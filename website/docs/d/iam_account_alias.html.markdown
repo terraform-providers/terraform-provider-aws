@@ -28,6 +28,6 @@ There are no arguments available for this data source.
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `account_alias` - The alias associated with the AWS account.

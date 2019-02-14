@@ -14,13 +14,13 @@ import (
 func TestAccAWSDefaultSecurityGroup_basic(t *testing.T) {
 	var group ec2.SecurityGroup
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		IDRefreshName: "aws_default_security_group.web",
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSDefaultSecurityGroupDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: testAccAWSDefaultSecurityGroupConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSDefaultSecurityGroupExists("aws_default_security_group.web", &group),
@@ -46,13 +46,13 @@ func TestAccAWSDefaultSecurityGroup_basic(t *testing.T) {
 func TestAccAWSDefaultSecurityGroup_classic(t *testing.T) {
 	var group ec2.SecurityGroup
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		IDRefreshName: "aws_default_security_group.web",
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSDefaultSecurityGroupDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: testAccAWSDefaultSecurityGroupConfig_classic,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSDefaultSecurityGroupExists("aws_default_security_group.web", &group),
@@ -115,7 +115,7 @@ func testAccCheckAWSDefaultSecurityGroupAttributes(group *ec2.SecurityGroup) res
 			FromPort:   aws.Int64(80),
 			ToPort:     aws.Int64(8000),
 			IpProtocol: aws.String("tcp"),
-			IpRanges:   []*ec2.IpRange{&ec2.IpRange{CidrIp: aws.String("10.0.0.0/8")}},
+			IpRanges:   []*ec2.IpRange{{CidrIp: aws.String("10.0.0.0/8")}},
 		}
 
 		if *group.GroupName != "default" {
@@ -141,7 +141,7 @@ func testAccCheckAWSDefaultSecurityGroupAttributes(group *ec2.SecurityGroup) res
 const testAccAWSDefaultSecurityGroupConfig = `
 resource "aws_vpc" "foo" {
   cidr_block = "10.1.0.0/16"
-	tags {
+	tags = {
 		Name = "terraform-testacc-default-security-group"
 	}
 }
@@ -163,7 +163,7 @@ resource "aws_default_security_group" "web" {
     cidr_blocks = ["10.0.0.0/8"]
   }
 
-  tags {
+  tags = {
     Name = "tf-acc-test"
   }
 }
@@ -182,7 +182,7 @@ resource "aws_default_security_group" "web" {
     cidr_blocks = ["10.0.0.0/8"]
   }
 
-  tags {
+  tags = {
     Name = "tf-acc-test"
   }
 }`

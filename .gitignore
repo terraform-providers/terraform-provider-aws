@@ -33,3 +33,4 @@ website/vendor
 # Keep windows files with windows line endings
 *.winfile eol=crlf
 /.vs
+node_modules

@@ -14,7 +14,7 @@ Provides a Inspector resource group
 
 ```hcl
 resource "aws_inspector_resource_group" "bar" {
-  tags {
+  tags = {
     Name = "foo"
     Env  = "bar"
   }
@@ -29,6 +29,6 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `arn` - The resource group ARN.

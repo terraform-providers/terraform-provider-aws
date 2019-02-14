@@ -21,7 +21,7 @@ func TestAccAWSEIP_importEc2Classic(t *testing.T) {
 
 	resourceName := "aws_eip.bar"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccEC2ClassicPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSEIPDestroy,
@@ -41,7 +41,7 @@ func TestAccAWSEIP_importEc2Classic(t *testing.T) {
 func TestAccAWSEIP_importVpc(t *testing.T) {
 	resourceName := "aws_eip.bar"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSEIPDestroy,
@@ -61,13 +61,13 @@ func TestAccAWSEIP_importVpc(t *testing.T) {
 func TestAccAWSEIP_basic(t *testing.T) {
 	var conf ec2.Address
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		IDRefreshName: "aws_eip.bar",
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSEIPDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: testAccAWSEIPConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSEIPExists("aws_eip.bar", &conf),
@@ -81,13 +81,13 @@ func TestAccAWSEIP_basic(t *testing.T) {
 func TestAccAWSEIP_instance(t *testing.T) {
 	var conf ec2.Address
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		IDRefreshName: "aws_eip.bar",
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSEIPDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: testAccAWSEIPInstanceConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSEIPExists("aws_eip.bar", &conf),
@@ -95,7 +95,7 @@ func TestAccAWSEIP_instance(t *testing.T) {
 				),
 			},
 
-			resource.TestStep{
+			{
 				Config: testAccAWSEIPInstanceConfig2,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSEIPExists("aws_eip.bar", &conf),
@@ -109,13 +109,13 @@ func TestAccAWSEIP_instance(t *testing.T) {
 func TestAccAWSEIP_network_interface(t *testing.T) {
 	var conf ec2.Address
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		IDRefreshName: "aws_eip.bar",
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSEIPDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: testAccAWSEIPNetworkInterfaceConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSEIPExists("aws_eip.bar", &conf),
@@ -130,13 +130,13 @@ func TestAccAWSEIP_network_interface(t *testing.T) {
 func TestAccAWSEIP_twoEIPsOneNetworkInterface(t *testing.T) {
 	var one, two ec2.Address
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		IDRefreshName: "aws_eip.one",
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSEIPDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: testAccAWSEIPMultiNetworkInterfaceConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSEIPExists("aws_eip.one", &one),
@@ -156,13 +156,13 @@ func TestAccAWSEIP_twoEIPsOneNetworkInterface(t *testing.T) {
 func TestAccAWSEIP_associated_user_private_ip(t *testing.T) {
 	var one ec2.Address
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		IDRefreshName: "aws_eip.bar",
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSEIPDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: testAccAWSEIPInstanceConfig_associated,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSEIPExists("aws_eip.bar", &one),
@@ -171,7 +171,7 @@ func TestAccAWSEIP_associated_user_private_ip(t *testing.T) {
 				),
 			},
 
-			resource.TestStep{
+			{
 				Config: testAccAWSEIPInstanceConfig_associated_switch,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSEIPExists("aws_eip.bar", &one),
@@ -186,13 +186,17 @@ func TestAccAWSEIP_associated_user_private_ip(t *testing.T) {
 // Regression test for https://github.com/hashicorp/terraform/issues/3429 (now
 // https://github.com/terraform-providers/terraform-provider-aws/issues/42)
 func TestAccAWSEIP_classic_disassociate(t *testing.T) {
-	resource.Test(t, resource.TestCase{
+	oldvar := os.Getenv("AWS_DEFAULT_REGION")
+	os.Setenv("AWS_DEFAULT_REGION", "us-east-1")
+	defer os.Setenv("AWS_DEFAULT_REGION", oldvar)
+
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccEC2ClassicPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSEIPDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
-				Config: testAccAWSEIP_classic_disassociate("ami-408c7f28"),
+			{
+				Config: testAccAWSEIP_classic_disassociate("instance-store"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(
 						"aws_eip.ip.0",
@@ -202,8 +206,8 @@ func TestAccAWSEIP_classic_disassociate(t *testing.T) {
 						"instance"),
 				),
 			},
-			resource.TestStep{
-				Config: testAccAWSEIP_classic_disassociate("ami-8c6ea9e4"),
+			{
+				Config: testAccAWSEIP_classic_disassociate("ebs"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(
 						"aws_eip.ip.0",
@@ -220,12 +224,12 @@ func TestAccAWSEIP_classic_disassociate(t *testing.T) {
 func TestAccAWSEIP_disappears(t *testing.T) {
 	var conf ec2.Address
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSEIPDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: testAccAWSEIPConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSEIPExists("aws_eip.bar", &conf),
@@ -240,13 +244,13 @@ func TestAccAWSEIP_disappears(t *testing.T) {
 func TestAccAWSEIPAssociate_not_associated(t *testing.T) {
 	var conf ec2.Address
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		IDRefreshName: "aws_eip.bar",
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSEIPDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: testAccAWSEIPAssociate_not_associated,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSEIPExists("aws_eip.bar", &conf),
@@ -254,7 +258,7 @@ func TestAccAWSEIPAssociate_not_associated(t *testing.T) {
 				),
 			},
 
-			resource.TestStep{
+			{
 				Config: testAccAWSEIPAssociate_associated,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSEIPExists("aws_eip.bar", &conf),
@@ -272,13 +276,13 @@ func TestAccAWSEIP_tags(t *testing.T) {
 	rName1 := fmt.Sprintf("%s-%d", t.Name(), acctest.RandInt())
 	rName2 := fmt.Sprintf("%s-%d", t.Name(), acctest.RandInt())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		IDRefreshName: "aws_eip.bar",
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSEIPDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: testAccAWSEIPConfig_tags(rName1, t.Name()),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSEIPExists(resourceName, &conf),
@@ -288,7 +292,7 @@ func TestAccAWSEIP_tags(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "tags.TestName", t.Name()),
 				),
 			},
-			resource.TestStep{
+			{
 				Config: testAccAWSEIPConfig_tags(rName2, t.Name()),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSEIPExists(resourceName, &conf),
@@ -296,6 +300,56 @@ func TestAccAWSEIP_tags(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
 					resource.TestCheckResourceAttr(resourceName, "tags.RandomName", rName2),
 					resource.TestCheckResourceAttr(resourceName, "tags.TestName", t.Name()),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSEIP_PublicIpv4Pool_default(t *testing.T) {
+	var conf ec2.Address
+	resourceName := "aws_eip.bar"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:      func() { testAccPreCheck(t) },
+		IDRefreshName: resourceName,
+		Providers:     testAccProviders,
+		CheckDestroy:  testAccCheckAWSEIPDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSEIPConfig_PublicIpv4Pool_default,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSEIPExists(resourceName, &conf),
+					testAccCheckAWSEIPAttributes(&conf),
+					resource.TestCheckResourceAttr(resourceName, "public_ipv4_pool", "amazon"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSEIP_PublicIpv4Pool_custom(t *testing.T) {
+	if os.Getenv("AWS_EC2_EIP_PUBLIC_IPV4_POOL") == "" {
+		t.Skip("Environment variable AWS_EC2_EIP_PUBLIC_IPV4_POOL is not set")
+	}
+
+	var conf ec2.Address
+	resourceName := "aws_eip.bar"
+
+	poolName := os.Getenv("AWS_EC2_EIP_PUBLIC_IPV4_POOL")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:      func() { testAccPreCheck(t) },
+		IDRefreshName: resourceName,
+		Providers:     testAccProviders,
+		CheckDestroy:  testAccCheckAWSEIPDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSEIPConfig_PublicIpv4Pool_custom(poolName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSEIPExists(resourceName, &conf),
+					testAccCheckAWSEIPAttributes(&conf),
+					resource.TestCheckResourceAttr(resourceName, "public_ipv4_pool", poolName),
 				),
 			},
 		},
@@ -442,7 +496,7 @@ resource "aws_eip" "bar" {
 func testAccAWSEIPConfig_tags(rName, testName string) string {
 	return fmt.Sprintf(`
 resource "aws_eip" "bar" {
-  tags {
+  tags = {
     RandomName = "%[1]s"
     TestName   = "%[2]s"
   }
@@ -450,14 +504,46 @@ resource "aws_eip" "bar" {
 `, rName, testName)
 }
 
+const testAccAWSEIPConfig_PublicIpv4Pool_default = `
+resource "aws_eip" "bar" {
+   vpc = true
+}
+`
+
+func testAccAWSEIPConfig_PublicIpv4Pool_custom(poolName string) string {
+	return fmt.Sprintf(`
+resource "aws_eip" "bar" {
+   vpc = true
+   public_ipv4_pool = "%s"
+}
+`, poolName)
+}
+
 const testAccAWSEIPInstanceEc2Classic = `
 provider "aws" {
 	region = "us-east-1"
 }
+
+data "aws_ami" "amzn-ami-minimal-pv" {
+  most_recent = true
+  filter {
+    name = "owner-alias"
+    values = ["amazon"]
+  }
+  filter {
+    name = "name"
+    values = ["amzn-ami-minimal-pv-*"]
+  }
+  filter {
+    name = "root-device-type"
+    values = ["instance-store"]
+  }
+}
+
 resource "aws_instance" "foo" {
-	ami = "ami-5469ae3c"
+	ami = "${data.aws_ami.amzn-ami-minimal-pv.id}"
 	instance_type = "m1.small"
-	tags {
+	tags = {
 		Name = "testAccAWSEIPInstanceEc2Classic"
 	}
 }
@@ -468,9 +554,24 @@ resource "aws_eip" "bar" {
 `
 
 const testAccAWSEIPInstanceConfig = `
+data "aws_ami" "amzn-ami-minimal-pv" {
+  most_recent = true
+  filter {
+    name = "owner-alias"
+    values = ["amazon"]
+  }
+  filter {
+    name = "name"
+    values = ["amzn-ami-minimal-pv-*"]
+  }
+  filter {
+    name = "root-device-type"
+    values = ["instance-store"]
+  }
+}
+
 resource "aws_instance" "foo" {
-	# us-west-2
-	ami = "ami-4fccb37f"
+	ami = "${data.aws_ami.amzn-ami-minimal-pv.id}"
 	instance_type = "m1.small"
 }
 
@@ -480,9 +581,24 @@ resource "aws_eip" "bar" {
 `
 
 const testAccAWSEIPInstanceConfig2 = `
+data "aws_ami" "amzn-ami-minimal-pv" {
+  most_recent = true
+  filter {
+    name = "owner-alias"
+    values = ["amazon"]
+  }
+  filter {
+    name = "name"
+    values = ["amzn-ami-minimal-pv-*"]
+  }
+  filter {
+    name = "root-device-type"
+    values = ["instance-store"]
+  }
+}
+
 resource "aws_instance" "bar" {
-	# us-west-2
-	ami = "ami-4fccb37f"
+	ami = "${data.aws_ami.amzn-ami-minimal-pv.id}"
 	instance_type = "m1.small"
 }
 
@@ -492,11 +608,27 @@ resource "aws_eip" "bar" {
 `
 
 const testAccAWSEIPInstanceConfig_associated = `
+data "aws_ami" "amzn-ami-minimal-hvm" {
+  most_recent = true
+  filter {
+    name = "owner-alias"
+    values = ["amazon"]
+  }
+  filter {
+    name = "name"
+    values = ["amzn-ami-minimal-hvm-*"]
+  }
+  filter {
+    name = "root-device-type"
+    values = ["ebs"]
+  }
+}
+
 resource "aws_vpc" "default" {
   cidr_block           = "10.0.0.0/16"
   enable_dns_hostnames = true
 
-  tags {
+  tags = {
     Name = "terraform-testacc-eip-instance-associated"
   }
 }
@@ -504,7 +636,7 @@ resource "aws_vpc" "default" {
 resource "aws_internet_gateway" "gw" {
   vpc_id = "${aws_vpc.default.id}"
 
-  tags {
+  tags = {
     Name = "main"
   }
 }
@@ -516,35 +648,32 @@ resource "aws_subnet" "tf_test_subnet" {
 
   depends_on = ["aws_internet_gateway.gw"]
 
-  tags {
+  tags = {
     Name = "tf-acc-eip-instance-associated"
   }
 }
 
 resource "aws_instance" "foo" {
-  # us-west-2
-  ami           = "ami-5189a661"
+  ami           = "${data.aws_ami.amzn-ami-minimal-hvm.id}"
   instance_type = "t2.micro"
 
   private_ip = "10.0.0.12"
   subnet_id  = "${aws_subnet.tf_test_subnet.id}"
 
-  tags {
+  tags = {
     Name = "foo instance"
   }
 }
 
 resource "aws_instance" "bar" {
-  # us-west-2
-
-  ami = "ami-5189a661"
+  ami = "${data.aws_ami.amzn-ami-minimal-hvm.id}"
 
   instance_type = "t2.micro"
 
   private_ip = "10.0.0.19"
   subnet_id  = "${aws_subnet.tf_test_subnet.id}"
 
-  tags {
+  tags = {
     Name = "bar instance"
   }
 }
@@ -557,11 +686,27 @@ resource "aws_eip" "bar" {
 }
 `
 const testAccAWSEIPInstanceConfig_associated_switch = `
+data "aws_ami" "amzn-ami-minimal-hvm" {
+  most_recent = true
+  filter {
+    name = "owner-alias"
+    values = ["amazon"]
+  }
+  filter {
+    name = "name"
+    values = ["amzn-ami-minimal-hvm-*"]
+  }
+  filter {
+    name = "root-device-type"
+    values = ["ebs"]
+  }
+}
+
 resource "aws_vpc" "default" {
   cidr_block           = "10.0.0.0/16"
   enable_dns_hostnames = true
 
-  tags {
+  tags = {
     Name = "terraform-testacc-eip-instance-associated"
   }
 }
@@ -569,7 +714,7 @@ resource "aws_vpc" "default" {
 resource "aws_internet_gateway" "gw" {
   vpc_id = "${aws_vpc.default.id}"
 
-  tags {
+  tags = {
     Name = "main"
   }
 }
@@ -581,35 +726,32 @@ resource "aws_subnet" "tf_test_subnet" {
 
   depends_on = ["aws_internet_gateway.gw"]
 
-  tags {
+  tags = {
     Name = "tf-acc-eip-instance-associated"
   }
 }
 
 resource "aws_instance" "foo" {
-  # us-west-2
-  ami           = "ami-5189a661"
+  ami           = "${data.aws_ami.amzn-ami-minimal-hvm.id}"
   instance_type = "t2.micro"
 
   private_ip = "10.0.0.12"
   subnet_id  = "${aws_subnet.tf_test_subnet.id}"
 
-  tags {
+  tags = {
     Name = "foo instance"
   }
 }
 
 resource "aws_instance" "bar" {
-  # us-west-2
-
-  ami = "ami-5189a661"
+  ami = "${data.aws_ami.amzn-ami-minimal-hvm.id}"
 
   instance_type = "t2.micro"
 
   private_ip = "10.0.0.19"
   subnet_id  = "${aws_subnet.tf_test_subnet.id}"
 
-  tags {
+  tags = {
     Name = "bar instance"
   }
 }
@@ -622,22 +764,10 @@ resource "aws_eip" "bar" {
 }
 `
 
-const testAccAWSEIPInstanceConfig_associated_update = `
-resource "aws_instance" "bar" {
-	# us-west-2
-	ami = "ami-4fccb37f"
-	instance_type = "m1.small"
-}
-
-resource "aws_eip" "bar" {
-	instance = "${aws_instance.bar.id}"
-}
-`
-
 const testAccAWSEIPNetworkInterfaceConfig = `
 resource "aws_vpc" "bar" {
 	cidr_block = "10.0.0.0/24"
-	tags {
+	tags = {
 		Name = "terraform-testacc-eip-network-interface"
 	}
 }
@@ -650,8 +780,8 @@ resource "aws_subnet" "bar" {
   vpc_id = "${aws_vpc.bar.id}"
   availability_zone = "us-west-2a"
   cidr_block = "10.0.0.0/24"
-  tags {
-  	Name = "tf-acc-eip-network-interface"
+  tags = {
+	Name = "tf-acc-eip-network-interface"
   }
 }
 
@@ -671,7 +801,7 @@ resource "aws_eip" "bar" {
 const testAccAWSEIPMultiNetworkInterfaceConfig = `
 resource "aws_vpc" "bar" {
   cidr_block = "10.0.0.0/24"
-	tags {
+	tags = {
 		Name = "terraform-testacc-eip-multi-network-interface"
 	}
 }
@@ -684,8 +814,8 @@ resource "aws_subnet" "bar" {
   vpc_id            = "${aws_vpc.bar.id}"
   availability_zone = "us-west-2a"
   cidr_block        = "10.0.0.0/24"
-  tags {
-  	Name = "tf-acc-eip-multi-network-interface"
+  tags = {
+	Name = "tf-acc-eip-multi-network-interface"
   }
 }
 
@@ -710,7 +840,7 @@ resource "aws_eip" "two" {
 }
 `
 
-func testAccAWSEIP_classic_disassociate(ami string) string {
+func testAccAWSEIP_classic_disassociate(rootDeviceType string) string {
 	return fmt.Sprintf(`
 provider "aws" {
   region = "us-east-1"
@@ -718,6 +848,22 @@ provider "aws" {
 
 variable "server_count" {
   default = 2
+}
+
+data "aws_ami" "amzn-ami-minimal-pv" {
+  most_recent = true
+  filter {
+    name = "owner-alias"
+    values = ["amazon"]
+  }
+  filter {
+    name = "name"
+    values = ["amzn-ami-minimal-pv-*"]
+  }
+  filter {
+    name = "root-device-type"
+    values = [%q]
+  }
 }
 
 resource "aws_eip" "ip" {
@@ -729,13 +875,13 @@ resource "aws_eip" "ip" {
 resource "aws_instance" "example" {
   count = "${var.server_count}"
 
-  ami                         = "%s"
+  ami                         = "${data.aws_ami.amzn-ami-minimal-pv.id}"
   instance_type               = "m1.small"
   associate_public_ip_address = true
   subnet_id                   = "${aws_subnet.us-east-1b-public.id}"
   availability_zone           = "${aws_subnet.us-east-1b-public.availability_zone}"
 
-  tags {
+  tags = {
     Name = "testAccAWSEIP_classic_disassociate"
   }
 
@@ -746,7 +892,7 @@ resource "aws_instance" "example" {
 
 resource "aws_vpc" "example" {
   cidr_block = "10.0.0.0/16"
-	tags {
+	tags = {
 		Name = "terraform-testacc-eip-classic-disassociate"
 	}
 }
@@ -760,7 +906,7 @@ resource "aws_subnet" "us-east-1b-public" {
 
   cidr_block        = "10.0.0.0/24"
   availability_zone = "us-east-1b"
-  tags {
+  tags = {
     Name = "tf-acc-eip-classic-disassociate"
   }
 }
@@ -777,13 +923,28 @@ resource "aws_route_table" "us-east-1-public" {
 resource "aws_route_table_association" "us-east-1b-public" {
   subnet_id      = "${aws_subnet.us-east-1b-public.id}"
   route_table_id = "${aws_route_table.us-east-1-public.id}"
-}`, ami)
+}`, rootDeviceType)
 }
 
 const testAccAWSEIPAssociate_not_associated = `
+data "aws_ami" "amzn-ami-minimal-pv" {
+  most_recent = true
+  filter {
+    name = "owner-alias"
+    values = ["amazon"]
+  }
+  filter {
+    name = "name"
+    values = ["amzn-ami-minimal-pv-*"]
+  }
+  filter {
+    name = "root-device-type"
+    values = ["instance-store"]
+  }
+}
+
 resource "aws_instance" "foo" {
-	# us-west-2
-	ami = "ami-4fccb37f"
+	ami = "${data.aws_ami.amzn-ami-minimal-pv.id}"
 	instance_type = "m1.small"
 }
 
@@ -792,9 +953,24 @@ resource "aws_eip" "bar" {
 `
 
 const testAccAWSEIPAssociate_associated = `
+data "aws_ami" "amzn-ami-minimal-pv" {
+  most_recent = true
+  filter {
+    name = "owner-alias"
+    values = ["amazon"]
+  }
+  filter {
+    name = "name"
+    values = ["amzn-ami-minimal-pv-*"]
+  }
+  filter {
+    name = "root-device-type"
+    values = ["instance-store"]
+  }
+}
+
 resource "aws_instance" "foo" {
-	# us-west-2
-	ami = "ami-4fccb37f"
+	ami = "${data.aws_ami.amzn-ami-minimal-pv.id}"
 	instance_type = "m1.small"
 }
 

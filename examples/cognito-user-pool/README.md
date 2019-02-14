@@ -1,8 +1,6 @@
 # Cognito User Pool example
 
-This example shows how to create
-
-This creates a Cognito User Pool, IAM roles and lambdas.
+This example creates a Cognito User Pool, IAM roles and lambdas.
 
 To run, configure your AWS provider as described in https://www.terraform.io/docs/providers/aws/index.html
 

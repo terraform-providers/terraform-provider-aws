@@ -11,7 +11,7 @@ import (
 func TestAccDataSourceAwsDynamoDbTable_basic(t *testing.T) {
 	tableName := fmt.Sprintf("testaccawsdynamodbtable-basic-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -29,6 +29,9 @@ func TestAccDataSourceAwsDynamoDbTable_basic(t *testing.T) {
 					resource.TestCheckResourceAttr("data.aws_dynamodb_table.dynamodb_table_test", "tags.Name", "dynamodb-table-1"),
 					resource.TestCheckResourceAttr("data.aws_dynamodb_table.dynamodb_table_test", "tags.Environment", "test"),
 					resource.TestCheckResourceAttr("data.aws_dynamodb_table.dynamodb_table_test", "server_side_encryption.#", "0"),
+					resource.TestCheckResourceAttr("data.aws_dynamodb_table.dynamodb_table_test", "billing_mode", "PROVISIONED"),
+					resource.TestCheckResourceAttr("data.aws_dynamodb_table.dynamodb_table_test", "point_in_time_recovery.#", "1"),
+					resource.TestCheckResourceAttr("data.aws_dynamodb_table.dynamodb_table_test", "point_in_time_recovery.0.enabled", "false"),
 				),
 			},
 		},
@@ -68,7 +71,7 @@ func testAccDataSourceAwsDynamoDbTableConfigBasic(tableName string) string {
     non_key_attributes = ["UserId"]
   }
 
-  tags {
+  tags = {
     Name        = "dynamodb-table-1"
     Environment = "test"
   }

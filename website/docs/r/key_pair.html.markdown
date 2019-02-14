@@ -37,7 +37,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `key_name` - The key pair name.
 * `fingerprint` - The MD5 public key fingerprint as specified in section 4 of RFC 4716.

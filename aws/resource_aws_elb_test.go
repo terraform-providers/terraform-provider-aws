@@ -2,10 +2,12 @@ package aws
 
 import (
 	"fmt"
+	"log"
 	"math/rand"
 	"reflect"
 	"regexp"
 	"sort"
+	"strings"
 	"testing"
 	"time"
 
@@ -17,10 +19,93 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
+func init() {
+	resource.AddTestSweepers("aws_elb", &resource.Sweeper{
+		Name: "aws_elb",
+		F:    testSweepELBs,
+	})
+}
+
+func testSweepELBs(region string) error {
+	client, err := sharedClientForRegion(region)
+	if err != nil {
+		return fmt.Errorf("error getting client: %s", err)
+	}
+	conn := client.(*AWSClient).elbconn
+
+	prefixes := []string{
+		"test-elb-",
+	}
+
+	err = conn.DescribeLoadBalancersPages(&elb.DescribeLoadBalancersInput{}, func(out *elb.DescribeLoadBalancersOutput, isLast bool) bool {
+		if len(out.LoadBalancerDescriptions) == 0 {
+			log.Println("[INFO] No ELBs found for sweeping")
+			return false
+		}
+
+		for _, lb := range out.LoadBalancerDescriptions {
+			skip := true
+			for _, prefix := range prefixes {
+				if strings.HasPrefix(*lb.LoadBalancerName, prefix) {
+					skip = false
+					break
+				}
+			}
+			if skip {
+				log.Printf("[INFO] Skipping ELB: %s", *lb.LoadBalancerName)
+				continue
+			}
+			log.Printf("[INFO] Deleting ELB: %s", *lb.LoadBalancerName)
+
+			_, err := conn.DeleteLoadBalancer(&elb.DeleteLoadBalancerInput{
+				LoadBalancerName: lb.LoadBalancerName,
+			})
+			if err != nil {
+				log.Printf("[ERROR] Failed to delete ELB %s: %s", *lb.LoadBalancerName, err)
+				continue
+			}
+			err = cleanupELBNetworkInterfaces(client.(*AWSClient).ec2conn, *lb.LoadBalancerName)
+			if err != nil {
+				log.Printf("[WARN] Failed to cleanup ENIs for ELB %q: %s", *lb.LoadBalancerName, err)
+			}
+		}
+		return !isLast
+	})
+	if err != nil {
+		if testSweepSkipSweepError(err) {
+			log.Printf("[WARN] Skipping ELB sweep for %s: %s", region, err)
+			return nil
+		}
+		return fmt.Errorf("Error retrieving ELBs: %s", err)
+	}
+	return nil
+}
+
+func TestAccAWSELB_importBasic(t *testing.T) {
+	resourceName := "aws_elb.bar"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSELBDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSELBConfig,
+			},
+
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAWSELB_basic(t *testing.T) {
 	var conf elb.LoadBalancerDescription
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		IDRefreshName: "aws_elb.bar",
 		Providers:     testAccProviders,
@@ -59,13 +144,33 @@ func TestAccAWSELB_basic(t *testing.T) {
 	})
 }
 
+func TestAccAWSELB_disappears(t *testing.T) {
+	var loadBalancer elb.LoadBalancerDescription
+	resourceName := "aws_elb.bar"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSELBDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSELBConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSELBExists(resourceName, &loadBalancer),
+					testAccCheckAWSELBDisappears(&loadBalancer),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
 func TestAccAWSELB_fullCharacterRange(t *testing.T) {
 	var conf elb.LoadBalancerDescription
 
-	lbName := fmt.Sprintf("Tf-%d",
-		rand.New(rand.NewSource(time.Now().UnixNano())).Int())
+	lbName := fmt.Sprintf("Tf-%d", acctest.RandInt())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		IDRefreshName: "aws_elb.foo",
 		Providers:     testAccProviders,
@@ -88,7 +193,7 @@ func TestAccAWSELB_AccessLogs_enabled(t *testing.T) {
 
 	rName := fmt.Sprintf("terraform-access-logs-bucket-%d", acctest.RandInt())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		IDRefreshName: "aws_elb.foo",
 		Providers:     testAccProviders,
@@ -133,7 +238,7 @@ func TestAccAWSELB_AccessLogs_disabled(t *testing.T) {
 
 	rName := fmt.Sprintf("terraform-access-logs-bucket-%d", acctest.RandInt())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		IDRefreshName: "aws_elb.foo",
 		Providers:     testAccProviders,
@@ -177,13 +282,13 @@ func TestAccAWSELB_namePrefix(t *testing.T) {
 	var conf elb.LoadBalancerDescription
 	nameRegex := regexp.MustCompile("^test-")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		IDRefreshName: "aws_elb.test",
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSELBDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: testAccAWSELB_namePrefix,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSELBExists("aws_elb.test", &conf),
@@ -199,7 +304,7 @@ func TestAccAWSELB_generatedName(t *testing.T) {
 	var conf elb.LoadBalancerDescription
 	generatedNameRegexp := regexp.MustCompile("^tf-lb-")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		IDRefreshName: "aws_elb.foo",
 		Providers:     testAccProviders,
@@ -221,7 +326,7 @@ func TestAccAWSELB_generatesNameForZeroValue(t *testing.T) {
 	var conf elb.LoadBalancerDescription
 	generatedNameRegexp := regexp.MustCompile("^tf-lb-")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		IDRefreshName: "aws_elb.foo",
 		Providers:     testAccProviders,
@@ -242,7 +347,7 @@ func TestAccAWSELB_generatesNameForZeroValue(t *testing.T) {
 func TestAccAWSELB_availabilityZones(t *testing.T) {
 	var conf elb.LoadBalancerDescription
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		IDRefreshName: "aws_elb.bar",
 		Providers:     testAccProviders,
@@ -283,7 +388,7 @@ func TestAccAWSELB_tags(t *testing.T) {
 	var conf elb.LoadBalancerDescription
 	var td elb.TagDescription
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		IDRefreshName: "aws_elb.bar",
 		Providers:     testAccProviders,
@@ -313,9 +418,11 @@ func TestAccAWSELB_tags(t *testing.T) {
 	})
 }
 
-func TestAccAWSELB_iam_server_cert(t *testing.T) {
+func TestAccAWSELB_Listener_SSLCertificateID_IAMServerCertificate(t *testing.T) {
 	var conf elb.LoadBalancerDescription
-	// var td elb.TagDescription
+	rName := fmt.Sprintf("tf-acctest-%s", acctest.RandString(10))
+	resourceName := "aws_elb.bar"
+
 	testCheck := func(*terraform.State) error {
 		if len(conf.ListenerDescriptions) != 1 {
 			return fmt.Errorf(
@@ -324,19 +431,26 @@ func TestAccAWSELB_iam_server_cert(t *testing.T) {
 		}
 		return nil
 	}
-	resource.Test(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		IDRefreshName: "aws_elb.bar",
-		Providers:     testAccProvidersWithTLS,
-		CheckDestroy:  testAccCheckAWSELBDestroy,
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProvidersWithTLS,
+		CheckDestroy: testAccCheckAWSELBDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccELBIAMServerCertConfig(
-					fmt.Sprintf("tf-acctest-%s", acctest.RandString(10))),
+				Config:      testAccELBConfig_Listener_IAMServerCertificate(rName, "tcp"),
+				ExpectError: regexp.MustCompile(`ssl_certificate_id may be set only when protocol is 'https' or 'ssl'`),
+			},
+			{
+				Config: testAccELBConfig_Listener_IAMServerCertificate(rName, "https"),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSELBExists("aws_elb.bar", &conf),
+					testAccCheckAWSELBExists(resourceName, &conf),
 					testCheck,
 				),
+			},
+			{
+				Config:      testAccELBConfig_Listener_IAMServerCertificate_AddInvalidListener(rName),
+				ExpectError: regexp.MustCompile(`ssl_certificate_id may be set only when protocol is 'https' or 'ssl'`),
 			},
 		},
 	})
@@ -345,7 +459,7 @@ func TestAccAWSELB_iam_server_cert(t *testing.T) {
 func TestAccAWSELB_swap_subnets(t *testing.T) {
 	var conf elb.LoadBalancerDescription
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		IDRefreshName: "aws_elb.ourapp",
 		Providers:     testAccProviders,
@@ -402,7 +516,7 @@ func TestAccAWSELB_InstanceAttaching(t *testing.T) {
 		}
 	}
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		IDRefreshName: "aws_elb.bar",
 		Providers:     testAccProviders,
@@ -431,7 +545,7 @@ func TestAccAWSELB_listener(t *testing.T) {
 	var conf elb.LoadBalancerDescription
 	resourceName := "aws_elb.bar"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
@@ -514,7 +628,7 @@ func TestAccAWSELB_listener(t *testing.T) {
 					input := &elb.CreateLoadBalancerListenersInput{
 						LoadBalancerName: conf.LoadBalancerName,
 						Listeners: []*elb.Listener{
-							&elb.Listener{
+							{
 								InstancePort:     aws.Int64(int64(22)),
 								InstanceProtocol: aws.String("tcp"),
 								LoadBalancerPort: aws.Int64(int64(22)),
@@ -543,7 +657,7 @@ func TestAccAWSELB_listener(t *testing.T) {
 func TestAccAWSELB_HealthCheck(t *testing.T) {
 	var conf elb.LoadBalancerDescription
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		IDRefreshName: "aws_elb.bar",
 		Providers:     testAccProviders,
@@ -571,7 +685,7 @@ func TestAccAWSELB_HealthCheck(t *testing.T) {
 }
 
 func TestAccAWSELBUpdate_HealthCheck(t *testing.T) {
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		IDRefreshName: "aws_elb.bar",
 		Providers:     testAccProviders,
@@ -598,7 +712,7 @@ func TestAccAWSELBUpdate_HealthCheck(t *testing.T) {
 func TestAccAWSELB_Timeout(t *testing.T) {
 	var conf elb.LoadBalancerDescription
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		IDRefreshName: "aws_elb.bar",
 		Providers:     testAccProviders,
@@ -618,7 +732,7 @@ func TestAccAWSELB_Timeout(t *testing.T) {
 }
 
 func TestAccAWSELBUpdate_Timeout(t *testing.T) {
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		IDRefreshName: "aws_elb.bar",
 		Providers:     testAccProviders,
@@ -645,7 +759,7 @@ func TestAccAWSELBUpdate_Timeout(t *testing.T) {
 }
 
 func TestAccAWSELB_ConnectionDraining(t *testing.T) {
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		IDRefreshName: "aws_elb.bar",
 		Providers:     testAccProviders,
@@ -667,7 +781,7 @@ func TestAccAWSELB_ConnectionDraining(t *testing.T) {
 }
 
 func TestAccAWSELBUpdate_ConnectionDraining(t *testing.T) {
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		IDRefreshName: "aws_elb.bar",
 		Providers:     testAccProviders,
@@ -708,7 +822,7 @@ func TestAccAWSELBUpdate_ConnectionDraining(t *testing.T) {
 }
 
 func TestAccAWSELB_SecurityGroups(t *testing.T) {
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		IDRefreshName: "aws_elb.bar",
 		Providers:     testAccProviders,
@@ -844,57 +958,6 @@ func TestResourceAWSELB_validateAccessLogsInterval(t *testing.T) {
 
 }
 
-func TestResourceAWSELB_validateListenerProtocol(t *testing.T) {
-	type testCases struct {
-		Value    string
-		ErrCount int
-	}
-
-	invalidCases := []testCases{
-		{
-			Value:    "",
-			ErrCount: 1,
-		},
-		{
-			Value:    "incorrect",
-			ErrCount: 1,
-		},
-		{
-			Value:    "HTTP:",
-			ErrCount: 1,
-		},
-	}
-
-	for _, tc := range invalidCases {
-		_, errors := validateListenerProtocol(tc.Value, "protocol")
-		if len(errors) != tc.ErrCount {
-			t.Fatalf("Expected %q to trigger a validation error.", tc.Value)
-		}
-	}
-
-	validCases := []testCases{
-		{
-			Value:    "TCP",
-			ErrCount: 0,
-		},
-		{
-			Value:    "ssl",
-			ErrCount: 0,
-		},
-		{
-			Value:    "HTTP",
-			ErrCount: 0,
-		},
-	}
-
-	for _, tc := range validCases {
-		_, errors := validateListenerProtocol(tc.Value, "protocol")
-		if len(errors) != tc.ErrCount {
-			t.Fatalf("Expected %q not to trigger a validation error.", tc.Value)
-		}
-	}
-}
-
 func TestResourceAWSELB_validateHealthCheckTarget(t *testing.T) {
 	type testCase struct {
 		Value    string
@@ -1024,6 +1087,19 @@ func testAccCheckAWSELBDestroy(s *terraform.State) error {
 	return nil
 }
 
+func testAccCheckAWSELBDisappears(loadBalancer *elb.LoadBalancerDescription) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		conn := testAccProvider.Meta().(*AWSClient).elbconn
+
+		input := elb.DeleteLoadBalancerInput{
+			LoadBalancerName: loadBalancer.LoadBalancerName,
+		}
+		_, err := conn.DeleteLoadBalancer(&input)
+
+		return err
+	}
+}
+
 func testAccCheckAWSELBAttributes(conf *elb.LoadBalancerDescription) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		zones := []string{"us-west-2a", "us-west-2b", "us-west-2c"}
@@ -1146,7 +1222,7 @@ resource "aws_elb" "bar" {
     lb_protocol = "HttP"
   }
 
-	tags {
+	tags = {
 		bar = "baz"
 	}
 
@@ -1344,7 +1420,7 @@ resource "aws_elb" "bar" {
     lb_protocol = "http"
   }
 
-	tags {
+	tags = {
 		foo = "bar"
 		new = "type"
 	}
@@ -1371,20 +1447,6 @@ resource "aws_instance" "foo" {
 	# us-west-2
 	ami = "ami-043a5034"
 	instance_type = "t1.micro"
-}
-`
-
-const testAccAWSELBConfigListenerSSLCertificateId = `
-resource "aws_elb" "bar" {
-  availability_zones = ["us-west-2a"]
-
-  listener {
-    instance_port = 8000
-    instance_protocol = "http"
-    ssl_certificate_id = "%s"
-    lb_port = 443
-    lb_protocol = "https"
-  }
 }
 `
 
@@ -1562,39 +1624,69 @@ resource "aws_security_group" "bar" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-	tags {
+	tags = {
 		Name = "tf_elb_sg_test"
 	}
 }
 `
 
-func testAccELBIAMServerCertConfig(certName string) string {
+func testAccELBConfig_Listener_IAMServerCertificate(certName, lbProtocol string) string {
 	return fmt.Sprintf(`
-%s 
+data "aws_availability_zones" "available" {}
+
+%[1]s
 
 resource "aws_iam_server_certificate" "test_cert" {
-  name = "%s"
+  name             = "%[2]s"
   certificate_body = "${tls_self_signed_cert.example.cert_pem}"
   private_key      = "${tls_private_key.example.private_key_pem}"
 }
 
 resource "aws_elb" "bar" {
-  availability_zones = ["us-west-2a", "us-west-2b", "us-west-2c"]
+  availability_zones = ["${data.aws_availability_zones.available.names[0]}"]
 
   listener {
-    instance_port = 8000
-    instance_protocol = "https"
-    lb_port = 80
-    // Protocol should be case insensitive
-    lb_protocol = "HttPs"
+    instance_port      = 443
+    instance_protocol  = "%[3]s"
+    lb_port            = 443
+    lb_protocol        = "%[3]s"
+    ssl_certificate_id = "${aws_iam_server_certificate.test_cert.arn}"
+  }
+}
+`, testAccTLSServerCert, certName, lbProtocol)
+}
+
+func testAccELBConfig_Listener_IAMServerCertificate_AddInvalidListener(certName string) string {
+	return fmt.Sprintf(`
+data "aws_availability_zones" "available" {}
+
+%[1]s
+
+resource "aws_iam_server_certificate" "test_cert" {
+  name             = "%[2]s"
+  certificate_body = "${tls_self_signed_cert.example.cert_pem}"
+  private_key      = "${tls_private_key.example.private_key_pem}"
+}
+
+resource "aws_elb" "bar" {
+  availability_zones = ["${data.aws_availability_zones.available.names[0]}"]
+
+  listener {
+    instance_port      = 443
+    instance_protocol  = "https"
+    lb_port            = 443
+    lb_protocol        = "https"
     ssl_certificate_id = "${aws_iam_server_certificate.test_cert.arn}"
   }
 
-	tags {
-		bar = "baz"
-	}
-
-  cross_zone_load_balancing = true
+  # lb_protocol tcp and ssl_certificate_id is not valid
+  listener {
+    instance_port      = 8443
+    instance_protocol  = "tcp"
+    lb_port            = 8443
+    lb_protocol        = "tcp"
+    ssl_certificate_id = "${aws_iam_server_certificate.test_cert.arn}"
+  }
 }
 `, testAccTLSServerCert, certName)
 }
@@ -1608,7 +1700,7 @@ resource "aws_vpc" "azelb" {
   cidr_block           = "10.1.0.0/16"
   enable_dns_hostnames = true
 
-  tags {
+  tags = {
     Name = "terraform-testacc-elb-subnets"
   }
 }
@@ -1618,7 +1710,7 @@ resource "aws_subnet" "public_a_one" {
 
   cidr_block        = "10.1.1.0/24"
   availability_zone = "us-west-2a"
-  tags {
+  tags = {
     Name = "tf-acc-elb-subnets-a-one"
   }
 }
@@ -1628,7 +1720,7 @@ resource "aws_subnet" "public_b_one" {
 
   cidr_block        = "10.1.7.0/24"
   availability_zone = "us-west-2b"
-  tags {
+  tags = {
     Name = "tf-acc-elb-subnets-b-one"
   }
 }
@@ -1638,7 +1730,7 @@ resource "aws_subnet" "public_a_two" {
 
   cidr_block        = "10.1.2.0/24"
   availability_zone = "us-west-2a"
-  tags {
+  tags = {
     Name = "tf-acc-elb-subnets-a-two"
   }
 }
@@ -1664,7 +1756,7 @@ resource "aws_elb" "ourapp" {
 resource "aws_internet_gateway" "gw" {
   vpc_id = "${aws_vpc.azelb.id}"
 
-  tags {
+  tags = {
     Name = "main"
   }
 }
@@ -1679,7 +1771,7 @@ resource "aws_vpc" "azelb" {
   cidr_block           = "10.1.0.0/16"
   enable_dns_hostnames = true
 
-  tags {
+  tags = {
     Name = "terraform-testacc-elb-subnet-swap"
   }
 }
@@ -1689,7 +1781,7 @@ resource "aws_subnet" "public_a_one" {
 
   cidr_block        = "10.1.1.0/24"
   availability_zone = "us-west-2a"
-  tags {
+  tags = {
     Name = "tf-acc-elb-subnet-swap-a-one"
   }
 }
@@ -1699,7 +1791,7 @@ resource "aws_subnet" "public_b_one" {
 
   cidr_block        = "10.1.7.0/24"
   availability_zone = "us-west-2b"
-  tags {
+  tags = {
     Name = "tf-acc-elb-subnet-swap-b-one"
   }
 }
@@ -1709,7 +1801,7 @@ resource "aws_subnet" "public_a_two" {
 
   cidr_block        = "10.1.2.0/24"
   availability_zone = "us-west-2a"
-  tags {
+  tags = {
     Name = "tf-acc-elb-subnet-swap-a-two"
   }
 }
@@ -1735,7 +1827,7 @@ resource "aws_elb" "ourapp" {
 resource "aws_internet_gateway" "gw" {
   vpc_id = "${aws_vpc.azelb.id}"
 
-  tags {
+  tags = {
     Name = "main"
   }
 }

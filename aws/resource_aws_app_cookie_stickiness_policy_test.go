@@ -16,12 +16,12 @@ import (
 func TestAccAWSAppCookieStickinessPolicy_basic(t *testing.T) {
 	lbName := fmt.Sprintf("tf-test-lb-%s", acctest.RandString(5))
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAppCookieStickinessPolicyDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: testAccAppCookieStickinessPolicyConfig(lbName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAppCookieStickinessPolicy(
@@ -30,7 +30,12 @@ func TestAccAWSAppCookieStickinessPolicy_basic(t *testing.T) {
 					),
 				),
 			},
-			resource.TestStep{
+			{
+				ResourceName:      "aws_app_cookie_stickiness_policy.foo",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
 				Config: testAccAppCookieStickinessPolicyConfigUpdate(lbName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAppCookieStickinessPolicy(
@@ -57,12 +62,12 @@ func TestAccAWSAppCookieStickinessPolicy_missingLB(t *testing.T) {
 		}
 	}
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAppCookieStickinessPolicyDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: testAccAppCookieStickinessPolicyConfig(lbName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAppCookieStickinessPolicy(
@@ -71,7 +76,7 @@ func TestAccAWSAppCookieStickinessPolicy_missingLB(t *testing.T) {
 					),
 				),
 			},
-			resource.TestStep{
+			{
 				PreConfig: removeLB,
 				Config:    testAccAppCookieStickinessPolicyConfigDestroy(lbName),
 			},
@@ -131,11 +136,7 @@ func testAccCheckAppCookieStickinessPolicy(elbResource string, policyResource st
 			PolicyNames:      []*string{aws.String(policyName)},
 		})
 
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return err
 	}
 }
 
@@ -159,12 +160,12 @@ func TestAccAWSAppCookieStickinessPolicy_drift(t *testing.T) {
 		}
 	}
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAppCookieStickinessPolicyDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: testAccAppCookieStickinessPolicyConfig(lbName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAppCookieStickinessPolicy(
@@ -173,7 +174,7 @@ func TestAccAWSAppCookieStickinessPolicy_drift(t *testing.T) {
 					),
 				),
 			},
-			resource.TestStep{
+			{
 				PreConfig: removePolicy,
 				Config:    testAccAppCookieStickinessPolicyConfig(lbName),
 				Check: resource.ComposeTestCheckFunc(

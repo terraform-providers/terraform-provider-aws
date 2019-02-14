@@ -14,7 +14,7 @@ Provides an SSM Patch Group resource
 
 ```hcl
 resource "aws_ssm_patch_baseline" "production" {
-  name  = "patch-baseline"
+  name             = "patch-baseline"
   approved_patches = ["KB123456"]
 }
 
@@ -33,6 +33,6 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the patch baseline.

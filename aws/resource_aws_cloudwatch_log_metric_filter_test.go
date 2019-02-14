@@ -15,7 +15,7 @@ func TestAccAWSCloudWatchLogMetricFilter_basic(t *testing.T) {
 	var mf cloudwatchlogs.MetricFilter
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCloudWatchLogMetricFilterDestroy,
@@ -56,6 +56,7 @@ func TestAccAWSCloudWatchLogMetricFilter_basic(t *testing.T) {
 						MetricName:      aws.String("AccessDeniedCount"),
 						MetricNamespace: aws.String("MyNamespace"),
 						MetricValue:     aws.String("2"),
+						DefaultValue:    aws.Float64(1),
 					}),
 				),
 			},
@@ -107,6 +108,14 @@ func testAccCheckCloudWatchLogMetricFilterTransformation(mf *cloudwatchlogs.Metr
 		if *given.MetricValue != *expected.MetricValue {
 			return fmt.Errorf("Expected metric value: %q, received: %q",
 				*expected.MetricValue, *given.MetricValue)
+		}
+
+		if (given.DefaultValue != nil) != (expected.DefaultValue != nil) {
+			return fmt.Errorf("Expected default value to be present: %t, received: %t",
+				expected.DefaultValue != nil, given.DefaultValue != nil)
+		} else if (given.DefaultValue != nil) && *given.DefaultValue != *expected.DefaultValue {
+			return fmt.Errorf("Expected metric value: %g, received: %g",
+				*expected.DefaultValue, *given.DefaultValue)
 		}
 
 		return nil

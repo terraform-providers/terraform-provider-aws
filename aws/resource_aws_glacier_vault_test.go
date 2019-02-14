@@ -14,14 +14,36 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
-func TestAccAWSGlacierVault_basic(t *testing.T) {
+func TestAccAWSGlacierVault_importBasic(t *testing.T) {
+	resourceName := "aws_glacier_vault.full"
 	rInt := acctest.RandInt()
-	resource.Test(t, resource.TestCase{
+
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckGlacierVaultDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
+				Config: testAccGlacierVault_full(rInt),
+			},
+
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSGlacierVault_basic(t *testing.T) {
+	rInt := acctest.RandInt()
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckGlacierVaultDestroy,
+		Steps: []resource.TestStep{
+			{
 				Config: testAccGlacierVault_basic(rInt),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckGlacierVaultExists("aws_glacier_vault.test"),
@@ -33,12 +55,12 @@ func TestAccAWSGlacierVault_basic(t *testing.T) {
 
 func TestAccAWSGlacierVault_full(t *testing.T) {
 	rInt := acctest.RandInt()
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckGlacierVaultDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: testAccGlacierVault_full(rInt),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckGlacierVaultExists("aws_glacier_vault.full"),
@@ -50,18 +72,18 @@ func TestAccAWSGlacierVault_full(t *testing.T) {
 
 func TestAccAWSGlacierVault_RemoveNotifications(t *testing.T) {
 	rInt := acctest.RandInt()
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckGlacierVaultDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: testAccGlacierVault_full(rInt),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckGlacierVaultExists("aws_glacier_vault.full"),
 				),
 			},
-			resource.TestStep{
+			{
 				Config: testAccGlacierVault_withoutNotification(rInt),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckGlacierVaultExists("aws_glacier_vault.full"),
@@ -229,7 +251,7 @@ resource "aws_glacier_vault" "full" {
   	sns_topic = "${aws_sns_topic.aws_sns_topic.arn}"
   	events = ["ArchiveRetrievalCompleted","InventoryRetrievalCompleted"]
   }
-  tags {
+  tags = {
     Test="Test1"
   }
 }
@@ -244,7 +266,7 @@ resource "aws_sns_topic" "aws_sns_topic" {
 
 resource "aws_glacier_vault" "full" {
   name = "my_test_vault_%d"
-  tags {
+  tags = {
     Test="Test1"
   }
 }

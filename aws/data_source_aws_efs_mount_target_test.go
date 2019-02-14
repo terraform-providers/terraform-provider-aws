@@ -10,13 +10,14 @@ import (
 
 func TestAccDataSourceAwsEfsMountTargetByMountTargetId(t *testing.T) {
 	rName := acctest.RandString(10)
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAwsEfsMountTargetConfigByMountTargetId(rName),
 				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrPair("data.aws_efs_mount_target.by_mount_target_id", "file_system_arn", "aws_efs_mount_target.alpha", "file_system_arn"),
 					resource.TestCheckResourceAttrSet("data.aws_efs_mount_target.by_mount_target_id", "file_system_id"),
 					resource.TestCheckResourceAttrSet("data.aws_efs_mount_target.by_mount_target_id", "ip_address"),
 					resource.TestCheckResourceAttrSet("data.aws_efs_mount_target.by_mount_target_id", "subnet_id"),
@@ -41,7 +42,7 @@ resource "aws_efs_mount_target" "alpha" {
 
 resource "aws_vpc" "foo" {
 	cidr_block = "10.0.0.0/16"
-	tags {
+	tags = {
 		Name = "terraform-testacc-efs-mount-target"
 	}
 }
@@ -50,7 +51,7 @@ resource "aws_subnet" "alpha" {
 	vpc_id = "${aws_vpc.foo.id}"
 	availability_zone = "us-west-2a"
 	cidr_block = "10.0.1.0/24"
-	tags {
+	tags = {
 		Name = "tf-acc-efs-mount-target"
 	}
 }

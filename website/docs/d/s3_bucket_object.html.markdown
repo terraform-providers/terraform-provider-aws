@@ -63,7 +63,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `body` - Object data (see **limitations above** to understand cases in which this field is actually available)
 * `cache_control` - Specifies caching behavior along the request/reply chain.

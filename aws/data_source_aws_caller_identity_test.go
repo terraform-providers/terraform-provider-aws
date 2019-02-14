@@ -9,7 +9,7 @@ import (
 )
 
 func TestAccAWSCallerIdentity_basic(t *testing.T) {
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -26,7 +26,7 @@ func TestAccAWSCallerIdentity_basic(t *testing.T) {
 // Protects against a panic in the AWS Provider configuration.
 // See https://github.com/terraform-providers/terraform-provider-aws/pull/1227
 func TestAccAWSCallerIdentity_basic_panic(t *testing.T) {
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{

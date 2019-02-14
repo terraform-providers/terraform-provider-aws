@@ -7,12 +7,74 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 )
 
+func TestAvailabilityZonesSort(t *testing.T) {
+	azs := []*ec2.AvailabilityZone{
+		{
+			ZoneName: aws.String("name_YYY"),
+			ZoneId:   aws.String("id_YYY"),
+		},
+		{
+			ZoneName: aws.String("name_AAA"),
+			ZoneId:   aws.String("id_AAA"),
+		},
+		{
+			ZoneName: aws.String("name_ZZZ"),
+			ZoneId:   aws.String("id_ZZZ"),
+		},
+		{
+			ZoneName: aws.String("name_BBB"),
+			ZoneId:   aws.String("id_BBB"),
+		},
+	}
+	sort.Slice(azs, func(i, j int) bool {
+		return aws.StringValue(azs[i].ZoneName) < aws.StringValue(azs[j].ZoneName)
+	})
+
+	cases := []struct {
+		Index    int
+		ZoneName string
+		ZoneId   string
+	}{
+		{
+			Index:    0,
+			ZoneName: "name_AAA",
+			ZoneId:   "id_AAA",
+		},
+		{
+			Index:    1,
+			ZoneName: "name_BBB",
+			ZoneId:   "id_BBB",
+		},
+		{
+			Index:    2,
+			ZoneName: "name_YYY",
+			ZoneId:   "id_YYY",
+		},
+		{
+			Index:    3,
+			ZoneName: "name_ZZZ",
+			ZoneId:   "id_ZZZ",
+		},
+	}
+	for _, tc := range cases {
+		az := azs[tc.Index]
+		if aws.StringValue(az.ZoneName) != tc.ZoneName {
+			t.Fatalf("AvailabilityZones index %d got zone name %s, expected %s", tc.Index, aws.StringValue(az.ZoneName), tc.ZoneName)
+		}
+		if aws.StringValue(az.ZoneId) != tc.ZoneId {
+			t.Fatalf("AvailabilityZones index %d got zone ID %s, expected %s", tc.Index, aws.StringValue(az.ZoneId), tc.ZoneId)
+		}
+	}
+}
+
 func TestAccAWSAvailabilityZones_basic(t *testing.T) {
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -27,7 +89,7 @@ func TestAccAWSAvailabilityZones_basic(t *testing.T) {
 }
 
 func TestAccAWSAvailabilityZones_stateFilter(t *testing.T) {
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -59,7 +121,7 @@ func testAccCheckAwsAvailabilityZonesMeta(n string) resource.TestCheckFunc {
 
 		expected := actual
 		sort.Strings(expected)
-		if reflect.DeepEqual(expected, actual) != true {
+		if !reflect.DeepEqual(expected, actual) {
 			return fmt.Errorf("AZs not sorted - expected %v, got %v", expected, actual)
 		}
 		return nil
@@ -82,17 +144,14 @@ func testAccCheckAwsAvailabilityZoneState(n string) resource.TestCheckFunc {
 		}
 
 		_, err := testAccCheckAwsAvailabilityZonesBuildAvailable(rs.Primary.Attributes)
-		if err != nil {
-			return err
-		}
-		return nil
+		return err
 	}
 }
 
 func testAccCheckAwsAvailabilityZonesBuildAvailable(attrs map[string]string) ([]string, error) {
 	v, ok := attrs["names.#"]
 	if !ok {
-		return nil, fmt.Errorf("Available AZ list is missing.")
+		return nil, fmt.Errorf("Available AZ name list is missing.")
 	}
 	qty, err := strconv.Atoi(v)
 	if err != nil {
@@ -100,6 +159,10 @@ func testAccCheckAwsAvailabilityZonesBuildAvailable(attrs map[string]string) ([]
 	}
 	if qty < 1 {
 		return nil, fmt.Errorf("No AZs found in region, this is probably a bug.")
+	}
+	_, ok = attrs["zone_ids.#"]
+	if !ok {
+		return nil, fmt.Errorf("Available AZ ID list is missing.")
 	}
 	zones := make([]string, qty)
 	for n := range zones {

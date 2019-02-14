@@ -38,34 +38,34 @@ type IAMPolicyStatementCondition struct {
 type IAMPolicyStatementPrincipalSet []IAMPolicyStatementPrincipal
 type IAMPolicyStatementConditionSet []IAMPolicyStatementCondition
 
-func (self *IAMPolicyDoc) Merge(newDoc *IAMPolicyDoc) {
+func (s *IAMPolicyDoc) Merge(newDoc *IAMPolicyDoc) {
 	// adopt newDoc's Id
 	if len(newDoc.Id) > 0 {
-		self.Id = newDoc.Id
+		s.Id = newDoc.Id
 	}
 
 	// let newDoc upgrade our Version
-	if newDoc.Version > self.Version {
-		self.Version = newDoc.Version
+	if newDoc.Version > s.Version {
+		s.Version = newDoc.Version
 	}
 
 	// merge in newDoc's statements, overwriting any existing Sids
 	var seen bool
 	for _, newStatement := range newDoc.Statements {
 		if len(newStatement.Sid) == 0 {
-			self.Statements = append(self.Statements, newStatement)
+			s.Statements = append(s.Statements, newStatement)
 			continue
 		}
 		seen = false
-		for i, existingStatement := range self.Statements {
+		for i, existingStatement := range s.Statements {
 			if existingStatement.Sid == newStatement.Sid {
-				self.Statements[i] = newStatement
+				s.Statements[i] = newStatement
 				seen = true
 				break
 			}
 		}
 		if !seen {
-			self.Statements = append(self.Statements, newStatement)
+			s.Statements = append(s.Statements, newStatement)
 		}
 	}
 }
@@ -73,13 +73,14 @@ func (self *IAMPolicyDoc) Merge(newDoc *IAMPolicyDoc) {
 func (ps IAMPolicyStatementPrincipalSet) MarshalJSON() ([]byte, error) {
 	raw := map[string]interface{}{}
 
-	// As a special case, IAM considers the string value "*" to be
-	// equivalent to "AWS": "*", and normalizes policies as such.
-	// We'll follow their lead and do the same normalization here.
-	// IAM also considers {"*": "*"} to be equivalent to this.
+	// Although IAM documentation says, that "*" and {"AWS": "*"} are equivalent
+	// (https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_principal.html),
+	// in practice they are not for IAM roles. IAM will return an error if trust
+	// policy have "*" or {"*": "*"} as principal, but will accept {"AWS": "*"}.
+	// Only {"*": "*"} should be normalized to "*".
 	if len(ps) == 1 {
 		p := ps[0]
-		if p.Type == "AWS" || p.Type == "*" {
+		if p.Type == "*" {
 			if sv, ok := p.Identifiers.(string); ok && sv == "*" {
 				return []byte(`"*"`), nil
 			}
@@ -101,7 +102,7 @@ func (ps IAMPolicyStatementPrincipalSet) MarshalJSON() ([]byte, error) {
 		case string:
 			raw[p.Type] = i
 		default:
-			panic("Unsupported data type for IAMPolicyStatementPrincipalSet")
+			return []byte{}, fmt.Errorf("Unsupported data type %T for IAMPolicyStatementPrincipalSet", i)
 		}
 	}
 
@@ -121,10 +122,21 @@ func (ps *IAMPolicyStatementPrincipalSet) UnmarshalJSON(b []byte) error {
 		out = append(out, IAMPolicyStatementPrincipal{Type: "*", Identifiers: []string{"*"}})
 	case map[string]interface{}:
 		for key, value := range data.(map[string]interface{}) {
-			out = append(out, IAMPolicyStatementPrincipal{Type: key, Identifiers: value})
+			switch vt := value.(type) {
+			case string:
+				out = append(out, IAMPolicyStatementPrincipal{Type: key, Identifiers: value.(string)})
+			case []interface{}:
+				values := []string{}
+				for _, v := range value.([]interface{}) {
+					values = append(values, v.(string))
+				}
+				out = append(out, IAMPolicyStatementPrincipal{Type: key, Identifiers: values})
+			default:
+				return fmt.Errorf("Unsupported data type %T for IAMPolicyStatementPrincipalSet.Identifiers", vt)
+			}
 		}
 	default:
-		return fmt.Errorf("Unsupported data type %s for IAMPolicyStatementPrincipalSet", t)
+		return fmt.Errorf("Unsupported data type %T for IAMPolicyStatementPrincipalSet", t)
 	}
 
 	*ps = out

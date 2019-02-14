@@ -9,14 +9,108 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awsutil"
 	"github.com/aws/aws-sdk-go/aws/request"
+	"github.com/aws/aws-sdk-go/private/protocol"
+	"github.com/aws/aws-sdk-go/private/protocol/jsonrpc"
 )
+
+const opAcceptSharedDirectory = "AcceptSharedDirectory"
+
+// AcceptSharedDirectoryRequest generates a "aws/request.Request" representing the
+// client's request for the AcceptSharedDirectory operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See AcceptSharedDirectory for more information on using the AcceptSharedDirectory
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the AcceptSharedDirectoryRequest method.
+//    req, resp := client.AcceptSharedDirectoryRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/ds-2015-04-16/AcceptSharedDirectory
+func (c *DirectoryService) AcceptSharedDirectoryRequest(input *AcceptSharedDirectoryInput) (req *request.Request, output *AcceptSharedDirectoryOutput) {
+	op := &request.Operation{
+		Name:       opAcceptSharedDirectory,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &AcceptSharedDirectoryInput{}
+	}
+
+	output = &AcceptSharedDirectoryOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// AcceptSharedDirectory API operation for AWS Directory Service.
+//
+// Accepts a directory sharing request that was sent from the directory owner
+// account.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Directory Service's
+// API operation AcceptSharedDirectory for usage and error information.
+//
+// Returned Error Codes:
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
+//   One or more parameters are not valid.
+//
+//   * ErrCodeEntityDoesNotExistException "EntityDoesNotExistException"
+//   The specified entity could not be found.
+//
+//   * ErrCodeDirectoryAlreadySharedException "DirectoryAlreadySharedException"
+//   The specified directory has already been shared with this AWS account.
+//
+//   * ErrCodeClientException "ClientException"
+//   A client exception has occurred.
+//
+//   * ErrCodeServiceException "ServiceException"
+//   An exception has occurred in AWS Directory Service.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/ds-2015-04-16/AcceptSharedDirectory
+func (c *DirectoryService) AcceptSharedDirectory(input *AcceptSharedDirectoryInput) (*AcceptSharedDirectoryOutput, error) {
+	req, out := c.AcceptSharedDirectoryRequest(input)
+	return out, req.Send()
+}
+
+// AcceptSharedDirectoryWithContext is the same as AcceptSharedDirectory with the addition of
+// the ability to pass a context and additional request options.
+//
+// See AcceptSharedDirectory for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *DirectoryService) AcceptSharedDirectoryWithContext(ctx aws.Context, input *AcceptSharedDirectoryInput, opts ...request.Option) (*AcceptSharedDirectoryOutput, error) {
+	req, out := c.AcceptSharedDirectoryRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
 
 const opAddIpRoutes = "AddIpRoutes"
 
 // AddIpRoutesRequest generates a "aws/request.Request" representing the
 // client's request for the AddIpRoutes operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -50,6 +144,7 @@ func (c *DirectoryService) AddIpRoutesRequest(input *AddIpRoutesInput) (req *req
 
 	output = &AddIpRoutesOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -122,8 +217,8 @@ const opAddTagsToResource = "AddTagsToResource"
 
 // AddTagsToResourceRequest generates a "aws/request.Request" representing the
 // client's request for the AddTagsToResource operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -157,6 +252,7 @@ func (c *DirectoryService) AddTagsToResourceRequest(input *AddTagsToResourceInpu
 
 	output = &AddTagsToResourceOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -215,8 +311,8 @@ const opCancelSchemaExtension = "CancelSchemaExtension"
 
 // CancelSchemaExtensionRequest generates a "aws/request.Request" representing the
 // client's request for the CancelSchemaExtension operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -250,6 +346,7 @@ func (c *DirectoryService) CancelSchemaExtensionRequest(input *CancelSchemaExten
 
 	output = &CancelSchemaExtensionOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -303,8 +400,8 @@ const opConnectDirectory = "ConnectDirectory"
 
 // ConnectDirectoryRequest generates a "aws/request.Request" representing the
 // client's request for the ConnectDirectory operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -398,8 +495,8 @@ const opCreateAlias = "CreateAlias"
 
 // CreateAliasRequest generates a "aws/request.Request" representing the
 // client's request for the CreateAlias operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -494,8 +591,8 @@ const opCreateComputer = "CreateComputer"
 
 // CreateComputerRequest generates a "aws/request.Request" representing the
 // client's request for the CreateComputer operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -595,8 +692,8 @@ const opCreateConditionalForwarder = "CreateConditionalForwarder"
 
 // CreateConditionalForwarderRequest generates a "aws/request.Request" representing the
 // client's request for the CreateConditionalForwarder operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -630,6 +727,7 @@ func (c *DirectoryService) CreateConditionalForwarderRequest(input *CreateCondit
 
 	output = &CreateConditionalForwarderOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -694,8 +792,8 @@ const opCreateDirectory = "CreateDirectory"
 
 // CreateDirectoryRequest generates a "aws/request.Request" representing the
 // client's request for the CreateDirectory operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -785,12 +883,108 @@ func (c *DirectoryService) CreateDirectoryWithContext(ctx aws.Context, input *Cr
 	return out, req.Send()
 }
 
+const opCreateLogSubscription = "CreateLogSubscription"
+
+// CreateLogSubscriptionRequest generates a "aws/request.Request" representing the
+// client's request for the CreateLogSubscription operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See CreateLogSubscription for more information on using the CreateLogSubscription
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the CreateLogSubscriptionRequest method.
+//    req, resp := client.CreateLogSubscriptionRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/ds-2015-04-16/CreateLogSubscription
+func (c *DirectoryService) CreateLogSubscriptionRequest(input *CreateLogSubscriptionInput) (req *request.Request, output *CreateLogSubscriptionOutput) {
+	op := &request.Operation{
+		Name:       opCreateLogSubscription,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &CreateLogSubscriptionInput{}
+	}
+
+	output = &CreateLogSubscriptionOutput{}
+	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
+	return
+}
+
+// CreateLogSubscription API operation for AWS Directory Service.
+//
+// Creates a subscription to forward real time Directory Service domain controller
+// security logs to the specified CloudWatch log group in your AWS account.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Directory Service's
+// API operation CreateLogSubscription for usage and error information.
+//
+// Returned Error Codes:
+//   * ErrCodeEntityAlreadyExistsException "EntityAlreadyExistsException"
+//   The specified entity already exists.
+//
+//   * ErrCodeEntityDoesNotExistException "EntityDoesNotExistException"
+//   The specified entity could not be found.
+//
+//   * ErrCodeUnsupportedOperationException "UnsupportedOperationException"
+//   The operation is not supported.
+//
+//   * ErrCodeInsufficientPermissionsException "InsufficientPermissionsException"
+//   The account does not have sufficient permission to perform the operation.
+//
+//   * ErrCodeClientException "ClientException"
+//   A client exception has occurred.
+//
+//   * ErrCodeServiceException "ServiceException"
+//   An exception has occurred in AWS Directory Service.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/ds-2015-04-16/CreateLogSubscription
+func (c *DirectoryService) CreateLogSubscription(input *CreateLogSubscriptionInput) (*CreateLogSubscriptionOutput, error) {
+	req, out := c.CreateLogSubscriptionRequest(input)
+	return out, req.Send()
+}
+
+// CreateLogSubscriptionWithContext is the same as CreateLogSubscription with the addition of
+// the ability to pass a context and additional request options.
+//
+// See CreateLogSubscription for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *DirectoryService) CreateLogSubscriptionWithContext(ctx aws.Context, input *CreateLogSubscriptionInput, opts ...request.Option) (*CreateLogSubscriptionOutput, error) {
+	req, out := c.CreateLogSubscriptionRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opCreateMicrosoftAD = "CreateMicrosoftAD"
 
 // CreateMicrosoftADRequest generates a "aws/request.Request" representing the
 // client's request for the CreateMicrosoftAD operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -829,7 +1023,7 @@ func (c *DirectoryService) CreateMicrosoftADRequest(input *CreateMicrosoftADInpu
 
 // CreateMicrosoftAD API operation for AWS Directory Service.
 //
-// Creates a Microsoft AD in the AWS cloud.
+// Creates an AWS Managed Microsoft AD directory.
 //
 // Before you call CreateMicrosoftAD, ensure that all of the required permissions
 // have been explicitly granted through a policy. For details about what permissions
@@ -887,8 +1081,8 @@ const opCreateSnapshot = "CreateSnapshot"
 
 // CreateSnapshotRequest generates a "aws/request.Request" representing the
 // client's request for the CreateSnapshot operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -982,8 +1176,8 @@ const opCreateTrust = "CreateTrust"
 
 // CreateTrustRequest generates a "aws/request.Request" representing the
 // client's request for the CreateTrust operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -1024,12 +1218,13 @@ func (c *DirectoryService) CreateTrustRequest(input *CreateTrustInput) (req *req
 //
 // AWS Directory Service for Microsoft Active Directory allows you to configure
 // trust relationships. For example, you can establish a trust between your
-// Microsoft AD in the AWS cloud, and your existing on-premises Microsoft Active
-// Directory. This would allow you to provide users and groups access to resources
-// in either domain, with a single set of credentials.
+// AWS Managed Microsoft AD directory, and your existing on-premises Microsoft
+// Active Directory. This would allow you to provide users and groups access
+// to resources in either domain, with a single set of credentials.
 //
 // This action initiates the creation of the AWS side of a trust relationship
-// between a Microsoft AD in the AWS cloud and an external domain.
+// between an AWS Managed Microsoft AD directory and an external domain. You
+// can create either a forest trust or an external trust.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1083,8 +1278,8 @@ const opDeleteConditionalForwarder = "DeleteConditionalForwarder"
 
 // DeleteConditionalForwarderRequest generates a "aws/request.Request" representing the
 // client's request for the DeleteConditionalForwarder operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -1118,6 +1313,7 @@ func (c *DirectoryService) DeleteConditionalForwarderRequest(input *DeleteCondit
 
 	output = &DeleteConditionalForwarderOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -1177,8 +1373,8 @@ const opDeleteDirectory = "DeleteDirectory"
 
 // DeleteDirectoryRequest generates a "aws/request.Request" representing the
 // client's request for the DeleteDirectory operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -1263,12 +1459,101 @@ func (c *DirectoryService) DeleteDirectoryWithContext(ctx aws.Context, input *De
 	return out, req.Send()
 }
 
+const opDeleteLogSubscription = "DeleteLogSubscription"
+
+// DeleteLogSubscriptionRequest generates a "aws/request.Request" representing the
+// client's request for the DeleteLogSubscription operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DeleteLogSubscription for more information on using the DeleteLogSubscription
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the DeleteLogSubscriptionRequest method.
+//    req, resp := client.DeleteLogSubscriptionRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/ds-2015-04-16/DeleteLogSubscription
+func (c *DirectoryService) DeleteLogSubscriptionRequest(input *DeleteLogSubscriptionInput) (req *request.Request, output *DeleteLogSubscriptionOutput) {
+	op := &request.Operation{
+		Name:       opDeleteLogSubscription,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &DeleteLogSubscriptionInput{}
+	}
+
+	output = &DeleteLogSubscriptionOutput{}
+	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
+	return
+}
+
+// DeleteLogSubscription API operation for AWS Directory Service.
+//
+// Deletes the specified log subscription.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Directory Service's
+// API operation DeleteLogSubscription for usage and error information.
+//
+// Returned Error Codes:
+//   * ErrCodeEntityDoesNotExistException "EntityDoesNotExistException"
+//   The specified entity could not be found.
+//
+//   * ErrCodeUnsupportedOperationException "UnsupportedOperationException"
+//   The operation is not supported.
+//
+//   * ErrCodeClientException "ClientException"
+//   A client exception has occurred.
+//
+//   * ErrCodeServiceException "ServiceException"
+//   An exception has occurred in AWS Directory Service.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/ds-2015-04-16/DeleteLogSubscription
+func (c *DirectoryService) DeleteLogSubscription(input *DeleteLogSubscriptionInput) (*DeleteLogSubscriptionOutput, error) {
+	req, out := c.DeleteLogSubscriptionRequest(input)
+	return out, req.Send()
+}
+
+// DeleteLogSubscriptionWithContext is the same as DeleteLogSubscription with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DeleteLogSubscription for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *DirectoryService) DeleteLogSubscriptionWithContext(ctx aws.Context, input *DeleteLogSubscriptionInput, opts ...request.Option) (*DeleteLogSubscriptionOutput, error) {
+	req, out := c.DeleteLogSubscriptionRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opDeleteSnapshot = "DeleteSnapshot"
 
 // DeleteSnapshotRequest generates a "aws/request.Request" representing the
 // client's request for the DeleteSnapshot operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -1355,8 +1640,8 @@ const opDeleteTrust = "DeleteTrust"
 
 // DeleteTrustRequest generates a "aws/request.Request" representing the
 // client's request for the DeleteTrust operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -1395,8 +1680,8 @@ func (c *DirectoryService) DeleteTrustRequest(input *DeleteTrustInput) (req *req
 
 // DeleteTrust API operation for AWS Directory Service.
 //
-// Deletes an existing trust relationship between your Microsoft AD in the AWS
-// cloud and an external domain.
+// Deletes an existing trust relationship between your AWS Managed Microsoft
+// AD directory and an external domain.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1447,8 +1732,8 @@ const opDeregisterEventTopic = "DeregisterEventTopic"
 
 // DeregisterEventTopicRequest generates a "aws/request.Request" representing the
 // client's request for the DeregisterEventTopic operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -1482,6 +1767,7 @@ func (c *DirectoryService) DeregisterEventTopicRequest(input *DeregisterEventTop
 
 	output = &DeregisterEventTopicOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -1535,8 +1821,8 @@ const opDescribeConditionalForwarders = "DescribeConditionalForwarders"
 
 // DescribeConditionalForwardersRequest generates a "aws/request.Request" representing the
 // client's request for the DescribeConditionalForwarders operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -1632,8 +1918,8 @@ const opDescribeDirectories = "DescribeDirectories"
 
 // DescribeDirectoriesRequest generates a "aws/request.Request" representing the
 // client's request for the DescribeDirectories operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -1734,8 +2020,8 @@ const opDescribeDomainControllers = "DescribeDomainControllers"
 
 // DescribeDomainControllersRequest generates a "aws/request.Request" representing the
 // client's request for the DescribeDomainControllers operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -1884,8 +2170,8 @@ const opDescribeEventTopics = "DescribeEventTopics"
 
 // DescribeEventTopicsRequest generates a "aws/request.Request" representing the
 // client's request for the DescribeEventTopics operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -1972,12 +2258,106 @@ func (c *DirectoryService) DescribeEventTopicsWithContext(ctx aws.Context, input
 	return out, req.Send()
 }
 
+const opDescribeSharedDirectories = "DescribeSharedDirectories"
+
+// DescribeSharedDirectoriesRequest generates a "aws/request.Request" representing the
+// client's request for the DescribeSharedDirectories operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DescribeSharedDirectories for more information on using the DescribeSharedDirectories
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the DescribeSharedDirectoriesRequest method.
+//    req, resp := client.DescribeSharedDirectoriesRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/ds-2015-04-16/DescribeSharedDirectories
+func (c *DirectoryService) DescribeSharedDirectoriesRequest(input *DescribeSharedDirectoriesInput) (req *request.Request, output *DescribeSharedDirectoriesOutput) {
+	op := &request.Operation{
+		Name:       opDescribeSharedDirectories,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &DescribeSharedDirectoriesInput{}
+	}
+
+	output = &DescribeSharedDirectoriesOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// DescribeSharedDirectories API operation for AWS Directory Service.
+//
+// Returns the shared directories in your account.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Directory Service's
+// API operation DescribeSharedDirectories for usage and error information.
+//
+// Returned Error Codes:
+//   * ErrCodeEntityDoesNotExistException "EntityDoesNotExistException"
+//   The specified entity could not be found.
+//
+//   * ErrCodeInvalidNextTokenException "InvalidNextTokenException"
+//   The NextToken value is not valid.
+//
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
+//   One or more parameters are not valid.
+//
+//   * ErrCodeUnsupportedOperationException "UnsupportedOperationException"
+//   The operation is not supported.
+//
+//   * ErrCodeClientException "ClientException"
+//   A client exception has occurred.
+//
+//   * ErrCodeServiceException "ServiceException"
+//   An exception has occurred in AWS Directory Service.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/ds-2015-04-16/DescribeSharedDirectories
+func (c *DirectoryService) DescribeSharedDirectories(input *DescribeSharedDirectoriesInput) (*DescribeSharedDirectoriesOutput, error) {
+	req, out := c.DescribeSharedDirectoriesRequest(input)
+	return out, req.Send()
+}
+
+// DescribeSharedDirectoriesWithContext is the same as DescribeSharedDirectories with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DescribeSharedDirectories for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *DirectoryService) DescribeSharedDirectoriesWithContext(ctx aws.Context, input *DescribeSharedDirectoriesInput, opts ...request.Option) (*DescribeSharedDirectoriesOutput, error) {
+	req, out := c.DescribeSharedDirectoriesRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opDescribeSnapshots = "DescribeSnapshots"
 
 // DescribeSnapshotsRequest generates a "aws/request.Request" representing the
 // client's request for the DescribeSnapshots operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -2074,8 +2454,8 @@ const opDescribeTrusts = "DescribeTrusts"
 
 // DescribeTrustsRequest generates a "aws/request.Request" representing the
 // client's request for the DescribeTrusts operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -2171,8 +2551,8 @@ const opDisableRadius = "DisableRadius"
 
 // DisableRadiusRequest generates a "aws/request.Request" representing the
 // client's request for the DisableRadius operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -2206,13 +2586,15 @@ func (c *DirectoryService) DisableRadiusRequest(input *DisableRadiusInput) (req 
 
 	output = &DisableRadiusOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
 // DisableRadius API operation for AWS Directory Service.
 //
 // Disables multi-factor authentication (MFA) with the Remote Authentication
-// Dial In User Service (RADIUS) server for an AD Connector directory.
+// Dial In User Service (RADIUS) server for an AD Connector or Microsoft AD
+// directory.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -2257,8 +2639,8 @@ const opDisableSso = "DisableSso"
 
 // DisableSsoRequest generates a "aws/request.Request" representing the
 // client's request for the DisableSso operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -2292,6 +2674,7 @@ func (c *DirectoryService) DisableSsoRequest(input *DisableSsoInput) (req *reque
 
 	output = &DisableSsoOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -2348,8 +2731,8 @@ const opEnableRadius = "EnableRadius"
 
 // EnableRadiusRequest generates a "aws/request.Request" representing the
 // client's request for the EnableRadius operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -2383,13 +2766,15 @@ func (c *DirectoryService) EnableRadiusRequest(input *EnableRadiusInput) (req *r
 
 	output = &EnableRadiusOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
 // EnableRadius API operation for AWS Directory Service.
 //
 // Enables multi-factor authentication (MFA) with the Remote Authentication
-// Dial In User Service (RADIUS) server for an AD Connector directory.
+// Dial In User Service (RADIUS) server for an AD Connector or Microsoft AD
+// directory.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -2440,8 +2825,8 @@ const opEnableSso = "EnableSso"
 
 // EnableSsoRequest generates a "aws/request.Request" representing the
 // client's request for the EnableSso operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -2475,6 +2860,7 @@ func (c *DirectoryService) EnableSsoRequest(input *EnableSsoInput) (req *request
 
 	output = &EnableSsoOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -2531,8 +2917,8 @@ const opGetDirectoryLimits = "GetDirectoryLimits"
 
 // GetDirectoryLimitsRequest generates a "aws/request.Request" representing the
 // client's request for the GetDirectoryLimits operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -2616,8 +3002,8 @@ const opGetSnapshotLimits = "GetSnapshotLimits"
 
 // GetSnapshotLimitsRequest generates a "aws/request.Request" representing the
 // client's request for the GetSnapshotLimits operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -2701,8 +3087,8 @@ const opListIpRoutes = "ListIpRoutes"
 
 // ListIpRoutesRequest generates a "aws/request.Request" representing the
 // client's request for the ListIpRoutes operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -2788,12 +3174,100 @@ func (c *DirectoryService) ListIpRoutesWithContext(ctx aws.Context, input *ListI
 	return out, req.Send()
 }
 
+const opListLogSubscriptions = "ListLogSubscriptions"
+
+// ListLogSubscriptionsRequest generates a "aws/request.Request" representing the
+// client's request for the ListLogSubscriptions operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See ListLogSubscriptions for more information on using the ListLogSubscriptions
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the ListLogSubscriptionsRequest method.
+//    req, resp := client.ListLogSubscriptionsRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/ds-2015-04-16/ListLogSubscriptions
+func (c *DirectoryService) ListLogSubscriptionsRequest(input *ListLogSubscriptionsInput) (req *request.Request, output *ListLogSubscriptionsOutput) {
+	op := &request.Operation{
+		Name:       opListLogSubscriptions,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &ListLogSubscriptionsInput{}
+	}
+
+	output = &ListLogSubscriptionsOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// ListLogSubscriptions API operation for AWS Directory Service.
+//
+// Lists the active log subscriptions for the AWS account.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Directory Service's
+// API operation ListLogSubscriptions for usage and error information.
+//
+// Returned Error Codes:
+//   * ErrCodeEntityDoesNotExistException "EntityDoesNotExistException"
+//   The specified entity could not be found.
+//
+//   * ErrCodeInvalidNextTokenException "InvalidNextTokenException"
+//   The NextToken value is not valid.
+//
+//   * ErrCodeClientException "ClientException"
+//   A client exception has occurred.
+//
+//   * ErrCodeServiceException "ServiceException"
+//   An exception has occurred in AWS Directory Service.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/ds-2015-04-16/ListLogSubscriptions
+func (c *DirectoryService) ListLogSubscriptions(input *ListLogSubscriptionsInput) (*ListLogSubscriptionsOutput, error) {
+	req, out := c.ListLogSubscriptionsRequest(input)
+	return out, req.Send()
+}
+
+// ListLogSubscriptionsWithContext is the same as ListLogSubscriptions with the addition of
+// the ability to pass a context and additional request options.
+//
+// See ListLogSubscriptions for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *DirectoryService) ListLogSubscriptionsWithContext(ctx aws.Context, input *ListLogSubscriptionsInput, opts ...request.Option) (*ListLogSubscriptionsOutput, error) {
+	req, out := c.ListLogSubscriptionsRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opListSchemaExtensions = "ListSchemaExtensions"
 
 // ListSchemaExtensionsRequest generates a "aws/request.Request" representing the
 // client's request for the ListSchemaExtensions operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -2880,8 +3354,8 @@ const opListTagsForResource = "ListTagsForResource"
 
 // ListTagsForResourceRequest generates a "aws/request.Request" representing the
 // client's request for the ListTagsForResource operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -2971,8 +3445,8 @@ const opRegisterEventTopic = "RegisterEventTopic"
 
 // RegisterEventTopicRequest generates a "aws/request.Request" representing the
 // client's request for the RegisterEventTopic operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -3006,6 +3480,7 @@ func (c *DirectoryService) RegisterEventTopicRequest(input *RegisterEventTopicIn
 
 	output = &RegisterEventTopicOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -3060,12 +3535,104 @@ func (c *DirectoryService) RegisterEventTopicWithContext(ctx aws.Context, input 
 	return out, req.Send()
 }
 
+const opRejectSharedDirectory = "RejectSharedDirectory"
+
+// RejectSharedDirectoryRequest generates a "aws/request.Request" representing the
+// client's request for the RejectSharedDirectory operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See RejectSharedDirectory for more information on using the RejectSharedDirectory
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the RejectSharedDirectoryRequest method.
+//    req, resp := client.RejectSharedDirectoryRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/ds-2015-04-16/RejectSharedDirectory
+func (c *DirectoryService) RejectSharedDirectoryRequest(input *RejectSharedDirectoryInput) (req *request.Request, output *RejectSharedDirectoryOutput) {
+	op := &request.Operation{
+		Name:       opRejectSharedDirectory,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &RejectSharedDirectoryInput{}
+	}
+
+	output = &RejectSharedDirectoryOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// RejectSharedDirectory API operation for AWS Directory Service.
+//
+// Rejects a directory sharing request that was sent from the directory owner
+// account.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Directory Service's
+// API operation RejectSharedDirectory for usage and error information.
+//
+// Returned Error Codes:
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
+//   One or more parameters are not valid.
+//
+//   * ErrCodeEntityDoesNotExistException "EntityDoesNotExistException"
+//   The specified entity could not be found.
+//
+//   * ErrCodeDirectoryAlreadySharedException "DirectoryAlreadySharedException"
+//   The specified directory has already been shared with this AWS account.
+//
+//   * ErrCodeClientException "ClientException"
+//   A client exception has occurred.
+//
+//   * ErrCodeServiceException "ServiceException"
+//   An exception has occurred in AWS Directory Service.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/ds-2015-04-16/RejectSharedDirectory
+func (c *DirectoryService) RejectSharedDirectory(input *RejectSharedDirectoryInput) (*RejectSharedDirectoryOutput, error) {
+	req, out := c.RejectSharedDirectoryRequest(input)
+	return out, req.Send()
+}
+
+// RejectSharedDirectoryWithContext is the same as RejectSharedDirectory with the addition of
+// the ability to pass a context and additional request options.
+//
+// See RejectSharedDirectory for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *DirectoryService) RejectSharedDirectoryWithContext(ctx aws.Context, input *RejectSharedDirectoryInput, opts ...request.Option) (*RejectSharedDirectoryOutput, error) {
+	req, out := c.RejectSharedDirectoryRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opRemoveIpRoutes = "RemoveIpRoutes"
 
 // RemoveIpRoutesRequest generates a "aws/request.Request" representing the
 // client's request for the RemoveIpRoutes operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -3099,6 +3666,7 @@ func (c *DirectoryService) RemoveIpRoutesRequest(input *RemoveIpRoutesInput) (re
 
 	output = &RemoveIpRoutesOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -3155,8 +3723,8 @@ const opRemoveTagsFromResource = "RemoveTagsFromResource"
 
 // RemoveTagsFromResourceRequest generates a "aws/request.Request" representing the
 // client's request for the RemoveTagsFromResource operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -3190,6 +3758,7 @@ func (c *DirectoryService) RemoveTagsFromResourceRequest(input *RemoveTagsFromRe
 
 	output = &RemoveTagsFromResourceOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -3239,12 +3808,112 @@ func (c *DirectoryService) RemoveTagsFromResourceWithContext(ctx aws.Context, in
 	return out, req.Send()
 }
 
+const opResetUserPassword = "ResetUserPassword"
+
+// ResetUserPasswordRequest generates a "aws/request.Request" representing the
+// client's request for the ResetUserPassword operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See ResetUserPassword for more information on using the ResetUserPassword
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the ResetUserPasswordRequest method.
+//    req, resp := client.ResetUserPasswordRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/ds-2015-04-16/ResetUserPassword
+func (c *DirectoryService) ResetUserPasswordRequest(input *ResetUserPasswordInput) (req *request.Request, output *ResetUserPasswordOutput) {
+	op := &request.Operation{
+		Name:       opResetUserPassword,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &ResetUserPasswordInput{}
+	}
+
+	output = &ResetUserPasswordOutput{}
+	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
+	return
+}
+
+// ResetUserPassword API operation for AWS Directory Service.
+//
+// Resets the password for any user in your AWS Managed Microsoft AD or Simple
+// AD directory.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Directory Service's
+// API operation ResetUserPassword for usage and error information.
+//
+// Returned Error Codes:
+//   * ErrCodeDirectoryUnavailableException "DirectoryUnavailableException"
+//   The specified directory is unavailable or could not be found.
+//
+//   * ErrCodeUserDoesNotExistException "UserDoesNotExistException"
+//   The user provided a username that does not exist in your directory.
+//
+//   * ErrCodeInvalidPasswordException "InvalidPasswordException"
+//   The new password provided by the user does not meet the password complexity
+//   requirements defined in your directory.
+//
+//   * ErrCodeUnsupportedOperationException "UnsupportedOperationException"
+//   The operation is not supported.
+//
+//   * ErrCodeEntityDoesNotExistException "EntityDoesNotExistException"
+//   The specified entity could not be found.
+//
+//   * ErrCodeClientException "ClientException"
+//   A client exception has occurred.
+//
+//   * ErrCodeServiceException "ServiceException"
+//   An exception has occurred in AWS Directory Service.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/ds-2015-04-16/ResetUserPassword
+func (c *DirectoryService) ResetUserPassword(input *ResetUserPasswordInput) (*ResetUserPasswordOutput, error) {
+	req, out := c.ResetUserPasswordRequest(input)
+	return out, req.Send()
+}
+
+// ResetUserPasswordWithContext is the same as ResetUserPassword with the addition of
+// the ability to pass a context and additional request options.
+//
+// See ResetUserPassword for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *DirectoryService) ResetUserPasswordWithContext(ctx aws.Context, input *ResetUserPasswordInput, opts ...request.Option) (*ResetUserPasswordOutput, error) {
+	req, out := c.ResetUserPasswordRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opRestoreFromSnapshot = "RestoreFromSnapshot"
 
 // RestoreFromSnapshotRequest generates a "aws/request.Request" representing the
 // client's request for the RestoreFromSnapshot operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -3278,6 +3947,7 @@ func (c *DirectoryService) RestoreFromSnapshotRequest(input *RestoreFromSnapshot
 
 	output = &RestoreFromSnapshotOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -3335,12 +4005,136 @@ func (c *DirectoryService) RestoreFromSnapshotWithContext(ctx aws.Context, input
 	return out, req.Send()
 }
 
+const opShareDirectory = "ShareDirectory"
+
+// ShareDirectoryRequest generates a "aws/request.Request" representing the
+// client's request for the ShareDirectory operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See ShareDirectory for more information on using the ShareDirectory
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the ShareDirectoryRequest method.
+//    req, resp := client.ShareDirectoryRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/ds-2015-04-16/ShareDirectory
+func (c *DirectoryService) ShareDirectoryRequest(input *ShareDirectoryInput) (req *request.Request, output *ShareDirectoryOutput) {
+	op := &request.Operation{
+		Name:       opShareDirectory,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &ShareDirectoryInput{}
+	}
+
+	output = &ShareDirectoryOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// ShareDirectory API operation for AWS Directory Service.
+//
+// Shares a specified directory (DirectoryId) in your AWS account (directory
+// owner) with another AWS account (directory consumer). With this operation
+// you can use your directory from any AWS account and from any Amazon VPC within
+// an AWS Region.
+//
+// When you share your AWS Managed Microsoft AD directory, AWS Directory Service
+// creates a shared directory in the directory consumer account. This shared
+// directory contains the metadata to provide access to the directory within
+// the directory owner account. The shared directory is visible in all VPCs
+// in the directory consumer account.
+//
+// The ShareMethod parameter determines whether the specified directory can
+// be shared between AWS accounts inside the same AWS organization (ORGANIZATIONS).
+// It also determines whether you can share the directory with any other AWS
+// account either inside or outside of the organization (HANDSHAKE).
+//
+// The ShareNotes parameter is only used when HANDSHAKE is called, which sends
+// a directory sharing request to the directory consumer.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Directory Service's
+// API operation ShareDirectory for usage and error information.
+//
+// Returned Error Codes:
+//   * ErrCodeDirectoryAlreadySharedException "DirectoryAlreadySharedException"
+//   The specified directory has already been shared with this AWS account.
+//
+//   * ErrCodeEntityDoesNotExistException "EntityDoesNotExistException"
+//   The specified entity could not be found.
+//
+//   * ErrCodeInvalidTargetException "InvalidTargetException"
+//   The specified shared target is not valid.
+//
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
+//   One or more parameters are not valid.
+//
+//   * ErrCodeClientException "ClientException"
+//   A client exception has occurred.
+//
+//   * ErrCodeShareLimitExceededException "ShareLimitExceededException"
+//   The maximum number of AWS accounts that you can share with this directory
+//   has been reached.
+//
+//   * ErrCodeOrganizationsException "OrganizationsException"
+//   Exception encountered while trying to access your AWS organization.
+//
+//   * ErrCodeAccessDeniedException "AccessDeniedException"
+//   You do not have sufficient access to perform this action.
+//
+//   * ErrCodeUnsupportedOperationException "UnsupportedOperationException"
+//   The operation is not supported.
+//
+//   * ErrCodeServiceException "ServiceException"
+//   An exception has occurred in AWS Directory Service.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/ds-2015-04-16/ShareDirectory
+func (c *DirectoryService) ShareDirectory(input *ShareDirectoryInput) (*ShareDirectoryOutput, error) {
+	req, out := c.ShareDirectoryRequest(input)
+	return out, req.Send()
+}
+
+// ShareDirectoryWithContext is the same as ShareDirectory with the addition of
+// the ability to pass a context and additional request options.
+//
+// See ShareDirectory for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *DirectoryService) ShareDirectoryWithContext(ctx aws.Context, input *ShareDirectoryInput, opts ...request.Option) (*ShareDirectoryOutput, error) {
+	req, out := c.ShareDirectoryRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opStartSchemaExtension = "StartSchemaExtension"
 
 // StartSchemaExtensionRequest generates a "aws/request.Request" representing the
 // client's request for the StartSchemaExtension operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -3431,12 +4225,103 @@ func (c *DirectoryService) StartSchemaExtensionWithContext(ctx aws.Context, inpu
 	return out, req.Send()
 }
 
+const opUnshareDirectory = "UnshareDirectory"
+
+// UnshareDirectoryRequest generates a "aws/request.Request" representing the
+// client's request for the UnshareDirectory operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See UnshareDirectory for more information on using the UnshareDirectory
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the UnshareDirectoryRequest method.
+//    req, resp := client.UnshareDirectoryRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/ds-2015-04-16/UnshareDirectory
+func (c *DirectoryService) UnshareDirectoryRequest(input *UnshareDirectoryInput) (req *request.Request, output *UnshareDirectoryOutput) {
+	op := &request.Operation{
+		Name:       opUnshareDirectory,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &UnshareDirectoryInput{}
+	}
+
+	output = &UnshareDirectoryOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// UnshareDirectory API operation for AWS Directory Service.
+//
+// Stops the directory sharing between the directory owner and consumer accounts.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Directory Service's
+// API operation UnshareDirectory for usage and error information.
+//
+// Returned Error Codes:
+//   * ErrCodeEntityDoesNotExistException "EntityDoesNotExistException"
+//   The specified entity could not be found.
+//
+//   * ErrCodeInvalidTargetException "InvalidTargetException"
+//   The specified shared target is not valid.
+//
+//   * ErrCodeDirectoryNotSharedException "DirectoryNotSharedException"
+//   The specified directory has not been shared with this AWS account.
+//
+//   * ErrCodeClientException "ClientException"
+//   A client exception has occurred.
+//
+//   * ErrCodeServiceException "ServiceException"
+//   An exception has occurred in AWS Directory Service.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/ds-2015-04-16/UnshareDirectory
+func (c *DirectoryService) UnshareDirectory(input *UnshareDirectoryInput) (*UnshareDirectoryOutput, error) {
+	req, out := c.UnshareDirectoryRequest(input)
+	return out, req.Send()
+}
+
+// UnshareDirectoryWithContext is the same as UnshareDirectory with the addition of
+// the ability to pass a context and additional request options.
+//
+// See UnshareDirectory for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *DirectoryService) UnshareDirectoryWithContext(ctx aws.Context, input *UnshareDirectoryInput, opts ...request.Option) (*UnshareDirectoryOutput, error) {
+	req, out := c.UnshareDirectoryRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opUpdateConditionalForwarder = "UpdateConditionalForwarder"
 
 // UpdateConditionalForwarderRequest generates a "aws/request.Request" representing the
 // client's request for the UpdateConditionalForwarder operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -3470,6 +4355,7 @@ func (c *DirectoryService) UpdateConditionalForwarderRequest(input *UpdateCondit
 
 	output = &UpdateConditionalForwarderOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -3529,8 +4415,8 @@ const opUpdateNumberOfDomainControllers = "UpdateNumberOfDomainControllers"
 
 // UpdateNumberOfDomainControllersRequest generates a "aws/request.Request" representing the
 // client's request for the UpdateNumberOfDomainControllers operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -3564,6 +4450,7 @@ func (c *DirectoryService) UpdateNumberOfDomainControllersRequest(input *UpdateN
 
 	output = &UpdateNumberOfDomainControllersOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -3632,8 +4519,8 @@ const opUpdateRadius = "UpdateRadius"
 
 // UpdateRadiusRequest generates a "aws/request.Request" representing the
 // client's request for the UpdateRadius operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -3667,13 +4554,14 @@ func (c *DirectoryService) UpdateRadiusRequest(input *UpdateRadiusInput) (req *r
 
 	output = &UpdateRadiusOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
 // UpdateRadius API operation for AWS Directory Service.
 //
 // Updates the Remote Authentication Dial In User Service (RADIUS) server information
-// for an AD Connector directory.
+// for an AD Connector or Microsoft AD directory.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -3717,12 +4605,101 @@ func (c *DirectoryService) UpdateRadiusWithContext(ctx aws.Context, input *Updat
 	return out, req.Send()
 }
 
+const opUpdateTrust = "UpdateTrust"
+
+// UpdateTrustRequest generates a "aws/request.Request" representing the
+// client's request for the UpdateTrust operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See UpdateTrust for more information on using the UpdateTrust
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the UpdateTrustRequest method.
+//    req, resp := client.UpdateTrustRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/ds-2015-04-16/UpdateTrust
+func (c *DirectoryService) UpdateTrustRequest(input *UpdateTrustInput) (req *request.Request, output *UpdateTrustOutput) {
+	op := &request.Operation{
+		Name:       opUpdateTrust,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &UpdateTrustInput{}
+	}
+
+	output = &UpdateTrustOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// UpdateTrust API operation for AWS Directory Service.
+//
+// Updates the trust that has been set up between your AWS Managed Microsoft
+// AD directory and an on-premises Active Directory.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Directory Service's
+// API operation UpdateTrust for usage and error information.
+//
+// Returned Error Codes:
+//   * ErrCodeEntityDoesNotExistException "EntityDoesNotExistException"
+//   The specified entity could not be found.
+//
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
+//   One or more parameters are not valid.
+//
+//   * ErrCodeClientException "ClientException"
+//   A client exception has occurred.
+//
+//   * ErrCodeServiceException "ServiceException"
+//   An exception has occurred in AWS Directory Service.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/ds-2015-04-16/UpdateTrust
+func (c *DirectoryService) UpdateTrust(input *UpdateTrustInput) (*UpdateTrustOutput, error) {
+	req, out := c.UpdateTrustRequest(input)
+	return out, req.Send()
+}
+
+// UpdateTrustWithContext is the same as UpdateTrust with the addition of
+// the ability to pass a context and additional request options.
+//
+// See UpdateTrust for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *DirectoryService) UpdateTrustWithContext(ctx aws.Context, input *UpdateTrustInput, opts ...request.Option) (*UpdateTrustOutput, error) {
+	req, out := c.UpdateTrustRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opVerifyTrust = "VerifyTrust"
 
 // VerifyTrustRequest generates a "aws/request.Request" representing the
 // client's request for the VerifyTrust operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -3764,8 +4741,8 @@ func (c *DirectoryService) VerifyTrustRequest(input *VerifyTrustInput) (req *req
 // AWS Directory Service for Microsoft Active Directory allows you to configure
 // and verify trust relationships.
 //
-// This action verifies a trust relationship between your Microsoft AD in the
-// AWS cloud and an external domain.
+// This action verifies a trust relationship between your AWS Managed Microsoft
+// AD directory and an external domain.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -3810,6 +4787,68 @@ func (c *DirectoryService) VerifyTrustWithContext(ctx aws.Context, input *Verify
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
+}
+
+type AcceptSharedDirectoryInput struct {
+	_ struct{} `type:"structure"`
+
+	// Identifier of the shared directory in the directory consumer account. This
+	// identifier is different for each directory owner account.
+	//
+	// SharedDirectoryId is a required field
+	SharedDirectoryId *string `type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s AcceptSharedDirectoryInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AcceptSharedDirectoryInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *AcceptSharedDirectoryInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "AcceptSharedDirectoryInput"}
+	if s.SharedDirectoryId == nil {
+		invalidParams.Add(request.NewErrParamRequired("SharedDirectoryId"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetSharedDirectoryId sets the SharedDirectoryId field's value.
+func (s *AcceptSharedDirectoryInput) SetSharedDirectoryId(v string) *AcceptSharedDirectoryInput {
+	s.SharedDirectoryId = &v
+	return s
+}
+
+type AcceptSharedDirectoryOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The shared directory in the directory consumer account.
+	SharedDirectory *SharedDirectory `type:"structure"`
+}
+
+// String returns the string representation
+func (s AcceptSharedDirectoryOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AcceptSharedDirectoryOutput) GoString() string {
+	return s.String()
+}
+
+// SetSharedDirectory sets the SharedDirectory field's value.
+func (s *AcceptSharedDirectoryOutput) SetSharedDirectory(v *SharedDirectory) *AcceptSharedDirectoryOutput {
+	s.SharedDirectory = v
+	return s
 }
 
 type AddIpRoutesInput struct {
@@ -4223,7 +5262,7 @@ type ConnectDirectoryInput struct {
 	// A textual description for the directory.
 	Description *string `type:"string"`
 
-	// The fully-qualified name of the on-premises directory, such as corp.example.com.
+	// The fully qualified name of the on-premises directory, such as corp.example.com.
 	//
 	// Name is a required field
 	Name *string `type:"string" required:"true"`
@@ -4231,7 +5270,7 @@ type ConnectDirectoryInput struct {
 	// The password for the on-premises user account.
 	//
 	// Password is a required field
-	Password *string `min:"1" type:"string" required:"true"`
+	Password *string `min:"1" type:"string" required:"true" sensitive:"true"`
 
 	// The NetBIOS name of the on-premises directory, such as CORP.
 	ShortName *string `type:"string"`
@@ -4460,7 +5499,7 @@ type CreateComputerInput struct {
 	// should generate a random, strong password to use for this parameter.
 	//
 	// Password is a required field
-	Password *string `min:"8" type:"string" required:"true"`
+	Password *string `min:"8" type:"string" required:"true" sensitive:"true"`
 }
 
 // String returns the string representation
@@ -4664,11 +5703,11 @@ type CreateDirectoryInput struct {
 	Name *string `type:"string" required:"true"`
 
 	// The password for the directory administrator. The directory creation process
-	// creates a directory administrator account with the username Administrator
+	// creates a directory administrator account with the user name Administrator
 	// and this password.
 	//
 	// Password is a required field
-	Password *string `type:"string" required:"true"`
+	Password *string `type:"string" required:"true" sensitive:"true"`
 
 	// The short name of the directory, such as CORP.
 	ShortName *string `type:"string"`
@@ -4777,7 +5816,78 @@ func (s *CreateDirectoryOutput) SetDirectoryId(v string) *CreateDirectoryOutput 
 	return s
 }
 
-// Creates a Microsoft AD in the AWS cloud.
+type CreateLogSubscriptionInput struct {
+	_ struct{} `type:"structure"`
+
+	// Identifier (ID) of the directory to which you want to subscribe and receive
+	// real-time logs to your specified CloudWatch log group.
+	//
+	// DirectoryId is a required field
+	DirectoryId *string `type:"string" required:"true"`
+
+	// The name of the CloudWatch log group where the real-time domain controller
+	// logs are forwarded.
+	//
+	// LogGroupName is a required field
+	LogGroupName *string `min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s CreateLogSubscriptionInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateLogSubscriptionInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *CreateLogSubscriptionInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "CreateLogSubscriptionInput"}
+	if s.DirectoryId == nil {
+		invalidParams.Add(request.NewErrParamRequired("DirectoryId"))
+	}
+	if s.LogGroupName == nil {
+		invalidParams.Add(request.NewErrParamRequired("LogGroupName"))
+	}
+	if s.LogGroupName != nil && len(*s.LogGroupName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("LogGroupName", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetDirectoryId sets the DirectoryId field's value.
+func (s *CreateLogSubscriptionInput) SetDirectoryId(v string) *CreateLogSubscriptionInput {
+	s.DirectoryId = &v
+	return s
+}
+
+// SetLogGroupName sets the LogGroupName field's value.
+func (s *CreateLogSubscriptionInput) SetLogGroupName(v string) *CreateLogSubscriptionInput {
+	s.LogGroupName = &v
+	return s
+}
+
+type CreateLogSubscriptionOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s CreateLogSubscriptionOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateLogSubscriptionOutput) GoString() string {
+	return s.String()
+}
+
+// Creates an AWS Managed Microsoft AD directory.
 type CreateMicrosoftADInput struct {
 	_ struct{} `type:"structure"`
 
@@ -4785,8 +5895,8 @@ type CreateMicrosoftADInput struct {
 	// console Directory Details page after the directory is created.
 	Description *string `type:"string"`
 
-	// AWS Microsoft AD is available in two editions: Standard and Enterprise. Enterprise
-	// is the default.
+	// AWS Managed Microsoft AD is available in two editions: Standard and Enterprise.
+	// Enterprise is the default.
 	Edition *string `type:"string" enum:"DirectoryEdition"`
 
 	// The fully qualified domain name for the directory, such as corp.example.com.
@@ -4799,7 +5909,7 @@ type CreateMicrosoftADInput struct {
 	// The password for the default administrative user named Admin.
 	//
 	// Password is a required field
-	Password *string `type:"string" required:"true"`
+	Password *string `type:"string" required:"true" sensitive:"true"`
 
 	// The NetBIOS name for your domain. A short identifier for your domain, such
 	// as CORP. If you don't specify a NetBIOS name, it will default to the first
@@ -4980,19 +6090,19 @@ func (s *CreateSnapshotOutput) SetSnapshotId(v string) *CreateSnapshotOutput {
 
 // AWS Directory Service for Microsoft Active Directory allows you to configure
 // trust relationships. For example, you can establish a trust between your
-// Microsoft AD in the AWS cloud, and your existing on-premises Microsoft Active
-// Directory. This would allow you to provide users and groups access to resources
-// in either domain, with a single set of credentials.
+// AWS Managed Microsoft AD directory, and your existing on-premises Microsoft
+// Active Directory. This would allow you to provide users and groups access
+// to resources in either domain, with a single set of credentials.
 //
 // This action initiates the creation of the AWS side of a trust relationship
-// between a Microsoft AD in the AWS cloud and an external domain.
+// between an AWS Managed Microsoft AD directory and an external domain.
 type CreateTrustInput struct {
 	_ struct{} `type:"structure"`
 
 	// The IP addresses of the remote DNS server associated with RemoteDomainName.
 	ConditionalForwarderIpAddrs []*string `type:"list"`
 
-	// The Directory ID of the Microsoft AD in the AWS cloud for which to establish
+	// The Directory ID of the AWS Managed Microsoft AD directory for which to establish
 	// the trust relationship.
 	//
 	// DirectoryId is a required field
@@ -5004,6 +6114,9 @@ type CreateTrustInput struct {
 	// RemoteDomainName is a required field
 	RemoteDomainName *string `type:"string" required:"true"`
 
+	// Optional parameter to enable selective authentication for the trust.
+	SelectiveAuth *string `type:"string" enum:"SelectiveAuth"`
+
 	// The direction of the trust relationship.
 	//
 	// TrustDirection is a required field
@@ -5013,9 +6126,9 @@ type CreateTrustInput struct {
 	// the trust relationship on the external domain.
 	//
 	// TrustPassword is a required field
-	TrustPassword *string `min:"1" type:"string" required:"true"`
+	TrustPassword *string `min:"1" type:"string" required:"true" sensitive:"true"`
 
-	// The trust relationship type.
+	// The trust relationship type. Forest is the default.
 	TrustType *string `type:"string" enum:"TrustType"`
 }
 
@@ -5069,6 +6182,12 @@ func (s *CreateTrustInput) SetDirectoryId(v string) *CreateTrustInput {
 // SetRemoteDomainName sets the RemoteDomainName field's value.
 func (s *CreateTrustInput) SetRemoteDomainName(v string) *CreateTrustInput {
 	s.RemoteDomainName = &v
+	return s
+}
+
+// SetSelectiveAuth sets the SelectiveAuth field's value.
+func (s *CreateTrustInput) SetSelectiveAuth(v string) *CreateTrustInput {
+	s.SelectiveAuth = &v
 	return s
 }
 
@@ -5246,6 +6365,58 @@ func (s *DeleteDirectoryOutput) SetDirectoryId(v string) *DeleteDirectoryOutput 
 	return s
 }
 
+type DeleteLogSubscriptionInput struct {
+	_ struct{} `type:"structure"`
+
+	// Identifier (ID) of the directory whose log subscription you want to delete.
+	//
+	// DirectoryId is a required field
+	DirectoryId *string `type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s DeleteLogSubscriptionInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteLogSubscriptionInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DeleteLogSubscriptionInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DeleteLogSubscriptionInput"}
+	if s.DirectoryId == nil {
+		invalidParams.Add(request.NewErrParamRequired("DirectoryId"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetDirectoryId sets the DirectoryId field's value.
+func (s *DeleteLogSubscriptionInput) SetDirectoryId(v string) *DeleteLogSubscriptionInput {
+	s.DirectoryId = &v
+	return s
+}
+
+type DeleteLogSubscriptionOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s DeleteLogSubscriptionOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteLogSubscriptionOutput) GoString() string {
+	return s.String()
+}
+
 // Contains the inputs for the DeleteSnapshot operation.
 type DeleteSnapshotInput struct {
 	_ struct{} `type:"structure"`
@@ -5309,8 +6480,8 @@ func (s *DeleteSnapshotOutput) SetSnapshotId(v string) *DeleteSnapshotOutput {
 	return s
 }
 
-// Deletes the local side of an existing trust relationship between the Microsoft
-// AD in the AWS cloud and the external domain.
+// Deletes the local side of an existing trust relationship between the AWS
+// Managed Microsoft AD directory and the external domain.
 type DeleteTrustInput struct {
 	_ struct{} `type:"structure"`
 
@@ -5779,6 +6950,106 @@ func (s *DescribeEventTopicsOutput) SetEventTopics(v []*EventTopic) *DescribeEve
 	return s
 }
 
+type DescribeSharedDirectoriesInput struct {
+	_ struct{} `type:"structure"`
+
+	// The number of shared directories to return in the response object.
+	Limit *int64 `type:"integer"`
+
+	// The DescribeSharedDirectoriesResult.NextToken value from a previous call
+	// to DescribeSharedDirectories. Pass null if this is the first call.
+	NextToken *string `type:"string"`
+
+	// Returns the identifier of the directory in the directory owner account.
+	//
+	// OwnerDirectoryId is a required field
+	OwnerDirectoryId *string `type:"string" required:"true"`
+
+	// A list of identifiers of all shared directories in your account.
+	SharedDirectoryIds []*string `type:"list"`
+}
+
+// String returns the string representation
+func (s DescribeSharedDirectoriesInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeSharedDirectoriesInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DescribeSharedDirectoriesInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DescribeSharedDirectoriesInput"}
+	if s.OwnerDirectoryId == nil {
+		invalidParams.Add(request.NewErrParamRequired("OwnerDirectoryId"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetLimit sets the Limit field's value.
+func (s *DescribeSharedDirectoriesInput) SetLimit(v int64) *DescribeSharedDirectoriesInput {
+	s.Limit = &v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *DescribeSharedDirectoriesInput) SetNextToken(v string) *DescribeSharedDirectoriesInput {
+	s.NextToken = &v
+	return s
+}
+
+// SetOwnerDirectoryId sets the OwnerDirectoryId field's value.
+func (s *DescribeSharedDirectoriesInput) SetOwnerDirectoryId(v string) *DescribeSharedDirectoriesInput {
+	s.OwnerDirectoryId = &v
+	return s
+}
+
+// SetSharedDirectoryIds sets the SharedDirectoryIds field's value.
+func (s *DescribeSharedDirectoriesInput) SetSharedDirectoryIds(v []*string) *DescribeSharedDirectoriesInput {
+	s.SharedDirectoryIds = v
+	return s
+}
+
+type DescribeSharedDirectoriesOutput struct {
+	_ struct{} `type:"structure"`
+
+	// If not null, token that indicates that more results are available. Pass this
+	// value for the NextToken parameter in a subsequent call to DescribeSharedDirectories
+	// to retrieve the next set of items.
+	NextToken *string `type:"string"`
+
+	// A list of all shared directories in your account.
+	SharedDirectories []*SharedDirectory `type:"list"`
+}
+
+// String returns the string representation
+func (s DescribeSharedDirectoriesOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeSharedDirectoriesOutput) GoString() string {
+	return s.String()
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *DescribeSharedDirectoriesOutput) SetNextToken(v string) *DescribeSharedDirectoriesOutput {
+	s.NextToken = &v
+	return s
+}
+
+// SetSharedDirectories sets the SharedDirectories field's value.
+func (s *DescribeSharedDirectoriesOutput) SetSharedDirectories(v []*SharedDirectory) *DescribeSharedDirectoriesOutput {
+	s.SharedDirectories = v
+	return s
+}
+
 // Contains the inputs for the DescribeSnapshots operation.
 type DescribeSnapshotsInput struct {
 	_ struct{} `type:"structure"`
@@ -5872,9 +7143,9 @@ func (s *DescribeSnapshotsOutput) SetSnapshots(v []*Snapshot) *DescribeSnapshots
 	return s
 }
 
-// Describes the trust relationships for a particular Microsoft AD in the AWS
-// cloud. If no input parameters are are provided, such as directory ID or trust
-// ID, this request describes all the trust relationships.
+// Describes the trust relationships for a particular AWS Managed Microsoft
+// AD directory. If no input parameters are are provided, such as directory
+// ID or trust ID, this request describes all the trust relationships.
 type DescribeTrustsInput struct {
 	_ struct{} `type:"structure"`
 
@@ -5982,8 +7253,8 @@ type DirectoryConnectSettings struct {
 	// CustomerDnsIps is a required field
 	CustomerDnsIps []*string `type:"list" required:"true"`
 
-	// The username of an account in the on-premises directory that is used to connect
-	// to the directory. This account must have the following privileges:
+	// The user name of an account in the on-premises directory that is used to
+	// connect to the directory. This account must have the following permissions:
 	//
 	//    * Read users and groups
 	//
@@ -6074,7 +7345,7 @@ type DirectoryConnectSettingsDescription struct {
 	// The IP addresses of the AD Connector servers.
 	ConnectIps []*string `type:"list"`
 
-	// The username of the service account in the on-premises directory.
+	// The user name of the service account in the on-premises directory.
 	CustomerUserName *string `min:"1" type:"string"`
 
 	// The security group identifier for the AD Connector directory.
@@ -6172,10 +7443,13 @@ type DirectoryDescription struct {
 	Edition *string `type:"string" enum:"DirectoryEdition"`
 
 	// Specifies when the directory was created.
-	LaunchTime *time.Time `type:"timestamp" timestampFormat:"unix"`
+	LaunchTime *time.Time `type:"timestamp"`
 
-	// The fully-qualified name of the directory.
+	// The fully qualified name of the directory.
 	Name *string `type:"string"`
+
+	// Describes the AWS Managed Microsoft AD directory in the directory owner account.
+	OwnerDirectoryDescription *OwnerDirectoryDescription `type:"structure"`
 
 	// A RadiusSettings object that contains information about the RADIUS server
 	// configured for this directory.
@@ -6184,13 +7458,26 @@ type DirectoryDescription struct {
 	// The status of the RADIUS MFA server connection.
 	RadiusStatus *string `type:"string" enum:"RadiusStatus"`
 
+	// The method used when sharing a directory to determine whether the directory
+	// should be shared within your AWS organization (ORGANIZATIONS) or with any
+	// AWS account by sending a shared directory request (HANDSHAKE).
+	ShareMethod *string `type:"string" enum:"ShareMethod"`
+
+	// A directory share request that is sent by the directory owner to the directory
+	// consumer. The request includes a typed message to help the directory consumer
+	// administrator determine whether to approve or reject the share invitation.
+	ShareNotes *string `type:"string" sensitive:"true"`
+
+	// Current directory status of the shared AWS Managed Microsoft AD directory.
+	ShareStatus *string `type:"string" enum:"ShareStatus"`
+
 	// The short name of the directory.
 	ShortName *string `type:"string"`
 
 	// The directory size.
 	Size *string `type:"string" enum:"DirectorySize"`
 
-	// Indicates if single-sign on is enabled for the directory. For more information,
+	// Indicates if single sign-on is enabled for the directory. For more information,
 	// see EnableSso and DisableSso.
 	SsoEnabled *bool `type:"boolean"`
 
@@ -6198,7 +7485,7 @@ type DirectoryDescription struct {
 	Stage *string `type:"string" enum:"DirectoryStage"`
 
 	// The date and time that the stage was last updated.
-	StageLastUpdatedDateTime *time.Time `type:"timestamp" timestampFormat:"unix"`
+	StageLastUpdatedDateTime *time.Time `type:"timestamp"`
 
 	// Additional information about the directory stage.
 	StageReason *string `type:"string"`
@@ -6282,6 +7569,12 @@ func (s *DirectoryDescription) SetName(v string) *DirectoryDescription {
 	return s
 }
 
+// SetOwnerDirectoryDescription sets the OwnerDirectoryDescription field's value.
+func (s *DirectoryDescription) SetOwnerDirectoryDescription(v *OwnerDirectoryDescription) *DirectoryDescription {
+	s.OwnerDirectoryDescription = v
+	return s
+}
+
 // SetRadiusSettings sets the RadiusSettings field's value.
 func (s *DirectoryDescription) SetRadiusSettings(v *RadiusSettings) *DirectoryDescription {
 	s.RadiusSettings = v
@@ -6291,6 +7584,24 @@ func (s *DirectoryDescription) SetRadiusSettings(v *RadiusSettings) *DirectoryDe
 // SetRadiusStatus sets the RadiusStatus field's value.
 func (s *DirectoryDescription) SetRadiusStatus(v string) *DirectoryDescription {
 	s.RadiusStatus = &v
+	return s
+}
+
+// SetShareMethod sets the ShareMethod field's value.
+func (s *DirectoryDescription) SetShareMethod(v string) *DirectoryDescription {
+	s.ShareMethod = &v
+	return s
+}
+
+// SetShareNotes sets the ShareNotes field's value.
+func (s *DirectoryDescription) SetShareNotes(v string) *DirectoryDescription {
+	s.ShareNotes = &v
+	return s
+}
+
+// SetShareStatus sets the ShareStatus field's value.
+func (s *DirectoryDescription) SetShareStatus(v string) *DirectoryDescription {
+	s.ShareStatus = &v
 	return s
 }
 
@@ -6355,13 +7666,14 @@ type DirectoryLimits struct {
 	// Indicates if the cloud directory limit has been reached.
 	CloudOnlyDirectoriesLimitReached *bool `type:"boolean"`
 
-	// The current number of Microsoft AD directories in the region.
+	// The current number of AWS Managed Microsoft AD directories in the region.
 	CloudOnlyMicrosoftADCurrentCount *int64 `type:"integer"`
 
-	// The maximum number of Microsoft AD directories allowed in the region.
+	// The maximum number of AWS Managed Microsoft AD directories allowed in the
+	// region.
 	CloudOnlyMicrosoftADLimit *int64 `type:"integer"`
 
-	// Indicates if the Microsoft AD directory limit has been reached.
+	// Indicates if the AWS Managed Microsoft AD directory limit has been reached.
 	CloudOnlyMicrosoftADLimitReached *bool `type:"boolean"`
 
 	// The current number of connected directories in the region.
@@ -6610,7 +7922,7 @@ type DisableSsoInput struct {
 	// The password of an alternate account to use to disable single-sign on. This
 	// is only used for AD Connector directories. For more information, see the
 	// UserName parameter.
-	Password *string `min:"1" type:"string"`
+	Password *string `min:"1" type:"string" sensitive:"true"`
 
 	// The username of an alternate account to use to disable single-sign on. This
 	// is only used for AD Connector directories. This account must have privileges
@@ -6703,13 +8015,13 @@ type DomainController struct {
 	DomainControllerId *string `type:"string"`
 
 	// Specifies when the domain controller was created.
-	LaunchTime *time.Time `type:"timestamp" timestampFormat:"unix"`
+	LaunchTime *time.Time `type:"timestamp"`
 
 	// The status of the domain controller.
 	Status *string `type:"string" enum:"DomainControllerStatus"`
 
 	// The date and time that the status was last updated.
-	StatusLastUpdatedDateTime *time.Time `type:"timestamp" timestampFormat:"unix"`
+	StatusLastUpdatedDateTime *time.Time `type:"timestamp"`
 
 	// A description of the domain controller state.
 	StatusReason *string `type:"string"`
@@ -6876,7 +8188,7 @@ type EnableSsoInput struct {
 	// The password of an alternate account to use to enable single-sign on. This
 	// is only used for AD Connector directories. For more information, see the
 	// UserName parameter.
-	Password *string `min:"1" type:"string"`
+	Password *string `min:"1" type:"string" sensitive:"true"`
 
 	// The username of an alternate account to use to enable single-sign on. This
 	// is only used for AD Connector directories. This account must have privileges
@@ -6957,7 +8269,7 @@ type EventTopic struct {
 	_ struct{} `type:"structure"`
 
 	// The date and time of when you associated your directory with the SNS topic.
-	CreatedDateTime *time.Time `type:"timestamp" timestampFormat:"unix"`
+	CreatedDateTime *time.Time `type:"timestamp"`
 
 	// The Directory ID of an AWS Directory Service directory that will publish
 	// status messages to an SNS topic.
@@ -7158,7 +8470,7 @@ type IpRouteInfo struct {
 	_ struct{} `type:"structure"`
 
 	// The date and time the address block was added to the directory.
-	AddedDateTime *time.Time `type:"timestamp" timestampFormat:"unix"`
+	AddedDateTime *time.Time `type:"timestamp"`
 
 	// IP address block in the IpRoute.
 	CidrIp *string `type:"string"`
@@ -7310,6 +8622,82 @@ func (s *ListIpRoutesOutput) SetIpRoutesInfo(v []*IpRouteInfo) *ListIpRoutesOutp
 
 // SetNextToken sets the NextToken field's value.
 func (s *ListIpRoutesOutput) SetNextToken(v string) *ListIpRoutesOutput {
+	s.NextToken = &v
+	return s
+}
+
+type ListLogSubscriptionsInput struct {
+	_ struct{} `type:"structure"`
+
+	// If a DirectoryID is provided, lists only the log subscription associated
+	// with that directory. If no DirectoryId is provided, lists all log subscriptions
+	// associated with your AWS account. If there are no log subscriptions for the
+	// AWS account or the directory, an empty list will be returned.
+	DirectoryId *string `type:"string"`
+
+	// The maximum number of items returned.
+	Limit *int64 `type:"integer"`
+
+	// The token for the next set of items to return.
+	NextToken *string `type:"string"`
+}
+
+// String returns the string representation
+func (s ListLogSubscriptionsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListLogSubscriptionsInput) GoString() string {
+	return s.String()
+}
+
+// SetDirectoryId sets the DirectoryId field's value.
+func (s *ListLogSubscriptionsInput) SetDirectoryId(v string) *ListLogSubscriptionsInput {
+	s.DirectoryId = &v
+	return s
+}
+
+// SetLimit sets the Limit field's value.
+func (s *ListLogSubscriptionsInput) SetLimit(v int64) *ListLogSubscriptionsInput {
+	s.Limit = &v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListLogSubscriptionsInput) SetNextToken(v string) *ListLogSubscriptionsInput {
+	s.NextToken = &v
+	return s
+}
+
+type ListLogSubscriptionsOutput struct {
+	_ struct{} `type:"structure"`
+
+	// A list of active LogSubscription objects for calling the AWS account.
+	LogSubscriptions []*LogSubscription `type:"list"`
+
+	// The token for the next set of items to return.
+	NextToken *string `type:"string"`
+}
+
+// String returns the string representation
+func (s ListLogSubscriptionsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListLogSubscriptionsOutput) GoString() string {
+	return s.String()
+}
+
+// SetLogSubscriptions sets the LogSubscriptions field's value.
+func (s *ListLogSubscriptionsOutput) SetLogSubscriptions(v []*LogSubscription) *ListLogSubscriptionsOutput {
+	s.LogSubscriptions = v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListLogSubscriptionsOutput) SetNextToken(v string) *ListLogSubscriptionsOutput {
 	s.NextToken = &v
 	return s
 }
@@ -7494,6 +8882,121 @@ func (s *ListTagsForResourceOutput) SetTags(v []*Tag) *ListTagsForResourceOutput
 	return s
 }
 
+// Represents a log subscription, which tracks real-time data from a chosen
+// log group to a specified destination.
+type LogSubscription struct {
+	_ struct{} `type:"structure"`
+
+	// Identifier (ID) of the directory that you want to associate with the log
+	// subscription.
+	DirectoryId *string `type:"string"`
+
+	// The name of the log group.
+	LogGroupName *string `min:"1" type:"string"`
+
+	// The date and time that the log subscription was created.
+	SubscriptionCreatedDateTime *time.Time `type:"timestamp"`
+}
+
+// String returns the string representation
+func (s LogSubscription) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s LogSubscription) GoString() string {
+	return s.String()
+}
+
+// SetDirectoryId sets the DirectoryId field's value.
+func (s *LogSubscription) SetDirectoryId(v string) *LogSubscription {
+	s.DirectoryId = &v
+	return s
+}
+
+// SetLogGroupName sets the LogGroupName field's value.
+func (s *LogSubscription) SetLogGroupName(v string) *LogSubscription {
+	s.LogGroupName = &v
+	return s
+}
+
+// SetSubscriptionCreatedDateTime sets the SubscriptionCreatedDateTime field's value.
+func (s *LogSubscription) SetSubscriptionCreatedDateTime(v time.Time) *LogSubscription {
+	s.SubscriptionCreatedDateTime = &v
+	return s
+}
+
+// Describes the directory owner account details that have been shared to the
+// directory consumer account.
+type OwnerDirectoryDescription struct {
+	_ struct{} `type:"structure"`
+
+	// Identifier of the directory owner account.
+	AccountId *string `type:"string"`
+
+	// Identifier of the AWS Managed Microsoft AD directory in the directory owner
+	// account.
+	DirectoryId *string `type:"string"`
+
+	// IP address of the directory’s domain controllers.
+	DnsIpAddrs []*string `type:"list"`
+
+	// A RadiusSettings object that contains information about the RADIUS server.
+	RadiusSettings *RadiusSettings `type:"structure"`
+
+	// Information about the status of the RADIUS server.
+	RadiusStatus *string `type:"string" enum:"RadiusStatus"`
+
+	// Information about the VPC settings for the directory.
+	VpcSettings *DirectoryVpcSettingsDescription `type:"structure"`
+}
+
+// String returns the string representation
+func (s OwnerDirectoryDescription) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s OwnerDirectoryDescription) GoString() string {
+	return s.String()
+}
+
+// SetAccountId sets the AccountId field's value.
+func (s *OwnerDirectoryDescription) SetAccountId(v string) *OwnerDirectoryDescription {
+	s.AccountId = &v
+	return s
+}
+
+// SetDirectoryId sets the DirectoryId field's value.
+func (s *OwnerDirectoryDescription) SetDirectoryId(v string) *OwnerDirectoryDescription {
+	s.DirectoryId = &v
+	return s
+}
+
+// SetDnsIpAddrs sets the DnsIpAddrs field's value.
+func (s *OwnerDirectoryDescription) SetDnsIpAddrs(v []*string) *OwnerDirectoryDescription {
+	s.DnsIpAddrs = v
+	return s
+}
+
+// SetRadiusSettings sets the RadiusSettings field's value.
+func (s *OwnerDirectoryDescription) SetRadiusSettings(v *RadiusSettings) *OwnerDirectoryDescription {
+	s.RadiusSettings = v
+	return s
+}
+
+// SetRadiusStatus sets the RadiusStatus field's value.
+func (s *OwnerDirectoryDescription) SetRadiusStatus(v string) *OwnerDirectoryDescription {
+	s.RadiusStatus = &v
+	return s
+}
+
+// SetVpcSettings sets the VpcSettings field's value.
+func (s *OwnerDirectoryDescription) SetVpcSettings(v *DirectoryVpcSettingsDescription) *OwnerDirectoryDescription {
+	s.VpcSettings = v
+	return s
+}
+
 // Contains information about a Remote Authentication Dial In User Service (RADIUS)
 // server.
 type RadiusSettings struct {
@@ -7521,8 +9024,8 @@ type RadiusSettings struct {
 	// The amount of time, in seconds, to wait for the RADIUS server to respond.
 	RadiusTimeout *int64 `min:"1" type:"integer"`
 
-	// Not currently used.
-	SharedSecret *string `min:"8" type:"string"`
+	// Required for enabling RADIUS on the directory.
+	SharedSecret *string `min:"8" type:"string" sensitive:"true"`
 
 	// Not currently used.
 	UseSameUsername *bool `type:"boolean"`
@@ -7680,6 +9183,68 @@ func (s RegisterEventTopicOutput) GoString() string {
 	return s.String()
 }
 
+type RejectSharedDirectoryInput struct {
+	_ struct{} `type:"structure"`
+
+	// Identifier of the shared directory in the directory consumer account. This
+	// identifier is different for each directory owner account.
+	//
+	// SharedDirectoryId is a required field
+	SharedDirectoryId *string `type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s RejectSharedDirectoryInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s RejectSharedDirectoryInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *RejectSharedDirectoryInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "RejectSharedDirectoryInput"}
+	if s.SharedDirectoryId == nil {
+		invalidParams.Add(request.NewErrParamRequired("SharedDirectoryId"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetSharedDirectoryId sets the SharedDirectoryId field's value.
+func (s *RejectSharedDirectoryInput) SetSharedDirectoryId(v string) *RejectSharedDirectoryInput {
+	s.SharedDirectoryId = &v
+	return s
+}
+
+type RejectSharedDirectoryOutput struct {
+	_ struct{} `type:"structure"`
+
+	// Identifier of the shared directory in the directory consumer account.
+	SharedDirectoryId *string `type:"string"`
+}
+
+// String returns the string representation
+func (s RejectSharedDirectoryOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s RejectSharedDirectoryOutput) GoString() string {
+	return s.String()
+}
+
+// SetSharedDirectoryId sets the SharedDirectoryId field's value.
+func (s *RejectSharedDirectoryOutput) SetSharedDirectoryId(v string) *RejectSharedDirectoryOutput {
+	s.SharedDirectoryId = &v
+	return s
+}
+
 type RemoveIpRoutesInput struct {
 	_ struct{} `type:"structure"`
 
@@ -7812,6 +9377,93 @@ func (s RemoveTagsFromResourceOutput) GoString() string {
 	return s.String()
 }
 
+type ResetUserPasswordInput struct {
+	_ struct{} `type:"structure"`
+
+	// Identifier of the AWS Managed Microsoft AD or Simple AD directory in which
+	// the user resides.
+	//
+	// DirectoryId is a required field
+	DirectoryId *string `type:"string" required:"true"`
+
+	// The new password that will be reset.
+	//
+	// NewPassword is a required field
+	NewPassword *string `min:"1" type:"string" required:"true" sensitive:"true"`
+
+	// The user name of the user whose password will be reset.
+	//
+	// UserName is a required field
+	UserName *string `min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s ResetUserPasswordInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResetUserPasswordInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ResetUserPasswordInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ResetUserPasswordInput"}
+	if s.DirectoryId == nil {
+		invalidParams.Add(request.NewErrParamRequired("DirectoryId"))
+	}
+	if s.NewPassword == nil {
+		invalidParams.Add(request.NewErrParamRequired("NewPassword"))
+	}
+	if s.NewPassword != nil && len(*s.NewPassword) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("NewPassword", 1))
+	}
+	if s.UserName == nil {
+		invalidParams.Add(request.NewErrParamRequired("UserName"))
+	}
+	if s.UserName != nil && len(*s.UserName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("UserName", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetDirectoryId sets the DirectoryId field's value.
+func (s *ResetUserPasswordInput) SetDirectoryId(v string) *ResetUserPasswordInput {
+	s.DirectoryId = &v
+	return s
+}
+
+// SetNewPassword sets the NewPassword field's value.
+func (s *ResetUserPasswordInput) SetNewPassword(v string) *ResetUserPasswordInput {
+	s.NewPassword = &v
+	return s
+}
+
+// SetUserName sets the UserName field's value.
+func (s *ResetUserPasswordInput) SetUserName(v string) *ResetUserPasswordInput {
+	s.UserName = &v
+	return s
+}
+
+type ResetUserPasswordOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s ResetUserPasswordOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResetUserPasswordOutput) GoString() string {
+	return s.String()
+}
+
 // An object representing the inputs for the RestoreFromSnapshot operation.
 type RestoreFromSnapshotInput struct {
 	_ struct{} `type:"structure"`
@@ -7877,7 +9529,7 @@ type SchemaExtensionInfo struct {
 	DirectoryId *string `type:"string"`
 
 	// The date and time that the schema extension was completed.
-	EndDateTime *time.Time `type:"timestamp" timestampFormat:"unix"`
+	EndDateTime *time.Time `type:"timestamp"`
 
 	// The identifier of the schema extension.
 	SchemaExtensionId *string `type:"string"`
@@ -7890,7 +9542,7 @@ type SchemaExtensionInfo struct {
 
 	// The date and time that the schema extension started being applied to the
 	// directory.
-	StartDateTime *time.Time `type:"timestamp" timestampFormat:"unix"`
+	StartDateTime *time.Time `type:"timestamp"`
 }
 
 // String returns the string representation
@@ -7945,6 +9597,276 @@ func (s *SchemaExtensionInfo) SetStartDateTime(v time.Time) *SchemaExtensionInfo
 	return s
 }
 
+type ShareDirectoryInput struct {
+	_ struct{} `type:"structure"`
+
+	// Identifier of the AWS Managed Microsoft AD directory that you want to share
+	// with other AWS accounts.
+	//
+	// DirectoryId is a required field
+	DirectoryId *string `type:"string" required:"true"`
+
+	// The method used when sharing a directory to determine whether the directory
+	// should be shared within your AWS organization (ORGANIZATIONS) or with any
+	// AWS account by sending a directory sharing request (HANDSHAKE).
+	//
+	// ShareMethod is a required field
+	ShareMethod *string `type:"string" required:"true" enum:"ShareMethod"`
+
+	// A directory share request that is sent by the directory owner to the directory
+	// consumer. The request includes a typed message to help the directory consumer
+	// administrator determine whether to approve or reject the share invitation.
+	ShareNotes *string `type:"string" sensitive:"true"`
+
+	// Identifier for the directory consumer account with whom the directory is
+	// to be shared.
+	//
+	// ShareTarget is a required field
+	ShareTarget *ShareTarget `type:"structure" required:"true"`
+}
+
+// String returns the string representation
+func (s ShareDirectoryInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ShareDirectoryInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ShareDirectoryInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ShareDirectoryInput"}
+	if s.DirectoryId == nil {
+		invalidParams.Add(request.NewErrParamRequired("DirectoryId"))
+	}
+	if s.ShareMethod == nil {
+		invalidParams.Add(request.NewErrParamRequired("ShareMethod"))
+	}
+	if s.ShareTarget == nil {
+		invalidParams.Add(request.NewErrParamRequired("ShareTarget"))
+	}
+	if s.ShareTarget != nil {
+		if err := s.ShareTarget.Validate(); err != nil {
+			invalidParams.AddNested("ShareTarget", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetDirectoryId sets the DirectoryId field's value.
+func (s *ShareDirectoryInput) SetDirectoryId(v string) *ShareDirectoryInput {
+	s.DirectoryId = &v
+	return s
+}
+
+// SetShareMethod sets the ShareMethod field's value.
+func (s *ShareDirectoryInput) SetShareMethod(v string) *ShareDirectoryInput {
+	s.ShareMethod = &v
+	return s
+}
+
+// SetShareNotes sets the ShareNotes field's value.
+func (s *ShareDirectoryInput) SetShareNotes(v string) *ShareDirectoryInput {
+	s.ShareNotes = &v
+	return s
+}
+
+// SetShareTarget sets the ShareTarget field's value.
+func (s *ShareDirectoryInput) SetShareTarget(v *ShareTarget) *ShareDirectoryInput {
+	s.ShareTarget = v
+	return s
+}
+
+type ShareDirectoryOutput struct {
+	_ struct{} `type:"structure"`
+
+	// Identifier of the directory that is stored in the directory consumer account
+	// that is shared from the specified directory (DirectoryId).
+	SharedDirectoryId *string `type:"string"`
+}
+
+// String returns the string representation
+func (s ShareDirectoryOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ShareDirectoryOutput) GoString() string {
+	return s.String()
+}
+
+// SetSharedDirectoryId sets the SharedDirectoryId field's value.
+func (s *ShareDirectoryOutput) SetSharedDirectoryId(v string) *ShareDirectoryOutput {
+	s.SharedDirectoryId = &v
+	return s
+}
+
+// Identifier that contains details about the directory consumer account.
+type ShareTarget struct {
+	_ struct{} `type:"structure"`
+
+	// Identifier of the directory consumer account.
+	//
+	// Id is a required field
+	Id *string `min:"1" type:"string" required:"true"`
+
+	// Type of identifier to be used in the Id field.
+	//
+	// Type is a required field
+	Type *string `type:"string" required:"true" enum:"TargetType"`
+}
+
+// String returns the string representation
+func (s ShareTarget) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ShareTarget) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ShareTarget) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ShareTarget"}
+	if s.Id == nil {
+		invalidParams.Add(request.NewErrParamRequired("Id"))
+	}
+	if s.Id != nil && len(*s.Id) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Id", 1))
+	}
+	if s.Type == nil {
+		invalidParams.Add(request.NewErrParamRequired("Type"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetId sets the Id field's value.
+func (s *ShareTarget) SetId(v string) *ShareTarget {
+	s.Id = &v
+	return s
+}
+
+// SetType sets the Type field's value.
+func (s *ShareTarget) SetType(v string) *ShareTarget {
+	s.Type = &v
+	return s
+}
+
+// Details about the shared directory in the directory owner account for which
+// the share request in the directory consumer account has been accepted.
+type SharedDirectory struct {
+	_ struct{} `type:"structure"`
+
+	// The date and time that the shared directory was created.
+	CreatedDateTime *time.Time `type:"timestamp"`
+
+	// The date and time that the shared directory was last updated.
+	LastUpdatedDateTime *time.Time `type:"timestamp"`
+
+	// Identifier of the directory owner account, which contains the directory that
+	// has been shared to the consumer account.
+	OwnerAccountId *string `type:"string"`
+
+	// Identifier of the directory in the directory owner account.
+	OwnerDirectoryId *string `type:"string"`
+
+	// The method used when sharing a directory to determine whether the directory
+	// should be shared within your AWS organization (ORGANIZATIONS) or with any
+	// AWS account by sending a shared directory request (HANDSHAKE).
+	ShareMethod *string `type:"string" enum:"ShareMethod"`
+
+	// A directory share request that is sent by the directory owner to the directory
+	// consumer. The request includes a typed message to help the directory consumer
+	// administrator determine whether to approve or reject the share invitation.
+	ShareNotes *string `type:"string" sensitive:"true"`
+
+	// Current directory status of the shared AWS Managed Microsoft AD directory.
+	ShareStatus *string `type:"string" enum:"ShareStatus"`
+
+	// Identifier of the directory consumer account that has access to the shared
+	// directory (OwnerDirectoryId) in the directory owner account.
+	SharedAccountId *string `type:"string"`
+
+	// Identifier of the shared directory in the directory consumer account. This
+	// identifier is different for each directory owner account.
+	SharedDirectoryId *string `type:"string"`
+}
+
+// String returns the string representation
+func (s SharedDirectory) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s SharedDirectory) GoString() string {
+	return s.String()
+}
+
+// SetCreatedDateTime sets the CreatedDateTime field's value.
+func (s *SharedDirectory) SetCreatedDateTime(v time.Time) *SharedDirectory {
+	s.CreatedDateTime = &v
+	return s
+}
+
+// SetLastUpdatedDateTime sets the LastUpdatedDateTime field's value.
+func (s *SharedDirectory) SetLastUpdatedDateTime(v time.Time) *SharedDirectory {
+	s.LastUpdatedDateTime = &v
+	return s
+}
+
+// SetOwnerAccountId sets the OwnerAccountId field's value.
+func (s *SharedDirectory) SetOwnerAccountId(v string) *SharedDirectory {
+	s.OwnerAccountId = &v
+	return s
+}
+
+// SetOwnerDirectoryId sets the OwnerDirectoryId field's value.
+func (s *SharedDirectory) SetOwnerDirectoryId(v string) *SharedDirectory {
+	s.OwnerDirectoryId = &v
+	return s
+}
+
+// SetShareMethod sets the ShareMethod field's value.
+func (s *SharedDirectory) SetShareMethod(v string) *SharedDirectory {
+	s.ShareMethod = &v
+	return s
+}
+
+// SetShareNotes sets the ShareNotes field's value.
+func (s *SharedDirectory) SetShareNotes(v string) *SharedDirectory {
+	s.ShareNotes = &v
+	return s
+}
+
+// SetShareStatus sets the ShareStatus field's value.
+func (s *SharedDirectory) SetShareStatus(v string) *SharedDirectory {
+	s.ShareStatus = &v
+	return s
+}
+
+// SetSharedAccountId sets the SharedAccountId field's value.
+func (s *SharedDirectory) SetSharedAccountId(v string) *SharedDirectory {
+	s.SharedAccountId = &v
+	return s
+}
+
+// SetSharedDirectoryId sets the SharedDirectoryId field's value.
+func (s *SharedDirectory) SetSharedDirectoryId(v string) *SharedDirectory {
+	s.SharedDirectoryId = &v
+	return s
+}
+
 // Describes a directory snapshot.
 type Snapshot struct {
 	_ struct{} `type:"structure"`
@@ -7959,7 +9881,7 @@ type Snapshot struct {
 	SnapshotId *string `type:"string"`
 
 	// The date and time that the snapshot was taken.
-	StartTime *time.Time `type:"timestamp" timestampFormat:"unix"`
+	StartTime *time.Time `type:"timestamp"`
 
 	// The snapshot status.
 	Status *string `type:"string" enum:"SnapshotStatus"`
@@ -8226,26 +10148,29 @@ func (s *Tag) SetValue(v string) *Tag {
 	return s
 }
 
-// Describes a trust relationship between an Microsoft AD in the AWS cloud and
-// an external domain.
+// Describes a trust relationship between an AWS Managed Microsoft AD directory
+// and an external domain.
 type Trust struct {
 	_ struct{} `type:"structure"`
 
 	// The date and time that the trust relationship was created.
-	CreatedDateTime *time.Time `type:"timestamp" timestampFormat:"unix"`
+	CreatedDateTime *time.Time `type:"timestamp"`
 
 	// The Directory ID of the AWS directory involved in the trust relationship.
 	DirectoryId *string `type:"string"`
 
 	// The date and time that the trust relationship was last updated.
-	LastUpdatedDateTime *time.Time `type:"timestamp" timestampFormat:"unix"`
+	LastUpdatedDateTime *time.Time `type:"timestamp"`
 
 	// The Fully Qualified Domain Name (FQDN) of the external domain involved in
 	// the trust relationship.
 	RemoteDomainName *string `type:"string"`
 
+	// Current state of selective authentication for the trust.
+	SelectiveAuth *string `type:"string" enum:"SelectiveAuth"`
+
 	// The date and time that the TrustState was last updated.
-	StateLastUpdatedDateTime *time.Time `type:"timestamp" timestampFormat:"unix"`
+	StateLastUpdatedDateTime *time.Time `type:"timestamp"`
 
 	// The trust relationship direction.
 	TrustDirection *string `type:"string" enum:"TrustDirection"`
@@ -8259,7 +10184,7 @@ type Trust struct {
 	// The reason for the TrustState.
 	TrustStateReason *string `type:"string"`
 
-	// The trust relationship type.
+	// The trust relationship type. Forest is the default.
 	TrustType *string `type:"string" enum:"TrustType"`
 }
 
@@ -8297,6 +10222,12 @@ func (s *Trust) SetRemoteDomainName(v string) *Trust {
 	return s
 }
 
+// SetSelectiveAuth sets the SelectiveAuth field's value.
+func (s *Trust) SetSelectiveAuth(v string) *Trust {
+	s.SelectiveAuth = &v
+	return s
+}
+
 // SetStateLastUpdatedDateTime sets the StateLastUpdatedDateTime field's value.
 func (s *Trust) SetStateLastUpdatedDateTime(v time.Time) *Trust {
 	s.StateLastUpdatedDateTime = &v
@@ -8330,6 +10261,146 @@ func (s *Trust) SetTrustStateReason(v string) *Trust {
 // SetTrustType sets the TrustType field's value.
 func (s *Trust) SetTrustType(v string) *Trust {
 	s.TrustType = &v
+	return s
+}
+
+type UnshareDirectoryInput struct {
+	_ struct{} `type:"structure"`
+
+	// The identifier of the AWS Managed Microsoft AD directory that you want to
+	// stop sharing.
+	//
+	// DirectoryId is a required field
+	DirectoryId *string `type:"string" required:"true"`
+
+	// Identifier for the directory consumer account with whom the directory has
+	// to be unshared.
+	//
+	// UnshareTarget is a required field
+	UnshareTarget *UnshareTarget `type:"structure" required:"true"`
+}
+
+// String returns the string representation
+func (s UnshareDirectoryInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UnshareDirectoryInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *UnshareDirectoryInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "UnshareDirectoryInput"}
+	if s.DirectoryId == nil {
+		invalidParams.Add(request.NewErrParamRequired("DirectoryId"))
+	}
+	if s.UnshareTarget == nil {
+		invalidParams.Add(request.NewErrParamRequired("UnshareTarget"))
+	}
+	if s.UnshareTarget != nil {
+		if err := s.UnshareTarget.Validate(); err != nil {
+			invalidParams.AddNested("UnshareTarget", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetDirectoryId sets the DirectoryId field's value.
+func (s *UnshareDirectoryInput) SetDirectoryId(v string) *UnshareDirectoryInput {
+	s.DirectoryId = &v
+	return s
+}
+
+// SetUnshareTarget sets the UnshareTarget field's value.
+func (s *UnshareDirectoryInput) SetUnshareTarget(v *UnshareTarget) *UnshareDirectoryInput {
+	s.UnshareTarget = v
+	return s
+}
+
+type UnshareDirectoryOutput struct {
+	_ struct{} `type:"structure"`
+
+	// Identifier of the directory stored in the directory consumer account that
+	// is to be unshared from the specified directory (DirectoryId).
+	SharedDirectoryId *string `type:"string"`
+}
+
+// String returns the string representation
+func (s UnshareDirectoryOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UnshareDirectoryOutput) GoString() string {
+	return s.String()
+}
+
+// SetSharedDirectoryId sets the SharedDirectoryId field's value.
+func (s *UnshareDirectoryOutput) SetSharedDirectoryId(v string) *UnshareDirectoryOutput {
+	s.SharedDirectoryId = &v
+	return s
+}
+
+// Identifier that contains details about the directory consumer account with
+// whom the directory is being unshared.
+type UnshareTarget struct {
+	_ struct{} `type:"structure"`
+
+	// Identifier of the directory consumer account.
+	//
+	// Id is a required field
+	Id *string `min:"1" type:"string" required:"true"`
+
+	// Type of identifier to be used in the Id field.
+	//
+	// Type is a required field
+	Type *string `type:"string" required:"true" enum:"TargetType"`
+}
+
+// String returns the string representation
+func (s UnshareTarget) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UnshareTarget) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *UnshareTarget) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "UnshareTarget"}
+	if s.Id == nil {
+		invalidParams.Add(request.NewErrParamRequired("Id"))
+	}
+	if s.Id != nil && len(*s.Id) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Id", 1))
+	}
+	if s.Type == nil {
+		invalidParams.Add(request.NewErrParamRequired("Type"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetId sets the Id field's value.
+func (s *UnshareTarget) SetId(v string) *UnshareTarget {
+	s.Id = &v
+	return s
+}
+
+// SetType sets the Type field's value.
+func (s *UnshareTarget) SetType(v string) *UnshareTarget {
+	s.Type = &v
 	return s
 }
 
@@ -8561,8 +10632,87 @@ func (s UpdateRadiusOutput) GoString() string {
 	return s.String()
 }
 
-// Initiates the verification of an existing trust relationship between a Microsoft
-// AD in the AWS cloud and an external domain.
+type UpdateTrustInput struct {
+	_ struct{} `type:"structure"`
+
+	// Updates selective authentication for the trust.
+	SelectiveAuth *string `type:"string" enum:"SelectiveAuth"`
+
+	// Identifier of the trust relationship.
+	//
+	// TrustId is a required field
+	TrustId *string `type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s UpdateTrustInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateTrustInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *UpdateTrustInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "UpdateTrustInput"}
+	if s.TrustId == nil {
+		invalidParams.Add(request.NewErrParamRequired("TrustId"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetSelectiveAuth sets the SelectiveAuth field's value.
+func (s *UpdateTrustInput) SetSelectiveAuth(v string) *UpdateTrustInput {
+	s.SelectiveAuth = &v
+	return s
+}
+
+// SetTrustId sets the TrustId field's value.
+func (s *UpdateTrustInput) SetTrustId(v string) *UpdateTrustInput {
+	s.TrustId = &v
+	return s
+}
+
+type UpdateTrustOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The AWS request identifier.
+	RequestId *string `type:"string"`
+
+	// Identifier of the trust relationship.
+	TrustId *string `type:"string"`
+}
+
+// String returns the string representation
+func (s UpdateTrustOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateTrustOutput) GoString() string {
+	return s.String()
+}
+
+// SetRequestId sets the RequestId field's value.
+func (s *UpdateTrustOutput) SetRequestId(v string) *UpdateTrustOutput {
+	s.RequestId = &v
+	return s
+}
+
+// SetTrustId sets the TrustId field's value.
+func (s *UpdateTrustOutput) SetTrustId(v string) *UpdateTrustOutput {
+	s.TrustId = &v
+	return s
+}
+
+// Initiates the verification of an existing trust relationship between an AWS
+// Managed Microsoft AD directory and an external domain.
 type VerifyTrustInput struct {
 	_ struct{} `type:"structure"`
 
@@ -8685,6 +10835,9 @@ const (
 
 	// DirectoryTypeMicrosoftAd is a DirectoryType enum value
 	DirectoryTypeMicrosoftAd = "MicrosoftAD"
+
+	// DirectoryTypeSharedMicrosoftAd is a DirectoryType enum value
+	DirectoryTypeSharedMicrosoftAd = "SharedMicrosoftAD"
 )
 
 const (
@@ -8790,6 +10943,51 @@ const (
 )
 
 const (
+	// SelectiveAuthEnabled is a SelectiveAuth enum value
+	SelectiveAuthEnabled = "Enabled"
+
+	// SelectiveAuthDisabled is a SelectiveAuth enum value
+	SelectiveAuthDisabled = "Disabled"
+)
+
+const (
+	// ShareMethodOrganizations is a ShareMethod enum value
+	ShareMethodOrganizations = "ORGANIZATIONS"
+
+	// ShareMethodHandshake is a ShareMethod enum value
+	ShareMethodHandshake = "HANDSHAKE"
+)
+
+const (
+	// ShareStatusShared is a ShareStatus enum value
+	ShareStatusShared = "Shared"
+
+	// ShareStatusPendingAcceptance is a ShareStatus enum value
+	ShareStatusPendingAcceptance = "PendingAcceptance"
+
+	// ShareStatusRejected is a ShareStatus enum value
+	ShareStatusRejected = "Rejected"
+
+	// ShareStatusRejecting is a ShareStatus enum value
+	ShareStatusRejecting = "Rejecting"
+
+	// ShareStatusRejectFailed is a ShareStatus enum value
+	ShareStatusRejectFailed = "RejectFailed"
+
+	// ShareStatusSharing is a ShareStatus enum value
+	ShareStatusSharing = "Sharing"
+
+	// ShareStatusShareFailed is a ShareStatus enum value
+	ShareStatusShareFailed = "ShareFailed"
+
+	// ShareStatusDeleted is a ShareStatus enum value
+	ShareStatusDeleted = "Deleted"
+
+	// ShareStatusDeleting is a ShareStatus enum value
+	ShareStatusDeleting = "Deleting"
+)
+
+const (
 	// SnapshotStatusCreating is a SnapshotStatus enum value
 	SnapshotStatusCreating = "Creating"
 
@@ -8806,6 +11004,11 @@ const (
 
 	// SnapshotTypeManual is a SnapshotType enum value
 	SnapshotTypeManual = "Manual"
+)
+
+const (
+	// TargetTypeAccount is a TargetType enum value
+	TargetTypeAccount = "ACCOUNT"
 )
 
 const (
@@ -8849,6 +11052,15 @@ const (
 	// TrustStateVerified is a TrustState enum value
 	TrustStateVerified = "Verified"
 
+	// TrustStateUpdating is a TrustState enum value
+	TrustStateUpdating = "Updating"
+
+	// TrustStateUpdateFailed is a TrustState enum value
+	TrustStateUpdateFailed = "UpdateFailed"
+
+	// TrustStateUpdated is a TrustState enum value
+	TrustStateUpdated = "Updated"
+
 	// TrustStateDeleting is a TrustState enum value
 	TrustStateDeleting = "Deleting"
 
@@ -8862,4 +11074,7 @@ const (
 const (
 	// TrustTypeForest is a TrustType enum value
 	TrustTypeForest = "Forest"
+
+	// TrustTypeExternal is a TrustType enum value
+	TrustTypeExternal = "External"
 )

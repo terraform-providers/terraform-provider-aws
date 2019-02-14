@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"regexp"
 	"testing"
 	"time"
 
@@ -14,12 +15,53 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
+func init() {
+	resource.AddTestSweepers("aws_spot_fleet_request", &resource.Sweeper{
+		Name: "aws_spot_fleet_request",
+		F:    testSweepSpotFleetRequests,
+	})
+}
+
+func testSweepSpotFleetRequests(region string) error {
+	client, err := sharedClientForRegion(region)
+	if err != nil {
+		return fmt.Errorf("error getting client: %s", err)
+	}
+	conn := client.(*AWSClient).ec2conn
+
+	err = conn.DescribeSpotFleetRequestsPages(&ec2.DescribeSpotFleetRequestsInput{}, func(page *ec2.DescribeSpotFleetRequestsOutput, isLast bool) bool {
+		if len(page.SpotFleetRequestConfigs) == 0 {
+			log.Print("[DEBUG] No Spot Fleet Requests to sweep")
+			return false
+		}
+
+		for _, config := range page.SpotFleetRequestConfigs {
+			id := aws.StringValue(config.SpotFleetRequestId)
+
+			log.Printf("[INFO] Deleting Spot Fleet Request: %s", id)
+			err := deleteSpotFleetRequest(id, true, 5*time.Minute, conn)
+			if err != nil {
+				log.Printf("[ERROR] Failed to delete Spot Fleet Request (%s): %s", id, err)
+			}
+		}
+		return !isLast
+	})
+	if err != nil {
+		if testSweepSkipSweepError(err) {
+			log.Printf("[WARN] Skipping EC2 Spot Fleet Requests sweep for %s: %s", region, err)
+			return nil
+		}
+		return fmt.Errorf("Error retrieving EC2 Spot Fleet Requests: %s", err)
+	}
+	return nil
+}
+
 func TestAccAWSSpotFleetRequest_associatePublicIpAddress(t *testing.T) {
 	var sfr ec2.SpotFleetRequestConfig
 	rName := acctest.RandString(10)
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSpotFleetRequestDestroy,
@@ -46,7 +88,7 @@ func TestAccAWSSpotFleetRequest_instanceInterruptionBehavior(t *testing.T) {
 	rName := acctest.RandString(10)
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSpotFleetRequestDestroy,
@@ -66,12 +108,61 @@ func TestAccAWSSpotFleetRequest_instanceInterruptionBehavior(t *testing.T) {
 	})
 }
 
+func TestAccAWSSpotFleetRequest_fleetType(t *testing.T) {
+	var sfr ec2.SpotFleetRequestConfig
+	rName := acctest.RandString(10)
+	rInt := acctest.RandInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSSpotFleetRequestDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSSpotFleetRequestConfigFleetType(rName, rInt),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSSpotFleetRequestExists(
+						"aws_spot_fleet_request.foo", &sfr),
+					resource.TestCheckResourceAttr(
+						"aws_spot_fleet_request.foo", "spot_request_state", "active"),
+					resource.TestCheckResourceAttr(
+						"aws_spot_fleet_request.foo", "fleet_type", "request"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSSpotFleetRequest_iamInstanceProfileArn(t *testing.T) {
+	var sfr ec2.SpotFleetRequestConfig
+	rName := acctest.RandString(10)
+	rInt := acctest.RandInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSSpotFleetRequestDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSSpotFleetRequestConfigIamInstanceProfileArn(rName, rInt),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSSpotFleetRequestExists(
+						"aws_spot_fleet_request.foo", &sfr),
+					resource.TestCheckResourceAttr(
+						"aws_spot_fleet_request.foo", "spot_request_state", "active"),
+					testAccCheckAWSSpotFleetRequest_IamInstanceProfileArn(&sfr),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAWSSpotFleetRequest_changePriceForcesNewRequest(t *testing.T) {
 	var before, after ec2.SpotFleetRequestConfig
 	rName := acctest.RandString(10)
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSpotFleetRequestDestroy,
@@ -112,7 +203,7 @@ func TestAccAWSSpotFleetRequest_lowestPriceAzOrSubnetInRegion(t *testing.T) {
 	rName := acctest.RandString(10)
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSpotFleetRequestDestroy,
@@ -137,7 +228,7 @@ func TestAccAWSSpotFleetRequest_lowestPriceAzInGivenList(t *testing.T) {
 	rName := acctest.RandString(10)
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSpotFleetRequestDestroy,
@@ -166,7 +257,7 @@ func TestAccAWSSpotFleetRequest_lowestPriceSubnetInGivenList(t *testing.T) {
 	rName := acctest.RandString(10)
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSpotFleetRequestDestroy,
@@ -191,7 +282,7 @@ func TestAccAWSSpotFleetRequest_multipleInstanceTypesInSameAz(t *testing.T) {
 	rName := acctest.RandString(10)
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSpotFleetRequestDestroy,
@@ -224,7 +315,7 @@ func TestAccAWSSpotFleetRequest_multipleInstanceTypesInSameSubnet(t *testing.T) 
 	rName := acctest.RandString(10)
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSpotFleetRequestDestroy,
@@ -249,7 +340,7 @@ func TestAccAWSSpotFleetRequest_overriddingSpotPrice(t *testing.T) {
 	rName := acctest.RandString(10)
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSpotFleetRequestDestroy,
@@ -279,12 +370,37 @@ func TestAccAWSSpotFleetRequest_overriddingSpotPrice(t *testing.T) {
 	})
 }
 
+func TestAccAWSSpotFleetRequest_withoutSpotPrice(t *testing.T) {
+	var sfr ec2.SpotFleetRequestConfig
+	rName := acctest.RandString(10)
+	rInt := acctest.RandInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSSpotFleetRequestDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSSpotFleetRequestConfigWithoutSpotPrice(rName, rInt),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSSpotFleetRequestExists(
+						"aws_spot_fleet_request.foo", &sfr),
+					resource.TestCheckResourceAttr(
+						"aws_spot_fleet_request.foo", "spot_request_state", "active"),
+					resource.TestCheckResourceAttr(
+						"aws_spot_fleet_request.foo", "launch_specification.#", "2"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAWSSpotFleetRequest_diversifiedAllocation(t *testing.T) {
 	var sfr ec2.SpotFleetRequestConfig
 	rName := acctest.RandString(10)
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSpotFleetRequestDestroy,
@@ -300,6 +416,35 @@ func TestAccAWSSpotFleetRequest_diversifiedAllocation(t *testing.T) {
 						"aws_spot_fleet_request.foo", "launch_specification.#", "3"),
 					resource.TestCheckResourceAttr(
 						"aws_spot_fleet_request.foo", "allocation_strategy", "diversified"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSSpotFleetRequest_multipleInstancePools(t *testing.T) {
+	var sfr ec2.SpotFleetRequestConfig
+	rName := acctest.RandString(10)
+	rInt := acctest.RandInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSSpotFleetRequestDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSSpotFleetRequestConfigMultipleInstancePools(rName, rInt),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSSpotFleetRequestExists(
+						"aws_spot_fleet_request.foo", &sfr),
+					resource.TestCheckResourceAttr(
+						"aws_spot_fleet_request.foo", "spot_request_state", "active"),
+					resource.TestCheckResourceAttr(
+						"aws_spot_fleet_request.foo", "launch_specification.#", "3"),
+					resource.TestCheckResourceAttr(
+						"aws_spot_fleet_request.foo", "allocation_strategy", "lowestPrice"),
+					resource.TestCheckResourceAttr(
+						"aws_spot_fleet_request.foo", "instance_pools_to_use_count", "2"),
 				),
 			},
 		},
@@ -325,7 +470,7 @@ func TestAccAWSSpotFleetRequest_withWeightedCapacity(t *testing.T) {
 		}
 	}
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSpotFleetRequestDestroy,
@@ -359,7 +504,7 @@ func TestAccAWSSpotFleetRequest_withEBSDisk(t *testing.T) {
 	rName := acctest.RandString(10)
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSpotFleetRequestDestroy,
@@ -382,7 +527,7 @@ func TestAccAWSSpotFleetRequest_withTags(t *testing.T) {
 	rName := acctest.RandString(10)
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSpotFleetRequestDestroy,
@@ -405,7 +550,7 @@ func TestAccAWSSpotFleetRequest_placementTenancy(t *testing.T) {
 	rName := acctest.RandString(10)
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSpotFleetRequestDestroy,
@@ -506,7 +651,7 @@ func testAccCheckAWSSpotFleetRequest_PlacementAttributes(
 			return fmt.Errorf("Expected placement to be set, got nil")
 		}
 		if *placement.Tenancy != "dedicated" {
-			return fmt.Errorf("Expected placement tenancy to be %q, got %q", "dedicated", placement.Tenancy)
+			return fmt.Errorf("Expected placement tenancy to be %q, got %q", "dedicated", *placement.Tenancy)
 		}
 
 		return nil
@@ -539,7 +684,7 @@ func TestAccAWSSpotFleetRequest_WithELBs(t *testing.T) {
 	rName := acctest.RandString(10)
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSpotFleetRequestDestroy,
@@ -561,12 +706,35 @@ func TestAccAWSSpotFleetRequest_WithELBs(t *testing.T) {
 	})
 }
 
+func testAccCheckAWSSpotFleetRequest_IamInstanceProfileArn(
+	sfr *ec2.SpotFleetRequestConfig) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		if len(sfr.SpotFleetRequestConfig.LaunchSpecifications) == 0 {
+			return errors.New("Missing launch specification")
+		}
+
+		spec := *sfr.SpotFleetRequestConfig.LaunchSpecifications[0]
+
+		profile := spec.IamInstanceProfile
+		if profile == nil {
+			return fmt.Errorf("Expected IamInstanceProfile to be set, got nil")
+		}
+		//Validate the string whether it is ARN
+		re := regexp.MustCompile(`arn:aws:iam::\d{12}:instance-profile/?[a-zA-Z0-9+=,.@-_].*`)
+		if !re.MatchString(*profile.Arn) {
+			return fmt.Errorf("Expected IamInstanceProfile input as ARN, got %s", *profile.Arn)
+		}
+
+		return nil
+	}
+}
+
 func TestAccAWSSpotFleetRequest_WithTargetGroups(t *testing.T) {
 	var sfr ec2.SpotFleetRequestConfig
 	rName := acctest.RandString(10)
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSpotFleetRequestDestroy,
@@ -714,6 +882,195 @@ resource "aws_spot_fleet_request" "foo" {
     depends_on = ["aws_iam_policy_attachment.test-attach"]
 }
 `, rName, rInt, rInt, rName)
+}
+
+func testAccAWSSpotFleetRequestConfigFleetType(rName string, rInt int) string {
+	return fmt.Sprintf(`
+resource "aws_iam_policy" "test-policy" {
+  name = "test-policy-%d"
+  path = "/"
+  description = "Spot Fleet Request ACCTest Policy"
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Effect": "Allow",
+    "Action": [
+       "ec2:DescribeImages",
+       "ec2:DescribeSubnets",
+       "ec2:RequestSpotInstances",
+       "ec2:TerminateInstances",
+       "ec2:DescribeInstanceStatus",
+       "iam:PassRole"
+        ],
+    "Resource": ["*"]
+  }]
+}
+EOF
+}
+
+resource "aws_iam_policy_attachment" "test-attach" {
+    name = "test-attachment-%d"
+    roles = ["${aws_iam_role.test-role.name}"]
+    policy_arn = "${aws_iam_policy.test-policy.arn}"
+}
+
+resource "aws_iam_role" "test-role" {
+    name = "test-role-%s"
+    assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "",
+      "Effect": "Allow",
+      "Principal": {
+        "Service": [
+          "spotfleet.amazonaws.com",
+          "ec2.amazonaws.com"
+        ]
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_spot_fleet_request" "foo" {
+    iam_fleet_role = "${aws_iam_role.test-role.arn}"
+    spot_price = "0.005"
+    target_capacity = 2
+    valid_until = "2019-11-04T20:44:20Z"
+    fleet_type = "request"
+    terminate_instances_with_expiration = true
+    wait_for_fulfillment = true
+    launch_specification {
+        instance_type = "m1.small"
+        ami = "ami-516b9131"
+    }
+    depends_on = ["aws_iam_policy_attachment.test-attach"]
+}
+`, rInt, rInt, rName)
+}
+
+func testAccAWSSpotFleetRequestConfigIamInstanceProfileArn(rName string, rInt int) string {
+	return fmt.Sprintf(`
+resource "aws_key_pair" "debugging" {
+	key_name = "tmp-key-%s"
+	public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD3F6tyPEFEzV0LX3X8BsXdMsQz1x2cEikKDEY0aIj41qgxMCP/iteneqXSIFZBp5vizPvaoIR3Um9xK7PGoW8giupGn+EPuxIA4cDM4vzOqOkiMPhz5XK0whEjkVzTo4+S0puvDZuwIsdiW9mxhJc7tgBNL0cYlWSYVkz4G/fslNfRPW5mYAM49f4fhtxPb5ok4Q2Lg9dPKVHO/Bgeu5woMc7RY0p1ej6D4CKFE6lymSDJpW0YHX/wqE9+cfEauh7xZcG0q9t2ta6F6fmX0agvpFyZo8aFbXeUBr7osSCJNgvavWbM/06niWrOvYX2xwWdhXmXSrbX8ZbabVohBK41 phodgson@thoughtworks.com"
+}
+
+resource "aws_iam_policy" "test-policy" {
+  name = "test-policy-%d"
+  path = "/"
+  description = "Spot Fleet Request ACCTest Policy"
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Effect": "Allow",
+    "Action": [
+       "ec2:DescribeImages",
+       "ec2:DescribeSubnets",
+       "ec2:RequestSpotInstances",
+       "ec2:TerminateInstances",
+       "ec2:DescribeInstanceStatus",
+       "iam:PassRole"
+        ],
+    "Resource": ["*"]
+  }]
+}
+EOF
+}
+
+resource "aws_iam_policy_attachment" "test-attach" {
+    name = "test-attachment-%d"
+    roles = ["${aws_iam_role.test-role.name}"]
+    policy_arn = "${aws_iam_policy.test-policy.arn}"
+}
+
+resource "aws_iam_role" "test-role" {
+    name = "test-role-%s"
+    assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "",
+      "Effect": "Allow",
+      "Principal": {
+        "Service": [
+          "spotfleet.amazonaws.com",
+          "ec2.amazonaws.com"
+        ]
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_role" "test-role1" {
+    name = "tf-test-role1-%s"
+    assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "",
+      "Effect": "Allow",
+      "Principal": {
+        "Service": [
+          "spotfleet.amazonaws.com",
+          "ec2.amazonaws.com"
+        ]
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy" "test-role-policy1" {
+	name = "tf-test-role-policy1-%s"
+	role = "${aws_iam_role.test-role1.name}"
+	policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": {
+    "Effect": "Allow",
+    "Action": "*",
+    "Resource": "*"
+  }
+}
+EOF
+}
+
+resource "aws_iam_instance_profile" "test-iam-instance-profile1" {
+	name = "tf-test-profile1-%s"
+	role = "${aws_iam_role.test-role1.name}"
+}
+
+resource "aws_spot_fleet_request" "foo" {
+    iam_fleet_role = "${aws_iam_role.test-role.arn}"
+    spot_price = "0.005"
+    target_capacity = 2
+    valid_until = "2019-11-04T20:44:20Z"
+    terminate_instances_with_expiration = true
+    instance_interruption_behaviour = "stop"
+    wait_for_fulfillment = true
+    launch_specification {
+        instance_type = "m1.small"
+        ami = "ami-516b9131"
+        key_name = "${aws_key_pair.debugging.key_name}"
+        iam_instance_profile_arn = "${aws_iam_instance_profile.test-iam-instance-profile1.arn}"
+    }
+    depends_on = ["aws_iam_policy_attachment.test-attach"]
+}
+`, rName, rInt, rInt, rName, rName, rName, rName)
 }
 
 func testAccAWSSpotFleetRequestConfigChangeSpotBidPrice(rName string, rInt int) string {
@@ -933,7 +1290,7 @@ EOF
 
 resource "aws_vpc" "foo" {
     cidr_block = "10.1.0.0/16"
-    tags {
+  tags = {
         Name = "terraform-testacc-spot-fleet-request-w-subnet"
     }
 }
@@ -942,7 +1299,7 @@ resource "aws_subnet" "foo" {
     cidr_block = "10.1.1.0/24"
     vpc_id = "${aws_vpc.foo.id}"
     availability_zone = "us-west-2a"
-    tags {
+  tags = {
         Name = "tf-acc-spot-fleet-request-w-subnet-foo"
     }
 }
@@ -951,14 +1308,14 @@ resource "aws_subnet" "bar" {
     cidr_block = "10.1.20.0/24"
     vpc_id = "${aws_vpc.foo.id}"
     availability_zone = "us-west-2b"
-    tags {
+  tags = {
         Name = "tf-acc-spot-fleet-request-w-subnet-bar"
     }
 }
 
 resource "aws_spot_fleet_request" "foo" {
     iam_fleet_role = "${aws_iam_role.test-role.arn}"
-    spot_price = "0.03"
+    spot_price = "0.05"
     target_capacity = 4
     valid_until = "2019-11-04T20:44:20Z"
     terminate_instances_with_expiration = true
@@ -1046,7 +1403,7 @@ resource "aws_subnet" "foo" {
     cidr_block = "10.1.1.0/24"
     vpc_id = "${aws_vpc.foo.id}"
     availability_zone = "us-west-2a"
-    tags {
+  tags = {
         Name = "tf-acc-spot-fleet-request-with-elb-foo"
     }
 }
@@ -1055,7 +1412,7 @@ resource "aws_subnet" "bar" {
     cidr_block = "10.1.20.0/24"
     vpc_id = "${aws_vpc.foo.id}"
     availability_zone = "us-west-2b"
-    tags {
+  tags = {
         Name = "tf-acc-spot-fleet-request-with-elb-bar"
     }
 }
@@ -1158,7 +1515,7 @@ resource "aws_subnet" "foo" {
     cidr_block = "10.1.1.0/24"
     vpc_id = "${aws_vpc.foo.id}"
     availability_zone = "us-west-2a"
-    tags {
+  tags = {
         Name = "tf-acc-spot-fleet-request-with-target-groups-foo"
     }
 }
@@ -1167,7 +1524,7 @@ resource "aws_subnet" "bar" {
     cidr_block = "10.1.20.0/24"
     vpc_id = "${aws_vpc.foo.id}"
     availability_zone = "us-west-2b"
-    tags {
+  tags = {
         Name = "tf-acc-spot-fleet-request-with-target-groups-bar"
     }
 }
@@ -1357,7 +1714,7 @@ EOF
 
 resource "aws_vpc" "foo" {
     cidr_block = "10.1.0.0/16"
-    tags {
+  tags = {
         Name = "terraform-testacc-spot-fleet-request-multi-instance-types"
     }
 }
@@ -1366,7 +1723,7 @@ resource "aws_subnet" "foo" {
     cidr_block = "10.1.1.0/24"
     vpc_id = "${aws_vpc.foo.id}"
     availability_zone = "us-west-2a"
-    tags {
+  tags = {
         Name = "tf-acc-spot-fleet-request-multi-instance-types"
     }
 }
@@ -1472,6 +1829,176 @@ resource "aws_spot_fleet_request" "foo" {
         key_name = "${aws_key_pair.debugging.key_name}"
         availability_zone = "us-west-2a"
         spot_price = "0.01"
+    }
+    depends_on = ["aws_iam_policy_attachment.test-attach"]
+}
+`, rName, rInt, rInt, rName)
+}
+
+func testAccAWSSpotFleetRequestConfigWithoutSpotPrice(rName string, rInt int) string {
+	return fmt.Sprintf(`
+resource "aws_key_pair" "debugging" {
+	key_name = "tmp-key-%s"
+	public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD3F6tyPEFEzV0LX3X8BsXdMsQz1x2cEikKDEY0aIj41qgxMCP/iteneqXSIFZBp5vizPvaoIR3Um9xK7PGoW8giupGn+EPuxIA4cDM4vzOqOkiMPhz5XK0whEjkVzTo4+S0puvDZuwIsdiW9mxhJc7tgBNL0cYlWSYVkz4G/fslNfRPW5mYAM49f4fhtxPb5ok4Q2Lg9dPKVHO/Bgeu5woMc7RY0p1ej6D4CKFE6lymSDJpW0YHX/wqE9+cfEauh7xZcG0q9t2ta6F6fmX0agvpFyZo8aFbXeUBr7osSCJNgvavWbM/06niWrOvYX2xwWdhXmXSrbX8ZbabVohBK41 phodgson@thoughtworks.com"
+}
+
+resource "aws_iam_policy" "test-policy" {
+  name = "test-policy-%d"
+  path = "/"
+  description = "Spot Fleet Request ACCTest Policy"
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Effect": "Allow",
+    "Action": [
+       "ec2:DescribeImages",
+       "ec2:DescribeSubnets",
+       "ec2:RequestSpotInstances",
+       "ec2:TerminateInstances",
+       "ec2:DescribeInstanceStatus",
+       "iam:PassRole"
+        ],
+    "Resource": ["*"]
+  }]
+}
+EOF
+}
+
+resource "aws_iam_policy_attachment" "test-attach" {
+    name = "test-attachment-%d"
+    roles = ["${aws_iam_role.test-role.name}"]
+    policy_arn = "${aws_iam_policy.test-policy.arn}"
+}
+
+resource "aws_iam_role" "test-role" {
+    name = "test-role-%s"
+    assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "",
+      "Effect": "Allow",
+      "Principal": {
+        "Service": [
+          "spotfleet.amazonaws.com",
+          "ec2.amazonaws.com"
+        ]
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_spot_fleet_request" "foo" {
+    iam_fleet_role = "${aws_iam_role.test-role.arn}"
+    target_capacity = 2
+    valid_until = "2019-11-04T20:44:20Z"
+    terminate_instances_with_expiration = true
+    wait_for_fulfillment = true
+    launch_specification {
+        instance_type = "m1.small"
+        ami = "ami-516b9131"
+        key_name = "${aws_key_pair.debugging.key_name}"
+        availability_zone = "us-west-2a"
+    }
+    launch_specification {
+        instance_type = "m3.large"
+        ami = "ami-d06a90b0"
+        key_name = "${aws_key_pair.debugging.key_name}"
+        availability_zone = "us-west-2a"
+    }
+    depends_on = ["aws_iam_policy_attachment.test-attach"]
+}
+`, rName, rInt, rInt, rName)
+}
+
+func testAccAWSSpotFleetRequestConfigMultipleInstancePools(rName string, rInt int) string {
+	return fmt.Sprintf(`
+resource "aws_key_pair" "debugging" {
+	key_name = "tmp-key-%s"
+	public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD3F6tyPEFEzV0LX3X8BsXdMsQz1x2cEikKDEY0aIj41qgxMCP/iteneqXSIFZBp5vizPvaoIR3Um9xK7PGoW8giupGn+EPuxIA4cDM4vzOqOkiMPhz5XK0whEjkVzTo4+S0puvDZuwIsdiW9mxhJc7tgBNL0cYlWSYVkz4G/fslNfRPW5mYAM49f4fhtxPb5ok4Q2Lg9dPKVHO/Bgeu5woMc7RY0p1ej6D4CKFE6lymSDJpW0YHX/wqE9+cfEauh7xZcG0q9t2ta6F6fmX0agvpFyZo8aFbXeUBr7osSCJNgvavWbM/06niWrOvYX2xwWdhXmXSrbX8ZbabVohBK41 phodgson@thoughtworks.com"
+}
+
+resource "aws_iam_policy" "test-policy" {
+  name = "test-policy-%d"
+  path = "/"
+  description = "Spot Fleet Request ACCTest Policy"
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Effect": "Allow",
+    "Action": [
+       "ec2:DescribeImages",
+       "ec2:DescribeSubnets",
+       "ec2:RequestSpotInstances",
+       "ec2:TerminateInstances",
+       "ec2:DescribeInstanceStatus",
+       "iam:PassRole"
+        ],
+    "Resource": ["*"]
+  }]
+}
+EOF
+}
+
+resource "aws_iam_policy_attachment" "test-attach" {
+    name = "test-attachment-%d"
+    roles = ["${aws_iam_role.test-role.name}"]
+    policy_arn = "${aws_iam_policy.test-policy.arn}"
+}
+
+resource "aws_iam_role" "test-role" {
+    name = "test-role-%s"
+    assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "",
+      "Effect": "Allow",
+      "Principal": {
+        "Service": [
+          "spotfleet.amazonaws.com",
+          "ec2.amazonaws.com"
+        ]
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_spot_fleet_request" "foo" {
+    iam_fleet_role = "${aws_iam_role.test-role.arn}"
+    spot_price = "0.7"
+    target_capacity = 30
+    valid_until = "2019-11-04T20:44:20Z"
+    instance_pools_to_use_count = 2
+    terminate_instances_with_expiration = true
+    wait_for_fulfillment = true
+    launch_specification {
+        instance_type = "m1.small"
+        ami = "ami-d06a90b0"
+        key_name = "${aws_key_pair.debugging.key_name}"
+        availability_zone = "us-west-2a"
+    }
+    launch_specification {
+        instance_type = "m3.large"
+        ami = "ami-d06a90b0"
+        key_name = "${aws_key_pair.debugging.key_name}"
+        availability_zone = "us-west-2a"
+    }
+    launch_specification {
+        instance_type = "r3.large"
+        ami = "ami-d06a90b0"
+        key_name = "${aws_key_pair.debugging.key_name}"
+        availability_zone = "us-west-2a"
     }
     depends_on = ["aws_iam_policy_attachment.test-attach"]
 }
@@ -1795,7 +2322,7 @@ resource "aws_spot_fleet_request" "foo" {
     launch_specification {
         instance_type = "m1.small"
         ami = "ami-516b9131"
-        tags {
+  tags = {
             First = "TfAccTest"
             Second = "Terraform"
         }

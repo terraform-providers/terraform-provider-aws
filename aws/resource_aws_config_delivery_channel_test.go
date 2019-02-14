@@ -2,8 +2,10 @@ package aws
 
 import (
 	"fmt"
+	"log"
 	"regexp"
 	"testing"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/configservice"
@@ -11,6 +13,64 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 )
+
+func init() {
+	resource.AddTestSweepers("aws_config_delivery_channel", &resource.Sweeper{
+		Name: "aws_config_delivery_channel",
+		Dependencies: []string{
+			"aws_config_configuration_recorder",
+		},
+		F: testSweepConfigDeliveryChannels,
+	})
+}
+
+func testSweepConfigDeliveryChannels(region string) error {
+	client, err := sharedClientForRegion(region)
+	if err != nil {
+		return fmt.Errorf("error getting client: %s", err)
+	}
+	conn := client.(*AWSClient).configconn
+
+	req := &configservice.DescribeDeliveryChannelsInput{}
+	var resp *configservice.DescribeDeliveryChannelsOutput
+	err = resource.Retry(1*time.Minute, func() *resource.RetryError {
+		var err error
+		resp, err = conn.DescribeDeliveryChannels(req)
+		if err != nil {
+			// ThrottlingException: Rate exceeded
+			if isAWSErr(err, "ThrottlingException", "Rate exceeded") {
+				return resource.RetryableError(err)
+			}
+			return resource.NonRetryableError(err)
+		}
+		return nil
+	})
+	if err != nil {
+		if testSweepSkipSweepError(err) {
+			log.Printf("[WARN] Skipping Config Delivery Channels sweep for %s: %s", region, err)
+			return nil
+		}
+		return fmt.Errorf("Error describing Delivery Channels: %s", err)
+	}
+
+	if len(resp.DeliveryChannels) == 0 {
+		log.Print("[DEBUG] No AWS Config Delivery Channel to sweep")
+		return nil
+	}
+
+	for _, dc := range resp.DeliveryChannels {
+		_, err := conn.DeleteDeliveryChannel(&configservice.DeleteDeliveryChannelInput{
+			DeliveryChannelName: dc.Name,
+		})
+		if err != nil {
+			return fmt.Errorf(
+				"Error deleting Delivery Channel (%s): %s",
+				*dc.Name, err)
+		}
+	}
+
+	return nil
+}
 
 func testAccConfigDeliveryChannel_basic(t *testing.T) {
 	var dc configservice.DeliveryChannel
@@ -73,11 +133,11 @@ func testAccConfigDeliveryChannel_importBasic(t *testing.T) {
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckConfigDeliveryChannelDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: testAccConfigDeliveryChannelConfig_basic(rInt),
 			},
 
-			resource.TestStep{
+			{
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,

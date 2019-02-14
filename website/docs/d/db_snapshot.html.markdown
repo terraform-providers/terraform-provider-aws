@@ -11,6 +11,7 @@ description: |-
 Use this data source to get information about a DB Snapshot for use when provisioning DB instances
 
 ~> **NOTE:** This data source does not apply to snapshots created on Aurora DB clusters.
+See the [`aws_db_cluster_snapshot` data source](/docs/providers/aws/d/db_cluster_snapshot.html) for DB Cluster snapshots.
 
 ## Example Usage
 
@@ -28,15 +29,16 @@ resource "aws_db_instance" "prod" {
 }
 
 data "aws_db_snapshot" "latest_prod_snapshot" {
-  db_instance_identifier = "${aws_db_instance.prod.identifier}"
-  most_recent = true
+  db_instance_identifier = "${aws_db_instance.prod.id}"
+  most_recent            = true
 }
 
 # Use the latest production snapshot to create a dev instance.
 resource "aws_db_instance" "dev" {
   instance_class      = "db.t2.micro"
-  name                = "mydb-dev"
+  name                = "mydbdev"
   snapshot_identifier = "${data.aws_db_snapshot.latest_prod_snapshot.id}"
+
   lifecycle {
     ignore_changes = ["snapshot_identifier"]
   }
@@ -54,21 +56,21 @@ recent Snapshot.
 
 * `db_snapshot_identifier` - (Optional) Returns information on a specific snapshot_id.
 
-* `snapshot_type` - (Optional) The type of snapshots to be returned. If you don't specify a SnapshotType 
-value, then both automated and manual snapshots are returned. Shared and public DB snapshots are not 
+* `snapshot_type` - (Optional) The type of snapshots to be returned. If you don't specify a SnapshotType
+value, then both automated and manual snapshots are returned. Shared and public DB snapshots are not
 included in the returned results by default. Possible values are, `automated`, `manual`, `shared` and `public`.
 
-* `include_shared` - (Optional) Set this value to true to include shared manual DB snapshots from other 
-AWS accounts that this AWS account has been given permission to copy or restore, otherwise set this value to false. 
+* `include_shared` - (Optional) Set this value to true to include shared manual DB snapshots from other
+AWS accounts that this AWS account has been given permission to copy or restore, otherwise set this value to false.
 The default is `false`.
 
-* `include_public` - (Optional) Set this value to true to include manual DB snapshots that are public and can be 
+* `include_public` - (Optional) Set this value to true to include manual DB snapshots that are public and can be
 copied or restored by any AWS account, otherwise set this value to false. The default is `false`.
 
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The snapshot ID.
 * `allocated_storage` - Specifies the allocated storage size in gigabytes (GB).
@@ -85,5 +87,5 @@ The following attributes are exported:
 * `source_region` - The region that the DB snapshot was created in or copied from.
 * `status` - Specifies the status of this DB snapshot.
 * `storage_type` - Specifies the storage type associated with DB snapshot.
-* `vpc_id` - Specifies the storage type associated with DB snapshot.
+* `vpc_id` - Specifies the ID of the VPC associated with the DB snapshot.
 * `snapshot_create_time` - Provides the time when the snapshot was taken, in Universal Coordinated Time (UTC).

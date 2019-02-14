@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/waf"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 )
 
 func resourceAwsWafRule() *schema.Resource {
@@ -16,34 +17,37 @@ func resourceAwsWafRule() *schema.Resource {
 		Read:   resourceAwsWafRuleRead,
 		Update: resourceAwsWafRuleUpdate,
 		Delete: resourceAwsWafRuleDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 
 		Schema: map[string]*schema.Schema{
-			"name": &schema.Schema{
+			"name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
-			"metric_name": &schema.Schema{
+			"metric_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validateWafMetricName,
 			},
-			"predicates": &schema.Schema{
+			"predicates": {
 				Type:     schema.TypeSet,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"negated": &schema.Schema{
+						"negated": {
 							Type:     schema.TypeBool,
 							Required: true,
 						},
-						"data_id": &schema.Schema{
+						"data_id": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validateMaxLength(128),
+							ValidateFunc: validation.StringLenBetween(0, 128),
 						},
-						"type": &schema.Schema{
+						"type": {
 							Type:         schema.TypeString,
 							Required:     true,
 							ValidateFunc: validateWafPredicatesType(),
@@ -58,7 +62,7 @@ func resourceAwsWafRule() *schema.Resource {
 func resourceAwsWafRuleCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).wafconn
 
-	wr := newWafRetryer(conn, "global")
+	wr := newWafRetryer(conn)
 	out, err := wr.RetryWithToken(func(token *string) (interface{}, error) {
 		params := &waf.CreateRuleInput{
 			ChangeToken: token,
@@ -140,7 +144,7 @@ func resourceAwsWafRuleDelete(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
-	wr := newWafRetryer(conn, "global")
+	wr := newWafRetryer(conn)
 	_, err := wr.RetryWithToken(func(token *string) (interface{}, error) {
 		req := &waf.DeleteRuleInput{
 			ChangeToken: token,
@@ -157,7 +161,7 @@ func resourceAwsWafRuleDelete(d *schema.ResourceData, meta interface{}) error {
 }
 
 func updateWafRuleResource(id string, oldP, newP []interface{}, conn *waf.WAF) error {
-	wr := newWafRetryer(conn, "global")
+	wr := newWafRetryer(conn)
 	_, err := wr.RetryWithToken(func(token *string) (interface{}, error) {
 		req := &waf.UpdateRuleInput{
 			ChangeToken: token,
@@ -172,40 +176,4 @@ func updateWafRuleResource(id string, oldP, newP []interface{}, conn *waf.WAF) e
 	}
 
 	return nil
-}
-
-func diffWafRulePredicates(oldP, newP []interface{}) []*waf.RuleUpdate {
-	updates := make([]*waf.RuleUpdate, 0)
-
-	for _, op := range oldP {
-		predicate := op.(map[string]interface{})
-
-		if idx, contains := sliceContainsMap(newP, predicate); contains {
-			newP = append(newP[:idx], newP[idx+1:]...)
-			continue
-		}
-
-		updates = append(updates, &waf.RuleUpdate{
-			Action: aws.String(waf.ChangeActionDelete),
-			Predicate: &waf.Predicate{
-				Negated: aws.Bool(predicate["negated"].(bool)),
-				Type:    aws.String(predicate["type"].(string)),
-				DataId:  aws.String(predicate["data_id"].(string)),
-			},
-		})
-	}
-
-	for _, np := range newP {
-		predicate := np.(map[string]interface{})
-
-		updates = append(updates, &waf.RuleUpdate{
-			Action: aws.String(waf.ChangeActionInsert),
-			Predicate: &waf.Predicate{
-				Negated: aws.Bool(predicate["negated"].(bool)),
-				Type:    aws.String(predicate["type"].(string)),
-				DataId:  aws.String(predicate["data_id"].(string)),
-			},
-		})
-	}
-	return updates
 }

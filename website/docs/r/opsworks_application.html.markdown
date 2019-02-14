@@ -16,7 +16,7 @@ Provides an OpsWorks application resource.
 resource "aws_opsworks_application" "foo-app" {
   name        = "foobar application"
   short_name  = "foobar"
-  stack_id    = "${aws_opsworks_stack.stack.id}"
+  stack_id    = "${aws_opsworks_stack.main.id}"
   type        = "rails"
   description = "This is a Rails application"
 
@@ -25,13 +25,13 @@ resource "aws_opsworks_application" "foo-app" {
     "sub.example.com",
   ]
 
-  environment = {
+  environment {
     key    = "key"
     value  = "value"
     secure = false
   }
 
-  app_source = {
+  app_source {
     type     = "git"
     revision = "master"
     url      = "https://github.com/example.git"
@@ -39,7 +39,7 @@ resource "aws_opsworks_application" "foo-app" {
 
   enable_ssl = true
 
-  ssl_configuration = {
+  ssl_configuration {
     private_key = "${file("./foobar.key")}"
     certificate = "${file("./foobar.crt")}"
   }
@@ -95,6 +95,6 @@ A `ssl_configuration` block supports the following arguments (can only be define
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The id of the application.

@@ -17,7 +17,7 @@ func TestAccAWSLoadBalancerBackendServerPolicy_basic(t *testing.T) {
 	rString := acctest.RandString(8)
 	lbName := fmt.Sprintf("tf-acc-lb-bsp-basic-%s", rString)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() { testAccPreCheck(t) },
 		Providers: map[string]terraform.ResourceProvider{
 			"aws": testAccProvider,
@@ -25,7 +25,7 @@ func TestAccAWSLoadBalancerBackendServerPolicy_basic(t *testing.T) {
 		},
 		CheckDestroy: testAccCheckAWSLoadBalancerBackendServerPolicyDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: testAccAWSLoadBalancerBackendServerPolicyConfig_basic0(lbName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSLoadBalancerPolicyState("aws_elb.test-lb", "aws_load_balancer_policy.test-pubkey-policy0"),
@@ -33,7 +33,7 @@ func TestAccAWSLoadBalancerBackendServerPolicy_basic(t *testing.T) {
 					testAccCheckAWSLoadBalancerBackendServerPolicyState(lbName, "test-backend-auth-policy0", true),
 				),
 			},
-			resource.TestStep{
+			{
 				Config: testAccAWSLoadBalancerBackendServerPolicyConfig_basic1(lbName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSLoadBalancerPolicyState("aws_elb.test-lb", "aws_load_balancer_policy.test-pubkey-policy0"),
@@ -42,7 +42,7 @@ func TestAccAWSLoadBalancerBackendServerPolicy_basic(t *testing.T) {
 					testAccCheckAWSLoadBalancerBackendServerPolicyState(lbName, "test-backend-auth-policy0", true),
 				),
 			},
-			resource.TestStep{
+			{
 				Config: testAccAWSLoadBalancerBackendServerPolicyConfig_basic2(lbName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSLoadBalancerBackendServerPolicyState(lbName, "test-backend-auth-policy0", false),
@@ -181,7 +181,7 @@ resource "aws_elb" "test-lb" {
     ssl_certificate_id = "${aws_iam_server_certificate.test-iam-cert0.arn}"
   }
 
-  tags {
+  tags = {
     Name = "tf-acc-test"
   }
 }
@@ -190,7 +190,7 @@ resource "aws_load_balancer_policy" "test-pubkey-policy0" {
   load_balancer_name = "${aws_elb.test-lb.name}"
   policy_name = "test-pubkey-policy0"
   policy_type_name = "PublicKeyPolicyType"
-  policy_attribute = {
+  policy_attribute {
     name = "PublicKey"
     value = "${replace(replace(replace(tls_private_key.example0.public_key_pem, "\n", ""), "-----BEGIN PUBLIC KEY-----", ""), "-----END PUBLIC KEY-----", "")}"
   }
@@ -200,7 +200,7 @@ resource "aws_load_balancer_policy" "test-backend-auth-policy0" {
   load_balancer_name = "${aws_elb.test-lb.name}"
   policy_name = "test-backend-auth-policy0"
   policy_type_name = "BackendServerAuthenticationPolicyType"
-  policy_attribute = {
+  policy_attribute {
     name = "PublicKeyPolicyName"
     value = "${aws_load_balancer_policy.test-pubkey-policy0.policy_name}"
   }
@@ -280,7 +280,7 @@ resource "aws_elb" "test-lb" {
     ssl_certificate_id = "${aws_iam_server_certificate.test-iam-cert0.arn}"
   }
 
-  tags {
+  tags = {
     Name = "tf-acc-test"
   }
 }
@@ -289,7 +289,7 @@ resource "aws_load_balancer_policy" "test-pubkey-policy0" {
   load_balancer_name = "${aws_elb.test-lb.name}"
   policy_name = "test-pubkey-policy0"
   policy_type_name = "PublicKeyPolicyType"
-  policy_attribute = {
+  policy_attribute {
     name = "PublicKey"
     value = "${replace(replace(replace(tls_private_key.example0.public_key_pem, "\n", ""), "-----BEGIN PUBLIC KEY-----", ""), "-----END PUBLIC KEY-----", "")}"
   }
@@ -299,7 +299,7 @@ resource "aws_load_balancer_policy" "test-pubkey-policy1" {
   load_balancer_name = "${aws_elb.test-lb.name}"
   policy_name = "test-pubkey-policy1"
   policy_type_name = "PublicKeyPolicyType"
-  policy_attribute = {
+  policy_attribute {
     name = "PublicKey"
     value = "${replace(replace(replace(tls_private_key.example1.public_key_pem, "\n", ""), "-----BEGIN PUBLIC KEY-----", ""), "-----END PUBLIC KEY-----", "")}"
   }
@@ -309,7 +309,7 @@ resource "aws_load_balancer_policy" "test-backend-auth-policy0" {
   load_balancer_name = "${aws_elb.test-lb.name}"
   policy_name = "test-backend-auth-policy0"
   policy_type_name = "BackendServerAuthenticationPolicyType"
-  policy_attribute = {
+  policy_attribute {
     name = "PublicKeyPolicyName"
     value = "${aws_load_balancer_policy.test-pubkey-policy1.policy_name}"
   }
@@ -389,7 +389,7 @@ resource "aws_elb" "test-lb" {
     ssl_certificate_id = "${aws_iam_server_certificate.test-iam-cert0.arn}"
   }
 
-  tags {
+  tags = {
     Name = "tf-acc-test"
   }
 }

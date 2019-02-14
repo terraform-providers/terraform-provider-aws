@@ -1,7 +1,7 @@
 ---
 layout: "aws"
 page_title: "AWS: aws_glacier_vault"
-sidebar_current: "docs-aws-resource-glacier-vault"
+sidebar_current: "docs-aws-resource-glacier-vault-x"
 description: |-
   Provides a Glacier Vault.
 ---
@@ -45,7 +45,7 @@ resource "aws_glacier_vault" "my_archive" {
 }
 EOF
 
-  tags {
+  tags = {
     Test = "MyArchive"
   }
 }
@@ -68,7 +68,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `location` - The URI of the vault that was created.
 * `arn` - The ARN of the vault.

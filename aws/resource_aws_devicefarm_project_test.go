@@ -17,7 +17,7 @@ func TestAccAWSDeviceFarmProject_basic(t *testing.T) {
 	beforeInt := acctest.RandInt()
 	afterInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckDeviceFarmProjectDestroy,

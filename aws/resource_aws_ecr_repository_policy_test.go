@@ -15,12 +15,12 @@ import (
 func TestAccAWSEcrRepositoryPolicy_basic(t *testing.T) {
 	randString := acctest.RandString(10)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSEcrRepositoryPolicyDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: testAccAWSEcrRepositoryPolicy(randString),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSEcrRepositoryPolicyExists("aws_ecr_repository_policy.default"),
@@ -33,12 +33,12 @@ func TestAccAWSEcrRepositoryPolicy_basic(t *testing.T) {
 func TestAccAWSEcrRepositoryPolicy_iam(t *testing.T) {
 	randString := acctest.RandString(10)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSEcrRepositoryPolicyDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: testAccAWSEcrRepositoryPolicyWithIAMRole(randString),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSEcrRepositoryPolicyExists("aws_ecr_repository_policy.default"),

@@ -57,6 +57,7 @@ are exported:
 interpolation.
 
 * `ami` - The ID of the AMI used to launch the instance.
+* `arn` - The ARN of the instance.
 * `associate_public_ip_address` - Whether or not the Instance is associated with a public IP address or not (Boolean).
 * `availability_zone` - The availability zone of the Instance.
 * `ebs_block_device` - The EBS block device mappings of the Instance.
@@ -101,6 +102,8 @@ interpolation.
 * `user_data` - The User Data supplied to the Instance.
 * `tags` - A mapping of tags assigned to the Instance.
 * `tenancy` - The tenancy of the instance: `dedicated`, `default`, `host`.
+* `host_id` - The Id of the dedicated host the instance will be assigned to.
 * `vpc_security_group_ids` - The associated security groups in a non-default VPC.
+* `credit_specification` - The credit specification of the Instance.
 
 [1]: http://docs.aws.amazon.com/cli/latest/reference/ec2/describe-instances.html

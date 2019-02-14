@@ -19,7 +19,7 @@ func TestAccAWSOpsworksApplication(t *testing.T) {
 	rInt := acctest.RandInt()
 	name := fmt.Sprintf("tf-ops-acc-application-%d", rInt)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsOpsworksApplicationDestroy,
@@ -317,15 +317,21 @@ func testAccAwsOpsworksApplicationCreate(name string) string {
 	return testAccAwsOpsworksStackConfigVpcCreate(name) +
 		fmt.Sprintf(`
 resource "aws_opsworks_application" "tf-acc-app" {
-  stack_id = "${aws_opsworks_stack.tf-acc.id}"
-  name = "%s"
-  type = "other"
-  enable_ssl = false
-  app_source ={
+  document_root = "foo"
+  enable_ssl    = false
+  name          = %q
+  stack_id      = "${aws_opsworks_stack.tf-acc.id}"
+  type          = "other"
+
+  app_source {
     type = "other"
   }
-	environment = { key = "key1" value = "value1" secure = false}
-	document_root = "foo"
+
+  environment {
+    key    = "key1"
+    value  = "value1"
+    secure = false
+  }
 }
 `, name)
 }
@@ -334,12 +340,16 @@ func testAccAwsOpsworksApplicationUpdate(name string) string {
 	return testAccAwsOpsworksStackConfigVpcCreate(name) +
 		fmt.Sprintf(`
 resource "aws_opsworks_application" "tf-acc-app" {
-  stack_id = "${aws_opsworks_stack.tf-acc.id}"
-  name = "%s"
-  type = "rails"
-  domains = ["example.com", "sub.example.com"]
-  enable_ssl = true
-  ssl_configuration = {
+  auto_bundle_on_deploy = "true"
+  document_root         = "root"
+  domains               = ["example.com", "sub.example.com"]
+  enable_ssl            = true
+  name                  = %q
+  rails_env             = "staging"
+  stack_id              = "${aws_opsworks_stack.tf-acc.id}"
+  type                  = "rails"
+
+  ssl_configuration {
     private_key = <<EOS
 -----BEGIN RSA PRIVATE KEY-----
 MIICXQIBAAKBgQCikCm00x/ybpc9esWOwK2JcyWAj3nUwsdW6Kbq8gsf/ndYAveD
@@ -371,16 +381,23 @@ V/YEvOqdAiy5NEWBztHx8HvB9G4=
 -----END CERTIFICATE-----
 EOS
   }
-  app_source = {
+
+  app_source {
     type = "git"
     revision = "master"
     url = "https://github.com/aws/example.git"
   }
-	environment = { key = "key1" value = "value1" secure = false}
-	environment = { key = "key2" value = "value2" }
-	document_root = "root"
-  auto_bundle_on_deploy = "true"
-  rails_env = "staging"
+
+  environment {
+    key    = "key1"
+    value  = "value1"
+    secure = false
+  }
+
+  environment {
+    key   = "key2"
+    value = "value2"
+  }
 }
 `, name)
 }

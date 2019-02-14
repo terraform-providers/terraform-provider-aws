@@ -28,13 +28,13 @@ resource "aws_opsworks_rds_db_instance" "my_instance" {
 
 The following arguments are supported:
 
-* `stack_id` - (Required) The stack to register a db inatance for. Changing this will force a new resource.
+* `stack_id` - (Required) The stack to register a db instance for. Changing this will force a new resource.
 * `rds_db_instance_arn` - (Required) The db instance to register for this stack. Changing this will force a new resource.
 * `db_user` - (Required) A db username
 * `db_password` - (Required) A db password
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The computed id. Please note that this is only used internally to identify the stack <-> instance relation. This value is not used in aws.

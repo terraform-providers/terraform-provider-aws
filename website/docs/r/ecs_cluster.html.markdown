@@ -23,10 +23,11 @@ resource "aws_ecs_cluster" "foo" {
 The following arguments are supported:
 
 * `name` - (Required) The name of the cluster (up to 255 letters, numbers, hyphens, and underscores)
+* `tags` - (Optional) Key-value mapping of resource tags
 
 ## Attributes Reference
 
-The following additional attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The Amazon Resource Name (ARN) that identifies the cluster
 * `arn` - The Amazon Resource Name (ARN) that identifies the cluster

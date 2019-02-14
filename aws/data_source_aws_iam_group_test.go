@@ -12,7 +12,7 @@ import (
 func TestAccAWSDataSourceIAMGroup_basic(t *testing.T) {
 	groupName := fmt.Sprintf("test-datasource-user-%d", acctest.RandInt())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{

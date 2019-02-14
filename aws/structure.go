@@ -13,6 +13,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/private/protocol/json/jsonutil"
 	"github.com/aws/aws-sdk-go/service/apigateway"
+	"github.com/aws/aws-sdk-go/service/appmesh"
 	"github.com/aws/aws-sdk-go/service/autoscaling"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
@@ -20,7 +21,9 @@ import (
 	"github.com/aws/aws-sdk-go/service/cognitoidentityprovider"
 	"github.com/aws/aws-sdk-go/service/configservice"
 	"github.com/aws/aws-sdk-go/service/dax"
+	"github.com/aws/aws-sdk-go/service/directconnect"
 	"github.com/aws/aws-sdk-go/service/directoryservice"
+	"github.com/aws/aws-sdk-go/service/docdb"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ecs"
@@ -31,12 +34,15 @@ import (
 	"github.com/aws/aws-sdk-go/service/iot"
 	"github.com/aws/aws-sdk-go/service/kinesis"
 	"github.com/aws/aws-sdk-go/service/lambda"
+	"github.com/aws/aws-sdk-go/service/macie"
 	"github.com/aws/aws-sdk-go/service/mq"
+	"github.com/aws/aws-sdk-go/service/neptune"
 	"github.com/aws/aws-sdk-go/service/rds"
 	"github.com/aws/aws-sdk-go/service/redshift"
 	"github.com/aws/aws-sdk-go/service/route53"
 	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/aws/aws-sdk-go/service/waf"
+	"github.com/aws/aws-sdk-go/service/worklink"
 	"github.com/beevik/etree"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/structure"
@@ -82,7 +88,7 @@ func expandListeners(configured []interface{}) ([]*elb.Listener, error) {
 		if valid {
 			listeners = append(listeners, l)
 		} else {
-			return nil, fmt.Errorf("[ERR] ELB Listener: ssl_certificate_id may be set only when protocol is 'https' or 'ssl'")
+			return nil, fmt.Errorf("ELB Listener: ssl_certificate_id may be set only when protocol is 'https' or 'ssl'")
 		}
 	}
 
@@ -107,6 +113,35 @@ func expandEcsVolumes(configured []interface{}) ([]*ecs.Volume, error) {
 		if hostPath != "" {
 			l.Host = &ecs.HostVolumeProperties{
 				SourcePath: aws.String(hostPath),
+			}
+		}
+
+		configList, ok := data["docker_volume_configuration"].([]interface{})
+		if ok && len(configList) > 0 {
+			config := configList[0].(map[string]interface{})
+			l.DockerVolumeConfiguration = &ecs.DockerVolumeConfiguration{}
+
+			if v, ok := config["scope"].(string); ok && v != "" {
+				l.DockerVolumeConfiguration.Scope = aws.String(v)
+			}
+
+			if v, ok := config["autoprovision"]; ok && v != "" {
+				scope := l.DockerVolumeConfiguration.Scope
+				if scope == nil || *scope != ecs.ScopeTask || v.(bool) {
+					l.DockerVolumeConfiguration.Autoprovision = aws.Bool(v.(bool))
+				}
+			}
+
+			if v, ok := config["driver"].(string); ok && v != "" {
+				l.DockerVolumeConfiguration.Driver = aws.String(v)
+			}
+
+			if v, ok := config["driver_opts"].(map[string]interface{}); ok && len(v) > 0 {
+				l.DockerVolumeConfiguration.DriverOpts = stringMapToPointers(v)
+			}
+
+			if v, ok := config["labels"].(map[string]interface{}); ok && len(v) > 0 {
+				l.DockerVolumeConfiguration.Labels = stringMapToPointers(v)
 			}
 		}
 
@@ -316,7 +351,29 @@ func expandRedshiftParameters(configured []interface{}) ([]*redshift.Parameter, 
 	return parameters, nil
 }
 
-func expandOptionConfiguration(configured []interface{}) ([]*rds.OptionConfiguration, error) {
+// Takes the result of flatmap.Expand for an array of parameters and
+// returns Parameter API compatible objects
+func expandDocDBParameters(configured []interface{}) ([]*docdb.Parameter, error) {
+	parameters := make([]*docdb.Parameter, 0, len(configured))
+
+	// Loop over our configured parameters and create
+	// an array of aws-sdk-go compatible objects
+	for _, pRaw := range configured {
+		data := pRaw.(map[string]interface{})
+
+		p := &docdb.Parameter{
+			ApplyMethod:    aws.String(data["apply_method"].(string)),
+			ParameterName:  aws.String(data["name"].(string)),
+			ParameterValue: aws.String(data["value"].(string)),
+		}
+
+		parameters = append(parameters, p)
+	}
+
+	return parameters, nil
+}
+
+func expandOptionConfiguration(configured []interface{}) []*rds.OptionConfiguration {
 	var option []*rds.OptionConfiguration
 
 	for _, pRaw := range configured {
@@ -351,10 +408,14 @@ func expandOptionConfiguration(configured []interface{}) ([]*rds.OptionConfigura
 			o.OptionSettings = expandOptionSetting(raw.(*schema.Set).List())
 		}
 
+		if raw, ok := data["version"]; ok && raw.(string) != "" {
+			o.OptionVersion = aws.String(raw.(string))
+		}
+
 		option = append(option, o)
 	}
 
-	return option, nil
+	return option
 }
 
 func expandOptionSetting(list []interface{}) []*rds.OptionSetting {
@@ -385,6 +446,28 @@ func expandElastiCacheParameters(configured []interface{}) ([]*elasticache.Param
 		data := pRaw.(map[string]interface{})
 
 		p := &elasticache.ParameterNameValue{
+			ParameterName:  aws.String(data["name"].(string)),
+			ParameterValue: aws.String(data["value"].(string)),
+		}
+
+		parameters = append(parameters, p)
+	}
+
+	return parameters, nil
+}
+
+// Takes the result of flatmap.Expand for an array of parameters and
+// returns Parameter API compatible objects
+func expandNeptuneParameters(configured []interface{}) ([]*neptune.Parameter, error) {
+	parameters := make([]*neptune.Parameter, 0, len(configured))
+
+	// Loop over our configured parameters and create
+	// an array of aws-sdk-go compatible objects
+	for _, pRaw := range configured {
+		data := pRaw.(map[string]interface{})
+
+		p := &neptune.Parameter{
+			ApplyMethod:    aws.String(data["apply_method"].(string)),
 			ParameterName:  aws.String(data["name"].(string)),
 			ParameterValue: aws.String(data["value"].(string)),
 		}
@@ -592,13 +675,45 @@ func flattenEcsVolumes(list []*ecs.Volume) []map[string]interface{} {
 			"name": *volume.Name,
 		}
 
-		if volume.Host.SourcePath != nil {
+		if volume.Host != nil && volume.Host.SourcePath != nil {
 			l["host_path"] = *volume.Host.SourcePath
+		}
+
+		if volume.DockerVolumeConfiguration != nil {
+			l["docker_volume_configuration"] = flattenDockerVolumeConfiguration(volume.DockerVolumeConfiguration)
 		}
 
 		result = append(result, l)
 	}
 	return result
+}
+
+func flattenDockerVolumeConfiguration(config *ecs.DockerVolumeConfiguration) []interface{} {
+	var items []interface{}
+	m := make(map[string]interface{})
+
+	if config.Scope != nil {
+		m["scope"] = aws.StringValue(config.Scope)
+	}
+
+	if config.Autoprovision != nil {
+		m["autoprovision"] = aws.BoolValue(config.Autoprovision)
+	}
+
+	if config.Driver != nil {
+		m["driver"] = aws.StringValue(config.Driver)
+	}
+
+	if config.DriverOpts != nil {
+		m["driver_opts"] = pointersMapToStringList(config.DriverOpts)
+	}
+
+	if config.Labels != nil {
+		m["labels"] = pointersMapToStringList(config.Labels)
+	}
+
+	items = append(items, m)
+	return items
 }
 
 // Flattens an array of ECS LoadBalancers into a []map[string]interface{}
@@ -634,53 +749,96 @@ func flattenEcsContainerDefinitions(definitions []*ecs.ContainerDefinition) (str
 }
 
 // Flattens an array of Options into a []map[string]interface{}
-func flattenOptions(list []*rds.Option) []map[string]interface{} {
-	result := make([]map[string]interface{}, 0, len(list))
-	for _, i := range list {
-		if i.OptionName != nil {
-			r := make(map[string]interface{})
-			r["option_name"] = strings.ToLower(*i.OptionName)
-			// Default empty string, guard against nil parameter values
-			r["port"] = ""
-			if i.Port != nil {
-				r["port"] = int(*i.Port)
-			}
-			if i.VpcSecurityGroupMemberships != nil {
-				vpcs := make([]string, 0, len(i.VpcSecurityGroupMemberships))
-				for _, vpc := range i.VpcSecurityGroupMemberships {
-					id := vpc.VpcSecurityGroupId
-					vpcs = append(vpcs, *id)
-				}
+func flattenOptions(apiOptions []*rds.Option, optionConfigurations []*rds.OptionConfiguration) []map[string]interface{} {
+	result := make([]map[string]interface{}, 0)
 
-				r["vpc_security_group_memberships"] = vpcs
-			}
-			if i.DBSecurityGroupMemberships != nil {
-				dbs := make([]string, 0, len(i.DBSecurityGroupMemberships))
-				for _, db := range i.DBSecurityGroupMemberships {
-					id := db.DBSecurityGroupName
-					dbs = append(dbs, *id)
-				}
-
-				r["db_security_group_memberships"] = dbs
-			}
-			if i.OptionSettings != nil {
-				settings := make([]map[string]interface{}, 0, len(i.OptionSettings))
-				for _, j := range i.OptionSettings {
-					setting := map[string]interface{}{
-						"name": *j.Name,
-					}
-					if j.Value != nil {
-						setting["value"] = *j.Value
-					}
-
-					settings = append(settings, setting)
-				}
-
-				r["option_settings"] = settings
-			}
-			result = append(result, r)
+	for _, apiOption := range apiOptions {
+		if apiOption == nil || apiOption.OptionName == nil {
+			continue
 		}
+
+		var configuredOption *rds.OptionConfiguration
+
+		for _, optionConfiguration := range optionConfigurations {
+			if aws.StringValue(apiOption.OptionName) == aws.StringValue(optionConfiguration.OptionName) {
+				configuredOption = optionConfiguration
+				break
+			}
+		}
+
+		dbSecurityGroupMemberships := make([]interface{}, 0)
+		for _, db := range apiOption.DBSecurityGroupMemberships {
+			if db != nil {
+				dbSecurityGroupMemberships = append(dbSecurityGroupMemberships, aws.StringValue(db.DBSecurityGroupName))
+			}
+		}
+
+		optionSettings := make([]interface{}, 0)
+		for _, apiOptionSetting := range apiOption.OptionSettings {
+			// The RDS API responds with all settings. Omit settings that match default value,
+			// but only if unconfigured. This is to prevent operators from continually needing
+			// to continually update their Terraform configurations to match new option settings
+			// when added by the API.
+			var configuredOptionSetting *rds.OptionSetting
+
+			if configuredOption != nil {
+				for _, configuredOptionOptionSetting := range configuredOption.OptionSettings {
+					if aws.StringValue(apiOptionSetting.Name) == aws.StringValue(configuredOptionOptionSetting.Name) {
+						configuredOptionSetting = configuredOptionOptionSetting
+						break
+					}
+				}
+			}
+
+			if configuredOptionSetting == nil && aws.StringValue(apiOptionSetting.Value) == aws.StringValue(apiOptionSetting.DefaultValue) {
+				continue
+			}
+
+			optionSetting := map[string]interface{}{
+				"name":  aws.StringValue(apiOptionSetting.Name),
+				"value": aws.StringValue(apiOptionSetting.Value),
+			}
+
+			// Some values, like passwords, are sent back from the API as ****.
+			// Set the response to match the configuration to prevent an unexpected difference
+			if configuredOptionSetting != nil && aws.StringValue(apiOptionSetting.Value) == "****" {
+				optionSetting["value"] = aws.StringValue(configuredOptionSetting.Value)
+			}
+
+			optionSettings = append(optionSettings, optionSetting)
+		}
+		optionSettingsResource := &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"name": {
+					Type:     schema.TypeString,
+					Required: true,
+				},
+				"value": {
+					Type:     schema.TypeString,
+					Required: true,
+				},
+			},
+		}
+
+		vpcSecurityGroupMemberships := make([]interface{}, 0)
+		for _, vpc := range apiOption.VpcSecurityGroupMemberships {
+			if vpc != nil {
+				vpcSecurityGroupMemberships = append(vpcSecurityGroupMemberships, aws.StringValue(vpc.VpcSecurityGroupId))
+			}
+		}
+
+		r := map[string]interface{}{
+			"db_security_group_memberships":  schema.NewSet(schema.HashString, dbSecurityGroupMemberships),
+			"option_name":                    aws.StringValue(apiOption.OptionName),
+			"option_settings":                schema.NewSet(schema.HashResource(optionSettingsResource), optionSettings),
+			"port":                           aws.Int64Value(apiOption.Port),
+			"version":                        aws.StringValue(apiOption.OptionVersion),
+			"vpc_security_group_memberships": schema.NewSet(schema.HashString, vpcSecurityGroupMemberships),
+		}
+
+		result = append(result, r)
 	}
+
 	return result
 }
 
@@ -732,6 +890,36 @@ func flattenElastiCacheParameters(list []*elasticache.Parameter) []map[string]in
 	return result
 }
 
+// Flattens an array of Parameters into a []map[string]interface{}
+func flattenNeptuneParameters(list []*neptune.Parameter) []map[string]interface{} {
+	result := make([]map[string]interface{}, 0, len(list))
+	for _, i := range list {
+		if i.ParameterValue != nil {
+			result = append(result, map[string]interface{}{
+				"apply_method": aws.StringValue(i.ApplyMethod),
+				"name":         aws.StringValue(i.ParameterName),
+				"value":        aws.StringValue(i.ParameterValue),
+			})
+		}
+	}
+	return result
+}
+
+// Flattens an array of Parameters into a []map[string]interface{}
+func flattenDocDBParameters(list []*docdb.Parameter) []map[string]interface{} {
+	result := make([]map[string]interface{}, 0, len(list))
+	for _, i := range list {
+		if i.ParameterValue != nil {
+			result = append(result, map[string]interface{}{
+				"apply_method": aws.StringValue(i.ApplyMethod),
+				"name":         aws.StringValue(i.ParameterName),
+				"value":        aws.StringValue(i.ParameterValue),
+			})
+		}
+	}
+	return result
+}
+
 // Takes the result of flatmap.Expand for an array of strings
 // and returns a []*string
 func expandStringList(configured []interface{}) []*string {
@@ -743,6 +931,15 @@ func expandStringList(configured []interface{}) []*string {
 		}
 	}
 	return vs
+}
+
+// Expands a map of string to interface to a map of string to *float
+func expandFloat64Map(m map[string]interface{}) map[string]*float64 {
+	float64Map := make(map[string]*float64, len(m))
+	for k, v := range m {
+		float64Map[k] = aws.Float64(v.(float64))
+	}
+	return float64Map
 }
 
 // Takes the result of schema.Set of strings and returns a []*string
@@ -759,6 +956,10 @@ func flattenStringList(list []*string) []interface{} {
 		vs = append(vs, *v)
 	}
 	return vs
+}
+
+func flattenStringSet(list []*string) *schema.Set {
+	return schema.NewSet(schema.HashString, flattenStringList(list))
 }
 
 //Flattens an array of private ip addresses into a []string, where the elements returned are the IP strings e.g. "192.168.0.0"
@@ -805,6 +1006,14 @@ func flattenAttachment(a *ec2.NetworkInterfaceAttachment) map[string]interface{}
 	att["device_index"] = *a.DeviceIndex
 	att["attachment_id"] = *a.AttachmentId
 	return att
+}
+
+func flattenEc2AttributeValues(l []*ec2.AttributeValue) []string {
+	values := make([]string, 0, len(l))
+	for _, v := range l {
+		values = append(values, aws.StringValue(v.Value))
+	}
+	return values
 }
 
 func flattenEc2NetworkInterfaceAssociation(a *ec2.NetworkInterfaceAssociation) []interface{} {
@@ -870,13 +1079,13 @@ func flattenStepAdjustments(adjustments []*autoscaling.StepAdjustment) []map[str
 	result := make([]map[string]interface{}, 0, len(adjustments))
 	for _, raw := range adjustments {
 		a := map[string]interface{}{
-			"scaling_adjustment": *raw.ScalingAdjustment,
+			"scaling_adjustment": aws.Int64Value(raw.ScalingAdjustment),
 		}
 		if raw.MetricIntervalUpperBound != nil {
-			a["metric_interval_upper_bound"] = *raw.MetricIntervalUpperBound
+			a["metric_interval_upper_bound"] = fmt.Sprintf("%g", aws.Float64Value(raw.MetricIntervalUpperBound))
 		}
 		if raw.MetricIntervalLowerBound != nil {
-			a["metric_interval_lower_bound"] = *raw.MetricIntervalLowerBound
+			a["metric_interval_lower_bound"] = fmt.Sprintf("%g", aws.Float64Value(raw.MetricIntervalLowerBound))
 		}
 		result = append(result, a)
 	}
@@ -1023,20 +1232,79 @@ func flattenESClusterConfig(c *elasticsearch.ElasticsearchClusterConfig) []map[s
 	return []map[string]interface{}{m}
 }
 
+func expandESCognitoOptions(c []interface{}) *elasticsearch.CognitoOptions {
+	options := &elasticsearch.CognitoOptions{
+		Enabled: aws.Bool(false),
+	}
+	if len(c) < 1 {
+		return options
+	}
+
+	m := c[0].(map[string]interface{})
+
+	if cognitoEnabled, ok := m["enabled"]; ok {
+		options.Enabled = aws.Bool(cognitoEnabled.(bool))
+
+		if cognitoEnabled.(bool) {
+
+			if v, ok := m["user_pool_id"]; ok && v.(string) != "" {
+				options.UserPoolId = aws.String(v.(string))
+			}
+			if v, ok := m["identity_pool_id"]; ok && v.(string) != "" {
+				options.IdentityPoolId = aws.String(v.(string))
+			}
+			if v, ok := m["role_arn"]; ok && v.(string) != "" {
+				options.RoleArn = aws.String(v.(string))
+			}
+		}
+	}
+
+	return options
+}
+
+func flattenESCognitoOptions(c *elasticsearch.CognitoOptions) []map[string]interface{} {
+	m := map[string]interface{}{}
+
+	m["enabled"] = aws.BoolValue(c.Enabled)
+
+	if aws.BoolValue(c.Enabled) {
+		m["identity_pool_id"] = aws.StringValue(c.IdentityPoolId)
+		m["user_pool_id"] = aws.StringValue(c.UserPoolId)
+		m["role_arn"] = aws.StringValue(c.RoleArn)
+	}
+
+	return []map[string]interface{}{m}
+}
+
+func flattenESSnapshotOptions(snapshotOptions *elasticsearch.SnapshotOptions) []map[string]interface{} {
+	if snapshotOptions == nil {
+		return []map[string]interface{}{}
+	}
+
+	m := map[string]interface{}{
+		"automated_snapshot_start_hour": int(aws.Int64Value(snapshotOptions.AutomatedSnapshotStartHour)),
+	}
+
+	return []map[string]interface{}{m}
+}
+
 func flattenESEBSOptions(o *elasticsearch.EBSOptions) []map[string]interface{} {
 	m := map[string]interface{}{}
 
 	if o.EBSEnabled != nil {
 		m["ebs_enabled"] = *o.EBSEnabled
 	}
-	if o.Iops != nil {
-		m["iops"] = *o.Iops
-	}
-	if o.VolumeSize != nil {
-		m["volume_size"] = *o.VolumeSize
-	}
-	if o.VolumeType != nil {
-		m["volume_type"] = *o.VolumeType
+
+	if aws.BoolValue(o.EBSEnabled) {
+		if o.Iops != nil {
+			m["iops"] = *o.Iops
+		}
+		if o.VolumeSize != nil {
+			m["volume_size"] = *o.VolumeSize
+		}
+		if o.VolumeType != nil {
+			m["volume_type"] = *o.VolumeType
+		}
 	}
 
 	return []map[string]interface{}{m}
@@ -1045,17 +1313,20 @@ func flattenESEBSOptions(o *elasticsearch.EBSOptions) []map[string]interface{} {
 func expandESEBSOptions(m map[string]interface{}) *elasticsearch.EBSOptions {
 	options := elasticsearch.EBSOptions{}
 
-	if v, ok := m["ebs_enabled"]; ok {
-		options.EBSEnabled = aws.Bool(v.(bool))
-	}
-	if v, ok := m["iops"]; ok && v.(int) > 0 {
-		options.Iops = aws.Int64(int64(v.(int)))
-	}
-	if v, ok := m["volume_size"]; ok && v.(int) > 0 {
-		options.VolumeSize = aws.Int64(int64(v.(int)))
-	}
-	if v, ok := m["volume_type"]; ok && v.(string) != "" {
-		options.VolumeType = aws.String(v.(string))
+	if ebsEnabled, ok := m["ebs_enabled"]; ok {
+		options.EBSEnabled = aws.Bool(ebsEnabled.(bool))
+
+		if ebsEnabled.(bool) {
+			if v, ok := m["iops"]; ok && v.(int) > 0 {
+				options.Iops = aws.Int64(int64(v.(int)))
+			}
+			if v, ok := m["volume_size"]; ok && v.(int) > 0 {
+				options.VolumeSize = aws.Int64(int64(v.(int)))
+			}
+			if v, ok := m["volume_type"]; ok && v.(string) != "" {
+				options.VolumeType = aws.String(v.(string))
+			}
+		}
 	}
 
 	return &options
@@ -1160,7 +1431,7 @@ func flattenConfigRecordingGroup(g *configservice.RecordingGroup) []map[string]i
 }
 
 func flattenConfigSnapshotDeliveryProperties(p *configservice.ConfigSnapshotDeliveryProperties) []map[string]interface{} {
-	m := make(map[string]interface{}, 0)
+	m := make(map[string]interface{})
 
 	if p.DeliveryFrequency != nil {
 		m["delivery_frequency"] = *p.DeliveryFrequency
@@ -1187,7 +1458,7 @@ func stringMapToPointers(m map[string]interface{}) map[string]*string {
 
 func flattenDSVpcSettings(
 	s *directoryservice.DirectoryVpcSettingsDescription) []map[string]interface{} {
-	settings := make(map[string]interface{}, 0)
+	settings := make(map[string]interface{})
 
 	if s == nil {
 		return nil
@@ -1217,8 +1488,16 @@ func flattenLambdaEnvironment(lambdaEnv *lambda.EnvironmentResponse) []interface
 	return []interface{}{envs}
 }
 
+func flattenLambdaLayers(layers []*lambda.Layer) []interface{} {
+	arns := make([]*string, len(layers))
+	for i, layer := range layers {
+		arns[i] = layer.Arn
+	}
+	return flattenStringList(arns)
+}
+
 func flattenLambdaVpcConfigResponse(s *lambda.VpcConfigResponse) []map[string]interface{} {
-	settings := make(map[string]interface{}, 0)
+	settings := make(map[string]interface{})
 
 	if s == nil {
 		return nil
@@ -1241,6 +1520,18 @@ func flattenLambdaVpcConfigResponse(s *lambda.VpcConfigResponse) []map[string]in
 	return []map[string]interface{}{settings}
 }
 
+func flattenLambdaAliasRoutingConfiguration(arc *lambda.AliasRoutingConfiguration) []interface{} {
+	if arc == nil {
+		return []interface{}{}
+	}
+
+	m := map[string]interface{}{
+		"additional_version_weights": aws.Float64ValueMap(arc.AdditionalVersionWeights),
+	}
+
+	return []interface{}{m}
+}
+
 func flattenDSConnectSettings(
 	customerDnsIps []*string,
 	s *directoryservice.DirectoryConnectSettingsDescription) []map[string]interface{} {
@@ -1248,7 +1539,7 @@ func flattenDSConnectSettings(
 		return nil
 	}
 
-	settings := make(map[string]interface{}, 0)
+	settings := make(map[string]interface{})
 
 	settings["customer_dns_ips"] = schema.NewSet(schema.HashString, flattenStringList(customerDnsIps))
 	settings["connect_ips"] = schema.NewSet(schema.HashString, flattenStringList(s.ConnectIps))
@@ -1389,7 +1680,7 @@ func expandApiGatewayRequestResponseModelOperations(d *schema.ResourceData, key 
 	oldModelMap := oldModels.(map[string]interface{})
 	newModelMap := newModels.(map[string]interface{})
 
-	for k, _ := range oldModelMap {
+	for k := range oldModelMap {
 		operation := apigateway.PatchOperation{
 			Op:   aws.String("remove"),
 			Path: aws.String(fmt.Sprintf("/%s/%s", prefix, strings.Replace(k, "/", "~1", -1))),
@@ -1407,7 +1698,7 @@ func expandApiGatewayRequestResponseModelOperations(d *schema.ResourceData, key 
 
 	for nK, nV := range newModelMap {
 		exists := false
-		for k, _ := range oldModelMap {
+		for k := range oldModelMap {
 			if k == nK {
 				exists = true
 			}
@@ -1441,7 +1732,7 @@ func deprecatedExpandApiGatewayMethodParametersJSONOperations(d *schema.Resource
 		return operations, err
 	}
 
-	for k, _ := range oldParametersMap {
+	for k := range oldParametersMap {
 		operation := apigateway.PatchOperation{
 			Op:   aws.String("remove"),
 			Path: aws.String(fmt.Sprintf("/%s/%s", prefix, k)),
@@ -1459,7 +1750,7 @@ func deprecatedExpandApiGatewayMethodParametersJSONOperations(d *schema.Resource
 
 	for nK, nV := range newParametersMap {
 		exists := false
-		for k, _ := range oldParametersMap {
+		for k := range oldParametersMap {
 			if k == nK {
 				exists = true
 			}
@@ -1484,7 +1775,7 @@ func expandApiGatewayMethodParametersOperations(d *schema.ResourceData, key stri
 	oldParametersMap := oldParameters.(map[string]interface{})
 	newParametersMap := newParameters.(map[string]interface{})
 
-	for k, _ := range oldParametersMap {
+	for k := range oldParametersMap {
 		operation := apigateway.PatchOperation{
 			Op:   aws.String("remove"),
 			Path: aws.String(fmt.Sprintf("/%s/%s", prefix, k)),
@@ -1507,7 +1798,7 @@ func expandApiGatewayMethodParametersOperations(d *schema.ResourceData, key stri
 
 	for nK, nV := range newParametersMap {
 		exists := false
-		for k, _ := range oldParametersMap {
+		for k := range oldParametersMap {
 			if k == nK {
 				exists = true
 			}
@@ -1580,29 +1871,32 @@ func expandApiGatewayStageKeyOperations(d *schema.ResourceData) []*apigateway.Pa
 	return operations
 }
 
-func expandCloudWachLogMetricTransformations(m map[string]interface{}) ([]*cloudwatchlogs.MetricTransformation, error) {
+func expandCloudWatchLogMetricTransformations(m map[string]interface{}) []*cloudwatchlogs.MetricTransformation {
 	transformation := cloudwatchlogs.MetricTransformation{
 		MetricName:      aws.String(m["name"].(string)),
 		MetricNamespace: aws.String(m["namespace"].(string)),
 		MetricValue:     aws.String(m["value"].(string)),
 	}
 
-	if m["default_value"] != "" {
-		transformation.DefaultValue = aws.Float64(m["default_value"].(float64))
+	if m["default_value"].(string) != "" {
+		value, _ := strconv.ParseFloat(m["default_value"].(string), 64)
+		transformation.DefaultValue = aws.Float64(value)
 	}
 
-	return []*cloudwatchlogs.MetricTransformation{&transformation}, nil
+	return []*cloudwatchlogs.MetricTransformation{&transformation}
 }
 
-func flattenCloudWachLogMetricTransformations(ts []*cloudwatchlogs.MetricTransformation) []interface{} {
+func flattenCloudWatchLogMetricTransformations(ts []*cloudwatchlogs.MetricTransformation) []interface{} {
 	mts := make([]interface{}, 0)
-	m := make(map[string]interface{}, 0)
+	m := make(map[string]interface{})
 
 	m["name"] = *ts[0].MetricName
 	m["namespace"] = *ts[0].MetricNamespace
 	m["value"] = *ts[0].MetricValue
 
-	if ts[0].DefaultValue != nil {
+	if ts[0].DefaultValue == nil {
+		m["default_value"] = ""
+	} else {
 		m["default_value"] = *ts[0].DefaultValue
 	}
 
@@ -1672,7 +1966,7 @@ func flattenBeanstalkTrigger(list []*elasticbeanstalk.Trigger) []string {
 }
 
 // There are several parts of the AWS API that will sort lists of strings,
-// causing diffs inbetween resources that use lists. This avoids a bit of
+// causing diffs between resources that use lists. This avoids a bit of
 // code duplication for pre-sorts that can be used for things like hash
 // functions, etc.
 func sortInterfaceSlice(in []interface{}) []interface{} {
@@ -1692,7 +1986,8 @@ func sortInterfaceSlice(in []interface{}) []interface{} {
 }
 
 // This function sorts List A to look like a list found in the tf file.
-func sortListBasedonTFFile(in []string, d *schema.ResourceData, listName string) ([]string, error) {
+func sortListBasedonTFFile(in []string, d *schema.ResourceData) ([]string, error) {
+	listName := "layer_ids"
 	if attributeCount, ok := d.Get(listName + ".#").(int); ok {
 		for i := 0; i < attributeCount; i++ {
 			currAttributeId := d.Get(listName + "." + strconv.Itoa(i))
@@ -1758,22 +2053,6 @@ func getStringPtr(m interface{}, key string) *string {
 
 	default:
 		panic("unknown type in getStringPtr")
-	}
-
-	return nil
-}
-
-// getStringPtrList returns a []*string version of the map value. If the key
-// isn't present, getNilStringList returns nil.
-func getStringPtrList(m map[string]interface{}, key string) []*string {
-	if v, ok := m[key]; ok {
-		var stringList []*string
-		for _, i := range v.([]interface{}) {
-			s := i.(string)
-			stringList = append(stringList, &s)
-		}
-
-		return stringList
 	}
 
 	return nil
@@ -1900,6 +2179,80 @@ func flattenPolicyAttributes(list []*elb.PolicyAttributeDescription) []interface
 	return attributes
 }
 
+func expandConfigAccountAggregationSources(configured []interface{}) []*configservice.AccountAggregationSource {
+	var results []*configservice.AccountAggregationSource
+	for _, item := range configured {
+		detail := item.(map[string]interface{})
+		source := configservice.AccountAggregationSource{
+			AllAwsRegions: aws.Bool(detail["all_regions"].(bool)),
+		}
+
+		if v, ok := detail["account_ids"]; ok {
+			accountIDs := v.([]interface{})
+			if len(accountIDs) > 0 {
+				source.AccountIds = expandStringList(accountIDs)
+			}
+		}
+
+		if v, ok := detail["regions"]; ok {
+			regions := v.([]interface{})
+			if len(regions) > 0 {
+				source.AwsRegions = expandStringList(regions)
+			}
+		}
+
+		results = append(results, &source)
+	}
+	return results
+}
+
+func expandConfigOrganizationAggregationSource(configured map[string]interface{}) *configservice.OrganizationAggregationSource {
+	source := configservice.OrganizationAggregationSource{
+		AllAwsRegions: aws.Bool(configured["all_regions"].(bool)),
+		RoleArn:       aws.String(configured["role_arn"].(string)),
+	}
+
+	if v, ok := configured["regions"]; ok {
+		regions := v.([]interface{})
+		if len(regions) > 0 {
+			source.AwsRegions = expandStringList(regions)
+		}
+	}
+
+	return &source
+}
+
+func flattenConfigAccountAggregationSources(sources []*configservice.AccountAggregationSource) []interface{} {
+	var result []interface{}
+
+	if len(sources) == 0 {
+		return result
+	}
+
+	source := sources[0]
+	m := make(map[string]interface{})
+	m["account_ids"] = flattenStringList(source.AccountIds)
+	m["all_regions"] = aws.BoolValue(source.AllAwsRegions)
+	m["regions"] = flattenStringList(source.AwsRegions)
+	result = append(result, m)
+	return result
+}
+
+func flattenConfigOrganizationAggregationSource(source *configservice.OrganizationAggregationSource) []interface{} {
+	var result []interface{}
+
+	if source == nil {
+		return result
+	}
+
+	m := make(map[string]interface{})
+	m["all_regions"] = aws.BoolValue(source.AllAwsRegions)
+	m["regions"] = flattenStringList(source.AwsRegions)
+	m["role_arn"] = aws.StringValue(source.RoleArn)
+	result = append(result, m)
+	return result
+}
+
 func flattenConfigRuleSource(source *configservice.Source) []interface{} {
 	var result []interface{}
 	m := make(map[string]interface{})
@@ -1988,7 +2341,11 @@ func flattenConfigRuleScope(scope *configservice.Scope) []interface{} {
 	return items
 }
 
-func expandConfigRuleScope(configured map[string]interface{}) *configservice.Scope {
+func expandConfigRuleScope(l []interface{}) *configservice.Scope {
+	if len(l) == 0 || l[0] == nil {
+		return nil
+	}
+	configured := l[0].(map[string]interface{})
 	scope := &configservice.Scope{}
 
 	if v, ok := configured["compliance_resource_id"].(string); ok && v != "" {
@@ -2023,11 +2380,8 @@ func checkYamlString(yamlString interface{}) (string, error) {
 	s := yamlString.(string)
 
 	err := yaml.Unmarshal([]byte(s), &y)
-	if err != nil {
-		return s, err
-	}
 
-	return s, nil
+	return s, err
 }
 
 func normalizeCloudFormationTemplate(templateString interface{}) (string, error) {
@@ -2036,14 +2390,6 @@ func normalizeCloudFormationTemplate(templateString interface{}) (string, error)
 	}
 
 	return checkYamlString(templateString)
-}
-
-func flattenInspectorTags(cfTags []*cloudformation.Tag) map[string]string {
-	tags := make(map[string]string, len(cfTags))
-	for _, t := range cfTags {
-		tags[*t.Key] = *t.Value
-	}
-	return tags
 }
 
 func flattenApiGatewayUsageApiStages(s []*apigateway.ApiStage) []map[string]interface{} {
@@ -2067,7 +2413,7 @@ func flattenApiGatewayUsageApiStages(s []*apigateway.ApiStage) []map[string]inte
 }
 
 func flattenApiGatewayUsagePlanThrottling(s *apigateway.ThrottleSettings) []map[string]interface{} {
-	settings := make(map[string]interface{}, 0)
+	settings := make(map[string]interface{})
 
 	if s == nil {
 		return nil
@@ -2085,7 +2431,7 @@ func flattenApiGatewayUsagePlanThrottling(s *apigateway.ThrottleSettings) []map[
 }
 
 func flattenApiGatewayUsagePlanQuota(s *apigateway.QuotaSettings) []map[string]interface{} {
-	settings := make(map[string]interface{}, 0)
+	settings := make(map[string]interface{})
 
 	if s == nil {
 		return nil
@@ -2109,15 +2455,6 @@ func flattenApiGatewayUsagePlanQuota(s *apigateway.QuotaSettings) []map[string]i
 func buildApiGatewayInvokeURL(restApiId, region, stageName string) string {
 	return fmt.Sprintf("https://%s.execute-api.%s.amazonaws.com/%s",
 		restApiId, region, stageName)
-}
-
-func buildApiGatewayExecutionARN(restApiId, region, accountId string) (string, error) {
-	if accountId == "" {
-		return "", fmt.Errorf("Unable to build execution ARN for %s as account ID is missing",
-			restApiId)
-	}
-	return fmt.Sprintf("arn:aws:execute-api:%s:%s:%s",
-		region, accountId, restApiId), nil
 }
 
 func expandCognitoSupportedLoginProviders(config map[string]interface{}) map[string]*string {
@@ -2192,7 +2529,7 @@ func flattenCognitoIdentityProviders(ips []*cognitoidentity.Provider) []map[stri
 }
 
 func flattenCognitoUserPoolEmailConfiguration(s *cognitoidentityprovider.EmailConfigurationType) []map[string]interface{} {
-	m := make(map[string]interface{}, 0)
+	m := make(map[string]interface{})
 
 	if s == nil {
 		return nil
@@ -2354,6 +2691,10 @@ func expandCognitoUserPoolLambdaConfig(config map[string]interface{}) *cognitoid
 		configs.PreTokenGeneration = aws.String(v.(string))
 	}
 
+	if v, ok := config["user_migration"]; ok && v.(string) != "" {
+		configs.UserMigration = aws.String(v.(string))
+	}
+
 	if v, ok := config["verify_auth_challenge_response"]; ok && v.(string) != "" {
 		configs.VerifyAuthChallengeResponse = aws.String(v.(string))
 	}
@@ -2400,6 +2741,10 @@ func flattenCognitoUserPoolLambdaConfig(s *cognitoidentityprovider.LambdaConfigT
 		m["pre_token_generation"] = *s.PreTokenGeneration
 	}
 
+	if s.UserMigration != nil {
+		m["user_migration"] = *s.UserMigration
+	}
+
 	if s.VerifyAuthChallengeResponse != nil {
 		m["verify_auth_challenge_response"] = *s.VerifyAuthChallengeResponse
 	}
@@ -2435,6 +2780,20 @@ func expandCognitoUserPoolPasswordPolicy(config map[string]interface{}) *cognito
 	}
 
 	return configs
+}
+
+func flattenCognitoUserPoolUserPoolAddOns(s *cognitoidentityprovider.UserPoolAddOnsType) []map[string]interface{} {
+	config := make(map[string]interface{})
+
+	if s == nil {
+		return []map[string]interface{}{}
+	}
+
+	if s.AdvancedSecurityMode != nil {
+		config["advanced_security_mode"] = *s.AdvancedSecurityMode
+	}
+
+	return []map[string]interface{}{config}
 }
 
 func flattenIoTRuleCloudWatchAlarmActions(actions []*iot.Action) []map[string]interface{} {
@@ -2481,36 +2840,42 @@ func flattenIoTRuleCloudWatchMetricActions(actions []*iot.Action) []map[string]i
 }
 
 func flattenIoTRuleDynamoDbActions(actions []*iot.Action) []map[string]interface{} {
-	results := make([]map[string]interface{}, 0)
+	items := make([]map[string]interface{}, 0, len(actions))
 
 	for _, a := range actions {
-		result := make(map[string]interface{})
+		m := make(map[string]interface{})
 		v := a.DynamoDB
 		if v != nil {
-			result["hash_key_field"] = *v.HashKeyField
-			result["hash_key_value"] = *v.HashKeyValue
-			result["range_key_field"] = *v.RangeKeyField
-			result["range_key_value"] = *v.RangeKeyValue
-			result["role_arn"] = *v.RoleArn
-			result["table_name"] = *v.TableName
+			m["hash_key_field"] = aws.StringValue(v.HashKeyField)
+			m["hash_key_value"] = aws.StringValue(v.HashKeyValue)
+			m["role_arn"] = aws.StringValue(v.RoleArn)
+			m["table_name"] = aws.StringValue(v.TableName)
 
 			if v.HashKeyType != nil {
-				result["hash_key_type"] = *v.HashKeyType
+				m["hash_key_type"] = aws.StringValue(v.HashKeyType)
 			}
 
 			if v.PayloadField != nil {
-				result["payload_field"] = *v.PayloadField
+				m["payload_field"] = aws.StringValue(v.PayloadField)
+			}
+
+			if v.RangeKeyField != nil {
+				m["range_key_field"] = aws.StringValue(v.RangeKeyField)
 			}
 
 			if v.RangeKeyType != nil {
-				result["range_key_type"] = *v.RangeKeyType
+				m["range_key_type"] = aws.StringValue(v.RangeKeyType)
 			}
 
-			results = append(results, result)
+			if v.RangeKeyValue != nil {
+				m["range_key_value"] = aws.StringValue(v.RangeKeyValue)
+			}
+
+			items = append(items, m)
 		}
 	}
 
-	return results
+	return items
 }
 
 func flattenIoTRuleElasticSearchActions(actions []*iot.Action) []map[string]interface{} {
@@ -2540,8 +2905,9 @@ func flattenIoTRuleFirehoseActions(actions []*iot.Action) []map[string]interface
 		result := make(map[string]interface{})
 		v := a.Firehose
 		if v != nil {
-			result["role_arn"] = *v.RoleArn
-			result["delivery_stream_name"] = *v.DeliveryStreamName
+			result["role_arn"] = aws.StringValue(v.RoleArn)
+			result["delivery_stream_name"] = aws.StringValue(v.DeliveryStreamName)
+			result["separator"] = aws.StringValue(v.Separator)
 
 			results = append(results, result)
 		}
@@ -2647,9 +3013,9 @@ func flattenIoTRuleSqsActions(actions []*iot.Action) []map[string]interface{} {
 		result := make(map[string]interface{})
 		v := a.Sqs
 		if v != nil {
-			result["role_arn"] = *v.RoleArn
-			result["use_base64"] = *v.UseBase64
-			result["queue_url"] = *v.QueueUrl
+			result["role_arn"] = aws.StringValue(v.RoleArn)
+			result["use_base64"] = aws.BoolValue(v.UseBase64)
+			result["queue_url"] = aws.StringValue(v.QueueUrl)
 
 			results = append(results, result)
 		}
@@ -2692,8 +3058,44 @@ func flattenCognitoUserPoolPasswordPolicy(s *cognitoidentityprovider.PasswordPol
 	return []map[string]interface{}{}
 }
 
+func expandCognitoResourceServerScope(inputs []interface{}) []*cognitoidentityprovider.ResourceServerScopeType {
+	configs := make([]*cognitoidentityprovider.ResourceServerScopeType, len(inputs))
+	for i, input := range inputs {
+		param := input.(map[string]interface{})
+		config := &cognitoidentityprovider.ResourceServerScopeType{}
+
+		if v, ok := param["scope_description"]; ok {
+			config.ScopeDescription = aws.String(v.(string))
+		}
+
+		if v, ok := param["scope_name"]; ok {
+			config.ScopeName = aws.String(v.(string))
+		}
+
+		configs[i] = config
+	}
+
+	return configs
+}
+
+func flattenCognitoResourceServerScope(inputs []*cognitoidentityprovider.ResourceServerScopeType) []map[string]interface{} {
+	values := make([]map[string]interface{}, 0)
+
+	for _, input := range inputs {
+		if input == nil {
+			continue
+		}
+		var value = map[string]interface{}{
+			"scope_name":        aws.StringValue(input.ScopeName),
+			"scope_description": aws.StringValue(input.ScopeDescription),
+		}
+		values = append(values, value)
+	}
+	return values
+}
+
 func expandCognitoUserPoolSchema(inputs []interface{}) []*cognitoidentityprovider.SchemaAttributeType {
-	configs := make([]*cognitoidentityprovider.SchemaAttributeType, len(inputs), len(inputs))
+	configs := make([]*cognitoidentityprovider.SchemaAttributeType, len(inputs))
 
 	for i, input := range inputs {
 		param := input.(map[string]interface{})
@@ -2767,65 +3169,308 @@ func expandCognitoUserPoolSchema(inputs []interface{}) []*cognitoidentityprovide
 	return configs
 }
 
-func flattenCognitoUserPoolSchema(inputs []*cognitoidentityprovider.SchemaAttributeType) []map[string]interface{} {
-	values := make([]map[string]interface{}, len(inputs), len(inputs))
+func cognitoUserPoolSchemaAttributeMatchesStandardAttribute(input *cognitoidentityprovider.SchemaAttributeType) bool {
+	if input == nil {
+		return false
+	}
 
-	for i, input := range inputs {
-		value := make(map[string]interface{})
+	// All standard attributes always returned by API
+	// https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-settings-attributes.html#cognito-user-pools-standard-attributes
+	var standardAttributes = []cognitoidentityprovider.SchemaAttributeType{
+		{
+			AttributeDataType:      aws.String(cognitoidentityprovider.AttributeDataTypeString),
+			DeveloperOnlyAttribute: aws.Bool(false),
+			Mutable:                aws.Bool(true),
+			Name:                   aws.String("address"),
+			Required:               aws.Bool(false),
+			StringAttributeConstraints: &cognitoidentityprovider.StringAttributeConstraintsType{
+				MaxLength: aws.String("2048"),
+				MinLength: aws.String("0"),
+			},
+		},
+		{
+			AttributeDataType:      aws.String(cognitoidentityprovider.AttributeDataTypeString),
+			DeveloperOnlyAttribute: aws.Bool(false),
+			Mutable:                aws.Bool(true),
+			Name:                   aws.String("birthdate"),
+			Required:               aws.Bool(false),
+			StringAttributeConstraints: &cognitoidentityprovider.StringAttributeConstraintsType{
+				MaxLength: aws.String("10"),
+				MinLength: aws.String("10"),
+			},
+		},
+		{
+			AttributeDataType:      aws.String(cognitoidentityprovider.AttributeDataTypeString),
+			DeveloperOnlyAttribute: aws.Bool(false),
+			Mutable:                aws.Bool(true),
+			Name:                   aws.String("email"),
+			Required:               aws.Bool(false),
+			StringAttributeConstraints: &cognitoidentityprovider.StringAttributeConstraintsType{
+				MaxLength: aws.String("2048"),
+				MinLength: aws.String("0"),
+			},
+		},
+		{
+			AttributeDataType:      aws.String(cognitoidentityprovider.AttributeDataTypeBoolean),
+			DeveloperOnlyAttribute: aws.Bool(false),
+			Mutable:                aws.Bool(true),
+			Name:                   aws.String("email_verified"),
+			Required:               aws.Bool(false),
+		},
+		{
+			AttributeDataType:      aws.String(cognitoidentityprovider.AttributeDataTypeString),
+			DeveloperOnlyAttribute: aws.Bool(false),
+			Mutable:                aws.Bool(true),
+			Name:                   aws.String("gender"),
+			Required:               aws.Bool(false),
+			StringAttributeConstraints: &cognitoidentityprovider.StringAttributeConstraintsType{
+				MaxLength: aws.String("2048"),
+				MinLength: aws.String("0"),
+			},
+		},
+		{
+			AttributeDataType:      aws.String(cognitoidentityprovider.AttributeDataTypeString),
+			DeveloperOnlyAttribute: aws.Bool(false),
+			Mutable:                aws.Bool(true),
+			Name:                   aws.String("given_name"),
+			Required:               aws.Bool(false),
+			StringAttributeConstraints: &cognitoidentityprovider.StringAttributeConstraintsType{
+				MaxLength: aws.String("2048"),
+				MinLength: aws.String("0"),
+			},
+		},
+		{
+			AttributeDataType:      aws.String(cognitoidentityprovider.AttributeDataTypeString),
+			DeveloperOnlyAttribute: aws.Bool(false),
+			Mutable:                aws.Bool(true),
+			Name:                   aws.String("family_name"),
+			Required:               aws.Bool(false),
+			StringAttributeConstraints: &cognitoidentityprovider.StringAttributeConstraintsType{
+				MaxLength: aws.String("2048"),
+				MinLength: aws.String("0"),
+			},
+		},
+		{
+			AttributeDataType:      aws.String(cognitoidentityprovider.AttributeDataTypeString),
+			DeveloperOnlyAttribute: aws.Bool(false),
+			Mutable:                aws.Bool(true),
+			Name:                   aws.String("locale"),
+			Required:               aws.Bool(false),
+			StringAttributeConstraints: &cognitoidentityprovider.StringAttributeConstraintsType{
+				MaxLength: aws.String("2048"),
+				MinLength: aws.String("0"),
+			},
+		},
+		{
+			AttributeDataType:      aws.String(cognitoidentityprovider.AttributeDataTypeString),
+			DeveloperOnlyAttribute: aws.Bool(false),
+			Mutable:                aws.Bool(true),
+			Name:                   aws.String("middle_name"),
+			Required:               aws.Bool(false),
+			StringAttributeConstraints: &cognitoidentityprovider.StringAttributeConstraintsType{
+				MaxLength: aws.String("2048"),
+				MinLength: aws.String("0"),
+			},
+		},
+		{
+			AttributeDataType:      aws.String(cognitoidentityprovider.AttributeDataTypeString),
+			DeveloperOnlyAttribute: aws.Bool(false),
+			Mutable:                aws.Bool(true),
+			Name:                   aws.String("name"),
+			Required:               aws.Bool(false),
+			StringAttributeConstraints: &cognitoidentityprovider.StringAttributeConstraintsType{
+				MaxLength: aws.String("2048"),
+				MinLength: aws.String("0"),
+			},
+		},
+		{
+			AttributeDataType:      aws.String(cognitoidentityprovider.AttributeDataTypeString),
+			DeveloperOnlyAttribute: aws.Bool(false),
+			Mutable:                aws.Bool(true),
+			Name:                   aws.String("nickname"),
+			Required:               aws.Bool(false),
+			StringAttributeConstraints: &cognitoidentityprovider.StringAttributeConstraintsType{
+				MaxLength: aws.String("2048"),
+				MinLength: aws.String("0"),
+			},
+		},
+		{
+			AttributeDataType:      aws.String(cognitoidentityprovider.AttributeDataTypeString),
+			DeveloperOnlyAttribute: aws.Bool(false),
+			Mutable:                aws.Bool(true),
+			Name:                   aws.String("phone_number"),
+			Required:               aws.Bool(false),
+			StringAttributeConstraints: &cognitoidentityprovider.StringAttributeConstraintsType{
+				MaxLength: aws.String("2048"),
+				MinLength: aws.String("0"),
+			},
+		},
+		{
+			AttributeDataType:      aws.String(cognitoidentityprovider.AttributeDataTypeBoolean),
+			DeveloperOnlyAttribute: aws.Bool(false),
+			Mutable:                aws.Bool(true),
+			Name:                   aws.String("phone_number_verified"),
+			Required:               aws.Bool(false),
+		},
+		{
+			AttributeDataType:      aws.String(cognitoidentityprovider.AttributeDataTypeString),
+			DeveloperOnlyAttribute: aws.Bool(false),
+			Mutable:                aws.Bool(true),
+			Name:                   aws.String("picture"),
+			Required:               aws.Bool(false),
+			StringAttributeConstraints: &cognitoidentityprovider.StringAttributeConstraintsType{
+				MaxLength: aws.String("2048"),
+				MinLength: aws.String("0"),
+			},
+		},
+		{
+			AttributeDataType:      aws.String(cognitoidentityprovider.AttributeDataTypeString),
+			DeveloperOnlyAttribute: aws.Bool(false),
+			Mutable:                aws.Bool(true),
+			Name:                   aws.String("preferred_username"),
+			Required:               aws.Bool(false),
+			StringAttributeConstraints: &cognitoidentityprovider.StringAttributeConstraintsType{
+				MaxLength: aws.String("2048"),
+				MinLength: aws.String("0"),
+			},
+		},
+		{
+			AttributeDataType:      aws.String(cognitoidentityprovider.AttributeDataTypeString),
+			DeveloperOnlyAttribute: aws.Bool(false),
+			Mutable:                aws.Bool(true),
+			Name:                   aws.String("profile"),
+			Required:               aws.Bool(false),
+			StringAttributeConstraints: &cognitoidentityprovider.StringAttributeConstraintsType{
+				MaxLength: aws.String("2048"),
+				MinLength: aws.String("0"),
+			},
+		},
+		{
+			AttributeDataType:      aws.String(cognitoidentityprovider.AttributeDataTypeString),
+			DeveloperOnlyAttribute: aws.Bool(false),
+			Mutable:                aws.Bool(false),
+			Name:                   aws.String("sub"),
+			Required:               aws.Bool(true),
+			StringAttributeConstraints: &cognitoidentityprovider.StringAttributeConstraintsType{
+				MaxLength: aws.String("2048"),
+				MinLength: aws.String("1"),
+			},
+		},
+		{
+			AttributeDataType:      aws.String(cognitoidentityprovider.AttributeDataTypeNumber),
+			DeveloperOnlyAttribute: aws.Bool(false),
+			Mutable:                aws.Bool(true),
+			Name:                   aws.String("updated_at"),
+			NumberAttributeConstraints: &cognitoidentityprovider.NumberAttributeConstraintsType{
+				MinValue: aws.String("0"),
+			},
+			Required: aws.Bool(false),
+		},
+		{
+			AttributeDataType:      aws.String(cognitoidentityprovider.AttributeDataTypeString),
+			DeveloperOnlyAttribute: aws.Bool(false),
+			Mutable:                aws.Bool(true),
+			Name:                   aws.String("website"),
+			Required:               aws.Bool(false),
+			StringAttributeConstraints: &cognitoidentityprovider.StringAttributeConstraintsType{
+				MaxLength: aws.String("2048"),
+				MinLength: aws.String("0"),
+			},
+		},
+		{
+			AttributeDataType:      aws.String(cognitoidentityprovider.AttributeDataTypeString),
+			DeveloperOnlyAttribute: aws.Bool(false),
+			Mutable:                aws.Bool(true),
+			Name:                   aws.String("zoneinfo"),
+			Required:               aws.Bool(false),
+			StringAttributeConstraints: &cognitoidentityprovider.StringAttributeConstraintsType{
+				MaxLength: aws.String("2048"),
+				MinLength: aws.String("0"),
+			},
+		},
+	}
+	for _, standardAttribute := range standardAttributes {
+		if reflect.DeepEqual(*input, standardAttribute) {
+			return true
+		}
+	}
+	return false
+}
 
+func flattenCognitoUserPoolSchema(configuredAttributes, inputs []*cognitoidentityprovider.SchemaAttributeType) []map[string]interface{} {
+	values := make([]map[string]interface{}, 0)
+
+	for _, input := range inputs {
 		if input == nil {
-			return nil
+			continue
 		}
 
-		if input.AttributeDataType != nil {
-			value["attribute_data_type"] = *input.AttributeDataType
+		// The API returns all standard attributes
+		// https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-settings-attributes.html#cognito-user-pools-standard-attributes
+		// Ignore setting them in state if they are unconfigured to prevent a huge and unexpected diff
+		configured := false
+
+		for _, configuredAttribute := range configuredAttributes {
+			if reflect.DeepEqual(input, configuredAttribute) {
+				configured = true
+			}
 		}
 
-		if input.DeveloperOnlyAttribute != nil {
-			value["developer_only_attribute"] = *input.DeveloperOnlyAttribute
+		if !configured {
+			if cognitoUserPoolSchemaAttributeMatchesStandardAttribute(input) {
+				continue
+			}
+			// When adding a Cognito Identity Provider, the API will automatically add an "identities" attribute
+			identitiesAttribute := cognitoidentityprovider.SchemaAttributeType{
+				AttributeDataType:          aws.String(cognitoidentityprovider.AttributeDataTypeString),
+				DeveloperOnlyAttribute:     aws.Bool(false),
+				Mutable:                    aws.Bool(true),
+				Name:                       aws.String("identities"),
+				Required:                   aws.Bool(false),
+				StringAttributeConstraints: &cognitoidentityprovider.StringAttributeConstraintsType{},
+			}
+			if reflect.DeepEqual(*input, identitiesAttribute) {
+				continue
+			}
 		}
 
-		if input.Mutable != nil {
-			value["mutable"] = *input.Mutable
-		}
-
-		if input.Name != nil {
-			value["name"] = *input.Name
+		var value = map[string]interface{}{
+			"attribute_data_type":      aws.StringValue(input.AttributeDataType),
+			"developer_only_attribute": aws.BoolValue(input.DeveloperOnlyAttribute),
+			"mutable":                  aws.BoolValue(input.Mutable),
+			"name":                     strings.TrimPrefix(strings.TrimPrefix(aws.StringValue(input.Name), "dev:"), "custom:"),
+			"required":                 aws.BoolValue(input.Required),
 		}
 
 		if input.NumberAttributeConstraints != nil {
 			subvalue := make(map[string]interface{})
 
 			if input.NumberAttributeConstraints.MinValue != nil {
-				subvalue["min_value"] = input.NumberAttributeConstraints.MinValue
+				subvalue["min_value"] = aws.StringValue(input.NumberAttributeConstraints.MinValue)
 			}
 
 			if input.NumberAttributeConstraints.MaxValue != nil {
-				subvalue["max_value"] = input.NumberAttributeConstraints.MaxValue
+				subvalue["max_value"] = aws.StringValue(input.NumberAttributeConstraints.MaxValue)
 			}
 
-			value["number_attribute_constraints"] = subvalue
-		}
-
-		if input.Required != nil {
-			value["required"] = *input.Required
+			value["number_attribute_constraints"] = []map[string]interface{}{subvalue}
 		}
 
 		if input.StringAttributeConstraints != nil {
 			subvalue := make(map[string]interface{})
 
 			if input.StringAttributeConstraints.MinLength != nil {
-				subvalue["min_length"] = input.StringAttributeConstraints.MinLength
+				subvalue["min_length"] = aws.StringValue(input.StringAttributeConstraints.MinLength)
 			}
 
 			if input.StringAttributeConstraints.MaxLength != nil {
-				subvalue["max_length"] = input.StringAttributeConstraints.MaxLength
+				subvalue["max_length"] = aws.StringValue(input.StringAttributeConstraints.MaxLength)
 			}
 
-			value["string_attribute_constraints"] = subvalue
+			value["string_attribute_constraints"] = []map[string]interface{}{subvalue}
 		}
 
-		values[i] = value
+		values = append(values, value)
 	}
 
 	return values
@@ -2926,12 +3571,6 @@ func flattenCognitoUserPoolVerificationMessageTemplate(s *cognitoidentityprovide
 	return []map[string]interface{}{}
 }
 
-func buildLambdaInvokeArn(lambdaArn, region string) string {
-	apiVersion := "2015-03-31"
-	return fmt.Sprintf("arn:aws:apigateway:%s:lambda:path/%s/functions/%s/invocations",
-		region, apiVersion, lambdaArn)
-}
-
 func sliceContainsMap(l []interface{}, m map[string]interface{}) (int, bool) {
 	for i, t := range l {
 		if reflect.DeepEqual(m, t.(map[string]interface{})) {
@@ -2942,12 +3581,10 @@ func sliceContainsMap(l []interface{}, m map[string]interface{}) (int, bool) {
 	return -1, false
 }
 
-func expandAwsSsmTargets(d *schema.ResourceData) []*ssm.Target {
+func expandAwsSsmTargets(in []interface{}) []*ssm.Target {
 	targets := make([]*ssm.Target, 0)
 
-	targetConfig := d.Get("targets").([]interface{})
-
-	for _, tConfig := range targetConfig {
+	for _, tConfig := range in {
 		config := tConfig.(map[string]interface{})
 
 		target := &ssm.Target{
@@ -2999,6 +3636,150 @@ func flattenFieldToMatch(fm *waf.FieldToMatch) []interface{} {
 	return []interface{}{m}
 }
 
+func diffWafWebAclRules(oldR, newR []interface{}) []*waf.WebACLUpdate {
+	updates := make([]*waf.WebACLUpdate, 0)
+
+	for _, or := range oldR {
+		aclRule := or.(map[string]interface{})
+
+		if idx, contains := sliceContainsMap(newR, aclRule); contains {
+			newR = append(newR[:idx], newR[idx+1:]...)
+			continue
+		}
+		updates = append(updates, expandWafWebAclUpdate(waf.ChangeActionDelete, aclRule))
+	}
+
+	for _, nr := range newR {
+		aclRule := nr.(map[string]interface{})
+		updates = append(updates, expandWafWebAclUpdate(waf.ChangeActionInsert, aclRule))
+	}
+	return updates
+}
+
+func expandWafWebAclUpdate(updateAction string, aclRule map[string]interface{}) *waf.WebACLUpdate {
+	var rule *waf.ActivatedRule
+
+	switch aclRule["type"].(string) {
+	case waf.WafRuleTypeGroup:
+		rule = &waf.ActivatedRule{
+			OverrideAction: expandWafOverrideAction(aclRule["override_action"].([]interface{})),
+			Priority:       aws.Int64(int64(aclRule["priority"].(int))),
+			RuleId:         aws.String(aclRule["rule_id"].(string)),
+			Type:           aws.String(aclRule["type"].(string)),
+		}
+	default:
+		rule = &waf.ActivatedRule{
+			Action:   expandWafAction(aclRule["action"].([]interface{})),
+			Priority: aws.Int64(int64(aclRule["priority"].(int))),
+			RuleId:   aws.String(aclRule["rule_id"].(string)),
+			Type:     aws.String(aclRule["type"].(string)),
+		}
+	}
+
+	update := &waf.WebACLUpdate{
+		Action:        aws.String(updateAction),
+		ActivatedRule: rule,
+	}
+
+	return update
+}
+
+func expandWafAction(l []interface{}) *waf.WafAction {
+	if len(l) == 0 || l[0] == nil {
+		return nil
+	}
+
+	m := l[0].(map[string]interface{})
+
+	return &waf.WafAction{
+		Type: aws.String(m["type"].(string)),
+	}
+}
+
+func expandWafOverrideAction(l []interface{}) *waf.WafOverrideAction {
+	if len(l) == 0 || l[0] == nil {
+		return nil
+	}
+
+	m := l[0].(map[string]interface{})
+
+	return &waf.WafOverrideAction{
+		Type: aws.String(m["type"].(string)),
+	}
+}
+
+func flattenWafAction(n *waf.WafAction) []map[string]interface{} {
+	if n == nil {
+		return nil
+	}
+
+	m := setMap(make(map[string]interface{}))
+
+	m.SetString("type", n.Type)
+	return m.MapList()
+}
+
+func flattenWafWebAclRules(ts []*waf.ActivatedRule) []map[string]interface{} {
+	out := make([]map[string]interface{}, len(ts))
+	for i, r := range ts {
+		m := make(map[string]interface{})
+
+		switch aws.StringValue(r.Type) {
+		case waf.WafRuleTypeGroup:
+			actionMap := map[string]interface{}{
+				"type": aws.StringValue(r.OverrideAction.Type),
+			}
+			m["override_action"] = []map[string]interface{}{actionMap}
+		default:
+			actionMap := map[string]interface{}{
+				"type": aws.StringValue(r.Action.Type),
+			}
+			m["action"] = []map[string]interface{}{actionMap}
+		}
+
+		m["priority"] = int(aws.Int64Value(r.Priority))
+		m["rule_id"] = aws.StringValue(r.RuleId)
+		m["type"] = aws.StringValue(r.Type)
+		out[i] = m
+	}
+	return out
+}
+
+func flattenWorkLinkNetworkConfigResponse(c *worklink.DescribeCompanyNetworkConfigurationOutput) []map[string]interface{} {
+	config := make(map[string]interface{})
+
+	if c == nil {
+		return nil
+	}
+
+	if len(c.SubnetIds) == 0 && len(c.SecurityGroupIds) == 0 && aws.StringValue(c.VpcId) == "" {
+		return nil
+	}
+
+	config["subnet_ids"] = schema.NewSet(schema.HashString, flattenStringList(c.SubnetIds))
+	config["security_group_ids"] = schema.NewSet(schema.HashString, flattenStringList(c.SecurityGroupIds))
+	config["vpc_id"] = aws.StringValue(c.VpcId)
+
+	return []map[string]interface{}{config}
+}
+
+func flattenWorkLinkIdentityProviderConfigResponse(c *worklink.DescribeIdentityProviderConfigurationOutput) []map[string]interface{} {
+	config := make(map[string]interface{})
+
+	if c.IdentityProviderType == nil && c.IdentityProviderSamlMetadata == nil {
+		return nil
+	}
+
+	if c.IdentityProviderType != nil {
+		config["type"] = aws.StringValue(c.IdentityProviderType)
+	}
+	if c.IdentityProviderSamlMetadata != nil {
+		config["saml_metadata"] = aws.StringValue(c.IdentityProviderSamlMetadata)
+	}
+
+	return []map[string]interface{}{config}
+}
+
 // escapeJsonPointer escapes string per RFC 6901
 // so it can be used as path in JSON patch operations
 func escapeJsonPointer(path string) string {
@@ -3036,7 +3817,7 @@ func flattenCognitoIdentityPoolRoles(config map[string]*string) map[string]strin
 }
 
 func expandCognitoIdentityPoolRoleMappingsAttachment(rms []interface{}) map[string]*cognitoidentity.RoleMapping {
-	values := make(map[string]*cognitoidentity.RoleMapping, 0)
+	values := make(map[string]*cognitoidentity.RoleMapping)
 
 	if len(rms) == 0 {
 		return values
@@ -3134,7 +3915,7 @@ func flattenRedshiftLogging(ls *redshift.LoggingStatus) []interface{} {
 		return []interface{}{}
 	}
 
-	cfg := make(map[string]interface{}, 0)
+	cfg := make(map[string]interface{})
 	cfg["enabled"] = *ls.LoggingEnabled
 	if ls.BucketName != nil {
 		cfg["bucket_name"] = *ls.BucketName
@@ -3150,7 +3931,7 @@ func flattenRedshiftSnapshotCopy(scs *redshift.ClusterSnapshotCopyStatus) []inte
 		return []interface{}{}
 	}
 
-	cfg := make(map[string]interface{}, 0)
+	cfg := make(map[string]interface{})
 	if scs.DestinationRegion != nil {
 		cfg["destination_region"] = *scs.DestinationRegion
 	}
@@ -3184,7 +3965,7 @@ func canonicalXML(s string) (string, error) {
 }
 
 func expandMqUsers(cfg []interface{}) []*mq.User {
-	users := make([]*mq.User, len(cfg), len(cfg))
+	users := make([]*mq.User, len(cfg))
 	for i, m := range cfg {
 		u := m.(map[string]interface{})
 		user := mq.User{
@@ -3204,7 +3985,7 @@ func expandMqUsers(cfg []interface{}) []*mq.User {
 
 // We use cfgdUsers to get & set the password
 func flattenMqUsers(users []*mq.User, cfgUsers []interface{}) *schema.Set {
-	existingPairs := make(map[string]string, 0)
+	existingPairs := make(map[string]string)
 	for _, u := range cfgUsers {
 		user := u.(map[string]interface{})
 		username := user["username"].(string)
@@ -3213,13 +3994,15 @@ func flattenMqUsers(users []*mq.User, cfgUsers []interface{}) *schema.Set {
 
 	out := make([]interface{}, 0)
 	for _, u := range users {
+		m := map[string]interface{}{
+			"username": *u.Username,
+		}
 		password := ""
 		if p, ok := existingPairs[*u.Username]; ok {
 			password = p
 		}
-		m := map[string]interface{}{
-			"username": *u.Username,
-			"password": password,
+		if password != "" {
+			m["password"] = password
 		}
 		if u.ConsoleAccess != nil {
 			m["console_access"] = *u.ConsoleAccess
@@ -3249,7 +4032,7 @@ func flattenMqWeeklyStartTime(wst *mq.WeeklyStartTime) []interface{} {
 	if wst == nil {
 		return []interface{}{}
 	}
-	m := make(map[string]interface{}, 0)
+	m := make(map[string]interface{})
 	if wst.DayOfWeek != nil {
 		m["day_of_week"] = *wst.DayOfWeek
 	}
@@ -3282,7 +4065,7 @@ func flattenMqConfigurationId(cid *mq.ConfigurationId) []interface{} {
 	if cid == nil {
 		return []interface{}{}
 	}
-	m := make(map[string]interface{}, 0)
+	m := make(map[string]interface{})
 	if cid.Id != nil {
 		m["id"] = *cid.Id
 	}
@@ -3296,14 +4079,17 @@ func flattenMqBrokerInstances(instances []*mq.BrokerInstance) []interface{} {
 	if len(instances) == 0 {
 		return []interface{}{}
 	}
-	l := make([]interface{}, len(instances), len(instances))
+	l := make([]interface{}, len(instances))
 	for i, instance := range instances {
-		m := make(map[string]interface{}, 0)
+		m := make(map[string]interface{})
 		if instance.ConsoleURL != nil {
 			m["console_url"] = *instance.ConsoleURL
 		}
 		if len(instance.Endpoints) > 0 {
 			m["endpoints"] = aws.StringValueSlice(instance.Endpoints)
+		}
+		if instance.IpAddress != nil {
+			m["ip_address"] = *instance.IpAddress
 		}
 		l[i] = m
 	}
@@ -3311,7 +4097,65 @@ func flattenMqBrokerInstances(instances []*mq.BrokerInstance) []interface{} {
 	return l
 }
 
-func diffDynamoDbGSI(oldGsi, newGsi []interface{}) (ops []*dynamodb.GlobalSecondaryIndexUpdate, e error) {
+func flattenMqLogs(logs *mq.LogsSummary) []interface{} {
+	if logs == nil {
+		return []interface{}{}
+	}
+
+	m := map[string]interface{}{
+		"general": aws.BoolValue(logs.General),
+		"audit":   aws.BoolValue(logs.Audit),
+	}
+
+	return []interface{}{m}
+}
+
+func expandMqLogs(l []interface{}) *mq.Logs {
+	if len(l) == 0 || l[0] == nil {
+		return nil
+	}
+
+	m := l[0].(map[string]interface{})
+
+	logs := &mq.Logs{
+		Audit:   aws.Bool(m["audit"].(bool)),
+		General: aws.Bool(m["general"].(bool)),
+	}
+
+	return logs
+}
+
+func flattenResourceLifecycleConfig(rlc *elasticbeanstalk.ApplicationResourceLifecycleConfig) []map[string]interface{} {
+	result := make([]map[string]interface{}, 0, 1)
+
+	anything_enabled := false
+	appversion_lifecycle := make(map[string]interface{})
+
+	if rlc.ServiceRole != nil {
+		appversion_lifecycle["service_role"] = *rlc.ServiceRole
+	}
+
+	if vlc := rlc.VersionLifecycleConfig; vlc != nil {
+		if mar := vlc.MaxAgeRule; mar != nil && *mar.Enabled {
+			anything_enabled = true
+			appversion_lifecycle["max_age_in_days"] = *mar.MaxAgeInDays
+			appversion_lifecycle["delete_source_from_s3"] = *mar.DeleteSourceFromS3
+		}
+		if mcr := vlc.MaxCountRule; mcr != nil && *mcr.Enabled {
+			anything_enabled = true
+			appversion_lifecycle["max_count"] = *mcr.MaxCount
+			appversion_lifecycle["delete_source_from_s3"] = *mcr.DeleteSourceFromS3
+		}
+	}
+
+	if anything_enabled {
+		result = append(result, appversion_lifecycle)
+	}
+
+	return result
+}
+
+func diffDynamoDbGSI(oldGsi, newGsi []interface{}, billingMode string) (ops []*dynamodb.GlobalSecondaryIndexUpdate, e error) {
 	// Transform slices into maps
 	oldGsis := make(map[string]interface{})
 	for _, gsidata := range oldGsi {
@@ -3321,6 +4165,10 @@ func diffDynamoDbGSI(oldGsi, newGsi []interface{}) (ops []*dynamodb.GlobalSecond
 	newGsis := make(map[string]interface{})
 	for _, gsidata := range newGsi {
 		m := gsidata.(map[string]interface{})
+		// validate throughput input early, to avoid unnecessary processing
+		if e = validateDynamoDbProvisionedThroughput(m, billingMode); e != nil {
+			return
+		}
 		newGsis[m["name"].(string)] = m
 	}
 
@@ -3336,7 +4184,7 @@ func diffDynamoDbGSI(oldGsi, newGsi []interface{}) (ops []*dynamodb.GlobalSecond
 				Create: &dynamodb.CreateGlobalSecondaryIndexAction{
 					IndexName:             aws.String(idxName),
 					KeySchema:             expandDynamoDbKeySchema(m),
-					ProvisionedThroughput: expandDynamoDbProvisionedThroughput(m),
+					ProvisionedThroughput: expandDynamoDbProvisionedThroughput(m, billingMode),
 					Projection:            expandDynamoDbProjection(m),
 				},
 			})
@@ -3372,7 +4220,7 @@ func diffDynamoDbGSI(oldGsi, newGsi []interface{}) (ops []*dynamodb.GlobalSecond
 				update := &dynamodb.GlobalSecondaryIndexUpdate{
 					Update: &dynamodb.UpdateGlobalSecondaryIndexAction{
 						IndexName:             aws.String(idxName),
-						ProvisionedThroughput: expandDynamoDbProvisionedThroughput(newMap),
+						ProvisionedThroughput: expandDynamoDbProvisionedThroughput(newMap, billingMode),
 					},
 				}
 				ops = append(ops, update)
@@ -3388,7 +4236,7 @@ func diffDynamoDbGSI(oldGsi, newGsi []interface{}) (ops []*dynamodb.GlobalSecond
 					Create: &dynamodb.CreateGlobalSecondaryIndexAction{
 						IndexName:             aws.String(idxName),
 						KeySchema:             expandDynamoDbKeySchema(newMap),
-						ProvisionedThroughput: expandDynamoDbProvisionedThroughput(newMap),
+						ProvisionedThroughput: expandDynamoDbProvisionedThroughput(newMap, billingMode),
 						Projection:            expandDynamoDbProjection(newMap),
 					},
 				})
@@ -3436,7 +4284,31 @@ func flattenDynamoDbTtl(ttlDesc *dynamodb.TimeToLiveDescription) []interface{} {
 	return []interface{}{}
 }
 
+func flattenDynamoDbPitr(pitrDesc *dynamodb.DescribeContinuousBackupsOutput) []interface{} {
+	m := map[string]interface{}{
+		"enabled": false,
+	}
+
+	if pitrDesc == nil {
+		return []interface{}{m}
+	}
+
+	if pitrDesc.ContinuousBackupsDescription != nil {
+		pitr := pitrDesc.ContinuousBackupsDescription.PointInTimeRecoveryDescription
+		if pitr != nil {
+			m["enabled"] = (*pitr.PointInTimeRecoveryStatus == dynamodb.PointInTimeRecoveryStatusEnabled)
+		}
+	}
+
+	return []interface{}{m}
+}
+
 func flattenAwsDynamoDbTableResource(d *schema.ResourceData, table *dynamodb.TableDescription) error {
+	d.Set("billing_mode", dynamodb.BillingModeProvisioned)
+	if table.BillingModeSummary != nil {
+		d.Set("billing_mode", table.BillingModeSummary.BillingMode)
+	}
+
 	d.Set("write_capacity", table.ProvisionedThroughput.WriteCapacityUnits)
 	d.Set("read_capacity", table.ProvisionedThroughput.ReadCapacityUnits)
 
@@ -3551,7 +4423,7 @@ func flattenAwsDynamoDbTableResource(d *schema.ResourceData, table *dynamodb.Tab
 }
 
 func expandDynamoDbAttributes(cfg []interface{}) []*dynamodb.AttributeDefinition {
-	attributes := make([]*dynamodb.AttributeDefinition, len(cfg), len(cfg))
+	attributes := make([]*dynamodb.AttributeDefinition, len(cfg))
 	for i, attribute := range cfg {
 		attr := attribute.(map[string]interface{})
 		attributes[i] = &dynamodb.AttributeDefinition{
@@ -3562,11 +4434,11 @@ func expandDynamoDbAttributes(cfg []interface{}) []*dynamodb.AttributeDefinition
 	return attributes
 }
 
-// TODO: Get rid of keySchemaM - the user should just explicitely define
+// TODO: Get rid of keySchemaM - the user should just explicitly define
 // this in the config, we shouldn't magically be setting it like this.
 // Removal will however require config change, hence BC. :/
 func expandDynamoDbLocalSecondaryIndexes(cfg []interface{}, keySchemaM map[string]interface{}) []*dynamodb.LocalSecondaryIndex {
-	indexes := make([]*dynamodb.LocalSecondaryIndex, len(cfg), len(cfg))
+	indexes := make([]*dynamodb.LocalSecondaryIndex, len(cfg))
 	for i, lsi := range cfg {
 		m := lsi.(map[string]interface{})
 		idxName := m["name"].(string)
@@ -3585,16 +4457,45 @@ func expandDynamoDbLocalSecondaryIndexes(cfg []interface{}, keySchemaM map[strin
 	return indexes
 }
 
-func expandDynamoDbGlobalSecondaryIndex(data map[string]interface{}) *dynamodb.GlobalSecondaryIndex {
+func expandDynamoDbGlobalSecondaryIndex(data map[string]interface{}, billingMode string) *dynamodb.GlobalSecondaryIndex {
 	return &dynamodb.GlobalSecondaryIndex{
 		IndexName:             aws.String(data["name"].(string)),
 		KeySchema:             expandDynamoDbKeySchema(data),
 		Projection:            expandDynamoDbProjection(data),
-		ProvisionedThroughput: expandDynamoDbProvisionedThroughput(data),
+		ProvisionedThroughput: expandDynamoDbProvisionedThroughput(data, billingMode),
 	}
 }
 
-func expandDynamoDbProvisionedThroughput(data map[string]interface{}) *dynamodb.ProvisionedThroughput {
+func validateDynamoDbProvisionedThroughput(data map[string]interface{}, billingMode string) error {
+	// if billing mode is PAY_PER_REQUEST, don't need to validate the throughput settings
+	if billingMode == dynamodb.BillingModePayPerRequest {
+		return nil
+	}
+
+	writeCapacity, writeCapacitySet := data["write_capacity"].(int)
+	readCapacity, readCapacitySet := data["read_capacity"].(int)
+
+	if !writeCapacitySet || !readCapacitySet {
+		return fmt.Errorf("Read and Write capacity should be set when billing mode is %s", dynamodb.BillingModeProvisioned)
+	}
+
+	if writeCapacity < 1 {
+		return fmt.Errorf("Write capacity must be > 0 when billing mode is %s", dynamodb.BillingModeProvisioned)
+	}
+
+	if readCapacity < 1 {
+		return fmt.Errorf("Read capacity must be > 0 when billing mode is %s", dynamodb.BillingModeProvisioned)
+	}
+
+	return nil
+}
+
+func expandDynamoDbProvisionedThroughput(data map[string]interface{}, billingMode string) *dynamodb.ProvisionedThroughput {
+
+	if billingMode == dynamodb.BillingModePayPerRequest {
+		return nil
+	}
+
 	return &dynamodb.ProvisionedThroughput{
 		WriteCapacityUnits: aws.Int64(int64(data["write_capacity"].(int))),
 		ReadCapacityUnits:  aws.Int64(int64(data["read_capacity"].(int))),
@@ -3725,4 +4626,511 @@ func flattenIotThingTypeProperties(s *iot.ThingTypeProperties) []map[string]inte
 	m["searchable_attributes"] = flattenStringList(s.SearchableAttributes)
 
 	return []map[string]interface{}{m}
+}
+
+func expandLaunchTemplateSpecification(specs []interface{}) (*autoscaling.LaunchTemplateSpecification, error) {
+	if len(specs) < 1 {
+		return nil, nil
+	}
+
+	spec := specs[0].(map[string]interface{})
+
+	idValue, idOk := spec["id"]
+	nameValue, nameOk := spec["name"]
+
+	if idValue == "" && nameValue == "" {
+		return nil, fmt.Errorf("One of `id` or `name` must be set for `launch_template`")
+	}
+
+	result := &autoscaling.LaunchTemplateSpecification{}
+
+	// DescribeAutoScalingGroups returns both name and id but LaunchTemplateSpecification
+	// allows only one of them to be set
+	if idOk && idValue != "" {
+		result.LaunchTemplateId = aws.String(idValue.(string))
+	} else if nameOk && nameValue != "" {
+		result.LaunchTemplateName = aws.String(nameValue.(string))
+	}
+
+	if v, ok := spec["version"]; ok && v != "" {
+		result.Version = aws.String(v.(string))
+	}
+
+	return result, nil
+}
+
+func flattenLaunchTemplateSpecification(lt *autoscaling.LaunchTemplateSpecification) []map[string]interface{} {
+	attrs := map[string]interface{}{}
+	result := make([]map[string]interface{}, 0)
+
+	// id and name are always returned by DescribeAutoscalingGroups
+	attrs["id"] = *lt.LaunchTemplateId
+	attrs["name"] = *lt.LaunchTemplateName
+
+	// version is returned only if it was previosly set
+	if lt.Version != nil {
+		attrs["version"] = *lt.Version
+	} else {
+		attrs["version"] = nil
+	}
+
+	result = append(result, attrs)
+
+	return result
+}
+
+func flattenVpcPeeringConnectionOptions(options *ec2.VpcPeeringConnectionOptionsDescription) []map[string]interface{} {
+	m := map[string]interface{}{}
+
+	if options.AllowDnsResolutionFromRemoteVpc != nil {
+		m["allow_remote_vpc_dns_resolution"] = *options.AllowDnsResolutionFromRemoteVpc
+	}
+
+	if options.AllowEgressFromLocalClassicLinkToRemoteVpc != nil {
+		m["allow_classic_link_to_remote_vpc"] = *options.AllowEgressFromLocalClassicLinkToRemoteVpc
+	}
+
+	if options.AllowEgressFromLocalVpcToRemoteClassicLink != nil {
+		m["allow_vpc_to_remote_classic_link"] = *options.AllowEgressFromLocalVpcToRemoteClassicLink
+	}
+
+	return []map[string]interface{}{m}
+}
+
+func expandVpcPeeringConnectionOptions(m map[string]interface{}) *ec2.PeeringConnectionOptionsRequest {
+	options := &ec2.PeeringConnectionOptionsRequest{}
+
+	if v, ok := m["allow_remote_vpc_dns_resolution"]; ok {
+		options.AllowDnsResolutionFromRemoteVpc = aws.Bool(v.(bool))
+	}
+
+	if v, ok := m["allow_classic_link_to_remote_vpc"]; ok {
+		options.AllowEgressFromLocalClassicLinkToRemoteVpc = aws.Bool(v.(bool))
+	}
+
+	if v, ok := m["allow_vpc_to_remote_classic_link"]; ok {
+		options.AllowEgressFromLocalVpcToRemoteClassicLink = aws.Bool(v.(bool))
+	}
+
+	return options
+}
+
+func expandDxRouteFilterPrefixes(cfg []interface{}) []*directconnect.RouteFilterPrefix {
+	prefixes := make([]*directconnect.RouteFilterPrefix, len(cfg))
+	for i, p := range cfg {
+		prefix := &directconnect.RouteFilterPrefix{
+			Cidr: aws.String(p.(string)),
+		}
+		prefixes[i] = prefix
+	}
+	return prefixes
+}
+
+func flattenDxRouteFilterPrefixes(prefixes []*directconnect.RouteFilterPrefix) *schema.Set {
+	out := make([]interface{}, 0)
+	for _, prefix := range prefixes {
+		out = append(out, aws.StringValue(prefix.Cidr))
+	}
+	return schema.NewSet(schema.HashString, out)
+}
+
+func expandMacieClassificationType(d *schema.ResourceData) *macie.ClassificationType {
+	continuous := macie.S3ContinuousClassificationTypeFull
+	oneTime := macie.S3OneTimeClassificationTypeNone
+	if v := d.Get("classification_type").([]interface{}); len(v) > 0 {
+		m := v[0].(map[string]interface{})
+		continuous = m["continuous"].(string)
+		oneTime = m["one_time"].(string)
+	}
+
+	return &macie.ClassificationType{
+		Continuous: aws.String(continuous),
+		OneTime:    aws.String(oneTime),
+	}
+}
+
+func expandMacieClassificationTypeUpdate(d *schema.ResourceData) *macie.ClassificationTypeUpdate {
+	continuous := macie.S3ContinuousClassificationTypeFull
+	oneTime := macie.S3OneTimeClassificationTypeNone
+	if v := d.Get("classification_type").([]interface{}); len(v) > 0 {
+		m := v[0].(map[string]interface{})
+		continuous = m["continuous"].(string)
+		oneTime = m["one_time"].(string)
+	}
+
+	return &macie.ClassificationTypeUpdate{
+		Continuous: aws.String(continuous),
+		OneTime:    aws.String(oneTime),
+	}
+}
+
+func flattenMacieClassificationType(classificationType *macie.ClassificationType) []map[string]interface{} {
+	if classificationType == nil {
+		return []map[string]interface{}{}
+	}
+	m := map[string]interface{}{
+		"continuous": aws.StringValue(classificationType.Continuous),
+		"one_time":   aws.StringValue(classificationType.OneTime),
+	}
+	return []map[string]interface{}{m}
+}
+
+func expandDaxParameterGroupParameterNameValue(config []interface{}) []*dax.ParameterNameValue {
+	if len(config) == 0 {
+		return nil
+	}
+	results := make([]*dax.ParameterNameValue, 0, len(config))
+	for _, raw := range config {
+		m := raw.(map[string]interface{})
+		pnv := &dax.ParameterNameValue{
+			ParameterName:  aws.String(m["name"].(string)),
+			ParameterValue: aws.String(m["value"].(string)),
+		}
+		results = append(results, pnv)
+	}
+	return results
+}
+
+func flattenDaxParameterGroupParameters(params []*dax.Parameter) []map[string]interface{} {
+	if len(params) == 0 {
+		return nil
+	}
+	results := make([]map[string]interface{}, 0)
+	for _, p := range params {
+		m := map[string]interface{}{
+			"name":  aws.StringValue(p.ParameterName),
+			"value": aws.StringValue(p.ParameterValue),
+		}
+		results = append(results, m)
+	}
+	return results
+}
+
+func expandDaxEncryptAtRestOptions(m map[string]interface{}) *dax.SSESpecification {
+	options := dax.SSESpecification{}
+
+	if v, ok := m["enabled"]; ok {
+		options.Enabled = aws.Bool(v.(bool))
+	}
+
+	return &options
+}
+
+func flattenDaxEncryptAtRestOptions(options *dax.SSEDescription) []map[string]interface{} {
+	m := map[string]interface{}{
+		"enabled": false,
+	}
+
+	if options == nil {
+		return []map[string]interface{}{m}
+	}
+
+	m["enabled"] = (aws.StringValue(options.Status) == dax.SSEStatusEnabled)
+
+	return []map[string]interface{}{m}
+}
+
+func expandRdsScalingConfiguration(l []interface{}) *rds.ScalingConfiguration {
+	if len(l) == 0 || l[0] == nil {
+		return nil
+	}
+
+	m := l[0].(map[string]interface{})
+
+	scalingConfiguration := &rds.ScalingConfiguration{
+		AutoPause:             aws.Bool(m["auto_pause"].(bool)),
+		MaxCapacity:           aws.Int64(int64(m["max_capacity"].(int))),
+		MinCapacity:           aws.Int64(int64(m["min_capacity"].(int))),
+		SecondsUntilAutoPause: aws.Int64(int64(m["seconds_until_auto_pause"].(int))),
+	}
+
+	return scalingConfiguration
+}
+
+func flattenRdsScalingConfigurationInfo(scalingConfigurationInfo *rds.ScalingConfigurationInfo) []interface{} {
+	if scalingConfigurationInfo == nil {
+		return []interface{}{}
+	}
+
+	m := map[string]interface{}{
+		"auto_pause":               aws.BoolValue(scalingConfigurationInfo.AutoPause),
+		"max_capacity":             aws.Int64Value(scalingConfigurationInfo.MaxCapacity),
+		"min_capacity":             aws.Int64Value(scalingConfigurationInfo.MinCapacity),
+		"seconds_until_auto_pause": aws.Int64Value(scalingConfigurationInfo.SecondsUntilAutoPause),
+	}
+
+	return []interface{}{m}
+}
+
+func expandAppmeshVirtualRouterSpec(vSpec []interface{}) *appmesh.VirtualRouterSpec {
+	if len(vSpec) == 0 || vSpec[0] == nil {
+		return nil
+	}
+	mSpec := vSpec[0].(map[string]interface{})
+
+	spec := &appmesh.VirtualRouterSpec{}
+
+	if vServiceNames, ok := mSpec["service_names"].(*schema.Set); ok && vServiceNames.Len() > 0 {
+		spec.ServiceNames = expandStringSet(vServiceNames)
+	}
+
+	return spec
+}
+
+func flattenAppmeshVirtualRouterSpec(spec *appmesh.VirtualRouterSpec) []interface{} {
+	if spec == nil {
+		return []interface{}{}
+	}
+
+	mSpec := map[string]interface{}{
+		"service_names": flattenStringSet(spec.ServiceNames),
+	}
+
+	return []interface{}{mSpec}
+}
+
+func expandAppmeshVirtualNodeSpec(vSpec []interface{}) *appmesh.VirtualNodeSpec {
+	spec := &appmesh.VirtualNodeSpec{}
+
+	if len(vSpec) == 0 || vSpec[0] == nil {
+		// Empty Spec is allowed.
+		return spec
+	}
+	mSpec := vSpec[0].(map[string]interface{})
+
+	if vBackends, ok := mSpec["backends"].(*schema.Set); ok && vBackends.Len() > 0 {
+		spec.Backends = expandStringSet(vBackends)
+	}
+
+	if vListeners, ok := mSpec["listener"].(*schema.Set); ok && vListeners.Len() > 0 {
+		listeners := []*appmesh.Listener{}
+
+		for _, vListener := range vListeners.List() {
+			listener := &appmesh.Listener{}
+
+			mListener := vListener.(map[string]interface{})
+
+			if vHealthCheck, ok := mListener["health_check"].([]interface{}); ok && len(vHealthCheck) > 0 && vHealthCheck[0] != nil {
+				mHealthCheck := vHealthCheck[0].(map[string]interface{})
+
+				listener.HealthCheck = &appmesh.HealthCheckPolicy{}
+
+				if vHealthyThreshold, ok := mHealthCheck["healthy_threshold"].(int); ok && vHealthyThreshold > 0 {
+					listener.HealthCheck.HealthyThreshold = aws.Int64(int64(vHealthyThreshold))
+				}
+				if vIntervalMillis, ok := mHealthCheck["interval_millis"].(int); ok && vIntervalMillis > 0 {
+					listener.HealthCheck.IntervalMillis = aws.Int64(int64(vIntervalMillis))
+				}
+				if vPath, ok := mHealthCheck["path"].(string); ok && vPath != "" {
+					listener.HealthCheck.Path = aws.String(vPath)
+				}
+				if vPort, ok := mHealthCheck["port"].(int); ok && vPort > 0 {
+					listener.HealthCheck.Port = aws.Int64(int64(vPort))
+				}
+				if vProtocol, ok := mHealthCheck["protocol"].(string); ok && vProtocol != "" {
+					listener.HealthCheck.Protocol = aws.String(vProtocol)
+				}
+				if vTimeoutMillis, ok := mHealthCheck["timeout_millis"].(int); ok && vTimeoutMillis > 0 {
+					listener.HealthCheck.TimeoutMillis = aws.Int64(int64(vTimeoutMillis))
+				}
+				if vUnhealthyThreshold, ok := mHealthCheck["unhealthy_threshold"].(int); ok && vUnhealthyThreshold > 0 {
+					listener.HealthCheck.UnhealthyThreshold = aws.Int64(int64(vUnhealthyThreshold))
+				}
+			}
+
+			if vPortMapping, ok := mListener["port_mapping"].([]interface{}); ok && len(vPortMapping) > 0 && vPortMapping[0] != nil {
+				mPortMapping := vPortMapping[0].(map[string]interface{})
+
+				listener.PortMapping = &appmesh.PortMapping{}
+
+				if vPort, ok := mPortMapping["port"].(int); ok && vPort > 0 {
+					listener.PortMapping.Port = aws.Int64(int64(vPort))
+				}
+				if vProtocol, ok := mPortMapping["protocol"].(string); ok && vProtocol != "" {
+					listener.PortMapping.Protocol = aws.String(vProtocol)
+				}
+			}
+
+			listeners = append(listeners, listener)
+		}
+
+		spec.Listeners = listeners
+	}
+
+	if vServiceDiscovery, ok := mSpec["service_discovery"].([]interface{}); ok && len(vServiceDiscovery) > 0 && vServiceDiscovery[0] != nil {
+		mServiceDiscovery := vServiceDiscovery[0].(map[string]interface{})
+
+		if vDns, ok := mServiceDiscovery["dns"].([]interface{}); ok && len(vDns) > 0 && vDns[0] != nil {
+			mDns := vDns[0].(map[string]interface{})
+
+			if vServiceName, ok := mDns["service_name"].(string); ok && vServiceName != "" {
+				spec.ServiceDiscovery = &appmesh.ServiceDiscovery{
+					Dns: &appmesh.DnsServiceDiscovery{
+						ServiceName: aws.String(vServiceName),
+					},
+				}
+			}
+		}
+	}
+
+	return spec
+}
+
+func flattenAppmeshVirtualNodeSpec(spec *appmesh.VirtualNodeSpec) []interface{} {
+	if spec == nil {
+		return []interface{}{}
+	}
+
+	mSpec := map[string]interface{}{}
+
+	if spec.Backends != nil {
+		mSpec["backends"] = flattenStringSet(spec.Backends)
+	}
+
+	if spec.Listeners != nil {
+		vListeners := []interface{}{}
+
+		for _, listener := range spec.Listeners {
+			mListener := map[string]interface{}{}
+
+			if listener.HealthCheck != nil {
+				mHealthCheck := map[string]interface{}{
+					"healthy_threshold":   int(aws.Int64Value(listener.HealthCheck.HealthyThreshold)),
+					"interval_millis":     int(aws.Int64Value(listener.HealthCheck.IntervalMillis)),
+					"path":                aws.StringValue(listener.HealthCheck.Path),
+					"port":                int(aws.Int64Value(listener.HealthCheck.Port)),
+					"protocol":            aws.StringValue(listener.HealthCheck.Protocol),
+					"timeout_millis":      int(aws.Int64Value(listener.HealthCheck.TimeoutMillis)),
+					"unhealthy_threshold": int(aws.Int64Value(listener.HealthCheck.UnhealthyThreshold)),
+				}
+				mListener["health_check"] = []interface{}{mHealthCheck}
+			}
+
+			if listener.PortMapping != nil {
+				mPortMapping := map[string]interface{}{
+					"port":     int(aws.Int64Value(listener.PortMapping.Port)),
+					"protocol": aws.StringValue(listener.PortMapping.Protocol),
+				}
+				mListener["port_mapping"] = []interface{}{mPortMapping}
+			}
+
+			vListeners = append(vListeners, mListener)
+		}
+
+		mSpec["listener"] = schema.NewSet(appmeshVirtualNodeListenerHash, vListeners)
+	}
+
+	if spec.ServiceDiscovery != nil && spec.ServiceDiscovery.Dns != nil {
+		mSpec["service_discovery"] = []interface{}{
+			map[string]interface{}{
+				"dns": []interface{}{
+					map[string]interface{}{
+						"service_name": aws.StringValue(spec.ServiceDiscovery.Dns.ServiceName),
+					},
+				},
+			},
+		}
+	}
+
+	return []interface{}{mSpec}
+}
+
+func expandAppmeshRouteSpec(vSpec []interface{}) *appmesh.RouteSpec {
+	spec := &appmesh.RouteSpec{}
+
+	if len(vSpec) == 0 || vSpec[0] == nil {
+		// Empty Spec is allowed.
+		return spec
+	}
+	mSpec := vSpec[0].(map[string]interface{})
+
+	vHttpRoute, ok := mSpec["http_route"].([]interface{})
+	if !ok || len(vHttpRoute) == 0 || vHttpRoute[0] == nil {
+		return nil
+	}
+	mHttpRoute := vHttpRoute[0].(map[string]interface{})
+
+	spec.HttpRoute = &appmesh.HttpRoute{}
+
+	if vHttpRouteAction, ok := mHttpRoute["action"].([]interface{}); ok && len(vHttpRouteAction) > 0 && vHttpRouteAction[0] != nil {
+		mHttpRouteAction := vHttpRouteAction[0].(map[string]interface{})
+
+		if vWeightedTargets, ok := mHttpRouteAction["weighted_target"].(*schema.Set); ok && vWeightedTargets.Len() > 0 {
+			weightedTargets := []*appmesh.WeightedTarget{}
+
+			for _, vWeightedTarget := range vWeightedTargets.List() {
+				weightedTarget := &appmesh.WeightedTarget{}
+
+				mWeightedTarget := vWeightedTarget.(map[string]interface{})
+
+				if vVirtualNode, ok := mWeightedTarget["virtual_node"].(string); ok && vVirtualNode != "" {
+					weightedTarget.VirtualNode = aws.String(vVirtualNode)
+				}
+				if vWeight, ok := mWeightedTarget["weight"].(int); ok {
+					weightedTarget.Weight = aws.Int64(int64(vWeight))
+				}
+
+				weightedTargets = append(weightedTargets, weightedTarget)
+			}
+
+			spec.HttpRoute.Action = &appmesh.HttpRouteAction{
+				WeightedTargets: weightedTargets,
+			}
+		}
+	}
+
+	if vHttpRouteMatch, ok := mHttpRoute["match"].([]interface{}); ok && len(vHttpRouteMatch) > 0 && vHttpRouteMatch[0] != nil {
+		mHttpRouteMatch := vHttpRouteMatch[0].(map[string]interface{})
+
+		if vPrefix, ok := mHttpRouteMatch["prefix"].(string); ok && vPrefix != "" {
+			spec.HttpRoute.Match = &appmesh.HttpRouteMatch{
+				Prefix: aws.String(vPrefix),
+			}
+		}
+	}
+
+	return spec
+}
+
+func flattenAppmeshRouteSpec(spec *appmesh.RouteSpec) []interface{} {
+	if spec == nil {
+		return []interface{}{}
+	}
+
+	mSpec := map[string]interface{}{}
+
+	if spec.HttpRoute != nil {
+		mHttpRoute := map[string]interface{}{}
+
+		if spec.HttpRoute.Action != nil && spec.HttpRoute.Action.WeightedTargets != nil {
+			vWeightedTargets := []interface{}{}
+
+			for _, weightedTarget := range spec.HttpRoute.Action.WeightedTargets {
+				mWeightedTarget := map[string]interface{}{
+					"virtual_node": aws.StringValue(weightedTarget.VirtualNode),
+					"weight":       int(aws.Int64Value(weightedTarget.Weight)),
+				}
+
+				vWeightedTargets = append(vWeightedTargets, mWeightedTarget)
+			}
+
+			mHttpRoute["action"] = []interface{}{
+				map[string]interface{}{
+					"weighted_target": schema.NewSet(appmeshRouteWeightedTargetHash, vWeightedTargets),
+				},
+			}
+		}
+
+		if spec.HttpRoute.Match != nil {
+			mHttpRoute["match"] = []interface{}{
+				map[string]interface{}{
+					"prefix": aws.StringValue(spec.HttpRoute.Match.Prefix),
+				},
+			}
+		}
+
+		mSpec["http_route"] = []interface{}{mHttpRoute}
+	}
+
+	return []interface{}{mSpec}
 }

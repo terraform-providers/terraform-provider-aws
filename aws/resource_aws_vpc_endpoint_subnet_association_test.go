@@ -14,16 +14,39 @@ import (
 func TestAccAWSVpcEndpointSubnetAssociation_basic(t *testing.T) {
 	var vpce ec2.VpcEndpoint
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckVpcEndpointSubnetAssociationDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: testAccVpcEndpointSubnetAssociationConfig_basic,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckVpcEndpointSubnetAssociationExists(
 						"aws_vpc_endpoint_subnet_association.a", &vpce),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSVpcEndpointSubnetAssociation_multiple(t *testing.T) {
+	var vpce ec2.VpcEndpoint
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckVpcEndpointSubnetAssociationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccVpcEndpointSubnetAssociationConfig_multiple,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckVpcEndpointSubnetAssociationExists(
+						"aws_vpc_endpoint_subnet_association.a.0", &vpce),
+					testAccCheckVpcEndpointSubnetAssociationExists(
+						"aws_vpc_endpoint_subnet_association.a.1", &vpce),
+					testAccCheckVpcEndpointSubnetAssociationExists(
+						"aws_vpc_endpoint_subnet_association.a.2", &vpce),
 				),
 			},
 		},
@@ -103,41 +126,85 @@ func testAccCheckVpcEndpointSubnetAssociationExists(n string, vpce *ec2.VpcEndpo
 }
 
 const testAccVpcEndpointSubnetAssociationConfig_basic = `
-provider "aws" {
-  region = "us-west-2"
-}
-
 resource "aws_vpc" "foo" {
   cidr_block = "10.0.0.0/16"
-  tags {
+  tags = {
     Name = "terraform-testacc-vpc-endpoint-subnet-association"
   }
 }
 
 data "aws_security_group" "default" {
   vpc_id = "${aws_vpc.foo.id}"
-  name = "default"
+  name   = "default"
 }
 
+data "aws_region" "current" {}
+
+data "aws_availability_zones" "available" {}
+
 resource "aws_vpc_endpoint" "ec2" {
-  vpc_id = "${aws_vpc.foo.id}"
-  vpc_endpoint_type = "Interface"
-  service_name = "com.amazonaws.us-west-2.ec2"
-  security_group_ids = ["${data.aws_security_group.default.id}"]
+  vpc_id              = "${aws_vpc.foo.id}"
+  vpc_endpoint_type   = "Interface"
+  service_name        = "com.amazonaws.${data.aws_region.current.name}.ec2"
+  security_group_ids  = ["${data.aws_security_group.default.id}"]
   private_dns_enabled = false
 }
 
 resource "aws_subnet" "sn" {
-  vpc_id = "${aws_vpc.foo.id}"
-  availability_zone = "us-west-2a"
-  cidr_block = "10.0.0.0/17"
-  tags {
+  vpc_id            = "${aws_vpc.foo.id}"
+  availability_zone = "${data.aws_availability_zones.available.names[0]}"
+  cidr_block        = "10.0.0.0/17"
+  tags = {
     Name = "tf-acc-vpc-endpoint-subnet-association"
   }
 }
 
 resource "aws_vpc_endpoint_subnet_association" "a" {
   vpc_endpoint_id = "${aws_vpc_endpoint.ec2.id}"
-  subnet_id  = "${aws_subnet.sn.id}"
+  subnet_id       = "${aws_subnet.sn.id}"
+}
+`
+
+const testAccVpcEndpointSubnetAssociationConfig_multiple = `
+resource "aws_vpc" "foo" {
+  cidr_block = "10.0.0.0/16"
+  tags = {
+    Name = "terraform-testacc-vpc-endpoint-subnet-association"
+  }
+}
+
+data "aws_security_group" "default" {
+  vpc_id = "${aws_vpc.foo.id}"
+  name   = "default"
+}
+
+data "aws_region" "current" {}
+
+data "aws_availability_zones" "available" {}
+
+resource "aws_vpc_endpoint" "ec2" {
+  vpc_id              = "${aws_vpc.foo.id}"
+  vpc_endpoint_type   = "Interface"
+  service_name        = "com.amazonaws.${data.aws_region.current.name}.ec2"
+  security_group_ids  = ["${data.aws_security_group.default.id}"]
+  private_dns_enabled = false
+}
+
+resource "aws_subnet" "sn" {
+  count = 3
+
+  vpc_id            = "${aws_vpc.foo.id}"
+  availability_zone = "${data.aws_availability_zones.available.names[count.index]}"
+  cidr_block        = "${cidrsubnet(aws_vpc.foo.cidr_block, 2, count.index)}"
+  tags = {
+    Name = "${format("tf-acc-vpc-endpoint-subnet-association-%d", count.index + 1)}"
+  }
+}
+
+resource "aws_vpc_endpoint_subnet_association" "a" {
+  count = 3
+
+  vpc_endpoint_id = "${aws_vpc_endpoint.ec2.id}"
+  subnet_id       = "${aws_subnet.sn.*.id[count.index]}"
 }
 `

@@ -27,7 +27,7 @@ provider "aws" {
 }
 
 provider "aws" {
-  alias = "peer"
+  alias  = "peer"
   region = "us-west-2"
 
   # Accepter's credentials.
@@ -54,7 +54,7 @@ resource "aws_vpc_peering_connection" "peer" {
   peer_region   = "us-west-2"
   auto_accept   = false
 
-  tags {
+  tags = {
     Side = "Requester"
   }
 }
@@ -65,7 +65,7 @@ resource "aws_vpc_peering_connection_accepter" "peer" {
   vpc_peering_connection_id = "${aws_vpc_peering_connection.peer.id}"
   auto_accept               = true
 
-  tags {
+  tags = {
     Side = "Accepter"
   }
 }
@@ -110,3 +110,9 @@ private IP addresses when queried from instances in a peer VPC.
 with the peer VPC over the VPC Peering Connection.
 * `allow_vpc_to_remote_classic_link` - Indicates whether a local VPC can communicate with a ClassicLink
 connection in the peer VPC over the VPC Peering Connection.
+
+## Attributes Reference
+
+In addition to all arguments above, the following attributes are exported:
+
+* `id` - The ID of the VPC Peering Connection.

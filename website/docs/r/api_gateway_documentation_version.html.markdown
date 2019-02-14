@@ -14,10 +14,10 @@ Provides a resource to manage an API Gateway Documentation Version.
 
 ```hcl
 resource "aws_api_gateway_documentation_version" "example" {
-  version = "example_version"
+  version     = "example_version"
   rest_api_id = "${aws_api_gateway_rest_api.example.id}"
   description = "Example description"
-  depends_on = ["aws_api_gateway_documentation_part.example"]
+  depends_on  = ["aws_api_gateway_documentation_part.example"]
 }
 
 resource "aws_api_gateway_rest_api" "example" {
@@ -28,7 +28,8 @@ resource "aws_api_gateway_documentation_part" "example" {
   location {
     type = "API"
   }
-  properties = "{\"description\":\"Example\"}"
+
+  properties  = "{\"description\":\"Example\"}"
   rest_api_id = "${aws_api_gateway_rest_api.example.id}"
 }
 ```

@@ -19,7 +19,7 @@ resource "aws_s3_bucket" "b" {
   bucket = "my-tf-test-bucket"
   acl    = "private"
 
-  tags {
+  tags = {
     Name        = "My bucket"
     Environment = "Dev"
   }
@@ -112,15 +112,16 @@ resource "aws_s3_bucket" "bucket" {
     id      = "log"
     enabled = true
 
-    prefix  = "log/"
-    tags {
+    prefix = "log/"
+
+    tags = {
       "rule"      = "log"
       "autoclean" = "true"
     }
 
     transition {
       days          = 30
-      storage_class = "STANDARD_IA"
+      storage_class = "STANDARD_IA" # or "ONEZONE_IA"
     }
 
     transition {
@@ -252,8 +253,8 @@ resource "aws_iam_policy_attachment" "replication" {
 }
 
 resource "aws_s3_bucket" "destination" {
-  bucket   = "tf-test-bucket-destination-12345"
-  region   = "eu-west-1"
+  bucket = "tf-test-bucket-destination-12345"
+  region = "eu-west-1"
 
   versioning {
     enabled = true
@@ -297,6 +298,7 @@ resource "aws_kms_key" "mykey" {
 
 resource "aws_s3_bucket" "mybucket" {
   bucket = "mybucket"
+
   server_side_encryption_configuration {
     rule {
       apply_server_side_encryption_by_default {
@@ -315,7 +317,7 @@ The following arguments are supported:
 * `bucket` - (Optional, Forces new resource) The name of the bucket. If omitted, Terraform will assign a random, unique name.
 * `bucket_prefix` - (Optional, Forces new resource) Creates a unique bucket name beginning with the specified prefix. Conflicts with `bucket`.
 * `acl` - (Optional) The [canned ACL](https://docs.aws.amazon.com/AmazonS3/latest/dev/acl-overview.html#canned-acl) to apply. Defaults to "private".
-* `policy` - (Optional) A valid [bucket policy](https://docs.aws.amazon.com/AmazonS3/latest/dev/example-bucket-policies.html) JSON document. Note that if the policy document is not specific enough (but still valid), Terraform may view the policy as constantly changing in a `terraform plan`. In this case, please make sure you use the verbose/specific version of the policy.
+* `policy` - (Optional) A valid [bucket policy](https://docs.aws.amazon.com/AmazonS3/latest/dev/example-bucket-policies.html) JSON document. Note that if the policy document is not specific enough (but still valid), Terraform may view the policy as constantly changing in a `terraform plan`. In this case, please make sure you use the verbose/specific version of the policy. For more information about building AWS IAM policy documents with Terraform, see the [AWS IAM Policy Document Guide](/docs/providers/aws/guides/iam-policy-documents.html).
 
 * `tags` - (Optional) A mapping of tags to assign to the bucket.
 * `force_destroy` - (Optional, Default:false ) A boolean that indicates all objects should be deleted from the bucket so that the bucket can be destroyed without error. These objects are *not* recoverable.
@@ -332,6 +334,7 @@ the costs of any data transfer. See [Requester Pays Buckets](http://docs.aws.ama
 developer guide for more information.
 * `replication_configuration` - (Optional) A configuration of [replication configuration](http://docs.aws.amazon.com/AmazonS3/latest/dev/crr.html) (documented below).
 * `server_side_encryption_configuration` - (Optional) A configuration of [server-side encryption configuration](http://docs.aws.amazon.com/AmazonS3/latest/dev/bucket-encryption.html) (documented below)
+* `object_lock_configuration` - (Optional) A configuration of [S3 object locking](https://docs.aws.amazon.com/AmazonS3/latest/dev/object-lock.html) (documented below)
 
 ~> **NOTE:** You cannot use `acceleration_status` in `cn-north-1` or `us-gov-west-1`
 
@@ -385,7 +388,7 @@ The `transition` object supports the following
 
 * `date` (Optional) Specifies the date after which you want the corresponding action to take effect.
 * `days` (Optional) Specifies the number of days after object creation when the specific rule action takes effect.
-* `storage_class` (Required) Specifies the Amazon S3 storage class to which you want the object to transition. Can be `STANDARD_IA` or `GLACIER`.
+* `storage_class` (Required) Specifies the Amazon S3 storage class to which you want the object to transition. Can be `ONEZONE_IA`, `STANDARD_IA`, `INTELLIGENT_TIERING`, or `GLACIER`.
 
 The `noncurrent_version_expiration` object supports the following
 
@@ -394,7 +397,7 @@ The `noncurrent_version_expiration` object supports the following
 The `noncurrent_version_transition` object supports the following
 
 * `days` (Required) Specifies the number of days an object is noncurrent object versions expire.
-* `storage_class` (Required) Specifies the Amazon S3 storage class to which you want the noncurrent versions object to transition. Can be `STANDARD_IA` or `GLACIER`.
+* `storage_class` (Required) Specifies the Amazon S3 storage class to which you want the noncurrent versions object to transition. Can be `ONEZONE_IA`, `STANDARD_IA`, `INTELLIGENT_TIERING`, or `GLACIER`.
 
 The `replication_configuration` object supports the following:
 
@@ -404,17 +407,28 @@ The `replication_configuration` object supports the following:
 The `rules` object supports the following:
 
 * `id` - (Optional) Unique identifier for the rule.
+* `priority` - (Optional) The priority associated with the rule.
 * `destination` - (Required) Specifies the destination for the rule (documented below).
 * `source_selection_criteria` - (Optional) Specifies special object selection criteria (documented below).
-* `prefix` - (Required) Object keyname prefix identifying one or more objects to which the rule applies. Set as an empty string to replicate the whole bucket.
+* `prefix` - (Optional) Object keyname prefix identifying one or more objects to which the rule applies.
 * `status` - (Required) The status of the rule. Either `Enabled` or `Disabled`. The rule is ignored if status is not Enabled.
+* `filter` - (Optional) Filter that identifies subset of objects to which the replication rule applies (documented below).
+
+~> **NOTE on `prefix` and `filter`:** Amazon S3's latest version of the replication configuration is V2, which includes the `filter` attribute for replication rules.
+With the `filter` attribute, you can specify object filters based on the object key prefix, tags, or both to scope the objects that the rule applies to.
+Replication configuration V1 supports filtering based on only the `prefix` attribute. For backwards compatibility, Amazon S3 continues to support the V1 configuration.
+* For a specific rule, `prefix` conflicts with `filter`
+* If any rule has `filter` specified then they all must
+* `priority` is optional (with a default value of `0`) but must be unique between multiple rules
 
 The `destination` object supports the following:
 
 * `bucket` - (Required) The ARN of the S3 bucket where you want Amazon S3 to store replicas of the object identified by the rule.
-* `storage_class` - (Optional) The class of storage used to store the object.
-* `replica_kms_key_id` - (Optional) Destination KMS encryption key ID for SSE-KMS replication. Must be used in conjunction with
+* `storage_class` - (Optional) The class of storage used to store the object. Can be `STANDARD`, `REDUCED_REDUNDANCY`, `STANDARD_IA`, `ONEZONE_IA`, `INTELLIGENT_TIERING`, or `GLACIER`.
+* `replica_kms_key_id` - (Optional) Destination KMS encryption key ARN for SSE-KMS replication. Must be used in conjunction with
   `sse_kms_encrypted_objects` source selection criteria.
+* `access_control_translation` - (Optional) Specifies the overrides to use for object owners on replication. Must be used in conjunction with `account_id` owner override configuration.
+* `account_id` - (Optional) The Account ID to use for overriding the object owner on replication. Must be used in conjunction with `access_control_translation` override configuration.
 
 The `source_selection_criteria` object supports the following:
 
@@ -424,6 +438,12 @@ The `source_selection_criteria` object supports the following:
 The `sse_kms_encrypted_objects` object supports the following:
 
 * `enabled` - (Required) Boolean which indicates if this criteria is enabled.
+
+The `filter` object supports the following:
+
+* `prefix` - (Optional) Object keyname prefix that identifies subset of objects to which the rule applies.
+* `tags` - (Optional)  A mapping of tags that identifies subset of objects to which the rule applies.
+The rule applies only to objects having all the tags in its tagset.
 
 The `server_side_encryption_configuration` object supports the following:
 
@@ -438,13 +458,39 @@ The `apply_server_side_encryption_by_default` object supports the following:
 * `sse_algorithm` - (required) The server-side encryption algorithm to use. Valid values are `AES256` and `aws:kms`
 * `kms_master_key_id` - (optional) The AWS KMS master key ID used for the SSE-KMS encryption. This can only be used when you set the value of `sse_algorithm` as `aws:kms`. The default `aws/s3` AWS KMS master key is used if this element is absent while the `sse_algorithm` is `aws:kms`.
 
+The `access_control_translation` object supports the following:
+
+* `owner` - (Required) The override value for the owner on replicated objects. Currently only `Destination` is supported.
+
+The `object_lock_configuration` object supports the following:
+
+* `object_lock_enabled` - (Required) Indicates whether this bucket has an Object Lock configuration enabled. Valid value is `Enabled`.
+* `rule` - (Optional) The Object Lock rule in place for this bucket.
+
+The `rule` object supports the following:
+
+* `default_retention` - (Required) The default retention period that you want to apply to new objects placed in this bucket.
+
+The `default_retention` object supports the following:
+
+* `mode` - (Required) The default Object Lock retention mode you want to apply to new objects placed in this bucket. Valid values are `GOVERNANCE` and `COMPLIANCE`.
+* `days` - (Optional) The number of days that you want to specify for the default retention period.
+* `years` - (Optional) The number of years that you want to specify for the default retention period.
+
+Either `days` or `years` must be specified, but not both.
+
+~> **NOTE on `object_lock_configuration`:** You can only enable S3 Object Lock for new buckets. If you need to turn on S3 Object Lock for an existing bucket, please contact AWS Support.
+When you create a bucket with S3 Object Lock enabled, Amazon S3 automatically enables versioning for the bucket.
+Once you create a bucket with S3 Object Lock enabled, you can't disable Object Lock or suspend versioning for the bucket.
+
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The name of the bucket.
 * `arn` - The ARN of the bucket. Will be of format `arn:aws:s3:::bucketname`.
 * `bucket_domain_name` - The bucket domain name. Will be of format `bucketname.s3.amazonaws.com`.
+* `bucket_regional_domain_name` - The bucket region-specific domain name. The bucket domain name including the region name, please refer [here](https://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region) for format. Note: The AWS CloudFront allows specifying S3 region-specific endpoint when creating S3 origin, it will prevent [redirect issues](https://forums.aws.amazon.com/thread.jspa?threadID=216814) from CloudFront to S3 Origin URL.
 * `hosted_zone_id` - The [Route 53 Hosted Zone ID](https://docs.aws.amazon.com/general/latest/gr/rande.html#s3_website_region_endpoints) for this bucket's region.
 * `region` - The AWS region this bucket resides in.
 * `website_endpoint` - The website endpoint, if the bucket is configured with a website. If not, this will be an empty string.

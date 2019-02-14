@@ -20,7 +20,7 @@ func TestAccAWSKinesisStream_basic(t *testing.T) {
 
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckKinesisStreamDestroy,
@@ -41,7 +41,7 @@ func TestAccAWSKinesisStream_createMultipleConcurrentStreams(t *testing.T) {
 
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckKinesisStreamDestroy,
@@ -78,7 +78,7 @@ func TestAccAWSKinesisStream_createMultipleConcurrentStreams(t *testing.T) {
 func TestAccAWSKinesisStream_encryptionWithoutKmsKeyThrowsError(t *testing.T) {
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckKinesisStreamDestroy,
@@ -95,7 +95,7 @@ func TestAccAWSKinesisStream_encryption(t *testing.T) {
 	var stream kinesis.StreamDescription
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckKinesisStreamDestroy,
@@ -133,7 +133,7 @@ func TestAccAWSKinesisStream_importBasic(t *testing.T) {
 	resourceName := "aws_kinesis_stream.test_stream"
 	streamName := fmt.Sprintf("terraform-kinesis-test-%d", rInt)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckKinesisStreamDestroy,
@@ -167,7 +167,7 @@ func TestAccAWSKinesisStream_shardCount(t *testing.T) {
 
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckKinesisStreamDestroy,
@@ -201,7 +201,7 @@ func TestAccAWSKinesisStream_retentionPeriod(t *testing.T) {
 
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckKinesisStreamDestroy,
@@ -244,7 +244,7 @@ func TestAccAWSKinesisStream_shardLevelMetrics(t *testing.T) {
 
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckKinesisStreamDestroy,
@@ -276,6 +276,35 @@ func TestAccAWSKinesisStream_shardLevelMetrics(t *testing.T) {
 					testAccCheckAWSKinesisStreamAttributes(&stream),
 					resource.TestCheckResourceAttr(
 						"aws_kinesis_stream.test_stream", "shard_level_metrics.#", "1"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSKinesisStream_Tags(t *testing.T) {
+	var stream kinesis.StreamDescription
+	resourceName := "aws_kinesis_stream.test"
+
+	rInt := acctest.RandInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckKinesisStreamDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccKinesisStreamConfig_Tags(rInt, 21),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckKinesisStreamExists(resourceName, &stream),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "21"),
+				),
+			},
+			{
+				Config: testAccKinesisStreamConfig_Tags(rInt, 9),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckKinesisStreamExists(resourceName, &stream),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "9"),
 				),
 			},
 		},
@@ -357,7 +386,7 @@ func testAccKinesisStreamConfig(rInt int) string {
 resource "aws_kinesis_stream" "test_stream" {
 	name = "terraform-kinesis-test-%d"
 	shard_count = 2
-	tags {
+	tags = {
 		Name = "tf-test"
 	}
 }`, rInt)
@@ -369,7 +398,7 @@ resource "aws_kinesis_stream" "test_stream" {
         count = 20
 	name = "terraform-kinesis-test-%d-${count.index}"
 	shard_count = 2
-	tags {
+	tags = {
 		Name = "tf-test"
 	}
 }`, rInt)
@@ -381,7 +410,7 @@ resource "aws_kinesis_stream" "test_stream" {
 	name = "terraform-kinesis-test-%d"
 	shard_count = 2
 	encryption_type = "KMS"
-	tags {
+	tags = {
 		Name = "tf-test"
 	}
 }`, rInt)
@@ -394,7 +423,7 @@ resource "aws_kinesis_stream" "test_stream" {
 	shard_count = 2
 	encryption_type = "KMS"
 	kms_key_id = "${aws_kms_key.foo.id}"
-	tags {
+	tags = {
 		Name = "tf-test"
 	}
 }
@@ -429,7 +458,7 @@ func testAccKinesisStreamConfigUpdateShardCount(rInt int) string {
 resource "aws_kinesis_stream" "test_stream" {
 	name = "terraform-kinesis-test-%d"
 	shard_count = 4
-	tags {
+	tags = {
 		Name = "tf-test"
 	}
 }`, rInt)
@@ -441,7 +470,7 @@ resource "aws_kinesis_stream" "test_stream" {
 	name = "terraform-kinesis-test-%d"
 	shard_count = 2
 	retention_period = 100
-	tags {
+	tags = {
 		Name = "tf-test"
 	}
 }`, rInt)
@@ -453,7 +482,7 @@ resource "aws_kinesis_stream" "test_stream" {
 	name = "terraform-kinesis-test-%d"
 	shard_count = 2
 	retention_period = 28
-	tags {
+	tags = {
 		Name = "tf-test"
 	}
 }`, rInt)
@@ -464,7 +493,7 @@ func testAccKinesisStreamConfigAllShardLevelMetrics(rInt int) string {
 resource "aws_kinesis_stream" "test_stream" {
 	name = "terraform-kinesis-test-%d"
 	shard_count = 2
-	tags {
+	tags = {
 		Name = "tf-test"
 	}
 	shard_level_metrics = [
@@ -484,11 +513,27 @@ func testAccKinesisStreamConfigSingleShardLevelMetric(rInt int) string {
 resource "aws_kinesis_stream" "test_stream" {
 	name = "terraform-kinesis-test-%d"
 	shard_count = 2
-	tags {
+	tags = {
 		Name = "tf-test"
 	}
 	shard_level_metrics = [
 		"IncomingBytes"
 	]
 }`, rInt)
+}
+
+func testAccKinesisStreamConfig_Tags(rInt, tagCount int) string {
+	var tagPairs string
+	for i := 1; i <= tagCount; i++ {
+		tagPairs = tagPairs + fmt.Sprintf("tag%d = \"tag%dvalue\"\n", i, i)
+	}
+
+	return fmt.Sprintf(`
+resource "aws_kinesis_stream" "test" {
+	name = "terraform-kinesis-test-%d"
+	shard_count = 2
+	tags = {
+%s
+	}
+}`, rInt, tagPairs)
 }

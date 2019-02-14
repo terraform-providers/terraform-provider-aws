@@ -18,7 +18,7 @@ resource "aws_elastictranscoder_preset" "bar" {
   description = "Sample Preset"
   name        = "sample_preset"
 
-  audio = {
+  audio {
     audio_packing_mode = "SingleTrack"
     bit_rate           = 96
     channels           = 2
@@ -26,11 +26,11 @@ resource "aws_elastictranscoder_preset" "bar" {
     sample_rate        = 44100
   }
 
-  audio_codec_options = {
+  audio_codec_options {
     profile = "AAC-LC"
   }
 
-  video = {
+  video {
     bit_rate             = "1600"
     codec                = "H.264"
     display_aspect_ratio = "16:9"
@@ -48,11 +48,11 @@ resource "aws_elastictranscoder_preset" "bar" {
     Profile                  = "main"
     Level                    = "2.2"
     MaxReferenceFrames       = 3
-    InterlaceMode            = "Progressive"
+    InterlacedMode           = "Progressive"
     ColorSpaceConversionMode = "None"
   }
 
-  video_watermarks = {
+  video_watermarks {
     id                = "Terraform Test"
     max_width         = "20%"
     max_height        = "20%"
@@ -65,7 +65,7 @@ resource "aws_elastictranscoder_preset" "bar" {
     target            = "Content"
   }
 
-  thumbnails = {
+  thumbnails {
     format         = "png"
     interval       = 120
     max_width      = "auto"
@@ -124,7 +124,7 @@ The `video` object supports the following:
 * `bit_rate` - The bit rate of the video stream in the output file, in kilobits/second. You can configure variable bit rate or constant bit rate encoding.
 * `codec` - The video codec for the output file. Valid values are `gif`, `H.264`, `mpeg2`, `vp8`, and `vp9`.
 * `display_aspect_ratio` - The value that Elastic Transcoder adds to the metadata in the output file. If you set DisplayAspectRatio to auto, Elastic Transcoder chooses an aspect ratio that ensures square pixels. If you specify another option, Elastic Transcoder sets that value in the output file.
-* `fixed_gop` - Whether to use a fixed value for Video:FixedGOP. Not applicable for containers of type gif. Valid values are true and false.
+* `fixed_gop` - Whether to use a fixed value for Video:FixedGOP. Not applicable for containers of type gif. Valid values are true and false. Also known as, Fixed Number of Frames Between Keyframes.
 * `frame_rate` - The frames per second for the video stream in the output file. The following values are valid: `auto`, `10`, `15`, `23.97`, `24`, `25`, `29.97`, `30`, `50`, `60`.
 * `keyframes_max_dist` - The maximum number of frames between key frames. Not applicable for containers of type gif.
 * `max_frame_rate` - If you specify auto for FrameRate, Elastic Transcoder uses the frame rate of the input video for the frame rate of the output video, up to the maximum frame rate. If you do not specify a MaxFrameRate, Elastic Transcoder will use a default of 30.
@@ -158,3 +158,11 @@ The `video_codec_options` map supports the following:
 * `ColorSpaceConversion` - The color space conversion Elastic Transcoder applies to the output video. Valid values are `None`, `Bt709toBt601`, `Bt601toBt709`, and `Auto`. (Optional, H.264/MPEG2 Only)
 * `ChromaSubsampling` - The sampling pattern for the chroma (color) channels of the output video. Valid values are `yuv420p` and `yuv422p`.
 * `LoopCount` - The number of times you want the output gif to loop (Gif only)
+
+## Import
+
+Elastic Transcoder presets can be imported using the `id`, e.g.
+
+```
+$ terraform import aws_elastic_transcoder_preset.basic_preset 1407981661351-cttk8b
+```

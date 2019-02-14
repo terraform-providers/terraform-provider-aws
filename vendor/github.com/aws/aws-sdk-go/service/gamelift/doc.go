@@ -17,20 +17,20 @@
 //    a game session.
 //
 //    * Configure and manage game server resources -- Manage builds, fleets,
-//    queues, and aliases; set autoscaling policies; retrieve logs and metrics.
+//    queues, and aliases; set auto-scaling policies; retrieve logs and metrics.
 //
 // This reference guide describes the low-level service API for Amazon GameLift.
 // You can use the API functionality with these tools:
 //
 //    * The Amazon Web Services software development kit (AWS SDK (http://aws.amazon.com/tools/#sdk))
-//    is available in multiple languages (http://docs.aws.amazon.com/gamelift/latest/developerguide/gamelift-supported.html#gamelift-supported-clients)
+//    is available in multiple languages (https://docs.aws.amazon.com/gamelift/latest/developerguide/gamelift-supported.html#gamelift-supported-clients)
 //    including C++ and C#. Use the SDK to access the API programmatically from
 //    an application, such as a game client.
 //
-//    * The AWS command-line interface (http://aws.amazon.com/cli/) (CLI) tool
-//    is primarily useful for handling administrative actions, such as setting
-//    up and managing Amazon GameLift settings and resources. You can use the
-//    AWS CLI to manage all of your AWS services.
+//    * The AWS command-line interface (https://docs.aws.amazon.com/cli/latest/userguide/)
+//    (CLI) tool is primarily useful for handling administrative actions, such
+//    as setting up and managing Amazon GameLift settings and resources. You
+//    can use the AWS CLI to manage all of your AWS services.
 //
 //    * The AWS Management Console (https://console.aws.amazon.com/gamelift/home)
 //    for Amazon GameLift provides a web interface to manage your Amazon GameLift
@@ -41,24 +41,24 @@
 //    * Amazon GameLift Local is a tool for testing your game's integration
 //    with Amazon GameLift before deploying it on the service. This tools supports
 //    a subset of key API actions, which can be called from either the AWS CLI
-//    or programmatically. See Testing an Integration (http://docs.aws.amazon.com/gamelift/latest/developerguide/integration-testing-local.html).
+//    or programmatically. See Testing an Integration (https://docs.aws.amazon.com/gamelift/latest/developerguide/integration-testing-local.html).
 //
 // Learn more
 //
-//    *  Developer Guide (http://docs.aws.amazon.com/gamelift/latest/developerguide/)
+//    *  Developer Guide (https://docs.aws.amazon.com/gamelift/latest/developerguide/)
 //    -- Read about Amazon GameLift features and how to use them.
 //
 //    * Tutorials (https://gamedev.amazon.com/forums/tutorials) -- Get started
 //    fast with walkthroughs and sample projects.
 //
-//    * GameDev Blog (http://aws.amazon.com/blogs/gamedev/) -- Stay up to date
-//    with new features and techniques.
+//    * GameDev Blog (https://gamedev.amazon.com/blogs/gamedev/) -- Stay up
+//    to date with new features and techniques.
 //
 //    * GameDev Forums (https://gamedev.amazon.com/forums/spaces/123/gamelift-discussion.html)
 //    -- Connect with the GameDev community.
 //
-//    * Release notes (http://aws.amazon.com/releasenotes/Amazon-GameLift/)
-//    and document history (http://docs.aws.amazon.com/gamelift/latest/developerguide/doc-history.html)
+//    * Release notes (https://aws.amazon.com/releasenotes/Amazon-GameLift/)
+//    and document history (https://docs.aws.amazon.com/gamelift/latest/developerguide/doc-history.html)
 //    -- Stay current with updates to the Amazon GameLift service, SDKs, and
 //    documentation.
 //
@@ -137,7 +137,7 @@
 // Setting Up and Managing Game Servers
 //
 // When setting up Amazon GameLift resources for your game, you first create
-// a game build (http://docs.aws.amazon.com/gamelift/latest/developerguide/gamelift-build-intro.html)
+// a game build (https://docs.aws.amazon.com/gamelift/latest/developerguide/gamelift-build-intro.html)
 // and upload it to Amazon GameLift. You can then use these actions to configure
 // and manage a fleet of resources to run your game servers, scale capacity
 // to meet player demand, access performance and utilization metrics, and more.
@@ -188,67 +188,19 @@
 //    and the current number of instances in a fleet; adjust fleet capacity
 //    settings to scale up or down.
 //
-// Autoscale -- Manage autoscaling rules and apply them to a fleet.
+// Autoscale -- Manage auto-scaling rules and apply them to a fleet.
 //
-// PutScalingPolicy -- Create a new autoscaling policy, or update an existing
+// PutScalingPolicy -- Create a new auto-scaling policy, or update an existing
 //    one.
 //
-// DescribeScalingPolicies -- Retrieve an existing autoscaling policy.
+// DescribeScalingPolicies -- Retrieve an existing auto-scaling policy.
 //
-// DeleteScalingPolicy -- Delete an autoscaling policy and stop it from affecting
+// DeleteScalingPolicy -- Delete an auto-scaling policy and stop it from affecting
 //    a fleet's capacity.
 //
-//    * Manage VPC peering connections for fleets
+// StartFleetActions -- Restart a fleet's auto-scaling policies.
 //
-// CreateVpcPeeringAuthorization -- Authorize a peering connection to one of
-//    your VPCs.
-//
-// DescribeVpcPeeringAuthorizations -- Retrieve valid peering connection authorizations.
-//
-//
-// DeleteVpcPeeringAuthorization -- Delete a peering connection authorization.
-//
-// CreateVpcPeeringConnection -- Establish a peering connection between the
-//    VPC for a Amazon GameLift fleet and one of your VPCs.
-//
-// DescribeVpcPeeringConnections -- Retrieve information on active or pending
-//    VPC peering connections with a Amazon GameLift fleet.
-//
-// DeleteVpcPeeringConnection -- Delete a VPC peering connection with a Amazon
-//    GameLift fleet.
-//
-//    * Access fleet activity statistics
-//
-// DescribeFleetUtilization -- Get current data on the number of server processes,
-//    game sessions, and players currently active on a fleet.
-//
-// DescribeFleetEvents -- Get a fleet's logged events for a specified time span.
-//
-// DescribeGameSessions -- Retrieve metadata associated with one or more game
-//    sessions, including length of time active and current player count.
-//
-//    * Remotely access an instance
-//
-// DescribeInstances -- Get information on each instance in a fleet, including
-//    instance ID, IP address, and status.
-//
-// GetInstanceAccess -- Request access credentials needed to remotely connect
-//    to a specified instance in a fleet.
-//
-//    * Manage fleet aliases
-//
-// CreateAlias -- Define a new alias and optionally assign it to a fleet.
-//
-// ListAliases -- Get all fleet aliases defined in a Amazon GameLift region.
-//
-// DescribeAlias -- Retrieve information on an existing alias.
-//
-// UpdateAlias -- Change settings for a alias, such as redirecting it from one
-//    fleet to another.
-//
-// DeleteAlias -- Remove an alias from the region.
-//
-// ResolveAlias -- Get the fleet ID that a specified alias points to.
+// StopFleetActions -- Suspend a fleet's auto-scaling policies.
 //
 //    * Manage game session queues
 //
@@ -284,6 +236,61 @@
 //    a Amazon GameLift region.
 //
 // ValidateMatchmakingRuleSet -- Verify syntax for a set of matchmaking rules.
+//
+//
+// DeleteMatchmakingRuleSet -- Remove a matchmaking rule set from the region.
+//
+//    * Access fleet activity statistics
+//
+// DescribeFleetUtilization -- Get current data on the number of server processes,
+//    game sessions, and players currently active on a fleet.
+//
+// DescribeFleetEvents -- Get a fleet's logged events for a specified time span.
+//
+// DescribeGameSessions -- Retrieve metadata associated with one or more game
+//    sessions, including length of time active and current player count.
+//
+//    * Remotely access an instance
+//
+// DescribeInstances -- Get information on each instance in a fleet, including
+//    instance ID, IP address, and status.
+//
+// GetInstanceAccess -- Request access credentials needed to remotely connect
+//    to a specified instance in a fleet.
+//
+//    * Manage fleet aliases
+//
+// CreateAlias -- Define a new alias and optionally assign it to a fleet.
+//
+// ListAliases -- Get all fleet aliases defined in a Amazon GameLift region.
+//
+// DescribeAlias -- Retrieve information on an existing alias.
+//
+// UpdateAlias -- Change settings for a alias, such as redirecting it from one
+//    fleet to another.
+//
+// DeleteAlias -- Remove an alias from the region.
+//
+// ResolveAlias -- Get the fleet ID that a specified alias points to.
+//
+//    * Manage VPC peering connections for fleets
+//
+// CreateVpcPeeringAuthorization -- Authorize a peering connection to one of
+//    your VPCs.
+//
+// DescribeVpcPeeringAuthorizations -- Retrieve valid peering connection authorizations.
+//
+//
+// DeleteVpcPeeringAuthorization -- Delete a peering connection authorization.
+//
+// CreateVpcPeeringConnection -- Establish a peering connection between the
+//    VPC for a Amazon GameLift fleet and one of your VPCs.
+//
+// DescribeVpcPeeringConnections -- Retrieve information on active or pending
+//    VPC peering connections with a Amazon GameLift fleet.
+//
+// DeleteVpcPeeringConnection -- Delete a VPC peering connection with a Amazon
+//    GameLift fleet.
 //
 // See https://docs.aws.amazon.com/goto/WebAPI/gamelift-2015-10-01 for more information on this service.
 //

@@ -7,11 +7,12 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/apigateway"
-	"github.com/hashicorp/errwrap"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/structure"
+	"github.com/hashicorp/terraform/helper/validation"
 )
 
 func resourceAwsApiGatewayRestApi() *schema.Resource {
@@ -20,6 +21,9 @@ func resourceAwsApiGatewayRestApi() *schema.Resource {
 		Read:   resourceAwsApiGatewayRestApiRead,
 		Update: resourceAwsApiGatewayRestApiUpdate,
 		Delete: resourceAwsApiGatewayRestApiDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -30,6 +34,19 @@ func resourceAwsApiGatewayRestApi() *schema.Resource {
 			"description": {
 				Type:     schema.TypeString,
 				Optional: true,
+			},
+
+			"api_key_source": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  "HEADER",
+			},
+
+			"policy": {
+				Type:             schema.TypeString,
+				Optional:         true,
+				ValidateFunc:     validation.ValidateJsonString,
+				DiffSuppressFunc: suppressEquivalentAwsPolicyDiffs,
 			},
 
 			"binary_media_types": {
@@ -47,7 +64,7 @@ func resourceAwsApiGatewayRestApi() *schema.Resource {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Default:      -1,
-				ValidateFunc: validateIntegerInRange(-1, 10485760),
+				ValidateFunc: validation.IntBetween(-1, 10485760),
 			},
 
 			"root_resource_id": {
@@ -58,6 +75,36 @@ func resourceAwsApiGatewayRestApi() *schema.Resource {
 			"created_date": {
 				Type:     schema.TypeString,
 				Computed: true,
+			},
+			"execution_arn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"endpoint_configuration": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MinItems: 1,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"types": {
+							Type:     schema.TypeList,
+							Required: true,
+							MinItems: 1,
+							MaxItems: 1,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+								ValidateFunc: validation.StringInSlice([]string{
+									apigateway.EndpointTypeEdge,
+									apigateway.EndpointTypeRegional,
+									apigateway.EndpointTypePrivate,
+								}, false),
+							},
+						},
+					},
+				},
 			},
 		},
 	}
@@ -75,6 +122,18 @@ func resourceAwsApiGatewayRestApiCreate(d *schema.ResourceData, meta interface{}
 	params := &apigateway.CreateRestApiInput{
 		Name:        aws.String(d.Get("name").(string)),
 		Description: description,
+	}
+
+	if v, ok := d.GetOk("endpoint_configuration"); ok {
+		params.EndpointConfiguration = expandApiGatewayEndpointConfiguration(v.([]interface{}))
+	}
+
+	if v, ok := d.GetOk("api_key_source"); ok && v.(string) != "" {
+		params.ApiKeySource = aws.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("policy"); ok && v.(string) != "" {
+		params.Policy = aws.String(v.(string))
 	}
 
 	binaryMediaTypes, binaryMediaTypesOk := d.GetOk("binary_media_types")
@@ -102,35 +161,11 @@ func resourceAwsApiGatewayRestApiCreate(d *schema.ResourceData, meta interface{}
 			Body:      []byte(body.(string)),
 		})
 		if err != nil {
-			return errwrap.Wrapf("Error creating API Gateway specification: {{err}}", err)
+			return fmt.Errorf("error creating API Gateway specification: %s", err)
 		}
-	}
-
-	if err = resourceAwsApiGatewayRestApiRefreshResources(d, meta); err != nil {
-		return err
 	}
 
 	return resourceAwsApiGatewayRestApiRead(d, meta)
-}
-
-func resourceAwsApiGatewayRestApiRefreshResources(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
-
-	resp, err := conn.GetResources(&apigateway.GetResourcesInput{
-		RestApiId: aws.String(d.Id()),
-	})
-	if err != nil {
-		return err
-	}
-
-	for _, item := range resp.Items {
-		if *item.Path == "/" {
-			d.Set("root_resource_id", item.Id)
-			break
-		}
-	}
-
-	return nil
 }
 
 func resourceAwsApiGatewayRestApiRead(d *schema.ResourceData, meta interface{}) error {
@@ -140,18 +175,62 @@ func resourceAwsApiGatewayRestApiRead(d *schema.ResourceData, meta interface{}) 
 	api, err := conn.GetRestApi(&apigateway.GetRestApiInput{
 		RestApiId: aws.String(d.Id()),
 	})
+	if isAWSErr(err, apigateway.ErrCodeNotFoundException, "") {
+		log.Printf("[WARN] API Gateway (%s) not found, removing from state", d.Id())
+		d.SetId("")
+		return nil
+	}
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok && awsErr.Code() == "NotFoundException" {
-			log.Printf("[WARN] API Gateway (%s) not found, removing from state", d.Id())
-			d.SetId("")
-			return nil
+		return fmt.Errorf("error reading API Gateway REST API (%s): %s", d.Id(), err)
+	}
+
+	getResourcesInput := &apigateway.GetResourcesInput{
+		RestApiId: aws.String(d.Id()),
+	}
+	err = conn.GetResourcesPages(getResourcesInput, func(page *apigateway.GetResourcesOutput, lastPage bool) bool {
+		for _, item := range page.Items {
+			if aws.StringValue(item.Path) == "/" {
+				d.Set("root_resource_id", item.Id)
+				return false
+			}
 		}
-		return err
+		return !lastPage
+	})
+	if err != nil {
+		return fmt.Errorf("error reading API Gateway REST API (%s) resources: %s", d.Id(), err)
 	}
 
 	d.Set("name", api.Name)
 	d.Set("description", api.Description)
+	d.Set("api_key_source", api.ApiKeySource)
+
+	// The API returns policy as an escaped JSON string
+	// {\\\"Version\\\":\\\"2012-10-17\\\",...}
+	// The string must be normalized before unquoting as it may contain escaped
+	// forward slashes in CIDR blocks, which will break strconv.Unquote
+
+	// I'm not sure why it needs to be wrapped with double quotes first, but it does
+	normalized_policy, err := structure.NormalizeJsonString(`"` + aws.StringValue(api.Policy) + `"`)
+	if err != nil {
+		fmt.Printf("error normalizing policy JSON: %s\n", err)
+	}
+	policy, err := strconv.Unquote(normalized_policy)
+	if err != nil {
+		return fmt.Errorf("error unescaping policy: %s", err)
+	}
+	d.Set("policy", policy)
+
 	d.Set("binary_media_types", api.BinaryMediaTypes)
+
+	arn := arn.ARN{
+		Partition: meta.(*AWSClient).partition,
+		Service:   "execute-api",
+		Region:    meta.(*AWSClient).region,
+		AccountID: meta.(*AWSClient).accountid,
+		Resource:  d.Id(),
+	}.String()
+	d.Set("execution_arn", arn)
+
 	if api.MinimumCompressionSize == nil {
 		d.Set("minimum_compression_size", -1)
 	} else {
@@ -159,6 +238,10 @@ func resourceAwsApiGatewayRestApiRead(d *schema.ResourceData, meta interface{}) 
 	}
 	if err := d.Set("created_date", api.CreatedDate.Format(time.RFC3339)); err != nil {
 		log.Printf("[DEBUG] Error setting created_date: %s", err)
+	}
+
+	if err := d.Set("endpoint_configuration", flattenApiGatewayEndpointConfiguration(api.EndpointConfiguration)); err != nil {
+		return fmt.Errorf("error setting endpoint_configuration: %s", err)
 	}
 
 	return nil
@@ -180,6 +263,22 @@ func resourceAwsApiGatewayRestApiUpdateOperations(d *schema.ResourceData) []*api
 			Op:    aws.String("replace"),
 			Path:  aws.String("/description"),
 			Value: aws.String(d.Get("description").(string)),
+		})
+	}
+
+	if d.HasChange("api_key_source") {
+		operations = append(operations, &apigateway.PatchOperation{
+			Op:    aws.String("replace"),
+			Path:  aws.String("/apiKeySource"),
+			Value: aws.String(d.Get("api_key_source").(string)),
+		})
+	}
+
+	if d.HasChange("policy") {
+		operations = append(operations, &apigateway.PatchOperation{
+			Op:    aws.String("replace"),
+			Path:  aws.String("/policy"),
+			Value: aws.String(d.Get("policy").(string)),
 		})
 	}
 
@@ -223,6 +322,20 @@ func resourceAwsApiGatewayRestApiUpdateOperations(d *schema.ResourceData) []*api
 		}
 	}
 
+	if d.HasChange("endpoint_configuration.0.types") {
+		// The REST API must have an endpoint type.
+		// If attempting to remove the configuration, do nothing.
+		if v, ok := d.GetOk("endpoint_configuration"); ok && len(v.([]interface{})) > 0 {
+			m := v.([]interface{})[0].(map[string]interface{})
+
+			operations = append(operations, &apigateway.PatchOperation{
+				Op:    aws.String("replace"),
+				Path:  aws.String("/endpointConfiguration/types/0"),
+				Value: aws.String(m["types"].([]interface{})[0].(string)),
+			})
+		}
+	}
+
 	return operations
 }
 
@@ -239,7 +352,7 @@ func resourceAwsApiGatewayRestApiUpdate(d *schema.ResourceData, meta interface{}
 				Body:      []byte(body.(string)),
 			})
 			if err != nil {
-				return errwrap.Wrapf("Error updating API Gateway specification: {{err}}", err)
+				return fmt.Errorf("error updating API Gateway specification: %s", err)
 			}
 		}
 	}
@@ -269,10 +382,36 @@ func resourceAwsApiGatewayRestApiDelete(d *schema.ResourceData, meta interface{}
 			return nil
 		}
 
-		if apigatewayErr, ok := err.(awserr.Error); ok && apigatewayErr.Code() == "NotFoundException" {
+		if isAWSErr(err, apigateway.ErrCodeNotFoundException, "") {
 			return nil
 		}
 
 		return resource.NonRetryableError(err)
 	})
+}
+
+func expandApiGatewayEndpointConfiguration(l []interface{}) *apigateway.EndpointConfiguration {
+	if len(l) == 0 {
+		return nil
+	}
+
+	m := l[0].(map[string]interface{})
+
+	endpointConfiguration := &apigateway.EndpointConfiguration{
+		Types: expandStringList(m["types"].([]interface{})),
+	}
+
+	return endpointConfiguration
+}
+
+func flattenApiGatewayEndpointConfiguration(endpointConfiguration *apigateway.EndpointConfiguration) []interface{} {
+	if endpointConfiguration == nil {
+		return []interface{}{}
+	}
+
+	m := map[string]interface{}{
+		"types": flattenStringList(endpointConfiguration.Types),
+	}
+
+	return []interface{}{m}
 }

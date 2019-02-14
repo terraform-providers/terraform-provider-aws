@@ -18,14 +18,14 @@ resource "aws_s3_bucket" "hoge" {
 }
 
 resource "aws_athena_database" "hoge" {
-  name = "users"
+  name   = "users"
   bucket = "${aws_s3_bucket.hoge.bucket}"
 }
 
 resource "aws_athena_named_query" "foo" {
-  name = "bar"
+  name     = "bar"
   database = "${aws_athena_database.hoge.name}"
-  query = "SELECT * FROM ${aws_athena_database.hoge.name} limit 10;"
+  query    = "SELECT * FROM ${aws_athena_database.hoge.name} limit 10;"
 }
 ```
 
@@ -40,7 +40,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The unique ID of the query.
 

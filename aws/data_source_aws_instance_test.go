@@ -4,13 +4,14 @@ import (
 	"testing"
 
 	"fmt"
+	"regexp"
 
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 )
 
 func TestAccAWSInstanceDataSource_basic(t *testing.T) {
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -20,6 +21,7 @@ func TestAccAWSInstanceDataSource_basic(t *testing.T) {
 					resource.TestCheckResourceAttr("data.aws_instance.web-instance", "ami", "ami-4fccb37f"),
 					resource.TestCheckResourceAttr("data.aws_instance.web-instance", "tags.%", "1"),
 					resource.TestCheckResourceAttr("data.aws_instance.web-instance", "instance_type", "m1.small"),
+					resource.TestMatchResourceAttr("data.aws_instance.web-instance", "arn", regexp.MustCompile(`^arn:[^:]+:ec2:[^:]+:\d{12}:instance/i-.+`)),
 				),
 			},
 		},
@@ -28,7 +30,7 @@ func TestAccAWSInstanceDataSource_basic(t *testing.T) {
 
 func TestAccAWSInstanceDataSource_tags(t *testing.T) {
 	rInt := acctest.RandInt()
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -45,7 +47,7 @@ func TestAccAWSInstanceDataSource_tags(t *testing.T) {
 }
 
 func TestAccAWSInstanceDataSource_AzUserData(t *testing.T) {
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -64,7 +66,7 @@ func TestAccAWSInstanceDataSource_AzUserData(t *testing.T) {
 }
 
 func TestAccAWSInstanceDataSource_gp2IopsDevice(t *testing.T) {
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -84,7 +86,7 @@ func TestAccAWSInstanceDataSource_gp2IopsDevice(t *testing.T) {
 }
 
 func TestAccAWSInstanceDataSource_blockDevices(t *testing.T) {
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -105,7 +107,7 @@ func TestAccAWSInstanceDataSource_blockDevices(t *testing.T) {
 }
 
 func TestAccAWSInstanceDataSource_rootInstanceStore(t *testing.T) {
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -124,7 +126,7 @@ func TestAccAWSInstanceDataSource_rootInstanceStore(t *testing.T) {
 }
 
 func TestAccAWSInstanceDataSource_privateIP(t *testing.T) {
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -142,7 +144,7 @@ func TestAccAWSInstanceDataSource_privateIP(t *testing.T) {
 
 func TestAccAWSInstanceDataSource_keyPair(t *testing.T) {
 	rName := fmt.Sprintf("tf-test-key-%d", acctest.RandInt())
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -160,7 +162,7 @@ func TestAccAWSInstanceDataSource_keyPair(t *testing.T) {
 }
 
 func TestAccAWSInstanceDataSource_VPC(t *testing.T) {
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -181,7 +183,7 @@ func TestAccAWSInstanceDataSource_VPC(t *testing.T) {
 func TestAccAWSInstanceDataSource_PlacementGroup(t *testing.T) {
 	rStr := acctest.RandString(5)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -197,7 +199,7 @@ func TestAccAWSInstanceDataSource_PlacementGroup(t *testing.T) {
 
 func TestAccAWSInstanceDataSource_SecurityGroups(t *testing.T) {
 	rInt := acctest.RandInt()
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -216,7 +218,7 @@ func TestAccAWSInstanceDataSource_SecurityGroups(t *testing.T) {
 }
 
 func TestAccAWSInstanceDataSource_VPCSecurityGroups(t *testing.T) {
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -236,7 +238,7 @@ func TestAccAWSInstanceDataSource_VPCSecurityGroups(t *testing.T) {
 func TestAccAWSInstanceDataSource_getPasswordData_trueToFalse(t *testing.T) {
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -261,7 +263,7 @@ func TestAccAWSInstanceDataSource_getPasswordData_trueToFalse(t *testing.T) {
 func TestAccAWSInstanceDataSource_getPasswordData_falseToTrue(t *testing.T) {
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -283,13 +285,31 @@ func TestAccAWSInstanceDataSource_getPasswordData_falseToTrue(t *testing.T) {
 	})
 }
 
+func TestAccAWSInstanceDataSource_creditSpecification(t *testing.T) {
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+
+				Config: testAccInstanceDataSourceConfig_creditSpecification,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("data.aws_instance.foo", "instance_type", "t2.micro"),
+					resource.TestCheckResourceAttr("data.aws_instance.foo", "credit_specification.#", "1"),
+					resource.TestCheckResourceAttr("data.aws_instance.foo", "credit_specification.0.cpu_credits", "unlimited"),
+				),
+			},
+		},
+	})
+}
+
 // Lookup based on InstanceID
 const testAccInstanceDataSourceConfig = `
 resource "aws_instance" "web" {
   # us-west-2
   ami = "ami-4fccb37f"
   instance_type = "m1.small"
-  tags {
+  tags = {
     Name = "HelloWorld"
   }
 }
@@ -309,14 +329,14 @@ resource "aws_instance" "web" {
   # us-west-2
   ami = "ami-4fccb37f"
   instance_type = "m1.small"
-  tags {
+  tags = {
     Name = "HelloWorld"
     TestSeed = "%d"
   }
 }
 
 data "aws_instance" "web-instance" {
-  instance_tags {
+  instance_tags = {
     Name = "${aws_instance.web.tags["Name"]}"
     TestSeed = "%d"
   }
@@ -333,7 +353,7 @@ resource "aws_instance" "foo" {
 
   instance_type = "m1.small"
   user_data = "foo:-with-character's"
-  tags {
+  tags = {
     TFAccTest = "YesThisIsATest"
   }
 }
@@ -413,7 +433,7 @@ data "aws_instance" "foo" {
 const testAccInstanceDataSourceConfig_privateIP = `
 resource "aws_vpc" "foo" {
   cidr_block = "10.1.0.0/16"
-  tags {
+  tags = {
     Name = "terraform-testacc-instance-ds-private-ip"
   }
 }
@@ -421,7 +441,7 @@ resource "aws_vpc" "foo" {
 resource "aws_subnet" "foo" {
   cidr_block = "10.1.1.0/24"
   vpc_id = "${aws_vpc.foo.id}"
-  tags {
+  tags = {
     Name = "tf-acc-instance-ds-private-ip"
   }
 }
@@ -453,7 +473,7 @@ resource "aws_instance" "foo" {
   ami = "ami-408c7f28"
   instance_type = "t1.micro"
   key_name = "${aws_key_pair.debugging.key_name}"
-  tags {
+  tags = {
     Name = "testAccInstanceDataSourceConfigKeyPair_TestAMI"
   }
 }
@@ -473,7 +493,7 @@ data "aws_instance" "foo" {
 const testAccInstanceDataSourceConfig_VPC = `
 resource "aws_vpc" "foo" {
   cidr_block = "10.1.0.0/16"
-  tags {
+  tags = {
     Name = "terraform-testacc-instance-data-source-vpc"
   }
 }
@@ -481,7 +501,7 @@ resource "aws_vpc" "foo" {
 resource "aws_subnet" "foo" {
   cidr_block = "10.1.1.0/24"
   vpc_id = "${aws_vpc.foo.id}"
-  tags {
+  tags = {
    Name = "tf-acc-instance-data-source-vpc"
   }
 }
@@ -506,7 +526,7 @@ func testAccInstanceDataSourceConfig_PlacementGroup(rStr string) string {
 	return fmt.Sprintf(`
 resource "aws_vpc" "foo" {
   cidr_block = "10.1.0.0/16"
-  tags {
+  tags = {
     Name = "terraform-testacc-instance-data-source-placement-group"
   }
 }
@@ -514,7 +534,7 @@ resource "aws_vpc" "foo" {
 resource "aws_subnet" "foo" {
   cidr_block = "10.1.1.0/24"
   vpc_id = "${aws_vpc.foo.id}"
-  tags {
+  tags = {
     Name = "tf-acc-instance-data-source-placement-group"
   }
 }
@@ -556,7 +576,7 @@ resource "aws_security_group" "tf_test_foo" {
     protocol = "icmp"
     from_port = -1
     to_port = -1
-    cidr_blocks = ["0.0.0.0/0"]
+    self = true
   }
 }
 
@@ -577,14 +597,14 @@ const testAccInstanceDataSourceConfig_VPCSecurityGroups = `
 resource "aws_internet_gateway" "gw" {
   vpc_id = "${aws_vpc.foo.id}"
 
-  tags {
+  tags = {
     Name = "terraform-testacc-instance-data-source-vpc-sgs"
   }
 }
 
 resource "aws_vpc" "foo" {
   cidr_block = "10.1.0.0/16"
-  tags {
+  tags = {
     Name = "terraform-testacc-instance-data-source-vpc-sgs"
   }
 }
@@ -598,14 +618,14 @@ resource "aws_security_group" "tf_test_foo" {
     protocol = "icmp"
     from_port = -1
     to_port = -1
-    cidr_blocks = ["0.0.0.0/0"]
+    self = true
   }
 }
 
 resource "aws_subnet" "foo" {
   cidr_block = "10.1.1.0/24"
   vpc_id = "${aws_vpc.foo.id}"
-  tags {
+  tags = {
     Name = "tf-acc-instance-data-source-vpc-sgs"
   }
 }
@@ -658,3 +678,27 @@ func testAccInstanceDataSourceConfig_getPasswordData(val bool, rInt int) string 
 	}
 	`, rInt, val)
 }
+
+const testAccInstanceDataSourceConfig_creditSpecification = `
+resource "aws_vpc" "foo" {
+  cidr_block = "10.1.0.0/16"
+}
+
+resource "aws_subnet" "foo" {
+  cidr_block = "10.1.1.0/24"
+  vpc_id = "${aws_vpc.foo.id}"
+}
+
+resource "aws_instance" "foo" {
+  ami = "ami-bf4193c7"
+  instance_type = "t2.micro"
+  subnet_id = "${aws_subnet.foo.id}"
+  credit_specification {
+    cpu_credits = "unlimited"
+  }
+}
+
+data "aws_instance" "foo" {
+  instance_id = "${aws_instance.foo.id}"
+}
+`

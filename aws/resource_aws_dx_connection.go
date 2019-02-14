@@ -43,6 +43,10 @@ func resourceAwsDxConnection() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
+			"jumbo_frame_capable": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
 			"tags": tagsSchema(),
 		},
 	}
@@ -88,11 +92,11 @@ func resourceAwsDxConnectionRead(d *schema.ResourceData, meta interface{}) error
 		return nil
 	}
 	if len(resp.Connections) != 1 {
-		return fmt.Errorf("[ERROR] Number of Direct Connect connections (%s) isn't one, got %d", d.Id(), len(resp.Connections))
+		return fmt.Errorf("Number of Direct Connect connections (%s) isn't one, got %d", d.Id(), len(resp.Connections))
 	}
 	connection := resp.Connections[0]
 	if d.Id() != aws.StringValue(connection.ConnectionId) {
-		return fmt.Errorf("[ERROR] Direct Connect connection (%s) not found", d.Id())
+		return fmt.Errorf("Direct Connect connection (%s) not found", d.Id())
 	}
 	if aws.StringValue(connection.ConnectionState) == directconnect.ConnectionStateDeleted {
 		log.Printf("[WARN] Direct Connect connection (%s) not found, removing from state", d.Id())
@@ -111,12 +115,10 @@ func resourceAwsDxConnectionRead(d *schema.ResourceData, meta interface{}) error
 	d.Set("name", connection.ConnectionName)
 	d.Set("bandwidth", connection.Bandwidth)
 	d.Set("location", connection.Location)
+	d.Set("jumbo_frame_capable", connection.JumboFrameCapable)
 
-	if err := getTagsDX(conn, d, arn); err != nil {
-		return err
-	}
-
-	return nil
+	err1 := getTagsDX(conn, d, arn)
+	return err1
 }
 
 func resourceAwsDxConnectionUpdate(d *schema.ResourceData, meta interface{}) error {

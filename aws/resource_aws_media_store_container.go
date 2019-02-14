@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/mediastore"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 )
 
 func resourceAwsMediaStoreContainer() *schema.Resource {
@@ -16,19 +17,15 @@ func resourceAwsMediaStoreContainer() *schema.Resource {
 		Create: resourceAwsMediaStoreContainerCreate,
 		Read:   resourceAwsMediaStoreContainerRead,
 		Delete: resourceAwsMediaStoreContainerDelete,
-
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 		Schema: map[string]*schema.Schema{
-			"name": &schema.Schema{
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-					value := v.(string)
-					if !regexp.MustCompile("^\\w+$").MatchString(value) {
-						errors = append(errors, fmt.Errorf("%q must contain alphanumeric characters or underscores", k))
-					}
-					return
-				},
+			"name": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringMatch(regexp.MustCompile(`^\w+$`), "must contain alphanumeric characters or underscores"),
 			},
 			"arn": {
 				Type:     schema.TypeString,
@@ -82,6 +79,7 @@ func resourceAwsMediaStoreContainerRead(d *schema.ResourceData, meta interface{}
 		return err
 	}
 	d.Set("arn", resp.Container.ARN)
+	d.Set("name", resp.Container.Name)
 	d.Set("endpoint", resp.Container.Endpoint)
 	return nil
 }
@@ -95,7 +93,6 @@ func resourceAwsMediaStoreContainerDelete(d *schema.ResourceData, meta interface
 	_, err := conn.DeleteContainer(input)
 	if err != nil {
 		if isAWSErr(err, mediastore.ErrCodeContainerNotFoundException, "") {
-			d.SetId("")
 			return nil
 		}
 		return err
@@ -112,13 +109,12 @@ func resourceAwsMediaStoreContainerDelete(d *schema.ResourceData, meta interface
 			}
 			return resource.NonRetryableError(err)
 		}
-		return resource.RetryableError(nil)
+		return resource.RetryableError(fmt.Errorf("Media Store Container (%s) still exists", d.Id()))
 	})
 	if err != nil {
-		return err
+		return fmt.Errorf("error waiting for Media Store Container (%s) deletion: %s", d.Id(), err)
 	}
 
-	d.SetId("")
 	return nil
 }
 

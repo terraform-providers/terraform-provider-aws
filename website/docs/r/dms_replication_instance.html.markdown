@@ -26,9 +26,9 @@ resource "aws_dms_replication_instance" "test" {
   publicly_accessible          = true
   replication_instance_class   = "dms.t2.micro"
   replication_instance_id      = "test-dms-replication-instance-tf"
-  replication_subnet_group_id  = "${aws_dms_replication_subnet_group.test-dms-replication-subnet-group-tf}"
+  replication_subnet_group_id  = "${aws_dms_replication_subnet_group.test-dms-replication-subnet-group-tf.id}"
 
-  tags {
+  tags = {
     Name = "test"
   }
 
@@ -71,7 +71,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `replication_instance_arn` - The Amazon Resource Name (ARN) of the replication instance.
 * `replication_instance_private_ips` -  A list of the private IP addresses of the replication instance.

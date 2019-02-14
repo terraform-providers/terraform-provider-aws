@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/hashicorp/terraform/helper/validation"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -71,6 +73,20 @@ func resourceAwsSsmMaintenanceWindowTask() *schema.Resource {
 						},
 					},
 				},
+			},
+
+			"name": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validateAwsSSMMaintenanceWindowTaskName,
+			},
+
+			"description": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringLenBetween(3, 128),
 			},
 
 			"priority": {
@@ -191,7 +207,9 @@ func resourceAwsSsmMaintenanceWindowTaskCreate(d *schema.ResourceData, meta inte
 		TaskType:       aws.String(d.Get("task_type").(string)),
 		ServiceRoleArn: aws.String(d.Get("service_role_arn").(string)),
 		TaskArn:        aws.String(d.Get("task_arn").(string)),
-		Targets:        expandAwsSsmTargets(d),
+		Name:           aws.String(d.Get("name").(string)),
+		Description:    aws.String(d.Get("description").(string)),
+		Targets:        expandAwsSsmTargets(d.Get("targets").([]interface{})),
 	}
 
 	if v, ok := d.GetOk("priority"); ok {
@@ -240,21 +258,23 @@ func resourceAwsSsmMaintenanceWindowTaskRead(d *schema.ResourceData, meta interf
 			d.Set("service_role_arn", t.ServiceRoleArn)
 			d.Set("task_arn", t.TaskArn)
 			d.Set("priority", t.Priority)
+			d.Set("name", t.Name)
+			d.Set("description", t.Description)
 
 			if t.LoggingInfo != nil {
 				if err := d.Set("logging_info", flattenAwsSsmMaintenanceWindowLoggingInfo(t.LoggingInfo)); err != nil {
-					return fmt.Errorf("[DEBUG] Error setting logging_info error: %#v", err)
+					return fmt.Errorf("Error setting logging_info error: %#v", err)
 				}
 			}
 
 			if t.TaskParameters != nil {
 				if err := d.Set("task_parameters", flattenAwsSsmTaskParameters(t.TaskParameters)); err != nil {
-					return fmt.Errorf("[DEBUG] Error setting task_parameters error: %#v", err)
+					return fmt.Errorf("Error setting task_parameters error: %#v", err)
 				}
 			}
 
 			if err := d.Set("targets", flattenAwsSsmTargets(t.Targets)); err != nil {
-				return fmt.Errorf("[DEBUG] Error setting targets error: %#v", err)
+				return fmt.Errorf("Error setting targets error: %#v", err)
 			}
 		}
 	}
@@ -280,7 +300,7 @@ func resourceAwsSsmMaintenanceWindowTaskDelete(d *schema.ResourceData, meta inte
 
 	_, err := ssmconn.DeregisterTaskFromMaintenanceWindow(params)
 	if err != nil {
-		return err
+		return fmt.Errorf("error deregistering SSM Maintenance Window Task (%s): %s", d.Id(), err)
 	}
 
 	return nil

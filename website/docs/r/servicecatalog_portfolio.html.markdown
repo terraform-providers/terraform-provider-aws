@@ -14,8 +14,8 @@ Provides a resource to create a Service Catalog Portfolio.
 
 ```hcl
 resource "aws_servicecatalog_portfolio" "portfolio" {
-  name = "My App Portfolio"
-  description = "List of my organizations apps"
+  name          = "My App Portfolio"
+  description   = "List of my organizations apps"
   provider_name = "Brett"
 }
 ```
@@ -31,7 +31,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the Service Catalog Portfolio.
 

@@ -16,7 +16,7 @@ func TestAccAWSOpsworksInstance_importBasic(t *testing.T) {
 	stackName := fmt.Sprintf("tf-%d", acctest.RandInt())
 	resourceName := "aws_opsworks_instance.tf-acc"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsOpsworksInstanceDestroy,
@@ -38,7 +38,7 @@ func TestAccAWSOpsworksInstance_importBasic(t *testing.T) {
 func TestAccAWSOpsworksInstance(t *testing.T) {
 	stackName := fmt.Sprintf("tf-%d", acctest.RandInt())
 	var opsinst opsworks.Instance
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsOpsworksInstanceDestroy,
@@ -112,7 +112,7 @@ func TestAccAWSOpsworksInstance_UpdateHostNameForceNew(t *testing.T) {
 	stackName := fmt.Sprintf("tf-%d", acctest.RandInt())
 
 	var before, after opsworks.Instance
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsOpsworksInstanceDestroy,

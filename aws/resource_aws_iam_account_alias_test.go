@@ -34,6 +34,29 @@ func TestAccAWSIAMAccountAlias(t *testing.T) {
 	}
 }
 
+func testAccAWSIAMAccountAlias_importBasic(t *testing.T) {
+	resourceName := "aws_iam_account_alias.test"
+
+	rstring := acctest.RandString(5)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSIAMAccountAliasDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSIAMAccountAliasConfig(rstring),
+			},
+
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func testAccAWSIAMAccountAlias_basic_with_datasource(t *testing.T) {
 	var account_alias string
 
@@ -59,7 +82,7 @@ func testAccAWSIAMAccountAlias_basic_with_datasource(t *testing.T) {
 				// We expect a non-empty plan due to the way data sources and depends_on
 				// work, or don't work. See https://github.com/hashicorp/terraform/issues/11139#issuecomment-275121893
 				// We accept this limitation and feel this test is OK because of the
-				// explicity check above
+				// explicitly check above
 				ExpectNonEmptyPlan: true,
 			},
 		},
@@ -127,21 +150,6 @@ func testAccCheckAWSIAMAccountAliasExists(n string, a *string) resource.TestChec
 		}
 
 		*a = aws.StringValue(resp.AccountAliases[0])
-
-		return nil
-	}
-}
-
-func testAccCheckAwsIamAccountAlias(n string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[n]
-		if !ok {
-			return fmt.Errorf("Can't find Account Alias resource: %s", n)
-		}
-
-		if rs.Primary.Attributes["account_alias"] == "" {
-			return fmt.Errorf("Missing Account Alias")
-		}
 
 		return nil
 	}

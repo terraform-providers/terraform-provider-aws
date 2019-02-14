@@ -34,6 +34,6 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The computed id of the permission. Please note that this is only used internally to identify the permission. This value is not used in aws.

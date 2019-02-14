@@ -16,12 +16,12 @@ ASGs within a specific region. This will allow you to pass a list of AutoScaling
 ```hcl
 data "aws_autoscaling_groups" "groups" {
   filter {
-    name = "key"
+    name   = "key"
     values = ["Team"]
   }
 
   filter {
-    name = "value"
+    name   = "value"
     values = ["Pets"]
   }
 }
@@ -48,6 +48,7 @@ resource "aws_autoscaling_notification" "slack_notifications" {
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `names` - A list of the Autoscaling Groups in the current region.
+* `arns` - A list of the Autoscaling Groups Arns in the current region.

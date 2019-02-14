@@ -1,7 +1,7 @@
 ---
 layout: "aws"
 page_title: "AWS: aws_cognito_user_pool_client"
-side_bar_current: "docs-aws-resource-cognito-user-pool-client"
+sidebar_current: "docs-aws-resource-cognito-user-pool-client"
 description: |-
   Provides a Cognito User Pool Client resource.
 ---
@@ -12,7 +12,7 @@ Provides a Cognito User Pool Client resource.
 
 ## Example Usage
 
-### Create a basic user pool client client
+### Create a basic user pool client
 
 ```hcl
 resource "aws_cognito_user_pool" "pool" {
@@ -37,7 +37,7 @@ resource "aws_cognito_user_pool_client" "client" {
 
   user_pool_id = "${aws_cognito_user_pool.pool.id}"
 
-  generate_secret = true
+  generate_secret     = true
   explicit_auth_flows = ["ADMIN_NO_SRP_AUTH"]
 }
 ```
@@ -63,7 +63,15 @@ The following arguments are supported:
 
 ## Attribute Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The id of the user pool client.
 * `client_secret` - The client secret of the user pool client.
+
+## Import
+
+Cognito User Pool Clients can be imported using the `id` of the Cognito User Pool, and the `id` of the Cognito User Pool Client, e.g.
+
+```
+$ terraform import aws_cognito_user_pool_client.client <user_pool_id>/<user_pool_client_id>
+```

@@ -21,12 +21,12 @@ func TestAccAWSCloud9EnvironmentEc2_basic(t *testing.T) {
 
 	resourceName := "aws_cloud9_environment_ec2.test"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCloud9EnvironmentEc2Destroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: testAccAWSCloud9EnvironmentEc2Config(envName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSCloud9EnvironmentEc2Exists(resourceName, &conf),
@@ -36,7 +36,7 @@ func TestAccAWSCloud9EnvironmentEc2_basic(t *testing.T) {
 					resource.TestMatchResourceAttr(resourceName, "owner_arn", regexp.MustCompile(`^arn:`)),
 				),
 			},
-			resource.TestStep{
+			{
 				Config: testAccAWSCloud9EnvironmentEc2Config(uEnvName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSCloud9EnvironmentEc2Exists(resourceName, &conf),
@@ -62,12 +62,12 @@ func TestAccAWSCloud9EnvironmentEc2_allFields(t *testing.T) {
 
 	resourceName := "aws_cloud9_environment_ec2.test"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCloud9EnvironmentEc2Destroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: testAccAWSCloud9EnvironmentEc2AllFieldsConfig(envName, description, userName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSCloud9EnvironmentEc2Exists(resourceName, &conf),
@@ -78,7 +78,7 @@ func TestAccAWSCloud9EnvironmentEc2_allFields(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "type", "ec2"),
 				),
 			},
-			resource.TestStep{
+			{
 				Config: testAccAWSCloud9EnvironmentEc2AllFieldsConfig(uEnvName, uDescription, userName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSCloud9EnvironmentEc2Exists(resourceName, &conf),
@@ -99,15 +99,15 @@ func TestAccAWSCloud9EnvironmentEc2_importBasic(t *testing.T) {
 
 	resourceName := "aws_cloud9_environment_ec2.test"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCloud9EnvironmentEc2Destroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: testAccAWSCloud9EnvironmentEc2Config(name),
 			},
-			resource.TestStep{
+			{
 				ResourceName:            resourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
@@ -203,7 +203,7 @@ resource "aws_cloud9_environment_ec2" "test" {
 
 resource "aws_vpc" "test" {
   cidr_block = "10.10.0.0/16"
-  tags {
+  tags = {
     Name = "terraform-testacc-cloud9-environment-ec2-all-fields"
   }
 }
@@ -211,7 +211,7 @@ resource "aws_vpc" "test" {
 resource "aws_subnet" "test" {
   vpc_id = "${aws_vpc.test.id}"
   cidr_block = "10.10.0.0/19"
-  tags {
+  tags = {
     Name = "tf-acc-cloud9-environment-ec2-all-fields"
   }
 }

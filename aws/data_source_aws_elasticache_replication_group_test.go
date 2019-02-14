@@ -10,7 +10,7 @@ import (
 
 func TestAccDataSourceAwsElasticacheReplicationGroup_basic(t *testing.T) {
 	rName := acctest.RandString(10)
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -24,6 +24,7 @@ func TestAccDataSourceAwsElasticacheReplicationGroup_basic(t *testing.T) {
 					resource.TestCheckResourceAttr("data.aws_elasticache_replication_group.bar", "port", "6379"),
 					resource.TestCheckResourceAttrSet("data.aws_elasticache_replication_group.bar", "primary_endpoint_address"),
 					resource.TestCheckResourceAttr("data.aws_elasticache_replication_group.bar", "number_cache_clusters", "2"),
+					resource.TestCheckResourceAttr("data.aws_elasticache_replication_group.bar", "member_clusters.#", "2"),
 					resource.TestCheckResourceAttr("data.aws_elasticache_replication_group.bar", "node_type", "cache.m1.small"),
 					resource.TestCheckResourceAttr("data.aws_elasticache_replication_group.bar", "snapshot_window", "01:00-02:00"),
 				),
@@ -34,7 +35,7 @@ func TestAccDataSourceAwsElasticacheReplicationGroup_basic(t *testing.T) {
 
 func TestAccDataSourceAwsElasticacheReplicationGroup_ClusterMode(t *testing.T) {
 	rName := acctest.RandString(10)
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -64,7 +65,6 @@ resource "aws_elasticache_replication_group" "bar" {
 	node_type = "cache.m1.small"
 	number_cache_clusters = 2
 	port = 6379
-	parameter_group_name = "default.redis3.2"
 	availability_zones = ["${data.aws_availability_zones.available.names[0]}", "${data.aws_availability_zones.available.names[1]}"]
 	automatic_failover_enabled = true
 	snapshot_window = "01:00-02:00"
@@ -82,7 +82,6 @@ resource "aws_elasticache_replication_group" "cluster" {
 	replication_group_description = "test description"
 	node_type = "cache.m1.small"
 	port = 6379
-	parameter_group_name = "default.redis3.2.cluster.on"
 	automatic_failover_enabled = true
 	cluster_mode {
 		replicas_per_node_group     = 1

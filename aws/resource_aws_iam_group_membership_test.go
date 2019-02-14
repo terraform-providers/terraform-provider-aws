@@ -23,12 +23,12 @@ func TestAccAWSGroupMembership_basic(t *testing.T) {
 	userName3 := fmt.Sprintf("tf-acc-user-gm-basic-three-%s", rString)
 	membershipName := fmt.Sprintf("tf-acc-membership-gm-basic-%s", rString)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSGroupMembershipDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: testAccAWSGroupMemberConfig(groupName, userName, membershipName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSGroupMembershipExists("aws_iam_group_membership.team", &group),
@@ -36,7 +36,7 @@ func TestAccAWSGroupMembership_basic(t *testing.T) {
 				),
 			},
 
-			resource.TestStep{
+			{
 				Config: testAccAWSGroupMemberConfigUpdate(groupName, userName, userName2, userName3, membershipName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSGroupMembershipExists("aws_iam_group_membership.team", &group),
@@ -44,7 +44,7 @@ func TestAccAWSGroupMembership_basic(t *testing.T) {
 				),
 			},
 
-			resource.TestStep{
+			{
 				Config: testAccAWSGroupMemberConfigUpdateDown(groupName, userName3, membershipName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSGroupMembershipExists("aws_iam_group_membership.team", &group),
@@ -63,12 +63,12 @@ func TestAccAWSGroupMembership_paginatedUserList(t *testing.T) {
 	membershipName := fmt.Sprintf("tf-acc-membership-gm-pul-%s", rString)
 	userNamePrefix := fmt.Sprintf("tf-acc-user-gm-pul-%s-", rString)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSGroupMembershipDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: testAccAWSGroupMemberConfigPaginatedUserList(groupName, membershipName, userNamePrefix),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSGroupMembershipExists("aws_iam_group_membership.team", &group),
@@ -232,8 +232,111 @@ resource "aws_iam_group" "group" {
 
 resource "aws_iam_group_membership" "team" {
 	name = "%s"
-	users = ["${aws_iam_user.user.*.name}"]
 	group = "${aws_iam_group.group.name}"
+	# TODO: Switch back to simple list reference when test configurations are upgraded to 0.12 syntax
+	users = [
+		"${aws_iam_user.user.*.name[0]}",
+		"${aws_iam_user.user.*.name[1]}",
+		"${aws_iam_user.user.*.name[2]}",
+		"${aws_iam_user.user.*.name[3]}",
+		"${aws_iam_user.user.*.name[4]}",
+		"${aws_iam_user.user.*.name[5]}",
+		"${aws_iam_user.user.*.name[6]}",
+		"${aws_iam_user.user.*.name[7]}",
+		"${aws_iam_user.user.*.name[8]}",
+		"${aws_iam_user.user.*.name[9]}",
+		"${aws_iam_user.user.*.name[10]}",
+		"${aws_iam_user.user.*.name[11]}",
+		"${aws_iam_user.user.*.name[12]}",
+		"${aws_iam_user.user.*.name[13]}",
+		"${aws_iam_user.user.*.name[14]}",
+		"${aws_iam_user.user.*.name[15]}",
+		"${aws_iam_user.user.*.name[16]}",
+		"${aws_iam_user.user.*.name[17]}",
+		"${aws_iam_user.user.*.name[18]}",
+		"${aws_iam_user.user.*.name[19]}",
+		"${aws_iam_user.user.*.name[20]}",
+		"${aws_iam_user.user.*.name[21]}",
+		"${aws_iam_user.user.*.name[22]}",
+		"${aws_iam_user.user.*.name[23]}",
+		"${aws_iam_user.user.*.name[24]}",
+		"${aws_iam_user.user.*.name[25]}",
+		"${aws_iam_user.user.*.name[26]}",
+		"${aws_iam_user.user.*.name[27]}",
+		"${aws_iam_user.user.*.name[28]}",
+		"${aws_iam_user.user.*.name[29]}",
+		"${aws_iam_user.user.*.name[30]}",
+		"${aws_iam_user.user.*.name[31]}",
+		"${aws_iam_user.user.*.name[32]}",
+		"${aws_iam_user.user.*.name[33]}",
+		"${aws_iam_user.user.*.name[34]}",
+		"${aws_iam_user.user.*.name[35]}",
+		"${aws_iam_user.user.*.name[36]}",
+		"${aws_iam_user.user.*.name[37]}",
+		"${aws_iam_user.user.*.name[38]}",
+		"${aws_iam_user.user.*.name[39]}",
+		"${aws_iam_user.user.*.name[40]}",
+		"${aws_iam_user.user.*.name[41]}",
+		"${aws_iam_user.user.*.name[42]}",
+		"${aws_iam_user.user.*.name[43]}",
+		"${aws_iam_user.user.*.name[44]}",
+		"${aws_iam_user.user.*.name[45]}",
+		"${aws_iam_user.user.*.name[46]}",
+		"${aws_iam_user.user.*.name[47]}",
+		"${aws_iam_user.user.*.name[48]}",
+		"${aws_iam_user.user.*.name[49]}",
+		"${aws_iam_user.user.*.name[50]}",
+		"${aws_iam_user.user.*.name[51]}",
+		"${aws_iam_user.user.*.name[52]}",
+		"${aws_iam_user.user.*.name[53]}",
+		"${aws_iam_user.user.*.name[54]}",
+		"${aws_iam_user.user.*.name[55]}",
+		"${aws_iam_user.user.*.name[56]}",
+		"${aws_iam_user.user.*.name[57]}",
+		"${aws_iam_user.user.*.name[58]}",
+		"${aws_iam_user.user.*.name[59]}",
+		"${aws_iam_user.user.*.name[60]}",
+		"${aws_iam_user.user.*.name[61]}",
+		"${aws_iam_user.user.*.name[62]}",
+		"${aws_iam_user.user.*.name[63]}",
+		"${aws_iam_user.user.*.name[64]}",
+		"${aws_iam_user.user.*.name[65]}",
+		"${aws_iam_user.user.*.name[66]}",
+		"${aws_iam_user.user.*.name[67]}",
+		"${aws_iam_user.user.*.name[68]}",
+		"${aws_iam_user.user.*.name[69]}",
+		"${aws_iam_user.user.*.name[70]}",
+		"${aws_iam_user.user.*.name[71]}",
+		"${aws_iam_user.user.*.name[72]}",
+		"${aws_iam_user.user.*.name[73]}",
+		"${aws_iam_user.user.*.name[74]}",
+		"${aws_iam_user.user.*.name[75]}",
+		"${aws_iam_user.user.*.name[76]}",
+		"${aws_iam_user.user.*.name[77]}",
+		"${aws_iam_user.user.*.name[78]}",
+		"${aws_iam_user.user.*.name[79]}",
+		"${aws_iam_user.user.*.name[80]}",
+		"${aws_iam_user.user.*.name[81]}",
+		"${aws_iam_user.user.*.name[82]}",
+		"${aws_iam_user.user.*.name[83]}",
+		"${aws_iam_user.user.*.name[84]}",
+		"${aws_iam_user.user.*.name[85]}",
+		"${aws_iam_user.user.*.name[86]}",
+		"${aws_iam_user.user.*.name[87]}",
+		"${aws_iam_user.user.*.name[88]}",
+		"${aws_iam_user.user.*.name[89]}",
+		"${aws_iam_user.user.*.name[90]}",
+		"${aws_iam_user.user.*.name[91]}",
+		"${aws_iam_user.user.*.name[92]}",
+		"${aws_iam_user.user.*.name[93]}",
+		"${aws_iam_user.user.*.name[94]}",
+		"${aws_iam_user.user.*.name[95]}",
+		"${aws_iam_user.user.*.name[96]}",
+		"${aws_iam_user.user.*.name[97]}",
+		"${aws_iam_user.user.*.name[98]}",
+		"${aws_iam_user.user.*.name[99]}",
+		"${aws_iam_user.user.*.name[100]}",
+	]
 }
 
 resource "aws_iam_user" "user" {

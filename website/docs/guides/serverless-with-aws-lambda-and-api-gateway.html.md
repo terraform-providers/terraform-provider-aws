@@ -319,7 +319,7 @@ resource "aws_api_gateway_integration" "lambda" {
 
   integration_http_method = "POST"
   type                    = "AWS_PROXY"
-  uri                     = "${aws_lambda_function.main.invoke_arn}"
+  uri                     = "${aws_lambda_function.example.invoke_arn}"
 }
 ```
 
@@ -346,7 +346,7 @@ resource "aws_api_gateway_integration" "lambda_root" {
 
   integration_http_method = "POST"
   type                    = "AWS_PROXY"
-  uri                     = "${aws_lambda_function.main.invoke_arn}"
+  uri                     = "${aws_lambda_function.example.invoke_arn}"
 }
 ```
 
@@ -503,7 +503,7 @@ resource "aws_lambda_function" "example" {
 
   # The bucket name as created earlier with "aws s3api create-bucket"
   s3_bucket = "terraform-serverless-example"
-  s3_key    = "v${var.version}/example.zip"
+  s3_key    = "v${var.app_version}/example.zip"
 
   # (leave the remainder unchanged)
 }

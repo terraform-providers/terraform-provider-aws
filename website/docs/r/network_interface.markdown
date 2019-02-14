@@ -45,8 +45,9 @@ The `attachment` block supports:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
+* `id` - The ID of the network interface.
 * `subnet_id` - Subnet ID the ENI is in.
 * `description` - A description for the network interface.
 * `private_ips` - List of private IPs assigned to the ENI.

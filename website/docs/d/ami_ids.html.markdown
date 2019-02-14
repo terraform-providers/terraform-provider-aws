@@ -10,6 +10,8 @@ description: |-
 
 Use this data source to get a list of AMI IDs matching the specified criteria.
 
+~> **NOTE:** The `owners` argument will be **required** in the next major version.
+
 ## Example Usage
 
 ```hcl
@@ -44,9 +46,10 @@ options to narrow down the list AWS returns.
 ~> **NOTE:** At least one of `executable_users`, `filter`, `owners` or
 `name_regex` must be specified.
 
+* `sort_ascending`  - (Defaults to `false`) Used to sort AMIs by creation time.
+
 ## Attributes Reference
 
-`ids` is set to the list of AMI IDs, sorted by creation time in descending
-order.
+`ids` is set to the list of AMI IDs, sorted by creation time according to `sort_ascending`.
 
 [1]: http://docs.aws.amazon.com/cli/latest/reference/ec2/describe-images.html

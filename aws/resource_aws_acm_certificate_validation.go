@@ -90,7 +90,7 @@ func resourceAwsAcmCertificateCheckValidationRecords(validationRecordFqdns []int
 			CertificateArn: cert.CertificateArn,
 		}
 		err := resource.Retry(1*time.Minute, func() *resource.RetryError {
-			log.Printf("[DEBUG] Certificate domain validation options empty for %q, retrying", cert.CertificateArn)
+			log.Printf("[DEBUG] Certificate domain validation options empty for %q, retrying", *cert.CertificateArn)
 			output, err := conn.DescribeCertificate(input)
 			if err != nil {
 				return resource.NonRetryableError(err)
@@ -160,6 +160,5 @@ func resourceAwsAcmCertificateValidationRead(d *schema.ResourceData, meta interf
 
 func resourceAwsAcmCertificateValidationDelete(d *schema.ResourceData, meta interface{}) error {
 	// No need to do anything, certificate will be deleted when acm_certificate is deleted
-	d.SetId("")
 	return nil
 }

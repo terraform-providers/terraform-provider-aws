@@ -10,7 +10,7 @@ import (
 )
 
 func TestAccAWSAmiDataSource_natInstance(t *testing.T) {
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -54,7 +54,7 @@ func TestAccAWSAmiDataSource_natInstance(t *testing.T) {
 	})
 }
 func TestAccAWSAmiDataSource_windowsInstance(t *testing.T) {
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -65,7 +65,7 @@ func TestAccAWSAmiDataSource_windowsInstance(t *testing.T) {
 					resource.TestCheckResourceAttr("data.aws_ami.windows_ami", "architecture", "x86_64"),
 					resource.TestCheckResourceAttr("data.aws_ami.windows_ami", "block_device_mappings.#", "27"),
 					resource.TestMatchResourceAttr("data.aws_ami.windows_ami", "creation_date", regexp.MustCompile("^20[0-9]{2}-")),
-					resource.TestMatchResourceAttr("data.aws_ami.windows_ami", "description", regexp.MustCompile("^Microsoft Windows Server 2012")),
+					resource.TestMatchResourceAttr("data.aws_ami.windows_ami", "description", regexp.MustCompile("^Microsoft Windows Server")),
 					resource.TestCheckResourceAttr("data.aws_ami.windows_ami", "hypervisor", "xen"),
 					resource.TestMatchResourceAttr("data.aws_ami.windows_ami", "image_id", regexp.MustCompile("^ami-")),
 					resource.TestMatchResourceAttr("data.aws_ami.windows_ami", "image_location", regexp.MustCompile("^amazon/")),
@@ -93,7 +93,7 @@ func TestAccAWSAmiDataSource_windowsInstance(t *testing.T) {
 }
 
 func TestAccAWSAmiDataSource_instanceStore(t *testing.T) {
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -128,7 +128,7 @@ func TestAccAWSAmiDataSource_instanceStore(t *testing.T) {
 }
 
 func TestAccAWSAmiDataSource_owners(t *testing.T) {
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -144,7 +144,7 @@ func TestAccAWSAmiDataSource_owners(t *testing.T) {
 
 // Acceptance test for: https://github.com/hashicorp/terraform/issues/10758
 func TestAccAWSAmiDataSource_ownersEmpty(t *testing.T) {
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -159,7 +159,7 @@ func TestAccAWSAmiDataSource_ownersEmpty(t *testing.T) {
 }
 
 func TestAccAWSAmiDataSource_localNameFilter(t *testing.T) {
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -172,10 +172,6 @@ func TestAccAWSAmiDataSource_localNameFilter(t *testing.T) {
 			},
 		},
 	})
-}
-
-func testAccCheckAwsAmiDataSourceDestroy(s *terraform.State) error {
-	return nil
 }
 
 func testAccCheckAwsAmiDataSourceID(n string) resource.TestCheckFunc {
@@ -285,6 +281,23 @@ const testAccCheckAwsAmiDataSourceEmptyOwnersConfig = `
 data "aws_ami" "amazon_ami" {
   most_recent = true
   owners = [""]
+
+  # we need to test the owners = [""] for regressions but we want to filter the results
+  # beyond all public AWS AMIs :)
+  filter {
+    name = "owner-alias"
+    values = ["amazon"]
+  }
+
+  filter {
+    name = "name"
+    values = ["amzn-ami-minimal-hvm-*"]
+  }
+
+  filter {
+    name = "root-device-type"
+    values = ["ebs"]
+  }
 }
 `
 

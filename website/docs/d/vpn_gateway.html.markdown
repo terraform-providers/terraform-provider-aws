@@ -16,7 +16,7 @@ a specific VPN gateway.
 ```hcl
 data "aws_vpn_gateway" "selected" {
   filter {
-    name = "tag:Name"
+    name   = "tag:Name"
     values = ["vpn-gw"]
   }
 }

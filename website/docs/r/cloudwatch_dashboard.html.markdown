@@ -14,8 +14,9 @@ Provides a CloudWatch Dashboard resource.
 
 ```hcl
 resource "aws_cloudwatch_dashboard" "main" {
-   dashboard_name = "my-dashboard"
-   dashboard_body = <<EOF
+  dashboard_name = "my-dashboard"
+
+  dashboard_body = <<EOF
  {
    "widgets": [
        {

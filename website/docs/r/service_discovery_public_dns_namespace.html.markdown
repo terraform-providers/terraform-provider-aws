@@ -14,7 +14,7 @@ Provides a Service Discovery Public DNS Namespace resource.
 
 ```hcl
 resource "aws_service_discovery_public_dns_namespace" "example" {
-  name = "hoge.example.com"
+  name        = "hoge.example.com"
   description = "example"
 }
 ```
@@ -28,7 +28,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of a namespace.
 * `arn` - The ARN that Amazon Route 53 assigns to the namespace when you create it.

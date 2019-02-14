@@ -1,7 +1,7 @@
 ---
 layout: "aws"
 page_title: "AWS: aws_security_group"
-sidebar_current: "docs-aws-datasource-security-group"
+sidebar_current: "docs-aws-datasource-security-group-x"
 description: |-
     Provides details about a specific Security Group
 ---

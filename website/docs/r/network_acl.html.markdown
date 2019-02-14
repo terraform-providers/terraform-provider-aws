@@ -41,7 +41,7 @@ resource "aws_network_acl" "main" {
     to_port    = 80
   }
 
-  tags {
+  tags = {
     Name = "main"
   }
 }
@@ -73,13 +73,14 @@ valid network mask.
 * `icmp_type` - (Optional) The ICMP type to be used. Default 0.
 * `icmp_code` - (Optional) The ICMP type code to be used. Default 0.
 
-~> Note: For more information on ICMP types and codes, see here: http://www.nthelp.com/icmp.html
+~> Note: For more information on ICMP types and codes, see here: https://www.iana.org/assignments/icmp-parameters/icmp-parameters.xhtml
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the network ACL
+* `owner_id` - The ID of the AWS account that owns the network ACL.
 
 
 ## Import

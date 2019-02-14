@@ -3,12 +3,20 @@ layout: "aws"
 page_title: "AWS: aws_vpc_peering_connection"
 sidebar_current: "docs-aws-resource-vpc-peering"
 description: |-
-  Manage a VPC Peering Connection resource.
+  Provides a resource to manage a VPC peering connection.
 ---
 
 # aws_vpc_peering_connection
 
-Provides a resource to manage a VPC Peering Connection resource.
+Provides a resource to manage a VPC peering connection.
+
+~> **NOTE on VPC Peering Connections and VPC Peering Connection Options:** Terraform provides
+both a standalone [VPC Peering Connection Options](vpc_peering_options.html) and a VPC Peering Connection
+resource with `accepter` and `requester` attributes. Do not manage options for the same VPC peering
+connection in both a VPC Peering Connection resource and a VPC Peering Connection Options resource.
+Doing so will cause a conflict of options and will overwrite the options.
+Using a VPC Peering Connection Options resource decouples management of the connection options from
+management of the VPC Peering Connection and allows options to be set correctly in cross-account scenarios.
 
 -> **Note:** For cross-account (requester's AWS account differs from the accepter's AWS account) or inter-region
 VPC Peering Connections use the `aws_vpc_peering_connection` resource to manage the requester's side of the
@@ -51,7 +59,7 @@ resource "aws_vpc_peering_connection" "foo" {
   vpc_id        = "${aws_vpc.foo.id}"
   auto_accept   = true
 
-  tags {
+  tags = {
     Name = "VPC Peering between foo and bar"
   }
 }
@@ -118,8 +126,10 @@ must have support for the DNS hostnames enabled. This can be done using the [`en
 (vpc.html#enable_dns_hostnames) attribute in the [`aws_vpc`](vpc.html) resource. See [Using DNS with Your VPC]
 (http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/vpc-dns.html) user guide for more information.
 
-* `allow_remote_vpc_dns_resolution` - (Optional) Allow a local VPC to resolve public DNS hostnames to private
-IP addresses when queried from instances in the peer VPC.
+* `allow_remote_vpc_dns_resolution` - (Optional) Allow a local VPC to resolve public DNS hostnames to
+private IP addresses when queried from instances in the peer VPC. This is
+[not supported](https://docs.aws.amazon.com/vpc/latest/peering/modify-peering-connections.html) for
+inter-region VPC peering.
 * `allow_classic_link_to_remote_vpc` - (Optional) Allow a local linked EC2-Classic instance to communicate
 with instances in a peer VPC. This enables an outbound communication from the local ClassicLink connection
 to the remote VPC.
@@ -127,9 +137,18 @@ to the remote VPC.
 instance in a peer VPC. This enables an outbound communication from the local VPC to the remote ClassicLink
 connection.
 
+### Timeouts
+
+`aws_vpc_peering_connection` provides the following
+[Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+
+- `create` - (Default `1 minute`) Used for creating a peering connection
+- `update` - (Default `1 minute`) Used for peering connection modifications
+- `delete` - (Default `1 minute`) Used for destroying peering connections
+
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the VPC Peering Connection.
 * `accept_status` - The status of the VPC Peering Connection request.
@@ -145,7 +164,7 @@ or accept the connection manually using the AWS Management Console, AWS CLI, thr
 
 VPC Peering resources can be imported using the `vpc peering id`, e.g.
 
-```
+```sh
 $ terraform import aws_vpc_peering_connection.test_connection pcx-111aaa111
 ```
 

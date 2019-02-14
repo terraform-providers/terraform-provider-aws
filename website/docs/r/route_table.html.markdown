@@ -41,11 +41,11 @@ resource "aws_route_table" "r" {
   }
 
   route {
-    ipv6_cidr_block = "::/0"
+    ipv6_cidr_block        = "::/0"
     egress_only_gateway_id = "${aws_egress_only_internet_gateway.foo.id}"
   }
 
-  tags {
+  tags = {
     Name = "main"
   }
 }
@@ -60,33 +60,41 @@ The following arguments are supported:
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 * `propagating_vgws` - (Optional) A list of virtual gateways for propagation.
 
-Each route supports the following:
+### route Argument Reference
 
-* `cidr_block` - (Optional) The CIDR block of the route.
+One of the following destination arguments must be supplied:
+
+* `cidr_block` - (Required) The CIDR block of the route.
 * `ipv6_cidr_block` - Optional) The Ipv6 CIDR block of the route
-* `egress_only_gateway_id` - (Optional) The Egress Only Internet Gateway ID.
-* `gateway_id` - (Optional) The Internet Gateway ID.
-* `nat_gateway_id` - (Optional) The NAT Gateway ID.
-* `instance_id` - (Optional) The EC2 instance ID.
-* `vpc_peering_connection_id` - (Optional) The VPC Peering ID.
-* `network_interface_id` - (Optional) The ID of the elastic network interface (eni) to use.
 
-Each route must contain either a `gateway_id`, an `instance_id`, a `nat_gateway_id`, a
-`vpc_peering_connection_id` or a `network_interface_id`. Note that the default route, mapping
-the VPC's CIDR block to "local", is created implicitly and cannot be specified.
+One of the following target arguments must be supplied:
+
+* `egress_only_gateway_id` - (Optional) Identifier of a VPC Egress Only Internet Gateway.
+* `gateway_id` - (Optional) Identifier of a VPC internet gateway or a virtual private gateway.
+* `instance_id` - (Optional) Identifier of an EC2 instance.
+* `nat_gateway_id` - (Optional) Identifier of a VPC NAT gateway.
+* `network_interface_id` - (Optional) Identifier of an EC2 network interface.
+* `transit_gateway_id` - (Optional) Identifier of an EC2 Transit Gateway.
+* `vpc_peering_connection_id` - (Optional) Identifier of a VPC peering connection.
+
+Note that the default route, mapping the VPC's CIDR block to "local", is created implicitly and cannot be specified.
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 ~> **NOTE:** Only the target that is entered is exported as a readable
 attribute once the route resource is created.
 
 * `id` - The ID of the routing table
+* `owner_id` - The ID of the AWS account that owns the route table
 
 ## Import
 
-Route Tables can be imported using the `route table id`, e.g.
+~> **NOTE:** Importing this resource currently adds an `aws_route` resource to the state for each route, in addition to adding the `aws_route_table` resource. If you plan to apply the imported state, avoid the deletion of actual routes by not using in-line routes in your configuration and by naming `aws_route` resources after the `aws_route_table`. For example, if your route table is `aws_route_table.rt`, name routes as `aws_route.rt`, `aws_route.rt-1` and so forth. The behavior of adding `aws_route` resources with the `aws_route_table` resource will be removed in the next major version.
+
+Route Tables can be imported using the route table `id`. For example, to import
+route table `rtb-4e616f6d69`, use this command:
 
 ```
-$ terraform import aws_route_table.public_rt rtb-22574640
+$ terraform import aws_route_table.public_rt rtb-4e616f6d69
 ```

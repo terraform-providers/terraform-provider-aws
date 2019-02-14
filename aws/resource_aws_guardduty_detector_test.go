@@ -24,6 +24,7 @@ func testAccAwsGuardDutyDetector_basic(t *testing.T) {
 					testAccCheckAwsGuardDutyDetectorExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "account_id"),
 					resource.TestCheckResourceAttr(resourceName, "enable", "true"),
+					resource.TestCheckResourceAttr(resourceName, "finding_publishing_frequency", "SIX_HOURS"),
 				),
 			},
 			{
@@ -40,6 +41,13 @@ func testAccAwsGuardDutyDetector_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "enable", "true"),
 				),
 			},
+			{
+				Config: testAccGuardDutyDetectorConfig_basic4,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsGuardDutyDetectorExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "finding_publishing_frequency", "FIFTEEN_MINUTES"),
+				),
+			},
 		},
 	})
 }
@@ -52,11 +60,11 @@ func testAccAwsGuardDutyDetector_import(t *testing.T) {
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsGuardDutyDetectorDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: testAccGuardDutyDetectorConfig_basic1,
 			},
 
-			resource.TestStep{
+			{
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
@@ -113,4 +121,9 @@ resource "aws_guardduty_detector" "test" {
 const testAccGuardDutyDetectorConfig_basic3 = `
 resource "aws_guardduty_detector" "test" {
   enable = true
+}`
+
+const testAccGuardDutyDetectorConfig_basic4 = `
+resource "aws_guardduty_detector" "test" {
+  finding_publishing_frequency = "FIFTEEN_MINUTES"
 }`

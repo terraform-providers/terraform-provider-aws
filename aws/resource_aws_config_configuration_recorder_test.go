@@ -2,6 +2,7 @@ package aws
 
 import (
 	"fmt"
+	"log"
 	"regexp"
 	"testing"
 
@@ -11,6 +12,56 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 )
+
+func init() {
+	resource.AddTestSweepers("aws_config_configuration_recorder", &resource.Sweeper{
+		Name: "aws_config_configuration_recorder",
+		F:    testSweepConfigConfigurationRecorder,
+	})
+}
+
+func testSweepConfigConfigurationRecorder(region string) error {
+	client, err := sharedClientForRegion(region)
+	if err != nil {
+		return fmt.Errorf("error getting client: %s", err)
+	}
+	conn := client.(*AWSClient).configconn
+
+	req := &configservice.DescribeConfigurationRecordersInput{}
+	resp, err := conn.DescribeConfigurationRecorders(req)
+	if err != nil {
+		if testSweepSkipSweepError(err) {
+			log.Printf("[WARN] Skipping Config Configuration Recorders sweep for %s: %s", region, err)
+			return nil
+		}
+		return fmt.Errorf("Error describing Configuration Recorders: %s", err)
+	}
+
+	if len(resp.ConfigurationRecorders) == 0 {
+		log.Print("[DEBUG] No AWS Config Configuration Recorder to sweep")
+		return nil
+	}
+
+	for _, cr := range resp.ConfigurationRecorders {
+		_, err := conn.StopConfigurationRecorder(&configservice.StopConfigurationRecorderInput{
+			ConfigurationRecorderName: cr.Name,
+		})
+		if err != nil {
+			return err
+		}
+
+		_, err = conn.DeleteConfigurationRecorder(&configservice.DeleteConfigurationRecorderInput{
+			ConfigurationRecorderName: cr.Name,
+		})
+		if err != nil {
+			return fmt.Errorf(
+				"Error deleting Configuration Recorder (%s): %s",
+				*cr.Name, err)
+		}
+	}
+
+	return nil
+}
 
 func testAccConfigConfigurationRecorder_basic(t *testing.T) {
 	var cr configservice.ConfigurationRecorder
@@ -79,11 +130,11 @@ func testAccConfigConfigurationRecorder_importBasic(t *testing.T) {
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckConfigConfigurationRecorderDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: testAccConfigConfigurationRecorderConfig_basic(rInt),
 			},
 
-			resource.TestStep{
+			{
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,

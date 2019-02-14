@@ -12,7 +12,7 @@ import (
 )
 
 func TestAccAWSMediaStoreContainer_basic(t *testing.T) {
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsMediaStoreContainerDestroy,
@@ -22,6 +22,26 @@ func TestAccAWSMediaStoreContainer_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsMediaStoreContainerExists("aws_media_store_container.test"),
 				),
+			},
+		},
+	})
+}
+
+func TestAccAWSMediaStoreContainer_import(t *testing.T) {
+	resourceName := "aws_media_store_container.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAwsMediaStoreContainerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMediaStoreContainerConfig(acctest.RandString(5)),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -56,12 +76,20 @@ func testAccCheckAwsMediaStoreContainerDestroy(s *terraform.State) error {
 
 func testAccCheckAwsMediaStoreContainerExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		_, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[name]
 		if !ok {
 			return fmt.Errorf("Not found: %s", name)
 		}
 
-		return nil
+		conn := testAccProvider.Meta().(*AWSClient).mediastoreconn
+
+		input := &mediastore.DescribeContainerInput{
+			ContainerName: aws.String(rs.Primary.ID),
+		}
+
+		_, err := conn.DescribeContainer(input)
+
+		return err
 	}
 }
 

@@ -17,22 +17,27 @@ import (
 
 func TestAccAWSAMI_basic(t *testing.T) {
 	var ami ec2.Image
-	rInt := acctest.RandInt()
+	resourceName := "aws_ami.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAmiDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAmiConfig_basic(rInt),
+				Config: testAccAmiConfig_basic(rName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAmiExists("aws_ami.foo", &ami),
-					resource.TestCheckResourceAttr(
-						"aws_ami.foo", "name", fmt.Sprintf("tf-testing-%d", rInt)),
-					resource.TestMatchResourceAttr(
-						"aws_ami.foo", "root_snapshot_id", regexp.MustCompile("^snap-")),
+					testAccCheckAmiExists(resourceName, &ami),
+					resource.TestCheckResourceAttr(resourceName, "ena_support", "true"),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestMatchResourceAttr(resourceName, "root_snapshot_id", regexp.MustCompile("^snap-")),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -41,7 +46,8 @@ func TestAccAWSAMI_basic(t *testing.T) {
 func TestAccAWSAMI_snapshotSize(t *testing.T) {
 	var ami ec2.Image
 	var bd ec2.BlockDeviceMapping
-	rInt := acctest.RandInt()
+	resourceName := "aws_ami.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	expectedDevice := &ec2.EbsBlockDevice{
 		DeleteOnTermination: aws.Bool(true),
@@ -51,22 +57,25 @@ func TestAccAWSAMI_snapshotSize(t *testing.T) {
 		VolumeType:          aws.String("standard"),
 	}
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAmiDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAmiConfig_snapshotSize(rInt),
+				Config: testAccAmiConfig_snapshotSize(rName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAmiExists("aws_ami.foo", &ami),
+					testAccCheckAmiExists(resourceName, &ami),
 					testAccCheckAmiBlockDevice(&ami, &bd, "/dev/sda1"),
 					testAccCheckAmiEbsBlockDevice(&bd, expectedDevice),
-					resource.TestCheckResourceAttr(
-						"aws_ami.foo", "name", fmt.Sprintf("tf-testing-%d", rInt)),
-					resource.TestCheckResourceAttr(
-						"aws_ami.foo", "architecture", "x86_64"),
+					resource.TestCheckResourceAttr(resourceName, "architecture", "x86_64"),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -203,14 +212,14 @@ func testAccCheckAmiEbsBlockDevice(bd *ec2.BlockDeviceMapping, ed *ec2.EbsBlockD
 	}
 }
 
-func testAccAmiConfig_basic(rInt int) string {
+func testAccAmiConfig_basic(rName string) string {
 	return fmt.Sprintf(`
 data "aws_availability_zones" "available" {}
 
 resource "aws_ebs_volume" "foo" {
   availability_zone = "${data.aws_availability_zones.available.names[0]}"
   size = 8
-  tags {
+  tags = {
     Name = "testAccAmiConfig_basic"
   }
 }
@@ -218,31 +227,33 @@ resource "aws_ebs_volume" "foo" {
 resource "aws_ebs_snapshot" "foo" {
   volume_id = "${aws_ebs_volume.foo.id}"
 
-  tags {
+  tags = {
     Name = "testAccAmiConfig_basic"
   }
 }
 
-resource "aws_ami" "foo" {
-  name = "tf-testing-%d"
+resource "aws_ami" "test" {
+  ena_support         = true
+  name                = %q
+  root_device_name    = "/dev/sda1"
   virtualization_type = "hvm"
-  root_device_name = "/dev/sda1"
+
   ebs_block_device {
     device_name = "/dev/sda1"
     snapshot_id = "${aws_ebs_snapshot.foo.id}"
   }
 }
-	`, rInt)
+`, rName)
 }
 
-func testAccAmiConfig_snapshotSize(rInt int) string {
+func testAccAmiConfig_snapshotSize(rName string) string {
 	return fmt.Sprintf(`
 data "aws_availability_zones" "available" {}
 
 resource "aws_ebs_volume" "foo" {
   availability_zone = "${data.aws_availability_zones.available.names[0]}"
   size = 20
-  tags {
+  tags = {
     Name = "testAccAmiConfig_snapshotSize"
   }
 }
@@ -250,19 +261,20 @@ resource "aws_ebs_volume" "foo" {
 resource "aws_ebs_snapshot" "foo" {
   volume_id = "${aws_ebs_volume.foo.id}"
 
-  tags {
+  tags = {
     Name = "TestAccAWSAMI_snapshotSize"
   }
 }
 
-resource "aws_ami" "foo" {
-  name = "tf-testing-%d"
+resource "aws_ami" "test" {
+  name                = %q
+  root_device_name    = "/dev/sda1"
   virtualization_type = "hvm"
-  root_device_name = "/dev/sda1"
+
   ebs_block_device {
     device_name = "/dev/sda1"
     snapshot_id = "${aws_ebs_snapshot.foo.id}"
   }
 }
-	`, rInt)
+`, rName)
 }

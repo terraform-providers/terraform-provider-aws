@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/rds"
+
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -43,11 +43,12 @@ func resourceAwsDbOptionGroup() *schema.Resource {
 				ValidateFunc:  validateDbOptionGroupName,
 			},
 			"name_prefix": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ForceNew:     true,
-				ValidateFunc: validateDbOptionGroupNamePrefix,
+				Type:          schema.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ForceNew:      true,
+				ConflictsWith: []string{"name"},
+				ValidateFunc:  validateDbOptionGroupNamePrefix,
 			},
 			"engine_name": {
 				Type:     schema.TypeString,
@@ -107,6 +108,10 @@ func resourceAwsDbOptionGroup() *schema.Resource {
 							Elem:     &schema.Schema{Type: schema.TypeString},
 							Set:      schema.HashString,
 						},
+						"version": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
 					},
 				},
 				Set: resourceAwsDbOptionHash,
@@ -139,13 +144,16 @@ func resourceAwsDbOptionGroupCreate(d *schema.ResourceData, meta interface{}) er
 	}
 
 	log.Printf("[DEBUG] Create DB Option Group: %#v", createOpts)
-	_, err := rdsconn.CreateOptionGroup(createOpts)
+	output, err := rdsconn.CreateOptionGroup(createOpts)
 	if err != nil {
 		return fmt.Errorf("Error creating DB Option Group: %s", err)
 	}
 
 	d.SetId(strings.ToLower(groupName))
 	log.Printf("[INFO] DB Option Group ID: %s", d.Id())
+
+	// Set for update
+	d.Set("arn", output.OptionGroup.OptionGroupArn)
 
 	return resourceAwsDbOptionGroupUpdate(d, meta)
 }
@@ -158,14 +166,14 @@ func resourceAwsDbOptionGroupRead(d *schema.ResourceData, meta interface{}) erro
 
 	log.Printf("[DEBUG] Describe DB Option Group: %#v", params)
 	options, err := rdsconn.DescribeOptionGroups(params)
+
+	if isAWSErr(err, rds.ErrCodeOptionGroupNotFoundFault, "") {
+		log.Printf("[WARN] RDS Option Group (%s) not found, removing from state", d.Id())
+		d.SetId("")
+		return nil
+	}
+
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			if "OptionGroupNotFoundFault" == awsErr.Code() {
-				d.SetId("")
-				log.Printf("[DEBUG] DB Option Group (%s) not found", d.Get("name").(string))
-				return nil
-			}
-		}
 		return fmt.Errorf("Error Describing DB Option Group: %s", err)
 	}
 
@@ -178,40 +186,31 @@ func resourceAwsDbOptionGroupRead(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	if option == nil {
-		return fmt.Errorf("Unable to find Option Group: %#v", options.OptionGroupsList)
+		log.Printf("[WARN] RDS Option Group (%s) not found, removing from state", d.Id())
+		d.SetId("")
+		return nil
 	}
 
+	d.Set("arn", option.OptionGroupArn)
 	d.Set("name", option.OptionGroupName)
 	d.Set("major_engine_version", option.MajorEngineVersion)
 	d.Set("engine_name", option.EngineName)
 	d.Set("option_group_description", option.OptionGroupDescription)
-	if len(option.Options) != 0 {
-		d.Set("option", flattenOptions(option.Options))
+
+	if err := d.Set("option", flattenOptions(option.Options, expandOptionConfiguration(d.Get("option").(*schema.Set).List()))); err != nil {
+		return fmt.Errorf("error setting option: %s", err)
 	}
 
-	optionGroup := options.OptionGroupsList[0]
-	arn, err := buildRDSOptionGroupARN(d.Id(), meta.(*AWSClient).partition, meta.(*AWSClient).accountid, meta.(*AWSClient).region)
+	resp, err := rdsconn.ListTagsForResource(&rds.ListTagsForResourceInput{
+		ResourceName: option.OptionGroupArn,
+	})
+
 	if err != nil {
-		name := "<empty>"
-		if optionGroup.OptionGroupName != nil && *optionGroup.OptionGroupName != "" {
-			name = *optionGroup.OptionGroupName
-		}
-		log.Printf("[DEBUG] Error building ARN for DB Option Group, not setting Tags for Option Group %s", name)
-	} else {
-		d.Set("arn", arn)
-		resp, err := rdsconn.ListTagsForResource(&rds.ListTagsForResourceInput{
-			ResourceName: aws.String(arn),
-		})
+		return fmt.Errorf("error listing tags for RDS Option Group (%s): %s", d.Id(), err)
+	}
 
-		if err != nil {
-			log.Printf("[DEBUG] Error retrieving tags for ARN: %s", arn)
-		}
-
-		var dt []*rds.Tag
-		if len(resp.TagList) > 0 {
-			dt = resp.TagList
-		}
-		d.Set("tags", tagsToMapRDS(dt))
+	if err := d.Set("tags", tagsToMapRDS(resp.TagList)); err != nil {
+		return fmt.Errorf("error setting tags: %s", err)
 	}
 
 	return nil
@@ -239,57 +238,61 @@ func resourceAwsDbOptionGroupUpdate(d *schema.ResourceData, meta interface{}) er
 
 		os := o.(*schema.Set)
 		ns := n.(*schema.Set)
-		addOptions, addErr := expandOptionConfiguration(ns.Difference(os).List())
-		if addErr != nil {
-			return addErr
-		}
+		optionsToInclude := expandOptionConfiguration(ns.Difference(os).List())
+		optionsToIncludeNames := flattenOptionNames(ns.Difference(os).List())
+		optionsToRemove := []*string{}
+		optionsToRemoveNames := flattenOptionNames(os.Difference(ns).List())
 
-		addingOptionNames, err := flattenOptionNames(ns.Difference(os).List())
-		if err != nil {
-			return err
-		}
-
-		removeOptions := []*string{}
-		opts, err := flattenOptionNames(os.Difference(ns).List())
-		if err != nil {
-			return err
-		}
-
-		for _, optionName := range opts {
-			if optionInList(*optionName, addingOptionNames) {
+		for _, optionToRemoveName := range optionsToRemoveNames {
+			if optionInList(*optionToRemoveName, optionsToIncludeNames) {
 				continue
 			}
-			removeOptions = append(removeOptions, optionName)
+			optionsToRemove = append(optionsToRemove, optionToRemoveName)
 		}
 
-		modifyOpts := &rds.ModifyOptionGroupInput{
-			OptionGroupName:  aws.String(d.Id()),
-			ApplyImmediately: aws.Bool(true),
-		}
+		// Ensure there is actually something to update
+		// InvalidParameterValue: At least one option must be added, modified, or removed.
+		if len(optionsToInclude) > 0 || len(optionsToRemove) > 0 {
+			modifyOpts := &rds.ModifyOptionGroupInput{
+				OptionGroupName:  aws.String(d.Id()),
+				ApplyImmediately: aws.Bool(true),
+			}
 
-		if len(addOptions) > 0 {
-			modifyOpts.OptionsToInclude = addOptions
-		}
+			if len(optionsToInclude) > 0 {
+				modifyOpts.OptionsToInclude = optionsToInclude
+			}
 
-		if len(removeOptions) > 0 {
-			modifyOpts.OptionsToRemove = removeOptions
-		}
+			if len(optionsToRemove) > 0 {
+				modifyOpts.OptionsToRemove = optionsToRemove
+			}
 
-		log.Printf("[DEBUG] Modify DB Option Group: %s", modifyOpts)
-		_, err = rdsconn.ModifyOptionGroup(modifyOpts)
-		if err != nil {
-			return fmt.Errorf("Error modifying DB Option Group: %s", err)
-		}
-		d.SetPartial("option")
+			log.Printf("[DEBUG] Modify DB Option Group: %s", modifyOpts)
 
+			err := resource.Retry(2*time.Minute, func() *resource.RetryError {
+				var err error
+
+				_, err = rdsconn.ModifyOptionGroup(modifyOpts)
+				if err != nil {
+					// InvalidParameterValue: IAM role ARN value is invalid or does not include the required permissions for: SQLSERVER_BACKUP_RESTORE
+					if isAWSErr(err, "InvalidParameterValue", "IAM role ARN value is invalid or does not include the required permissions") {
+						return resource.RetryableError(err)
+					}
+					return resource.NonRetryableError(err)
+				}
+				return nil
+			})
+
+			if err != nil {
+				return fmt.Errorf("Error modifying DB Option Group: %s", err)
+			}
+			d.SetPartial("option")
+		}
 	}
 
-	if arn, err := buildRDSOptionGroupARN(d.Id(), meta.(*AWSClient).partition, meta.(*AWSClient).accountid, meta.(*AWSClient).region); err == nil {
-		if err := setTagsRDS(rdsconn, d, arn); err != nil {
-			return err
-		} else {
-			d.SetPartial("tags")
-		}
+	if err := setTagsRDS(rdsconn, d, d.Get("arn").(string)); err != nil {
+		return err
+	} else {
+		d.SetPartial("tags")
 	}
 
 	return resourceAwsDbOptionGroupRead(d, meta)
@@ -306,11 +309,9 @@ func resourceAwsDbOptionGroupDelete(d *schema.ResourceData, meta interface{}) er
 	ret := resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
 		_, err := rdsconn.DeleteOptionGroup(deleteOpts)
 		if err != nil {
-			if awsErr, ok := err.(awserr.Error); ok {
-				if awsErr.Code() == "InvalidOptionGroupStateFault" {
-					log.Printf("[DEBUG] AWS believes the RDS Option Group is still in use, retrying")
-					return resource.RetryableError(awsErr)
-				}
+			if isAWSErr(err, rds.ErrCodeInvalidOptionGroupStateFault, "") {
+				log.Printf("[DEBUG] AWS believes the RDS Option Group is still in use, retrying")
+				return resource.RetryableError(err)
 			}
 			return resource.NonRetryableError(err)
 		}
@@ -322,14 +323,14 @@ func resourceAwsDbOptionGroupDelete(d *schema.ResourceData, meta interface{}) er
 	return nil
 }
 
-func flattenOptionNames(configured []interface{}) ([]*string, error) {
+func flattenOptionNames(configured []interface{}) []*string {
 	var optionNames []*string
 	for _, pRaw := range configured {
 		data := pRaw.(map[string]interface{})
 		optionNames = append(optionNames, aws.String(data["option_name"].(string)))
 	}
 
-	return optionNames, nil
+	return optionNames
 }
 
 func resourceAwsDbOptionHash(v interface{}) int {
@@ -353,16 +354,10 @@ func resourceAwsDbOptionHash(v interface{}) int {
 	for _, sgRaw := range m["db_security_group_memberships"].(*schema.Set).List() {
 		buf.WriteString(fmt.Sprintf("%s-", sgRaw.(string)))
 	}
-	return hashcode.String(buf.String())
-}
 
-func buildRDSOptionGroupARN(identifier, partition, accountid, region string) (string, error) {
-	if partition == "" {
-		return "", fmt.Errorf("Unable to construct RDS Option Group ARN because of missing AWS partition")
+	if v, ok := m["version"]; ok && v.(string) != "" {
+		buf.WriteString(fmt.Sprintf("%s-", v.(string)))
 	}
-	if accountid == "" {
-		return "", fmt.Errorf("Unable to construct RDS Option Group ARN because of missing AWS Account ID")
-	}
-	arn := fmt.Sprintf("arn:%s:rds:%s:%s:og:%s", partition, region, accountid, identifier)
-	return arn, nil
+
+	return hashcode.String(buf.String())
 }

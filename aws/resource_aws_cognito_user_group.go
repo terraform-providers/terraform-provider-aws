@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cognitoidentityprovider"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 )
 
 func resourceAwsCognitoUserGroup() *schema.Resource {
@@ -27,7 +28,7 @@ func resourceAwsCognitoUserGroup() *schema.Resource {
 			"description": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateMaxLength(2048),
+				ValidateFunc: validation.StringLenBetween(0, 2048),
 			},
 			"name": {
 				Type:         schema.TypeString,
@@ -130,7 +131,7 @@ func resourceAwsCognitoUserGroupUpdate(d *schema.ResourceData, meta interface{})
 	}
 
 	if d.HasChange("role_arn") {
-		params.RoleArn = aws.String(d.Get("description").(string))
+		params.RoleArn = aws.String(d.Get("role_arn").(string))
 	}
 
 	log.Print("[DEBUG] Updating Cognito User Group")

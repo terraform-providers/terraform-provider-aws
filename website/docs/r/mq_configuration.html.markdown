@@ -20,7 +20,8 @@ resource "aws_mq_configuration" "example" {
   name           = "example"
   engine_type    = "ActiveMQ"
   engine_version = "5.15.0"
-  data           = <<DATA
+
+  data = <<DATA
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <broker xmlns="http://activemq.apache.org/schema/core">
   <plugins>
@@ -44,10 +45,11 @@ The following arguments are supported:
 * `engine_type` - (Required) The type of broker engine.
 * `engine_version` - (Required) The version of the broker engine.
 * `name` - (Required) The name of the configuration
+* `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The unique ID that Amazon MQ generates for the configuration.
 * `arn` - The ARN of the configuration.

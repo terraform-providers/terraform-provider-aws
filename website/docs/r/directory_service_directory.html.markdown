@@ -28,7 +28,7 @@ resource "aws_directory_service_directory" "bar" {
     subnet_ids = ["${aws_subnet.foo.id}", "${aws_subnet.bar.id}"]
   }
 
-  tags {
+  tags = {
     Project = "foo"
   }
 }
@@ -64,7 +64,7 @@ resource "aws_directory_service_directory" "bar" {
     subnet_ids = ["${aws_subnet.foo.id}", "${aws_subnet.bar.id}"]
   }
 
-  tags {
+  tags = {
     Project = "foo"
   }
 }
@@ -97,7 +97,7 @@ resource "aws_directory_service_directory" "connector" {
 
   connect_settings {
     customer_dns_ips  = ["A.B.C.D"]
-    customer_username = "Administrator"
+    customer_username = "Admin"
     subnet_ids        = ["${aws_subnet.foo.id}", "${aws_subnet.bar.id}"]
     vpc_id            = "${aws_vpc.main.id}"
   }
@@ -151,12 +151,12 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The directory identifier.
 * `access_url` - The access URL for the directory, such as `http://alias.awsapps.com`.
 * `dns_ip_addresses` - A list of IP addresses of the DNS servers for the directory or connector.
-* `security_group_id` - The ID of the security group created by the directory (`SimpleAD` or `MicrosoftAD` only).
+* `security_group_id` - The ID of the security group created by the directory.
 
 
 ## Import

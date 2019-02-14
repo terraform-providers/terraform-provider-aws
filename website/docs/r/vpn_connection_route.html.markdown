@@ -49,7 +49,7 @@ The following arguments are supported:
 
 ## Attribute Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `destination_cidr_block` - The CIDR block associated with the local subnet of the customer network.
 * `vpn_connection_id` - The ID of the VPN connection.

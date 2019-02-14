@@ -8,7 +8,7 @@
     "portMappings": [
       {
         "containerPort": 2368,
-        "hostPort": 8080
+        "hostPort": 0
       }
     ],
     "logConfiguration": {

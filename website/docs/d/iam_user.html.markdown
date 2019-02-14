@@ -27,7 +27,7 @@ data "aws_iam_user" "example" {
 ## Attributes Reference
 
 * `arn` - The Amazon Resource Name (ARN) assigned by AWS for this user.
-
 * `path` - Path in which this user was created.
-
+* `permissions_boundary` - The ARN of the policy that is used to set the permissions boundary for the user.
 * `user_id` - The unique ID assigned by AWS for this user.
+* `user_name` - The name associated to this User

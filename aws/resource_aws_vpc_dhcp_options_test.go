@@ -11,15 +11,35 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
+func TestAccAWSDHCPOptions_importBasic(t *testing.T) {
+	resourceName := "aws_vpc_dhcp_options.foo"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDHCPOptionsConfig,
+			},
+
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAWSDHCPOptions_basic(t *testing.T) {
 	var d ec2.DhcpOptions
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckDHCPOptionsDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: testAccDHCPOptionsConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDHCPOptionsExists("aws_vpc_dhcp_options.foo", &d),
@@ -30,6 +50,7 @@ func TestAccAWSDHCPOptions_basic(t *testing.T) {
 					resource.TestCheckResourceAttr("aws_vpc_dhcp_options.foo", "netbios_name_servers.0", "127.0.0.1"),
 					resource.TestCheckResourceAttr("aws_vpc_dhcp_options.foo", "netbios_node_type", "2"),
 					resource.TestCheckResourceAttr("aws_vpc_dhcp_options.foo", "tags.Name", "foo-name"),
+					testAccCheckResourceAttrAccountID("aws_vpc_dhcp_options.foo", "owner_id"),
 				),
 			},
 		},
@@ -39,12 +60,12 @@ func TestAccAWSDHCPOptions_basic(t *testing.T) {
 func TestAccAWSDHCPOptions_deleteOptions(t *testing.T) {
 	var d ec2.DhcpOptions
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckDHCPOptionsDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: testAccDHCPOptionsConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDHCPOptionsExists("aws_vpc_dhcp_options.foo", &d),
@@ -152,7 +173,7 @@ resource "aws_vpc_dhcp_options" "foo" {
 	netbios_name_servers = ["127.0.0.1"]
 	netbios_node_type = 2
 
-	tags {
+	tags = {
 		Name = "foo-name"
 	}
 }

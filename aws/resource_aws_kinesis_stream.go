@@ -66,10 +66,7 @@ func resourceAwsKinesisStream() *schema.Resource {
 					kinesis.EncryptionTypeKms,
 				}, true),
 				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-					if strings.ToLower(old) == strings.ToLower(new) {
-						return true
-					}
-					return false
+					return strings.EqualFold(old, new)
 				},
 			},
 
@@ -171,7 +168,7 @@ func resourceAwsKinesisStreamRead(d *schema.ResourceData, meta interface{}) erro
 				d.SetId("")
 				return nil
 			}
-			return fmt.Errorf("[WARN] Error reading Kinesis Stream: \"%s\", code: \"%s\"", awsErr.Message(), awsErr.Code())
+			return fmt.Errorf("Error reading Kinesis Stream: \"%s\", code: \"%s\"", awsErr.Message(), awsErr.Code())
 		}
 		return err
 
@@ -229,7 +226,6 @@ func resourceAwsKinesisStreamDelete(d *schema.ResourceData, meta interface{}) er
 			sn, err)
 	}
 
-	d.SetId("")
 	return nil
 }
 
@@ -456,7 +452,12 @@ func readKinesisStreamState(conn *kinesis.Kinesis, sn string) (*kinesisStreamSta
 		state.openShards = append(state.openShards, flattenShards(openShards(page.StreamDescription.Shards))...)
 		state.closedShards = append(state.closedShards, flattenShards(closedShards(page.StreamDescription.Shards))...)
 		state.shardLevelMetrics = flattenKinesisShardLevelMetrics(page.StreamDescription.EnhancedMonitoring)
-		state.encryptionType = aws.StringValue(page.StreamDescription.EncryptionType)
+		// EncryptionType can be nil in certain APIs, e.g. AWS China
+		if page.StreamDescription.EncryptionType != nil {
+			state.encryptionType = aws.StringValue(page.StreamDescription.EncryptionType)
+		} else {
+			state.encryptionType = kinesis.EncryptionTypeNone
+		}
 		state.keyId = aws.StringValue(page.StreamDescription.KeyId)
 		return !last
 	})

@@ -16,7 +16,7 @@ Provides a CloudWatch Log Group resource.
 resource "aws_cloudwatch_log_group" "yada" {
   name = "Yada"
 
-  tags {
+  tags = {
     Environment = "production"
     Application = "serviceA"
   }
@@ -38,7 +38,7 @@ permissions for the CMK whenever the encrypted data is requested.
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `arn` - The Amazon Resource Name (ARN) specifying the log group.
 

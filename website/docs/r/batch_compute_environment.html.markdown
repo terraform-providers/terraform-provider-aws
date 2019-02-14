@@ -21,6 +21,7 @@ For information about compute environment, see [Compute Environments][2] .
 ```hcl
 resource "aws_iam_role" "ecs_instance_role" {
   name = "ecs_instance_role"
+
   assume_role_policy = <<EOF
 {
     "Version": "2012-10-17",
@@ -43,12 +44,13 @@ resource "aws_iam_role_policy_attachment" "ecs_instance_role" {
 }
 
 resource "aws_iam_instance_profile" "ecs_instance_role" {
-  name  = "ecs_instance_role"
+  name = "ecs_instance_role"
   role = "${aws_iam_role.ecs_instance_role.name}"
 }
 
 resource "aws_iam_role" "aws_batch_service_role" {
   name = "aws_batch_service_role"
+
   assume_role_policy = <<EOF
 {
     "Version": "2012-10-17",
@@ -79,30 +81,37 @@ resource "aws_vpc" "sample" {
 }
 
 resource "aws_subnet" "sample" {
-  vpc_id = "${aws_vpc.sample.id}"
+  vpc_id     = "${aws_vpc.sample.id}"
   cidr_block = "10.1.1.0/24"
 }
 
 resource "aws_batch_compute_environment" "sample" {
   compute_environment_name = "sample"
+
   compute_resources {
     instance_role = "${aws_iam_instance_profile.ecs_instance_role.arn}"
+
     instance_type = [
       "c4.large",
     ]
+
     max_vcpus = 16
     min_vcpus = 0
+
     security_group_ids = [
-      "${aws_security_group.sample.id}"
+      "${aws_security_group.sample.id}",
     ]
+
     subnets = [
-      "${aws_subnet.sample.id}"
+      "${aws_subnet.sample.id}",
     ]
+
     type = "EC2"
   }
+
   service_role = "${aws_iam_role.aws_batch_service_role.arn}"
-  type = "MANAGED"
-  depends_on = ["aws_iam_role_policy_attachment.aws_batch_service_role"]
+  type         = "MANAGED"
+  depends_on   = ["aws_iam_role_policy_attachment.aws_batch_service_role"]
 }
 ```
 
@@ -116,7 +125,7 @@ resource "aws_batch_compute_environment" "sample" {
 
 **compute_resources** is a child block with a single argument:
 
-* `bid_percentage` - (Optional) The minimum percentage that a Spot Instance price must be when compared with the On-Demand price for that instance type before instances are launched. For example, if your bid percentage is 20%, then the Spot price must be below 20% of the current On-Demand price for that EC2 instance. This parameter is required for SPOT compute environments.
+* `bid_percentage` - (Optional) Integer of minimum percentage that a Spot Instance price must be when compared with the On-Demand price for that instance type before instances are launched. For example, if your bid percentage is 20% (`20`), then the Spot price must be below 20% of the current On-Demand price for that EC2 instance. This parameter is required for SPOT compute environments.
 * `desired_vcpus` - (Optional) The desired number of EC2 vCPUS in the compute environment.
 * `ec2_key_pair` - (Optional) The EC2 key pair that is used for instances launched in the compute environment.
 * `image_id` - (Optional) The Amazon Machine Image (AMI) ID used for instances launched in the compute environment.

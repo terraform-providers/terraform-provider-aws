@@ -88,7 +88,7 @@ To set your attributes, please see the [AWS Elastic Load Balancing Developer Gui
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the policy.
 * `name` - The name of the stickiness policy.

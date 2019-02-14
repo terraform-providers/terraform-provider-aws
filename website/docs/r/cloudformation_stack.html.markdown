@@ -16,7 +16,7 @@ Provides a CloudFormation Stack resource.
 resource "aws_cloudformation_stack" "network" {
   name = "networking-stack"
 
-  parameters {
+  parameters = {
     VPCCidr = "10.0.0.0/16"
   }
 
@@ -30,7 +30,7 @@ resource "aws_cloudformation_stack" "network" {
     }
   },
   "Resources" : {
-    "my-vpc": {
+    "myVpc": {
       "Type" : "AWS::EC2::VPC",
       "Properties" : {
         "CidrBlock" : { "Ref" : "VPCCidr" },
@@ -59,7 +59,7 @@ The following arguments are supported:
 * `notification_arns` - (Optional) A list of SNS topic ARNs to publish stack related events.
 * `on_failure` - (Optional) Action to be taken if stack creation fails. This must be
   one of: `DO_NOTHING`, `ROLLBACK`, or `DELETE`. Conflicts with `disable_rollback`.
-* `parameters` - (Optional) A list of Parameter structures that specify input parameters for the stack.
+* `parameters` - (Optional) A map of Parameter structures that specify input parameters for the stack.
 * `policy_body` - (Optional) Structure containing the stack policy body.
   Conflicts w/ `policy_url`.
 * `policy_url` - (Optional) Location of a file containing the stack policy.
@@ -70,7 +70,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - A unique identifier of the stack.
 * `outputs` - A map of outputs from the stack.

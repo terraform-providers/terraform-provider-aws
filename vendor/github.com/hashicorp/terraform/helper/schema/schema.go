@@ -199,7 +199,7 @@ type Schema struct {
 	Sensitive bool
 }
 
-// SchemaDiffSuppresFunc is a function which can be used to determine
+// SchemaDiffSuppressFunc is a function which can be used to determine
 // whether a detected diff on a schema element is "valid" or not, and
 // suppress it from the plan if necessary.
 //
@@ -395,7 +395,7 @@ func (m *schemaMap) DeepCopy() schemaMap {
 	if err != nil {
 		panic(err)
 	}
-	return copy.(schemaMap)
+	return *copy.(*schemaMap)
 }
 
 // Diff returns the diff for a resource given the schema map,
@@ -1270,9 +1270,9 @@ func (m schemaMap) validateConflictingAttributes(
 	}
 
 	for _, conflicting_key := range schema.ConflictsWith {
-		if value, ok := c.Get(conflicting_key); ok {
+		if _, ok := c.Get(conflicting_key); ok {
 			return fmt.Errorf(
-				"%q: conflicts with %s (%#v)", k, conflicting_key, value)
+				"%q: conflicts with %s", k, conflicting_key)
 		}
 	}
 

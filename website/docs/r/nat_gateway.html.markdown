@@ -26,7 +26,7 @@ resource "aws_nat_gateway" "gw" {
   allocation_id = "${aws_eip.nat.id}"
   subnet_id     = "${aws_subnet.public.id}"
 
-  tags {
+  tags = {
     Name = "gw NAT"
   }
 }
@@ -55,7 +55,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the NAT Gateway.
 * `allocation_id` - The Allocation ID of the Elastic IP address for the gateway.

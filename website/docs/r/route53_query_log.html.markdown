@@ -53,6 +53,8 @@ data "aws_iam_policy_document" "route53-query-logging-policy" {
 }
 
 resource "aws_cloudwatch_log_resource_policy" "route53-query-logging-policy" {
+  provider = "aws.us-east-1"
+
   policy_document = "${data.aws_iam_policy_document.route53-query-logging-policy.json}"
   policy_name     = "route53-query-logging-policy"
 }
@@ -80,7 +82,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following additional attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The query logging configuration ID
 

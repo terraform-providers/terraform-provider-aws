@@ -7,11 +7,14 @@ import (
 func TestAccAWSConfig(t *testing.T) {
 	testCases := map[string]map[string]func(t *testing.T){
 		"Config": {
-			"basic":        testAccConfigConfigRule_basic,
-			"ownerAws":     testAccConfigConfigRule_ownerAws,
-			"customlambda": testAccConfigConfigRule_customlambda,
-			"importAws":    testAccConfigConfigRule_importAws,
-			"importLambda": testAccConfigConfigRule_importLambda,
+			"basic":            testAccConfigConfigRule_basic,
+			"ownerAws":         testAccConfigConfigRule_ownerAws,
+			"customlambda":     testAccConfigConfigRule_customlambda,
+			"importAws":        testAccConfigConfigRule_importAws,
+			"importLambda":     testAccConfigConfigRule_importLambda,
+			"scopeTagKey":      testAccConfigConfigRule_Scope_TagKey,
+			"scopeTagKeyEmpty": testAccConfigConfigRule_Scope_TagKey_Empty,
+			"scopeTagValue":    testAccConfigConfigRule_Scope_TagValue,
 		},
 		"ConfigurationRecorderStatus": {
 			"basic":        testAccConfigConfigurationRecorderStatus_basic,

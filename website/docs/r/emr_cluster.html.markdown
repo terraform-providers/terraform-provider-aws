@@ -15,12 +15,20 @@ for more information.
 ## Example Usage
 
 ```hcl
-resource "aws_emr_cluster" "emr-test-cluster" {
+resource "aws_emr_cluster" "cluster" {
   name          = "emr-test-arn"
   release_label = "emr-4.6.0"
   applications  = ["Spark"]
+  additional_info = <<EOF
+{
+  "instanceAwsClientConfiguration": {
+    "proxyPort": 8099,
+    "proxyHost": "myproxy.example.com"
+  }
+}
+EOF
 
-  termination_protection = false
+  termination_protection            = false
   keep_job_flow_alive_when_no_steps = true
 
   ec2_attributes {
@@ -29,18 +37,18 @@ resource "aws_emr_cluster" "emr-test-cluster" {
     emr_managed_slave_security_group  = "${aws_security_group.sg.id}"
     instance_profile                  = "${aws_iam_instance_profile.emr_profile.arn}"
   }
-  
+
   instance_group {
-      instance_role = "CORE"
-      instance_type = "c4.large"
-      instance_count = "1"
-      ebs_config {
-        size = "40"
-        type = "gp2"
-        volumes_per_instance = 1
-      }
-      bid_price = "0.30"
-      autoscaling_policy = <<EOF
+    instance_role  = "CORE"
+    instance_type  = "c4.large"
+    instance_count = "1"
+    ebs_config {
+      size                 = "40"
+      type                 = "gp2"
+      volumes_per_instance = 1
+    }
+    bid_price          = "0.30"
+    autoscaling_policy = <<EOF
 {
 "Constraints": {
   "MinCapacity": 1,
@@ -73,16 +81,16 @@ resource "aws_emr_cluster" "emr-test-cluster" {
 ]
 }
 EOF
-}
-  ebs_root_volume_size     = 100
+  }
+  ebs_root_volume_size = 100
 
-  master_instance_type = "m3.xlarge"
-  core_instance_type   = "m3.xlarge"
+  master_instance_type = "m5.xlarge"
+  core_instance_type   = "m5.xlarge"
   core_instance_count  = 1
 
-  tags {
-    role     = "rolename"
-    env      = "env"
+  tags = {
+    role = "rolename"
+    env  = "env"
   }
 
   bootstrap_action {
@@ -91,9 +99,35 @@ EOF
     args = ["instance.isMaster=true", "echo running on master node"]
   }
 
-  configurations = "test-fixtures/emr_configurations.json"
-
-  service_role = "${aws_iam_role.iam_emr_service_role.arn}"
+  configurations_json = <<EOF
+  [
+    {
+      "Classification": "hadoop-env",
+      "Configurations": [
+        {
+          "Classification": "export",
+          "Properties": {
+            "JAVA_HOME": "/usr/lib/jvm/java-1.8.0"
+          }
+        }
+      ],
+      "Properties": {}
+    },
+    {
+      "Classification": "spark-env",
+      "Configurations": [
+        {
+          "Classification": "export",
+          "Properties": {
+            "JAVA_HOME": "/usr/lib/jvm/java-1.8.0"
+          }
+        }
+      ],
+      "Properties": {}
+    }
+  ]
+EOF  
+  service_role        = "${aws_iam_role.iam_emr_service_role.arn}"
 }
 ```
 
@@ -140,39 +174,58 @@ The following arguments are supported:
 * `name` - (Required) The name of the job flow
 * `release_label` - (Required) The release label for the Amazon EMR release
 * `master_instance_type` - (Optional) The EC2 instance type of the master node. Exactly one of `master_instance_type` and `instance_group` must be specified.
-* `scale_down_behavior` - (Optional) The way that individual Amazon EC2 instances terminate when an automatic scale-in activity occurs or an `instance group` is resized. 
+* `scale_down_behavior` - (Optional) The way that individual Amazon EC2 instances terminate when an automatic scale-in activity occurs or an `instance group` is resized.
+* `additional_info` - (Optional) A JSON string for selecting additional features such as adding proxy information. Note: Currently there is no API to retrieve the value of this argument after EMR cluster creation from provider, therefore Terraform cannot detect drift from the actual EMR cluster if its value is changed outside Terraform.
 * `service_role` - (Required) IAM role that will be assumed by the Amazon EMR service to access AWS resources
 * `security_configuration` - (Optional) The security configuration name to attach to the EMR cluster. Only valid for EMR clusters with `release_label` 4.8.0 or greater
 * `core_instance_type` - (Optional) The EC2 instance type of the slave nodes. Cannot be specified if `instance_groups` is set
 * `core_instance_count` - (Optional) Number of Amazon EC2 instances used to execute the job flow. EMR will use one node as the cluster's master node and use the remainder of the nodes (`core_instance_count`-1) as core nodes. Cannot be specified if `instance_groups` is set. Default `1`
 * `instance_group` - (Optional) A list of `instance_group` objects for each instance group in the cluster. Exactly one of `master_instance_type` and `instance_group` must be specified. If `instance_group` is set, then it must contain a configuration block for at least the `MASTER` instance group type (as well as any additional instance groups). Defined below
-* `log_uri` - (Optional) S3 bucket to write the log files of the job flow. If a value
-	is not provided, logs are not created
-* `applications` - (Optional) A list of applications for the cluster. Valid values are: `Flink`, `Hadoop`, `Hive`, `Mahout`, `Pig`, and `Spark`. Case insensitive
+* `log_uri` - (Optional) S3 bucket to write the log files of the job flow. If a value is not provided, logs are not created
+* `applications` - (Optional) A list of applications for the cluster. Valid values are: `Flink`, `Hadoop`, `Hive`, `Mahout`, `Pig`, `Spark`, and `JupyterHub` (as of EMR 5.14.0). Case insensitive
 * `termination_protection` - (Optional) Switch on/off termination protection (default is off)
 * `keep_job_flow_alive_when_no_steps` - (Optional) Switch on/off run cluster with no steps or when all steps are complete (default is on)
-* `ec2_attributes` - (Optional) Attributes for the EC2 instances running the job
-flow. Defined below
+* `ec2_attributes` - (Optional) Attributes for the EC2 instances running the job flow. Defined below
 * `kerberos_attributes` - (Optional) Kerberos configuration for the cluster. Defined below
 * `ebs_root_volume_size` - (Optional) Size in GiB of the EBS root device volume of the Linux AMI that is used for each EC2 instance. Available in Amazon EMR version 4.x and later.
 * `custom_ami_id` - (Optional) A custom Amazon Linux AMI for the cluster (instead of an EMR-owned AMI). Available in Amazon EMR version 5.7.0 and later.
-* `bootstrap_action` - (Optional) List of bootstrap actions that will be run before Hadoop is started on
-	the cluster nodes. Defined below
+* `bootstrap_action` - (Optional) List of bootstrap actions that will be run before Hadoop is started on the cluster nodes. Defined below
 * `configurations` - (Optional) List of configurations supplied for the EMR cluster you are creating
+* `configurations_json` - (Optional) A JSON string for supplying list of configurations for the EMR cluster.
+
+~> **NOTE on configurations_json:** If the `Configurations` value is empty then you should skip
+the `Configurations` field instead of providing empty list as value `"Configurations": []`.
+
+```hcl
+configurations_json = <<EOF
+  [
+    {
+      "Classification": "hadoop-env",
+      "Configurations": [
+        {
+          "Classification": "export",
+          "Properties": {
+            "JAVA_HOME": "/usr/lib/jvm/java-1.8.0"
+          }
+        }
+      ],
+      "Properties": {}
+    }
+  ]
+EOF
+```
+
 * `visible_to_all_users` - (Optional) Whether the job flow is visible to all IAM users of the AWS account associated with the job flow. Default `true`
 * `autoscaling_role` - (Optional) An IAM role for automatic scaling policies. The IAM role provides permissions that the automatic scaling feature requires to launch and terminate EC2 instances in an instance group.
 * `step` - (Optional) List of steps to run when creating the cluster. Defined below. It is highly recommended to utilize the [lifecycle configuration block](/docs/configuration/resources.html) with `ignore_changes` if other steps are being managed outside of Terraform.
 * `tags` - (Optional) list of tags to apply to the EMR Cluster
 
-
 ## ec2_attributes
 
 Attributes for the Amazon EC2 instances running the job flow
 
-* `key_name` - (Optional) Amazon EC2 key pair that can be used to ssh to the master
-	node as the user called `hadoop`
-* `subnet_id` - (Optional) VPC subnet id where you want the job flow to launch.
-Cannot specify the `cc1.4xlarge` instance type for nodes of a job flow launched in a Amazon VPC
+* `key_name` - (Optional) Amazon EC2 key pair that can be used to ssh to the master node as the user called `hadoop`
+* `subnet_id` - (Optional) VPC subnet id where you want the job flow to launch. Cannot specify the `cc1.4xlarge` instance type for nodes of a job flow launched in a Amazon VPC
 * `additional_master_security_groups` - (Optional) String containing a comma separated list of additional Amazon EC2 security group IDs for the master node
 * `additional_slave_security_groups` - (Optional) String containing a comma separated list of additional Amazon EC2 security group IDs for the slave nodes as a comma separated string
 * `emr_managed_master_security_group` - (Optional) Identifier of the Amazon EC2 EMR-Managed security group for the master node
@@ -222,10 +275,9 @@ Attributes for each task instance group in the cluster
 Attributes for the EBS volumes attached to each EC2 instance in the `instance_group`
 
 * `size` - (Required) The volume size, in gibibytes (GiB).
-* `type` - (Required) The volume type. Valid options are `gp2`, `io1`, and `standard`.
+* `type` - (Required) The volume type. Valid options are `gp2`, `io1`, `standard` and `st1`. See [EBS Volume Types](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSVolumeTypes.html).
 * `iops` - (Optional) The number of I/O operations per second (IOPS) that the volume supports
 * `volumes_per_instance` - (Optional) The number of EBS volumes with this configuration to attach to each EC2 instance in the instance group (default is 1)
-
 
 ## bootstrap_action
 
@@ -252,7 +304,7 @@ Attributes for Hadoop job step configuration
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the EMR Cluster
 * `name` - The name of the cluster.
@@ -270,6 +322,7 @@ The following attributes are exported:
 * `visible_to_all_users` - Indicates whether the job flow is visible to all IAM users of the AWS account associated with the job flow.
 * `tags` - The list of tags associated with a cluster.
 
+For any instance_group the id is exported IN `aws_emr_cluster.instance_group.HASHCODE.id`  format, e.g. `aws_emr_cluster.example.instance_group.12345678.id`
 
 ## Example bootable config
 
@@ -277,13 +330,12 @@ The following attributes are exported:
 boot an example EMR Cluster. It is not meant to display best practices. Please
 use at your own risk.
 
-
 ```hcl
 provider "aws" {
   region = "us-west-2"
 }
 
-resource "aws_emr_cluster" "tf-test-cluster" {
+resource "aws_emr_cluster" "cluster" {
   name          = "emr-test-arn"
   release_label = "emr-4.6.0"
   applications  = ["Spark"]
@@ -295,11 +347,11 @@ resource "aws_emr_cluster" "tf-test-cluster" {
     instance_profile                  = "${aws_iam_instance_profile.emr_profile.arn}"
   }
 
-  master_instance_type = "m3.xlarge"
-  core_instance_type   = "m3.xlarge"
+  master_instance_type = "m5.xlarge"
+  core_instance_type   = "m5.xlarge"
   core_instance_count  = 1
 
-  tags {
+  tags = {
     role     = "rolename"
     dns_zone = "env_zone"
     env      = "env"
@@ -312,7 +364,34 @@ resource "aws_emr_cluster" "tf-test-cluster" {
     args = ["instance.isMaster=true", "echo running on master node"]
   }
 
-  configurations = "test-fixtures/emr_configurations.json"
+  configurations_json = <<EOF
+  [
+    {
+      "Classification": "hadoop-env",
+      "Configurations": [
+        {
+          "Classification": "export",
+          "Properties": {
+            "JAVA_HOME": "/usr/lib/jvm/java-1.8.0"
+          }
+        }
+      ],
+      "Properties": {}
+    },
+    {
+      "Classification": "spark-env",
+      "Configurations": [
+        {
+          "Classification": "export",
+          "Properties": {
+            "JAVA_HOME": "/usr/lib/jvm/java-1.8.0"
+          }
+        }
+      ],
+      "Properties": {}
+    }
+  ]
+EOF
 
   service_role = "${aws_iam_role.iam_emr_service_role.arn}"
 }
@@ -342,7 +421,7 @@ resource "aws_security_group" "allow_all" {
     ignore_changes = ["ingress", "egress"]
   }
 
-  tags {
+  tags = {
     name = "emr_test"
   }
 }
@@ -351,7 +430,7 @@ resource "aws_vpc" "main" {
   cidr_block           = "168.31.0.0/16"
   enable_dns_hostnames = true
 
-  tags {
+  tags = {
     name = "emr_test"
   }
 }
@@ -360,7 +439,7 @@ resource "aws_subnet" "main" {
   vpc_id     = "${aws_vpc.main.id}"
   cidr_block = "168.31.0.0/20"
 
-  tags {
+  tags = {
     name = "emr_test"
   }
 }
@@ -544,4 +623,12 @@ resource "aws_iam_role_policy" "iam_emr_profile_policy" {
 }
 EOF
 }
+```
+
+## Import
+
+EMR clusters can be imported using the `id`, e.g.
+
+```
+$ terraform import aws_emr_cluster.cluster j-123456ABCDEF
 ```

@@ -62,7 +62,7 @@ resource "aws_instance" "web" {
   user_data = "${file("userdata.sh")}"
 
   #Instance tags
-  tags {
+  tags = {
     Name = "eip-example"
   }
 }

@@ -12,7 +12,7 @@ import (
 )
 
 func TestAccAWSAthenaNamedQuery_basic(t *testing.T) {
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSAthenaNamedQueryDestroy,
@@ -30,16 +30,16 @@ func TestAccAWSAthenaNamedQuery_basic(t *testing.T) {
 func TestAccAWSAthenaNamedQuery_import(t *testing.T) {
 	resourceName := "aws_athena_named_query.foo"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSAthenaNamedQueryDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: testAccAthenaNamedQueryConfig(acctest.RandInt(), acctest.RandString(5)),
 			},
 
-			resource.TestStep{
+			{
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
@@ -87,11 +87,7 @@ func testAccCheckAWSAthenaNamedQueryExists(name string) resource.TestCheckFunc {
 		}
 
 		_, err := conn.GetNamedQuery(input)
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return err
 	}
 }
 

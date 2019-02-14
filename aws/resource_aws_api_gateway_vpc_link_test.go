@@ -13,7 +13,7 @@ import (
 
 func TestAccAWSAPIGatewayVpcLink_basic(t *testing.T) {
 	rName := acctest.RandString(5)
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsAPIGatewayVpcLinkDestroy,
@@ -35,6 +35,26 @@ func TestAccAWSAPIGatewayVpcLink_basic(t *testing.T) {
 					resource.TestCheckResourceAttr("aws_api_gateway_vpc_link.test", "description", "test update"),
 					resource.TestCheckResourceAttr("aws_api_gateway_vpc_link.test", "target_arns.#", "1"),
 				),
+			},
+		},
+	})
+}
+
+func TestAccAWSAPIGatewayVpcLink_importBasic(t *testing.T) {
+	rName := acctest.RandString(5)
+	resourceName := "aws_api_gateway_vpc_link.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAPIGatewayVpcLinkConfig(rName),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -80,11 +100,7 @@ func testAccCheckAwsAPIGatewayVpcLinkExists(name string) resource.TestCheckFunc 
 		}
 
 		_, err := conn.GetVpcLink(input)
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return err
 	}
 }
 
@@ -107,7 +123,7 @@ resource "aws_subnet" "test" {
   vpc_id = "${aws_vpc.test.id}"
   cidr_block = "10.10.0.0/21"
   availability_zone = "${data.aws_availability_zones.test.names[0]}"
-  tags {
+  tags = {
     Name = "tf-acc-api-gateway-vpc-link"
   }
 }

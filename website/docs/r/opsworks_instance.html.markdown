@@ -14,7 +14,7 @@ Provides an OpsWorks instance resource.
 
 ```hcl
 resource "aws_opsworks_instance" "my-instance" {
-  stack_id = "${aws_opsworks_stack.my-stack.id}"
+  stack_id = "${aws_opsworks_stack.main.id}"
 
   layer_ids = [
     "${aws_opsworks_custom_layer.my-layer.id}",
@@ -115,11 +115,12 @@ using the [`taint` command](/docs/commands/taint.html).
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The id of the OpsWorks instance.
 * `agent_version` - The AWS OpsWorks agent version.
 * `availability_zone` - The availability zone of the instance.
+* `ec2_instance_id` - EC2 instance ID
 * `ssh_key_name` - The key name of the instance
 * `public_dns` - The public DNS name assigned to the instance. For EC2-VPC, this
   is only available if you've enabled DNS hostnames for your VPC

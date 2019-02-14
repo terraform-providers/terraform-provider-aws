@@ -14,7 +14,7 @@ import (
 func TestAccAWSSSMPatchBaseline_basic(t *testing.T) {
 	var before, after ssm.PatchBaselineIdentity
 	name := acctest.RandString(10)
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSSMPatchBaselineDestroy,
@@ -63,10 +63,32 @@ func TestAccAWSSSMPatchBaseline_basic(t *testing.T) {
 	})
 }
 
+func TestAccAWSSSMPatchBaseline_disappears(t *testing.T) {
+	var identity ssm.PatchBaselineIdentity
+	name := acctest.RandString(10)
+	resourceName := "aws_ssm_patch_baseline.foo"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSSSMPatchBaselineDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSSSMPatchBaselineBasicConfig(name),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSSSMPatchBaselineExists(resourceName, &identity),
+					testAccCheckAWSSSMPatchBaselineDisappears(&identity),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
 func TestAccAWSSSMPatchBaselineWithOperatingSystem(t *testing.T) {
 	var before, after ssm.PatchBaselineIdentity
 	name := acctest.RandString(10)
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSSMPatchBaselineDestroy,
@@ -83,6 +105,8 @@ func TestAccAWSSSMPatchBaselineWithOperatingSystem(t *testing.T) {
 						"aws_ssm_patch_baseline.foo", "approval_rule.0.patch_filter.#", "2"),
 					resource.TestCheckResourceAttr(
 						"aws_ssm_patch_baseline.foo", "approval_rule.0.compliance_level", ssm.PatchComplianceLevelCritical),
+					resource.TestCheckResourceAttr(
+						"aws_ssm_patch_baseline.foo", "approval_rule.0.enable_non_security", "true"),
 					resource.TestCheckResourceAttr(
 						"aws_ssm_patch_baseline.foo", "operating_system", "AMAZON_LINUX"),
 				),
@@ -154,6 +178,24 @@ func testAccCheckAWSSSMPatchBaselineExists(n string, patch *ssm.PatchBaselineIde
 	}
 }
 
+func testAccCheckAWSSSMPatchBaselineDisappears(patch *ssm.PatchBaselineIdentity) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		conn := testAccProvider.Meta().(*AWSClient).ssmconn
+
+		id := aws.StringValue(patch.BaselineId)
+		params := &ssm.DeletePatchBaselineInput{
+			BaselineId: aws.String(id),
+		}
+
+		_, err := conn.DeletePatchBaseline(params)
+		if err != nil {
+			return fmt.Errorf("error deleting Patch Baseline %s: %s", id, err)
+		}
+
+		return nil
+	}
+}
+
 func testAccCheckAWSSSMPatchBaselineDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*AWSClient).ssmconn
 
@@ -220,6 +262,7 @@ resource "aws_ssm_patch_baseline" "foo" {
   description = "Baseline containing all updates approved for production systems"
   approval_rule {
   	approve_after_days = 7
+	enable_non_security = true
   	compliance_level = "CRITICAL"
 
   	patch_filter {

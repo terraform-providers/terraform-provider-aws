@@ -13,16 +13,38 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
+func TestAccAWSVpcEndpointConnectionNotification_importBasic(t *testing.T) {
+	lbName := fmt.Sprintf("testaccawsnlb-basic-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	resourceName := "aws_vpc_endpoint_connection_notification.foo"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckVpcEndpointConnectionNotificationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccVpcEndpointConnectionNotificationBasicConfig(lbName),
+			},
+
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAWSVpcEndpointConnectionNotification_basic(t *testing.T) {
 	lbName := fmt.Sprintf("testaccawsnlb-basic-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		IDRefreshName: "aws_vpc_endpoint_connection_notification.foo",
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckVpcEndpointConnectionNotificationDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: testAccVpcEndpointConnectionNotificationBasicConfig(lbName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckVpcEndpointConnectionNotificationExists("aws_vpc_endpoint_connection_notification.foo"),
@@ -31,7 +53,7 @@ func TestAccAWSVpcEndpointConnectionNotification_basic(t *testing.T) {
 					resource.TestCheckResourceAttr("aws_vpc_endpoint_connection_notification.foo", "notification_type", "Topic"),
 				),
 			},
-			resource.TestStep{
+			{
 				Config: testAccVpcEndpointConnectionNotificationModifiedConfig(lbName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckVpcEndpointConnectionNotificationExists("aws_vpc_endpoint_connection_notification.foo"),
@@ -105,7 +127,7 @@ func testAccVpcEndpointConnectionNotificationBasicConfig(lbName string) string {
 resource "aws_vpc" "nlb_test" {
   cidr_block = "10.0.0.0/16"
 
-  tags {
+  tags = {
     Name = "terraform-testacc-vpc-endpoint-connection-notification"
   }
 }
@@ -123,7 +145,7 @@ resource "aws_lb" "nlb_test" {
   idle_timeout               = 60
   enable_deletion_protection = false
 
-  tags {
+  tags = {
     Name = "testAccVpcEndpointConnectionNotificationBasicConfig_nlb"
   }
 }
@@ -133,7 +155,7 @@ resource "aws_subnet" "nlb_test_1" {
   cidr_block        = "10.0.1.0/24"
   availability_zone = "us-west-2a"
 
-  tags {
+  tags = {
     Name = "tf-acc-vpc-endpoint-connection-notification-1"
   }
 }
@@ -143,7 +165,7 @@ resource "aws_subnet" "nlb_test_2" {
   cidr_block        = "10.0.2.0/24"
   availability_zone = "us-west-2b"
 
-  tags {
+  tags = {
     Name = "tf-acc-vpc-endpoint-connection-notification-2"
   }
 }
@@ -194,7 +216,7 @@ func testAccVpcEndpointConnectionNotificationModifiedConfig(lbName string) strin
 		resource "aws_vpc" "nlb_test" {
 			cidr_block = "10.0.0.0/16"
 
-			tags {
+	tags = {
 				Name = "terraform-testacc-vpc-endpoint-connection-notification"
 			}
 		}
@@ -212,7 +234,7 @@ func testAccVpcEndpointConnectionNotificationModifiedConfig(lbName string) strin
 			idle_timeout               = 60
 			enable_deletion_protection = false
 
-			tags {
+	tags = {
 				Name = "testAccVpcEndpointConnectionNotificationBasicConfig_nlb"
 			}
 		}
@@ -222,7 +244,7 @@ func testAccVpcEndpointConnectionNotificationModifiedConfig(lbName string) strin
 			cidr_block        = "10.0.1.0/24"
 			availability_zone = "us-west-2a"
 
-			tags {
+	tags = {
 				Name = "tf-acc-vpc-endpoint-connection-notification-1"
 			}
 		}
@@ -232,7 +254,7 @@ func testAccVpcEndpointConnectionNotificationModifiedConfig(lbName string) strin
 			cidr_block        = "10.0.2.0/24"
 			availability_zone = "us-west-2b"
 
-			tags {
+	tags = {
 				Name = "tf-acc-vpc-endpoint-connection-notification-2"
 			}
 		}

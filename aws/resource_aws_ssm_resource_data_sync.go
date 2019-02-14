@@ -20,7 +20,7 @@ func resourceAwsSsmResourceDataSync() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"name": &schema.Schema{
+			"name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
@@ -35,23 +35,28 @@ func resourceAwsSsmResourceDataSync() *schema.Resource {
 						"kms_key_arn": {
 							Type:     schema.TypeString,
 							Optional: true,
+							ForceNew: true,
 						},
 						"bucket_name": {
 							Type:     schema.TypeString,
 							Required: true,
+							ForceNew: true,
 						},
 						"prefix": {
 							Type:     schema.TypeString,
 							Optional: true,
+							ForceNew: true,
 						},
 						"region": {
 							Type:     schema.TypeString,
 							Required: true,
+							ForceNew: true,
 						},
 						"sync_format": {
 							Type:     schema.TypeString,
 							Optional: true,
 							Default:  ssm.ResourceDataSyncS3FormatJsonSerDe,
+							ForceNew: true,
 						},
 					},
 				},

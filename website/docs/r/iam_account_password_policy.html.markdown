@@ -44,7 +44,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `expire_passwords` - Indicates whether passwords in the account expire.
 	Returns `true` if `max_password_age` contains a value greater than `0`.

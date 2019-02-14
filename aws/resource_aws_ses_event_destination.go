@@ -63,7 +63,6 @@ func resourceAwsSesEventDestination() *schema.Resource {
 				Type:          schema.TypeSet,
 				Optional:      true,
 				ForceNew:      true,
-				MaxItems:      1,
 				ConflictsWith: []string{"kinesis_destination", "sns_destination"},
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -200,11 +199,7 @@ func resourceAwsSesEventDestinationDelete(d *schema.ResourceData, meta interface
 		EventDestinationName: aws.String(d.Id()),
 	})
 
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
 
 func generateCloudWatchDestination(v []interface{}) []*ses.CloudWatchDimensionConfiguration {

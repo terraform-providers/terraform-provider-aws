@@ -53,7 +53,7 @@ The given filters must match exactly one VPC endpoint service whose data will be
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `service_type` - The service type, `Gateway` or `Interface`.
 * `owner` - The AWS account ID of the service owner or `amazon`.

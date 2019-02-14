@@ -14,11 +14,12 @@ Provides a Gamelift Alias resource.
 
 ```hcl
 resource "aws_gamelift_alias" "example" {
-  name = "example-alias"
+  name        = "example-alias"
   description = "Example Description"
+
   routing_strategy {
     message = "Example Message"
-    type = "TERMINAL"
+    type    = "TERMINAL"
   }
 }
 ```
@@ -41,7 +42,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - Alias ID.
 * `arn` - Alias ARN.

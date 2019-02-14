@@ -31,6 +31,10 @@ func testSweepGameliftBuilds(region string) error {
 
 	resp, err := conn.ListBuilds(&gamelift.ListBuildsInput{})
 	if err != nil {
+		if testSweepSkipSweepError(err) {
+			log.Printf("[WARN] Skipping Gamelife Build sweep for %s: %s", region, err)
+			return nil
+		}
 		return fmt.Errorf("Error listing Gamelift Builds: %s", err)
 	}
 
@@ -78,7 +82,7 @@ func TestAccAWSGameliftBuild_basic(t *testing.T) {
 	roleArn := *loc.RoleArn
 	key := *loc.Key
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSGameliftBuildDestroy,

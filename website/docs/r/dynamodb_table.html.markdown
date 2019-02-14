@@ -20,6 +20,7 @@ in the [AWS SDK example documentation](https://docs.aws.amazon.com/amazondynamod
 ```hcl
 resource "aws_dynamodb_table" "basic-dynamodb-table" {
   name           = "GameScores"
+  billing_mode   = "PROVISIONED"
   read_capacity  = 20
   write_capacity = 20
   hash_key       = "UserId"
@@ -42,7 +43,7 @@ resource "aws_dynamodb_table" "basic-dynamodb-table" {
 
   ttl {
     attribute_name = "TimeToExist"
-    enabled = false
+    enabled        = false
   }
 
   global_secondary_index {
@@ -55,11 +56,26 @@ resource "aws_dynamodb_table" "basic-dynamodb-table" {
     non_key_attributes = ["UserId"]
   }
 
-  tags {
+  tags = {
     Name        = "dynamodb-table-1"
     Environment = "production"
   }
 }
+```
+
+Notes: `attribute` can be lists
+
+```
+  attribute = [{
+    name = "UserId"
+    type = "S"
+  }, {
+    name = "GameTitle"
+    type = "S"
+  }, {
+    name = "TopScore"
+    type = "N"
+  }]
 ```
 
 ## Argument Reference
@@ -68,35 +84,35 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the table, this needs to be unique
   within a region.
-* `hash_key` - (Required, Forces new resource) The attribute to use as the hash key (the
-  attribute must also be defined as an attribute record
-* `range_key` - (Optional, Forces new resource) The attribute to use as the range key (must
-  also be defined)
-* `write_capacity` - (Required) The number of write units for this table
-* `read_capacity` - (Required) The number of read units for this table
-* `attribute` - (Required) Define an attribute, has two properties:
-  * `name` - The name of the attribute
-  * `type` - One of: S, N, or B for (S)tring, (N)umber or (B)inary data
+* `billing_mode` - (Optional) Controls how you are charged for read and write throughput and how you manage capacity. The valid values are `PROVISIONED` and `PAY_PER_REQUEST`. Defaults to `PROVISIONED`.
+* `hash_key` - (Required, Forces new resource) The attribute to use as the hash (partition) key. Must also be defined as an `attribute`, see below.
+* `range_key` - (Optional, Forces new resource) The attribute to use as the range (sort) key. Must also be defined as an `attribute`, see below.
+* `write_capacity` - (Optional) The number of write units for this table. If the `billing_mode` is `PROVISIONED`, this field is required.
+* `read_capacity` - (Optional) The number of read units for this table. If the `billing_mode` is `PROVISIONED`, this field is required.
+* `attribute` - (Required) List of nested attribute definitions. Only required for `hash_key` and `range_key` attributes. Each attribute has two properties:
+  * `name` - (Required) The name of the attribute
+  * `type` - (Required) Attribute type, which must be a scalar type: `S`, `N`, or `B` for (S)tring, (N)umber or (B)inary data
 * `ttl` - (Optional) Defines ttl, has two properties, and can only be specified once:
   * `enabled` - (Required) Indicates whether ttl is enabled (true) or disabled (false).
   * `attribute_name` - (Required) The name of the table attribute to store the TTL timestamp in.
 * `local_secondary_index` - (Optional, Forces new resource) Describe an LSI on the table;
   these can only be allocated *at creation* so you cannot change this
 definition after you have created the resource.
-* `global_secondary_index` - (Optional) Describe a GSO for the table;
+* `global_secondary_index` - (Optional) Describe a GSI for the table;
   subject to the normal limits on the number of GSIs, projected
 attributes, etc.
 * `stream_enabled` - (Optional) Indicates whether Streams are to be enabled (true) or disabled (false).
 * `stream_view_type` - (Optional) When an item in the table is modified, StreamViewType determines what information is written to the table's stream. Valid values are `KEYS_ONLY`, `NEW_IMAGE`, `OLD_IMAGE`, `NEW_AND_OLD_IMAGES`.
-* `server_side_encryption` - (Optional) Encrypt at rest options.
+* `server_side_encryption` - (Optional) Encryption at rest options. AWS DynamoDB tables are automatically encrypted at rest with an AWS owned Customer Master Key if this argument isn't specified.
 * `tags` - (Optional) A map of tags to populate on the created table.
+* `point_in_time_recovery` - (Optional) Point-in-time recovery options.
 
 ### Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
 * `create` - (Defaults to 10 mins) Used when creating the table
-* `update` - (Defaults to 10 mins) Used when updating the table
+* `update` - (Defaults to 60 mins) Used when updating the table configuration and reset for each individual Global Secondary Index update
 * `delete` - (Defaults to 10 mins) Used when deleting the table
 
 ### Nested fields
@@ -117,8 +133,8 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 #### `global_secondary_index`
 
 * `name` - (Required) The name of the index
-* `write_capacity` - (Required) The number of write units for this index
-* `read_capacity` - (Required) The number of read units for this index
+* `write_capacity` - (Optional) The number of write units for this index. Must be set if billing_mode is set to PROVISIONED.
+* `read_capacity` - (Optional) The number of read units for this index. Must be set if billing_mode is set to PROVISIONED.
 * `hash_key` - (Required) The name of the hash key in the index; must be
   defined as an attribute in the resource.
 * `range_key` - (Optional) The name of the range key; must be defined
@@ -133,7 +149,14 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 #### `server_side_encryption`
 
-* `enabled` - (Required) Whether to enable encryption at rest. If the `server_side_encryption` block is not provided then this defaults to `false`.
+* `enabled` - (Required) Whether or not to enable encryption at rest using an AWS managed Customer Master Key.
+If `enabled` is `false` then server-side encryption is set to AWS owned CMK (shown as `DEFAULT` in the AWS console).
+If `enabled` is `true` then server-side encryption is set to AWS managed CMK (shown as `KMS` in the AWS console).
+The [AWS KMS documentation](https://docs.aws.amazon.com/kms/latest/developerguide/concepts.html) explains the difference between AWS owned and AWS managed CMKs.
+
+#### `point_in_time_recovery`
+
+* `enabled` - (Required) Whether to enable point-in-time recovery - note that it can take up to 10 minutes to enable for new tables. If the `point_in_time_recovery` block is not provided then this defaults to `false`.
 
 ### A note about attributes
 
@@ -154,7 +177,7 @@ infinite loop in planning.
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `arn` - The arn of the table
 * `id` - The name of the table

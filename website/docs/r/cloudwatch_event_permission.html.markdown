@@ -12,6 +12,8 @@ Provides a resource to create a CloudWatch Events permission to support cross-ac
 
 ## Example Usage
 
+### Account Access
+
 ```hcl
 resource "aws_cloudwatch_event_permission" "DevAccountAccess" {
   principal    = "123456789012"
@@ -19,17 +21,39 @@ resource "aws_cloudwatch_event_permission" "DevAccountAccess" {
 }
 ```
 
+### Organization Access
+
+```hcl
+resource "aws_cloudwatch_event_permission" "OrganizationAccess" {
+  principal    = "*"
+  statement_id = "OrganizationAccess"
+
+  condition {
+    key   = "aws:PrincipalOrgID"
+    type  = "StringEquals"
+    value = "${aws_organizations_organization.example.id}"
+  }
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:
 
-* `principal` - (Required) The 12-digit AWS account ID that you are permitting to put events to your default event bus. Specify `*` to permit any account to put events to your default event bus.
+* `principal` - (Required) The 12-digit AWS account ID that you are permitting to put events to your default event bus. Specify `*` to permit any account to put events to your default event bus, optionally limited by `condition`.
 * `statement_id` - (Required) An identifier string for the external account that you are granting permissions to.
 * `action` - (Optional) The action that you are enabling the other account to perform. Defaults to `events:PutEvents`.
+* `condition` - (Optional) Configuration block to limit the event bus permissions you are granting to only accounts that fulfill the condition. Specified below.
+
+### condition
+
+* `key` - (Required) Key for the condition. Valid values: `aws:PrincipalOrgID`.
+* `type` - (Required) Type of condition. Value values: `StringEquals`.
+* `value` - (Required) Value for the key.
 
 ## Attributes Reference
 
-The following additional attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The statement ID of the CloudWatch Events permission.
 

@@ -23,7 +23,7 @@ data "aws_iam_policy_document" "test_destination_policy" {
   statement {
     effect = "Allow"
 
-    principals = {
+    principals {
       type = "AWS"
 
       identifiers = [

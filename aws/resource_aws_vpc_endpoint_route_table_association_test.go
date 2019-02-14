@@ -14,12 +14,12 @@ import (
 func TestAccAWSVpcEndpointRouteTableAssociation_basic(t *testing.T) {
 	var vpce ec2.VpcEndpoint
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckVpcEndpointRouteTableAssociationDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: testAccVpcEndpointRouteTableAssociationConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckVpcEndpointRouteTableAssociationExists(
@@ -109,7 +109,7 @@ provider "aws" {
 
 resource "aws_vpc" "foo" {
     cidr_block = "10.0.0.0/16"
-    tags {
+  tags = {
         Name = "terraform-testacc-vpc-endpoint-route-table-association"
     }
 }
@@ -122,7 +122,7 @@ resource "aws_vpc_endpoint" "s3" {
 resource "aws_route_table" "rt" {
     vpc_id = "${aws_vpc.foo.id}"
 
-    tags {
+  tags = {
         Name = "test"
     }
 }

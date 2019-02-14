@@ -15,8 +15,9 @@ Creates and manages an AWS IoT Thing.
 ```hcl
 resource "aws_iot_thing" "example" {
   name = "example"
-  attributes {
-  	First = "examplevalue"
+
+  attributes = {
+    First = "examplevalue"
   }
 }
 ```

@@ -14,17 +14,18 @@ Creates a Snapshot of an EBS Volume.
 
 ```hcl
 resource "aws_ebs_volume" "example" {
-    availability_zone = "us-west-2a"
-    size = 40
-    tags {
-        Name = "HelloWorld"
-    }
+  availability_zone = "us-west-2a"
+  size              = 40
+
+  tags = {
+    Name = "HelloWorld"
+  }
 }
 
 resource "aws_ebs_snapshot" "example_snapshot" {
   volume_id = "${aws_ebs_volume.example.id}"
 
-  tags {
+  tags = {
     Name = "HelloWorld_snap"
   }
 }
@@ -41,7 +42,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The snapshot ID (e.g. snap-59fcb34e).
 * `owner_id` - The AWS account ID of the EBS snapshot owner.

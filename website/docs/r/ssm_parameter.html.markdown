@@ -39,12 +39,12 @@ resource "aws_db_instance" "default" {
 }
 
 resource "aws_ssm_parameter" "secret" {
-  name  = "${var.environment}/database/password/master"
-  description  = "The parameter description"
-  type  = "SecureString"
-  value = "${var.database_master_password}"
+  name        = "/${var.environment}/database/password/master"
+  description = "The parameter description"
+  type        = "SecureString"
+  value       = "${var.database_master_password}"
 
-  tags {
+  tags = {
     environment = "${var.environment}"
   }
 }
@@ -57,7 +57,7 @@ resource "aws_ssm_parameter" "secret" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the parameter.
+* `name` - (Required) The name of the parameter. If the name contains a path (e.g. any forward slashes (`/`)), it must be fully qualified with a leading forward slash (`/`). For additional requirements and constraints, see the [AWS SSM User Guide](https://docs.aws.amazon.com/systems-manager/latest/userguide/sysman-parameter-name-constraints.html).
 * `type` - (Required) The type of the parameter. Valid types are `String`, `StringList` and `SecureString`.
 * `value` - (Required) The value of the parameter.
 * `description` - (Optional) The description of the parameter.
@@ -68,7 +68,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `arn` - The ARN of the parameter.
 * `name` - (Required) The name of the parameter.

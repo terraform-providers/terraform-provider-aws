@@ -105,9 +105,9 @@ func resourceAwsDynamoDbTableItemUpdate(d *schema.ResourceData, meta interface{}
 
 		updates := map[string]*dynamodb.AttributeValueUpdate{}
 		for key, value := range attributes {
-			// Hash keys are not updatable, so we'll basically create
+			// Hash keys and range keys are not updatable, so we'll basically create
 			// a new record and delete the old one below
-			if key == hashKey {
+			if key == hashKey || key == rangeKey {
 				continue
 			}
 			updates[key] = &dynamodb.AttributeValueUpdate{
@@ -224,7 +224,7 @@ func resourceAwsDynamoDbTableItemDelete(d *schema.ResourceData, meta interface{}
 
 func buildDynamoDbExpressionAttributeNames(attrs map[string]*dynamodb.AttributeValue) map[string]*string {
 	names := map[string]*string{}
-	for key, _ := range attrs {
+	for key := range attrs {
 		names["#a_"+key] = aws.String(key)
 	}
 
@@ -233,7 +233,7 @@ func buildDynamoDbExpressionAttributeNames(attrs map[string]*dynamodb.AttributeV
 
 func buildDynamoDbProjectionExpression(attrs map[string]*dynamodb.AttributeValue) *string {
 	keys := []string{}
-	for key, _ := range attrs {
+	for key := range attrs {
 		keys = append(keys, key)
 	}
 	return aws.String("#a_" + strings.Join(keys, ", #a_"))

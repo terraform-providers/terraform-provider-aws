@@ -12,7 +12,7 @@ import (
 func TestAccAWSDataSourceIAMRole_basic(t *testing.T) {
 	roleName := fmt.Sprintf("test-role-%s", acctest.RandString(10))
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -22,6 +22,7 @@ func TestAccAWSDataSourceIAMRole_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet("data.aws_iam_role.test", "unique_id"),
 					resource.TestCheckResourceAttrSet("data.aws_iam_role.test", "assume_role_policy"),
 					resource.TestCheckResourceAttr("data.aws_iam_role.test", "path", "/testpath/"),
+					resource.TestCheckResourceAttr("data.aws_iam_role.test", "permissions_boundary", ""),
 					resource.TestCheckResourceAttr("data.aws_iam_role.test", "name", roleName),
 					resource.TestCheckResourceAttrSet("data.aws_iam_role.test", "create_date"),
 					resource.TestMatchResourceAttr("data.aws_iam_role.test", "arn",

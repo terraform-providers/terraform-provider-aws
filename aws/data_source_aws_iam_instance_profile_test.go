@@ -10,20 +10,29 @@ import (
 )
 
 func TestAccAWSDataSourceIAMInstanceProfile_basic(t *testing.T) {
-	roleName := fmt.Sprintf("test-datasource-user-%d", acctest.RandInt())
-	profileName := fmt.Sprintf("test-datasource-user-%d", acctest.RandInt())
+	roleName := fmt.Sprintf("tf-acc-ds-instance-profile-role-%d", acctest.RandInt())
+	profileName := fmt.Sprintf("tf-acc-ds-instance-profile-%d", acctest.RandInt())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDatasourceAwsIamInstanceProfileConfig(roleName, profileName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("data.aws_iam_instance_profile.test", "role_id"),
+					resource.TestMatchResourceAttr(
+						"data.aws_iam_instance_profile.test",
+						"arn",
+						regexp.MustCompile("^arn:[^:]+:iam::[0-9]{12}:instance-profile/testpath/"+profileName+"$"),
+					),
 					resource.TestCheckResourceAttr("data.aws_iam_instance_profile.test", "path", "/testpath/"),
-					resource.TestMatchResourceAttr("data.aws_iam_instance_profile.test", "arn",
-						regexp.MustCompile("^arn:aws:iam::[0-9]{12}:instance-profile/testpath/"+profileName+"$")),
+					resource.TestMatchResourceAttr(
+						"data.aws_iam_instance_profile.test",
+						"role_arn",
+						regexp.MustCompile("^arn:[^:]+:iam::[0-9]{12}:role/"+roleName+"$"),
+					),
+					resource.TestCheckResourceAttrSet("data.aws_iam_instance_profile.test", "role_id"),
+					resource.TestCheckResourceAttr("data.aws_iam_instance_profile.test", "role_name", roleName),
 				),
 			},
 		},

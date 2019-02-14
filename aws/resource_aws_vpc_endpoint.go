@@ -8,7 +8,6 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/errwrap"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/structure"
@@ -122,6 +121,12 @@ func resourceAwsVpcEndpoint() *schema.Resource {
 				Optional: true,
 			},
 		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(10 * time.Minute),
+			Update: schema.DefaultTimeout(10 * time.Minute),
+			Delete: schema.DefaultTimeout(10 * time.Minute),
+		},
 	}
 }
 
@@ -143,7 +148,7 @@ func resourceAwsVpcEndpointCreate(d *schema.ResourceData, meta interface{}) erro
 	if v, ok := d.GetOk("policy"); ok {
 		policy, err := structure.NormalizeJsonString(v)
 		if err != nil {
-			return errwrap.Wrapf("policy contains an invalid JSON: {{err}}", err)
+			return fmt.Errorf("policy contains an invalid JSON: %s", err)
 		}
 		req.PolicyDocument = aws.String(policy)
 	}
@@ -155,7 +160,7 @@ func resourceAwsVpcEndpointCreate(d *schema.ResourceData, meta interface{}) erro
 	log.Printf("[DEBUG] Creating VPC Endpoint: %#v", req)
 	resp, err := conn.CreateVpcEndpoint(req)
 	if err != nil {
-		return fmt.Errorf("Error creating VPC Endpoint: %s", err.Error())
+		return fmt.Errorf("Error creating VPC Endpoint: %s", err)
 	}
 
 	vpce := resp.VpcEndpoint
@@ -167,7 +172,7 @@ func resourceAwsVpcEndpointCreate(d *schema.ResourceData, meta interface{}) erro
 		}
 	}
 
-	if err := vpcEndpointWaitUntilAvailable(d, conn); err != nil {
+	if err := vpcEndpointWaitUntilAvailable(conn, d.Id(), d.Timeout(schema.TimeoutCreate)); err != nil {
 		return err
 	}
 
@@ -179,7 +184,7 @@ func resourceAwsVpcEndpointRead(d *schema.ResourceData, meta interface{}) error 
 
 	vpce, state, err := vpcEndpointStateRefresh(conn, d.Id())()
 	if err != nil && state != "failed" {
-		return fmt.Errorf("Error reading VPC Endpoint: %s", err.Error())
+		return fmt.Errorf("Error reading VPC Endpoint: %s", err)
 	}
 
 	terminalStates := map[string]bool{
@@ -214,7 +219,7 @@ func resourceAwsVpcEndpointUpdate(d *schema.ResourceData, meta interface{}) erro
 	if d.HasChange("policy") {
 		policy, err := structure.NormalizeJsonString(d.Get("policy"))
 		if err != nil {
-			return errwrap.Wrapf("policy contains an invalid JSON: {{err}}", err)
+			return fmt.Errorf("policy contains an invalid JSON: %s", err)
 		}
 
 		if policy == "" {
@@ -234,10 +239,10 @@ func resourceAwsVpcEndpointUpdate(d *schema.ResourceData, meta interface{}) erro
 
 	log.Printf("[DEBUG] Updating VPC Endpoint: %#v", req)
 	if _, err := conn.ModifyVpcEndpoint(req); err != nil {
-		return fmt.Errorf("Error updating VPC Endpoint: %s", err.Error())
+		return fmt.Errorf("Error updating VPC Endpoint: %s", err)
 	}
 
-	if err := vpcEndpointWaitUntilAvailable(d, conn); err != nil {
+	if err := vpcEndpointWaitUntilAvailable(conn, d.Id(), d.Timeout(schema.TimeoutUpdate)); err != nil {
 		return err
 	}
 
@@ -255,20 +260,12 @@ func resourceAwsVpcEndpointDelete(d *schema.ResourceData, meta interface{}) erro
 		if isAWSErr(err, "InvalidVpcEndpointId.NotFound", "") {
 			log.Printf("[DEBUG] VPC Endpoint %s is already gone", d.Id())
 		} else {
-			return fmt.Errorf("Error deleting VPC Endpoint: %s", err.Error())
+			return fmt.Errorf("Error deleting VPC Endpoint: %s", err)
 		}
 	}
 
-	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"available", "pending", "deleting"},
-		Target:     []string{"deleted"},
-		Refresh:    vpcEndpointStateRefresh(conn, d.Id()),
-		Timeout:    10 * time.Minute,
-		Delay:      5 * time.Second,
-		MinTimeout: 5 * time.Second,
-	}
-	if _, err = stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("Error waiting for VPC Endpoint %s to delete: %s", d.Id(), err.Error())
+	if err := vpcEndpointWaitUntilDeleted(conn, d.Id(), d.Timeout(schema.TimeoutDelete)); err != nil {
+		return fmt.Errorf("error waiting for VPC Endpoint (%s) to delete: %s", d.Id(), err)
 	}
 
 	return nil
@@ -284,7 +281,7 @@ func vpcEndpointAccept(conn *ec2.EC2, vpceId, svcName string) error {
 
 	describeSvcResp, err := conn.DescribeVpcEndpointServiceConfigurations(describeSvcReq)
 	if err != nil {
-		return fmt.Errorf("Error reading VPC Endpoint Service: %s", err.Error())
+		return fmt.Errorf("Error reading VPC Endpoint Service: %s", err)
 	}
 	if describeSvcResp == nil || len(describeSvcResp.ServiceConfigurations) == 0 {
 		return fmt.Errorf("No matching VPC Endpoint Service found")
@@ -298,7 +295,7 @@ func vpcEndpointAccept(conn *ec2.EC2, vpceId, svcName string) error {
 	log.Printf("[DEBUG] Accepting VPC Endpoint connection: %#v", acceptEpReq)
 	_, err = conn.AcceptVpcEndpointConnections(acceptEpReq)
 	if err != nil {
-		return fmt.Errorf("Error accepting VPC Endpoint connection: %s", err.Error())
+		return fmt.Errorf("Error accepting VPC Endpoint connection: %s", err)
 	}
 
 	return nil
@@ -312,36 +309,61 @@ func vpcEndpointStateRefresh(conn *ec2.EC2, vpceId string) resource.StateRefresh
 		})
 		if err != nil {
 			if isAWSErr(err, "InvalidVpcEndpointId.NotFound", "") {
-				return false, "deleted", nil
+				return "", "deleted", nil
 			}
 
 			return nil, "", err
 		}
 
-		vpce := resp.VpcEndpoints[0]
-		state := aws.StringValue(vpce.State)
-		// No use in retrying if the endpoint is in a failed state.
-		if state == "failed" {
-			return nil, state, errors.New("VPC Endpoint is in a failed state")
+		n := len(resp.VpcEndpoints)
+		switch n {
+		case 0:
+			return "", "deleted", nil
+
+		case 1:
+			vpce := resp.VpcEndpoints[0]
+			state := aws.StringValue(vpce.State)
+			// No use in retrying if the endpoint is in a failed state.
+			if state == "failed" {
+				return nil, state, errors.New("VPC Endpoint is in a failed state")
+			}
+			return vpce, state, nil
+
+		default:
+			return nil, "", fmt.Errorf("Found %d VPC Endpoints for %s, expected 1", n, vpceId)
 		}
-		return vpce, state, nil
 	}
 }
 
-func vpcEndpointWaitUntilAvailable(d *schema.ResourceData, conn *ec2.EC2) error {
+func vpcEndpointWaitUntilAvailable(conn *ec2.EC2, vpceId string, timeout time.Duration) error {
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"pending"},
 		Target:     []string{"available", "pendingAcceptance"},
-		Refresh:    vpcEndpointStateRefresh(conn, d.Id()),
-		Timeout:    10 * time.Minute,
+		Refresh:    vpcEndpointStateRefresh(conn, vpceId),
+		Timeout:    timeout,
 		Delay:      5 * time.Second,
 		MinTimeout: 5 * time.Second,
 	}
 	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("Error waiting for VPC Endpoint %s to become available: %s", d.Id(), err.Error())
+		return fmt.Errorf("Error waiting for VPC Endpoint (%s) to become available: %s", vpceId, err)
 	}
 
 	return nil
+}
+
+func vpcEndpointWaitUntilDeleted(conn *ec2.EC2, vpceId string, timeout time.Duration) error {
+	stateConf := &resource.StateChangeConf{
+		Pending:    []string{"available", "pending", "deleting"},
+		Target:     []string{"deleted"},
+		Refresh:    vpcEndpointStateRefresh(conn, vpceId),
+		Timeout:    timeout,
+		Delay:      5 * time.Second,
+		MinTimeout: 5 * time.Second,
+	}
+
+	_, err := stateConf.WaitForState()
+
+	return err
 }
 
 func vpcEndpointAttributes(d *schema.ResourceData, vpce *ec2.VpcEndpoint, conn *ec2.EC2) error {
@@ -359,7 +381,7 @@ func vpcEndpointAttributes(d *schema.ResourceData, vpce *ec2.VpcEndpoint, conn *
 
 	policy, err := structure.NormalizeJsonString(aws.StringValue(vpce.PolicyDocument))
 	if err != nil {
-		return errwrap.Wrapf("policy contains an invalid JSON: {{err}}", err)
+		return fmt.Errorf("policy contains an invalid JSON: %s", err)
 	}
 	d.Set("policy", policy)
 

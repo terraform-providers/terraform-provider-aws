@@ -115,6 +115,7 @@ The `firehose` object takes the following arguments:
 
 * `delivery_stream_name` - (Required) The delivery stream name.
 * `role_arn` - (Required) The IAM role ARN that grants access to the Amazon Kinesis Firehose stream.
+* `separator` - (Optional) A character separator that is used to separate records written to the Firehose stream. Valid values are: '\n' (newline), '\t' (tab), '\r\n' (Windows newline), ',' (comma).
 
 The `kinesis` object takes the following arguments:
 

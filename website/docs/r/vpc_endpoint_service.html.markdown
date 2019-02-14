@@ -23,7 +23,7 @@ Basic usage:
 
 ```hcl
 resource "aws_vpc_endpoint_service" "foo" {
-  acceptance_required = false
+  acceptance_required        = false
   network_load_balancer_arns = ["${aws_lb.test.arn}"]
 }
 ```
@@ -38,7 +38,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the VPC endpoint service.
 * `state` - The state of the VPC endpoint service.

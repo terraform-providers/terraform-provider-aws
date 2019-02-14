@@ -11,6 +11,8 @@ description: |-
 Use this data source to get the ID of a registered AMI for use in other
 resources.
 
+~> **NOTE:** The `owners` argument will be **required** in the next major version.
+
 ## Example Usage
 
 ```hcl

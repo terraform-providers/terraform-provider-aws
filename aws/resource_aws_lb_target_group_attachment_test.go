@@ -8,7 +8,6 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/elbv2"
-	"github.com/hashicorp/errwrap"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
@@ -17,7 +16,7 @@ import (
 func TestAccAWSLBTargetGroupAttachment_basic(t *testing.T) {
 	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		IDRefreshName: "aws_lb_target_group.test",
 		Providers:     testAccProviders,
@@ -36,7 +35,7 @@ func TestAccAWSLBTargetGroupAttachment_basic(t *testing.T) {
 func TestAccAWSLBTargetGroupAttachmentBackwardsCompatibility(t *testing.T) {
 	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		IDRefreshName: "aws_alb_target_group.test",
 		Providers:     testAccProviders,
@@ -55,7 +54,7 @@ func TestAccAWSLBTargetGroupAttachmentBackwardsCompatibility(t *testing.T) {
 func TestAccAWSLBTargetGroupAttachment_withoutPort(t *testing.T) {
 	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		IDRefreshName: "aws_lb_target_group.test",
 		Providers:     testAccProviders,
@@ -74,7 +73,7 @@ func TestAccAWSLBTargetGroupAttachment_withoutPort(t *testing.T) {
 func TestAccAWSALBTargetGroupAttachment_ipAddress(t *testing.T) {
 	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
 		IDRefreshName: "aws_lb_target_group.test",
 		Providers:     testAccProviders,
@@ -82,6 +81,25 @@ func TestAccAWSALBTargetGroupAttachment_ipAddress(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSLBTargetGroupAttachmentConfigWithIpAddress(targetGroupName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSLBTargetGroupAttachmentExists("aws_lb_target_group_attachment.test"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSALBTargetGroupAttachment_lambda(t *testing.T) {
+	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:      func() { testAccPreCheck(t) },
+		IDRefreshName: "aws_lb_target_group.test",
+		Providers:     testAccProviders,
+		CheckDestroy:  testAccCheckAWSLBTargetGroupAttachmentDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSLBTargetGroupAttachmentConfigWithLambda(targetGroupName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAWSLBTargetGroupAttachmentExists("aws_lb_target_group_attachment.test"),
 				),
@@ -104,12 +122,12 @@ func testAccCheckAWSLBTargetGroupAttachmentExists(n string) resource.TestCheckFu
 		conn := testAccProvider.Meta().(*AWSClient).elbv2conn
 
 		_, hasPort := rs.Primary.Attributes["port"]
-		targetGroupArn, _ := rs.Primary.Attributes["target_group_arn"]
+		targetGroupArn := rs.Primary.Attributes["target_group_arn"]
 
 		target := &elbv2.TargetDescription{
 			Id: aws.String(rs.Primary.Attributes["target_id"]),
 		}
-		if hasPort == true {
+		if hasPort {
 			port, _ := strconv.Atoi(rs.Primary.Attributes["port"])
 			target.Port = aws.Int64(int64(port))
 		}
@@ -140,12 +158,12 @@ func testAccCheckAWSLBTargetGroupAttachmentDestroy(s *terraform.State) error {
 		}
 
 		_, hasPort := rs.Primary.Attributes["port"]
-		targetGroupArn, _ := rs.Primary.Attributes["target_group_arn"]
+		targetGroupArn := rs.Primary.Attributes["target_group_arn"]
 
 		target := &elbv2.TargetDescription{
 			Id: aws.String(rs.Primary.Attributes["target_id"]),
 		}
-		if hasPort == true {
+		if hasPort {
 			port, _ := strconv.Atoi(rs.Primary.Attributes["port"])
 			target.Port = aws.Int64(int64(port))
 		}
@@ -161,10 +179,10 @@ func testAccCheckAWSLBTargetGroupAttachmentDestroy(s *terraform.State) error {
 		}
 
 		// Verify the error
-		if isTargetGroupNotFound(err) || isInvalidTarget(err) {
+		if isAWSErr(err, elbv2.ErrCodeTargetGroupNotFoundException, "") || isAWSErr(err, elbv2.ErrCodeInvalidTargetException, "") {
 			return nil
 		} else {
-			return errwrap.Wrapf("Unexpected error checking LB destroyed: {{err}}", err)
+			return fmt.Errorf("Unexpected error checking LB destroyed: %s", err)
 		}
 	}
 
@@ -209,14 +227,14 @@ resource "aws_lb_target_group" "test" {
 resource "aws_subnet" "subnet" {
   cidr_block = "10.0.1.0/24"
   vpc_id = "${aws_vpc.test.id}"
-  tags {
+  tags = {
     Name = "tf-acc-lb-target-group-attachment-without-port"
   }
 }
 
 resource "aws_vpc" "test" {
   cidr_block = "10.0.0.0/16"
-	tags {
+	tags = {
 		Name = "terraform-testacc-lb-target-group-attachment-without-port"
 	}
 }`, targetGroupName)
@@ -261,14 +279,14 @@ resource "aws_lb_target_group" "test" {
 resource "aws_subnet" "subnet" {
   cidr_block = "10.0.1.0/24"
   vpc_id = "${aws_vpc.test.id}"
-  tags {
+  tags = {
     Name = "tf-acc-lb-target-group-attachment-basic"
   }
 }
 
 resource "aws_vpc" "test" {
   cidr_block = "10.0.0.0/16"
-	tags {
+	tags = {
 		Name = "terraform-testacc-lb-target-group-attachment-basic"
 	}
 }`, targetGroupName)
@@ -313,14 +331,14 @@ resource "aws_alb_target_group" "test" {
 resource "aws_subnet" "subnet" {
   cidr_block = "10.0.1.0/24"
   vpc_id = "${aws_vpc.test.id}"
-  tags {
+  tags = {
     Name = "tf-acc-lb-target-group-attachment-bc"
   }
 }
 
 resource "aws_vpc" "test" {
   cidr_block = "10.0.0.0/16"
-	tags {
+	tags = {
 		Name = "terraform-testacc-lb-target-group-attachment-bc"
 	}
 }`, targetGroupName)
@@ -363,14 +381,74 @@ resource "aws_lb_target_group" "test" {
 resource "aws_subnet" "subnet" {
   cidr_block = "10.0.1.0/24"
   vpc_id = "${aws_vpc.test.id}"
-  tags {
+  tags = {
     Name = "tf-acc-lb-target-group-attachment-with-ip-address"
   }
 }
 resource "aws_vpc" "test" {
   cidr_block = "10.0.0.0/16"
-	tags {
+	tags = {
 		Name = "terraform-testacc-lb-target-group-attachment-with-ip-address"
 	}
 }`, targetGroupName)
+}
+
+func testAccAWSLBTargetGroupAttachmentConfigWithLambda(targetGroupName string) string {
+	funcName := fmt.Sprintf("tf_acc_lambda_func_%s", acctest.RandString(8))
+
+	return fmt.Sprintf(`
+
+	resource "aws_lambda_permission" "with_lb" {
+		statement_id = "AllowExecutionFromlb"
+		action = "lambda:InvokeFunction"
+		function_name = "${aws_lambda_function.test.arn}"
+		principal = "elasticloadbalancing.amazonaws.com"
+		source_arn = "${aws_lb_target_group.test.arn}"
+		qualifier     = "${aws_lambda_alias.test.name}"
+	}
+
+	resource "aws_lb_target_group" "test" {
+		name = "%s"
+		target_type = "lambda" 
+	}
+
+	resource "aws_lambda_function" "test" {
+		filename = "test-fixtures/lambda_elb.zip"
+		function_name = "%s"
+		role = "${aws_iam_role.iam_for_lambda.arn}"
+		handler = "lambda_elb.lambda_handler"
+		runtime = "python3.7"
+	}
+
+	resource "aws_lambda_alias" "test" {
+		name             = "test"
+		description      = "a sample description"
+		function_name    = "${aws_lambda_function.test.function_name}"
+		function_version = "$LATEST"
+	}
+	
+	resource "aws_iam_role" "iam_for_lambda" {
+			assume_role_policy = <<EOF
+{
+		"Version": "2012-10-17",
+		"Statement": [
+			{
+				"Action": "sts:AssumeRole",
+				"Principal": {
+					"Service": "lambda.amazonaws.com"
+				},
+				"Effect": "Allow",
+				"Sid": ""
+			}
+		]
+	}
+	EOF
+}
+
+	resource "aws_lb_target_group_attachment" "test" {
+		target_group_arn = "${aws_lb_target_group.test.arn}"
+		target_id = "${aws_lambda_alias.test.arn}"
+		depends_on = ["aws_lambda_permission.with_lb"]
+	}
+`, targetGroupName, funcName)
 }

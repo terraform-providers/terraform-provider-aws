@@ -22,7 +22,7 @@ resource "aws_subnet" "foo" {
   availability_zone = "us-west-2a"
   vpc_id            = "${aws_vpc.foo.id}"
 
-  tags {
+  tags = {
     Name = "tf-dbsubnet-test-1"
   }
 }
@@ -32,7 +32,7 @@ resource "aws_subnet" "bar" {
   availability_zone = "us-west-2b"
   vpc_id            = "${aws_vpc.foo.id}"
 
-  tags {
+  tags = {
     Name = "tf-dbsubnet-test-2"
   }
 }
@@ -41,7 +41,7 @@ resource "aws_redshift_subnet_group" "foo" {
   name       = "foo"
   subnet_ids = ["${aws_subnet.foo.id}", "${aws_subnet.bar.id}"]
 
-  tags {
+  tags = {
     environment = "Production"
   }
 }
@@ -58,7 +58,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The Redshift Subnet group ID.
 

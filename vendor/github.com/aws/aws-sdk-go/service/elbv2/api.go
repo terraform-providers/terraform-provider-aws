@@ -9,14 +9,16 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awsutil"
 	"github.com/aws/aws-sdk-go/aws/request"
+	"github.com/aws/aws-sdk-go/private/protocol"
+	"github.com/aws/aws-sdk-go/private/protocol/query"
 )
 
 const opAddListenerCertificates = "AddListenerCertificates"
 
 // AddListenerCertificatesRequest generates a "aws/request.Request" representing the
 // client's request for the AddListenerCertificates operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -55,13 +57,14 @@ func (c *ELBV2) AddListenerCertificatesRequest(input *AddListenerCertificatesInp
 
 // AddListenerCertificates API operation for Elastic Load Balancing.
 //
-// Adds the specified certificate to the specified secure listener.
+// Adds the specified certificate to the specified HTTPS listener.
 //
 // If the certificate was already added, the call is successful but the certificate
 // is not added again.
 //
 // To list the certificates for your listener, use DescribeListenerCertificates.
 // To remove certificates from your listener, use RemoveListenerCertificates.
+// To specify the default SSL server certificate, use ModifyListener.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -106,8 +109,8 @@ const opAddTags = "AddTags"
 
 // AddTagsRequest generates a "aws/request.Request" representing the
 // client's request for the AddTags operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -141,6 +144,7 @@ func (c *ELBV2) AddTagsRequest(input *AddTagsInput) (req *request.Request, outpu
 
 	output = &AddTagsOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(query.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -202,8 +206,8 @@ const opCreateListener = "CreateListener"
 
 // CreateListenerRequest generates a "aws/request.Request" representing the
 // client's request for the CreateListener operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -306,6 +310,12 @@ func (c *ELBV2) CreateListenerRequest(input *CreateListenerInput) (req *request.
 //   * ErrCodeTooManyTargetsException "TooManyTargets"
 //   You've reached the limit on the number of targets.
 //
+//   * ErrCodeTooManyActionsException "TooManyActions"
+//   You've reached the limit on the number of actions per rule.
+//
+//   * ErrCodeInvalidLoadBalancerActionException "InvalidLoadBalancerAction"
+//   The requested action is not valid.
+//
 // See also, https://docs.aws.amazon.com/goto/WebAPI/elasticloadbalancingv2-2015-12-01/CreateListener
 func (c *ELBV2) CreateListener(input *CreateListenerInput) (*CreateListenerOutput, error) {
 	req, out := c.CreateListenerRequest(input)
@@ -332,8 +342,8 @@ const opCreateLoadBalancer = "CreateLoadBalancer"
 
 // CreateLoadBalancerRequest generates a "aws/request.Request" representing the
 // client's request for the CreateLoadBalancer operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -468,8 +478,8 @@ const opCreateRule = "CreateRule"
 
 // CreateRuleRequest generates a "aws/request.Request" representing the
 // client's request for the CreateRule operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -512,9 +522,9 @@ func (c *ELBV2) CreateRuleRequest(input *CreateRuleInput) (req *request.Request,
 // with an Application Load Balancer.
 //
 // Rules are evaluated in priority order, from the lowest value to the highest
-// value. When the condition for a rule is met, the specified action is taken.
-// If no conditions are met, the action for the default rule is taken. For more
-// information, see Listener Rules (http://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-listeners.html#listener-rules)
+// value. When the conditions for a rule are met, its actions are performed.
+// If the conditions for no rules are met, the actions for the default rule
+// are performed. For more information, see Listener Rules (http://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-listeners.html#listener-rules)
 // in the Application Load Balancers Guide.
 //
 // To view your current rules, use DescribeRules. To update a rule, use ModifyRule.
@@ -560,6 +570,15 @@ func (c *ELBV2) CreateRuleRequest(input *CreateRuleInput) (req *request.Request,
 //   * ErrCodeTooManyTargetsException "TooManyTargets"
 //   You've reached the limit on the number of targets.
 //
+//   * ErrCodeUnsupportedProtocolException "UnsupportedProtocol"
+//   The specified protocol is not supported.
+//
+//   * ErrCodeTooManyActionsException "TooManyActions"
+//   You've reached the limit on the number of actions per rule.
+//
+//   * ErrCodeInvalidLoadBalancerActionException "InvalidLoadBalancerAction"
+//   The requested action is not valid.
+//
 // See also, https://docs.aws.amazon.com/goto/WebAPI/elasticloadbalancingv2-2015-12-01/CreateRule
 func (c *ELBV2) CreateRule(input *CreateRuleInput) (*CreateRuleOutput, error) {
 	req, out := c.CreateRuleRequest(input)
@@ -586,8 +605,8 @@ const opCreateTargetGroup = "CreateTargetGroup"
 
 // CreateTargetGroupRequest generates a "aws/request.Request" representing the
 // client's request for the CreateTargetGroup operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -690,8 +709,8 @@ const opDeleteListener = "DeleteListener"
 
 // DeleteListenerRequest generates a "aws/request.Request" representing the
 // client's request for the DeleteListener operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -725,6 +744,7 @@ func (c *ELBV2) DeleteListenerRequest(input *DeleteListenerInput) (req *request.
 
 	output = &DeleteListenerOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(query.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -733,7 +753,7 @@ func (c *ELBV2) DeleteListenerRequest(input *DeleteListenerInput) (req *request.
 // Deletes the specified listener.
 //
 // Alternatively, your listener is deleted when you delete the load balancer
-// it is attached to using DeleteLoadBalancer.
+// to which it is attached, using DeleteLoadBalancer.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -772,8 +792,8 @@ const opDeleteLoadBalancer = "DeleteLoadBalancer"
 
 // DeleteLoadBalancerRequest generates a "aws/request.Request" representing the
 // client's request for the DeleteLoadBalancer operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -807,6 +827,7 @@ func (c *ELBV2) DeleteLoadBalancerRequest(input *DeleteLoadBalancerInput) (req *
 
 	output = &DeleteLoadBalancerOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(query.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -866,8 +887,8 @@ const opDeleteRule = "DeleteRule"
 
 // DeleteRuleRequest generates a "aws/request.Request" representing the
 // client's request for the DeleteRule operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -901,6 +922,7 @@ func (c *ELBV2) DeleteRuleRequest(input *DeleteRuleInput) (req *request.Request,
 
 	output = &DeleteRuleOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(query.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -948,8 +970,8 @@ const opDeleteTargetGroup = "DeleteTargetGroup"
 
 // DeleteTargetGroupRequest generates a "aws/request.Request" representing the
 // client's request for the DeleteTargetGroup operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -983,6 +1005,7 @@ func (c *ELBV2) DeleteTargetGroupRequest(input *DeleteTargetGroupInput) (req *re
 
 	output = &DeleteTargetGroupOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(query.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -1030,8 +1053,8 @@ const opDeregisterTargets = "DeregisterTargets"
 
 // DeregisterTargetsRequest generates a "aws/request.Request" representing the
 // client's request for the DeregisterTargets operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -1065,6 +1088,7 @@ func (c *ELBV2) DeregisterTargetsRequest(input *DeregisterTargetsInput) (req *re
 
 	output = &DeregisterTargetsOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(query.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -1115,8 +1139,8 @@ const opDescribeAccountLimits = "DescribeAccountLimits"
 
 // DescribeAccountLimitsRequest generates a "aws/request.Request" representing the
 // client's request for the DescribeAccountLimits operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -1195,8 +1219,8 @@ const opDescribeListenerCertificates = "DescribeListenerCertificates"
 
 // DescribeListenerCertificatesRequest generates a "aws/request.Request" representing the
 // client's request for the DescribeListenerCertificates operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -1235,7 +1259,7 @@ func (c *ELBV2) DescribeListenerCertificatesRequest(input *DescribeListenerCerti
 
 // DescribeListenerCertificates API operation for Elastic Load Balancing.
 //
-// Describes the certificates for the specified secure listener.
+// Describes the certificates for the specified HTTPS listener.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1274,8 +1298,8 @@ const opDescribeListeners = "DescribeListeners"
 
 // DescribeListenersRequest generates a "aws/request.Request" representing the
 // client's request for the DescribeListeners operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -1337,6 +1361,9 @@ func (c *ELBV2) DescribeListenersRequest(input *DescribeListenersInput) (req *re
 //
 //   * ErrCodeLoadBalancerNotFoundException "LoadBalancerNotFound"
 //   The specified load balancer does not exist.
+//
+//   * ErrCodeUnsupportedProtocolException "UnsupportedProtocol"
+//   The specified protocol is not supported.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/elasticloadbalancingv2-2015-12-01/DescribeListeners
 func (c *ELBV2) DescribeListeners(input *DescribeListenersInput) (*DescribeListenersOutput, error) {
@@ -1414,8 +1441,8 @@ const opDescribeLoadBalancerAttributes = "DescribeLoadBalancerAttributes"
 
 // DescribeLoadBalancerAttributesRequest generates a "aws/request.Request" representing the
 // client's request for the DescribeLoadBalancerAttributes operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -1457,6 +1484,10 @@ func (c *ELBV2) DescribeLoadBalancerAttributesRequest(input *DescribeLoadBalance
 // Describes the attributes for the specified Application Load Balancer or Network
 // Load Balancer.
 //
+// For more information, see Load Balancer Attributes (http://docs.aws.amazon.com/elasticloadbalancing/latest/application/application-load-balancers.html#load-balancer-attributes)
+// in the Application Load Balancers Guide or Load Balancer Attributes (http://docs.aws.amazon.com/elasticloadbalancing/latest/network/network-load-balancers.html#load-balancer-attributes)
+// in the Network Load Balancers Guide.
+//
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
 // the error.
@@ -1494,8 +1525,8 @@ const opDescribeLoadBalancers = "DescribeLoadBalancers"
 
 // DescribeLoadBalancersRequest generates a "aws/request.Request" representing the
 // client's request for the DescribeLoadBalancers operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -1632,8 +1663,8 @@ const opDescribeRules = "DescribeRules"
 
 // DescribeRulesRequest generates a "aws/request.Request" representing the
 // client's request for the DescribeRules operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -1689,6 +1720,9 @@ func (c *ELBV2) DescribeRulesRequest(input *DescribeRulesInput) (req *request.Re
 //   * ErrCodeRuleNotFoundException "RuleNotFound"
 //   The specified rule does not exist.
 //
+//   * ErrCodeUnsupportedProtocolException "UnsupportedProtocol"
+//   The specified protocol is not supported.
+//
 // See also, https://docs.aws.amazon.com/goto/WebAPI/elasticloadbalancingv2-2015-12-01/DescribeRules
 func (c *ELBV2) DescribeRules(input *DescribeRulesInput) (*DescribeRulesOutput, error) {
 	req, out := c.DescribeRulesRequest(input)
@@ -1715,8 +1749,8 @@ const opDescribeSSLPolicies = "DescribeSSLPolicies"
 
 // DescribeSSLPoliciesRequest generates a "aws/request.Request" representing the
 // client's request for the DescribeSSLPolicies operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -1797,8 +1831,8 @@ const opDescribeTags = "DescribeTags"
 
 // DescribeTagsRequest generates a "aws/request.Request" representing the
 // client's request for the DescribeTags operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -1887,8 +1921,8 @@ const opDescribeTargetGroupAttributes = "DescribeTargetGroupAttributes"
 
 // DescribeTargetGroupAttributesRequest generates a "aws/request.Request" representing the
 // client's request for the DescribeTargetGroupAttributes operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -1929,6 +1963,10 @@ func (c *ELBV2) DescribeTargetGroupAttributesRequest(input *DescribeTargetGroupA
 //
 // Describes the attributes for the specified target group.
 //
+// For more information, see Target Group Attributes (http://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-target-groups.html#target-group-attributes)
+// in the Application Load Balancers Guide or Target Group Attributes (http://docs.aws.amazon.com/elasticloadbalancing/latest/network/load-balancer-target-groups.html#target-group-attributes)
+// in the Network Load Balancers Guide.
+//
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
 // the error.
@@ -1966,8 +2004,8 @@ const opDescribeTargetGroups = "DescribeTargetGroups"
 
 // DescribeTargetGroupsRequest generates a "aws/request.Request" representing the
 // client's request for the DescribeTargetGroups operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -2110,8 +2148,8 @@ const opDescribeTargetHealth = "DescribeTargetHealth"
 
 // DescribeTargetHealthRequest generates a "aws/request.Request" representing the
 // client's request for the DescribeTargetHealth operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -2197,8 +2235,8 @@ const opModifyListener = "ModifyListener"
 
 // ModifyListenerRequest generates a "aws/request.Request" representing the
 // client's request for the ModifyListener operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -2240,9 +2278,10 @@ func (c *ELBV2) ModifyListenerRequest(input *ModifyListenerInput) (req *request.
 // Modifies the specified properties of the specified listener.
 //
 // Any properties that you do not specify retain their current values. However,
-// changing the protocol from HTTPS to HTTP removes the security policy and
-// SSL certificate properties. If you change the protocol from HTTP to HTTPS,
-// you must add the security policy and server certificate.
+// changing the protocol from HTTPS to HTTP, or from TLS to TCP, removes the
+// security policy and server certificate properties. If you change the protocol
+// from HTTP to HTTPS, or from TCP to TLS, you must add the security policy
+// and server certificate properties.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -2292,6 +2331,12 @@ func (c *ELBV2) ModifyListenerRequest(input *ModifyListenerInput) (req *request.
 //   * ErrCodeTooManyTargetsException "TooManyTargets"
 //   You've reached the limit on the number of targets.
 //
+//   * ErrCodeTooManyActionsException "TooManyActions"
+//   You've reached the limit on the number of actions per rule.
+//
+//   * ErrCodeInvalidLoadBalancerActionException "InvalidLoadBalancerAction"
+//   The requested action is not valid.
+//
 // See also, https://docs.aws.amazon.com/goto/WebAPI/elasticloadbalancingv2-2015-12-01/ModifyListener
 func (c *ELBV2) ModifyListener(input *ModifyListenerInput) (*ModifyListenerOutput, error) {
 	req, out := c.ModifyListenerRequest(input)
@@ -2318,8 +2363,8 @@ const opModifyLoadBalancerAttributes = "ModifyLoadBalancerAttributes"
 
 // ModifyLoadBalancerAttributesRequest generates a "aws/request.Request" representing the
 // client's request for the ModifyLoadBalancerAttributes operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -2405,8 +2450,8 @@ const opModifyRule = "ModifyRule"
 
 // ModifyRuleRequest generates a "aws/request.Request" representing the
 // client's request for the ModifyRule operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -2449,7 +2494,7 @@ func (c *ELBV2) ModifyRuleRequest(input *ModifyRuleInput) (req *request.Request,
 //
 // Any existing properties that you do not modify retain their current values.
 //
-// To modify the default action, use ModifyListener.
+// To modify the actions for the default rule, use ModifyListener.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -2481,6 +2526,15 @@ func (c *ELBV2) ModifyRuleRequest(input *ModifyRuleInput) (req *request.Request,
 //   * ErrCodeTargetGroupNotFoundException "TargetGroupNotFound"
 //   The specified target group does not exist.
 //
+//   * ErrCodeUnsupportedProtocolException "UnsupportedProtocol"
+//   The specified protocol is not supported.
+//
+//   * ErrCodeTooManyActionsException "TooManyActions"
+//   You've reached the limit on the number of actions per rule.
+//
+//   * ErrCodeInvalidLoadBalancerActionException "InvalidLoadBalancerAction"
+//   The requested action is not valid.
+//
 // See also, https://docs.aws.amazon.com/goto/WebAPI/elasticloadbalancingv2-2015-12-01/ModifyRule
 func (c *ELBV2) ModifyRule(input *ModifyRuleInput) (*ModifyRuleOutput, error) {
 	req, out := c.ModifyRuleRequest(input)
@@ -2507,8 +2561,8 @@ const opModifyTargetGroup = "ModifyTargetGroup"
 
 // ModifyTargetGroupRequest generates a "aws/request.Request" representing the
 // client's request for the ModifyTargetGroup operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -2592,8 +2646,8 @@ const opModifyTargetGroupAttributes = "ModifyTargetGroupAttributes"
 
 // ModifyTargetGroupAttributesRequest generates a "aws/request.Request" representing the
 // client's request for the ModifyTargetGroupAttributes operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -2674,8 +2728,8 @@ const opRegisterTargets = "RegisterTargets"
 
 // RegisterTargetsRequest generates a "aws/request.Request" representing the
 // client's request for the RegisterTargets operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -2709,6 +2763,7 @@ func (c *ELBV2) RegisterTargetsRequest(input *RegisterTargetsInput) (req *reques
 
 	output = &RegisterTargetsOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(query.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -2716,8 +2771,8 @@ func (c *ELBV2) RegisterTargetsRequest(input *RegisterTargetsInput) (req *reques
 //
 // Registers the specified targets with the specified target group.
 //
-// You can register targets by instance ID or by IP address. If the target is
-// an EC2 instance, it must be in the running state when you register it.
+// If the target is an EC2 instance, it must be in the running state when you
+// register it.
 //
 // By default, the load balancer routes requests to registered targets using
 // the protocol and port for the target group. Alternatively, you can override
@@ -2779,8 +2834,8 @@ const opRemoveListenerCertificates = "RemoveListenerCertificates"
 
 // RemoveListenerCertificatesRequest generates a "aws/request.Request" representing the
 // client's request for the RemoveListenerCertificates operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -2814,12 +2869,13 @@ func (c *ELBV2) RemoveListenerCertificatesRequest(input *RemoveListenerCertifica
 
 	output = &RemoveListenerCertificatesOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(query.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
 // RemoveListenerCertificates API operation for Elastic Load Balancing.
 //
-// Removes the specified certificate from the specified secure listener.
+// Removes the specified certificate from the specified HTTPS listener.
 //
 // You can't remove the default certificate for a listener. To replace the default
 // certificate, call ModifyListener.
@@ -2866,8 +2922,8 @@ const opRemoveTags = "RemoveTags"
 
 // RemoveTagsRequest generates a "aws/request.Request" representing the
 // client's request for the RemoveTags operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -2901,6 +2957,7 @@ func (c *ELBV2) RemoveTagsRequest(input *RemoveTagsInput) (req *request.Request,
 
 	output = &RemoveTagsOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(query.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -2959,8 +3016,8 @@ const opSetIpAddressType = "SetIpAddressType"
 
 // SetIpAddressTypeRequest generates a "aws/request.Request" representing the
 // client's request for the SetIpAddressType operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -3002,7 +3059,7 @@ func (c *ELBV2) SetIpAddressTypeRequest(input *SetIpAddressTypeInput) (req *requ
 // Sets the type of IP addresses used by the subnets of the specified Application
 // Load Balancer or Network Load Balancer.
 //
-// Note that Network Load Balancers must use ipv4.
+// Network Load Balancers must use ipv4.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -3047,8 +3104,8 @@ const opSetRulePriorities = "SetRulePriorities"
 
 // SetRulePrioritiesRequest generates a "aws/request.Request" representing the
 // client's request for the SetRulePriorities operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -3136,8 +3193,8 @@ const opSetSecurityGroups = "SetSecurityGroups"
 
 // SetSecurityGroupsRequest generates a "aws/request.Request" representing the
 // client's request for the SetSecurityGroups operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -3180,7 +3237,7 @@ func (c *ELBV2) SetSecurityGroupsRequest(input *SetSecurityGroupsInput) (req *re
 // Balancer. The specified security groups override the previously associated
 // security groups.
 //
-// Note that you can't specify a security group for a Network Load Balancer.
+// You can't specify a security group for a Network Load Balancer.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -3225,8 +3282,8 @@ const opSetSubnets = "SetSubnets"
 
 // SetSubnetsRequest generates a "aws/request.Request" representing the
 // client's request for the SetSubnets operation. The "output" return
-// value will be populated with the request's response once the request complets
-// successfuly.
+// value will be populated with the request's response once the request completes
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -3269,7 +3326,7 @@ func (c *ELBV2) SetSubnetsRequest(input *SetSubnetsInput) (req *request.Request,
 // Application Load Balancer. The specified subnets replace the previously enabled
 // subnets.
 //
-// Note that you can't change the subnets for a Network Load Balancer.
+// You can't change the subnets for a Network Load Balancer.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -3323,12 +3380,33 @@ func (c *ELBV2) SetSubnetsWithContext(ctx aws.Context, input *SetSubnetsInput, o
 type Action struct {
 	_ struct{} `type:"structure"`
 
-	// The Amazon Resource Name (ARN) of the target group.
-	//
-	// TargetGroupArn is a required field
-	TargetGroupArn *string `type:"string" required:"true"`
+	// [HTTPS listeners] Information for using Amazon Cognito to authenticate users.
+	// Specify only when Type is authenticate-cognito.
+	AuthenticateCognitoConfig *AuthenticateCognitoActionConfig `type:"structure"`
 
-	// The type of action.
+	// [HTTPS listeners] Information about an identity provider that is compliant
+	// with OpenID Connect (OIDC). Specify only when Type is authenticate-oidc.
+	AuthenticateOidcConfig *AuthenticateOidcActionConfig `type:"structure"`
+
+	// [Application Load Balancer] Information for creating an action that returns
+	// a custom HTTP response. Specify only when Type is fixed-response.
+	FixedResponseConfig *FixedResponseActionConfig `type:"structure"`
+
+	// The order for the action. This value is required for rules with multiple
+	// actions. The action with the lowest value for order is performed first. The
+	// final action to be performed must be a forward or a fixed-response action.
+	Order *int64 `min:"1" type:"integer"`
+
+	// [Application Load Balancer] Information for creating a redirect action. Specify
+	// only when Type is redirect.
+	RedirectConfig *RedirectActionConfig `type:"structure"`
+
+	// The Amazon Resource Name (ARN) of the target group. Specify only when Type
+	// is forward.
+	TargetGroupArn *string `type:"string"`
+
+	// The type of action. Each rule must include exactly one of the following types
+	// of actions: forward, fixed-response, or redirect.
 	//
 	// Type is a required field
 	Type *string `type:"string" required:"true" enum:"ActionTypeEnum"`
@@ -3347,17 +3425,67 @@ func (s Action) GoString() string {
 // Validate inspects the fields of the type to determine if they are valid.
 func (s *Action) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "Action"}
-	if s.TargetGroupArn == nil {
-		invalidParams.Add(request.NewErrParamRequired("TargetGroupArn"))
+	if s.Order != nil && *s.Order < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("Order", 1))
 	}
 	if s.Type == nil {
 		invalidParams.Add(request.NewErrParamRequired("Type"))
+	}
+	if s.AuthenticateCognitoConfig != nil {
+		if err := s.AuthenticateCognitoConfig.Validate(); err != nil {
+			invalidParams.AddNested("AuthenticateCognitoConfig", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.AuthenticateOidcConfig != nil {
+		if err := s.AuthenticateOidcConfig.Validate(); err != nil {
+			invalidParams.AddNested("AuthenticateOidcConfig", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.FixedResponseConfig != nil {
+		if err := s.FixedResponseConfig.Validate(); err != nil {
+			invalidParams.AddNested("FixedResponseConfig", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.RedirectConfig != nil {
+		if err := s.RedirectConfig.Validate(); err != nil {
+			invalidParams.AddNested("RedirectConfig", err.(request.ErrInvalidParams))
+		}
 	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
 	}
 	return nil
+}
+
+// SetAuthenticateCognitoConfig sets the AuthenticateCognitoConfig field's value.
+func (s *Action) SetAuthenticateCognitoConfig(v *AuthenticateCognitoActionConfig) *Action {
+	s.AuthenticateCognitoConfig = v
+	return s
+}
+
+// SetAuthenticateOidcConfig sets the AuthenticateOidcConfig field's value.
+func (s *Action) SetAuthenticateOidcConfig(v *AuthenticateOidcActionConfig) *Action {
+	s.AuthenticateOidcConfig = v
+	return s
+}
+
+// SetFixedResponseConfig sets the FixedResponseConfig field's value.
+func (s *Action) SetFixedResponseConfig(v *FixedResponseActionConfig) *Action {
+	s.FixedResponseConfig = v
+	return s
+}
+
+// SetOrder sets the Order field's value.
+func (s *Action) SetOrder(v int64) *Action {
+	s.Order = &v
+	return s
+}
+
+// SetRedirectConfig sets the RedirectConfig field's value.
+func (s *Action) SetRedirectConfig(v *RedirectActionConfig) *Action {
+	s.RedirectConfig = v
+	return s
 }
 
 // SetTargetGroupArn sets the TargetGroupArn field's value.
@@ -3375,7 +3503,8 @@ func (s *Action) SetType(v string) *Action {
 type AddListenerCertificatesInput struct {
 	_ struct{} `type:"structure"`
 
-	// The certificate to add. You can specify one certificate per call.
+	// The certificate to add. You can specify one certificate per call. Set CertificateArn
+	// to the certificate ARN but do not set IsDefault.
 	//
 	// Certificates is a required field
 	Certificates []*Certificate `type:"list" required:"true"`
@@ -3526,6 +3655,305 @@ func (s AddTagsOutput) GoString() string {
 	return s.String()
 }
 
+// Request parameters to use when integrating with Amazon Cognito to authenticate
+// users.
+type AuthenticateCognitoActionConfig struct {
+	_ struct{} `type:"structure"`
+
+	// The query parameters (up to 10) to include in the redirect request to the
+	// authorization endpoint.
+	AuthenticationRequestExtraParams map[string]*string `type:"map"`
+
+	// The behavior if the user is not authenticated. The following are possible
+	// values:
+	//
+	//    * deny - Return an HTTP 401 Unauthorized error.
+	//
+	//    * allow - Allow the request to be forwarded to the target.
+	//
+	// authenticate
+	OnUnauthenticatedRequest *string `type:"string" enum:"AuthenticateCognitoActionConditionalBehaviorEnum"`
+
+	// The set of user claims to be requested from the IdP. The default is openid.
+	//
+	// To verify which scope values your IdP supports and how to separate multiple
+	// values, see the documentation for your IdP.
+	Scope *string `type:"string"`
+
+	// The name of the cookie used to maintain session information. The default
+	// is AWSELBAuthSessionCookie.
+	SessionCookieName *string `type:"string"`
+
+	// The maximum duration of the authentication session, in seconds. The default
+	// is 604800 seconds (7 days).
+	SessionTimeout *int64 `type:"long"`
+
+	// The Amazon Resource Name (ARN) of the Amazon Cognito user pool.
+	//
+	// UserPoolArn is a required field
+	UserPoolArn *string `type:"string" required:"true"`
+
+	// The ID of the Amazon Cognito user pool client.
+	//
+	// UserPoolClientId is a required field
+	UserPoolClientId *string `type:"string" required:"true"`
+
+	// The domain prefix or fully-qualified domain name of the Amazon Cognito user
+	// pool.
+	//
+	// UserPoolDomain is a required field
+	UserPoolDomain *string `type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s AuthenticateCognitoActionConfig) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AuthenticateCognitoActionConfig) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *AuthenticateCognitoActionConfig) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "AuthenticateCognitoActionConfig"}
+	if s.UserPoolArn == nil {
+		invalidParams.Add(request.NewErrParamRequired("UserPoolArn"))
+	}
+	if s.UserPoolClientId == nil {
+		invalidParams.Add(request.NewErrParamRequired("UserPoolClientId"))
+	}
+	if s.UserPoolDomain == nil {
+		invalidParams.Add(request.NewErrParamRequired("UserPoolDomain"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetAuthenticationRequestExtraParams sets the AuthenticationRequestExtraParams field's value.
+func (s *AuthenticateCognitoActionConfig) SetAuthenticationRequestExtraParams(v map[string]*string) *AuthenticateCognitoActionConfig {
+	s.AuthenticationRequestExtraParams = v
+	return s
+}
+
+// SetOnUnauthenticatedRequest sets the OnUnauthenticatedRequest field's value.
+func (s *AuthenticateCognitoActionConfig) SetOnUnauthenticatedRequest(v string) *AuthenticateCognitoActionConfig {
+	s.OnUnauthenticatedRequest = &v
+	return s
+}
+
+// SetScope sets the Scope field's value.
+func (s *AuthenticateCognitoActionConfig) SetScope(v string) *AuthenticateCognitoActionConfig {
+	s.Scope = &v
+	return s
+}
+
+// SetSessionCookieName sets the SessionCookieName field's value.
+func (s *AuthenticateCognitoActionConfig) SetSessionCookieName(v string) *AuthenticateCognitoActionConfig {
+	s.SessionCookieName = &v
+	return s
+}
+
+// SetSessionTimeout sets the SessionTimeout field's value.
+func (s *AuthenticateCognitoActionConfig) SetSessionTimeout(v int64) *AuthenticateCognitoActionConfig {
+	s.SessionTimeout = &v
+	return s
+}
+
+// SetUserPoolArn sets the UserPoolArn field's value.
+func (s *AuthenticateCognitoActionConfig) SetUserPoolArn(v string) *AuthenticateCognitoActionConfig {
+	s.UserPoolArn = &v
+	return s
+}
+
+// SetUserPoolClientId sets the UserPoolClientId field's value.
+func (s *AuthenticateCognitoActionConfig) SetUserPoolClientId(v string) *AuthenticateCognitoActionConfig {
+	s.UserPoolClientId = &v
+	return s
+}
+
+// SetUserPoolDomain sets the UserPoolDomain field's value.
+func (s *AuthenticateCognitoActionConfig) SetUserPoolDomain(v string) *AuthenticateCognitoActionConfig {
+	s.UserPoolDomain = &v
+	return s
+}
+
+// Request parameters when using an identity provider (IdP) that is compliant
+// with OpenID Connect (OIDC) to authenticate users.
+type AuthenticateOidcActionConfig struct {
+	_ struct{} `type:"structure"`
+
+	// The query parameters (up to 10) to include in the redirect request to the
+	// authorization endpoint.
+	AuthenticationRequestExtraParams map[string]*string `type:"map"`
+
+	// The authorization endpoint of the IdP. This must be a full URL, including
+	// the HTTPS protocol, the domain, and the path.
+	//
+	// AuthorizationEndpoint is a required field
+	AuthorizationEndpoint *string `type:"string" required:"true"`
+
+	// The OAuth 2.0 client identifier.
+	//
+	// ClientId is a required field
+	ClientId *string `type:"string" required:"true"`
+
+	// The OAuth 2.0 client secret.
+	//
+	// ClientSecret is a required field
+	ClientSecret *string `type:"string" required:"true"`
+
+	// The OIDC issuer identifier of the IdP. This must be a full URL, including
+	// the HTTPS protocol, the domain, and the path.
+	//
+	// Issuer is a required field
+	Issuer *string `type:"string" required:"true"`
+
+	// The behavior if the user is not authenticated. The following are possible
+	// values:
+	//
+	//    * deny - Return an HTTP 401 Unauthorized error.
+	//
+	//    * allow - Allow the request to be forwarded to the target.
+	//
+	// authenticate
+	OnUnauthenticatedRequest *string `type:"string" enum:"AuthenticateOidcActionConditionalBehaviorEnum"`
+
+	// The set of user claims to be requested from the IdP. The default is openid.
+	//
+	// To verify which scope values your IdP supports and how to separate multiple
+	// values, see the documentation for your IdP.
+	Scope *string `type:"string"`
+
+	// The name of the cookie used to maintain session information. The default
+	// is AWSELBAuthSessionCookie.
+	SessionCookieName *string `type:"string"`
+
+	// The maximum duration of the authentication session, in seconds. The default
+	// is 604800 seconds (7 days).
+	SessionTimeout *int64 `type:"long"`
+
+	// The token endpoint of the IdP. This must be a full URL, including the HTTPS
+	// protocol, the domain, and the path.
+	//
+	// TokenEndpoint is a required field
+	TokenEndpoint *string `type:"string" required:"true"`
+
+	// The user info endpoint of the IdP. This must be a full URL, including the
+	// HTTPS protocol, the domain, and the path.
+	//
+	// UserInfoEndpoint is a required field
+	UserInfoEndpoint *string `type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s AuthenticateOidcActionConfig) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AuthenticateOidcActionConfig) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *AuthenticateOidcActionConfig) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "AuthenticateOidcActionConfig"}
+	if s.AuthorizationEndpoint == nil {
+		invalidParams.Add(request.NewErrParamRequired("AuthorizationEndpoint"))
+	}
+	if s.ClientId == nil {
+		invalidParams.Add(request.NewErrParamRequired("ClientId"))
+	}
+	if s.ClientSecret == nil {
+		invalidParams.Add(request.NewErrParamRequired("ClientSecret"))
+	}
+	if s.Issuer == nil {
+		invalidParams.Add(request.NewErrParamRequired("Issuer"))
+	}
+	if s.TokenEndpoint == nil {
+		invalidParams.Add(request.NewErrParamRequired("TokenEndpoint"))
+	}
+	if s.UserInfoEndpoint == nil {
+		invalidParams.Add(request.NewErrParamRequired("UserInfoEndpoint"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetAuthenticationRequestExtraParams sets the AuthenticationRequestExtraParams field's value.
+func (s *AuthenticateOidcActionConfig) SetAuthenticationRequestExtraParams(v map[string]*string) *AuthenticateOidcActionConfig {
+	s.AuthenticationRequestExtraParams = v
+	return s
+}
+
+// SetAuthorizationEndpoint sets the AuthorizationEndpoint field's value.
+func (s *AuthenticateOidcActionConfig) SetAuthorizationEndpoint(v string) *AuthenticateOidcActionConfig {
+	s.AuthorizationEndpoint = &v
+	return s
+}
+
+// SetClientId sets the ClientId field's value.
+func (s *AuthenticateOidcActionConfig) SetClientId(v string) *AuthenticateOidcActionConfig {
+	s.ClientId = &v
+	return s
+}
+
+// SetClientSecret sets the ClientSecret field's value.
+func (s *AuthenticateOidcActionConfig) SetClientSecret(v string) *AuthenticateOidcActionConfig {
+	s.ClientSecret = &v
+	return s
+}
+
+// SetIssuer sets the Issuer field's value.
+func (s *AuthenticateOidcActionConfig) SetIssuer(v string) *AuthenticateOidcActionConfig {
+	s.Issuer = &v
+	return s
+}
+
+// SetOnUnauthenticatedRequest sets the OnUnauthenticatedRequest field's value.
+func (s *AuthenticateOidcActionConfig) SetOnUnauthenticatedRequest(v string) *AuthenticateOidcActionConfig {
+	s.OnUnauthenticatedRequest = &v
+	return s
+}
+
+// SetScope sets the Scope field's value.
+func (s *AuthenticateOidcActionConfig) SetScope(v string) *AuthenticateOidcActionConfig {
+	s.Scope = &v
+	return s
+}
+
+// SetSessionCookieName sets the SessionCookieName field's value.
+func (s *AuthenticateOidcActionConfig) SetSessionCookieName(v string) *AuthenticateOidcActionConfig {
+	s.SessionCookieName = &v
+	return s
+}
+
+// SetSessionTimeout sets the SessionTimeout field's value.
+func (s *AuthenticateOidcActionConfig) SetSessionTimeout(v int64) *AuthenticateOidcActionConfig {
+	s.SessionTimeout = &v
+	return s
+}
+
+// SetTokenEndpoint sets the TokenEndpoint field's value.
+func (s *AuthenticateOidcActionConfig) SetTokenEndpoint(v string) *AuthenticateOidcActionConfig {
+	s.TokenEndpoint = &v
+	return s
+}
+
+// SetUserInfoEndpoint sets the UserInfoEndpoint field's value.
+func (s *AuthenticateOidcActionConfig) SetUserInfoEndpoint(v string) *AuthenticateOidcActionConfig {
+	s.UserInfoEndpoint = &v
+	return s
+}
+
 // Information about an Availability Zone.
 type AvailabilityZone struct {
 	_ struct{} `type:"structure"`
@@ -3575,7 +4003,8 @@ type Certificate struct {
 	// The Amazon Resource Name (ARN) of the certificate.
 	CertificateArn *string `type:"string"`
 
-	// Indicates whether the certificate is the default certificate.
+	// Indicates whether the certificate is the default certificate. Do not set
+	// IsDefault when specifying a certificate as an input parameter.
 	IsDefault *bool `type:"boolean"`
 }
 
@@ -3637,13 +4066,31 @@ func (s *Cipher) SetPriority(v int64) *Cipher {
 type CreateListenerInput struct {
 	_ struct{} `type:"structure"`
 
-	// [HTTPS listeners] The SSL server certificate. You must provide exactly one
-	// certificate.
+	// [HTTPS and TLS listeners] The default SSL server certificate. You must provide
+	// exactly one certificate. Set CertificateArn to the certificate ARN but do
+	// not set IsDefault.
+	//
+	// To create a certificate list, use AddListenerCertificates.
 	Certificates []*Certificate `type:"list"`
 
-	// The default action for the listener. For Application Load Balancers, the
-	// protocol of the specified target group must be HTTP or HTTPS. For Network
-	// Load Balancers, the protocol of the specified target group must be TCP.
+	// The actions for the default rule. The rule must include one forward action
+	// or one or more fixed-response actions.
+	//
+	// If the action type is forward, you specify a target group. The protocol of
+	// the target group must be HTTP or HTTPS for an Application Load Balancer.
+	// The protocol of the target group must be TCP or TLS for a Network Load Balancer.
+	//
+	// [HTTPS listeners] If the action type is authenticate-oidc, you authenticate
+	// users through an identity provider that is OpenID Connect (OIDC) compliant.
+	//
+	// [HTTPS listeners] If the action type is authenticate-cognito, you authenticate
+	// users through the user pools supported by Amazon Cognito.
+	//
+	// [Application Load Balancer] If the action type is redirect, you redirect
+	// specified client requests from one URL to another.
+	//
+	// [Application Load Balancer] If the action type is fixed-response, you drop
+	// specified client requests and return a custom HTTP response.
 	//
 	// DefaultActions is a required field
 	DefaultActions []*Action `type:"list" required:"true"`
@@ -3660,13 +4107,14 @@ type CreateListenerInput struct {
 
 	// The protocol for connections from clients to the load balancer. For Application
 	// Load Balancers, the supported protocols are HTTP and HTTPS. For Network Load
-	// Balancers, the supported protocol is TCP.
+	// Balancers, the supported protocols are TCP and TLS.
 	//
 	// Protocol is a required field
 	Protocol *string `type:"string" required:"true" enum:"ProtocolEnum"`
 
-	// [HTTPS listeners] The security policy that defines which ciphers and protocols
-	// are supported. The default is the current predefined security policy.
+	// [HTTPS and TLS listeners] The security policy that defines which ciphers
+	// and protocols are supported. The default is the current predefined security
+	// policy.
 	SslPolicy *string `type:"string"`
 }
 
@@ -3786,8 +4234,8 @@ type CreateLoadBalancerInput struct {
 	// The name of the load balancer.
 	//
 	// This name must be unique per region per account, can have a maximum of 32
-	// characters, must contain only alphanumeric characters or hyphens, and must
-	// not begin or end with a hyphen.
+	// characters, must contain only alphanumeric characters or hyphens, must not
+	// begin or end with a hyphen, and must not begin with "internal-".
 	//
 	// Name is a required field
 	Name *string `type:"string" required:"true"`
@@ -3795,7 +4243,7 @@ type CreateLoadBalancerInput struct {
 	// The nodes of an Internet-facing load balancer have public IP addresses. The
 	// DNS name of an Internet-facing load balancer is publicly resolvable to the
 	// public IP addresses of the nodes. Therefore, Internet-facing load balancers
-	// can route requests from clients over the Internet.
+	// can route requests from clients over the internet.
 	//
 	// The nodes of an internal load balancer have only private IP addresses. The
 	// DNS name of an internal load balancer is publicly resolvable to the private
@@ -3946,7 +4394,24 @@ func (s *CreateLoadBalancerOutput) SetLoadBalancers(v []*LoadBalancer) *CreateLo
 type CreateRuleInput struct {
 	_ struct{} `type:"structure"`
 
-	// An action. Each action has the type forward and specifies a target group.
+	// The actions. Each rule must include exactly one of the following types of
+	// actions: forward, fixed-response, or redirect.
+	//
+	// If the action type is forward, you specify a target group. The protocol of
+	// the target group must be HTTP or HTTPS for an Application Load Balancer.
+	// The protocol of the target group must be TCP or TLS for a Network Load Balancer.
+	//
+	// [HTTPS listeners] If the action type is authenticate-oidc, you authenticate
+	// users through an identity provider that is OpenID Connect (OIDC) compliant.
+	//
+	// [HTTPS listeners] If the action type is authenticate-cognito, you authenticate
+	// users through the user pools supported by Amazon Cognito.
+	//
+	// [Application Load Balancer] If the action type is redirect, you redirect
+	// specified client requests from one URL to another.
+	//
+	// [Application Load Balancer] If the action type is fixed-response, you drop
+	// specified client requests and return a custom HTTP response.
 	//
 	// Actions is a required field
 	Actions []*Action `type:"list" required:"true"`
@@ -3955,8 +4420,8 @@ type CreateRuleInput struct {
 	//
 	// If the field name is host-header, you can specify a single host name (for
 	// example, my.example.com). A host name is case insensitive, can be up to 128
-	// characters in length, and can contain any of the following characters. Note
-	// that you can include up to three wildcard characters.
+	// characters in length, and can contain any of the following characters. You
+	// can include up to three wildcard characters.
 	//
 	//    * A-Z, a-z, 0-9
 	//
@@ -3967,9 +4432,9 @@ type CreateRuleInput struct {
 	//    * ? (matches exactly 1 character)
 	//
 	// If the field name is path-pattern, you can specify a single path pattern.
-	// A path pattern is case sensitive, can be up to 128 characters in length,
-	// and can contain any of the following characters. Note that you can include
-	// up to three wildcard characters.
+	// A path pattern is case-sensitive, can be up to 128 characters in length,
+	// and can contain any of the following characters. You can include up to three
+	// wildcard characters.
 	//
 	//    * A-Z, a-z, 0-9
 	//
@@ -3989,8 +4454,7 @@ type CreateRuleInput struct {
 	// ListenerArn is a required field
 	ListenerArn *string `type:"string" required:"true"`
 
-	// The priority for the rule. A listener can't have multiple rules with the
-	// same priority.
+	// The rule priority. A listener can't have multiple rules with the same priority.
 	//
 	// Priority is a required field
 	Priority *int64 `min:"1" type:"integer" required:"true"`
@@ -4091,10 +4555,16 @@ func (s *CreateRuleOutput) SetRules(v []*Rule) *CreateRuleOutput {
 type CreateTargetGroupInput struct {
 	_ struct{} `type:"structure"`
 
+	// Indicates whether health checks are enabled. If the target type is instance
+	// or ip, the default is true. If the target type is lambda, the default is
+	// false.
+	HealthCheckEnabled *bool `type:"boolean"`
+
 	// The approximate amount of time, in seconds, between health checks of an individual
-	// target. For Application Load Balancers, the range is 5 to 300 seconds. For
-	// Network Load Balancers, the supported values are 10 or 30 seconds. The default
-	// is 30 seconds.
+	// target. For Application Load Balancers, the range is 5–300 seconds. For Network
+	// Load Balancers, the supported values are 10 or 30 seconds. If the target
+	// type is instance or ip, the default is 30 seconds. If the target type is
+	// lambda, the default is 35 seconds.
 	HealthCheckIntervalSeconds *int64 `min:"5" type:"integer"`
 
 	// [HTTP/HTTPS health checks] The ping path that is the destination on the targets
@@ -4107,16 +4577,18 @@ type CreateTargetGroupInput struct {
 	HealthCheckPort *string `type:"string"`
 
 	// The protocol the load balancer uses when performing health checks on targets.
-	// The TCP protocol is supported only if the protocol of the target group is
-	// TCP. For Application Load Balancers, the default is HTTP. For Network Load
-	// Balancers, the default is TCP.
+	// For Application Load Balancers, the default is HTTP. For Network Load Balancers,
+	// the default is TCP. The TCP protocol is supported for health checks only
+	// if the protocol of the target group is TCP or TLS. The TLS protocol is not
+	// supported for health checks.
 	HealthCheckProtocol *string `type:"string" enum:"ProtocolEnum"`
 
 	// The amount of time, in seconds, during which no response from a target means
-	// a failed health check. For Application Load Balancers, the range is 2 to
-	// 60 seconds and the default is 5 seconds. For Network Load Balancers, this
-	// is 10 seconds for TCP and HTTPS health checks and 6 seconds for HTTP health
-	// checks.
+	// a failed health check. For Application Load Balancers, the range is 2–120
+	// seconds and the default is 5 seconds if the target type is instance or ip
+	// and 30 seconds if the target type is lambda. For Network Load Balancers,
+	// this is 10 seconds for TCP and HTTPS health checks and 6 seconds for HTTP
+	// health checks.
 	HealthCheckTimeoutSeconds *int64 `min:"2" type:"integer"`
 
 	// The number of consecutive health checks successes required before considering
@@ -4138,28 +4610,30 @@ type CreateTargetGroupInput struct {
 	Name *string `type:"string" required:"true"`
 
 	// The port on which the targets receive traffic. This port is used unless you
-	// specify a port override when registering the target.
-	//
-	// Port is a required field
-	Port *int64 `min:"1" type:"integer" required:"true"`
+	// specify a port override when registering the target. If the target is a Lambda
+	// function, this parameter does not apply.
+	Port *int64 `min:"1" type:"integer"`
 
 	// The protocol to use for routing traffic to the targets. For Application Load
 	// Balancers, the supported protocols are HTTP and HTTPS. For Network Load Balancers,
-	// the supported protocol is TCP.
-	//
-	// Protocol is a required field
-	Protocol *string `type:"string" required:"true" enum:"ProtocolEnum"`
+	// the supported protocols are TCP and TLS. If the target is a Lambda function,
+	// this parameter does not apply.
+	Protocol *string `type:"string" enum:"ProtocolEnum"`
 
 	// The type of target that you must specify when registering targets with this
-	// target group. The possible values are instance (targets are specified by
-	// instance ID) or ip (targets are specified by IP address). The default is
-	// instance. Note that you can't specify targets for a target group using both
-	// instance IDs and IP addresses.
+	// target group. You can't specify targets for a target group using more than
+	// one target type.
 	//
-	// If the target type is ip, specify IP addresses from the subnets of the virtual
-	// private cloud (VPC) for the target group, the RFC 1918 range (10.0.0.0/8,
-	// 172.16.0.0/12, and 192.168.0.0/16), and the RFC 6598 range (100.64.0.0/10).
-	// You can't specify publicly routable IP addresses.
+	//    * instance - Targets are specified by instance ID. This is the default
+	//    value.
+	//
+	//    * ip - Targets are specified by IP address. You can specify IP addresses
+	//    from the subnets of the virtual private cloud (VPC) for the target group,
+	//    the RFC 1918 range (10.0.0.0/8, 172.16.0.0/12, and 192.168.0.0/16), and
+	//    the RFC 6598 range (100.64.0.0/10). You can't specify publicly routable
+	//    IP addresses.
+	//
+	//    * lambda - The target groups contains a single Lambda function.
 	TargetType *string `type:"string" enum:"TargetTypeEnum"`
 
 	// The number of consecutive health check failures required before considering
@@ -4168,10 +4642,9 @@ type CreateTargetGroupInput struct {
 	// count.
 	UnhealthyThresholdCount *int64 `min:"2" type:"integer"`
 
-	// The identifier of the virtual private cloud (VPC).
-	//
-	// VpcId is a required field
-	VpcId *string `type:"string" required:"true"`
+	// The identifier of the virtual private cloud (VPC). If the target is a Lambda
+	// function, this parameter does not apply.
+	VpcId *string `type:"string"`
 }
 
 // String returns the string representation
@@ -4202,20 +4675,11 @@ func (s *CreateTargetGroupInput) Validate() error {
 	if s.Name == nil {
 		invalidParams.Add(request.NewErrParamRequired("Name"))
 	}
-	if s.Port == nil {
-		invalidParams.Add(request.NewErrParamRequired("Port"))
-	}
 	if s.Port != nil && *s.Port < 1 {
 		invalidParams.Add(request.NewErrParamMinValue("Port", 1))
 	}
-	if s.Protocol == nil {
-		invalidParams.Add(request.NewErrParamRequired("Protocol"))
-	}
 	if s.UnhealthyThresholdCount != nil && *s.UnhealthyThresholdCount < 2 {
 		invalidParams.Add(request.NewErrParamMinValue("UnhealthyThresholdCount", 2))
-	}
-	if s.VpcId == nil {
-		invalidParams.Add(request.NewErrParamRequired("VpcId"))
 	}
 	if s.Matcher != nil {
 		if err := s.Matcher.Validate(); err != nil {
@@ -4227,6 +4691,12 @@ func (s *CreateTargetGroupInput) Validate() error {
 		return invalidParams
 	}
 	return nil
+}
+
+// SetHealthCheckEnabled sets the HealthCheckEnabled field's value.
+func (s *CreateTargetGroupInput) SetHealthCheckEnabled(v bool) *CreateTargetGroupInput {
+	s.HealthCheckEnabled = &v
+	return s
 }
 
 // SetHealthCheckIntervalSeconds sets the HealthCheckIntervalSeconds field's value.
@@ -5536,6 +6006,66 @@ func (s *DescribeTargetHealthOutput) SetTargetHealthDescriptions(v []*TargetHeal
 	return s
 }
 
+// Information about an action that returns a custom HTTP response.
+type FixedResponseActionConfig struct {
+	_ struct{} `type:"structure"`
+
+	// The content type.
+	//
+	// Valid Values: text/plain | text/css | text/html | application/javascript
+	// | application/json
+	ContentType *string `type:"string"`
+
+	// The message.
+	MessageBody *string `type:"string"`
+
+	// The HTTP response code (2XX, 4XX, or 5XX).
+	//
+	// StatusCode is a required field
+	StatusCode *string `type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s FixedResponseActionConfig) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s FixedResponseActionConfig) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *FixedResponseActionConfig) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "FixedResponseActionConfig"}
+	if s.StatusCode == nil {
+		invalidParams.Add(request.NewErrParamRequired("StatusCode"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetContentType sets the ContentType field's value.
+func (s *FixedResponseActionConfig) SetContentType(v string) *FixedResponseActionConfig {
+	s.ContentType = &v
+	return s
+}
+
+// SetMessageBody sets the MessageBody field's value.
+func (s *FixedResponseActionConfig) SetMessageBody(v string) *FixedResponseActionConfig {
+	s.MessageBody = &v
+	return s
+}
+
+// SetStatusCode sets the StatusCode field's value.
+func (s *FixedResponseActionConfig) SetStatusCode(v string) *FixedResponseActionConfig {
+	s.StatusCode = &v
+	return s
+}
+
 // Information about an Elastic Load Balancing resource limit for your AWS account.
 type Limit struct {
 	_ struct{} `type:"structure"`
@@ -5592,7 +6122,7 @@ type Listener struct {
 	_ struct{} `type:"structure"`
 
 	// The SSL server certificate. You must provide a certificate if the protocol
-	// is HTTPS.
+	// is HTTPS or TLS.
 	Certificates []*Certificate `type:"list"`
 
 	// The default actions for the listener.
@@ -5678,7 +6208,7 @@ type LoadBalancer struct {
 	CanonicalHostedZoneId *string `type:"string"`
 
 	// The date and time the load balancer was created.
-	CreatedTime *time.Time `type:"timestamp" timestampFormat:"iso8601"`
+	CreatedTime *time.Time `type:"timestamp"`
 
 	// The public DNS name of the load balancer.
 	DNSName *string `type:"string"`
@@ -5697,7 +6227,7 @@ type LoadBalancer struct {
 	// The nodes of an Internet-facing load balancer have public IP addresses. The
 	// DNS name of an Internet-facing load balancer is publicly resolvable to the
 	// public IP addresses of the nodes. Therefore, Internet-facing load balancers
-	// can route requests from clients over the Internet.
+	// can route requests from clients over the internet.
 	//
 	// The nodes of an internal load balancer have only private IP addresses. The
 	// DNS name of an internal load balancer is publicly resolvable to the private
@@ -5839,32 +6369,35 @@ type LoadBalancerAttribute struct {
 
 	// The name of the attribute.
 	//
-	//    * access_logs.s3.enabled - [Application Load Balancers] Indicates whether
-	//    access logs stored in Amazon S3 are enabled. The value is true or false.
-	//
-	//    * access_logs.s3.bucket - [Application Load Balancers] The name of the
-	//    S3 bucket for the access logs. This attribute is required if access logs
-	//    in Amazon S3 are enabled. The bucket must exist in the same region as
-	//    the load balancer and have a bucket policy that grants Elastic Load Balancing
-	//    permission to write to the bucket.
-	//
-	//    * access_logs.s3.prefix - [Application Load Balancers] The prefix for
-	//    the location in the S3 bucket. If you don't specify a prefix, the access
-	//    logs are stored in the root of the bucket.
+	// The following attributes are supported by both Application Load Balancers
+	// and Network Load Balancers:
 	//
 	//    * deletion_protection.enabled - Indicates whether deletion protection
-	//    is enabled. The value is true or false.
+	//    is enabled. The value is true or false. The default is false.
 	//
-	//    * idle_timeout.timeout_seconds - [Application Load Balancers] The idle
-	//    timeout value, in seconds. The valid range is 1-4000. The default is 60
-	//    seconds.
+	// The following attributes are supported by only Application Load Balancers:
 	//
-	//    * load_balancing.cross_zone.enabled - [Network Load Balancers] Indicates
-	//    whether cross-zone load balancing is enabled. The value is true or false.
-	//    The default is false.
+	//    * access_logs.s3.enabled - Indicates whether access logs are enabled.
+	//    The value is true or false. The default is false.
 	//
-	//    * routing.http2.enabled - [Application Load Balancers] Indicates whether
-	//    HTTP/2 is enabled. The value is true or false. The default is true.
+	//    * access_logs.s3.bucket - The name of the S3 bucket for the access logs.
+	//    This attribute is required if access logs are enabled. The bucket must
+	//    exist in the same region as the load balancer and have a bucket policy
+	//    that grants Elastic Load Balancing permissions to write to the bucket.
+	//
+	//    * access_logs.s3.prefix - The prefix for the location in the S3 bucket
+	//    for the access logs.
+	//
+	//    * idle_timeout.timeout_seconds - The idle timeout value, in seconds. The
+	//    valid range is 1-4000 seconds. The default is 60 seconds.
+	//
+	//    * routing.http2.enabled - Indicates whether HTTP/2 is enabled. The value
+	//    is true or false. The default is true.
+	//
+	// The following attributes are supported by only Network Load Balancers:
+	//
+	//    * load_balancing.cross_zone.enabled - Indicates whether cross-zone load
+	//    balancing is enabled. The value is true or false. The default is false.
 	Key *string `type:"string"`
 
 	// The value of the attribute.
@@ -5938,7 +6471,7 @@ type Matcher struct {
 	// and the default value is 200. You can specify multiple values (for example,
 	// "200,202") or a range of values (for example, "200-299").
 	//
-	// For Network Load Balancers, this is 200 to 399.
+	// For Network Load Balancers, this is 200–399.
 	//
 	// HttpCode is a required field
 	HttpCode *string `type:"string" required:"true"`
@@ -5976,12 +6509,31 @@ func (s *Matcher) SetHttpCode(v string) *Matcher {
 type ModifyListenerInput struct {
 	_ struct{} `type:"structure"`
 
-	// The default SSL server certificate.
+	// [HTTPS and TLS listeners] The default SSL server certificate. You must provide
+	// exactly one certificate. Set CertificateArn to the certificate ARN but do
+	// not set IsDefault.
+	//
+	// To create a certificate list, use AddListenerCertificates.
 	Certificates []*Certificate `type:"list"`
 
-	// The default action. For Application Load Balancers, the protocol of the specified
-	// target group must be HTTP or HTTPS. For Network Load Balancers, the protocol
-	// of the specified target group must be TCP.
+	// The actions for the default rule. The rule must include one forward action
+	// or one or more fixed-response actions.
+	//
+	// If the action type is forward, you specify a target group. The protocol of
+	// the target group must be HTTP or HTTPS for an Application Load Balancer.
+	// The protocol of the target group must be TCP or TLS for a Network Load Balancer.
+	//
+	// [HTTPS listeners] If the action type is authenticate-oidc, you authenticate
+	// users through an identity provider that is OpenID Connect (OIDC) compliant.
+	//
+	// [HTTPS listeners] If the action type is authenticate-cognito, you authenticate
+	// users through the user pools supported by Amazon Cognito.
+	//
+	// [Application Load Balancer] If the action type is redirect, you redirect
+	// specified client requests from one URL to another.
+	//
+	// [Application Load Balancer] If the action type is fixed-response, you drop
+	// specified client requests and return a custom HTTP response.
 	DefaultActions []*Action `type:"list"`
 
 	// The Amazon Resource Name (ARN) of the listener.
@@ -5993,12 +6545,12 @@ type ModifyListenerInput struct {
 	Port *int64 `min:"1" type:"integer"`
 
 	// The protocol for connections from clients to the load balancer. Application
-	// Load Balancers support HTTP and HTTPS and Network Load Balancers support
-	// TCP.
+	// Load Balancers support the HTTP and HTTPS protocols. Network Load Balancers
+	// support the TCP and TLS protocols.
 	Protocol *string `type:"string" enum:"ProtocolEnum"`
 
-	// The security policy that defines which protocols and ciphers are supported.
-	// For more information, see Security Policies (http://docs.aws.amazon.com/elasticloadbalancing/latest/application/create-https-listener.html#describe-ssl-policies)
+	// [HTTPS and TLS listeners] The security policy that defines which protocols
+	// and ciphers are supported. For more information, see Security Policies (http://docs.aws.amazon.com/elasticloadbalancing/latest/application/create-https-listener.html#describe-ssl-policies)
 	// in the Application Load Balancers Guide.
 	SslPolicy *string `type:"string"`
 }
@@ -6078,7 +6630,7 @@ func (s *ModifyListenerInput) SetSslPolicy(v string) *ModifyListenerInput {
 type ModifyListenerOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Information about the modified listeners.
+	// Information about the modified listener.
 	Listeners []*Listener `type:"list"`
 }
 
@@ -6176,10 +6728,54 @@ func (s *ModifyLoadBalancerAttributesOutput) SetAttributes(v []*LoadBalancerAttr
 type ModifyRuleInput struct {
 	_ struct{} `type:"structure"`
 
-	// The actions. The target group must use the HTTP or HTTPS protocol.
+	// The actions.
+	//
+	// If the action type is forward, you specify a target group. The protocol of
+	// the target group must be HTTP or HTTPS for an Application Load Balancer.
+	// The protocol of the target group must be TCP or TLS for a Network Load Balancer.
+	//
+	// [HTTPS listeners] If the action type is authenticate-oidc, you authenticate
+	// users through an identity provider that is OpenID Connect (OIDC) compliant.
+	//
+	// [HTTPS listeners] If the action type is authenticate-cognito, you authenticate
+	// users through the user pools supported by Amazon Cognito.
+	//
+	// [Application Load Balancer] If the action type is redirect, you redirect
+	// specified client requests from one URL to another.
+	//
+	// [Application Load Balancer] If the action type is fixed-response, you drop
+	// specified client requests and return a custom HTTP response.
 	Actions []*Action `type:"list"`
 
-	// The conditions.
+	// The conditions. Each condition specifies a field name and a single value.
+	//
+	// If the field name is host-header, you can specify a single host name (for
+	// example, my.example.com). A host name is case insensitive, can be up to 128
+	// characters in length, and can contain any of the following characters. You
+	// can include up to three wildcard characters.
+	//
+	//    * A-Z, a-z, 0-9
+	//
+	//    * - .
+	//
+	//    * * (matches 0 or more characters)
+	//
+	//    * ? (matches exactly 1 character)
+	//
+	// If the field name is path-pattern, you can specify a single path pattern.
+	// A path pattern is case-sensitive, can be up to 128 characters in length,
+	// and can contain any of the following characters. You can include up to three
+	// wildcard characters.
+	//
+	//    * A-Z, a-z, 0-9
+	//
+	//    * _ - . $ / ~ " ' @ : +
+	//
+	//    * & (using &)
+	//
+	//    * * (matches 0 or more characters)
+	//
+	//    * ? (matches exactly 1 character)
 	Conditions []*RuleCondition `type:"list"`
 
 	// The Amazon Resource Name (ARN) of the rule.
@@ -6242,7 +6838,7 @@ func (s *ModifyRuleInput) SetRuleArn(v string) *ModifyRuleInput {
 type ModifyRuleOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Information about the rule.
+	// Information about the modified rule.
 	Rules []*Rule `type:"list"`
 }
 
@@ -6340,9 +6936,14 @@ func (s *ModifyTargetGroupAttributesOutput) SetAttributes(v []*TargetGroupAttrib
 type ModifyTargetGroupInput struct {
 	_ struct{} `type:"structure"`
 
+	// Indicates whether health checks are enabled.
+	HealthCheckEnabled *bool `type:"boolean"`
+
 	// The approximate amount of time, in seconds, between health checks of an individual
-	// target. For Application Load Balancers, the range is 5 to 300 seconds. For
-	// Network Load Balancers, the supported values are 10 or 30 seconds.
+	// target. For Application Load Balancers, the range is 5–300 seconds. For Network
+	// Load Balancers, the supported values are 10 or 30 seconds.
+	//
+	// If the protocol of the target group is TCP, you can't modify this setting.
 	HealthCheckIntervalSeconds *int64 `min:"5" type:"integer"`
 
 	// [HTTP/HTTPS health checks] The ping path that is the destination for the
@@ -6353,12 +6954,17 @@ type ModifyTargetGroupInput struct {
 	HealthCheckPort *string `type:"string"`
 
 	// The protocol the load balancer uses when performing health checks on targets.
-	// The TCP protocol is supported only if the protocol of the target group is
-	// TCP.
+	// The TCP protocol is supported for health checks only if the protocol of the
+	// target group is TCP or TLS. The TLS protocol is not supported for health
+	// checks.
+	//
+	// If the protocol of the target group is TCP, you can't modify this setting.
 	HealthCheckProtocol *string `type:"string" enum:"ProtocolEnum"`
 
 	// [HTTP/HTTPS health checks] The amount of time, in seconds, during which no
 	// response means a failed health check.
+	//
+	// If the protocol of the target group is TCP, you can't modify this setting.
 	HealthCheckTimeoutSeconds *int64 `min:"2" type:"integer"`
 
 	// The number of consecutive health checks successes required before considering
@@ -6367,6 +6973,8 @@ type ModifyTargetGroupInput struct {
 
 	// [HTTP/HTTPS health checks] The HTTP codes to use when checking for a successful
 	// response from a target.
+	//
+	// If the protocol of the target group is TCP, you can't modify this setting.
 	Matcher *Matcher `type:"structure"`
 
 	// The Amazon Resource Name (ARN) of the target group.
@@ -6421,6 +7029,12 @@ func (s *ModifyTargetGroupInput) Validate() error {
 		return invalidParams
 	}
 	return nil
+}
+
+// SetHealthCheckEnabled sets the HealthCheckEnabled field's value.
+func (s *ModifyTargetGroupInput) SetHealthCheckEnabled(v bool) *ModifyTargetGroupInput {
+	s.HealthCheckEnabled = &v
+	return s
 }
 
 // SetHealthCheckIntervalSeconds sets the HealthCheckIntervalSeconds field's value.
@@ -6480,7 +7094,7 @@ func (s *ModifyTargetGroupInput) SetUnhealthyThresholdCount(v int64) *ModifyTarg
 type ModifyTargetGroupOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Information about the target group.
+	// Information about the modified target group.
 	TargetGroups []*TargetGroup `type:"list"`
 }
 
@@ -6500,6 +7114,123 @@ func (s *ModifyTargetGroupOutput) SetTargetGroups(v []*TargetGroup) *ModifyTarge
 	return s
 }
 
+// Information about a redirect action.
+//
+// A URI consists of the following components: protocol://hostname:port/path?query.
+// You must modify at least one of the following components to avoid a redirect
+// loop: protocol, hostname, port, or path. Any components that you do not modify
+// retain their original values.
+//
+// You can reuse URI components using the following reserved keywords:
+//
+//    * #{protocol}
+//
+//    * #{host}
+//
+//    * #{port}
+//
+//    * #{path} (the leading "/" is removed)
+//
+//    * #{query}
+//
+// For example, you can change the path to "/new/#{path}", the hostname to "example.#{host}",
+// or the query to "#{query}&value=xyz".
+type RedirectActionConfig struct {
+	_ struct{} `type:"structure"`
+
+	// The hostname. This component is not percent-encoded. The hostname can contain
+	// #{host}.
+	Host *string `min:"1" type:"string"`
+
+	// The absolute path, starting with the leading "/". This component is not percent-encoded.
+	// The path can contain #{host}, #{path}, and #{port}.
+	Path *string `min:"1" type:"string"`
+
+	// The port. You can specify a value from 1 to 65535 or #{port}.
+	Port *string `type:"string"`
+
+	// The protocol. You can specify HTTP, HTTPS, or #{protocol}. You can redirect
+	// HTTP to HTTP, HTTP to HTTPS, and HTTPS to HTTPS. You cannot redirect HTTPS
+	// to HTTP.
+	Protocol *string `type:"string"`
+
+	// The query parameters, URL-encoded when necessary, but not percent-encoded.
+	// Do not include the leading "?", as it is automatically added. You can specify
+	// any of the reserved keywords.
+	Query *string `type:"string"`
+
+	// The HTTP redirect code. The redirect is either permanent (HTTP 301) or temporary
+	// (HTTP 302).
+	//
+	// StatusCode is a required field
+	StatusCode *string `type:"string" required:"true" enum:"RedirectActionStatusCodeEnum"`
+}
+
+// String returns the string representation
+func (s RedirectActionConfig) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s RedirectActionConfig) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *RedirectActionConfig) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "RedirectActionConfig"}
+	if s.Host != nil && len(*s.Host) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Host", 1))
+	}
+	if s.Path != nil && len(*s.Path) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Path", 1))
+	}
+	if s.StatusCode == nil {
+		invalidParams.Add(request.NewErrParamRequired("StatusCode"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetHost sets the Host field's value.
+func (s *RedirectActionConfig) SetHost(v string) *RedirectActionConfig {
+	s.Host = &v
+	return s
+}
+
+// SetPath sets the Path field's value.
+func (s *RedirectActionConfig) SetPath(v string) *RedirectActionConfig {
+	s.Path = &v
+	return s
+}
+
+// SetPort sets the Port field's value.
+func (s *RedirectActionConfig) SetPort(v string) *RedirectActionConfig {
+	s.Port = &v
+	return s
+}
+
+// SetProtocol sets the Protocol field's value.
+func (s *RedirectActionConfig) SetProtocol(v string) *RedirectActionConfig {
+	s.Protocol = &v
+	return s
+}
+
+// SetQuery sets the Query field's value.
+func (s *RedirectActionConfig) SetQuery(v string) *RedirectActionConfig {
+	s.Query = &v
+	return s
+}
+
+// SetStatusCode sets the StatusCode field's value.
+func (s *RedirectActionConfig) SetStatusCode(v string) *RedirectActionConfig {
+	s.StatusCode = &v
+	return s
+}
+
 type RegisterTargetsInput struct {
 	_ struct{} `type:"structure"`
 
@@ -6509,6 +7240,10 @@ type RegisterTargetsInput struct {
 	TargetGroupArn *string `type:"string" required:"true"`
 
 	// The targets.
+	//
+	// To register a target by instance ID, specify the instance ID. To register
+	// a target by IP address, specify the IP address. To register a Lambda function,
+	// specify the ARN of the Lambda function.
 	//
 	// Targets is a required field
 	Targets []*TargetDescription `type:"list" required:"true"`
@@ -6579,7 +7314,8 @@ func (s RegisterTargetsOutput) GoString() string {
 type RemoveListenerCertificatesInput struct {
 	_ struct{} `type:"structure"`
 
-	// The certificate to remove. You can specify one certificate per call.
+	// The certificate to remove. You can specify one certificate per call. Set
+	// CertificateArn to the certificate ARN but do not set IsDefault.
 	//
 	// Certificates is a required field
 	Certificates []*Certificate `type:"list" required:"true"`
@@ -6779,8 +7515,8 @@ type RuleCondition struct {
 	//
 	// If the field name is host-header, you can specify a single host name (for
 	// example, my.example.com). A host name is case insensitive, can be up to 128
-	// characters in length, and can contain any of the following characters. Note
-	// that you can include up to three wildcard characters.
+	// characters in length, and can contain any of the following characters. You
+	// can include up to three wildcard characters.
 	//
 	//    * A-Z, a-z, 0-9
 	//
@@ -6791,9 +7527,9 @@ type RuleCondition struct {
 	//    * ? (matches exactly 1 character)
 	//
 	// If the field name is path-pattern, you can specify a single path pattern
-	// (for example, /img/*). A path pattern is case sensitive, can be up to 128
-	// characters in length, and can contain any of the following characters. Note
-	// that you can include up to three wildcard characters.
+	// (for example, /img/*). A path pattern is case-sensitive, can be up to 128
+	// characters in length, and can contain any of the following characters. You
+	// can include up to three wildcard characters.
 	//
 	//    * A-Z, a-z, 0-9
 	//
@@ -7116,9 +7852,7 @@ type SetSubnetsInput struct {
 	// The IDs of the public subnets. You must specify subnets from at least two
 	// Availability Zones. You can specify only one subnet per Availability Zone.
 	// You must specify either subnets or subnet mappings.
-	//
-	// Subnets is a required field
-	Subnets []*string `type:"list" required:"true"`
+	Subnets []*string `type:"list"`
 }
 
 // String returns the string representation
@@ -7136,9 +7870,6 @@ func (s *SetSubnetsInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "SetSubnetsInput"}
 	if s.LoadBalancerArn == nil {
 		invalidParams.Add(request.NewErrParamRequired("LoadBalancerArn"))
-	}
-	if s.Subnets == nil {
-		invalidParams.Add(request.NewErrParamRequired("Subnets"))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -7356,16 +8087,23 @@ type TargetDescription struct {
 	// from all enabled Availability Zones for the load balancer.
 	//
 	// This parameter is not supported if the target type of the target group is
-	// instance. If the IP address is in a subnet of the VPC for the target group,
-	// the Availability Zone is automatically detected and this parameter is optional.
-	// If the IP address is outside the VPC, this parameter is required.
+	// instance.
 	//
-	// With an Application Load Balancer, if the IP address is outside the VPC for
-	// the target group, the only supported value is all.
+	// If the target type is ip and the IP address is in a subnet of the VPC for
+	// the target group, the Availability Zone is automatically detected and this
+	// parameter is optional. If the IP address is outside the VPC, this parameter
+	// is required.
+	//
+	// With an Application Load Balancer, if the target type is ip and the IP address
+	// is outside the VPC for the target group, the only supported value is all.
+	//
+	// If the target type is lambda, this parameter is optional and the only supported
+	// value is all.
 	AvailabilityZone *string `type:"string"`
 
 	// The ID of the target. If the target type of the target group is instance,
 	// specify an instance ID. If the target type is ip, specify an IP address.
+	// If the target type is lambda, specify the ARN of the Lambda function.
 	//
 	// Id is a required field
 	Id *string `type:"string" required:"true"`
@@ -7421,6 +8159,9 @@ func (s *TargetDescription) SetPort(v int64) *TargetDescription {
 // Information about a target group.
 type TargetGroup struct {
 	_ struct{} `type:"structure"`
+
+	// Indicates whether health checks are enabled.
+	HealthCheckEnabled *bool `type:"boolean"`
 
 	// The approximate amount of time, in seconds, between health checks of an individual
 	// target.
@@ -7483,6 +8224,12 @@ func (s TargetGroup) String() string {
 // GoString returns the string representation
 func (s TargetGroup) GoString() string {
 	return s.String()
+}
+
+// SetHealthCheckEnabled sets the HealthCheckEnabled field's value.
+func (s *TargetGroup) SetHealthCheckEnabled(v bool) *TargetGroup {
+	s.HealthCheckEnabled = &v
+	return s
 }
 
 // SetHealthCheckIntervalSeconds sets the HealthCheckIntervalSeconds field's value.
@@ -7581,25 +8328,49 @@ type TargetGroupAttribute struct {
 
 	// The name of the attribute.
 	//
-	//    * deregistration_delay.timeout_seconds - The amount time for Elastic Load
-	//    Balancing to wait before changing the state of a deregistering target
-	//    from draining to unused. The range is 0-3600 seconds. The default value
-	//    is 300 seconds.
+	// The following attribute is supported by both Application Load Balancers and
+	// Network Load Balancers:
 	//
-	//    * proxy_protocol_v2.enabled - [Network Load Balancers] Indicates whether
-	//    Proxy Protocol version 2 is enabled.
+	//    * deregistration_delay.timeout_seconds - The amount of time, in seconds,
+	//    for Elastic Load Balancing to wait before changing the state of a deregistering
+	//    target from draining to unused. The range is 0-3600 seconds. The default
+	//    value is 300 seconds. If the target is a Lambda function, this attribute
+	//    is not supported.
 	//
-	//    * stickiness.enabled - [Application Load Balancers] Indicates whether
-	//    sticky sessions are enabled. The value is true or false.
+	// The following attributes are supported by Application Load Balancers if the
+	// target is not a Lambda function:
 	//
-	//    * stickiness.type - [Application Load Balancers] The type of sticky sessions.
-	//    The possible value is lb_cookie.
+	//    * slow_start.duration_seconds - The time period, in seconds, during which
+	//    a newly registered target receives a linearly increasing share of the
+	//    traffic to the target group. After this time period ends, the target receives
+	//    its full share of traffic. The range is 30-900 seconds (15 minutes). Slow
+	//    start mode is disabled by default.
 	//
-	//    * stickiness.lb_cookie.duration_seconds - [Application Load Balancers]
-	//    The time period, in seconds, during which requests from a client should
-	//    be routed to the same target. After this time period expires, the load
-	//    balancer-generated cookie is considered stale. The range is 1 second to
-	//    1 week (604800 seconds). The default value is 1 day (86400 seconds).
+	//    * stickiness.enabled - Indicates whether sticky sessions are enabled.
+	//    The value is true or false. The default is false.
+	//
+	//    * stickiness.type - The type of sticky sessions. The possible value is
+	//    lb_cookie.
+	//
+	//    * stickiness.lb_cookie.duration_seconds - The time period, in seconds,
+	//    during which requests from a client should be routed to the same target.
+	//    After this time period expires, the load balancer-generated cookie is
+	//    considered stale. The range is 1 second to 1 week (604800 seconds). The
+	//    default value is 1 day (86400 seconds).
+	//
+	// The following attribute is supported only if the target is a Lambda function.
+	//
+	//    * lambda.multi_value_headers.enabled - Indicates whether the request and
+	//    response headers exchanged between the load balancer and the Lambda function
+	//    include arrays of values or strings. The value is true or false. The default
+	//    is false. If the value is false and the request contains a duplicate header
+	//    field name or query parameter key, the load balancer uses the last value
+	//    sent by the client.
+	//
+	// The following attribute is supported only by Network Load Balancers:
+	//
+	//    * proxy_protocol_v2.enabled - Indicates whether Proxy Protocol version
+	//    2 is enabled. The value is true or false. The default is false.
 	Key *string `type:"string"`
 
 	// The value of the attribute.
@@ -7636,7 +8407,9 @@ type TargetHealth struct {
 	// state is healthy, a description is not provided.
 	Description *string `type:"string"`
 
-	// The reason code. If the target state is healthy, a reason code is not provided.
+	// The reason code.
+	//
+	// If the target state is healthy, a reason code is not provided.
 	//
 	// If the target state is initial, the reason code can be one of the following
 	// values:
@@ -7680,6 +8453,12 @@ type TargetHealth struct {
 	//
 	//    * Target.DeregistrationInProgress - The target is in the process of being
 	//    deregistered and the deregistration delay period has not expired.
+	//
+	// If the target state is unavailable, the reason code can be the following
+	// value:
+	//
+	//    * Target.HealthCheckDisabled - Health checks are disabled for the target
+	//    group.
 	Reason *string `type:"string" enum:"TargetHealthReasonEnum"`
 
 	// The state of the target.
@@ -7759,6 +8538,40 @@ func (s *TargetHealthDescription) SetTargetHealth(v *TargetHealth) *TargetHealth
 const (
 	// ActionTypeEnumForward is a ActionTypeEnum enum value
 	ActionTypeEnumForward = "forward"
+
+	// ActionTypeEnumAuthenticateOidc is a ActionTypeEnum enum value
+	ActionTypeEnumAuthenticateOidc = "authenticate-oidc"
+
+	// ActionTypeEnumAuthenticateCognito is a ActionTypeEnum enum value
+	ActionTypeEnumAuthenticateCognito = "authenticate-cognito"
+
+	// ActionTypeEnumRedirect is a ActionTypeEnum enum value
+	ActionTypeEnumRedirect = "redirect"
+
+	// ActionTypeEnumFixedResponse is a ActionTypeEnum enum value
+	ActionTypeEnumFixedResponse = "fixed-response"
+)
+
+const (
+	// AuthenticateCognitoActionConditionalBehaviorEnumDeny is a AuthenticateCognitoActionConditionalBehaviorEnum enum value
+	AuthenticateCognitoActionConditionalBehaviorEnumDeny = "deny"
+
+	// AuthenticateCognitoActionConditionalBehaviorEnumAllow is a AuthenticateCognitoActionConditionalBehaviorEnum enum value
+	AuthenticateCognitoActionConditionalBehaviorEnumAllow = "allow"
+
+	// AuthenticateCognitoActionConditionalBehaviorEnumAuthenticate is a AuthenticateCognitoActionConditionalBehaviorEnum enum value
+	AuthenticateCognitoActionConditionalBehaviorEnumAuthenticate = "authenticate"
+)
+
+const (
+	// AuthenticateOidcActionConditionalBehaviorEnumDeny is a AuthenticateOidcActionConditionalBehaviorEnum enum value
+	AuthenticateOidcActionConditionalBehaviorEnumDeny = "deny"
+
+	// AuthenticateOidcActionConditionalBehaviorEnumAllow is a AuthenticateOidcActionConditionalBehaviorEnum enum value
+	AuthenticateOidcActionConditionalBehaviorEnumAllow = "allow"
+
+	// AuthenticateOidcActionConditionalBehaviorEnumAuthenticate is a AuthenticateOidcActionConditionalBehaviorEnum enum value
+	AuthenticateOidcActionConditionalBehaviorEnumAuthenticate = "authenticate"
 )
 
 const (
@@ -7808,6 +8621,17 @@ const (
 
 	// ProtocolEnumTcp is a ProtocolEnum enum value
 	ProtocolEnumTcp = "TCP"
+
+	// ProtocolEnumTls is a ProtocolEnum enum value
+	ProtocolEnumTls = "TLS"
+)
+
+const (
+	// RedirectActionStatusCodeEnumHttp301 is a RedirectActionStatusCodeEnum enum value
+	RedirectActionStatusCodeEnumHttp301 = "HTTP_301"
+
+	// RedirectActionStatusCodeEnumHttp302 is a RedirectActionStatusCodeEnum enum value
+	RedirectActionStatusCodeEnumHttp302 = "HTTP_302"
 )
 
 const (
@@ -7841,6 +8665,9 @@ const (
 	// TargetHealthReasonEnumTargetIpUnusable is a TargetHealthReasonEnum enum value
 	TargetHealthReasonEnumTargetIpUnusable = "Target.IpUnusable"
 
+	// TargetHealthReasonEnumTargetHealthCheckDisabled is a TargetHealthReasonEnum enum value
+	TargetHealthReasonEnumTargetHealthCheckDisabled = "Target.HealthCheckDisabled"
+
 	// TargetHealthReasonEnumElbInternalError is a TargetHealthReasonEnum enum value
 	TargetHealthReasonEnumElbInternalError = "Elb.InternalError"
 )
@@ -7871,4 +8698,7 @@ const (
 
 	// TargetTypeEnumIp is a TargetTypeEnum enum value
 	TargetTypeEnumIp = "ip"
+
+	// TargetTypeEnumLambda is a TargetTypeEnum enum value
+	TargetTypeEnumLambda = "lambda"
 )

@@ -16,7 +16,7 @@ func TestAccAWSVolumeAttachment_basic(t *testing.T) {
 	var i ec2.Instance
 	var v ec2.Volume
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckVolumeAttachmentDestroy,
@@ -42,7 +42,7 @@ func TestAccAWSVolumeAttachment_skipDestroy(t *testing.T) {
 	var i ec2.Instance
 	var v ec2.Volume
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckVolumeAttachmentDestroy,
@@ -72,8 +72,11 @@ func TestAccAWSVolumeAttachment_attachStopped(t *testing.T) {
 		conn := testAccProvider.Meta().(*AWSClient).ec2conn
 
 		_, err := conn.StopInstances(&ec2.StopInstancesInput{
-			InstanceIds: []*string{aws.String(*i.InstanceId)},
+			InstanceIds: []*string{i.InstanceId},
 		})
+		if err != nil {
+			t.Fatalf("error stopping instance (%s): %s", aws.StringValue(i.InstanceId), err)
+		}
 
 		stateConf := &resource.StateChangeConf{
 			Pending:    []string{"pending", "running", "stopping"},
@@ -90,7 +93,7 @@ func TestAccAWSVolumeAttachment_attachStopped(t *testing.T) {
 		}
 	}
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckVolumeAttachmentDestroy,
@@ -121,7 +124,7 @@ func TestAccAWSVolumeAttachment_attachStopped(t *testing.T) {
 }
 
 func TestAccAWSVolumeAttachment_update(t *testing.T) {
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckVolumeAttachmentDestroy,
@@ -187,7 +190,7 @@ resource "aws_instance" "web" {
   ami = "ami-21f78e11"
   availability_zone = "us-west-2a"
   instance_type = "t1.micro"
-  tags {
+  tags = {
     Name = "HelloWorld"
   }
 }
@@ -198,7 +201,7 @@ resource "aws_instance" "web" {
   ami = "ami-21f78e11"
   availability_zone = "us-west-2a"
   instance_type = "t1.micro"
-  tags {
+  tags = {
     Name = "HelloWorld"
   }
 }
@@ -220,7 +223,7 @@ resource "aws_instance" "web" {
   ami = "ami-21f78e11"
   availability_zone = "us-west-2a"
   instance_type = "t1.micro"
-  tags {
+  tags = {
     Name = "HelloWorld"
   }
 }
@@ -228,7 +231,7 @@ resource "aws_instance" "web" {
 resource "aws_ebs_volume" "example" {
   availability_zone = "us-west-2a"
   size = 1
-  tags {
+  tags = {
     Name = "TestVolume"
   }
 }

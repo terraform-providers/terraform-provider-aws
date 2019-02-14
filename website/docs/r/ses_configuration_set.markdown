@@ -23,3 +23,11 @@ resource "aws_ses_configuration_set" "test" {
 The following arguments are supported:
 
 * `name` - (Required) The name of the configuration set
+
+## Import
+
+SES Configuration Sets can be imported using their `name`, e.g.
+
+```
+$ terraform import aws_ses_configuration_set.test some-configuration-set-test
+```

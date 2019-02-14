@@ -7,9 +7,10 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/lambda"
-	"github.com/mitchellh/go-homedir"
+	homedir "github.com/mitchellh/go-homedir"
 
 	"errors"
 
@@ -20,12 +21,33 @@ import (
 
 const awsMutexLambdaKey = `aws_lambda_function`
 
+var validLambdaRuntimes = []string{
+	// lambda.RuntimeNodejs has reached end of life since October 2016 so not included here
+	lambda.RuntimeDotnetcore10,
+	lambda.RuntimeDotnetcore20,
+	lambda.RuntimeDotnetcore21,
+	lambda.RuntimeGo1X,
+	lambda.RuntimeJava8,
+	lambda.RuntimeNodejs43,
+	lambda.RuntimeNodejs43Edge,
+	lambda.RuntimeNodejs610,
+	lambda.RuntimeNodejs810,
+	lambda.RuntimeProvided,
+	lambda.RuntimePython27,
+	lambda.RuntimePython36,
+	lambda.RuntimePython37,
+	lambda.RuntimeRuby25,
+}
+
 func resourceAwsLambdaFunction() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceAwsLambdaFunctionCreate,
 		Read:   resourceAwsLambdaFunctionRead,
 		Update: resourceAwsLambdaFunctionUpdate,
 		Delete: resourceAwsLambdaFunctionDelete,
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(10 * time.Minute),
+		},
 
 		Importer: &schema.ResourceImporter{
 			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
@@ -83,6 +105,15 @@ func resourceAwsLambdaFunction() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
+			"layers": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 5,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: validateArn,
+				},
+			},
 			"memory_size": {
 				Type:     schema.TypeInt,
 				Optional: true,
@@ -97,20 +128,9 @@ func resourceAwsLambdaFunction() *schema.Resource {
 				Required: true,
 			},
 			"runtime": {
-				Type:     schema.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					// lambda.RuntimeNodejs has reached end of life since October 2016 so not included here
-					lambda.RuntimeNodejs43,
-					lambda.RuntimeNodejs610,
-					lambda.RuntimeJava8,
-					lambda.RuntimePython27,
-					lambda.RuntimePython36,
-					lambda.RuntimeDotnetcore10,
-					lambda.RuntimeDotnetcore20,
-					lambda.RuntimeNodejs43Edge,
-					lambda.RuntimeGo1X,
-				}, false),
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(validLambdaRuntimes, false),
 			},
 			"timeout": {
 				Type:     schema.TypeInt,
@@ -150,6 +170,24 @@ func resourceAwsLambdaFunction() *schema.Resource {
 						},
 					},
 				},
+
+				// Suppress diffs if the VPC configuration is provided, but empty
+				// which is a valid Lambda function configuration. e.g.
+				//   vpc_config {
+				//     security_group_ids = []
+				//     subnet_ids         = []
+				//   }
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					if d.Id() == "" || old == "1" || new == "0" {
+						return false
+					}
+
+					if d.HasChange("vpc_config.0.security_group_ids") || d.HasChange("vpc_config.0.subnet_ids") {
+						return false
+					}
+
+					return true
+				},
 			},
 			"arn": {
 				Type:     schema.TypeString,
@@ -172,6 +210,10 @@ func resourceAwsLambdaFunction() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
+			"source_code_size": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
 			"environment": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -181,12 +223,11 @@ func resourceAwsLambdaFunction() *schema.Resource {
 						"variables": {
 							Type:     schema.TypeMap,
 							Optional: true,
-							Elem:     schema.TypeString,
+							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
 					},
 				},
 			},
-
 			"tracing_config": {
 				Type:     schema.TypeList,
 				MaxItems: 1,
@@ -202,13 +243,11 @@ func resourceAwsLambdaFunction() *schema.Resource {
 					},
 				},
 			},
-
 			"kms_key_arn": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: validateArn,
 			},
-
 			"tags": tagsSchema(),
 		},
 
@@ -287,6 +326,10 @@ func resourceAwsLambdaFunctionCreate(d *schema.ResourceData, meta interface{}) e
 		Publish:      aws.Bool(d.Get("publish").(bool)),
 	}
 
+	if v, ok := d.GetOk("layers"); ok && len(v.([]interface{})) > 0 {
+		params.Layers = expandStringList(v.([]interface{}))
+	}
+
 	if v, ok := d.GetOk("dead_letter_config"); ok {
 		dlcMaps := v.([]interface{})
 		if len(dlcMaps) == 1 { // Schema guarantees either 0 or 1
@@ -301,30 +344,12 @@ func resourceAwsLambdaFunctionCreate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
-	if v, ok := d.GetOk("vpc_config"); ok {
+	if v, ok := d.GetOk("vpc_config"); ok && len(v.([]interface{})) > 0 {
+		config := v.([]interface{})[0].(map[string]interface{})
 
-		configs := v.([]interface{})
-		config, ok := configs[0].(map[string]interface{})
-
-		if !ok {
-			return errors.New("vpc_config is <nil>")
-		}
-
-		if config != nil {
-			var subnetIds []*string
-			for _, id := range config["subnet_ids"].(*schema.Set).List() {
-				subnetIds = append(subnetIds, aws.String(id.(string)))
-			}
-
-			var securityGroupIds []*string
-			for _, id := range config["security_group_ids"].(*schema.Set).List() {
-				securityGroupIds = append(securityGroupIds, aws.String(id.(string)))
-			}
-
-			params.VpcConfig = &lambda.VpcConfig{
-				SubnetIds:        subnetIds,
-				SecurityGroupIds: securityGroupIds,
-			}
+		params.VpcConfig = &lambda.VpcConfig{
+			SecurityGroupIds: expandStringSet(config["security_group_ids"].(*schema.Set)),
+			SubnetIds:        expandStringSet(config["subnet_ids"].(*schema.Set)),
 		}
 	}
 
@@ -378,17 +403,21 @@ func resourceAwsLambdaFunctionCreate(d *schema.ResourceData, meta interface{}) e
 				log.Printf("[DEBUG] Received %s, retrying CreateFunction", err)
 				return resource.RetryableError(err)
 			}
+			if isAWSErr(err, "InvalidParameterValueException", "Lambda was unable to configure access to your environment variables because the KMS key is invalid for CreateGrant") {
+				log.Printf("[DEBUG] Received %s, retrying CreateFunction", err)
+				return resource.RetryableError(err)
+			}
 
 			return resource.NonRetryableError(err)
 		}
 		return nil
 	})
 	if err != nil {
-		if !isAWSErr(err, "InvalidParameterValueException", "Your request has been throttled by EC2") {
+		if !isResourceTimeoutError(err) && !isAWSErr(err, "InvalidParameterValueException", "Your request has been throttled by EC2") {
 			return fmt.Errorf("Error creating Lambda function: %s", err)
 		}
-		// Allow 9 more minutes for EC2 throttling
-		err := resource.Retry(9*time.Minute, func() *resource.RetryError {
+		// Allow additional time for slower uploads or EC2 throttling
+		err := resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
 			_, err := conn.CreateFunction(params)
 			if err != nil {
 				log.Printf("[DEBUG] Error creating Lambda Function: %s", err)
@@ -441,10 +470,17 @@ func resourceAwsLambdaFunctionCreate(d *schema.ResourceData, meta interface{}) e
 func resourceAwsLambdaFunctionRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).lambdaconn
 
-	log.Printf("[DEBUG] Fetching Lambda Function: %s", d.Id())
-
 	params := &lambda.GetFunctionInput{
 		FunctionName: aws.String(d.Get("function_name").(string)),
+	}
+
+	// qualifier for lambda function data source
+	qualifier, qualifierExistance := d.GetOk("qualifier")
+	if qualifierExistance {
+		params.Qualifier = aws.String(qualifier.(string))
+		log.Printf("[DEBUG] Fetching Lambda Function: %s:%s", d.Id(), qualifier.(string))
+	} else {
+		log.Printf("[DEBUG] Fetching Lambda Function: %s", d.Id())
 	}
 
 	getFunctionOutput, err := conn.GetFunction(params)
@@ -454,6 +490,18 @@ func resourceAwsLambdaFunctionRead(d *schema.ResourceData, meta interface{}) err
 			return nil
 		}
 		return err
+	}
+
+	if getFunctionOutput.Concurrency != nil {
+		d.Set("reserved_concurrent_executions", getFunctionOutput.Concurrency.ReservedConcurrentExecutions)
+	} else {
+		d.Set("reserved_concurrent_executions", nil)
+	}
+
+	// Tagging operations are permitted on Lambda functions only.
+	// Tags on aliases and versions are not supported.
+	if !qualifierExistance {
+		d.Set("tags", tagsToMapGeneric(getFunctionOutput.Tags))
 	}
 
 	// getFunctionOutput.Code.Location is a pre-signed URL pointing at the zip
@@ -472,18 +520,24 @@ func resourceAwsLambdaFunctionRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("runtime", function.Runtime)
 	d.Set("timeout", function.Timeout)
 	d.Set("kms_key_arn", function.KMSKeyArn)
-	d.Set("tags", tagsToMapGeneric(getFunctionOutput.Tags))
+	d.Set("source_code_hash", function.CodeSha256)
+	d.Set("source_code_size", function.CodeSize)
+
+	layers := flattenLambdaLayers(function.Layers)
+	log.Printf("[INFO] Setting Lambda %s Layers %#v from API", d.Id(), layers)
+	if err := d.Set("layers", layers); err != nil {
+		return fmt.Errorf("Error setting layers for Lambda Function (%s): %s", d.Id(), err)
+	}
 
 	config := flattenLambdaVpcConfigResponse(function.VpcConfig)
 	log.Printf("[INFO] Setting Lambda %s VPC config %#v from API", d.Id(), config)
-	vpcSetErr := d.Set("vpc_config", config)
-	if vpcSetErr != nil {
-		return fmt.Errorf("Failed setting vpc_config: %s", vpcSetErr)
+	if err := d.Set("vpc_config", config); err != nil {
+		return fmt.Errorf("Error setting vpc_config for Lambda Function (%s): %s", d.Id(), err)
 	}
 
-	d.Set("source_code_hash", function.CodeSha256)
-
-	if err := d.Set("environment", flattenLambdaEnvironment(function.Environment)); err != nil {
+	environment := flattenLambdaEnvironment(function.Environment)
+	log.Printf("[INFO] Setting Lambda %s environment %#v from API", d.Id(), environment)
+	if err := d.Set("environment", environment); err != nil {
 		log.Printf("[ERR] Error setting environment for Lambda Function (%s): %s", d.Id(), err)
 	}
 
@@ -497,43 +551,47 @@ func resourceAwsLambdaFunctionRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("dead_letter_config", []interface{}{})
 	}
 
+	// Assume `PassThrough` on partitions that don't support tracing config
+	tracingConfigMode := "PassThrough"
 	if function.TracingConfig != nil {
-		d.Set("tracing_config", []interface{}{
-			map[string]interface{}{
-				"mode": *function.TracingConfig.Mode,
-			},
-		})
+		tracingConfigMode = *function.TracingConfig.Mode
 	}
-
-	// List is sorted from oldest to latest
-	// so this may get costly over time :'(
-	var lastVersion, lastQualifiedArn string
-	err = listVersionsByFunctionPages(conn, &lambda.ListVersionsByFunctionInput{
-		FunctionName: function.FunctionName,
-		MaxItems:     aws.Int64(10000),
-	}, func(p *lambda.ListVersionsByFunctionOutput, lastPage bool) bool {
-		if lastPage {
-			last := p.Versions[len(p.Versions)-1]
-			lastVersion = *last.Version
-			lastQualifiedArn = *last.FunctionArn
-			return false
-		}
-		return true
+	d.Set("tracing_config", []interface{}{
+		map[string]interface{}{
+			"mode": tracingConfigMode,
+		},
 	})
-	if err != nil {
-		return err
-	}
 
-	d.Set("version", lastVersion)
-	d.Set("qualified_arn", lastQualifiedArn)
-
-	d.Set("invoke_arn", buildLambdaInvokeArn(*function.FunctionArn, meta.(*AWSClient).region))
-
-	if getFunctionOutput.Concurrency != nil {
-		d.Set("reserved_concurrent_executions", getFunctionOutput.Concurrency.ReservedConcurrentExecutions)
+	// Get latest version and ARN unless qualifier is specified via data source
+	if qualifierExistance {
+		d.Set("version", function.Version)
+		d.Set("qualified_arn", function.FunctionArn)
 	} else {
-		d.Set("reserved_concurrent_executions", nil)
+		// List is sorted from oldest to latest
+		// so this may get costly over time :'(
+		var lastVersion, lastQualifiedArn string
+		err = listVersionsByFunctionPages(conn, &lambda.ListVersionsByFunctionInput{
+			FunctionName: function.FunctionName,
+			MaxItems:     aws.Int64(10000),
+		}, func(p *lambda.ListVersionsByFunctionOutput, lastPage bool) bool {
+			if lastPage {
+				last := p.Versions[len(p.Versions)-1]
+				lastVersion = *last.Version
+				lastQualifiedArn = *last.FunctionArn
+				return false
+			}
+			return true
+		})
+		if err != nil {
+			return err
+		}
+
+		d.Set("version", lastVersion)
+		d.Set("qualified_arn", lastQualifiedArn)
 	}
+
+	invokeArn := lambdaFunctionInvokeArn(*function.FunctionArn, meta)
+	d.Set("invoke_arn", invokeArn)
 
 	return nil
 }
@@ -571,8 +629,6 @@ func resourceAwsLambdaFunctionDelete(d *schema.ResourceData, meta interface{}) e
 	if err != nil {
 		return fmt.Errorf("Error deleting Lambda Function: %s", err)
 	}
-
-	d.SetId("")
 
 	return nil
 }
@@ -627,15 +683,21 @@ func resourceAwsLambdaFunctionUpdate(d *schema.ResourceData, meta interface{}) e
 		configReq.KMSKeyArn = aws.String(d.Get("kms_key_arn").(string))
 		configUpdate = true
 	}
+	if d.HasChange("layers") {
+		layers := d.Get("layers").([]interface{})
+		configReq.Layers = expandStringList(layers)
+		configUpdate = true
+	}
 	if d.HasChange("dead_letter_config") {
 		dlcMaps := d.Get("dead_letter_config").([]interface{})
+		configReq.DeadLetterConfig = &lambda.DeadLetterConfig{
+			TargetArn: aws.String(""),
+		}
 		if len(dlcMaps) == 1 { // Schema guarantees either 0 or 1
 			dlcMap := dlcMaps[0].(map[string]interface{})
-			configReq.DeadLetterConfig = &lambda.DeadLetterConfig{
-				TargetArn: aws.String(dlcMap["target_arn"].(string)),
-			}
-			configUpdate = true
+			configReq.DeadLetterConfig.TargetArn = aws.String(dlcMap["target_arn"].(string))
 		}
+		configUpdate = true
 	}
 	if d.HasChange("tracing_config") {
 		tracingConfig := d.Get("tracing_config").([]interface{})
@@ -648,29 +710,16 @@ func resourceAwsLambdaFunctionUpdate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 	if d.HasChange("vpc_config") {
-		vpcConfigRaw := d.Get("vpc_config").([]interface{})
-		vpcConfig, ok := vpcConfigRaw[0].(map[string]interface{})
-		if !ok {
-			return errors.New("vpc_config is <nil>")
+		configReq.VpcConfig = &lambda.VpcConfig{
+			SecurityGroupIds: []*string{},
+			SubnetIds:        []*string{},
 		}
-
-		if vpcConfig != nil {
-			var subnetIds []*string
-			for _, id := range vpcConfig["subnet_ids"].(*schema.Set).List() {
-				subnetIds = append(subnetIds, aws.String(id.(string)))
-			}
-
-			var securityGroupIds []*string
-			for _, id := range vpcConfig["security_group_ids"].(*schema.Set).List() {
-				securityGroupIds = append(securityGroupIds, aws.String(id.(string)))
-			}
-
-			configReq.VpcConfig = &lambda.VpcConfig{
-				SubnetIds:        subnetIds,
-				SecurityGroupIds: securityGroupIds,
-			}
-			configUpdate = true
+		if v, ok := d.GetOk("vpc_config"); ok && len(v.([]interface{})) > 0 {
+			vpcConfig := v.([]interface{})[0].(map[string]interface{})
+			configReq.VpcConfig.SecurityGroupIds = expandStringSet(vpcConfig["security_group_ids"].(*schema.Set))
+			configReq.VpcConfig.SubnetIds = expandStringSet(vpcConfig["subnet_ids"].(*schema.Set))
 		}
+		configUpdate = true
 	}
 
 	if d.HasChange("runtime") {
@@ -710,6 +759,10 @@ func resourceAwsLambdaFunctionUpdate(d *schema.ResourceData, meta interface{}) e
 			if err != nil {
 				log.Printf("[DEBUG] Received error modifying Lambda Function Configuration %s: %s", d.Id(), err)
 
+				if isAWSErr(err, "InvalidParameterValueException", "The role defined for the function cannot be assumed by Lambda") {
+					log.Printf("[DEBUG] Received %s, retrying UpdateFunctionConfiguration", err)
+					return resource.RetryableError(err)
+				}
 				if isAWSErr(err, "InvalidParameterValueException", "The provided execution role does not have permissions") {
 					log.Printf("[DEBUG] Received %s, retrying UpdateFunctionConfiguration", err)
 					return resource.RetryableError(err)
@@ -718,6 +771,11 @@ func resourceAwsLambdaFunctionUpdate(d *schema.ResourceData, meta interface{}) e
 					log.Printf("[DEBUG] Received %s, retrying UpdateFunctionConfiguration", err)
 					return resource.RetryableError(err)
 				}
+				if isAWSErr(err, "InvalidParameterValueException", "Lambda was unable to configure access to your environment variables because the KMS key is invalid for CreateGrant") {
+					log.Printf("[DEBUG] Received %s, retrying CreateFunction", err)
+					return resource.RetryableError(err)
+				}
+
 				return resource.NonRetryableError(err)
 			}
 			return nil
@@ -848,4 +906,14 @@ func readEnvironmentVariables(ev map[string]interface{}) map[string]string {
 	}
 
 	return variables
+}
+
+func lambdaFunctionInvokeArn(functionArn string, meta interface{}) string {
+	return arn.ARN{
+		Partition: meta.(*AWSClient).partition,
+		Service:   "apigateway",
+		Region:    meta.(*AWSClient).region,
+		AccountID: "lambda",
+		Resource:  fmt.Sprintf("path/2015-03-31/functions/%s/invocations", functionArn),
+	}.String()
 }

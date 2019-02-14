@@ -15,8 +15,10 @@ Provides a WAF Regional SQL Injection Match Set Resource for use with Applicatio
 ```hcl
 resource "aws_wafregional_sql_injection_match_set" "sql_injection_match_set" {
   name = "tf-sql_injection_match_set"
+
   sql_injection_match_tuple {
     text_transformation = "URL_DECODE"
+
     field_to_match {
       type = "QUERY_STRING"
     }
@@ -53,6 +55,6 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the WAF SqlInjectionMatchSet.

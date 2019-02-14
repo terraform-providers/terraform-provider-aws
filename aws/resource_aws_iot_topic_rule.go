@@ -124,11 +124,11 @@ func resourceAwsIotTopicRule() *schema.Resource {
 						},
 						"range_key_field": {
 							Type:     schema.TypeString,
-							Required: true,
+							Optional: true,
 						},
 						"range_key_value": {
 							Type:     schema.TypeString,
-							Required: true,
+							Optional: true,
 						},
 						"range_key_type": {
 							Type:     schema.TypeString,
@@ -189,6 +189,11 @@ func resourceAwsIotTopicRule() *schema.Resource {
 							Type:         schema.TypeString,
 							Required:     true,
 							ValidateFunc: validateArn,
+						},
+						"separator": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validateIoTTopicRuleFirehoseSeparator,
 						},
 					},
 				},
@@ -354,16 +359,19 @@ func createTopicRulePayload(d *schema.ResourceData) *iot.TopicRulePayload {
 	// Add Cloudwatch Metric actions
 	for _, a := range cloudwatchMetricActions {
 		raw := a.(map[string]interface{})
-		actions[i] = &iot.Action{
+		act := &iot.Action{
 			CloudwatchMetric: &iot.CloudwatchMetricAction{
 				MetricName:      aws.String(raw["metric_name"].(string)),
 				MetricNamespace: aws.String(raw["metric_namespace"].(string)),
 				MetricUnit:      aws.String(raw["metric_unit"].(string)),
 				MetricValue:     aws.String(raw["metric_value"].(string)),
 				RoleArn:         aws.String(raw["role_arn"].(string)),
-				MetricTimestamp: aws.String(raw["metric_timestamp"].(string)),
 			},
 		}
+		if v, ok := raw["metric_timestamp"].(string); ok && v != "" {
+			act.CloudwatchMetric.MetricTimestamp = aws.String(v)
+		}
+		actions[i] = act
 		i++
 	}
 
@@ -372,12 +380,10 @@ func createTopicRulePayload(d *schema.ResourceData) *iot.TopicRulePayload {
 		raw := a.(map[string]interface{})
 		act := &iot.Action{
 			DynamoDB: &iot.DynamoDBAction{
-				HashKeyField:  aws.String(raw["hash_key_field"].(string)),
-				HashKeyValue:  aws.String(raw["hash_key_value"].(string)),
-				RangeKeyField: aws.String(raw["range_key_field"].(string)),
-				RangeKeyValue: aws.String(raw["range_key_value"].(string)),
-				RoleArn:       aws.String(raw["role_arn"].(string)),
-				TableName:     aws.String(raw["table_name"].(string)),
+				HashKeyField: aws.String(raw["hash_key_field"].(string)),
+				HashKeyValue: aws.String(raw["hash_key_value"].(string)),
+				RoleArn:      aws.String(raw["role_arn"].(string)),
+				TableName:    aws.String(raw["table_name"].(string)),
 			},
 		}
 		if v, ok := raw["hash_key_type"].(string); ok && v != "" {
@@ -385,6 +391,12 @@ func createTopicRulePayload(d *schema.ResourceData) *iot.TopicRulePayload {
 		}
 		if v, ok := raw["range_key_type"].(string); ok && v != "" {
 			act.DynamoDB.RangeKeyType = aws.String(v)
+		}
+		if v, ok := raw["range_key_field"].(string); ok && v != "" {
+			act.DynamoDB.RangeKeyField = aws.String(v)
+		}
+		if v, ok := raw["range_key_value"].(string); ok && v != "" {
+			act.DynamoDB.RangeKeyValue = aws.String(v)
 		}
 		if v, ok := raw["payload_field"].(string); ok && v != "" {
 			act.DynamoDB.PayloadField = aws.String(v)
@@ -413,12 +425,16 @@ func createTopicRulePayload(d *schema.ResourceData) *iot.TopicRulePayload {
 
 	for _, a := range firehoseActions {
 		raw := a.(map[string]interface{})
-		actions[i] = &iot.Action{
+		act := &iot.Action{
 			Firehose: &iot.FirehoseAction{
 				DeliveryStreamName: aws.String(raw["delivery_stream_name"].(string)),
 				RoleArn:            aws.String(raw["role_arn"].(string)),
 			},
 		}
+		if v, ok := raw["separator"].(string); ok && v != "" {
+			act.Firehose.Separator = aws.String(raw["separator"].(string))
+		}
+		actions[i] = act
 		i++
 	}
 
@@ -596,9 +612,5 @@ func resourceAwsIotTopicRuleDelete(d *schema.ResourceData, meta interface{}) err
 	log.Printf("[DEBUG] Deleting IoT Topic Rule: %s", params)
 	_, err := conn.DeleteTopicRule(params)
 
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
