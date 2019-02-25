@@ -498,8 +498,10 @@ func resourceAwsElasticacheReplicationGroupRead(d *schema.ResourceData, meta int
 		if rgp.ConfigurationEndpoint != nil {
 			d.Set("port", rgp.ConfigurationEndpoint.Port)
 			d.Set("configuration_endpoint_address", rgp.ConfigurationEndpoint.Address)
+			d.Set("primary_endpoint_address", "")
 		} else {
 			d.Set("port", rgp.NodeGroups[0].PrimaryEndpoint.Port)
+			d.Set("configuration_endpoint_address", "")
 			d.Set("primary_endpoint_address", rgp.NodeGroups[0].PrimaryEndpoint.Address)
 			d.Set("reader_endpoint_address", rgp.NodeGroups[0].ReaderEndpoint.Address)
 		}
