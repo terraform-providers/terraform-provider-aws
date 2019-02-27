@@ -128,6 +128,31 @@ func TestAccAWSCloudFrontDistribution_S3Origin(t *testing.T) {
 	})
 }
 
+func TestAccAWSCloudFrontDistribution_S3Origin_Restrictions(t *testing.T) {
+	ri := acctest.RandInt()
+	testConfig := fmt.Sprintf(testAccAWSCloudFrontDistributionS3ConfigRestrictions, ri, originBucket, logBucket, testAccAWSCloudFrontDistributionRetainConfig())
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudFrontDistributionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudFrontDistributionExistence(
+						"aws_cloudfront_distribution.s3_distribution",
+					),
+					resource.TestCheckResourceAttr(
+						"aws_cloudfront_distribution.s3_distribution",
+						"hosted_zone_id",
+						"Z2FDTNDATAQYW2",
+					),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAWSCloudFrontDistribution_S3OriginWithTags(t *testing.T) {
 	ri := acctest.RandInt()
 	preConfig := fmt.Sprintf(testAccAWSCloudFrontDistributionS3ConfigWithTags, ri, originBucket, logBucket, testAccAWSCloudFrontDistributionRetainConfig())
@@ -535,6 +560,54 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
 		max_ttl = 86400
 	}
 	price_class = "PriceClass_200"
+	viewer_certificate {
+		cloudfront_default_certificate = true
+	}
+	%s
+}
+`
+
+var testAccAWSCloudFrontDistributionS3ConfigRestrictions = `
+variable rand_id {
+	default = %d
+}
+
+# origin bucket
+%s
+
+# log bucket
+%s
+
+resource "aws_cloudfront_distribution" "s3_distribution" {
+	origin {
+		domain_name = "${aws_s3_bucket.s3_bucket_origin.id}.s3.amazonaws.com"
+		origin_id = "myS3Origin"
+	}
+	enabled = true
+	default_root_object = "index.html"
+	logging_config {
+		include_cookies = false
+		bucket = "${aws_s3_bucket.s3_bucket_logs.id}.s3.amazonaws.com"
+		prefix = "myprefix"
+	}
+	aliases = [ "mysite.${var.rand_id}.example.com", "yoursite.${var.rand_id}.example.com" ]
+	default_cache_behavior {
+		allowed_methods = [ "DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT" ]
+		cached_methods = [ "GET", "HEAD" ]
+		target_origin_id = "myS3Origin"
+		forwarded_values {
+			query_string = false
+			cookies {
+				forward = "none"
+			}
+		}
+		viewer_protocol_policy = "allow-all"
+		min_ttl = 0
+		default_ttl = 3600
+		max_ttl = 86400
+	}
+	price_class = "PriceClass_200"
+
 	restrictions {
 		geo_restriction {
 			restriction_type = "whitelist"
@@ -583,12 +656,6 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
 		max_ttl = 86400
 	}
 	price_class = "PriceClass_200"
-	restrictions {
-		geo_restriction {
-			restriction_type = "whitelist"
-			locations = [ "US", "CA", "GB", "DE" ]
-		}
-	}
 	viewer_certificate {
 		cloudfront_default_certificate = true
 	}
@@ -635,12 +702,6 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
 		max_ttl = 86400
 	}
 	price_class = "PriceClass_200"
-	restrictions {
-		geo_restriction {
-			restriction_type = "whitelist"
-			locations = [ "US", "CA", "GB", "DE" ]
-		}
-	}
 	viewer_certificate {
 		cloudfront_default_certificate = true
 	}
@@ -698,12 +759,6 @@ resource "aws_cloudfront_distribution" "custom_distribution" {
 		max_ttl = 86400
 	}
 	price_class = "PriceClass_200"
-	restrictions {
-		geo_restriction {
-			restriction_type = "whitelist"
-			locations = [ "US", "CA", "GB", "DE" ]
-		}
-	}
 	viewer_certificate {
 		cloudfront_default_certificate = true
 	}
@@ -803,11 +858,6 @@ resource "aws_cloudfront_distribution" "multi_origin_distribution" {
 		response_code = 200
 		error_caching_min_ttl = 30
 	}
-	restrictions {
-		geo_restriction {
-			restriction_type = "none"
-		}
-	}
 	viewer_certificate {
 		cloudfront_default_certificate = true
 	}
@@ -853,12 +903,6 @@ resource "aws_cloudfront_distribution" "no_custom_error_responses" {
 		error_code = 404
 		error_caching_min_ttl = 30
 	}
-	restrictions {
-		geo_restriction {
-			restriction_type = "whitelist"
-			locations = [ "US", "CA", "GB", "DE" ]
-		}
-	}
 	viewer_certificate {
 		cloudfront_default_certificate = true
 	}
@@ -895,12 +939,6 @@ resource "aws_cloudfront_distribution" "no_optional_items" {
 			}
 		}
 		viewer_protocol_policy = "allow-all"
-	}
-	restrictions {
-		geo_restriction {
-			restriction_type = "whitelist"
-			locations = [ "US", "CA", "GB", "DE" ]
-		}
 	}
 	viewer_certificate {
 		cloudfront_default_certificate = true
@@ -1022,12 +1060,6 @@ resource "aws_cloudfront_distribution" "http_1_1" {
 		max_ttl = 86400
 	}
 	http_version = "http1.1"
-	restrictions {
-		geo_restriction {
-			restriction_type = "whitelist"
-			locations = [ "US", "CA", "GB", "DE" ]
-		}
-	}
 	viewer_certificate {
 		cloudfront_default_certificate = true
 	}
@@ -1071,12 +1103,6 @@ resource "aws_cloudfront_distribution" "is_ipv6_enabled" {
 		max_ttl = 86400
 	}
 	http_version = "http1.1"
-	restrictions {
-		geo_restriction {
-			restriction_type = "whitelist"
-			locations = [ "US", "CA", "GB", "DE" ]
-		}
-	}
 	viewer_certificate {
 		cloudfront_default_certificate = true
 	}

@@ -587,16 +587,15 @@ func resourceAwsCloudFrontDistribution() *schema.Resource {
 			},
 			"restrictions": {
 				Type:     schema.TypeSet,
-				Required: true,
+				Optional: true,
 				Set:      restrictionsHash,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"geo_restriction": {
 							Type:     schema.TypeSet,
-							Required: true,
+							Optional: true,
 							Set:      geoRestrictionHash,
-							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"locations": {
@@ -606,7 +605,8 @@ func resourceAwsCloudFrontDistribution() *schema.Resource {
 									},
 									"restriction_type": {
 										Type:     schema.TypeString,
-										Required: true,
+										Optional: true,
+										Default:  cloudfront.GeoRestrictionTypeNone,
 									},
 								},
 							},
