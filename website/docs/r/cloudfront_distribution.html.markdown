@@ -22,7 +22,7 @@ want to wait, you need to use the `retain_on_delete` flag.
 
 ## Example Usage
 
-The following example below creates a CloudFront distribution with an S3 origin.
+### CloudFront distribution with S3 origin
 
 ```hcl
 resource "aws_s3_bucket" "b" {
@@ -136,6 +136,99 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
 
   tags = {
     Environment = "production"
+  }
+
+  viewer_certificate {
+    cloudfront_default_certificate = true
+  }
+}
+```
+
+### CloudFront distribution with custom origin
+
+The example below uses an S3 static web hosting origin for use-cases beyond asset downloads. AWS doesn't allow using the S3 website endpoint from CloudFront. This example works using a custom authentication and a custom origin to further provide caching and HTTPS.
+
+```hcl
+locals {
+  origin_id = "S3-Website-${aws_s3_bucket.website-bucket.bucket}"
+  cloudfront-authentication-user-agent = "somethingRandomEen8Ohta"
+}
+
+resource "aws_s3_bucket" "website-bucket" {
+  bucket = "webhosting-bucket-via-cloudfront"
+
+  website {
+    index_document = "index.html"
+  }
+}
+
+data "aws_iam_policy_document" "bucket-policy" {
+  statement {
+    actions   = ["s3:GetObject"]
+    resources = ["${aws_s3_bucket.website-bucket.arn}/*"]
+
+    principals {
+      type        = "*"
+      identifiers = ["*"]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "aws:UserAgent"
+      values   = ["${local.cloudfront-authentication-user-agent}"]
+    }
+  }
+}
+
+resource "aws_s3_bucket_policy" "bucket-policy" {
+  bucket = "${aws_s3_bucket.website-bucket.id}"
+  policy = "${data.aws_iam_policy_document.bucket-policy.json}"
+}
+
+resource "aws_cloudfront_distribution" "distribution" {
+  origin {
+    domain_name = "${aws_s3_bucket.website-bucket.website_endpoint}"
+    origin_id   = "${local.origin_id}"
+
+    custom_origin_config {
+      http_port              = "80"
+      https_port             = "443"
+      origin_protocol_policy = "http-only"
+      origin_ssl_protocols   = ["TLSv1", "TLSv1.1", "TLSv1.2"]
+    }
+
+    custom_header {
+      name  = "User-Agent"
+      value = "${local.cloudfront-authentication-user-agent}"
+    }
+  }
+
+  enabled = true
+  comment = "A distribution for our S3 Website Endpoint"
+
+  default_cache_behavior {
+    allowed_methods  = ["HEAD", "GET", "OPTIONS"]
+    cached_methods   = ["HEAD", "GET", "OPTIONS"]
+    target_origin_id = "${local.origin_id}"
+
+    forwarded_values {
+      query_string = false
+
+      cookies {
+        forward = "none"
+      }
+    }
+
+    viewer_protocol_policy = "redirect-to-https"
+    min_ttl                = 0
+    default_ttl            = 3600
+    max_ttl                = 86400
+  }
+
+  restrictions {
+    geo_restriction {
+      restriction_type = "none"
+    }
   }
 
   viewer_certificate {
