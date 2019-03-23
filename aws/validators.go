@@ -1011,6 +1011,16 @@ func validateOnceADayWindowFormat(v interface{}, k string) (ws []string, errors 
 	return
 }
 
+func validateStartTimeFormat(v interface{}, k string) (ws []string, errors []error) {
+	validFormat := "^((mon|tue|wed|thu|fri|sat|sun):)?([0-1][0-9]|2[0-3]):[0-5][0-9]$"
+	value := strings.ToLower(v.(string))
+	if !regexp.MustCompile(validFormat).MatchString(value) {
+		errors = append(errors, fmt.Errorf(
+			"%q must satisfy the format of \"ddd:hh24:mi\", (\"ddd:\" is optional).", k))
+	}
+	return
+}
+
 // Validates that ECS Placement Constraints are set correctly
 // Takes type, and expression as strings
 func validateAwsEcsPlacementConstraint(constType, constExpr string) error {

@@ -89,6 +89,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/mq"
 	"github.com/aws/aws-sdk-go/service/neptune"
 	"github.com/aws/aws-sdk-go/service/opsworks"
+	"github.com/aws/aws-sdk-go/service/opsworkscm"
 	"github.com/aws/aws-sdk-go/service/organizations"
 	"github.com/aws/aws-sdk-go/service/pinpoint"
 	"github.com/aws/aws-sdk-go/service/pricing"
@@ -267,6 +268,7 @@ type AWSClient struct {
 	mqconn                              *mq.MQ
 	neptuneconn                         *neptune.Neptune
 	opsworksconn                        *opsworks.OpsWorks
+	opsworkscmconn                      *opsworkscm.OpsWorksCM
 	organizationsconn                   *organizations.Organizations
 	partition                           string
 	pinpointconn                        *pinpoint.Pinpoint
@@ -437,6 +439,7 @@ func (c *Config) Client() (interface{}, error) {
 		mqconn:                              mq.New(sess),
 		neptuneconn:                         neptune.New(sess),
 		opsworksconn:                        opsworks.New(sess),
+		opsworkscmconn:                      opsworkscm.New(sess),
 		organizationsconn:                   organizations.New(sess),
 		partition:                           partition,
 		pinpointconn:                        pinpoint.New(sess),
