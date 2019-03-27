@@ -392,6 +392,7 @@ func Provider() terraform.ResourceProvider {
 			"aws_db_security_group":                            resourceAwsDbSecurityGroup(),
 			"aws_db_snapshot":                                  resourceAwsDbSnapshot(),
 			"aws_db_subnet_group":                              resourceAwsDbSubnetGroup(),
+			"aws_default_db_subnet_group":                      resourceAwsDefaultDbSubnetGroup(),
 			"aws_devicefarm_project":                           resourceAwsDevicefarmProject(),
 			"aws_directory_service_directory":                  resourceAwsDirectoryServiceDirectory(),
 			"aws_directory_service_conditional_forwarder":      resourceAwsDirectoryServiceConditionalForwarder(),
