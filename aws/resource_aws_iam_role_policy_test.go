@@ -524,13 +524,15 @@ resource "aws_iam_role_policy" "foo" {
 	name = "tf_test_policy_%s"
 	role = "${aws_iam_role.role.name}"
 	policy = <<EOF
-  {
+  x{
     "Version": "2012-10-17",
-    "Statement": {
-      "Effect": "Allow",
-      "Action": "*",
-      "Resource": "*"
-    }
+    "Statement": [
+      {
+        "Effect": "Allow",
+        "Action": "*",
+        "Resource": "*"
+      }
+    ]
   }
   EOF
 }

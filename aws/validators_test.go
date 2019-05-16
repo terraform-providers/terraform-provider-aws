@@ -730,10 +730,6 @@ func TestValidateIAMPolicyJsonString(t *testing.T) {
 			Value:    ``,
 			ErrCount: 1,
 		},
-		{
-			Value:    `    {"xyz": "foo"}`,
-			ErrCount: 1,
-		},
 	}
 
 	for _, tc := range invalidCases {

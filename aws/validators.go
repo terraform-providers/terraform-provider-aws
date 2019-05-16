@@ -881,17 +881,18 @@ func validateDbEventSubscriptionName(v interface{}, k string) (ws []string, erro
 
 func validateIAMPolicyJson(v interface{}, k string) (ws []string, errors []error) {
 	// IAM Policy documents need to be valid JSON, and pass legacy parsing
-	value := v.(string)
-	if len(value) < 1 {
+	if len(v.(string)) < 1 {
 		errors = append(errors, fmt.Errorf("%q contains an invalid JSON policy", k))
 		return
 	}
-	if value[:1] != "{" {
-		errors = append(errors, fmt.Errorf("%q contains an invalid JSON policy", k))
-		return
-	}
-	if _, err := structure.NormalizeJsonString(v); err != nil {
+	vNormalized, err := structure.NormalizeJsonString(v)
+	if err != nil {
 		errors = append(errors, fmt.Errorf("%q contains an invalid JSON: %s", k, err))
+		return
+	}
+	if vNormalized[:1] != "{" {
+		errors = append(errors, fmt.Errorf("%q contains an invalid JSON policy", k))
+		return
 	}
 	return
 }
