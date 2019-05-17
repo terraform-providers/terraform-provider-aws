@@ -164,6 +164,7 @@ func Provider() terraform.ResourceProvider {
 			"aws_cloudhsm_v2_cluster":                dataSourceCloudHsm2Cluster(),
 			"aws_cloudtrail_service_account":         dataSourceAwsCloudTrailServiceAccount(),
 			"aws_cloudwatch_log_group":               dataSourceAwsCloudwatchLogGroup(),
+			"aws_cognito_user_pool_client":           dataSourceAwsCognitoUserPoolClient(),
 			"aws_cognito_user_pools":                 dataSourceAwsCognitoUserPools(),
 			"aws_codecommit_repository":              dataSourceAwsCodeCommitRepository(),
 			"aws_cur_report_definition":              dataSourceAwsCurReportDefinition(),
