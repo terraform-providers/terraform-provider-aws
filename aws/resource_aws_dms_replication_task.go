@@ -68,6 +68,10 @@ func resourceAwsDmsReplicationTask() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: validateArn,
 			},
+			"handle_task_lifecycle": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
 			"table_mappings": {
 				Type:             schema.TypeString,
 				Required:         true,
@@ -138,7 +142,21 @@ func resourceAwsDmsReplicationTaskCreate(d *schema.ResourceData, meta interface{
 		return err
 	}
 
-	return resourceAwsDmsReplicationTaskRead(d, meta)
+	// so we can get replication task arn
+	err = resourceAwsDmsReplicationTaskRead(d, meta)
+	if err != nil {
+		return err
+	}
+
+	// start the task if required
+	if d.Get("handle_task_lifecycle").(bool) {
+		err = resourceAwsDmsReplicationTaskStart(d, meta)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func resourceAwsDmsReplicationTaskRead(d *schema.ResourceData, meta interface{}) error {
@@ -219,6 +237,14 @@ func resourceAwsDmsReplicationTaskUpdate(d *schema.ResourceData, meta interface{
 	if hasChanges {
 		log.Println("[DEBUG] DMS update replication task:", request)
 
+		// stop the task if required
+		if d.Get("handle_task_lifecycle").(bool) {
+			err := resourceAwsDmsReplicationTaskStop(d, meta)
+			if err != nil {
+				return err
+			}
+		}
+
 		_, err := conn.ModifyReplicationTask(request)
 		if err != nil {
 			return err
@@ -239,6 +265,14 @@ func resourceAwsDmsReplicationTaskUpdate(d *schema.ResourceData, meta interface{
 			return err
 		}
 
+		// resume the task if required
+		if d.Get("handle_task_lifecycle").(bool) {
+			err := resourceAwsDmsReplicationTaskStart(d, meta)
+			if err != nil {
+				return err
+			}
+		}
+
 		return resourceAwsDmsReplicationTaskRead(d, meta)
 	}
 
@@ -247,6 +281,14 @@ func resourceAwsDmsReplicationTaskUpdate(d *schema.ResourceData, meta interface{
 
 func resourceAwsDmsReplicationTaskDelete(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).dmsconn
+
+	// stop the task if required
+	if d.Get("handle_task_lifecycle").(bool) {
+		err := resourceAwsDmsReplicationTaskStop(d, meta)
+		if err != nil {
+			return err
+		}
+	}
 
 	request := &dms.DeleteReplicationTaskInput{
 		ReplicationTaskArn: aws.String(d.Get("replication_task_arn").(string)),
@@ -324,4 +366,97 @@ func resourceAwsDmsReplicationTaskStateRefreshFunc(
 
 		return v, *v.ReplicationTasks[0].Status, nil
 	}
+}
+
+func resourceAwsDmsReplicationTaskStop(d *schema.ResourceData, meta interface{}) error {
+	conn := meta.(*AWSClient).dmsconn
+
+	log.Println("[DEBUG] DMS Stopping replication task:", d.Get("replication_task_arn").(string))
+
+	request := &dms.StopReplicationTaskInput{
+		ReplicationTaskArn: aws.String(d.Get("replication_task_arn").(string)),
+	}
+	_, err := conn.StopReplicationTask(request)
+	if err != nil {
+		if dmserr, ok := err.(awserr.Error); ok {
+			if dmserr.Code() == "ResourceNotFoundFault" {
+				log.Printf("[DEBUG] DMS Replication Task %q Not Found", d.Id())
+				d.SetId("")
+				return nil
+			} else if dmserr.Code() != "InvalidResourceStateFault" {
+				return err
+			}
+		} else {
+			return err
+		}
+	}
+
+	stateConf := &resource.StateChangeConf{
+		Pending:    []string{"stopping"},
+		Target:     []string{"stopped", "failed", "ready"},
+		Refresh:    resourceAwsDmsReplicationTaskStateRefreshFunc(d, meta),
+		Timeout:    d.Timeout(schema.TimeoutCreate),
+		MinTimeout: 10 * time.Second,
+		Delay:      30 * time.Second, // Wait 30 secs before starting
+	}
+
+	// Wait, catching any errors
+	_, err = stateConf.WaitForState()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func resourceAwsDmsReplicationTaskStart(d *schema.ResourceData, meta interface{}) error {
+	conn := meta.(*AWSClient).dmsconn
+
+	log.Println("[DEBUG] DMS Resuming replication task:", d.Get("replication_task_arn").(string))
+
+	request := &dms.StartReplicationTaskInput{
+		ReplicationTaskArn:       aws.String(d.Get("replication_task_arn").(string)),
+		StartReplicationTaskType: aws.String("resume-processing"),
+	}
+
+	// append start time if set
+	if d.Get("cdc_start_time").(string) != "" {
+		seconds, err := strconv.ParseInt(d.Get("cdc_start_time").(string), 10, 64)
+		if err != nil {
+			return fmt.Errorf("[ERROR] DMS update replication task. Invalid CRC Unix timestamp: %s", err)
+		}
+		request.CdcStartTime = aws.Time(time.Unix(seconds, 0))
+	}
+
+	_, err := conn.StartReplicationTask(request)
+	if err != nil {
+		if dmserr, ok := err.(awserr.Error); ok {
+			if dmserr.Code() == "ResourceNotFoundFault" {
+				log.Printf("[DEBUG] DMS Replication Task %q Not Found", d.Id())
+				d.SetId("")
+				return nil
+			} else if dmserr.Code() != "InvalidResourceStateFault" {
+				return err
+			}
+		} else {
+			return err
+		}
+	}
+
+	stateConf := &resource.StateChangeConf{
+		Pending:    []string{"starting"},
+		Target:     []string{"running", "failed", "errored"},
+		Refresh:    resourceAwsDmsReplicationTaskStateRefreshFunc(d, meta),
+		Timeout:    d.Timeout(schema.TimeoutCreate),
+		MinTimeout: 10 * time.Second,
+		Delay:      30 * time.Second, // Wait 30 secs before starting
+	}
+
+	// Wait, catching any errors
+	_, err = stateConf.WaitForState()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
