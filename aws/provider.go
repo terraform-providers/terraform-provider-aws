@@ -189,6 +189,7 @@ func Provider() terraform.ResourceProvider {
 			"aws_efs_file_system":                    dataSourceAwsEfsFileSystem(),
 			"aws_efs_mount_target":                   dataSourceAwsEfsMountTarget(),
 			"aws_eip":                                dataSourceAwsEip(),
+			"aws_eips":                               dataSourceAwsEips(),
 			"aws_eks_cluster":                        dataSourceAwsEksCluster(),
 			"aws_eks_cluster_auth":                   dataSourceAwsEksClusterAuth(),
 			"aws_elastic_beanstalk_application":      dataSourceAwsElasticBeanstalkApplication(),
