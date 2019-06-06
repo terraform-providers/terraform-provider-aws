@@ -176,6 +176,7 @@ func resourceAwsSpotInstanceRequestCreate(d *schema.ResourceData, meta interface
 	log.Printf("[DEBUG] Requesting spot bid opts: %s", spotOpts)
 
 	var resp *ec2.RequestSpotInstancesOutput
+
 	err = resource.Retry(1*time.Minute, func() *resource.RetryError {
 		var err error
 		resp, err = conn.RequestSpotInstances(spotOpts)
@@ -190,37 +191,42 @@ func resourceAwsSpotInstanceRequestCreate(d *schema.ResourceData, meta interface
 			log.Printf("[DEBUG] IAM Instance Profile appears to have no IAM roles, retrying...")
 			return resource.RetryableError(err)
 		}
-		return resource.NonRetryableError(err)
-	})
 
+		if len(resp.SpotInstanceRequests) != 1 {
+			return resource.NonRetryableError(fmt.Errorf(
+				"Expected response with length 1, got: %s", resp))
+		}
+
+		sir := *resp.SpotInstanceRequests[0]
+		d.SetId(*sir.SpotInstanceRequestId)
+
+		if d.Get("wait_for_fulfillment").(bool) {
+			spotStateConf := &resource.StateChangeConf{
+				// http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-bid-status.html
+				Pending:    []string{"start", "pending-evaluation", "pending-fulfillment"},
+				Target:     []string{"fulfilled"},
+				Refresh:    SpotInstanceStateRefreshFunc(conn, sir),
+				Timeout:    d.Timeout(schema.TimeoutCreate),
+				Delay:      10 * time.Second,
+				MinTimeout: 3 * time.Second,
+			}
+
+			log.Printf("[DEBUG] waiting for spot bid to resolve... this may take several minutes.")
+			_, err = spotStateConf.WaitForState()
+
+			if err != nil {
+				if stateErr, ok := err.(*resource.UnexpectedStateError); ok && stateErr.State == "bad-parameters" {
+					return resource.RetryableError(fmt.Errorf("bad-parameters while waiting for spot request (%s) to resolve: %s", sir, err))
+				}
+
+				return resource.NonRetryableError(fmt.Errorf("Error while waiting for spot request (%s) to resolve: %s", sir, err))
+			}
+		}
+
+		return nil
+	})
 	if err != nil {
 		return fmt.Errorf("Error requesting spot instances: %s", err)
-	}
-	if len(resp.SpotInstanceRequests) != 1 {
-		return fmt.Errorf(
-			"Expected response with length 1, got: %s", resp)
-	}
-
-	sir := *resp.SpotInstanceRequests[0]
-	d.SetId(*sir.SpotInstanceRequestId)
-
-	if d.Get("wait_for_fulfillment").(bool) {
-		spotStateConf := &resource.StateChangeConf{
-			// http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-bid-status.html
-			Pending:    []string{"start", "pending-evaluation", "pending-fulfillment"},
-			Target:     []string{"fulfilled"},
-			Refresh:    SpotInstanceStateRefreshFunc(conn, sir),
-			Timeout:    d.Timeout(schema.TimeoutCreate),
-			Delay:      10 * time.Second,
-			MinTimeout: 3 * time.Second,
-		}
-
-		log.Printf("[DEBUG] waiting for spot bid to resolve... this may take several minutes.")
-		_, err = spotStateConf.WaitForState()
-
-		if err != nil {
-			return fmt.Errorf("Error while waiting for spot request (%s) to resolve: %s", sir, err)
-		}
 	}
 
 	return resourceAwsSpotInstanceRequestUpdate(d, meta)

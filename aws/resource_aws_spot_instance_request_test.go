@@ -529,6 +529,29 @@ func TestAccAWSSpotInstanceRequestInterruptHibernate(t *testing.T) {
 	})
 }
 
+func TestAccAWSSpotInstanceRequestWithIAMRole(t *testing.T) {
+	var sir ec2.SpotInstanceRequest
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSSpotInstanceRequestDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSSpotInstanceRequestWithIAMRole,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSSpotInstanceRequestExists(
+						"aws_spot_instance_request.foo", &sir),
+					resource.TestCheckResourceAttr(
+						"aws_spot_instance_request.foo", "spot_bid_status", "fulfilled"),
+					resource.TestCheckResourceAttr(
+						"aws_spot_instance_request.foo", "spot_request_state", "active"),
+				),
+			},
+		},
+	})
+}
+
 func testAccAWSSpotInstanceRequestConfig(rInt int) string {
 	return fmt.Sprintf(`
 	resource "aws_key_pair" "debugging" {
@@ -804,3 +827,37 @@ func testAccAWSSpotInstanceRequestInterruptConfig(interruption_behavior string) 
 		instance_interruption_behaviour = "%s"
 	}`, interruption_behavior)
 }
+
+const testAccAWSSpotInstanceRequestWithIAMRole = `
+resource "aws_iam_role" "tf-iam-role" {
+  name_prefix = "tf-iam-role"
+
+  assume_role_policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Principal": {
+                "Service": "ec2.amazonaws.com"
+            },
+            "Action": "sts:AssumeRole"
+        }
+    ]
+}
+EOF
+}
+
+resource "aws_iam_instance_profile" "test_profile" {
+  name_prefix = "tf-iam-role"
+  role = "${aws_iam_role.tf-iam-role.name}"
+}
+
+resource "aws_spot_instance_request" "foo" {
+	ami                         = "ami-4fccb37f"
+	instance_type               = "m1.small"
+	spot_price                  = "0.05"
+
+	iam_instance_profile = "${aws_iam_instance_profile.test_profile.name}"
+	wait_for_fulfillment = true
+}`
