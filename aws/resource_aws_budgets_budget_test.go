@@ -368,6 +368,7 @@ func testAccAWSBudgetsBudgetConfigUpdate(name string) budgets.Budget {
 		CostFilters: map[string][]*string{
 			"AZ": {
 				aws.String("us-east-2"),
+				aws.String("ap-northeast-1"),
 			},
 		},
 		CostTypes: &budgets.CostTypes{
@@ -403,6 +404,7 @@ func testAccAWSBudgetsBudgetConfigDefaults(name string) budgets.Budget {
 		CostFilters: map[string][]*string{
 			"AZ": {
 				aws.String("us-east-1"),
+				aws.String("ap-northeast-1"),
 			},
 		},
 		CostTypes: &budgets.CostTypes{
@@ -443,7 +445,8 @@ func testAccAWSBudgetsBudgetNotificationConfigUpdate() budgets.Notification {
 
 func testAccAWSBudgetsBudgetConfig_WithAccountID(budgetConfig budgets.Budget, accountID, costFilterKey string) string {
 	timePeriodStart := budgetConfig.TimePeriod.Start.Format("2006-01-02_15:04")
-	costFilterValue := *budgetConfig.CostFilters[costFilterKey][0]
+	costFilterValue1 := *budgetConfig.CostFilters[costFilterKey][0]
+	costFilterValue2 := *budgetConfig.CostFilters[costFilterKey][1]
 
 	return fmt.Sprintf(`
 resource "aws_budgets_budget" "foo" {
@@ -455,16 +458,21 @@ resource "aws_budgets_budget" "foo" {
   time_period_start = "%s"
   time_unit         = "%s"
 
-  cost_filters = {
-    "%s" = "%s"
+  cost_filter {
+    name = "%s"
+    values = [
+      "%s",
+      "%s",
+    ]
   }
 }
-`, accountID, *budgetConfig.BudgetName, *budgetConfig.BudgetType, *budgetConfig.BudgetLimit.Amount, *budgetConfig.BudgetLimit.Unit, timePeriodStart, *budgetConfig.TimeUnit, costFilterKey, costFilterValue)
+`, accountID, *budgetConfig.BudgetName, *budgetConfig.BudgetType, *budgetConfig.BudgetLimit.Amount, *budgetConfig.BudgetLimit.Unit, timePeriodStart, *budgetConfig.TimeUnit, costFilterKey, costFilterValue1, costFilterValue2)
 }
 
 func testAccAWSBudgetsBudgetConfig_PrefixDefaults(budgetConfig budgets.Budget, costFilterKey string) string {
 	timePeriodStart := budgetConfig.TimePeriod.Start.Format("2006-01-02_15:04")
-	costFilterValue := *budgetConfig.CostFilters[costFilterKey][0]
+	costFilterValue1 := *budgetConfig.CostFilters[costFilterKey][0]
+	costFilterValue2 := *budgetConfig.CostFilters[costFilterKey][1]
 
 	return fmt.Sprintf(`
 resource "aws_budgets_budget" "foo" {
@@ -475,17 +483,22 @@ resource "aws_budgets_budget" "foo" {
   time_period_start = "%s"
   time_unit         = "%s"
 
-  cost_filters = {
-    "%s" = "%s"
+  cost_filter {
+    name = "%s"
+    values = [
+      "%s",
+      "%s",
+    ]
   }
 }
-`, *budgetConfig.BudgetName, *budgetConfig.BudgetType, *budgetConfig.BudgetLimit.Amount, *budgetConfig.BudgetLimit.Unit, timePeriodStart, *budgetConfig.TimeUnit, costFilterKey, costFilterValue)
+`, *budgetConfig.BudgetName, *budgetConfig.BudgetType, *budgetConfig.BudgetLimit.Amount, *budgetConfig.BudgetLimit.Unit, timePeriodStart, *budgetConfig.TimeUnit, costFilterKey, costFilterValue1, costFilterValue2)
 }
 
 func testAccAWSBudgetsBudgetConfig_Prefix(budgetConfig budgets.Budget, costFilterKey string) string {
 	timePeriodStart := budgetConfig.TimePeriod.Start.Format("2006-01-02_15:04")
 	timePeriodEnd := budgetConfig.TimePeriod.End.Format("2006-01-02_15:04")
-	costFilterValue := *budgetConfig.CostFilters[costFilterKey][0]
+	costFilterValue1 := *budgetConfig.CostFilters[costFilterKey][0]
+	costFilterValue2 := *budgetConfig.CostFilters[costFilterKey][1]
 
 	return fmt.Sprintf(`
 resource "aws_budgets_budget" "foo" {
@@ -504,15 +517,20 @@ resource "aws_budgets_budget" "foo" {
   time_period_end   = "%s"
   time_unit         = "%s"
 
-  cost_filters = {
-    "%s" = "%s"
+  cost_filter {
+    name = "%s"
+    values = [
+      "%s",
+      "%s",
+    ]
   }
 }
-`, *budgetConfig.BudgetName, *budgetConfig.BudgetType, *budgetConfig.BudgetLimit.Amount, *budgetConfig.BudgetLimit.Unit, *budgetConfig.CostTypes.IncludeTax, *budgetConfig.CostTypes.IncludeSubscription, *budgetConfig.CostTypes.UseBlended, timePeriodStart, timePeriodEnd, *budgetConfig.TimeUnit, costFilterKey, costFilterValue)
+`, *budgetConfig.BudgetName, *budgetConfig.BudgetType, *budgetConfig.BudgetLimit.Amount, *budgetConfig.BudgetLimit.Unit, *budgetConfig.CostTypes.IncludeTax, *budgetConfig.CostTypes.IncludeSubscription, *budgetConfig.CostTypes.UseBlended, timePeriodStart, timePeriodEnd, *budgetConfig.TimeUnit, costFilterKey, costFilterValue1, costFilterValue2)
 }
 func testAccAWSBudgetsBudgetConfig_BasicDefaults(budgetConfig budgets.Budget, costFilterKey string) string {
 	timePeriodStart := budgetConfig.TimePeriod.Start.Format("2006-01-02_15:04")
-	costFilterValue := *budgetConfig.CostFilters[costFilterKey][0]
+	costFilterValue1 := *budgetConfig.CostFilters[costFilterKey][0]
+	costFilterValue2 := *budgetConfig.CostFilters[costFilterKey][1]
 
 	return fmt.Sprintf(`
 resource "aws_budgets_budget" "foo" {
@@ -523,17 +541,22 @@ resource "aws_budgets_budget" "foo" {
   time_period_start = "%s"
   time_unit         = "%s"
 
-  cost_filters = {
-    "%s" = "%s"
+  cost_filter {
+    name = "%s"
+    values = [
+      "%s",
+      "%s",
+    ]
   }
 }
-`, *budgetConfig.BudgetName, *budgetConfig.BudgetType, *budgetConfig.BudgetLimit.Amount, *budgetConfig.BudgetLimit.Unit, timePeriodStart, *budgetConfig.TimeUnit, costFilterKey, costFilterValue)
+`, *budgetConfig.BudgetName, *budgetConfig.BudgetType, *budgetConfig.BudgetLimit.Amount, *budgetConfig.BudgetLimit.Unit, timePeriodStart, *budgetConfig.TimeUnit, costFilterKey, costFilterValue1, costFilterValue2)
 }
 
 func testAccAWSBudgetsBudgetConfig_Basic(budgetConfig budgets.Budget, costFilterKey string) string {
 	timePeriodStart := budgetConfig.TimePeriod.Start.Format("2006-01-02_15:04")
 	timePeriodEnd := budgetConfig.TimePeriod.End.Format("2006-01-02_15:04")
-	costFilterValue := *budgetConfig.CostFilters[costFilterKey][0]
+	costFilterValue1 := *budgetConfig.CostFilters[costFilterKey][0]
+	costFilterValue2 := *budgetConfig.CostFilters[costFilterKey][1]
 
 	return fmt.Sprintf(`
 resource "aws_budgets_budget" "foo" {
@@ -552,11 +575,15 @@ resource "aws_budgets_budget" "foo" {
   time_period_end   = "%s"
   time_unit         = "%s"
 
-  cost_filters = {
-    "%s" = "%s"
+  cost_filter {
+    name = "%s"
+    values = [
+      "%s",
+      "%s",
+    ]
   }
 }
-`, *budgetConfig.BudgetName, *budgetConfig.BudgetType, *budgetConfig.BudgetLimit.Amount, *budgetConfig.BudgetLimit.Unit, *budgetConfig.CostTypes.IncludeTax, *budgetConfig.CostTypes.IncludeSubscription, *budgetConfig.CostTypes.UseBlended, timePeriodStart, timePeriodEnd, *budgetConfig.TimeUnit, costFilterKey, costFilterValue)
+`, *budgetConfig.BudgetName, *budgetConfig.BudgetType, *budgetConfig.BudgetLimit.Amount, *budgetConfig.BudgetLimit.Unit, *budgetConfig.CostTypes.IncludeTax, *budgetConfig.CostTypes.IncludeSubscription, *budgetConfig.CostTypes.UseBlended, timePeriodStart, timePeriodEnd, *budgetConfig.TimeUnit, costFilterKey, costFilterValue1, costFilterValue2)
 }
 
 func testAccAWSBudgetsBudgetConfigWithNotification_Basic(budgetConfig budgets.Budget, notifications []budgets.Notification, emails []string, topics []string) string {

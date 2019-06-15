@@ -127,9 +127,30 @@ func resourceAwsBudgetsBudget() *schema.Resource {
 				Required: true,
 			},
 			"cost_filters": {
-				Type:     schema.TypeMap,
-				Optional: true,
-				Computed: true,
+				Type:          schema.TypeMap,
+				Optional:      true,
+				ConflictsWith: []string{"cost_filter"},
+				Deprecated:    "Please use `cost_filter`. This attribute might be removed in future releases.",
+			},
+			"cost_filter": {
+				Type:          schema.TypeSet,
+				Optional:      true,
+				ConflictsWith: []string{"cost_filters"},
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"values": {
+							Type:     schema.TypeList,
+							Required: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+					},
+				},
 			},
 			"notification": {
 				Type:     schema.TypeSet,
@@ -327,8 +348,15 @@ func resourceAwsBudgetsBudgetRead(d *schema.ResourceData, meta interface{}) erro
 	d.Set("account_id", accountID)
 	d.Set("budget_type", budget.BudgetType)
 
-	if err := d.Set("cost_filters", convertCostFiltersToStringMap(budget.CostFilters)); err != nil {
-		return fmt.Errorf("error setting cost_filters: %s", err)
+	// `cost_filters` should be removed in future releases
+	if _, ok := d.GetOk("cost_filters"); ok {
+		if err := d.Set("cost_filters", convertCostFiltersToStringMap(budget.CostFilters)); err != nil {
+			return fmt.Errorf("error setting cost_filters: %s", err)
+		}
+	} else {
+		if err := d.Set("cost_filter", convertCostFiltersToMap(budget.CostFilters)); err != nil {
+			return fmt.Errorf("error setting cost_filter: %s", err)
+		}
 	}
 
 	if err := d.Set("cost_types", flattenBudgetsCostTypes(budget.CostTypes)); err != nil {
@@ -535,6 +563,22 @@ func flattenBudgetsCostTypes(costTypes *budgets.CostTypes) []map[string]interfac
 	return []map[string]interface{}{m}
 }
 
+func convertCostFiltersToMap(costFilters map[string][]*string) []map[string]interface{} {
+	convertedCostFilters := make([]map[string]interface{}, 0)
+	for k, v := range costFilters {
+		convertedCostFilter := make(map[string]interface{})
+		filterValues := make([]string, 0)
+		for _, singleFilterValue := range v {
+			filterValues = append(filterValues, *singleFilterValue)
+		}
+		convertedCostFilter["values"] = filterValues
+		convertedCostFilter["name"] = k
+		convertedCostFilters = append(convertedCostFilters, convertedCostFilter)
+	}
+
+	return convertedCostFilters
+}
+
 func convertCostFiltersToStringMap(costFilters map[string][]*string) map[string]string {
 	convertedCostFilters := make(map[string]string)
 	for k, v := range costFilters {
@@ -557,9 +601,20 @@ func expandBudgetsBudgetUnmarshal(d *schema.ResourceData) (*budgets.Budget, erro
 	costTypes := expandBudgetsCostTypesUnmarshal(d.Get("cost_types").([]interface{}))
 	budgetTimeUnit := d.Get("time_unit").(string)
 	budgetCostFilters := make(map[string][]*string)
-	for k, v := range d.Get("cost_filters").(map[string]interface{}) {
-		filterValue := v.(string)
-		budgetCostFilters[k] = append(budgetCostFilters[k], aws.String(filterValue))
+
+	if costFilter, ok := d.GetOk("cost_filter"); ok {
+		for _, v := range costFilter.(*schema.Set).List() {
+			element := v.(map[string]interface{})
+			key := element["name"].(string)
+			for _, filterValue := range element["values"].([]interface{}) {
+				budgetCostFilters[key] = append(budgetCostFilters[key], aws.String(filterValue.(string)))
+			}
+		}
+	} else if costFilters, ok := d.GetOk("cost_filters"); ok {
+		for k, v := range costFilters.(map[string]interface{}) {
+			filterValue := v.(string)
+			budgetCostFilters[k] = append(budgetCostFilters[k], aws.String(filterValue))
+		}
 	}
 
 	budgetTimePeriodStart, err := time.Parse("2006-01-02_15:04", d.Get("time_period_start").(string))
