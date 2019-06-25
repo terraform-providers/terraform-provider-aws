@@ -10,9 +10,11 @@ getting your application onto the servers. However, you could do so either via
 management tool, or by pre-baking configured AMIs with
 [Packer](http://www.packer.io).
 
+Please replace all strings REPLACE_WITH_YOUR with your data in variables.tf file.
+
 This example will also create a new EC2 Key Pair in the specified AWS Region. 
 The key name and path to the public key must be specified via the  
-terraform command vars.
+terraform variables in variables.tf.
 
 After you run `terraform apply` on this configuration, it will
 automatically output the DNS address of the ELB. After your instance
@@ -25,12 +27,12 @@ https://www.terraform.io/docs/providers/aws/index.html
 Run with a command like this:
 
 ```
-terraform apply -var 'key_name={your_aws_key_name}' \
-   -var 'public_key_path={location_of_your_key_in_your_local_machine}'
+terraform init
+terraform apply
+terraform destroy
 ```
+# Requirements
 
-For example:
+AWS account with AWS access and AWS secret keys and administrative permissions on AWS region.
 
-```
-terraform apply -var 'key_name=terraform' -var 'public_key_path=/Users/jsmith/.ssh/terraform.pub'
-```
+SSH key generated on Linux.
