@@ -59,19 +59,41 @@ func dataAwsSsmParameterRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	param := resp.Parameter
-	d.SetId(*param.Name)
-
-	arn := arn.ARN{
-		Partition: meta.(*AWSClient).partition,
-		Region:    meta.(*AWSClient).region,
-		Service:   "ssm",
-		AccountID: meta.(*AWSClient).accountid,
-		Resource:  fmt.Sprintf("parameter/%s", strings.TrimPrefix(d.Id(), "/")),
+	if err := parseAwsSsmParameter(d, param, meta); err != nil {
+		return err
 	}
-	d.Set("arn", arn.String())
-	d.Set("name", param.Name)
-	d.Set("type", param.Type)
-	d.Set("value", param.Value)
 
 	return nil
+}
+
+func parseAwsSsmParameter(d *schema.ResourceData, param *ssm.Parameter, meta interface{}) error {
+	d.SetId(*param.Name)
+
+	awsClient := meta.(*AWSClient)
+	arnData := calculateAwsSsmParameterArn(d.Id(), awsClient)
+
+	if err := d.Set("arn", arnData.String()); err != nil {
+		return err
+	}
+	if err := d.Set("name", param.Name); err != nil {
+		return err
+	}
+	if err := d.Set("type", param.Type); err != nil {
+		return err
+	}
+	if err := d.Set("value", param.Value); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func calculateAwsSsmParameterArn(id string, awsClient *AWSClient) arn.ARN {
+	return arn.ARN{
+		Partition: awsClient.partition,
+		Region:    awsClient.region,
+		Service:   "ssm",
+		AccountID: awsClient.accountid,
+		Resource:  fmt.Sprintf("parameter/%s", strings.TrimPrefix(id, "/")),
+	}
 }
