@@ -91,6 +91,13 @@ func resourceAwsInstance() *schema.Resource {
 				Default:  false,
 			},
 
+			"get_password_data_timeout": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Default:      15,
+				ValidateFunc: validation.IntAtLeast(1),
+			},
+
 			"password_data": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -901,7 +908,7 @@ func resourceAwsInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if d.Get("get_password_data").(bool) {
-		passwordData, err := getAwsEc2InstancePasswordData(*instance.InstanceId, conn)
+		passwordData, err := getAwsEc2InstancePasswordData(d, *instance.InstanceId, conn)
 		if err != nil {
 			return err
 		}
@@ -1718,12 +1725,12 @@ func readSecurityGroups(d *schema.ResourceData, instance *ec2.Instance, conn *ec
 	return nil
 }
 
-func getAwsEc2InstancePasswordData(instanceID string, conn *ec2.EC2) (string, error) {
+func getAwsEc2InstancePasswordData(d *schema.ResourceData, instanceID string, conn *ec2.EC2) (string, error) {
 	log.Printf("[INFO] Reading password data for instance %s", instanceID)
 
 	var passwordData string
 
-	err := resource.Retry(15*time.Minute, func() *resource.RetryError {
+	err := resource.Retry(time.Duration(d.Get("get_password_data_timeout").(int))*time.Minute, func() *resource.RetryError {
 		resp, err := conn.GetPasswordData(&ec2.GetPasswordDataInput{
 			InstanceId: aws.String(instanceID),
 		})

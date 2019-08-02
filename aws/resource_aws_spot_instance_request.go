@@ -356,7 +356,7 @@ func readInstance(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		if d.Get("get_password_data").(bool) {
-			passwordData, err := getAwsEc2InstancePasswordData(*instance.InstanceId, conn)
+			passwordData, err := getAwsEc2InstancePasswordData(d, *instance.InstanceId, conn)
 			if err != nil {
 				return err
 			}
