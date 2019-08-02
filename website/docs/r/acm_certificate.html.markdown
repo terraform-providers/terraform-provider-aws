@@ -43,6 +43,30 @@ resource "aws_acm_certificate" "cert" {
     create_before_destroy = true
   }
 }
+
+#example with subject_alternative_names and domain_validation_options
+resource "aws_acm_certificate" "cert" {
+  domain_name               = "yolo.example.io"
+  validation_method         = "EMAIL"
+  subject_alternative_names = ["app1.yolo.example.io", "yolo.example.io"]
+
+  domain_validation_options = [
+    {
+      domain_name       = "yolo.example.io"
+      validation_domain = "example.io"
+    },
+    {
+      domain_name       = "app1.yolo.example.io"
+      validation_domain = "example.io"
+    },
+  ]
+}
+
+#basic example
+resource "aws_acm_certificate" "cert" {
+  domain_name               = "yolo.example.io"
+  validation_method         = "EMAIL"
+}
 ```
 
 ### Importation of existing certificate
@@ -84,11 +108,17 @@ The following arguments are supported:
   * `domain_name` - (Required) A domain name for which the certificate should be issued
   * `subject_alternative_names` - (Optional) A list of domains that should be SANs in the issued certificate
   * `validation_method` - (Required) Which method to use for validation. `DNS` or `EMAIL` are valid, `NONE` can be used for certificates that were imported into ACM and then into Terraform.
+  * `domain_validaton_options` - (Optional) Contains information about the initial validation of each domain name that occurs. This is an array of maps that contains information about which validation_domain to use for domains in the subject_alternative_names list.
 * Importing an existing certificate
   * `private_key` - (Required) The certificate's PEM-formatted private key
   * `certificate_body` - (Required) The certificate's PEM-formatted public key
   * `certificate_chain` - (Optional) The certificate's PEM-formatted chain
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+Domain Validation Options objects accept the following attributes
+
+* `domain_name` - (Required) A fully qualified domain name (FQDN) in the certificate. For example, www.example.com or example.com .
+* `validation_domain` - (Required) The domain name that ACM used to send domain validation emails
 
 ## Attributes Reference
 
@@ -96,16 +126,17 @@ In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ARN of the certificate
 * `arn` - The ARN of the certificate
-* `domain_name` - The domain name for which the certificate is issued
-* `domain_validation_options` - A list of attributes to feed into other resources to complete certificate validation. Can have more than one element, e.g. if SANs are defined. Only set if `DNS`-validation was used.
-* `validation_emails` - A list of addresses that received a validation E-Mail. Only set if `EMAIL`-validation was used.
+* `certificate_details` - A list of attributes to feed into other resources to complete certificate validation. Can have more than one element, e.g. if SANs are defined. 
 
-Domain validation objects export the following attributes:
+Certificate Details objects export the following attributes:
 
-* `domain_name` - The domain to be validated
-* `resource_record_name` - The name of the DNS record to create to validate the certificate
-* `resource_record_type` - The type of DNS record to create
-* `resource_record_value` - The value the DNS record needs to have
+* `domain_name` - A fully qualified domain name (FQDN) in the certificate. For example, www.example.com or example.com .
+* `resource_record_name` - The name of the DNS record to create in your domain. This is supplied by ACM.
+* `resource_record_type` - The type of DNS record. Currently this can be CNAME .
+* `resource_record_value` - The value of the CNAME record to add to your DNS database. This is supplied by ACM. 
+* `validation_domain` - The domain name that ACM used to send domain validation emails.
+* `validation_method` - One of EMAIl or DNS
+* `validation_emails` - A list of email addresses that ACM used to send domain validation emails.
 
 [1]: /docs/configuration/resources.html#lifecycle
 

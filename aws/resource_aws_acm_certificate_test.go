@@ -45,11 +45,12 @@ func TestAccAWSAcmCertificate_emailValidation(t *testing.T) {
 		CheckDestroy: testAccCheckAcmCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAcmCertificateConfig(domain, acm.ValidationMethodEmail),
+				Config:             testAccAcmCertificateConfig(domain, acm.ValidationMethodEmail),
+				ExpectNonEmptyPlan: true,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestMatchResourceAttr("aws_acm_certificate.cert", "arn", certificateArnRegex),
 					resource.TestCheckResourceAttr("aws_acm_certificate.cert", "domain_name", domain),
-					resource.TestCheckResourceAttr("aws_acm_certificate.cert", "domain_validation_options.#", "0"),
+					resource.TestCheckResourceAttr("aws_acm_certificate.cert", "domain_validation_options.#", "1"),
 					resource.TestCheckResourceAttr("aws_acm_certificate.cert", "subject_alternative_names.#", "0"),
 					resource.TestMatchResourceAttr("aws_acm_certificate.cert", "validation_emails.0", regexp.MustCompile(`^[^@]+@.+$`)),
 					resource.TestCheckResourceAttr("aws_acm_certificate.cert", "validation_method", acm.ValidationMethodEmail),
@@ -78,7 +79,8 @@ func TestAccAWSAcmCertificate_dnsValidation(t *testing.T) {
 		CheckDestroy: testAccCheckAcmCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAcmCertificateConfig(domain, acm.ValidationMethodDns),
+				Config:             testAccAcmCertificateConfig(domain, acm.ValidationMethodDns),
+				ExpectNonEmptyPlan: true,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestMatchResourceAttr("aws_acm_certificate.cert", "arn", certificateArnRegex),
 					resource.TestCheckResourceAttr("aws_acm_certificate.cert", "domain_name", domain),
@@ -110,7 +112,8 @@ func TestAccAWSAcmCertificate_root(t *testing.T) {
 		CheckDestroy: testAccCheckAcmCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAcmCertificateConfig(rootDomain, acm.ValidationMethodDns),
+				Config:             testAccAcmCertificateConfig(rootDomain, acm.ValidationMethodDns),
+				ExpectNonEmptyPlan: true,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestMatchResourceAttr("aws_acm_certificate.cert", "arn", certificateArnRegex),
 					resource.TestCheckResourceAttr("aws_acm_certificate.cert", "domain_name", rootDomain),
@@ -177,7 +180,8 @@ func TestAccAWSAcmCertificate_rootAndWildcardSan(t *testing.T) {
 		CheckDestroy: testAccCheckAcmCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAcmCertificateConfig_subjectAlternativeNames(rootDomain, strconv.Quote(wildcardDomain), acm.ValidationMethodDns),
+				Config:             testAccAcmCertificateConfig_subjectAlternativeNames(rootDomain, strconv.Quote(wildcardDomain), acm.ValidationMethodDns),
+				ExpectNonEmptyPlan: true,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestMatchResourceAttr("aws_acm_certificate.cert", "arn", certificateArnRegex),
 					resource.TestCheckResourceAttr("aws_acm_certificate.cert", "domain_name", rootDomain),
@@ -219,7 +223,8 @@ func TestAccAWSAcmCertificate_san_single(t *testing.T) {
 		CheckDestroy: testAccCheckAcmCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAcmCertificateConfig_subjectAlternativeNames(domain, strconv.Quote(sanDomain), acm.ValidationMethodDns),
+				Config:             testAccAcmCertificateConfig_subjectAlternativeNames(domain, strconv.Quote(sanDomain), acm.ValidationMethodDns),
+				ExpectNonEmptyPlan: true,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestMatchResourceAttr("aws_acm_certificate.cert", "arn", certificateArnRegex),
 					resource.TestCheckResourceAttr("aws_acm_certificate.cert", "domain_name", domain),
@@ -262,7 +267,8 @@ func TestAccAWSAcmCertificate_san_multiple(t *testing.T) {
 		CheckDestroy: testAccCheckAcmCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAcmCertificateConfig_subjectAlternativeNames(domain, fmt.Sprintf("%q, %q", sanDomain1, sanDomain2), acm.ValidationMethodDns),
+				Config:             testAccAcmCertificateConfig_subjectAlternativeNames(domain, fmt.Sprintf("%q, %q", sanDomain1, sanDomain2), acm.ValidationMethodDns),
+				ExpectNonEmptyPlan: true,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestMatchResourceAttr("aws_acm_certificate.cert", "arn", certificateArnRegex),
 					resource.TestCheckResourceAttr("aws_acm_certificate.cert", "domain_name", domain),
@@ -348,7 +354,8 @@ func TestAccAWSAcmCertificate_wildcard(t *testing.T) {
 		CheckDestroy: testAccCheckAcmCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAcmCertificateConfig(wildcardDomain, acm.ValidationMethodDns),
+				Config:             testAccAcmCertificateConfig(wildcardDomain, acm.ValidationMethodDns),
+				ExpectNonEmptyPlan: true,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestMatchResourceAttr("aws_acm_certificate.cert", "arn", certificateArnRegex),
 					resource.TestCheckResourceAttr("aws_acm_certificate.cert", "domain_name", wildcardDomain),
@@ -381,7 +388,8 @@ func TestAccAWSAcmCertificate_wildcardAndRootSan(t *testing.T) {
 		CheckDestroy: testAccCheckAcmCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAcmCertificateConfig_subjectAlternativeNames(wildcardDomain, strconv.Quote(rootDomain), acm.ValidationMethodDns),
+				Config:             testAccAcmCertificateConfig_subjectAlternativeNames(wildcardDomain, strconv.Quote(rootDomain), acm.ValidationMethodDns),
+				ExpectNonEmptyPlan: true,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestMatchResourceAttr("aws_acm_certificate.cert", "arn", certificateArnRegex),
 					resource.TestCheckResourceAttr("aws_acm_certificate.cert", "domain_name", wildcardDomain),
@@ -422,13 +430,15 @@ func TestAccAWSAcmCertificate_tags(t *testing.T) {
 		CheckDestroy: testAccCheckAcmCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAcmCertificateConfig(domain, acm.ValidationMethodDns),
+				Config:             testAccAcmCertificateConfig(domain, acm.ValidationMethodDns),
+				ExpectNonEmptyPlan: true,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("aws_acm_certificate.cert", "tags.%", "0"),
 				),
 			},
 			{
-				Config: testAccAcmCertificateConfig_twoTags(domain, acm.ValidationMethodDns, "Hello", "World", "Foo", "Bar"),
+				Config:             testAccAcmCertificateConfig_twoTags(domain, acm.ValidationMethodDns, "Hello", "World", "Foo", "Bar"),
+				ExpectNonEmptyPlan: true,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("aws_acm_certificate.cert", "tags.%", "2"),
 					resource.TestCheckResourceAttr("aws_acm_certificate.cert", "tags.Hello", "World"),
@@ -436,7 +446,8 @@ func TestAccAWSAcmCertificate_tags(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAcmCertificateConfig_twoTags(domain, acm.ValidationMethodDns, "Hello", "World", "Foo", "Baz"),
+				Config:             testAccAcmCertificateConfig_twoTags(domain, acm.ValidationMethodDns, "Hello", "World", "Foo", "Baz"),
+				ExpectNonEmptyPlan: true,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("aws_acm_certificate.cert", "tags.%", "2"),
 					resource.TestCheckResourceAttr("aws_acm_certificate.cert", "tags.Hello", "World"),
@@ -444,7 +455,8 @@ func TestAccAWSAcmCertificate_tags(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAcmCertificateConfig_oneTag(domain, acm.ValidationMethodDns, "Environment", "Test"),
+				Config:             testAccAcmCertificateConfig_oneTag(domain, acm.ValidationMethodDns, "Environment", "Test"),
+				ExpectNonEmptyPlan: true,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("aws_acm_certificate.cert", "tags.%", "1"),
 					resource.TestCheckResourceAttr("aws_acm_certificate.cert", "tags.Environment", "Test"),
