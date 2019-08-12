@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/service/directconnect"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func dataSourceAwsDxLocations() *schema.Resource {
