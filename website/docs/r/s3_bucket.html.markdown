@@ -97,6 +97,15 @@ resource "aws_s3_bucket" "b" {
   logging {
     target_bucket = "${aws_s3_bucket.log_bucket.id}"
     target_prefix = "log/"
+    target_grants = [
+      {
+        permission = "READ"
+        grantee = {
+          id   = "b64a1147d55453a4e7a19108bfeb9b7ed83e1e8a2b6eefe30f88e19cc2a850d8"
+          type = "CanonicalUser"
+        }
+      },
+    ]
   }
 }
 ```
@@ -363,6 +372,21 @@ The `logging` object supports the following:
 
 * `target_bucket` - (Required) The name of the bucket that will receive the log objects.
 * `target_prefix` - (Optional) To specify a key prefix for log objects.
+* `target_grants` - (Optional) Specifies a list of `target_grant` granting access to other people.
+
+The `target_grant` object supports the following:
+
+* `permission` - (Required) Logging permissions given to the Grantee for the bucket. Can be `FULL_CONTROL`, ` READ` or `WRITE`.
+* `grantee` - (Required) Specifies the person to whom you're assigning access rights.
+
+The `grantee` object supports the following:
+
+* `type` - (Required) Specifies the grantee type. Can be `CanonicalUser`, `EmailAddress` or `URI`.
+* `id` - (Optionnal) The canonical AWS user ID of the grantee.
+* `email_address` - (Optionnal) The email address of the grantee.
+* `uri` - (Optionnal) The URI of the grantee.
+
+One and only one of `id`, `email_address`, or `uri` must be specified.
 
 The `lifecycle_rule` object supports the following:
 

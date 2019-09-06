@@ -206,6 +206,43 @@ func resourceAwsS3Bucket() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
+						"target_grants": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"permission": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+									"grantee": {
+										Type:     schema.TypeSet,
+										Required: true,
+										Set:      granteeHash,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"type": {
+													Type:     schema.TypeString,
+													Required: true,
+												},
+												"id": {
+													Type:     schema.TypeString,
+													Optional: true,
+												},
+												"uri": {
+													Type:     schema.TypeString,
+													Optional: true,
+												},
+												"email_address": {
+													Type:     schema.TypeString,
+													Optional: true,
+												},
+											},
+										},
+									},
+								},
+							},
+						},
 					},
 				},
 				Set: func(v interface{}) int {
@@ -213,6 +250,7 @@ func resourceAwsS3Bucket() *schema.Resource {
 					m := v.(map[string]interface{})
 					buf.WriteString(fmt.Sprintf("%s-", m["target_bucket"]))
 					buf.WriteString(fmt.Sprintf("%s-", m["target_prefix"]))
+					buf.WriteString(fmt.Sprintf("%s-", m["target_grants"]))
 					return hashcode.String(buf.String())
 				},
 			},
@@ -990,6 +1028,34 @@ func resourceAwsS3BucketRead(d *schema.ResourceData, meta interface{}) error {
 		if *v.TargetPrefix != "" {
 			lc["target_prefix"] = *v.TargetPrefix
 		}
+		target_grants := make([]interface{}, 0)
+		for _, targetgrant := range v.TargetGrants {
+			grant := make(map[string]interface{})
+
+			if targetgrant.Permission != nil && *targetgrant.Permission != "" {
+				grant["permission"] = *targetgrant.Permission
+			}
+
+			grantee := make(map[string]interface{})
+			if targetgrant.Grantee.Type != nil && *targetgrant.Grantee.Type != "" {
+				grantee["type"] = *targetgrant.Grantee.Type
+			}
+			if targetgrant.Grantee.ID != nil && *targetgrant.Grantee.ID != "" {
+				grantee["id"] = *targetgrant.Grantee.ID
+			}
+			if targetgrant.Grantee.URI != nil && *targetgrant.Grantee.URI != "" {
+				grantee["uri"] = *targetgrant.Grantee.URI
+			}
+			if targetgrant.Grantee.EmailAddress != nil && *targetgrant.Grantee.EmailAddress != "" {
+				grantee["email_addess"] = *targetgrant.Grantee.EmailAddress
+			}
+
+			grant["grantee"] = schema.NewSet(granteeHash, []interface{}{grantee})
+			target_grants = append(target_grants, grant)
+
+		}
+
+		lc["target_grants"] = target_grants
 		lcl = append(lcl, lc)
 	}
 	if err := d.Set("logging", lcl); err != nil {
@@ -1697,6 +1763,36 @@ func resourceAwsS3BucketLoggingUpdate(s3conn *s3.S3, d *schema.ResourceData) err
 		}
 		if val, ok := c["target_prefix"]; ok {
 			loggingEnabled.TargetPrefix = aws.String(val.(string))
+		}
+
+		if targetGrants, ok := c["target_grants"].(*schema.Set); ok && targetGrants.Len() > 0 {
+			var target_grants []*s3.TargetGrant
+
+			for _, tg := range targetGrants.List() {
+				tgi := tg.(map[string]interface{})
+				permission := tgi["permission"].(string)
+				grantee := tgi["grantee"].(*schema.Set).List()[0].(map[string]interface{})
+
+				fgrantee := &s3.Grantee{
+					Type: aws.String(grantee["type"].(string)),
+				}
+				if vid, ok := grantee["id"].(string); ok && vid != "" {
+					fgrantee.ID = aws.String(vid)
+				}
+				if vuri, ok := grantee["uri"].(string); ok && vuri != "" {
+					fgrantee.URI = aws.String(vuri)
+				}
+				if vemailAddress, ok := grantee["email_address"].(string); ok && vemailAddress != "" {
+					fgrantee.EmailAddress = aws.String(vemailAddress)
+				}
+				targetGrant := s3.TargetGrant{
+					Grantee:    fgrantee,
+					Permission: aws.String(permission),
+				}
+				target_grants = append(target_grants, &targetGrant)
+			}
+
+			loggingEnabled.TargetGrants = target_grants
 		}
 
 		loggingStatus.LoggingEnabled = loggingEnabled
@@ -2422,6 +2518,25 @@ func destinationHash(v interface{}) int {
 	}
 	if v, ok := m["access_control_translation"].([]interface{}); ok && len(v) > 0 && v[0] != nil {
 		buf.WriteString(fmt.Sprintf("%d-", accessControlTranslationHash(v[0])))
+	}
+	return hashcode.String(buf.String())
+}
+
+func granteeHash(v interface{}) int {
+	var buf bytes.Buffer
+	m := v.(map[string]interface{})
+
+	if v, ok := m["type"]; ok {
+		buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+	}
+	if v, ok := m["id"]; ok {
+		buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+	}
+	if v, ok := m["uri"]; ok {
+		buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+	}
+	if v, ok := m["email_address"]; ok {
+		buf.WriteString(fmt.Sprintf("%s-", v.(string)))
 	}
 	return hashcode.String(buf.String())
 }

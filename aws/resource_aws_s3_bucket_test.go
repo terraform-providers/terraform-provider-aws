@@ -1017,7 +1017,7 @@ func TestAccAWSS3Bucket_Logging(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSS3BucketExists("aws_s3_bucket.bucket"),
 					testAccCheckAWSS3BucketLogging(
-						"aws_s3_bucket.bucket", "aws_s3_bucket.log_bucket", "log/"),
+						"aws_s3_bucket.bucket", "aws_s3_bucket.log_bucket", "log/", "READ", "12345678"),
 				),
 			},
 		},
@@ -2166,7 +2166,7 @@ func testAccCheckAWSS3RequestPayer(n, expectedPayer string) resource.TestCheckFu
 	}
 }
 
-func testAccCheckAWSS3BucketLogging(n, b, p string) resource.TestCheckFunc {
+func testAccCheckAWSS3BucketLogging(n, b, p, gp, gi string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs := s.RootModule().Resources[n]
 		conn := testAccProvider.Meta().(*AWSClient).s3conn
@@ -2202,6 +2202,26 @@ func testAccCheckAWSS3BucketLogging(n, b, p string) resource.TestCheckFunc {
 		} else {
 			if *v != p {
 				return fmt.Errorf("bad target prefix, expected: %s, got %s", p, *v)
+			}
+		}
+
+		if v := out.LoggingEnabled.TargetGrants[0].Permission; v == nil {
+			if gp != "" {
+				return fmt.Errorf("bad target grants permission, found nil, expected: %s", gp)
+			}
+		} else {
+			if *v != gp {
+				return fmt.Errorf("bad target grants permission, expected: %s, got %s", gp, *v)
+			}
+		}
+
+		if v := out.LoggingEnabled.TargetGrants[0].Grantee.ID; v == nil {
+			if gi != "" {
+				return fmt.Errorf("bad target grants grantee ID, found nil, expected: %s", gi)
+			}
+		} else {
+			if *v != gi {
+				return fmt.Errorf("bad target grants grantee ID, expected: %s, got %s", gi, *v)
 			}
 		}
 
@@ -2745,6 +2765,13 @@ resource "aws_s3_bucket" "bucket" {
   logging {
     target_bucket = "${aws_s3_bucket.log_bucket.id}"
     target_prefix = "log/"
+    target_grants = [{
+      grantee {
+         id = "12345678"
+         type = "CanonicalUser"
+      }
+      permission = "READ"
+    }]
   }
 }
 `, randInt, randInt)
