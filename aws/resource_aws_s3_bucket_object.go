@@ -27,6 +27,10 @@ func resourceAwsS3BucketObject() *schema.Resource {
 		Update: resourceAwsS3BucketObjectUpdate,
 		Delete: resourceAwsS3BucketObjectDelete,
 
+		Importer: &schema.ResourceImporter{
+			State: importState,
+		},
+
 		CustomizeDiff: resourceAwsS3BucketObjectCustomizeDiff,
 
 		Schema: map[string]*schema.Schema{
@@ -273,6 +277,23 @@ func resourceAwsS3BucketObjectPut(d *schema.ResourceData, meta interface{}) erro
 
 func resourceAwsS3BucketObjectCreate(d *schema.ResourceData, meta interface{}) error {
 	return resourceAwsS3BucketObjectPut(d, meta)
+}
+
+func importState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	id := d.Id()
+	if len(id) < 1 || !strings.Contains(id, "/") {
+		return nil, fmt.Errorf("id %s should be in format <bucket>/<key>", id)
+	}
+	bucket := strings.Split(id, "/")[0]
+	key := strings.Join(strings.Split(id, "/")[1:], "/")
+	d.Set("bucket", bucket)
+	d.Set("key", key)
+
+	if err := resourceAwsS3BucketObjectRead(d, meta); err != nil {
+		return nil, err
+	}
+
+	return []*schema.ResourceData{d}, nil
 }
 
 func resourceAwsS3BucketObjectRead(d *schema.ResourceData, meta interface{}) error {
