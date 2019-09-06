@@ -286,6 +286,7 @@ func importState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceDa
 	}
 	bucket := strings.Split(id, "/")[0]
 	key := strings.Join(strings.Split(id, "/")[1:], "/")
+	d.SetId(key)
 	d.Set("bucket", bucket)
 	d.Set("key", key)
 
