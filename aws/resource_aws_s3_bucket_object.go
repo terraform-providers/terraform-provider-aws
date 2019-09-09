@@ -281,17 +281,34 @@ func resourceAwsS3BucketObjectCreate(d *schema.ResourceData, meta interface{}) e
 
 func importState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	id := d.Id()
-	if len(id) < 1 || !strings.Contains(id, "/") {
-		return nil, fmt.Errorf("id %s should be in format <bucket>/<key>", id)
+
+	if strings.HasPrefix(id, "s3://") {
+		id = strings.TrimPrefix(id, "s3://")
 	}
-	bucket := strings.Split(id, "/")[0]
-	key := strings.Join(strings.Split(id, "/")[1:], "/")
+
+	if len(id) < 1 || !strings.Contains(id, "/") {
+		return []*schema.ResourceData{d}, fmt.Errorf("id %s should be in format <bucket>/<key> or s3://<bucket>/<key>", id)
+	}
+	parts := strings.Split(id, "/")
+
+	if len(parts) < 2 {
+		return []*schema.ResourceData{d}, fmt.Errorf("id %s should be in format <bucket>/<key> or s3://<bucket>/<key>", id)
+	}
+
+	bucket := parts[0]
+	key := strings.Join(parts[1:], "/")
+
 	d.SetId(key)
-	d.Set("bucket", bucket)
-	d.Set("key", key)
+	if err := d.Set("bucket", bucket); err != nil {
+		return []*schema.ResourceData{d}, err
+	}
+
+	if err := d.Set("key", key); err != nil {
+		return []*schema.ResourceData{d}, err
+	}
 
 	if err := resourceAwsS3BucketObjectRead(d, meta); err != nil {
-		return nil, err
+		return []*schema.ResourceData{d}, err
 	}
 
 	return []*schema.ResourceData{d}, nil

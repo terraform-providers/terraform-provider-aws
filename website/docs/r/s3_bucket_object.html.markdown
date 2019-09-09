@@ -128,3 +128,9 @@ Objects can be imported using the `id`. The `id` is the bucket name and the key 
 ```
 $ terraform import aws_s3_bucket_object.object some-bucket-name/some/key.txt
 ```
+
+Additionally, s3 url syntax can be used, e.g.
+
+```
+$ terraform import aws_s3_bucket_object.object s3://some-bucket-name/some/key.txt
+```
