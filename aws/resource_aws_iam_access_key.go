@@ -47,9 +47,10 @@ func resourceAwsIamAccessKey() *schema.Resource {
 				Computed: true,
 			},
 			"pgp_key": {
-				Type:     schema.TypeString,
-				ForceNew: true,
-				Optional: true,
+				Type:         schema.TypeString,
+				ForceNew:     true,
+				Optional:     true,
+				ValidateFunc: validatePGPKey,
 			},
 			"key_fingerprint": {
 				Type:     schema.TypeString,

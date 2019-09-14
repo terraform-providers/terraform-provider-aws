@@ -2954,3 +2954,66 @@ func TestValidateRoute53ResolverName(t *testing.T) {
 		}
 	}
 }
+
+func TestValidatePGPKey(t *testing.T) {
+	cases := []struct {
+		Name  string
+		Value string
+		Error *regexp.Regexp
+	}{
+		{
+			Value: "notavalidkey",
+			Error: regexp.MustCompile(`error parsing given PGP key`),
+		},
+		{
+			Value: "keybase:hashicorp",
+		},
+		{
+			Name: "without subkey",
+			Value: `mI0EXVMsEQEEAN/7DcPDxvCvqpHyFBpfP4zN++m9l12uTDIUdOKP0C1utzNbE+ORCH1iM8Ml4/ka
+aI85TNzu3a+YDWP64DPfJEFt/DKZrCkmW7bZlG3Ubd7radzN+Ii6SUMm1IUA750Pa3bSDtA+vxzu
+t2+2cw/evm9QHZPqGyBLv05RrRCfR6+LABEBAAG0IFdpdGhvdXQgU3Via2V5IDx3aXRob3V0QHN1
+Yi5rZXk+iM4EEwEIADgWIQTzJjO7hY7EJfyhk4dJhEjO3HeqpQUCXVMsEQIbAwULCQgHAgYVCAkK
+CwIEFgIDAQIeAQIXgAAKCRBJhEjO3HeqpdQ/A/wLBKBiXu30pJMjYSd8BdLthwswG81Et7/1Y31l
+x1SmH+u3DVxmJ+urZouVa7aNA0kWTy6CE4zUK/9DAJIL4h2gt3qW/AHbWD+t8mMI1Spnw9k/E1Hp
+Cqih3CSj6x2yBpXxd1PcyUW8P3tlDGodCErae1f7R9cTYzHd1Nx5rfEjsg==`,
+			Error: regexp.MustCompile(`has no encryption keys`),
+		},
+		{
+			Name: "with subkey",
+			Value: `mI0EXVL6dwEEAKq+Eq6HENqrgTTu1b4U38s97S9iH3yLrUVU6jIpM1/H3M6lyeWx0Fpbs6mFMNkD
+WFSsS6WDe9OjwQdJDPfSg0U/GrBrph9MS3hm8D0nlFi3Q9EM3YeQxu0SGHwizwFhv2W3jRd2Uuob
+hinqdwMkChCXMkoO7mebqMxCgXA/iiJxABEBAAG0GldpdGggU3Via2V5IDx3aXRoQHN1Yi5rZXk+
+iM4EEwEIADgWIQTuWfFXeDyCmT2M1Gi7yQSDD3vi2gUCXVL6dwIbLwULCQgHAgYVCAkKCwIEFgID
+AQIeAQIXgAAKCRC7yQSDD3vi2mlRBACJ5H0rI4mApsp1jxzCXdNGDSRnROuVGH1lmCXoOO3zmTLI
+FkogkfQ3lkh1OWBAbh8vN2D+0EALRa6UQ73BjUBS2vI3neeivGt06TujA2csMpNSxrBTSF+ywGoc
+JsuZv6L8ZbGpZQcRS8ujeke6voLcaTjrivNxxW7JYCrZwNpgu7iNBF1S+ncBBAChMuQgmmWUKz0O
+Dj2AYbb2hbHM2NC5+quIeweoPdZjukKyJsXexInlUXZzKJ8Z3tVf0ukVY/TbrkA8097tuyvXNFU0
+CkB6RTGTWcZN1gTN+HiClqsehojiVc0tsyzSLfxHYorarsQMTCYKztLLQHrkPZX15UsERG1g8UMY
+VsmeuQARAQABiQFrBBgBCAAgFiEE7lnxV3g8gpk9jNRou8kEgw974toFAl1S+ncCGy4AvwkQu8kE
+gw974tq0IAQZAQgAHRYhBM1Js8x5l5yHIQX6GOcQZZXv9s9KBQJdUvp3AAoJEOcQZZXv9s9K4tMD
+/3/7dgP9cX/mSSKIdZvdk9bNBZR23CnLonSGOFAlB7aVIfSWohpFwoi/iU5hUXLS+pN030cUqBMI
+KwTvpFN5YMtjq1WAwCeO6uUJaX0KiTECzl8/henkule/VxV5ylpM3dlwwDv0jfmPEzIa4UAmSLSN
+fQHscC5cKoLWvLqgQCw5M5sD/1R6x6oar77lsEWbQ2P89rtXmicYjAfi03If1tl4e+BAkdzfXQfI
+Xmw1AWJJyAMe3R9dvPWLXXbkKnv6v/US9Pulq7G1pSlAppgB5pMNn4ozcBV4Vji75qpcBfUMWHdo
+xvJEMAjrPd9FGuwe+cxkEXSG7PTLY8ynBtWABVSYd+YP`,
+		},
+	}
+	for _, tc := range cases {
+		_, errs := validatePGPKey(tc.Value, "pgp_key")
+		if len(errs) == 0 && tc.Error == nil {
+			continue
+		}
+
+		name := tc.Value
+		if tc.Name != "" {
+			name = tc.Name
+		}
+		if len(errs) != 0 && tc.Error == nil {
+			t.Fatalf("%s: expected no errors, got: %v", name, errs)
+		}
+		if len(errs) > 1 || !tc.Error.MatchString(errs[0].Error()) {
+			t.Fatalf("%s: expected one error matching %q, got: %v", name, tc.Error, errs)
+		}
+	}
+}

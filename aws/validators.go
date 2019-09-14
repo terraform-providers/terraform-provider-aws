@@ -15,6 +15,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/configservice"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/waf"
+	"github.com/hashicorp/terraform/helper/encryption"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/structure"
@@ -2367,6 +2368,23 @@ func validateRoute53ResolverName(v interface{}, k string) (ws []string, errors [
 	if len(value) > 64 {
 		errors = append(errors, fmt.Errorf(
 			"%q cannot be greater than 64 characters", k))
+	}
+
+	return
+}
+
+func validatePGPKey(v interface{}, k string) (ws []string, errors []error) {
+	value := v.(string)
+
+	key, err := encryption.RetrieveGPGKey(value)
+	if err != nil {
+		errors = append(errors, fmt.Errorf("%s: %s", k, err))
+		return
+	}
+
+	_, _, err = encryption.EncryptValue(key, "validation test", "validation test")
+	if err != nil {
+		errors = append(errors, fmt.Errorf("%s: %s", k, err))
 	}
 
 	return

@@ -37,9 +37,10 @@ func resourceAwsIamUserLoginProfile() *schema.Resource {
 				ForceNew: true,
 			},
 			"pgp_key": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validatePGPKey,
 			},
 			"password_reset_required": {
 				Type:     schema.TypeBool,

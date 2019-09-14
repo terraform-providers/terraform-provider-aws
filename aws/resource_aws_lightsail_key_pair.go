@@ -36,9 +36,10 @@ func resourceAwsLightsailKeyPair() *schema.Resource {
 
 			// optional fields
 			"pgp_key": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validatePGPKey,
 			},
 
 			// additional info returned from the API
