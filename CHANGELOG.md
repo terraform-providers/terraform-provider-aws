@@ -478,7 +478,7 @@ ENHANCEMENTS:
 * resource/aws_backup_vault: Support resource import ([#9041](https://github.com/terraform-providers/terraform-provider-aws/issues/9041))
 * resource/aws_codepipeline: Add `tags` argument ([#8993](https://github.com/terraform-providers/terraform-provider-aws/issues/8993))
 * resource/aws_codepipeline_webhook: Add `tags` argument ([#8993](https://github.com/terraform-providers/terraform-provider-aws/issues/8993))
-* resource/aws_ecs_task_definition: Add `proxy_configuration` configuration block (support AppMesh proxying) [[#8780](https://github.com/terraform-providers/terraform-provider-aws/issues/8780)] 
+* resource/aws_ecs_task_definition: Add `proxy_configuration` configuration block (support AppMesh proxying) [[#8780](https://github.com/terraform-providers/terraform-provider-aws/issues/8780)]
 * resource/aws_instance: Prevent panic when `credit_specification` configuration block is missing arguments ([#9003](https://github.com/terraform-providers/terraform-provider-aws/issues/9003))
 * resource/aws_organizations_organization: Add `non_master_accounts` attribute ([#8926](https://github.com/terraform-providers/terraform-provider-aws/issues/8926))
 * resource/aws_secretsmanager_secret: Tag on create (support tag limiting IAM policies) ([#9023](https://github.com/terraform-providers/terraform-provider-aws/issues/9023))
@@ -523,6 +523,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
+<<<<<<< Updated upstream
 * resource/aws_cognito_user_pool: Add `email_sending_account` attribute to the email configuration block ([#8626](https://github.com/terraform-providers/terraform-provider-aws/issues/8626))
 * resource/aws_redshift_cluster: Add `arn` attribute ([#8894](https://github.com/terraform-providers/terraform-provider-aws/issues/8894))
 * resource/aws_redshift_event_subscription: Add `arn` attribute and support `tags` updates ([#8894](https://github.com/terraform-providers/terraform-provider-aws/issues/8894))
@@ -549,6 +550,29 @@ BUG FIXES:
 * resource/aws_sns_topic_subscription: Final retry for SNS topic subscription ([#8893](https://github.com/terraform-providers/terraform-provider-aws/issues/8893))
 * resource/aws_ssm_activation: Final retry for creating SSM activation ([#8893](https://github.com/terraform-providers/terraform-provider-aws/issues/8893))
 * resource/aws_vpc_dhcp_options: Add final retry to deleting DHCP options ([#8907](https://github.com/terraform-providers/terraform-provider-aws/issues/8907))
+=======
+* resource/aws_cognito_user_pool: Add `email_sending_account` attribute to the email configuration block [GH-8626]
+* resource/aws_redshift_cluster: Add `arn` attribute [GH-8894]
+* resource/aws_redshift_event_subscription: Add `arn` attribute and support `tags` updates [GH-8894]
+* resource/aws_redshift_parameter_group: Add `arn` attribute and `tags` argument [GH-8894]
+* resource/aws_redshift_snapshot_copy_grant: Add `arn` attribute and support `tags` updates [GH-8894]
+* resource/aws_redshift_subnet_group: Add `arn` attribute [GH-8894]
+* resource/aws_ses_identity_notification_topic: Add `include_original_headers` argument [GH-7293]
+
+BUG FIXES:
+
+* resource/aws_eks_cluster: Increase default creation timeout to 30 minutes [GH-8909]
+* resource/aws_elasticache_replication_group: Implement passthrough state migration for upstream `missing MigrateState function` error in Terraform 0.12 [GH-8887]
+* resource/aws_iam_service_linked_role: Automatically suppress Application Autoscaling `custom_suffix` differences [GH-8931]
+* resource/aws_dynamodb_table_item: add a nil check when building the table item ID [GH-8900]
+* resource/aws_api_gateway_resource - Final retry for deleting api gateway resource [GH-8893]
+* resource/aws_appautoscaling_target - Final retry for registering autoscaling target [GH-8893]
+* resource/aws_dx_connection_association - Final retry for deleting dx connection association [GH-8893]
+* resource/aws_elasticache_cluster - Final retry when deleting elasticache cluster [GH-8893]
+* resource/aws_iam_server_certificate - Final retry for deleting IAM server cert [GH-8893]
+* resource/aws_sns_topic_subscription - Final retry for SNS topic subscription [GH-8893]
+* resource/aws_ssm_activation - Final retry for creating SSM activation [GH-8893]
+>>>>>>> Stashed changes
 
 ## 2.14.0 (June 06, 2019)
 
@@ -639,7 +663,7 @@ ENHANCEMENTS:
 * resource/aws_elastic_beanstalk_application: Add `tags` argument and `arn` attribute ([#8614](https://github.com/terraform-providers/terraform-provider-aws/issues/8614))
 * resource/aws_elastic_beanstalk_application_version: Add `tags` argument and `arn` attribute ([#8614](https://github.com/terraform-providers/terraform-provider-aws/issues/8614))
 * resource/aws_emr_cluster: Add `master_instance_group` and `core_instance_group` configuration blocks (deprecates other instance group configuration methods) ([#8459](https://github.com/terraform-providers/terraform-provider-aws/issues/8459))
-* resource/aws_emr_instance_group: Add support for `autoscaling_policy`, `bid_price`, and resource import [[#8078](https://github.com/terraform-providers/terraform-provider-aws/issues/8078)] 
+* resource/aws_emr_instance_group: Add support for `autoscaling_policy`, `bid_price`, and resource import [[#8078](https://github.com/terraform-providers/terraform-provider-aws/issues/8078)]
 * resource/aws_kinesis_analytics_application: Add `tags` argument ([#8643](https://github.com/terraform-providers/terraform-provider-aws/issues/8643))
 * resource/aws_lambda_function: Support `nodejs10.x` in `runtime` validation ([#8622](https://github.com/terraform-providers/terraform-provider-aws/issues/8622))
 * resource/aws_organizations_account: Add parent_id argument (support moving accounts) ([#8583](https://github.com/terraform-providers/terraform-provider-aws/issues/8583))

@@ -2,6 +2,7 @@ package aws
 
 import (
 	"log"
+	"os"
 
 	"github.com/hashicorp/terraform/helper/mutexkv"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -1063,8 +1064,17 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 
 		log.Printf("[INFO] assume_role configuration set: (ARN: %q, SessionID: %q, ExternalID: %q, Policy: %q)",
 			config.AssumeRoleARN, config.AssumeRoleSessionName, config.AssumeRoleExternalID, config.AssumeRolePolicy)
+	} else if os.Getenv("TF_AWS_ASSUME_ROLE_ARN") != "" {
+		config.AssumeRoleARN = os.Getenv("TF_AWS_ASSUME_ROLE_ARN")
+		config.AssumeRoleSessionName = os.Getenv("TF_AWS_ASSUME_ROLE_SESSION_NAME")
+		config.AssumeRoleExternalID = os.Getenv("TF_AWS_ASSUME_ROLE_EXTERNAL_ID")
+		// Setting policy with environment variable not supported since it would
+		// have multiple lines
+		config.AssumeRolePolicy = ""
+		log.Printf("[INFO] assume_role configuration set from environment variables: (ARN: %q, SessionID: %q, ExternalID: %q, Policy: %q)",
+			config.AssumeRoleARN, config.AssumeRoleSessionName, config.AssumeRoleExternalID, config.AssumeRolePolicy)
 	} else {
-		log.Printf("[INFO] No assume_role block read from configuration")
+		log.Printf("[INFO] No assume_role block read from configuration and no related environment variables set")
 	}
 
 	endpointsSet := d.Get("endpoints").(*schema.Set)
