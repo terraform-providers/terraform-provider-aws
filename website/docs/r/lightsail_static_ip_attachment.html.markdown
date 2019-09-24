@@ -44,6 +44,8 @@ The following arguments are supported:
 
 The following attributes are exported in addition to the arguments listed above:
 
-* `arn` - The ARN of the Lightsail static IP
-* `ip_address` - The allocated static IP address
-* `support_code` - The support code.
+* `id` - The ID of the Static IP attachment.
+
+~> **Note:** Using the `${aws_lightsail_instance.test.name}` could result in the static IP attachment getting
+detached when the lightsail instance get tainted/recreated. you can use the `${aws_lightsail_instance.test.id}`
+attribute to avoid that, please see [Github issue #10143](https://github.com/terraform-providers/terraform-provider-aws/issues/10143) for more details
