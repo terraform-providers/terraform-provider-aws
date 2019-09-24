@@ -94,7 +94,7 @@ func resourceAwsSecurityGroup() *schema.Resource {
 						},
 
 						"cidr_blocks": {
-							Type:     schema.TypeList,
+							Type:     schema.TypeSet,
 							Optional: true,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
@@ -103,7 +103,7 @@ func resourceAwsSecurityGroup() *schema.Resource {
 						},
 
 						"ipv6_cidr_blocks": {
-							Type:     schema.TypeList,
+							Type:     schema.TypeSet,
 							Optional: true,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
@@ -164,7 +164,7 @@ func resourceAwsSecurityGroup() *schema.Resource {
 						},
 
 						"cidr_blocks": {
-							Type:     schema.TypeList,
+							Type:     schema.TypeSet,
 							Optional: true,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
@@ -173,7 +173,7 @@ func resourceAwsSecurityGroup() *schema.Resource {
 						},
 
 						"ipv6_cidr_blocks": {
-							Type:     schema.TypeList,
+							Type:     schema.TypeSet,
 							Optional: true,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
@@ -545,7 +545,7 @@ func resourceAwsSecurityGroupRuleHash(v interface{}) int {
 	// We need to make sure to sort the strings below so that we always
 	// generate the same hash code no matter what is in the set.
 	if v, ok := m["cidr_blocks"]; ok {
-		vs := v.([]interface{})
+		vs := v.(*schema.Set).List()
 		s := make([]string, len(vs))
 		for i, raw := range vs {
 			s[i] = raw.(string)
@@ -557,7 +557,7 @@ func resourceAwsSecurityGroupRuleHash(v interface{}) int {
 		}
 	}
 	if v, ok := m["ipv6_cidr_blocks"]; ok {
-		vs := v.([]interface{})
+		vs := v.(*schema.Set).List()
 		s := make([]string, len(vs))
 		for i, raw := range vs {
 			s[i] = raw.(string)
@@ -610,11 +610,12 @@ func resourceAwsSecurityGroupIPPermGather(groupId string, permissions []*ec2.IpP
 
 				raw, ok := rule["cidr_blocks"]
 				if !ok {
-					raw = make([]string, 0)
+					raw = schema.NewSet(schema.HashString, nil)
 				}
-				list := raw.([]string)
+				list := raw.(*schema.Set)
 
-				rule["cidr_blocks"] = append(list, *ip.CidrIp)
+				list.Add(*ip.CidrIp)
+				rule["cidr_blocks"] = list
 			}
 		}
 
@@ -626,11 +627,11 @@ func resourceAwsSecurityGroupIPPermGather(groupId string, permissions []*ec2.IpP
 
 				raw, ok := rule["ipv6_cidr_blocks"]
 				if !ok {
-					raw = make([]string, 0)
+					raw = schema.NewSet(schema.HashString, nil)
 				}
-				list := raw.([]string)
-
-				rule["ipv6_cidr_blocks"] = append(list, *ip.CidrIpv6)
+				list := raw.(*schema.Set)
+				list.Add(*ip.CidrIpv6)
+				rule["ipv6_cidr_blocks"] = list
 			}
 		}
 
@@ -884,11 +885,11 @@ func matchRules(rType string, local []interface{}, remote []map[string]interface
 				// actual counts
 				lcRaw, ok := l["cidr_blocks"]
 				if ok {
-					numExpectedCidrs = len(l["cidr_blocks"].([]interface{}))
+					numExpectedCidrs = len(l["cidr_blocks"].(*schema.Set).List())
 				}
 				liRaw, ok := l["ipv6_cidr_blocks"]
 				if ok {
-					numExpectedIpv6Cidrs = len(l["ipv6_cidr_blocks"].([]interface{}))
+					numExpectedIpv6Cidrs = len(l["ipv6_cidr_blocks"].(*schema.Set).List())
 				}
 				lpRaw, ok := l["prefix_list_ids"]
 				if ok {
@@ -901,11 +902,11 @@ func matchRules(rType string, local []interface{}, remote []map[string]interface
 
 				rcRaw, ok := r["cidr_blocks"]
 				if ok {
-					numRemoteCidrs = len(r["cidr_blocks"].([]string))
+					numRemoteCidrs = len(r["cidr_blocks"].(*schema.Set).List())
 				}
 				riRaw, ok := r["ipv6_cidr_blocks"]
 				if ok {
-					numRemoteIpv6Cidrs = len(r["ipv6_cidr_blocks"].([]string))
+					numRemoteIpv6Cidrs = len(r["ipv6_cidr_blocks"].(*schema.Set).List())
 				}
 				rpRaw, ok := r["prefix_list_ids"]
 				if ok {
@@ -935,26 +936,20 @@ func matchRules(rType string, local []interface{}, remote []map[string]interface
 					continue
 				}
 
-				// match CIDRs by converting both to sets, and using Set methods
-				var localCidrs []interface{}
-				if lcRaw != nil {
-					localCidrs = lcRaw.([]interface{})
+				// match CIDRs. Both local and remote are already sets
+				var localCidrSet *schema.Set
+				if lcRaw == nil {
+					localCidrSet = schema.NewSet(schema.HashString, nil)
+				} else {
+					localCidrSet = lcRaw.(*schema.Set)
 				}
-				localCidrSet := schema.NewSet(schema.HashString, localCidrs)
 
-				// remote cidrs are presented as a slice of strings, so we need to
-				// reformat them into a slice of interfaces to be used in creating the
-				// remote cidr set
-				var remoteCidrs []string
-				if rcRaw != nil {
-					remoteCidrs = rcRaw.([]string)
+				var remoteCidrSet *schema.Set
+				if rcRaw == nil {
+					remoteCidrSet = schema.NewSet(schema.HashString, nil)
+				} else {
+					remoteCidrSet = rcRaw.(*schema.Set)
 				}
-				// convert remote cidrs to a set, for easy comparisons
-				var list []interface{}
-				for _, s := range remoteCidrs {
-					list = append(list, s)
-				}
-				remoteCidrSet := schema.NewSet(schema.HashString, list)
 
 				// Build up a list of local cidrs that are found in the remote set
 				for _, s := range localCidrSet.List() {
@@ -964,21 +959,19 @@ func matchRules(rType string, local []interface{}, remote []map[string]interface
 				}
 
 				//IPV6 CIDRs
-				var localIpv6Cidrs []interface{}
-				if liRaw != nil {
-					localIpv6Cidrs = liRaw.([]interface{})
+				var localIpv6CidrSet *schema.Set
+				if liRaw == nil {
+					localIpv6CidrSet = schema.NewSet(schema.HashString, nil)
+				} else {
+					localIpv6CidrSet = liRaw.(*schema.Set)
 				}
-				localIpv6CidrSet := schema.NewSet(schema.HashString, localIpv6Cidrs)
 
-				var remoteIpv6Cidrs []string
-				if riRaw != nil {
-					remoteIpv6Cidrs = riRaw.([]string)
+				var remoteIpv6CidrSet *schema.Set
+				if riRaw == nil {
+					remoteIpv6CidrSet = schema.NewSet(schema.HashString, nil)
+				} else {
+					remoteIpv6CidrSet = rcRaw.(*schema.Set)
 				}
-				var listIpv6 []interface{}
-				for _, s := range remoteIpv6Cidrs {
-					listIpv6 = append(listIpv6, s)
-				}
-				remoteIpv6CidrSet := schema.NewSet(schema.HashString, listIpv6)
 
 				for _, s := range localIpv6CidrSet.List() {
 					if remoteIpv6CidrSet.Contains(s) {
@@ -1001,7 +994,7 @@ func matchRules(rType string, local []interface{}, remote []map[string]interface
 					remotePrefixLists = rpRaw.([]string)
 				}
 				// convert remote prefix lists to a set, for easy comparison
-				list = nil
+				var list []interface{} = nil
 				for _, s := range remotePrefixLists {
 					list = append(list, s)
 				}
@@ -1056,14 +1049,10 @@ func matchRules(rType string, local []interface{}, remote []map[string]interface
 								if rSelf == lSelf {
 									delete(r, "self")
 									// pop local cidrs from remote
-									diffCidr := remoteCidrSet.Difference(localCidrSet)
-									var newCidr []string
-									for _, cRaw := range diffCidr.List() {
-										newCidr = append(newCidr, cRaw.(string))
-									}
+									newCidr := remoteCidrSet.Difference(localCidrSet)
 
 									// reassigning
-									if len(newCidr) > 0 {
+									if newCidr.Len() > 0 {
 										r["cidr_blocks"] = newCidr
 									} else {
 										delete(r, "cidr_blocks")
@@ -1071,14 +1060,10 @@ func matchRules(rType string, local []interface{}, remote []map[string]interface
 
 									//// IPV6
 									//// Comparison
-									diffIpv6Cidr := remoteIpv6CidrSet.Difference(localIpv6CidrSet)
-									var newIpv6Cidr []string
-									for _, cRaw := range diffIpv6Cidr.List() {
-										newIpv6Cidr = append(newIpv6Cidr, cRaw.(string))
-									}
+									newIpv6Cidr := remoteIpv6CidrSet.Difference(localIpv6CidrSet)
 
 									// reassigning
-									if len(newIpv6Cidr) > 0 {
+									if newIpv6Cidr.Len() > 0 {
 										r["ipv6_cidr_blocks"] = newIpv6Cidr
 									} else {
 										delete(r, "ipv6_cidr_blocks")
@@ -1128,10 +1113,10 @@ func matchRules(rType string, local []interface{}, remote []map[string]interface
 	for _, r := range remote {
 		var lenCidr, lenIpv6Cidr, lenPrefixLists, lenSGs int
 		if rCidrs, ok := r["cidr_blocks"]; ok {
-			lenCidr = len(rCidrs.([]string))
+			lenCidr = rCidrs.(*schema.Set).Len()
 		}
 		if rIpv6Cidrs, ok := r["ipv6_cidr_blocks"]; ok {
-			lenIpv6Cidr = len(rIpv6Cidrs.([]string))
+			lenIpv6Cidr = rIpv6Cidrs.(*schema.Set).Len()
 		}
 		if rPrefixLists, ok := r["prefix_list_ids"]; ok {
 			lenPrefixLists = len(rPrefixLists.([]string))
@@ -1205,7 +1190,7 @@ func resourceAwsSecurityGroupCollapseRules(ruleset string, rules []interface{}) 
 		for _, key := range keys_to_collapse {
 			if _, ok := r[key]; ok {
 				if _, ok := collapsed[ruleHash][key]; ok {
-					if key == "security_groups" {
+					if key != "prefix_list_ids" {
 						collapsed[ruleHash][key] = collapsed[ruleHash][key].(*schema.Set).Union(r[key].(*schema.Set))
 					} else {
 						collapsed[ruleHash][key] = append(collapsed[ruleHash][key].([]interface{}), r[key].([]interface{})...)
@@ -1286,14 +1271,14 @@ func resourceAwsSecurityGroupExpandRules(rules *schema.Set) *schema.Set {
 			item, exists := rule[key]
 			if exists {
 				var list []interface{}
-				if key == "security_groups" {
+				if key != "prefix_list_ids" {
 					list = item.(*schema.Set).List()
 				} else {
 					list = item.([]interface{})
 				}
 				for _, v := range list {
 					var new_rule map[string]interface{}
-					if key == "security_groups" {
+					if key != "prefix_list_ids" {
 						new_v := schema.NewSet(schema.HashString, nil)
 						new_v.Add(v)
 						new_rule = resourceAwsSecurityGroupCopyRule(rule, false, key, new_v)

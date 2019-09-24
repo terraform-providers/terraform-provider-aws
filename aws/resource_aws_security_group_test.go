@@ -255,11 +255,11 @@ func TestResourceAwsSecurityGroupExpandCollapseRules(t *testing.T) {
 			"to_port":     int(443),
 			"description": "block with description",
 			"self":        true,
-			"cidr_blocks": []interface{}{
+			"cidr_blocks": schema.NewSet(schema.HashString, []interface{}{
 				"10.0.0.1/32",
 				"10.0.0.2/32",
 				"10.0.0.3/32",
-			},
+			}),
 		},
 		map[string]interface{}{
 			"protocol":    "tcp",
@@ -267,10 +267,10 @@ func TestResourceAwsSecurityGroupExpandCollapseRules(t *testing.T) {
 			"to_port":     int(443),
 			"description": "block with another description",
 			"self":        false,
-			"cidr_blocks": []interface{}{
+			"cidr_blocks": schema.NewSet(schema.HashString, []interface{}{
 				"192.168.0.1/32",
 				"192.168.0.2/32",
-			},
+			}),
 		},
 		map[string]interface{}{
 			"protocol":    "-1",
@@ -278,10 +278,10 @@ func TestResourceAwsSecurityGroupExpandCollapseRules(t *testing.T) {
 			"to_port":     int(8080),
 			"description": "",
 			"self":        false,
-			"ipv6_cidr_blocks": []interface{}{
+			"ipv6_cidr_blocks": schema.NewSet(schema.HashString, []interface{}{
 				"fd00::1/128",
 				"fd00::2/128",
-			},
+			}),
 			"security_groups": schema.NewSet(schema.HashString, []interface{}{
 				"sg-11111",
 				"sg-22222",
@@ -315,9 +315,9 @@ func TestResourceAwsSecurityGroupExpandCollapseRules(t *testing.T) {
 			"to_port":     int(443),
 			"description": "block with description",
 			"self":        false,
-			"cidr_blocks": []interface{}{
+			"cidr_blocks": schema.NewSet(schema.HashString, []interface{}{
 				"10.0.0.1/32",
-			},
+			}),
 		},
 		map[string]interface{}{
 			"protocol":    "tcp",
@@ -325,9 +325,9 @@ func TestResourceAwsSecurityGroupExpandCollapseRules(t *testing.T) {
 			"to_port":     int(443),
 			"description": "block with description",
 			"self":        false,
-			"cidr_blocks": []interface{}{
+			"cidr_blocks": schema.NewSet(schema.HashString, []interface{}{
 				"10.0.0.2/32",
-			},
+			}),
 		},
 		map[string]interface{}{
 			"protocol":    "tcp",
@@ -335,9 +335,9 @@ func TestResourceAwsSecurityGroupExpandCollapseRules(t *testing.T) {
 			"to_port":     int(443),
 			"description": "block with description",
 			"self":        false,
-			"cidr_blocks": []interface{}{
+			"cidr_blocks": schema.NewSet(schema.HashString, []interface{}{
 				"10.0.0.3/32",
-			},
+			}),
 		},
 		map[string]interface{}{
 			"protocol":    "tcp",
@@ -345,9 +345,9 @@ func TestResourceAwsSecurityGroupExpandCollapseRules(t *testing.T) {
 			"to_port":     int(443),
 			"description": "block with another description",
 			"self":        false,
-			"cidr_blocks": []interface{}{
+			"cidr_blocks": schema.NewSet(schema.HashString, []interface{}{
 				"192.168.0.1/32",
-			},
+			}),
 		},
 		map[string]interface{}{
 			"protocol":    "tcp",
@@ -355,9 +355,9 @@ func TestResourceAwsSecurityGroupExpandCollapseRules(t *testing.T) {
 			"to_port":     int(443),
 			"description": "block with another description",
 			"self":        false,
-			"cidr_blocks": []interface{}{
+			"cidr_blocks": schema.NewSet(schema.HashString, []interface{}{
 				"192.168.0.2/32",
-			},
+			}),
 		},
 		map[string]interface{}{
 			"protocol":    "-1",
@@ -365,9 +365,9 @@ func TestResourceAwsSecurityGroupExpandCollapseRules(t *testing.T) {
 			"to_port":     int(8080),
 			"description": "",
 			"self":        false,
-			"ipv6_cidr_blocks": []interface{}{
+			"ipv6_cidr_blocks": schema.NewSet(schema.HashString, []interface{}{
 				"fd00::1/128",
-			},
+			}),
 		},
 		map[string]interface{}{
 			"protocol":    "-1",
@@ -375,9 +375,9 @@ func TestResourceAwsSecurityGroupExpandCollapseRules(t *testing.T) {
 			"to_port":     int(8080),
 			"description": "",
 			"self":        false,
-			"ipv6_cidr_blocks": []interface{}{
+			"ipv6_cidr_blocks": schema.NewSet(schema.HashString, []interface{}{
 				"fd00::2/128",
-			},
+			}),
 		},
 		map[string]interface{}{
 			"protocol":    "-1",
@@ -512,7 +512,7 @@ func TestResourceAwsSecurityGroupIPPermGather(t *testing.T) {
 			"protocol":    "tcp",
 			"from_port":   int64(1),
 			"to_port":     int64(-1),
-			"cidr_blocks": []string{"0.0.0.0/0"},
+			"cidr_blocks": schema.NewSet(schema.HashString, []interface{}{"0.0.0.0/0"}),
 			"self":        true,
 			"description": "desc",
 		},
@@ -556,7 +556,9 @@ func TestResourceAwsSecurityGroupIPPermGather(t *testing.T) {
 				}
 
 				if _, ok := i["cidr_blocks"]; ok {
-					if !reflect.DeepEqual(i["cidr_blocks"], l["cidr_blocks"]) {
+					outSet := i["cidr_blocks"].(*schema.Set)
+					localSet := l["cidr_blocks"].(*schema.Set)
+					if !outSet.Equal(localSet) {
 						t.Fatalf("error matching cidr_blocks")
 					}
 				}
