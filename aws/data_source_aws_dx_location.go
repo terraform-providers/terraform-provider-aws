@@ -15,9 +15,16 @@ func dataSourceAwsDxLocation() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"available_port_speeds": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
+				Set:      schema.HashString,
+			},
+			"available_providers": {
+				Type:     schema.TypeSet,
+				Computed: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+				Set:      schema.HashString,
 			},
 			"location_code": {
 				Type:     schema.TypeString,
@@ -47,9 +54,13 @@ func dataSourceAwsDxLocationRead(d *schema.ResourceData, meta interface{}) error
 			found = true
 
 			d.SetId(locationCode)
-			err = d.Set("available_port_speeds", flattenStringList(location.AvailablePortSpeeds))
+			err = d.Set("available_port_speeds", flattenStringSet(location.AvailablePortSpeeds))
 			if err != nil {
 				return fmt.Errorf("error setting available_port_speeds: %s", err)
+			}
+			err = d.Set("available_providers", flattenStringSet(location.AvailableProviders))
+			if err != nil {
+				return fmt.Errorf("error setting available_providers: %s", err)
 			}
 			d.Set("location_code", location.LocationCode)
 			d.Set("location_name", location.LocationName)

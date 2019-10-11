@@ -17,6 +17,7 @@ func TestAccDataSourceAwsDxLocation_basic(t *testing.T) {
 				Config: testAccDataSourceDxLocationConfig_basic,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(dsResourceName, "available_port_speeds.#"),
+					resource.TestCheckResourceAttrSet(dsResourceName, "available_providers.#"),
 					resource.TestCheckResourceAttrSet(dsResourceName, "location_code"),
 					resource.TestCheckResourceAttrSet(dsResourceName, "location_name"),
 				),
