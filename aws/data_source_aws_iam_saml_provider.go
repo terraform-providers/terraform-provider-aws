@@ -3,23 +3,23 @@ package aws
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/iam"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 func dataSourceAwsIAMSamlProvider() *schema.Resource {
-	return &schema.Resouce{
+	return &schema.Resource{
 		Read: dataSourceAwsIAMSamlProviderRead,
 
 		Schema: map[string]*schema.Schema{
 			"arn": {
 				Type:     schema.TypeString,
 				Required: true,
-			}
+			},
 			"create_date": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -29,7 +29,7 @@ func dataSourceAwsIAMSamlProvider() *schema.Resource {
 				Computed: true,
 			},
 			"valid_until": {
-				Type:	  schema.TypeString,
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 		},
@@ -39,7 +39,7 @@ func dataSourceAwsIAMSamlProvider() *schema.Resource {
 func dataSourceAwsIAMSamlProviderRead(d *schema.ResourceData, meta interface{}) error {
 	iamconn := meta.(*AWSClient).iamconn
 
-	arn = d.Get("arn").(string)
+	arn := d.Get("arn").(string)
 
 	req := &iam.GetSAMLProviderInput{
 		SAMLProviderArn: aws.String(arn),
@@ -55,9 +55,13 @@ func dataSourceAwsIAMSamlProviderRead(d *schema.ResourceData, meta interface{}) 
 	}
 
 	d.SetId(*req.SAMLProviderArn)
-	d.Set("create_date", resp.CreateDate)
+
+	validUntil := resp.ValidUntil.Format(time.RFC1123)
+	dateCreated := resp.CreateDate.Format(time.RFC1123)
+
+	d.Set("create_date", dateCreated)
 	d.Set("saml_metadata_document", resp.SAMLMetadataDocument)
-	d.Set("valid_until", resp.ValidUntil)
+	d.Set("valid_until", validUntil)
 
 	return nil
 }
