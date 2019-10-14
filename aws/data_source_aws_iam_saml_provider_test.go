@@ -1,11 +1,11 @@
 package aws
 
 import (
-"fmt"
-"testing"
+	"fmt"
+	"testing"
 
-"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
 func TestAccAWSDataSourceSAMLProvider_basic(t *testing.T) {
@@ -18,49 +18,26 @@ func TestAccAWSDataSourceSAMLProvider_basic(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAwsIAMRoleConfig(roleName),
+				Config: testAccIAMSamlProviderDataConfig(providerName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrPair(dataSourceName, "arn", resourceName, "arn"),
-					resource.TestCheckResourceAttrPair(dataSourceName, "assume_role_policy", resourceName, "assume_role_policy"),
-					resource.TestCheckResourceAttrPair(dataSourceName, "create_date", resourceName, "create_date"),
-					resource.TestCheckResourceAttrPair(dataSourceName, "description", resourceName, "description"),
-					resource.TestCheckResourceAttrPair(dataSourceName, "max_session_duration", resourceName, "max_session_duration"),
-					resource.TestCheckResourceAttrPair(dataSourceName, "name", resourceName, "name"),
-					resource.TestCheckResourceAttrPair(dataSourceName, "path", resourceName, "path"),
-					resource.TestCheckResourceAttrPair(dataSourceName, "unique_id", resourceName, "unique_id"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "saml_metadata_document", resourceName, "saml_metadata_document"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "valid_until", resourceName, "valid_until"),
 				),
 			},
 		},
 	})
 }
 
-func testAccAwsIAMRoleConfig(roleName string) string {
+func testAccIAMSamlProviderDataConfig(providerName string) string {
 	return fmt.Sprintf(`
-resource "aws_iam_role" "test" {
-  name = %[1]q
-
-  assume_role_policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Action": "sts:AssumeRole",
-      "Principal": {
-        "Service": "ec2.amazonaws.com"
-      },
-      "Effect": "Allow",
-      "Sid": ""
-    }
-  ]
-}
-EOF
-
-  path = "/testpath/"
+resource "aws_iam_saml_provider" "test" {
+  name                   = %q
+  saml_metadata_document = "${file("./test-fixtures/saml-metadata.xml")}"
 }
 
-data "aws_iam_role" "test" {
-  name = "${aws_iam_role.test.name}"
+data "aws_iam_saml_provider" "test" {
+  arn                    = "${aws_iam_saml_provider.test.arn}"
 }
-`, roleName)
+`, providerName)
 }
-
