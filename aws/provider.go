@@ -387,6 +387,7 @@ func Provider() terraform.ResourceProvider {
 			"aws_cognito_user_pool":                                   resourceAwsCognitoUserPool(),
 			"aws_cognito_user_pool_client":                            resourceAwsCognitoUserPoolClient(),
 			"aws_cognito_user_pool_domain":                            resourceAwsCognitoUserPoolDomain(),
+			"aws_cognito_user_pool_schema_custom_attributes":          resourceAwsCognitoUserPoolSchemaCustomAttributes(),
 			"aws_cloudhsm_v2_cluster":                                 resourceAwsCloudHsm2Cluster(),
 			"aws_cloudhsm_v2_hsm":                                     resourceAwsCloudHsm2Hsm(),
 			"aws_cognito_resource_server":                             resourceAwsCognitoResourceServer(),
