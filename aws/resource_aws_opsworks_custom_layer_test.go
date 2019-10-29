@@ -95,6 +95,45 @@ func TestAccAWSOpsworksCustomLayer_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"aws_opsworks_custom_layer.tf-acc", "ebs_volume.3575749636.size", "100",
 					),
+					resource.TestCheckResourceAttr(
+						"aws_opsworks_custom_layer.tf-acc", "autoscaling", "true",
+					),
+					resource.TestCheckResourceAttr(
+						"aws_opsworks_custom_layer.tf-acc", "downscaling_cpu_threshold", "20",
+					),
+					resource.TestCheckResourceAttr(
+						"aws_opsworks_custom_layer.tf-acc", "downscaling_ignore_metrics_time", "15",
+					),
+					resource.TestCheckResourceAttr(
+						"aws_opsworks_custom_layer.tf-acc", "downscaling_instance_count", "2",
+					),
+					resource.TestCheckResourceAttr(
+						"aws_opsworks_custom_layer.tf-acc", "downscaling_load_threshold", "5",
+					),
+					resource.TestCheckResourceAttr(
+						"aws_opsworks_custom_layer.tf-acc", "downscaling_mem_threshold", "20",
+					),
+					resource.TestCheckResourceAttr(
+						"aws_opsworks_custom_layer.tf-acc", "downscaling_threshold_wait_time", "30",
+					),
+					resource.TestCheckResourceAttr(
+						"aws_opsworks_custom_layer.tf-acc", "upscaling_cpu_threshold", "80",
+					),
+					resource.TestCheckResourceAttr(
+						"aws_opsworks_custom_layer.tf-acc", "downscaling_ignore_metrics_time", "15",
+					),
+					resource.TestCheckResourceAttr(
+						"aws_opsworks_custom_layer.tf-acc", "upscaling_instance_count", "3",
+					),
+					resource.TestCheckResourceAttr(
+						"aws_opsworks_custom_layer.tf-acc", "upscaling_load_threshold", "10",
+					),
+					resource.TestCheckResourceAttr(
+						"aws_opsworks_custom_layer.tf-acc", "upscaling_mem_threshold", "80",
+					),
+					resource.TestCheckResourceAttr(
+						"aws_opsworks_custom_layer.tf-acc", "upscaling_threshold_wait_time", "30",
+					),
 				),
 			},
 			{
@@ -159,6 +198,45 @@ func TestAccAWSOpsworksCustomLayer_basic(t *testing.T) {
 					),
 					resource.TestCheckResourceAttr(
 						"aws_opsworks_custom_layer.tf-acc", "custom_json", `{"layer_key":"layer_value2"}`,
+					),
+					resource.TestCheckResourceAttr(
+						"aws_opsworks_custom_layer.tf-acc", "autoscaling", "true",
+					),
+					resource.TestCheckResourceAttr(
+						"aws_opsworks_custom_layer.tf-acc", "downscaling_cpu_threshold", "21",
+					),
+					resource.TestCheckResourceAttr(
+						"aws_opsworks_custom_layer.tf-acc", "downscaling_ignore_metrics_time", "16",
+					),
+					resource.TestCheckResourceAttr(
+						"aws_opsworks_custom_layer.tf-acc", "downscaling_instance_count", "3",
+					),
+					resource.TestCheckResourceAttr(
+						"aws_opsworks_custom_layer.tf-acc", "downscaling_load_threshold", "6",
+					),
+					resource.TestCheckResourceAttr(
+						"aws_opsworks_custom_layer.tf-acc", "downscaling_mem_threshold", "21",
+					),
+					resource.TestCheckResourceAttr(
+						"aws_opsworks_custom_layer.tf-acc", "downscaling_threshold_wait_time", "31",
+					),
+					resource.TestCheckResourceAttr(
+						"aws_opsworks_custom_layer.tf-acc", "upscaling_cpu_threshold", "81",
+					),
+					resource.TestCheckResourceAttr(
+						"aws_opsworks_custom_layer.tf-acc", "downscaling_ignore_metrics_time", "16",
+					),
+					resource.TestCheckResourceAttr(
+						"aws_opsworks_custom_layer.tf-acc", "upscaling_instance_count", "4",
+					),
+					resource.TestCheckResourceAttr(
+						"aws_opsworks_custom_layer.tf-acc", "upscaling_load_threshold", "11",
+					),
+					resource.TestCheckResourceAttr(
+						"aws_opsworks_custom_layer.tf-acc", "upscaling_mem_threshold", "81",
+					),
+					resource.TestCheckResourceAttr(
+						"aws_opsworks_custom_layer.tf-acc", "upscaling_threshold_wait_time", "31",
 					),
 				),
 			},
@@ -336,7 +414,20 @@ resource "aws_opsworks_custom_layer" "tf-acc" {
     mount_point = "/home"
     size = 100
     raid_level = 0
-  }
+  },
+  autoscaling = true
+  downscaling_cpu_threshold   = 20
+  downscaling_ignore_metrics_time = 15
+  downscaling_instance_count = 2
+  downscaling_load_threshold = 5
+  downscaling_mem_threshold = 20
+  downscaling_threshold_wait_time = 30
+  upscaling_cpu_threshold = 80
+  upscaling_ignore_metrics_time = 15
+  upscaling_instance_count = 3
+  upscaling_load_threshold = 10
+  upscaling_mem_threshold = 80
+  upscaling_threshold_wait_time = 30
 }
 
 %s
@@ -427,6 +518,19 @@ resource "aws_opsworks_custom_layer" "tf-acc" {
     iops = 3000
   }
   custom_json = "{\"layer_key\": \"layer_value2\"}"
+  autoscaling = true
+  downscaling_cpu_threshold   = 21
+  downscaling_ignore_metrics_time = 16
+  downscaling_instance_count = 3
+  downscaling_load_threshold = 6
+  downscaling_mem_threshold = 21
+  downscaling_threshold_wait_time = 31
+  upscaling_cpu_threshold = 81
+  upscaling_ignore_metrics_time = 11
+  upscaling_instance_count = 4
+  upscaling_load_threshold = 11
+  upscaling_mem_threshold = 81
+  upscaling_threshold_wait_time = 31
 }
 
 %s

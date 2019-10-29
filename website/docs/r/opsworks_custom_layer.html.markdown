@@ -59,6 +59,27 @@ An `ebs_volume` block supports the following arguments:
 * `type` - (Optional) The type of volume to create. This may be `standard` (the default), `io1` or `gp2`.
 * `iops` - (Optional) For PIOPS volumes, the IOPS per disk.
 
+For the autoscaling you have to configure at least one of the threshold options (cpu, mem, load or alarms).
+If you don't set at least one you'll receive a API error.
+The `autoscaling` parameters are:
+
+* `autoscaling` - (Optional) Enable autoscaling configuration for the layer. Default false. 
+* `downscaling_alarms`- (Optional) List of alarms to downscale.
+* `downscaling_cpu_threshold` - (Optional) CPU threshold to downscale. Default 20.
+* `downscaling_ignore_metrics_time`- (Optional) Number of minutes ignore metrics after downscale. Default 10.
+* `downscaling_instance_count` - (Optional) Stop servers in batches of this number on downscale. Default 1
+* `downscaling_load_threshold` - (Optional) Load threshold to downscale. Default disabled.
+* `downscaling_mem_threshold` - (Optional) Mem threshold to downscale. Default disabled.
+* `downscaling_threshold_wait_time` - (Optional) Number of minutes undershot the threshold to downscale. Default 10.
+* `upscaling_alarms`- (Optional) List of alarms to upscale.
+* `upscaling_cpu_threshold` - (Optional) CPU threshold to upscale. Default 80.
+* `upscaling_ignore_metrics_time`- (Optional) Number of minutes ignore metrics after upscale. Default 5.
+* `upscaling_instance_count` - (Optional) Start servers in batches of this number on upscale. Default 1.
+* `upscaling_load_threshold` - (Optional) Load threshold to upscale. Default disabled.
+* `upscaling_mem_threshold` - (Optional) Mem threshold to upscale. Default disabled.
+* `upscaling_threshold_wait_time` - (Optional) Number of minutes exceed the threshold to upscale. Default 5.
+
+
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
