@@ -658,7 +658,7 @@ func resourceAwsCodeDeployDeploymentGroupRead(d *schema.ResourceData, meta inter
 		return err
 	}
 
-	if err := d.Set("on_premises_tag_set", ec2TagSetToMap(resp.DeploymentGroupInfo.Ec2TagSet)); err != nil {
+	if err := d.Set("on_premises_tag_set", onPremisesTagSetToMap(resp.DeploymentGroupInfo.OnPremisesTagSet)); err != nil {
 		return err
 	}
 
@@ -1194,11 +1194,11 @@ func ec2TagFiltersToMap(list []*codedeploy.EC2TagFilter) []map[string]interface{
 	return result
 }
 
-// onPremisesTagFiltersToMap converts lists of on-prem tag filters into a []map[string]string.
-func onPremisesTagFiltersToMap(list []*codedeploy.TagFilter) []map[string]string {
-	result := make([]map[string]string, 0, len(list))
+// onPremisesTagFiltersToMap converts lists of on-prem tag filters into a []map[string]interface{}.
+func onPremisesTagFiltersToMap(list []*codedeploy.TagFilter) []map[string]interface{} {
+	result := make([]map[string]interface{}, 0, len(list))
 	for _, tf := range list {
-		l := make(map[string]string)
+		l := make(map[string]interface{})
 		if tf.Key != nil && *tf.Key != "" {
 			l["key"] = *tf.Key
 		}
