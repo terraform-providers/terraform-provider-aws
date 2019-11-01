@@ -200,6 +200,7 @@ The following arguments are supported:
 * `ecs_service` - (Optional) Configuration block(s) of the ECS services for a deployment group (documented below).
 * `load_balancer_info` - (Optional) Single configuration block of the load balancer to use in a blue/green deployment (documented below).
 * `on_premises_instance_tag_filter` - (Optional) On premise tag filters associated with the group. See the AWS docs for details.
+* `on_premises__tag_set` - (Optional) Configuration block(s) of On premise tag filters associated with the deployment group, which are also referred to as tag groups (documented below). See the AWS docs for details.
 * `trigger_configuration` - (Optional) Configuration block(s) of the triggers for the deployment group (documented below).
 
 ### alarm_configuration Argument Reference
@@ -336,6 +337,10 @@ The `on_premises_tag_filter` configuration block supports the following:
 * `key` - (Optional) The key of the tag filter.
 * `type` - (Optional) The type of the tag filter, either `KEY_ONLY`, `VALUE_ONLY`, or `KEY_AND_VALUE`.
 * `value` - (Optional) The value of the tag filter.
+
+### on_premises_tag_set Argument Reference
+
+You can form a tag group by putting a set of tag filters into `on_premises_tag_set`. If multiple tag groups are specified, any instance that matches to at least one tag filter of every tag group is selected.
 
 ### trigger_configuration Argument Reference
 
