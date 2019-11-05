@@ -1213,7 +1213,7 @@ func onPremisesTagFiltersToMap(list []*codedeploy.TagFilter) []map[string]interf
 	return result
 }
 
-// ec2TagSetToMap converts lists of tag filters into a [][]map[string]string.
+// ec2TagSetToMap converts lists of tag filters into a [][]map[string]interface.
 func ec2TagSetToMap(tagSet *codedeploy.EC2TagSet) []map[string]interface{} {
 	var result []map[string]interface{}
 	if tagSet == nil {
@@ -1235,7 +1235,7 @@ func ec2TagSetToMap(tagSet *codedeploy.EC2TagSet) []map[string]interface{} {
 	return result
 }
 
-// onPremisesTagSetToMap converts lists of tag filters into a [][]map[string]string.
+// onPremisesTagSetToMap converts lists of tag filters into a [][]map[string]interface.
 func onPremisesTagSetToMap(tagSet *codedeploy.OnPremisesTagSet) []map[string]interface{} {
 	var result []map[string]interface{}
 	if tagSet == nil {
