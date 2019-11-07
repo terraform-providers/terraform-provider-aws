@@ -2349,6 +2349,25 @@ func normalizeCloudFormationTemplate(templateString interface{}) (string, error)
 	return checkYamlString(templateString)
 }
 
+func flattenApiGatewayStageCanarySettings(canarySettings *apigateway.CanarySettings) []interface{} {
+	settings := make(map[string]interface{})
+
+	if canarySettings == nil {
+		return nil
+	}
+
+	overrides := aws.StringValueMap(canarySettings.StageVariableOverrides)
+
+	if len(overrides) > 0 {
+		settings["stage_variable_overrides"] = overrides
+	}
+
+	settings["percent_traffic"] = canarySettings.PercentTraffic
+	settings["use_stage_cache"] = canarySettings.UseStageCache
+
+	return []interface{}{settings}
+}
+
 func flattenApiGatewayUsageApiStages(s []*apigateway.ApiStage) []map[string]interface{} {
 	stages := make([]map[string]interface{}, 0)
 

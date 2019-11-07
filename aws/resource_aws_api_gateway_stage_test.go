@@ -30,6 +30,7 @@ func TestAccAWSAPIGatewayStage_basic(t *testing.T) {
 					resource.TestCheckResourceAttr("aws_api_gateway_stage.test", "cache_cluster_enabled", "true"),
 					resource.TestCheckResourceAttr("aws_api_gateway_stage.test", "cache_cluster_size", "0.5"),
 					resource.TestCheckResourceAttr("aws_api_gateway_stage.test", "tags.%", "1"),
+					resource.TestCheckResourceAttr("aws_api_gateway_stage.test", "canary_settings.#", "0"),
 					resource.TestCheckResourceAttrSet("aws_api_gateway_stage.test", "execution_arn"),
 					resource.TestCheckResourceAttrSet("aws_api_gateway_stage.test", "invoke_url"),
 					resource.TestCheckResourceAttr("aws_api_gateway_stage.test", "xray_tracing_enabled", "true"),
@@ -59,6 +60,7 @@ func TestAccAWSAPIGatewayStage_basic(t *testing.T) {
 					resource.TestCheckResourceAttr("aws_api_gateway_stage.test", "cache_cluster_enabled", "true"),
 					resource.TestCheckResourceAttr("aws_api_gateway_stage.test", "cache_cluster_size", "0.5"),
 					resource.TestCheckResourceAttr("aws_api_gateway_stage.test", "tags.%", "1"),
+					resource.TestCheckResourceAttr("aws_api_gateway_stage.test", "canary_settings.#", "0"),
 					resource.TestCheckResourceAttrSet("aws_api_gateway_stage.test", "execution_arn"),
 					resource.TestCheckResourceAttrSet("aws_api_gateway_stage.test", "invoke_url"),
 					resource.TestCheckResourceAttr("aws_api_gateway_stage.test", "xray_tracing_enabled", "true"),
@@ -124,6 +126,35 @@ func TestAccAWSAPIGatewayStage_accessLogSettings(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSAPIGatewayStageExists("aws_api_gateway_stage.test", &conf),
 					resource.TestCheckResourceAttr("aws_api_gateway_stage.test", "access_log_settings.#", "0"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSAPIGatewayStage_canarySettings(t *testing.T) {
+	var conf apigateway.Stage
+	rName := acctest.RandString(5)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAPIGatewayStageDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSAPIGatewayStageConfig_canarySettings(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAPIGatewayStageExists("aws_api_gateway_stage.test", &conf),
+					resource.TestCheckResourceAttr("aws_api_gateway_stage.test", "canary_settings.0.percent_traffic", "33.33"),
+					resource.TestCheckResourceAttr("aws_api_gateway_stage.test", "canary_settings.0.stage_variable_overrides.four", "4"),
+					resource.TestCheckResourceAttr("aws_api_gateway_stage.test", "canary_settings.0.use_stage_cache", "true"),
+				),
+			},
+			{
+				Config: testAccAWSAPIGatewayStageConfig_basic(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAPIGatewayStageExists("aws_api_gateway_stage.test", &conf),
+					resource.TestCheckResourceAttr("aws_api_gateway_stage.test", "canary_settings.#", "0"),
 				),
 			},
 		},
@@ -323,4 +354,31 @@ resource "aws_api_gateway_stage" "test" {
   }
 }
 `, rName, format)
+}
+
+func testAccAWSAPIGatewayStageConfig_canarySettings(rName string) string {
+	return testAccAWSAPIGatewayStageConfig_base(rName) + `
+resource "aws_api_gateway_stage" "test" {
+  rest_api_id = "${aws_api_gateway_rest_api.test.id}"
+  stage_name = "prod"
+  deployment_id = "${aws_api_gateway_deployment.dev.id}"
+  cache_cluster_enabled = true
+  cache_cluster_size = "0.5"
+  xray_tracing_enabled = true
+  canary_settings {
+	percent_traffic = "33.33"
+	stage_variable_overrides = {
+      four = "4"
+	}
+	use_stage_cache = "true"
+  }
+  variables = {
+    one = "1"
+    two = "2"
+  }
+  tags = {
+    Name = "tf-test"
+  }
+}
+`
 }

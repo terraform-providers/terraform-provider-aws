@@ -65,6 +65,29 @@ func resourceAwsApiGatewayStage() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
+			"canary_settings": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"percent_traffic": {
+							Type:     schema.TypeFloat,
+							Optional: true,
+							Default:  0.0,
+						},
+						"stage_variable_overrides": {
+							Type:     schema.TypeMap,
+							Elem:     schema.TypeString,
+							Optional: true,
+						},
+						"use_stage_cache": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+					},
+				},
+			},
 			"client_certificate_id": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -112,6 +135,62 @@ func resourceAwsApiGatewayStage() *schema.Resource {
 	}
 }
 
+func appendCanarySettingsPatchOperations(operations []*apigateway.PatchOperation, oldCanarySettingsRaw, newCanarySettingsRaw []interface{}) []*apigateway.PatchOperation {
+	if len(newCanarySettingsRaw) == 0 { // Schema guarantees either 0 or 1
+		return append(operations, &apigateway.PatchOperation{
+			Op:   aws.String("remove"),
+			Path: aws.String("/canarySettings"),
+		})
+	}
+	newSettings := newCanarySettingsRaw[0].(map[string]interface{})
+
+	var oldSettings map[string]interface{}
+	if len(oldCanarySettingsRaw) == 1 { // Schema guarantees either 0 or 1
+		oldSettings = oldCanarySettingsRaw[0].(map[string]interface{})
+	} else {
+		oldSettings = map[string]interface{}{
+			"percent_traffic":          0.0,
+			"stage_variable_overrides": make(map[string]interface{}),
+			"use_stage_cache":          false,
+		}
+	}
+
+	oldOverrides := oldSettings["stage_variable_overrides"].(map[string]interface{})
+	newOverrides := newSettings["stage_variable_overrides"].(map[string]interface{})
+	operations = append(operations, diffVariablesOps(oldOverrides, newOverrides)...)
+
+	oldPercentTraffic := oldSettings["percent_traffic"].(float64)
+	newPercentTraffic := newSettings["percent_traffic"].(float64)
+	if oldPercentTraffic != newPercentTraffic {
+		operations = append(operations, &apigateway.PatchOperation{
+			Op:    aws.String("replace"),
+			Path:  aws.String("/canarySettings/percentTraffic"),
+			Value: aws.String(fmt.Sprintf("%f", newPercentTraffic)),
+		})
+	}
+
+	oldUseStageCache := oldSettings["use_stage_cache"].(bool)
+	newUseStageCache := newSettings["use_stage_cache"].(bool)
+	if oldUseStageCache != newUseStageCache {
+		operations = append(operations, &apigateway.PatchOperation{
+			Op:    aws.String("replace"),
+			Path:  aws.String("/canarySettings/useStageCache"),
+			Value: aws.String(fmt.Sprintf("%t", newUseStageCache)),
+		})
+	}
+
+	return operations
+}
+
+func readStageVariableOverrides(overrides map[string]interface{}) map[string]string {
+	result := make(map[string]string)
+	for k, v := range overrides {
+		result[k] = v.(string)
+	}
+
+	return result
+}
+
 func resourceAwsApiGatewayStageCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).apigateway
 
@@ -131,6 +210,20 @@ func resourceAwsApiGatewayStageCreate(d *schema.ResourceData, meta interface{}) 
 	if v, ok := d.GetOk("cache_cluster_size"); ok {
 		input.CacheClusterSize = aws.String(v.(string))
 		waitForCache = true
+	}
+	if v, ok := d.GetOk("canary_settings"); ok {
+		canarySettings := v.([]interface{})
+		canarySetting := canarySettings[0].(map[string]interface{})
+		canarySettingVariables := canarySetting["stage_variable_overrides"]
+		stageVariableOverrides := readStageVariableOverrides(canarySettingVariables.(map[string]interface{}))
+		percentTraffic := canarySetting["percent_traffic"]
+		useStageCache := canarySetting["use_stage_cache"]
+		input.CanarySettings = &apigateway.CanarySettings{
+			DeploymentId:           aws.String(d.Get("deployment_id").(string)),
+			StageVariableOverrides: aws.StringMap(stageVariableOverrides),
+			PercentTraffic:         aws.Float64(percentTraffic.(float64)),
+			UseStageCache:          aws.Bool(useStageCache.(bool)),
+		}
 	}
 	if v, ok := d.GetOk("description"); ok {
 		input.Description = aws.String(v.(string))
@@ -192,6 +285,7 @@ func resourceAwsApiGatewayStageCreate(d *schema.ResourceData, meta interface{}) 
 
 	d.SetPartial("cache_cluster_enabled")
 	d.SetPartial("cache_cluster_size")
+	d.SetPartial("canary_settings")
 	d.Partial(false)
 
 	if _, ok := d.GetOk("client_certificate_id"); ok {
@@ -236,6 +330,10 @@ func resourceAwsApiGatewayStageRead(d *schema.ResourceData, meta interface{}) er
 	} else {
 		d.Set("cache_cluster_enabled", stage.CacheClusterEnabled)
 		d.Set("cache_cluster_size", stage.CacheClusterSize)
+	}
+
+	if err := d.Set("canary_settings", flattenApiGatewayStageCanarySettings(stage.CanarySettings)); err != nil {
+		return fmt.Errorf("error setting canary_settings: %s", err)
 	}
 
 	d.Set("deployment_id", stage.DeploymentId)
@@ -300,6 +398,13 @@ func resourceAwsApiGatewayStageUpdate(d *schema.ResourceData, meta interface{}) 
 		})
 		waitForCache = true
 	}
+	if d.HasChange("canary_settings") {
+		oldCanarySettingsRaw, newCanarySettingsRaw := d.GetChange("canary_settings")
+		operations = appendCanarySettingsPatchOperations(operations,
+			oldCanarySettingsRaw.([]interface{}),
+			newCanarySettingsRaw.([]interface{}),
+		)
+	}
 	if d.HasChange("client_certificate_id") {
 		operations = append(operations, &apigateway.PatchOperation{
 			Op:    aws.String("replace"),
@@ -313,6 +418,13 @@ func resourceAwsApiGatewayStageUpdate(d *schema.ResourceData, meta interface{}) 
 			Path:  aws.String("/deploymentId"),
 			Value: aws.String(d.Get("deployment_id").(string)),
 		})
+		if _, ok := d.GetOk("canary_settings"); ok {
+			operations = append(operations, &apigateway.PatchOperation{
+				Op:    aws.String("replace"),
+				Path:  aws.String("/canarySettings/deploymentId"),
+				Value: aws.String(d.Get("deployment_id").(string)),
+			})
+		}
 	}
 	if d.HasChange("description") {
 		operations = append(operations, &apigateway.PatchOperation{
@@ -374,6 +486,7 @@ func resourceAwsApiGatewayStageUpdate(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("Updating API Gateway Stage failed: %s", err)
 	}
 
+	d.SetPartial("canary_settings")
 	d.SetPartial("client_certificate_id")
 	d.SetPartial("deployment_id")
 	d.SetPartial("description")

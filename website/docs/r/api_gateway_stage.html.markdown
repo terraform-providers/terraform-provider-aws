@@ -17,6 +17,18 @@ resource "aws_api_gateway_stage" "test" {
   stage_name    = "prod"
   rest_api_id   = "${aws_api_gateway_rest_api.test.id}"
   deployment_id = "${aws_api_gateway_deployment.test.id}"
+  
+  variables = {
+    my_var = "normal value"
+  }
+  
+  canary_settings {
+    percent_traffic = 33.33
+    stage_variable_overrides = {
+      my_var = "overridden value"
+      my_new_var = "true"
+    }
+  }
 }
 
 resource "aws_api_gateway_rest_api" "test" {
@@ -105,6 +117,7 @@ The following arguments are supported:
 * `cache_cluster_enabled` - (Optional) Specifies whether a cache cluster is enabled for the stage
 * `cache_cluster_size` - (Optional) The size of the cache cluster for the stage, if enabled.
 	Allowed values include `0.5`, `1.6`, `6.1`, `13.5`, `28.4`, `58.2`, `118` and `237`.
+* `canary_settings` - (Optional) A map of settings for a canary deployment. Detailed below. 
 * `client_certificate_id` - (Optional) The identifier of a client certificate for the stage.
 * `description` - (Optional) The description of the stage
 * `documentation_version` - (Optional) The version of the associated API documentation
@@ -119,6 +132,13 @@ The following arguments are supported:
 * `destination_arn` - (Required) ARN of the log group to send the logs to. Automatically removes trailing `:*` if present.
 * `format` - (Required) The formatting and values recorded in the logs. 
 For more information on configuring the log format rules visit the AWS [documentation](https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-logging.html)
+
+#### `canary_settings`
+
+* `percent_traffic` - (Optional) The percent `0.0` - `100.0` of traffic to divert to the canary deployment.
+* `stage_variable_overrides` - (Optional) A map of overridden stage `variables` (including new variables) for the canary deployment.
+* `use_stage_cache` - (Optional) Whether the canary deployment uses the stage cache. Defaults to false.
+For more information on configuring the canary settings visit the AWS [documentation](https://docs.aws.amazon.com/apigateway/latest/developerguide/canary-release.html)
 
 ## Attribute Reference
 
