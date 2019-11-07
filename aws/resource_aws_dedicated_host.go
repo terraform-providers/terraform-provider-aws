@@ -110,7 +110,7 @@ func resourceAwsDedicatedHostCreate(d *schema.ResourceData, meta interface{}) er
 
 	instance := runResp.HostIds[0]
 	log.Printf("[INFO] Instance ID: %s", instance)
-	// d.SetId(*instance.)
+	d.SetId(*runResp.HostIds[0])
 
 	// Update if we need to
 	return resourceAwsDedicatedHostUpdate(d, meta)
