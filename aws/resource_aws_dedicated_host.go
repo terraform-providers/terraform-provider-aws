@@ -126,8 +126,7 @@ func resourceAwsDedicatedHostCreate(d *schema.ResourceData, meta interface{}) er
 		return errors.New("Error launching source host: no hosts returned in response")
 	}
 
-	instance := runResp.HostIds[0]
-	log.Printf("[INFO] Host ID: %s", instance)
+	log.Printf("[INFO] Host ID: %s", *runResp.HostIds[0])
 	d.SetId(*runResp.HostIds[0])
 
 	// Update if we need to
