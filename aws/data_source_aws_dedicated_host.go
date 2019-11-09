@@ -78,7 +78,7 @@ func dataSourceAwsAwsDedicatedHostRead(d *schema.ResourceData, meta interface{})
 		instance = filteredHosts[0]
 	}
 
-	log.Printf("[DEBUG] aws_instance - Single Instance ID found: %s", *instance.HostId)
+	log.Printf("[DEBUG] aws_dedicated_host - Single Host ID found: %s", *instance.HostId)
 
 	return nil
 }
