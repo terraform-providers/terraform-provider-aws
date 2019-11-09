@@ -1,6 +1,9 @@
 package aws
 
 import (
+	"fmt"
+	"log"
+
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
@@ -37,22 +40,45 @@ func dataSourceAwsDedicatedHost() *schema.Resource {
 
 func dataSourceAwsAwsDedicatedHostRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
+	filters, filtersOk := d.GetOk("filter")
+
 	params := &ec2.DescribeHostsInput{}
-	var hostIDs []string
-	err := conn.DescribeHostsPages(params, func(resp *ec2.DescribeHostsOutput, isLast bool) bool {
-		for _, res := range resp.Hosts {
-			hostIDs = append(hostIDs, *res.HostId)
+	if filtersOk {
+		params.Filter = buildAwsDataSourceFilters(filters.(*schema.Set))
+	}
+	// var hostIDs []string
+	resp, err := conn.DescribeHosts(params)
+	if err != nil {
+		return err
+	}
+	// If no hosts were returned, return
+	if len(resp.Hosts) == 0 {
+		return fmt.Errorf("Your query returned no results. Please change your search criteria and try again.")
+	}
+
+	var filteredHosts []*ec2.Host
+
+	// loop through reservations, and remove terminated hosts, populate host slice
+	for _, host := range resp.Hosts {
+
+		if host.State != nil && *host.State != "terminated" {
+			filteredHosts = append(filteredHosts, host)
 		}
 
-		return !isLast
-	})
-	if err != nil {
-		return err
 	}
-	err = d.Set("ids", hostIDs)
-	if err != nil {
-		return err
+	var instance *ec2.Host
+	if len(filteredHosts) < 1 {
+		return fmt.Errorf("Your query returned no results. Please change your search criteria and try again.")
 	}
+
+	if len(filteredHosts) > 1 {
+		return fmt.Errorf("Your query returned more than one result. Please try a more " +
+			"specific search criteria.")
+	} else {
+		instance = filteredHosts[0]
+	}
+
+	log.Printf("[DEBUG] aws_instance - Single Instance ID found: %s", *instance.HostId)
 
 	return nil
 }
