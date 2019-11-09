@@ -123,11 +123,11 @@ func resourceAwsDedicatedHostCreate(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("Error launching host : %s", err)
 	}
 	if runResp == nil || len(runResp.HostIds) == 0 {
-		return errors.New("Error launching source instance: no instances returned in response")
+		return errors.New("Error launching source host: no hosts returned in response")
 	}
 
 	instance := runResp.HostIds[0]
-	log.Printf("[INFO] Instance ID: %s", instance)
+	log.Printf("[INFO] Host ID: %s", instance)
 	d.SetId(*runResp.HostIds[0])
 
 	// Update if we need to
@@ -190,19 +190,19 @@ func resourceAwsDedicatedHostDelete(d *schema.ResourceData, meta interface{}) er
 	err := awsReleaseHosts(conn, d.Id(), d.Timeout(schema.TimeoutDelete))
 
 	if err != nil {
-		return fmt.Errorf("error terminating EC2 Instance (%s): %s", d.Id(), err)
+		return fmt.Errorf("error terminating EC2 Host (%s): %s", d.Id(), err)
 	}
 
 	return nil
 }
 
 func awsReleaseHosts(conn *ec2.EC2, id string, timeout time.Duration) error {
-	log.Printf("[INFO] Terminating instance: %s", id)
+	log.Printf("[INFO] Terminating host: %s", id)
 	req := &ec2.ReleaseHostsInput{
 		HostIds: []*string{aws.String(id)},
 	}
 	if _, err := conn.ReleaseHosts(req); err != nil {
-		if ec2err, ok := err.(awserr.Error); ok && ec2err.Code() == "InvalidInstanceID.NotFound" {
+		if ec2err, ok := err.(awserr.Error); ok && ec2err.Code() == "InvalidHostID.NotFound" {
 			return nil
 		}
 		return err
