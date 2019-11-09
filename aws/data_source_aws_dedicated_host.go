@@ -10,10 +10,26 @@ func dataSourceAwsDedicatedHost() *schema.Resource {
 		Read: dataSourceAwsAwsDedicatedHostRead,
 
 		Schema: map[string]*schema.Schema{
-			"ids": {
-				Type:     schema.TypeList,
+
+			"availability_zone": {
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+			},
+			"instance_type": {
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+			},
+			"host_recovery": {
+				Type:     schema.TypeString,
+				Optional: true,
 				Computed: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
+			"auto_placement": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
 			},
 		},
 	}
@@ -21,7 +37,6 @@ func dataSourceAwsDedicatedHost() *schema.Resource {
 
 func dataSourceAwsAwsDedicatedHostRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
-	// hostIDs := d.Get("ids").(*schema.Set)
 	params := &ec2.DescribeHostsInput{}
 	var hostIDs []string
 	err := conn.DescribeHostsPages(params, func(resp *ec2.DescribeHostsOutput, isLast bool) bool {
@@ -38,5 +53,6 @@ func dataSourceAwsAwsDedicatedHostRead(d *schema.ResourceData, meta interface{})
 	if err != nil {
 		return err
 	}
+
 	return nil
 }

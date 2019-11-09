@@ -85,11 +85,29 @@ func resourceAwsDedicatedHostCreate(d *schema.ResourceData, meta interface{}) er
 	if err != nil {
 		return err
 	}
+
+	tagsSpec := make([]*ec2.TagSpecification, 0)
+
+	if v, ok := d.GetOk("tags"); ok {
+		tags := tagsFromMap(v.(map[string]interface{}))
+
+		spec := &ec2.TagSpecification{
+			ResourceType: aws.String("host"),
+			Tags:         tags,
+		}
+
+		tagsSpec = append(tagsSpec, spec)
+	}
+
 	// Build the creation struct
 	runOpts := &ec2.AllocateHostsInput{
 		AvailabilityZone: hostOpts.AvailabilityZone,
 		Quantity:         aws.Int64(int64(1)),
 		InstanceType:     hostOpts.InstanceType,
+	}
+
+	if len(tagsSpec) > 0 {
+		runOpts.TagSpecifications = tagsSpec
 	}
 
 	var runResp *ec2.AllocateHostsOutput
@@ -123,8 +141,8 @@ func resourceAwsDedicatedHostRead(d *schema.ResourceData, meta interface{}) erro
 		HostIds: []*string{aws.String(d.Id())},
 	})
 	if err != nil {
-		// If the instance was not found, return nil so that we can show
-		// that the instance is gone.
+		// If the host was not found, return nil so that we can show
+		// that host is gone.
 		if ec2err, ok := err.(awserr.Error); ok && ec2err.Code() == "InvalidInstanceID.NotFound" {
 			d.SetId("")
 			return nil
@@ -137,6 +155,13 @@ func resourceAwsDedicatedHostRead(d *schema.ResourceData, meta interface{}) erro
 		d.SetId("")
 		return nil
 	}
+	host := resp.Hosts[0]
+	d.Set("auto_placement", host.AutoPlacement)
+	d.Set("availibility_zone", host.AvailabilityZone)
+	d.Set("host_recovery", host.HostRecovery)
+
+	d.Set("tags", tagsToMap(host.Tags))
+
 	// If nothing was found, then return no state
 
 	return nil
@@ -153,9 +178,6 @@ func resourceAwsDedicatedHostUpdate(d *schema.ResourceData, meta interface{}) er
 		}
 		d.SetPartial("tags")
 	}
-
-	// TODO(mitchellh): wait for the attributes we modified to
-	// persist the change...
 
 	d.Partial(false)
 
