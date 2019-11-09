@@ -79,6 +79,9 @@ func buildAwsHostsOpts(
 	}
 	return opts, nil
 }
+
+// resourceAwsDedicatedHostCreate allocates a Dedicated Host to your account.
+// https://docs.aws.amazon.com/en_pv/AWSEC2/latest/APIReference/API_AllocateHosts.html
 func resourceAwsDedicatedHostCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
 	hostOpts, err := buildAwsHostsOpts(d, meta)
@@ -142,7 +145,7 @@ func resourceAwsDedicatedHostRead(d *schema.ResourceData, meta interface{}) erro
 	if err != nil {
 		// If the host was not found, return nil so that we can show
 		// that host is gone.
-		if ec2err, ok := err.(awserr.Error); ok && ec2err.Code() == "InvalidInstanceID.NotFound" {
+		if ec2err, ok := err.(awserr.Error); ok && ec2err.Code() == "InvalidHostID.NotFound" {
 			d.SetId("")
 			return nil
 		}
@@ -166,6 +169,10 @@ func resourceAwsDedicatedHostRead(d *schema.ResourceData, meta interface{}) erro
 	return nil
 }
 
+// resourceAwsDedicatedHostUpdate modifies AWS Host AutoPlacement and HostRecovery settings.
+// When auto-placement is enabled, any instances that you launch with a tenancy of host but without a specific host ID are placed onto any available
+// Dedicated Host in your account that has auto-placement enabled.
+// https://docs.aws.amazon.com/en_pv/AWSEC2/latest/APIReference/API_ModifyHosts.html
 func resourceAwsDedicatedHostUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
 
@@ -176,6 +183,29 @@ func resourceAwsDedicatedHostUpdate(d *schema.ResourceData, meta interface{}) er
 			return err
 		}
 		d.SetPartial("tags")
+	}
+	if d.HasChange("auto_placement") && !d.IsNewResource() {
+		log.Printf("[INFO] Modifying auto-placement on host %s", d.Id())
+		_, err := conn.ModifyHosts(&ec2.ModifyHostsInput{
+			HostIds:       []*string{aws.String(d.Id())},
+			AutoPlacement: aws.String(d.Get("auto_placement").(string)),
+		})
+		if err != nil {
+			return err
+		}
+	}
+	// Indicates whether to enable or disable host recovery for the Dedicated Host.
+	// https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/dedicated-hosts-recovery.html
+	if d.HasChange("host_recovery") && !d.IsNewResource() {
+		log.Printf("[INFO] Modifying host-recovery on host %s", d.Id())
+		_, err := conn.ModifyHosts(&ec2.ModifyHostsInput{
+			HostIds:       []*string{aws.String(d.Id())},
+			AutoPlacement: aws.String(d.Get("host_recovery").(string)),
+		})
+		if err != nil {
+			return err
+		}
+		d.SetPartial("host_recovery")
 	}
 
 	d.Partial(false)
