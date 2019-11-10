@@ -66,7 +66,7 @@ func dataSourceAwsAwsDedicatedHostRead(d *schema.ResourceData, meta interface{})
 		}
 
 	}
-	var instance *ec2.Host
+	var host *ec2.Host
 	if len(filteredHosts) < 1 {
 		return fmt.Errorf("Your query returned no results. Please change your search criteria and try again.")
 	}
@@ -75,10 +75,30 @@ func dataSourceAwsAwsDedicatedHostRead(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Your query returned more than one result. Please try a more " +
 			"specific search criteria.")
 	} else {
-		instance = filteredHosts[0]
+		host = filteredHosts[0]
 	}
 
-	log.Printf("[DEBUG] aws_dedicated_host - Single Host ID found: %s", *instance.HostId)
-
+	log.Printf("[DEBUG] aws_instance - Single Instance ID found: %s", *host.HostId)
+	if err := hostDescriptionAttributes(d, host, conn); err != nil {
+		return err
+	}
 	return nil
+}
+func hostDescriptionAttributes(d *schema.ResourceData, host *ec2.Host, conn *ec2.EC2) error {
+
+	d.SetId(*host.HostId)
+	d.Set("instance_state", host.State)
+
+	if host.AvailabilityZone != nil {
+		d.Set("availability_zone", host.AvailabilityZone)
+	}
+	if host.HostRecovery != nil {
+		d.Set("host_recovery", host.HostRecovery)
+	}
+	if host.AutoPlacement != nil {
+		d.Set("auto_placement", host.AutoPlacement)
+	}
+	d.Set("tags", tagsToMap(host.Tags))
+	return nil
+
 }
