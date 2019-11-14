@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/rds"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -573,11 +574,39 @@ func resourceAwsDbInstanceCreate(d *schema.ResourceData, meta interface{}) error
 			opts.Iops = aws.Int64(int64(attr.(int)))
 		}
 
+		//
+		// If we are called with a Source DB ARN, and the ARN is a different region
+		// than the replica to be created, set SourceRegion.
+		//
+		// The correct way to do this would be to query the master, and see if it
+		// is encrypted and in the same region.  If it is encrypted and in the
+		// same region, drop the source region and the kms_key_id.  If the master is not
+		// encrypted, behavior is kinda undefined.
+		//
+		// The CLI docs for kms_key_id state:
+		// "If you specify this parameter when you create a Read Replica from an
+		// unencrypted DB instance, the Read Replica is encrypted.""
+		//
+		// The RDS userguide states:
+		// "You cannot have an encrypted Read Replica of an unencrypted DB instance
+		// or an unencrypted Read Replica of an encrypted DB instance."
+		//
+		// go figure, eh?
+		//
+		replicaRegion := meta.(*AWSClient).region
+
+		arnParts, arnErr := arn.Parse(d.Get("replicate_source_db").(string))
+		if arnErr == nil {
+			if arnParts.Region != replicaRegion {
+				opts.SourceRegion = aws.String(arnParts.Region)
+			}
+		}
+
+		// TODO: Only allow this param if the master is not encrypted or
+		// is in a different region than the replica
+
 		if attr, ok := d.GetOk("kms_key_id"); ok {
 			opts.KmsKeyId = aws.String(attr.(string))
-			if arnParts := strings.Split(v.(string), ":"); len(arnParts) >= 4 {
-				opts.SourceRegion = aws.String(arnParts[3])
-			}
 		}
 
 		if attr, ok := d.GetOk("maintenance_window"); ok {
@@ -1338,14 +1367,20 @@ func resourceAwsDbInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	// set tags
 	conn := meta.(*AWSClient).rdsconn
 
-	arn := aws.StringValue(v.DBInstanceArn)
-	d.Set("arn", arn)
+	builtArn := arn.ARN{
+		Partition: meta.(*AWSClient).partition,
+		Service:   "rds",
+		Region:    meta.(*AWSClient).region,
+		AccountID: meta.(*AWSClient).accountid,
+		Resource:  fmt.Sprintf("db:%s", d.Id()),
+	}.String()
+	d.Set("arn", builtArn)
 	resp, err := conn.ListTagsForResource(&rds.ListTagsForResourceInput{
-		ResourceName: aws.String(arn),
+		ResourceName: aws.String(builtArn),
 	})
 
 	if err != nil {
-		return fmt.Errorf("Error retrieving tags for ARN (%s): %s", arn, err)
+		return fmt.Errorf("Error retrieving tags for ARN (%s): %s", builtArn, err)
 	}
 
 	var dt []*rds.Tag
@@ -1381,7 +1416,13 @@ func resourceAwsDbInstanceRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error setting replicas attribute: %#v, error: %#v", replicas, err)
 	}
 
-	d.Set("replicate_source_db", v.ReadReplicaSourceDBInstanceIdentifier)
+	//  If an ARN was passed in, do NOT use what AWS passes back for replicate_source_id,
+	//  as it passes back the master's ID-
+	//  see https://github.com/terraform-providers/terraform-provider-aws/issues/2399
+	_, arnErr := arn.Parse(d.Get("replicate_source_db").(string))
+	if arnErr != nil {
+		d.Set("replicate_source_db", v.ReadReplicaSourceDBInstanceIdentifier)
+	}
 
 	d.Set("ca_cert_identifier", v.CACertificateIdentifier)
 
