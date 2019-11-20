@@ -603,6 +603,12 @@ func (c *Config) Client() (interface{}, error) {
 		}
 	})
 
+	client.cfconn.Handlers.Retry.PushBack(func(r *request.Request) {
+		if isAWSErr(r.Error, cloudformation.ErrCodeOperationInProgressException, "Another Operation on StackSet") {
+			r.Retryable = aws.Bool(true)
+		}
+	})
+
 	// See https://github.com/aws/aws-sdk-go/pull/1276
 	client.dynamodbconn.Handlers.Retry.PushBack(func(r *request.Request) {
 		if r.Operation.Name != "PutItem" && r.Operation.Name != "UpdateItem" && r.Operation.Name != "DeleteItem" {
