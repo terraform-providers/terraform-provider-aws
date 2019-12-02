@@ -94,13 +94,6 @@ func resourceAwsAutoscalingGroup() *schema.Resource {
 							Type:     schema.TypeList,
 							Optional: true,
 							MaxItems: 1,
-							// Ignore missing configuration block
-							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-								if old == "1" && new == "0" {
-									return true
-								}
-								return false
-							},
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"on_demand_allocation_strategy": {
