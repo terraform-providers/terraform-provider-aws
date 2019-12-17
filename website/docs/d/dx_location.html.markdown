@@ -1,4 +1,5 @@
 ---
+subcategory: "Direct Connect"
 layout: "aws"
 page_title: "AWS: aws_dx_location"
 sidebar_current: "docs-aws-datasource-dx-location"
