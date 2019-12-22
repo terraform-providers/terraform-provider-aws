@@ -186,7 +186,6 @@ func resourceAwsLbTargetGroup() *schema.Resource {
 						"protocol": {
 							Type:     schema.TypeString,
 							Optional: true,
-							Default:  "HTTP",
 							StateFunc: func(v interface{}) string {
 								return strings.ToUpper(v.(string))
 							},
@@ -286,7 +285,11 @@ func resourceAwsLbTargetGroupCreate(d *schema.ResourceData, meta interface{}) er
 		if t != 0 {
 			params.HealthCheckTimeoutSeconds = aws.Int64(int64(t))
 		}
+
 		healthCheckProtocol := healthCheck["protocol"].(string)
+		if healthCheckProtocol == "" {
+			healthCheckProtocol = d.Get("protocol").(string)
+		}
 
 		if healthCheckProtocol != "TCP" {
 			p := healthCheck["path"].(string)
@@ -370,6 +373,9 @@ func resourceAwsLbTargetGroupUpdate(d *schema.ResourceData, meta interface{}) er
 			}
 
 			healthCheckProtocol := healthCheck["protocol"].(string)
+			if healthCheckProtocol == "" {
+				healthCheckProtocol = d.Get("protocol").(string)
+			}
 
 			if healthCheckProtocol != "TCP" && !d.IsNewResource() {
 				params.Matcher = &elbv2.Matcher{
@@ -555,10 +561,18 @@ func flattenAwsLbTargetGroupResource(d *schema.ResourceData, meta interface{}, t
 	healthCheck["enabled"] = aws.BoolValue(targetGroup.HealthCheckEnabled)
 	healthCheck["interval"] = int(aws.Int64Value(targetGroup.HealthCheckIntervalSeconds))
 	healthCheck["port"] = aws.StringValue(targetGroup.HealthCheckPort)
-	healthCheck["protocol"] = aws.StringValue(targetGroup.HealthCheckProtocol)
 	healthCheck["timeout"] = int(aws.Int64Value(targetGroup.HealthCheckTimeoutSeconds))
 	healthCheck["healthy_threshold"] = int(aws.Int64Value(targetGroup.HealthyThresholdCount))
 	healthCheck["unhealthy_threshold"] = int(aws.Int64Value(targetGroup.UnhealthyThresholdCount))
+
+	// Only persist the health_check protocol if it was explicitly set, do not persist it if it was inferred.
+	if existingHealthChecks := d.Get("health_check").([]interface{}); len(existingHealthChecks) == 1 {
+		existingHealthCheck := existingHealthChecks[0].(map[string]interface{})
+
+		if existingHealthCheck["protocol"].(string) != "" {
+			healthCheck["protocol"] = aws.StringValue(targetGroup.HealthCheckProtocol)
+		}
+	}
 
 	if targetGroup.HealthCheckPath != nil {
 		healthCheck["path"] = aws.StringValue(targetGroup.HealthCheckPath)

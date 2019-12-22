@@ -941,6 +941,28 @@ func TestAccAWSLBTargetGroup_stickinessWithTCPEnabledShouldError(t *testing.T) {
 	})
 }
 
+func TestAccAWSLBTargetGroup_tcpGroupCreatesTCPHealthcheck(t *testing.T) {
+	var conf elbv2.TargetGroup
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSLBTargetGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSLBTargetGroupConfig_tcpGroupCreatesTCPHealthcheck(),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSLBTargetGroupExists("aws_lb_target_group.test", &conf),
+					resource.TestCheckResourceAttr("aws_lb_target_group.test", "health_check.#", "1"),
+					resource.TestCheckResourceAttr("aws_lb_target_group.test", "health_check.0.enabled", "true"),
+					resource.TestCheckResourceAttr("aws_lb_target_group.test", "health_check.0.protocol", ""),
+					resource.TestCheckResourceAttr("aws_lb_target_group.test", "health_check.0.port", "8080"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckAWSLBTargetGroupExists(n string, res *elbv2.TargetGroup) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
@@ -1777,4 +1799,23 @@ resource "aws_vpc" "test" {
   }
 }
 `, enabled)
+}
+
+func testAccAWSLBTargetGroupConfig_tcpGroupCreatesTCPHealthcheck() string {
+	return `
+resource "aws_lb_target_group" "test" {
+  name     = "aws-lb-test"
+  port     = 80
+  protocol = "TCP"
+  vpc_id   = "${aws_vpc.test.id}"
+
+  health_check {
+    port = 8080
+  }
+}
+
+resource "aws_vpc" "test" {
+  cidr_block = "10.0.0.0/16"
+}
+`
 }
