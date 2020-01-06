@@ -125,7 +125,6 @@ func resourceAwsInstance() *schema.Resource {
 			"user_data": {
 				Type:          schema.TypeString,
 				Optional:      true,
-				ForceNew:      true,
 				ConflictsWith: []string{"user_data_base64"},
 				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
 					// Sometimes the EC2 API responds with the equivalent, empty SHA1 sum
@@ -150,7 +149,6 @@ func resourceAwsInstance() *schema.Resource {
 			"user_data_base64": {
 				Type:          schema.TypeString,
 				Optional:      true,
-				ForceNew:      true,
 				ConflictsWith: []string{"user_data"},
 				ValidateFunc: func(v interface{}, name string) (warns []string, errs []error) {
 					s := v.(string)
@@ -902,7 +900,11 @@ func resourceAwsInstanceRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceAwsInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
+	shouldStopInstanceForUpdate := false
 	conn := meta.(*AWSClient).ec2conn
+	newAttributes := &ec2.ModifyInstanceAttributeInput{
+		InstanceId: aws.String(d.Id()),
+	}
 
 	d.Partial(true)
 
@@ -1098,63 +1100,44 @@ func resourceAwsInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
-	if d.HasChange("instance_type") && !d.IsNewResource() {
-		log.Printf("[INFO] Stopping Instance %q for instance_type change", d.Id())
-		_, err := conn.StopInstances(&ec2.StopInstancesInput{
-			InstanceIds: []*string{aws.String(d.Id())},
-		})
-		if err != nil {
-			return fmt.Errorf("error stopping instance (%s): %s", d.Id(), err)
+	if d.HasChange("user_data") && !d.IsNewResource() {
+		log.Printf("[INFO] Modifying user data %s", d.Id())
+
+		newAttributes.UserData = &ec2.BlobAttributeValue{
+			Value: []byte(d.Get("user_data").(string)),
 		}
 
-		stateConf := &resource.StateChangeConf{
-			Pending:    []string{"pending", "running", "shutting-down", "stopped", "stopping"},
-			Target:     []string{"stopped"},
-			Refresh:    InstanceStateRefreshFunc(conn, d.Id(), []string{}),
-			Timeout:    d.Timeout(schema.TimeoutUpdate),
-			Delay:      10 * time.Second,
-			MinTimeout: 3 * time.Second,
-		}
+		shouldStopInstanceForUpdate = true
+	}
 
-		_, err = stateConf.WaitForState()
-		if err != nil {
-			return fmt.Errorf(
-				"Error waiting for instance (%s) to stop: %s", d.Id(), err)
-		}
+	if d.HasChange("user_data_base64") && !d.IsNewResource() {
+		log.Printf("[INFO] Modifying user data %s", d.Id())
 
-		log.Printf("[INFO] Modifying instance type %s", d.Id())
-		_, err = conn.ModifyInstanceAttribute(&ec2.ModifyInstanceAttributeInput{
-			InstanceId: aws.String(d.Id()),
-			InstanceType: &ec2.AttributeValue{
-				Value: aws.String(d.Get("instance_type").(string)),
-			},
-		})
+		userData, err := base64.URLEncoding.DecodeString(d.Get("user_data_base64").(string))
 		if err != nil {
 			return err
 		}
 
-		log.Printf("[INFO] Starting Instance %q after instance_type change", d.Id())
-		_, err = conn.StartInstances(&ec2.StartInstancesInput{
-			InstanceIds: []*string{aws.String(d.Id())},
-		})
-		if err != nil {
-			return fmt.Errorf("error starting instance (%s): %s", d.Id(), err)
+		newAttributes.UserData = &ec2.BlobAttributeValue{
+			Value: userData,
 		}
 
-		stateConf = &resource.StateChangeConf{
-			Pending:    []string{"pending", "stopped"},
-			Target:     []string{"running"},
-			Refresh:    InstanceStateRefreshFunc(conn, d.Id(), []string{"terminated"}),
-			Timeout:    d.Timeout(schema.TimeoutUpdate),
-			Delay:      10 * time.Second,
-			MinTimeout: 3 * time.Second,
+		shouldStopInstanceForUpdate = true
+	}
+
+	if d.HasChange("instance_type") && !d.IsNewResource() {
+		log.Printf("[INFO] Modifying instance type %s", d.Id())
+		newAttributes.InstanceType = &ec2.AttributeValue{
+			Value: aws.String(d.Get("instance_type").(string)),
 		}
 
-		_, err = stateConf.WaitForState()
+		shouldStopInstanceForUpdate = true
+	}
+
+	if shouldStopInstanceForUpdate {
+		err := shutdownUpdate(d, conn, newAttributes)
 		if err != nil {
-			return fmt.Errorf(
-				"Error waiting for instance (%s) to become ready: %s",
-				d.Id(), err)
+			return err
 		}
 	}
 
@@ -2039,4 +2022,61 @@ func getCreditSpecifications(conn *ec2.EC2, instanceId string) ([]map[string]int
 	}
 
 	return creditSpecifications, nil
+}
+
+func shutdownUpdate(d *schema.ResourceData, conn *ec2.EC2, newInstanceAttribute *ec2.ModifyInstanceAttributeInput) error {
+	log.Printf("[INFO] Stopping Instance %q for update", d.Id())
+	_, err := conn.StopInstances(&ec2.StopInstancesInput{
+		InstanceIds: []*string{aws.String(d.Id())},
+	})
+	if err != nil {
+		return fmt.Errorf("error stopping instance (%s): %s", d.Id(), err)
+	}
+
+	stateConf := &resource.StateChangeConf{
+		Pending:    []string{"pending", "running", "shutting-down", "stopped", "stopping"},
+		Target:     []string{"stopped"},
+		Refresh:    InstanceStateRefreshFunc(conn, d.Id(), []string{}),
+		Timeout:    d.Timeout(schema.TimeoutUpdate),
+		Delay:      10 * time.Second,
+		MinTimeout: 3 * time.Second,
+	}
+
+	_, err = stateConf.WaitForState()
+	if err != nil {
+		return fmt.Errorf(
+			"Error waiting for instance (%s) to stop: %s", d.Id(), err)
+	}
+
+	log.Printf("[INFO] Modifying user data %s", d.Id())
+	_, err = conn.ModifyInstanceAttribute(newInstanceAttribute)
+	if err != nil {
+		return err
+	}
+
+	log.Printf("[INFO] Starting Instance %q after update", d.Id())
+	_, err = conn.StartInstances(&ec2.StartInstancesInput{
+		InstanceIds: []*string{aws.String(d.Id())},
+	})
+	if err != nil {
+		return fmt.Errorf("error starting instance (%s): %s", d.Id(), err)
+	}
+
+	stateConf = &resource.StateChangeConf{
+		Pending:    []string{"pending", "stopped"},
+		Target:     []string{"running"},
+		Refresh:    InstanceStateRefreshFunc(conn, d.Id(), []string{"terminated"}),
+		Timeout:    d.Timeout(schema.TimeoutUpdate),
+		Delay:      10 * time.Second,
+		MinTimeout: 3 * time.Second,
+	}
+
+	_, err = stateConf.WaitForState()
+	if err != nil {
+		return fmt.Errorf(
+			"Error waiting for instance (%s) to become ready: %s",
+			d.Id(), err)
+	}
+
+	return nil
 }
