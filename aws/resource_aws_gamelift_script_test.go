@@ -100,6 +100,11 @@ func TestAccAWSGameliftScript_basic(t *testing.T) {
 				),
 			},
 			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
 				Config: testAccAWSGameliftScriptBasicConfig(uScriptName, bucketName, key, roleArn),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSGameliftScriptExists(resourceName, &conf),
@@ -150,6 +155,11 @@ func TestAccAWSGameliftScript_tags(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 			{
 				Config: testAccAWSGameliftScriptBasicConfigTags2(rName, bucketName, key, roleArn, "key1", "value1updated", "key2", "value2"),
