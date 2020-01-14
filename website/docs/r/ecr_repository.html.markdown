@@ -41,6 +41,7 @@ In addition to all arguments above, the following attributes are exported:
 * `name` - The name of the repository.
 * `registry_id` - The registry ID where the repository was created.
 * `repository_url` - The URL of the repository (in the form `aws_account_id.dkr.ecr.region.amazonaws.com/repositoryName`
+* `force_destroy` - (Optional, Default:true) A boolean that indicates whether the repository should be deleted even if it contains images.
 
 ## Timeouts
 
