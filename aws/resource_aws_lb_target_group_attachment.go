@@ -40,6 +40,12 @@ func resourceAwsLbTargetGroupAttachment() *schema.Resource {
 				ForceNew: true,
 				Optional: true,
 			},
+
+			"replace_all_other_targets": {
+				Type:     schema.TypeBool,
+				ForceNew: true,
+				Optional: true,
+			},
 		},
 	}
 }
@@ -57,6 +63,53 @@ func resourceAwsLbAttachmentCreate(d *schema.ResourceData, meta interface{}) err
 
 	if v, ok := d.GetOk("availability_zone"); ok {
 		target.AvailabilityZone = aws.String(v.(string))
+	}
+
+	if d.Get("replace_all_other_targets").(bool) {
+		log.Printf("[DEBUG] Listing already registered targets for unregistration")
+
+		resp, err := elbconn.DescribeTargetHealth(&elbv2.DescribeTargetHealthInput{
+			TargetGroupArn: aws.String(d.Get("target_group_arn").(string)),
+		})
+
+		if err != nil {
+			if isAWSErr(err, elbv2.ErrCodeTargetGroupNotFoundException, "") {
+				// TODO: this has been copied for existing code below
+				// however d.Id() is empty and should be replaced by
+				// d.Get("target_group_arn")
+				log.Printf("[WARN] Target group does not exist, adding target attachment %s", d.Id())
+				d.SetId("")
+				return nil
+			}
+			return fmt.Errorf("Error reading Target Health: %s", err)
+		}
+
+		for _, targetDesc := range resp.TargetHealthDescriptions {
+			if targetDesc == nil || targetDesc.Target == nil {
+				continue
+			}
+
+			if aws.StringValue(targetDesc.Target.Id) == d.Get("target_id").(string) {
+				continue
+			}
+
+			log.Printf("[DEBUG] Unregistering target %s", aws.StringValue(targetDesc.Target.Id))
+
+			rtarget := &elbv2.TargetDescription{
+				Id:   targetDesc.Target.Id,
+				Port: targetDesc.Target.Port,
+			}
+
+			rparams := &elbv2.DeregisterTargetsInput{
+				TargetGroupArn: aws.String(d.Get("target_group_arn").(string)),
+				Targets:        []*elbv2.TargetDescription{rtarget},
+			}
+
+			_, err := elbconn.DeregisterTargets(rparams)
+			if err != nil && !isAWSErr(err, elbv2.ErrCodeTargetGroupNotFoundException, "") {
+				return fmt.Errorf("Error unregistering target: %s", err)
+			}
+		}
 	}
 
 	params := &elbv2.RegisterTargetsInput{

@@ -66,6 +66,7 @@ The following arguments are supported:
 * `target_id` (Required) The ID of the target. This is the Instance ID for an instance, or the container ID for an ECS container. If the target type is ip, specify an IP address. If the target type is lambda, specify the arn of lambda.
 * `port` - (Optional) The port on which targets receive traffic.
 * `availability_zone` - (Optional) The Availability Zone where the IP address of the target is to be registered.
+* `replace_all_other_targets` - (Optional) Boolean which, if set to `true`, will override all other targets of type ip or instance.
 
 ## Attributes Reference
 

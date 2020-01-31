@@ -32,6 +32,41 @@ func TestAccAWSLBTargetGroupAttachment_basic(t *testing.T) {
 	})
 }
 
+func TestAccAWSLBTargetGroupAttachment_multi_instances(t *testing.T) {
+	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:      func() { testAccPreCheck(t) },
+		IDRefreshName: "aws_lb_target_group.test",
+		Providers:     testAccProviders,
+		CheckDestroy:  testAccCheckAWSLBTargetGroupAttachmentDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSLBTargetGroupAttachmentConfig_multi_instances(targetGroupName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSLBTargetGroupAttachmentMultiInstancesExists(
+						"aws_lb_target_group.test",
+						[]string{
+							"aws_lb_target_group_attachment.test.0",
+							"aws_lb_target_group_attachment.test.1",
+							"aws_lb_target_group_attachment.test.2",
+						}),
+				),
+			},
+			{
+				Config: testAccAWSLBTargetGroupAttachmentConfig_multi_instances_replace(targetGroupName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSLBTargetGroupAttachmentMultiInstancesExists(
+						"aws_lb_target_group.test",
+						[]string{
+							"aws_lb_target_group_attachment.test.0",
+						}),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAWSLBTargetGroupAttachment_disappears(t *testing.T) {
 	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
 	resource.ParallelTest(t, resource.TestCase{
@@ -203,6 +238,42 @@ func testAccCheckAWSLBTargetGroupAttachmentExists(n string) resource.TestCheckFu
 	}
 }
 
+func testAccCheckAWSLBTargetGroupAttachmentMultiInstancesExists(n string, l []string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		for _, ni := range l {
+			_, ok := s.RootModule().Resources[ni]
+			if !ok {
+				return fmt.Errorf("Not found: %s", ni)
+			}
+		}
+
+		rs, ok := s.RootModule().Resources[n]
+		if !ok {
+			return fmt.Errorf("Not found: %s", n)
+		}
+
+		if rs.Primary.ID == "" {
+			return errors.New("No Target Group ID is set")
+		}
+
+		conn := testAccProvider.Meta().(*AWSClient).elbv2conn
+
+		describe, err := conn.DescribeTargetHealth(&elbv2.DescribeTargetHealthInput{
+			TargetGroupArn: aws.String(rs.Primary.ID),
+		})
+
+		if err != nil {
+			return err
+		}
+
+		if len(describe.TargetHealthDescriptions) != len(l) {
+			return errors.New("Missing Target Group Attachment(s)")
+		}
+
+		return nil
+	}
+}
+
 func testAccCheckAWSLBTargetGroupAttachmentDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*AWSClient).elbv2conn
 
@@ -354,6 +425,76 @@ resource "aws_vpc" "test" {
   }
 }
 `, targetGroupName)
+}
+
+func testAccAWSLBTargetGroupAttachmentConfig_multi_instances(targetGroupName string) string {
+	return fmt.Sprintf(`
+resource "aws_lb_target_group_attachment" "test" {
+  count            = 3
+  target_group_arn = "${aws_lb_target_group.test.arn}"
+  target_id        = "${element(aws_instance.test.*.id, count.index)}"
+  port             = 80
+}
+
+resource "aws_instance" "test" {
+  count         = 3
+  ami           = "ami-f701cb97"
+  instance_type = "t2.micro"
+  subnet_id     = "${aws_subnet.subnet.id}"
+}
+
+resource "aws_lb_target_group" "test" {
+  name                 = "%s"
+  port                 = 443
+  protocol             = "HTTPS"
+  vpc_id               = "${aws_vpc.test.id}"
+  deregistration_delay = 200
+
+  stickiness {
+    type            = "lb_cookie"
+    cookie_duration = 10000
+  }
+
+  health_check {
+    path                = "/health"
+    interval            = 60
+    port                = 8081
+    protocol            = "HTTP"
+    timeout             = 3
+    healthy_threshold   = 3
+    unhealthy_threshold = 3
+    matcher             = "200-299"
+  }
+}
+
+resource "aws_subnet" "subnet" {
+  cidr_block = "10.0.1.0/24"
+  vpc_id     = "${aws_vpc.test.id}"
+
+  tags = {
+    Name = "tf-acc-lb-target-group-attachment-basic"
+  }
+}
+
+resource "aws_vpc" "test" {
+  cidr_block = "10.0.0.0/16"
+
+  tags = {
+    Name = "terraform-testacc-lb-target-group-attachment-basic"
+  }
+}
+`, targetGroupName)
+}
+
+func testAccAWSLBTargetGroupAttachmentConfig_multi_instances_replace(targetGroupName string) string {
+	return testAccAWSLBTargetGroupAttachmentConfig_multi_instances(targetGroupName) + `
+resource "aws_lb_target_group_attachment" "replace" {
+  target_group_arn          = "${aws_lb_target_group.test.arn}"
+  target_id                 = "${element(aws_instance.test.*.id, 0)}"
+  port                      = 80
+  replace_all_other_targets = true
+}
+`
 }
 
 func testAccAWSLBTargetGroupAttachmentConfigBackwardsCompatibility(targetGroupName string) string {
