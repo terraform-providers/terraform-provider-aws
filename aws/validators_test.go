@@ -2985,3 +2985,41 @@ func TestValidateRoute53ResolverName(t *testing.T) {
 		}
 	}
 }
+
+func TestValidateSsmParameterLabel(t *testing.T) {
+	cases := []struct {
+		Value    string
+		ErrCount int
+	}{
+		{
+			Value:    "testing123!",
+			ErrCount: 1,
+		},
+		{
+			Value:    "testing-123_.",
+			ErrCount: 0,
+		},
+		{
+			Value:    randomString(101),
+			ErrCount: 1,
+		},
+		{
+			Value:    "1",
+			ErrCount: 0,
+		},
+		{
+			Value:    "10",
+			ErrCount: 0,
+		},
+		{
+			Value:    "A",
+			ErrCount: 0,
+		},
+	}
+	for _, tc := range cases {
+		_, errors := validateSsmParameterLabel(tc.Value, "aws_ssm_parameter_label")
+		if len(errors) != tc.ErrCount {
+			t.Fatalf("Expected the AWS Paramater label to not trigger a validation error for %q", tc.Value)
+		}
+	}
+}

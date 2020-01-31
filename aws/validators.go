@@ -2407,3 +2407,21 @@ func validateRoute53ResolverName(v interface{}, k string) (ws []string, errors [
 
 	return
 }
+
+func validateSsmParameterLabel(v interface{}, k string) (ws []string, errors []error) {
+	// Type: String
+	// Length Constraints: Maximum length of 100.
+	// Pattern: (?!^[0-9]+$)([a-zA-Z0-9-_.]+)
+	value := v.(string)
+
+	if !regexp.MustCompile(`^[a-zA-Z0-9-_.]+$`).MatchString(value) {
+		errors = append(errors, fmt.Errorf(
+			"only alphanumeric characters, '-', '_' and '.' are allowed in %q", k))
+	}
+	if len(value) > 100 {
+		errors = append(errors, fmt.Errorf(
+			"%q cannot be greater than100 characters", k))
+	}
+
+	return
+}

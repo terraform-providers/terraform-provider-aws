@@ -753,6 +753,7 @@ func Provider() terraform.ResourceProvider {
 			"aws_ssm_patch_baseline":                                  resourceAwsSsmPatchBaseline(),
 			"aws_ssm_patch_group":                                     resourceAwsSsmPatchGroup(),
 			"aws_ssm_parameter":                                       resourceAwsSsmParameter(),
+			"aws_ssm_parameter_label":                                 resourceAwsSsmParameterLabel(),
 			"aws_ssm_resource_data_sync":                              resourceAwsSsmResourceDataSync(),
 			"aws_storagegateway_cache":                                resourceAwsStorageGatewayCache(),
 			"aws_storagegateway_cached_iscsi_volume":                  resourceAwsStorageGatewayCachedIscsiVolume(),
