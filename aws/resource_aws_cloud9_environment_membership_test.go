@@ -51,6 +51,29 @@ func TestAccAWSCloud9EnvironmentMembership_basic(t *testing.T) {
 	})
 }
 
+func TestAccAWSCloud9EnvironmentMembership_disappears(t *testing.T) {
+	var conf cloud9.EnvironmentMember
+
+	rName := acctest.RandomWithPrefix("tf-acc")
+	resourceName := "aws_cloud9_environment_membership.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCloud9(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSCloud9EnvironmentMembershipDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSCloud9EnvironmentMembershipConfig(rName, "read-only"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSCloud9EnvironmentMembershipExists(resourceName, &conf),
+					testAccCheckAWSCloud9EnvironmentMembershipDisappears(&conf),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
 func testAccCheckAWSCloud9EnvironmentMembershipExists(n string, res *cloud9.EnvironmentMember) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
@@ -82,6 +105,19 @@ func testAccCheckAWSCloud9EnvironmentMembershipExists(n string, res *cloud9.Envi
 		*res = *env
 
 		return nil
+	}
+}
+
+func testAccCheckAWSCloud9EnvironmentMembershipDisappears(res *cloud9.EnvironmentMember) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		conn := testAccProvider.Meta().(*AWSClient).cloud9conn
+
+		_, err := conn.DeleteEnvironmentMembership(&cloud9.DeleteEnvironmentMembershipInput{
+			EnvironmentId: res.EnvironmentId,
+			UserArn:       res.UserArn,
+		})
+
+		return err
 	}
 }
 
