@@ -45,10 +45,11 @@ func resourceAwsInstance() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"ami": {
-				Type:     schema.TypeString,
-				ForceNew: true,
-				Computed: true,
-				Optional: true,
+				Type:         schema.TypeString,
+				ForceNew:     true,
+				Computed:     true,
+				Optional:     true,
+				AtLeastOneOf: []string{"ami", "launch_template"},
 			},
 
 			"arn": {
@@ -78,9 +79,10 @@ func resourceAwsInstance() *schema.Resource {
 			},
 
 			"instance_type": {
-				Type:     schema.TypeString,
-				Computed: true,
-				Optional: true,
+				Type:         schema.TypeString,
+				Computed:     true,
+				Optional:     true,
+				AtLeastOneOf: []string{"instance_type", "launch_template"},
 			},
 
 			"key_name": {
@@ -537,27 +539,28 @@ func resourceAwsInstance() *schema.Resource {
 			},
 
 			"launch_template": {
-				Type:     schema.TypeList,
-				MaxItems: 1,
-				Optional: true,
-				ForceNew: true,
+				Type:         schema.TypeList,
+				MaxItems:     1,
+				Optional:     true,
+				ForceNew:     true,
+				AtLeastOneOf: []string{"ami", "instance_type", "launch_template"},
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"id": {
-							Type:          schema.TypeString,
-							Optional:      true,
-							Computed:      true,
-							ForceNew:      true,
-							ConflictsWith: []string{"launch_template.0.name"},
-							ValidateFunc:  validateLaunchTemplateId,
+							Type:         schema.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ForceNew:     true,
+							ExactlyOneOf: []string{"launch_template.0.name", "launch_template.0.id"},
+							ValidateFunc: validateLaunchTemplateId,
 						},
 						"name": {
-							Type:          schema.TypeString,
-							Optional:      true,
-							Computed:      true,
-							ForceNew:      true,
-							ConflictsWith: []string{"launch_template.0.id"},
-							ValidateFunc:  validateLaunchTemplateName,
+							Type:         schema.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ForceNew:     true,
+							ExactlyOneOf: []string{"launch_template.0.name", "launch_template.0.id"},
+							ValidateFunc: validateLaunchTemplateName,
 						},
 						"version": {
 							Type:         schema.TypeString,
@@ -1539,10 +1542,6 @@ func fetchLaunchTemplateAmi(specs []interface{}, conn *ec2.EC2) (string, error) 
 	idValue, idOk := spec["id"]
 	nameValue, nameOk := spec["name"]
 
-	if idValue == "" && nameValue == "" {
-		return "", fmt.Errorf("One of `id` or `name` must be set for `launch_template`")
-	}
-
 	request := &ec2.DescribeLaunchTemplateVersionsInput{}
 
 	if idOk && idValue != "" {
@@ -1839,11 +1838,11 @@ func readBlockDeviceMappingsFromConfig(
 				return nil, errors.New("`ami` must be set or provided via launch template")
 			}
 
-			if dn, err := fetchRootDeviceName(d.Get("ami").(string), conn); err == nil {
+			if dn, err := fetchRootDeviceName(ami, conn); err == nil {
 				if dn == nil {
 					return nil, fmt.Errorf(
 						"Expected 1 AMI for ID: %s, got none",
-						d.Get("ami").(string))
+						ami)
 				}
 
 				blockDevices = append(blockDevices, &ec2.BlockDeviceMapping{
@@ -2008,39 +2007,28 @@ func buildAwsInstanceOpts(
 	d *schema.ResourceData, meta interface{}) (*awsInstanceOpts, error) {
 	conn := meta.(*AWSClient).ec2conn
 
-	amiValue, amiOk := d.GetOk("ami")
-	typeValue, typeOk := d.GetOk("instance_type")
-	templateValue, templateOk := d.GetOk("launch_template")
-
-	if !amiOk && !templateOk {
-		return nil, fmt.Errorf("Either `ami` must be set or `launch_template` that defines `image_id` must be provided")
-	}
-
-	if !typeOk && !templateOk {
-		return nil, fmt.Errorf("Either `instance_type` must be set or `launch_template` must be provided")
-	}
-
-	instanceType := d.Get("instance_type").(string)
 	opts := &awsInstanceOpts{
 		DisableAPITermination: aws.Bool(d.Get("disable_api_termination").(bool)),
 		EBSOptimized:          aws.Bool(d.Get("ebs_optimized").(bool)),
 	}
 
-	if amiOk {
-		opts.ImageID = aws.String(amiValue.(string))
+	if v, ok := d.GetOk("ami"); ok {
+		opts.ImageID = aws.String(v.(string))
 	}
 
-	if typeOk {
-		opts.InstanceType = aws.String(typeValue.(string))
+	if v, ok := d.GetOk("instance_type"); ok {
+		opts.InstanceType = aws.String(v.(string))
 	}
 
-	if templateOk {
+	if v, ok := d.GetOk("launch_template"); ok {
 		var err error
-		opts.LaunchTemplate, err = expandEc2LaunchTemplateSpecification(templateValue.([]interface{}))
+		opts.LaunchTemplate, err = expandEc2LaunchTemplateSpecification(v.([]interface{}))
 		if err != nil {
 			return nil, err
 		}
 	}
+
+	instanceType := d.Get("instance_type").(string)
 
 	// Set default cpu_credits as Unlimited for T3 instance type
 	if strings.HasPrefix(instanceType, "t3") {

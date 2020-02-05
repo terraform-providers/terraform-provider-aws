@@ -4698,10 +4698,6 @@ func expandLaunchTemplateSpecification(specs []interface{}) (*autoscaling.Launch
 	idValue, idOk := spec["id"]
 	nameValue, nameOk := spec["name"]
 
-	if idValue == "" && nameValue == "" {
-		return nil, fmt.Errorf("One of `id` or `name` must be set for `launch_template`")
-	}
-
 	result := &autoscaling.LaunchTemplateSpecification{}
 
 	// DescribeAutoScalingGroups returns both name and id but LaunchTemplateSpecification
@@ -4728,10 +4724,6 @@ func expandEc2LaunchTemplateSpecification(specs []interface{}) (*ec2.LaunchTempl
 
 	idValue, idOk := spec["id"]
 	nameValue, nameOk := spec["name"]
-
-	if idValue == "" && nameValue == "" {
-		return nil, fmt.Errorf("One of `id` or `name` must be set for `launch_template`")
-	}
 
 	result := &ec2.LaunchTemplateSpecification{}
 
@@ -4760,7 +4752,7 @@ func flattenLaunchTemplateSpecification(lt *autoscaling.LaunchTemplateSpecificat
 	attrs["id"] = *lt.LaunchTemplateId
 	attrs["name"] = *lt.LaunchTemplateName
 
-	// version is returned only if it was previosly set
+	// version is returned only if it was previously set
 	if lt.Version != nil {
 		attrs["version"] = *lt.Version
 	} else {

@@ -4350,7 +4350,7 @@ data "aws_ami" "debian_jessie_latest" {
 }
 
 resource "aws_instance" "foo" {
-  ami                         = "${data.aws_ami.debian_jessie_latest.id}"
+  ami                         = data.aws_ami.debian_jessie_latest.id
   associate_public_ip_address = true
   count                       = 1
   instance_type               = "t2.medium"
@@ -4361,8 +4361,8 @@ resource "aws_instance" "foo" {
     delete_on_termination = true
   }
 
-  tags {
-    Name    = "test-terraform"
+  tags = {
+    Name = "test-terraform"
   }
 }
 `
@@ -4396,7 +4396,7 @@ data "aws_ami" "debian_jessie_latest" {
 
 resource "aws_launch_template" "foobar" {
   name_prefix = "foobar"
-  image_id = "${data.aws_ami.debian_jessie_latest.id}"
+  image_id = data.aws_ami.debian_jessie_latest.id
   instance_type = "t2.micro"
 }
 
@@ -4405,7 +4405,7 @@ resource "aws_instance" "foo" {
   count                       = 1
 
   launch_template {
-    id = "${aws_launch_template.foobar.id}"
+    id = aws_launch_template.foobar.id
   }
 
   root_block_device {
@@ -4414,8 +4414,8 @@ resource "aws_instance" "foo" {
     delete_on_termination = true
   }
 
-  tags {
-    Name    = "test-terraform"
+  tags = {
+    Name = "test-terraform"
   }
 }
 `
@@ -4449,7 +4449,7 @@ data "aws_ami" "debian_jessie_latest" {
 
 resource "aws_launch_template" "foobar" {
   name_prefix = "foobar"
-  image_id = "${data.aws_ami.debian_jessie_latest.id}"
+  image_id = data.aws_ami.debian_jessie_latest.id
   instance_type = "t2.nano"
 }
 
@@ -4458,7 +4458,7 @@ resource "aws_instance" "foo" {
   count                       = 1
 
   launch_template {
-    id = "${aws_launch_template.foobar.id}"
+    id = aws_launch_template.foobar.id
   }
 
   root_block_device {
@@ -4467,8 +4467,8 @@ resource "aws_instance" "foo" {
     delete_on_termination = true
   }
 
-  tags {
-    Name    = "test-terraform"
+  tags = {
+    Name = "test-terraform"
   }
 }
 `
@@ -4502,7 +4502,7 @@ data "aws_ami" "debian_jessie_latest" {
 
 resource "aws_launch_template" "foobar" {
   name_prefix = "foobar"
-  image_id = "${data.aws_ami.debian_jessie_latest.id}"
+  image_id = data.aws_ami.debian_jessie_latest.id
   instance_type = "t2.nano"
 }
 
@@ -4511,7 +4511,7 @@ resource "aws_instance" "foo" {
   count                       = 1
 
   launch_template {
-	id = "${aws_launch_template.foobar.id}"
+	id = aws_launch_template.foobar.id
 	version = "1"
   }
 
@@ -4521,8 +4521,8 @@ resource "aws_instance" "foo" {
     delete_on_termination = true
   }
 
-  tags {
-    Name    = "test-terraform"
+  tags = {
+    Name = "test-terraform"
   }
 }
 `
@@ -4556,7 +4556,7 @@ data "aws_ami" "debian_jessie_latest" {
 
 resource "aws_launch_template" "foobar" {
   name_prefix = "foobar"
-  image_id = "${data.aws_ami.debian_jessie_latest.id}"
+  image_id = data.aws_ami.debian_jessie_latest.id
   instance_type = "t2.nano"
 }
 
@@ -4565,8 +4565,8 @@ resource "aws_instance" "foo" {
   count                       = 1
 
   launch_template {
-	id = "${aws_launch_template.foobar.id}"
-	version = "${aws_launch_template.foobar.latest_version}"
+    id = aws_launch_template.foobar.id
+    version = aws_launch_template.foobar.latest_version
   }
 
   root_block_device {
@@ -4575,8 +4575,8 @@ resource "aws_instance" "foo" {
     delete_on_termination = true
   }
 
-  tags {
-    Name    = "test-terraform"
+  tags = {
+    Name = "test-terraform"
   }
 }
 `
