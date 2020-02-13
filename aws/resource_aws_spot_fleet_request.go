@@ -1316,6 +1316,63 @@ func hashLaunchSpecification(v interface{}) int {
 	}
 	buf.WriteString(fmt.Sprintf("%s-", m["instance_type"].(string)))
 	buf.WriteString(fmt.Sprintf("%s-", m["spot_price"].(string)))
+
+	if v, ok := m["vpc_security_group_ids"].(*schema.Set); ok {
+		for _, v := range v.List() {
+			buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+		}
+	}
+
+	if v, ok := m["associate_public_ip_address"].(bool); ok {
+		buf.WriteString(fmt.Sprintf("%t-", v))
+	}
+
+	if v, ok := m["ebs_optimized"].(bool); ok {
+		buf.WriteString(fmt.Sprintf("%t-", v))
+	}
+
+	if v, ok := m["monitoring"].(bool); ok {
+		buf.WriteString(fmt.Sprintf("%t-", v))
+	}
+
+	if v, ok := m["iam_instance_profile"].(string); ok {
+		buf.WriteString(fmt.Sprintf("%s-", v))
+	}
+
+	if v, ok := m["iam_instance_profile_arn"].(string); ok {
+		buf.WriteString(fmt.Sprintf("%s-", v))
+	}
+
+	if v, ok := m["key_name"].(string); ok {
+		buf.WriteString(fmt.Sprintf("%s-", v))
+	}
+
+	if v, ok := m["weighted_capacity"].(string); ok {
+		buf.WriteString(fmt.Sprintf("%s-", v))
+	}
+
+	if v, ok := m["tags"].(map[string]interface{}); ok {
+		buf.WriteString(fmt.Sprintf("%d-", tagsMapToHash(v)))
+	}
+
+	if v, ok := m["root_block_device"].(*schema.Set); ok {
+		for _, v := range v.List() {
+			buf.WriteString(fmt.Sprintf("%d-", hashRootBlockDevice(v)))
+		}
+	}
+
+	if v, ok := m["ebs_block_device"].(*schema.Set); ok {
+		for _, v := range v.List() {
+			buf.WriteString(fmt.Sprintf("%d-", hashEbsBlockDevice(v)))
+		}
+	}
+
+	if v, ok := m["ephemeral_block_device"].(*schema.Set); ok {
+		for _, v := range v.List() {
+			buf.WriteString(fmt.Sprintf("%d-", hashEphemeralBlockDevice(v)))
+		}
+	}
+
 	return hashcode.String(buf.String())
 }
 

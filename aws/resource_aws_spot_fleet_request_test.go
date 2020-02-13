@@ -80,6 +80,60 @@ func TestAccAWSSpotFleetRequest_basic(t *testing.T) {
 	})
 }
 
+func TestAccAWSSpotFleetRequest_updateLaunchConfig(t *testing.T) {
+	var sfr ec2.SpotFleetRequestConfig
+	rName := acctest.RandString(10)
+	rInt := acctest.RandInt()
+	validUntil := time.Now().UTC().Add(24 * time.Hour).Format(time.RFC3339)
+
+	appliedInstanceType := "m1.small"
+	appliedAmi := "ami-516b9131"
+	appliedAssociatePublicIp := false
+	applideSgIds := "[]"
+	appliedEbsDevName := "/dev/xvda"
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEc2SpotFleetRequest(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSSpotFleetRequestDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSSpotFleetRequestConfigFlexibleLaunchConfig(rName, rInt, validUntil, appliedInstanceType, appliedAmi, appliedAssociatePublicIp, applideSgIds, appliedEbsDevName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSSpotFleetRequestExists("aws_spot_fleet_request.foo", &sfr),
+					resource.TestCheckResourceAttr("aws_spot_fleet_request.foo", "spot_request_state", "active"),
+					resource.TestCheckResourceAttr("aws_spot_fleet_request.foo", "excess_capacity_termination_policy", "Default"),
+					resource.TestCheckResourceAttr("aws_spot_fleet_request.foo", "valid_until", validUntil),
+				),
+			},
+			{
+				Config:             testAccAWSSpotFleetRequestConfigFlexibleLaunchConfig(rName, rInt, validUntil, "m1.large", appliedAmi, appliedAssociatePublicIp, applideSgIds, appliedEbsDevName),
+				ExpectNonEmptyPlan: true,
+				PlanOnly:           true,
+			},
+			{
+				Config:             testAccAWSSpotFleetRequestConfigFlexibleLaunchConfig(rName, rInt, validUntil, appliedInstanceType, "ami-f34032c3", appliedAssociatePublicIp, applideSgIds, appliedEbsDevName),
+				ExpectNonEmptyPlan: true,
+				PlanOnly:           true,
+			},
+			{
+				Config:             testAccAWSSpotFleetRequestConfigFlexibleLaunchConfig(rName, rInt, validUntil, appliedInstanceType, appliedAmi, true, applideSgIds, appliedEbsDevName),
+				ExpectNonEmptyPlan: true,
+				PlanOnly:           true,
+			},
+			{
+				Config:             testAccAWSSpotFleetRequestConfigFlexibleLaunchConfig(rName, rInt, validUntil, appliedInstanceType, appliedAmi, appliedAssociatePublicIp, "[\"sg-12a3b45c\"]", appliedEbsDevName),
+				ExpectNonEmptyPlan: true,
+				PlanOnly:           true,
+			},
+			{
+				Config:             testAccAWSSpotFleetRequestConfigFlexibleLaunchConfig(rName, rInt, validUntil, appliedInstanceType, appliedAmi, appliedAssociatePublicIp, applideSgIds, "/dev/sda1"),
+				ExpectNonEmptyPlan: true,
+				PlanOnly:           true,
+			},
+		},
+	})
+}
+
 func TestAccAWSSpotFleetRequest_associatePublicIpAddress(t *testing.T) {
 	var sfr ec2.SpotFleetRequestConfig
 	rName := acctest.RandString(10)
@@ -967,6 +1021,36 @@ resource "aws_spot_fleet_request" "foo" {
     depends_on = ["aws_iam_policy_attachment.test-attach"]
 }
 `, validUntil)
+}
+
+func testAccAWSSpotFleetRequestConfigFlexibleLaunchConfig(rName string, rInt int, validUntil string, instanceType string, ami string, associatePublicIp bool, sgIDs string, blockDeviceName string) string {
+	// Setting wait_for_fulfillment to false to speed up tests
+	// We are mainly interested in the diff so this should be OK in these test cases
+	return testAccAWSSpotFleetRequestConfigBase(rName, rInt) + fmt.Sprintf(`
+resource "aws_spot_fleet_request" "foo" {
+    iam_fleet_role = "${aws_iam_role.test-role.arn}"
+    spot_price = "0.005"
+    target_capacity = 1
+    valid_until = %[1]q
+    terminate_instances_with_expiration = true
+    instance_interruption_behaviour = "stop"
+    wait_for_fulfillment = false
+    launch_specification {
+        instance_type = "%[2]s"
+        ami = "%[3]s"
+        key_name = "${aws_key_pair.debugging.key_name}"
+	    associate_public_ip_address = %[4]t
+        vpc_security_group_ids = %[5]s
+
+        ebs_block_device {
+            device_name = "%[6]s"
+            volume_type = "gp2"
+            volume_size = "8"
+        }
+    }
+    depends_on = ["aws_iam_policy_attachment.test-attach"]
+}
+`, validUntil, instanceType, ami, associatePublicIp, sgIDs, blockDeviceName)
 }
 
 func testAccAWSSpotFleetRequestConfigAssociatePublicIpAddress(rName string, rInt int, validUntil string) string {
