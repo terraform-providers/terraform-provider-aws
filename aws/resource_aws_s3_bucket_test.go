@@ -1107,6 +1107,28 @@ func TestAccAWSS3Bucket_Cors_Delete(t *testing.T) {
 	})
 }
 
+func TestAccAWSS3Bucket_Cors_Empty(t *testing.T) {
+	rInt := acctest.RandInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSS3BucketDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSS3BucketConfigWithCORSEmpty(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSS3BucketExists("aws_s3_bucket.bucket"),
+					testAccCheckAWSS3BucketCors(
+						"aws_s3_bucket.bucket",
+						[]*s3.CORSRule{},
+					),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAWSS3Bucket_Cors_EmptyOrigin(t *testing.T) {
 	rInt := acctest.RandInt()
 	resourceName := "aws_s3_bucket.bucket"
@@ -3025,6 +3047,19 @@ resource "aws_s3_bucket" "bucket" {
     expose_headers  = ["x-amz-server-side-encryption", "ETag"]
     max_age_seconds = 3000
   }
+}
+`, randInt)
+}
+
+func testAccAWSS3BucketConfigWithCORSEmpty(randInt int) string {
+	return fmt.Sprintf(`
+resource "aws_s3_bucket" "bucket" {
+	bucket = "tf-test-bucket-%d"
+	acl = "public-read"
+	cors_rule {
+			allowed_methods = []
+			allowed_origins = []
+	}
 }
 `, randInt)
 }
