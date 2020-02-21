@@ -33,7 +33,8 @@ The following arguments are supported:
 * `encrypted` - (Optional) If true, the disk will be encrypted.
 * `iops` - (Optional) The amount of IOPS to provision for the disk.
 * `size` - (Optional) The size of the drive in GiBs.
-* `snapshot_id` (Optional) A snapshot to base the EBS volume off of.
+* `snapshot_id` - (Optional) A snapshot to base the EBS volume off of.
+* `termination_snapshot_name` - (Optional) Create an EBS snapshot with this name before the volume is deleted. If omitted, no snapshot will be created.
 * `type` - (Optional) The type of EBS volume. Can be "standard", "gp2", "io1", "sc1" or "st1" (Default: "standard").
 * `kms_key_id` - (Optional) The ARN for the KMS encryption key. When specifying `kms_key_id`, `encrypted` needs to be set to true.
 * `tags` - (Optional) A mapping of tags to assign to the resource.

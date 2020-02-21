@@ -311,6 +311,42 @@ func TestAccAWSEBSVolume_withTags(t *testing.T) {
 	})
 }
 
+func TestAccAWSEBSVolume_terminationSnapshot(t *testing.T) {
+	var v ec2.Volume
+	resource.Test(t, resource.TestCase{
+		PreCheck:      func() { testAccPreCheck(t) },
+		IDRefreshName: "aws_ebs_volume.test",
+		Providers:     testAccProviders,
+		CheckDestroy:  testAccCheckTerminationSnapshot("tf-acc-test-ebs-volume-test"),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAwsEbsVolumeConfigWithTerminationSnapshot,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckVolumeExists("aws_ebs_volume.test", &v),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSEBSVolume_noTerminationSnapshot(t *testing.T) {
+	var v ec2.Volume
+	resource.Test(t, resource.TestCase{
+		PreCheck:      func() { testAccPreCheck(t) },
+		IDRefreshName: "aws_ebs_volume.test",
+		Providers:     testAccProviders,
+		CheckDestroy:  testAccCheckNoTerminationSnapshot,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAwsEbsVolumeConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckVolumeExists("aws_ebs_volume.test", &v),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckVolumeDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*AWSClient).ec2conn
 
@@ -369,6 +405,66 @@ func testAccCheckVolumeExists(n string, v *ec2.Volume) resource.TestCheckFunc {
 		}
 		return fmt.Errorf("Error finding EC2 volume %s", rs.Primary.ID)
 	}
+}
+
+func testAccCheckTerminationSnapshot(n string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		conn := testAccProvider.Meta().(*AWSClient).ec2conn
+
+		out, err := conn.DescribeSnapshots(&ec2.DescribeSnapshotsInput{
+			Filters: []*ec2.Filter{
+				{
+					Name:   aws.String("tag:Name"),
+					Values: []*string{aws.String(n)},
+				},
+			},
+		})
+		if err != nil {
+			return fmt.Errorf("Error finding final snapshot %s: %s", n, err)
+		}
+
+		if out.Snapshots != nil && len(out.Snapshots) > 0 {
+			// Snapshot found - delete it
+			_, err := conn.DeleteSnapshot(&ec2.DeleteSnapshotInput{
+				SnapshotId: out.Snapshots[0].SnapshotId,
+			})
+			if err != nil {
+				return err
+			}
+		} else {
+			// Snapshot not present in response
+			return fmt.Errorf("Snapshot %s not found", n)
+		}
+
+		return nil
+	}
+}
+
+func testAccCheckNoTerminationSnapshot(s *terraform.State) error {
+	conn := testAccProvider.Meta().(*AWSClient).ec2conn
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "aws_ebs_volume" {
+			continue
+		}
+
+		resp, err := conn.DescribeSnapshots(&ec2.DescribeSnapshotsInput{
+			Filters: []*ec2.Filter{
+				{
+					Name:   aws.String("volume-id"),
+					Values: []*string{aws.String(rs.Primary.ID)}},
+			},
+		})
+		if err != nil {
+			return err
+		}
+
+		if len(resp.Snapshots) > 0 {
+			return fmt.Errorf("Termination snapshot for volume %v found and it shouldn't have been", rs.Primary.ID)
+		}
+	}
+
+	return nil
 }
 
 const testAccAwsEbsVolumeConfig = `
@@ -605,6 +701,17 @@ resource "aws_ebs_volume" "test" {
   iops = 0
   tags = {
     Name = "TerraformTest"
+  }
+}
+`
+const testAccAwsEbsVolumeConfigWithTerminationSnapshot = `
+resource "aws_ebs_volume" "test" {
+  availability_zone = "us-west-2a"
+  type = "gp2"
+	size = 1
+	termination_snapshot_name = "tf-acc-test-ebs-volume-test"
+  tags = {
+    Name = "tf-acc-test-ebs-volume-test"
   }
 }
 `
