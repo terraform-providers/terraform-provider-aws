@@ -805,6 +805,31 @@ func TestAccAWSLaunchTemplate_licenseSpecification(t *testing.T) {
 	})
 }
 
+func TestAccAWSLaunchTemplate_networkInterface_ipv4Addresses(t *testing.T) {
+	var template ec2.LaunchTemplate
+	resName := "aws_launch_template.test"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSLaunchTemplateDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSLaunchTemplateConfig_networkInterfaces_ipv4Addresses,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSLaunchTemplateExists(resName, &template),
+					resource.TestCheckResourceAttr(resName, "network_interfaces.#", "1"),
+					resource.TestCheckResourceAttr(resName, "network_interfaces.0.ipv4_addresses.#", "2"),
+					resource.TestCheckResourceAttr(resName, "network_interfaces.0.ipv4_addresses.0.primary", "true"),
+					resource.TestCheckResourceAttr(resName, "network_interfaces.0.ipv4_addresses.0.private_ip_address", "10.1.0.5"),
+					resource.TestCheckResourceAttr(resName, "network_interfaces.0.ipv4_addresses.1.primary", "false"),
+					resource.TestCheckResourceAttr(resName, "network_interfaces.0.ipv4_addresses.1.private_ip_address", "10.1.0.6"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckAWSLaunchTemplateExists(n string, t *ec2.LaunchTemplate) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
@@ -1255,6 +1280,24 @@ resource "aws_launch_template" "test" {
       "0:0:0:0:0:ffff:a01:5",
       "0:0:0:0:0:ffff:a01:6",
     ]
+  }
+}
+`
+
+const testAccAWSLaunchTemplateConfig_networkInterfaces_ipv4Addresses = `
+resource "aws_launch_template" "test" {
+  name = "network-interface-ipv4-addresses-launch-template"
+
+  network_interfaces {
+    ipv4_addresses {
+      primary = true
+      private_ip_address = "10.1.0.5"
+    }
+
+    ipv4_addresses {
+      primary = false
+      private_ip_address = "10.1.0.6"
+    }
   }
 }
 `
