@@ -36,3 +36,6 @@ website/vendor
 *.winfile eol=crlf
 /.vs
 node_modules
+
+# Ignore build binary
+terraform-provider-aws

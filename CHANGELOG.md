@@ -2,6 +2,8 @@
 
 FEATURES:
 
+* **New Data Source:** `aws_dynamodb_query`
+* **New Data Source:** `aws_dynamodb_table_item`
 * **New Data Source:** `aws_sfn_activity` [GH-11080]
 * **New Data Source:** `aws_sfn_state_machine` [GH-10932]
 * **New Resource:** `aws_ec2_traffic_mirror_filter` [GH-9372]
