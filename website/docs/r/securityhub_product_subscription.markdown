@@ -10,8 +10,6 @@ description: |-
 
 Subscribes to a Security Hub product.
 
-~> **NOTE:** This AWS service is in Preview and may change before General Availability release. Backwards compatibility is not guaranteed between Terraform AWS Provider releases.
-
 ## Example Usage
 
 ```hcl

@@ -3,13 +3,9 @@ package aws
 import (
 	"log"
 	"regexp"
-	"strings"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
@@ -37,110 +33,6 @@ func tagsSchemaForceNew() *schema.Schema {
 		Optional: true,
 		ForceNew: true,
 	}
-}
-
-// setTags is a helper to set the tags for a resource. It expects the
-// tags field to be named "tags"
-func setTags(conn *ec2.EC2, d *schema.ResourceData) error {
-	if d.HasChange("tags") {
-		oraw, nraw := d.GetChange("tags")
-		o := oraw.(map[string]interface{})
-		n := nraw.(map[string]interface{})
-		create, remove := diffTags(tagsFromMap(o), tagsFromMap(n))
-
-		// Set tags
-		if len(remove) > 0 {
-			err := resource.Retry(5*time.Minute, func() *resource.RetryError {
-				log.Printf("[DEBUG] Removing tags: %#v from %s", remove, d.Id())
-				_, err := conn.DeleteTags(&ec2.DeleteTagsInput{
-					Resources: []*string{aws.String(d.Id())},
-					Tags:      remove,
-				})
-				if err != nil {
-					ec2err, ok := err.(awserr.Error)
-					if ok && strings.Contains(ec2err.Code(), ".NotFound") {
-						return resource.RetryableError(err) // retry
-					}
-					return resource.NonRetryableError(err)
-				}
-				return nil
-			})
-			if err != nil {
-				// Retry without time bounds for EC2 throttling
-				if isResourceTimeoutError(err) {
-					log.Printf("[DEBUG] Removing tags: %#v from %s", remove, d.Id())
-					_, err := conn.DeleteTags(&ec2.DeleteTagsInput{
-						Resources: []*string{aws.String(d.Id())},
-						Tags:      remove,
-					})
-					if err != nil {
-						return err
-					}
-				} else {
-					return err
-				}
-			}
-		}
-		if len(create) > 0 {
-			err := resource.Retry(5*time.Minute, func() *resource.RetryError {
-				log.Printf("[DEBUG] Creating tags: %s for %s", create, d.Id())
-				_, err := conn.CreateTags(&ec2.CreateTagsInput{
-					Resources: []*string{aws.String(d.Id())},
-					Tags:      create,
-				})
-				if err != nil {
-					ec2err, ok := err.(awserr.Error)
-					if ok && strings.Contains(ec2err.Code(), ".NotFound") {
-						return resource.RetryableError(err) // retry
-					}
-					return resource.NonRetryableError(err)
-				}
-				return nil
-			})
-			if err != nil {
-				// Retry without time bounds for EC2 throttling
-				if isResourceTimeoutError(err) {
-					log.Printf("[DEBUG] Creating tags: %s for %s", create, d.Id())
-					_, err := conn.CreateTags(&ec2.CreateTagsInput{
-						Resources: []*string{aws.String(d.Id())},
-						Tags:      create,
-					})
-					if err != nil {
-						return err
-					}
-				} else {
-					return err
-				}
-			}
-		}
-	}
-
-	return nil
-}
-
-// diffTags takes our tags locally and the ones remotely and returns
-// the set of tags that must be created, and the set of tags that must
-// be destroyed.
-func diffTags(oldTags, newTags []*ec2.Tag) ([]*ec2.Tag, []*ec2.Tag) {
-	// First, we're creating everything we have
-	create := make(map[string]interface{})
-	for _, t := range newTags {
-		create[aws.StringValue(t.Key)] = aws.StringValue(t.Value)
-	}
-
-	// Build the list of what to remove
-	var remove []*ec2.Tag
-	for _, t := range oldTags {
-		old, ok := create[aws.StringValue(t.Key)]
-		if !ok || old != aws.StringValue(t.Value) {
-			remove = append(remove, t)
-		} else if ok {
-			// already present so remove from new
-			delete(create, aws.StringValue(t.Key))
-		}
-	}
-
-	return tagsFromMap(create), remove
 }
 
 // tagsFromMap returns the tags for the given map of data.

@@ -1062,6 +1062,12 @@ func (c *EC2) AssociateClientVpnTargetNetworkRequest(input *AssociateClientVpnTa
 // Zone. We recommend that you associate at least two subnets to provide Availability
 // Zone redundancy.
 //
+// If you specified a VPC when you created the Client VPN endpoint or if you
+// have previous subnet associations, the specified subnet must be in the same
+// VPC. To specify a subnet that's in a different VPC, you must first modify
+// the Client VPN endpoint (ModifyClientVpnEndpoint) and change the VPC that's
+// associated with it.
+//
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
 // the error.
@@ -11383,11 +11389,10 @@ func (c *EC2) DeleteVpnGatewayRequest(input *DeleteVpnGatewayInput) (req *reques
 
 // DeleteVpnGateway API operation for Amazon Elastic Compute Cloud.
 //
-// Deletes the specified virtual private gateway. We recommend that before you
-// delete a virtual private gateway, you detach it from the VPC and delete the
-// VPN connection. Note that you don't need to delete the virtual private gateway
-// if you plan to delete and recreate the VPN connection between your VPC and
-// your network.
+// Deletes the specified virtual private gateway. You must first detach the
+// virtual private gateway from the VPC. Note that you don't need to delete
+// the virtual private gateway if you plan to delete and recreate the VPN connection
+// between your VPC and your network.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -29513,10 +29518,8 @@ func (c *EC2) ModifyClientVpnEndpointRequest(input *ModifyClientVpnEndpointInput
 
 // ModifyClientVpnEndpoint API operation for Amazon Elastic Compute Cloud.
 //
-// Modifies the specified Client VPN endpoint. You can only modify an endpoint's
-// server certificate information, client connection logging information, DNS
-// server, and description. Modifying the DNS server resets existing client
-// connections.
+// Modifies the specified Client VPN endpoint. Modifying the DNS server resets
+// existing client connections.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -32398,9 +32401,9 @@ func (c *EC2) ModifyVpnConnectionRequest(input *ModifyVpnConnectionInput) (req *
 // gateway route table.
 //
 // After you perform this operation, the AWS VPN endpoint's IP addresses on
-// the AWS side and the tunnel options remain intact. Your s2slong; connection
-// will be temporarily unavailable for approximately 10 minutes while we provision
-// the new endpoints
+// the AWS side and the tunnel options remain intact. Your AWS Site-to-Site
+// VPN connection will be temporarily unavailable for a brief period while we
+// provision the new endpoints.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -42726,6 +42729,9 @@ type ClientVpnEndpoint struct {
 	// Information about the DNS servers to be used for DNS resolution.
 	DnsServers []*string `locationName:"dnsServer" locationNameList:"item" type:"list"`
 
+	// The IDs of the security groups for the target network.
+	SecurityGroupIds []*string `locationName:"securityGroupIdSet" locationNameList:"item" type:"list"`
+
 	// The ARN of the server certificate.
 	ServerCertificateArn *string `locationName:"serverCertificateArn" type:"string"`
 
@@ -42744,6 +42750,9 @@ type ClientVpnEndpoint struct {
 
 	// The transport protocol used by the Client VPN endpoint.
 	TransportProtocol *string `locationName:"transportProtocol" type:"string" enum:"TransportProtocol"`
+
+	// The ID of the VPC.
+	VpcId *string `locationName:"vpcId" type:"string"`
 
 	// The port number for the Client VPN endpoint.
 	VpnPort *int64 `locationName:"vpnPort" type:"integer"`
@@ -42822,6 +42831,12 @@ func (s *ClientVpnEndpoint) SetDnsServers(v []*string) *ClientVpnEndpoint {
 	return s
 }
 
+// SetSecurityGroupIds sets the SecurityGroupIds field's value.
+func (s *ClientVpnEndpoint) SetSecurityGroupIds(v []*string) *ClientVpnEndpoint {
+	s.SecurityGroupIds = v
+	return s
+}
+
 // SetServerCertificateArn sets the ServerCertificateArn field's value.
 func (s *ClientVpnEndpoint) SetServerCertificateArn(v string) *ClientVpnEndpoint {
 	s.ServerCertificateArn = &v
@@ -42849,6 +42864,12 @@ func (s *ClientVpnEndpoint) SetTags(v []*Tag) *ClientVpnEndpoint {
 // SetTransportProtocol sets the TransportProtocol field's value.
 func (s *ClientVpnEndpoint) SetTransportProtocol(v string) *ClientVpnEndpoint {
 	s.TransportProtocol = &v
+	return s
+}
+
+// SetVpcId sets the VpcId field's value.
+func (s *ClientVpnEndpoint) SetVpcId(v string) *ClientVpnEndpoint {
+	s.VpcId = &v
 	return s
 }
 
@@ -44309,6 +44330,10 @@ type CreateClientVpnEndpointInput struct {
 	// it is UnauthorizedOperation.
 	DryRun *bool `type:"boolean"`
 
+	// The IDs of one or more security groups to apply to the target network. You
+	// must also specify the ID of the VPC that contains the security groups.
+	SecurityGroupIds []*string `locationName:"SecurityGroupId" locationNameList:"item" type:"list"`
+
 	// The ARN of the server certificate. For more information, see the AWS Certificate
 	// Manager User Guide (https://docs.aws.amazon.com/acm/latest/userguide/).
 	//
@@ -44331,6 +44356,11 @@ type CreateClientVpnEndpointInput struct {
 	//
 	// Default value: udp
 	TransportProtocol *string `type:"string" enum:"TransportProtocol"`
+
+	// The ID of the VPC to associate with the Client VPN endpoint. If no security
+	// group IDs are specified in the request, the default security group for the
+	// VPC is applied.
+	VpcId *string `type:"string"`
 
 	// The port number to assign to the Client VPN endpoint for TCP and UDP traffic.
 	//
@@ -44414,6 +44444,12 @@ func (s *CreateClientVpnEndpointInput) SetDryRun(v bool) *CreateClientVpnEndpoin
 	return s
 }
 
+// SetSecurityGroupIds sets the SecurityGroupIds field's value.
+func (s *CreateClientVpnEndpointInput) SetSecurityGroupIds(v []*string) *CreateClientVpnEndpointInput {
+	s.SecurityGroupIds = v
+	return s
+}
+
 // SetServerCertificateArn sets the ServerCertificateArn field's value.
 func (s *CreateClientVpnEndpointInput) SetServerCertificateArn(v string) *CreateClientVpnEndpointInput {
 	s.ServerCertificateArn = &v
@@ -44435,6 +44471,12 @@ func (s *CreateClientVpnEndpointInput) SetTagSpecifications(v []*TagSpecificatio
 // SetTransportProtocol sets the TransportProtocol field's value.
 func (s *CreateClientVpnEndpointInput) SetTransportProtocol(v string) *CreateClientVpnEndpointInput {
 	s.TransportProtocol = &v
+	return s
+}
+
+// SetVpcId sets the VpcId field's value.
+func (s *CreateClientVpnEndpointInput) SetVpcId(v string) *CreateClientVpnEndpointInput {
+	s.VpcId = &v
 	return s
 }
 
@@ -65414,9 +65456,10 @@ type DescribeTagsInput struct {
 	//    * resource-type - The resource type (customer-gateway | dedicated-host
 	//    | dhcp-options | elastic-ip | fleet | fpga-image | image | instance |
 	//    host-reservation | internet-gateway | launch-template | natgateway | network-acl
-	//    | network-interface | reserved-instances | route-table | security-group
-	//    | snapshot | spot-instances-request | subnet | volume | vpc | vpc-peering-connection
-	//    | vpn-connection | vpn-gateway).
+	//    | network-interface | placement-group | reserved-instances | route-table
+	//    | security-group | snapshot | spot-instances-request | subnet | volume
+	//    | vpc | vpc-endpoint | vpc-endpoint-service | vpc-peering-connection |
+	//    vpn-connection | vpn-gateway).
 	//
 	//    * tag:<key> - The key/value combination of the tag. For example, specify
 	//    "tag:Owner" for the filter name and "TeamA" for the filter value to find
@@ -69588,6 +69631,10 @@ func (s *DisableTransitGatewayRouteTablePropagationOutput) SetPropagation(v *Tra
 type DisableVgwRoutePropagationInput struct {
 	_ struct{} `type:"structure"`
 
+	// Checks whether you have the required permissions for the action, without
+	// actually making the request, and provides an error response. If you have
+	// the required permissions, the error response is DryRunOperation. Otherwise,
+	// it is UnauthorizedOperation.
 	DryRun *bool `type:"boolean"`
 
 	// The ID of the virtual private gateway.
@@ -71783,6 +71830,10 @@ func (s *EnableTransitGatewayRouteTablePropagationOutput) SetPropagation(v *Tran
 type EnableVgwRoutePropagationInput struct {
 	_ struct{} `type:"structure"`
 
+	// Checks whether you have the required permissions for the action, without
+	// actually making the request, and provides an error response. If you have
+	// the required permissions, the error response is DryRunOperation. Otherwise,
+	// it is UnauthorizedOperation.
 	DryRun *bool `type:"boolean"`
 
 	// The ID of the virtual private gateway that is attached to a VPC. The virtual
@@ -84443,6 +84494,9 @@ type ModifyClientVpnEndpointInput struct {
 	// it is UnauthorizedOperation.
 	DryRun *bool `type:"boolean"`
 
+	// The IDs of one or more security groups to apply to the target network.
+	SecurityGroupIds []*string `locationName:"SecurityGroupId" locationNameList:"item" type:"list"`
+
 	// The ARN of the server certificate to be used. The server certificate must
 	// be provisioned in AWS Certificate Manager (ACM).
 	ServerCertificateArn *string `type:"string"`
@@ -84453,6 +84507,9 @@ type ModifyClientVpnEndpointInput struct {
 	// VPN Endpoint (https://docs.aws.amazon.com/vpn/latest/clientvpn-admin/split-tunnel-vpn.html)
 	// in the AWS Client VPN Administrator Guide.
 	SplitTunnel *bool `type:"boolean"`
+
+	// The ID of the VPC to associate with the Client VPN endpoint.
+	VpcId *string `type:"string"`
 
 	// The port number to assign to the Client VPN endpoint for TCP and UDP traffic.
 	//
@@ -84515,6 +84572,12 @@ func (s *ModifyClientVpnEndpointInput) SetDryRun(v bool) *ModifyClientVpnEndpoin
 	return s
 }
 
+// SetSecurityGroupIds sets the SecurityGroupIds field's value.
+func (s *ModifyClientVpnEndpointInput) SetSecurityGroupIds(v []*string) *ModifyClientVpnEndpointInput {
+	s.SecurityGroupIds = v
+	return s
+}
+
 // SetServerCertificateArn sets the ServerCertificateArn field's value.
 func (s *ModifyClientVpnEndpointInput) SetServerCertificateArn(v string) *ModifyClientVpnEndpointInput {
 	s.ServerCertificateArn = &v
@@ -84524,6 +84587,12 @@ func (s *ModifyClientVpnEndpointInput) SetServerCertificateArn(v string) *Modify
 // SetSplitTunnel sets the SplitTunnel field's value.
 func (s *ModifyClientVpnEndpointInput) SetSplitTunnel(v bool) *ModifyClientVpnEndpointInput {
 	s.SplitTunnel = &v
+	return s
+}
+
+// SetVpcId sets the VpcId field's value.
+func (s *ModifyClientVpnEndpointInput) SetVpcId(v string) *ModifyClientVpnEndpointInput {
+	s.VpcId = &v
 	return s
 }
 
@@ -102726,10 +102795,11 @@ type TagSpecification struct {
 
 	// The type of resource to tag. Currently, the resource types that support tagging
 	// on creation are: capacity-reservation | client-vpn-endpoint | dedicated-host
-	// | fleet | fpga-image | instance | key-pair | launch-template | placement-group
-	// | snapshot | traffic-mirror-filter | traffic-mirror-session | traffic-mirror-target
-	// | transit-gateway | transit-gateway-attachment | transit-gateway-route-table
-	// | volume.
+	// | fleet | fpga-image | instance | key-pair | launch-template | spot-fleet-request
+	// | placement-group | snapshot | traffic-mirror-filter | traffic-mirror-session
+	// | traffic-mirror-target | transit-gateway | transit-gateway-attachment |
+	// transit-gateway-route-table | vpc-endpoint (for interface VPC endpoints)|
+	// vpc-endpoint-service (for gateway VPC endpoints) | volume | vpc-flow-log.
 	//
 	// To tag a resource after it has been created, see CreateTags (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_CreateTags.html).
 	ResourceType *string `locationName:"resourceType" type:"string" enum:"ResourceType"`

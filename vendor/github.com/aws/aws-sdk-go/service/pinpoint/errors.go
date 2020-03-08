@@ -38,6 +38,12 @@ const (
 	// Provides information about an API request or response.
 	ErrCodeNotFoundException = "NotFoundException"
 
+	// ErrCodePayloadTooLargeException for service response error code
+	// "PayloadTooLargeException".
+	//
+	// Provides information about an API request or response.
+	ErrCodePayloadTooLargeException = "PayloadTooLargeException"
+
 	// ErrCodeTooManyRequestsException for service response error code
 	// "TooManyRequestsException".
 	//
@@ -51,5 +57,6 @@ var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
 	"InternalServerErrorException": newErrorInternalServerErrorException,
 	"MethodNotAllowedException":    newErrorMethodNotAllowedException,
 	"NotFoundException":            newErrorNotFoundException,
+	"PayloadTooLargeException":     newErrorPayloadTooLargeException,
 	"TooManyRequestsException":     newErrorTooManyRequestsException,
 }
