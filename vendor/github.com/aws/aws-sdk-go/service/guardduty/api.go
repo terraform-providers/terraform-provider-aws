@@ -8872,6 +8872,8 @@ type ListFindingsInput struct {
 	//
 	//    * service.action.networkConnectionAction.protocol
 	//
+	//    * service.action.networkConnectionAction.localIpDetails.ipAddressV4
+	//
 	//    * service.action.networkConnectionAction.remoteIpDetails.city.cityName
 	//
 	//    * service.action.networkConnectionAction.remoteIpDetails.country.countryName
@@ -9568,6 +9570,30 @@ func (s *ListThreatIntelSetsOutput) SetThreatIntelSetIds(v []*string) *ListThrea
 	return s
 }
 
+// Contains information about the local IP address of the connection.
+type LocalIpDetails struct {
+	_ struct{} `type:"structure"`
+
+	// IPV4 remote address of the connection.
+	IpAddressV4 *string `locationName:"ipAddressV4" type:"string"`
+}
+
+// String returns the string representation
+func (s LocalIpDetails) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s LocalIpDetails) GoString() string {
+	return s.String()
+}
+
+// SetIpAddressV4 sets the IpAddressV4 field's value.
+func (s *LocalIpDetails) SetIpAddressV4(v string) *LocalIpDetails {
+	s.IpAddressV4 = &v
+	return s
+}
+
 // Contains information about the port for the local connection.
 type LocalPortDetails struct {
 	_ struct{} `type:"structure"`
@@ -9751,6 +9777,9 @@ type NetworkConnectionAction struct {
 	// Network connection direction.
 	ConnectionDirection *string `locationName:"connectionDirection" type:"string"`
 
+	// Local IP information of the connection.
+	LocalIpDetails *LocalIpDetails `locationName:"localIpDetails" type:"structure"`
+
 	// Local port information of the connection.
 	LocalPortDetails *LocalPortDetails `locationName:"localPortDetails" type:"structure"`
 
@@ -9783,6 +9812,12 @@ func (s *NetworkConnectionAction) SetBlocked(v bool) *NetworkConnectionAction {
 // SetConnectionDirection sets the ConnectionDirection field's value.
 func (s *NetworkConnectionAction) SetConnectionDirection(v string) *NetworkConnectionAction {
 	s.ConnectionDirection = &v
+	return s
+}
+
+// SetLocalIpDetails sets the LocalIpDetails field's value.
+func (s *NetworkConnectionAction) SetLocalIpDetails(v *LocalIpDetails) *NetworkConnectionAction {
+	s.LocalIpDetails = v
 	return s
 }
 
@@ -10003,6 +10038,9 @@ func (s *PortProbeAction) SetPortProbeDetails(v []*PortProbeDetail) *PortProbeAc
 type PortProbeDetail struct {
 	_ struct{} `type:"structure"`
 
+	// Local IP information of the connection.
+	LocalIpDetails *LocalIpDetails `locationName:"localIpDetails" type:"structure"`
+
 	// Local port information of the connection.
 	LocalPortDetails *LocalPortDetails `locationName:"localPortDetails" type:"structure"`
 
@@ -10018,6 +10056,12 @@ func (s PortProbeDetail) String() string {
 // GoString returns the string representation
 func (s PortProbeDetail) GoString() string {
 	return s.String()
+}
+
+// SetLocalIpDetails sets the LocalIpDetails field's value.
+func (s *PortProbeDetail) SetLocalIpDetails(v *LocalIpDetails) *PortProbeDetail {
+	s.LocalIpDetails = v
+	return s
 }
 
 // SetLocalPortDetails sets the LocalPortDetails field's value.

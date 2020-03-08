@@ -5,19 +5,19 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/workspaces"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
 func TestAccAwsWorkspacesIpGroup_basic(t *testing.T) {
-	var wipg workspaces.IpGroup
+	var v workspaces.IpGroup
 	ipGroupName := fmt.Sprintf("terraform-acctest-%s", acctest.RandString(10))
 	ipGroupNewName := fmt.Sprintf("terraform-acctest-new-%s", acctest.RandString(10))
 	ipGroupDescription := fmt.Sprintf("Terraform Acceptance Test %s", strings.Title(acctest.RandString(20)))
+	resourceName := "aws_workspaces_ip_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -27,34 +27,35 @@ func TestAccAwsWorkspacesIpGroup_basic(t *testing.T) {
 			{
 				Config: testAccAwsWorkspacesIpGroupConfigA(ipGroupName, ipGroupDescription),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccWorkspacesIpGroupConfigExists("aws_workspaces_ip_group.test", &wipg),
-					resource.TestCheckResourceAttr(
-						"aws_workspaces_ip_group.test", "name", ipGroupName),
-					resource.TestCheckResourceAttr(
-						"aws_workspaces_ip_group.test", "description", ipGroupDescription),
-					resource.TestCheckResourceAttr(
-						"aws_workspaces_ip_group.test", "rules.#", "2"),
+					testAccCheckAwsWorkspacesIpGroupExists(resourceName, &v),
+					resource.TestCheckResourceAttr(resourceName, "name", ipGroupName),
+					resource.TestCheckResourceAttr(resourceName, "description", ipGroupDescription),
+					resource.TestCheckResourceAttr(resourceName, "rules.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "3"),
+					resource.TestCheckResourceAttr(resourceName, "tags.Name", "test"),
+					resource.TestCheckResourceAttr(resourceName, "tags.Terraform", "true"),
+					resource.TestCheckResourceAttr(resourceName, "tags.IPGroup", "Home"),
 				),
 			},
 			{
-				ResourceName:      "aws_workspaces_ip_group.test",
+				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
 			{
 				Config: testAccAwsWorkspacesIpGroupConfigB(ipGroupNewName, ipGroupDescription),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccWorkspacesIpGroupConfigExists("aws_workspaces_ip_group.test", &wipg),
-					resource.TestCheckResourceAttr(
-						"aws_workspaces_ip_group.test", "name", ipGroupNewName),
-					resource.TestCheckResourceAttr(
-						"aws_workspaces_ip_group.test", "description", ipGroupDescription),
-					resource.TestCheckResourceAttr(
-						"aws_workspaces_ip_group.test", "rules.#", "1"),
+					testAccCheckAwsWorkspacesIpGroupExists(resourceName, &v),
+					resource.TestCheckResourceAttr(resourceName, "name", ipGroupNewName),
+					resource.TestCheckResourceAttr(resourceName, "description", ipGroupDescription),
+					resource.TestCheckResourceAttr(resourceName, "rules.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.IPGroup", "Home"),
+					resource.TestCheckResourceAttr(resourceName, "tags.Purpose", "test"),
 				),
 			},
 			{
-				ResourceName:      "aws_workspaces_ip_group.test",
+				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -90,7 +91,7 @@ func testAccCheckAwsWorkspacesIpGroupDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccWorkspacesIpGroupConfigExists(n string, wipg *workspaces.IpGroup) resource.TestCheckFunc {
+func testAccCheckAwsWorkspacesIpGroupExists(n string, v *workspaces.IpGroup) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -105,17 +106,12 @@ func testAccWorkspacesIpGroupConfigExists(n string, wipg *workspaces.IpGroup) re
 		resp, err := conn.DescribeIpGroups(&workspaces.DescribeIpGroupsInput{
 			GroupIds: []*string{aws.String(rs.Primary.ID)},
 		})
-
 		if err != nil {
 			return err
 		}
 
 		if *resp.Result[0].GroupId == rs.Primary.ID {
-			wipg = &workspaces.IpGroup{
-				GroupId:   resp.Result[0].GroupId,
-				GroupName: resp.Result[0].GroupName,
-				GroupDesc: resp.Result[0].GroupDesc,
-			}
+			*v = *resp.Result[0]
 			return nil
 		}
 
@@ -135,11 +131,13 @@ resource "aws_workspaces_ip_group" "test" {
 
   rules {
     source      = "10.0.0.1/16"
-    description = "Home" 
+    description = "Home"
   }
 
   tags = {
-    Name = "Home IP Group"
+    Name = "test"
+    Terraform = true
+    IPGroup = "Home"
   }
 }
 `, name, description)
@@ -153,11 +151,12 @@ resource "aws_workspaces_ip_group" "test" {
 
   rules {
     source      = "10.0.0.1/16"
-    description = "Home" 
+    description = "Home"
   }
 
   tags = {
-    Owner = "Andrew"
+    Purpose   = "test"
+    IPGroup = "Home"
   }
 }
 `, name, description)

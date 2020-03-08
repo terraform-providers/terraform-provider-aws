@@ -39,10 +39,6 @@ func TestAccDataSourceAwsInternetGateway_typical(t *testing.T) {
 }
 
 const testAccDataSourceAwsInternetGatewayConfig = `
-provider "aws" {
-  region = "eu-central-1"
-}
-
 resource "aws_vpc" "test" {
   cidr_block = "172.16.0.0/16"
 

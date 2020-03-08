@@ -2,7 +2,6 @@ package aws
 
 import (
 	"fmt"
-	"reflect"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -10,89 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
-
-func TestDiffTags(t *testing.T) {
-	cases := []struct {
-		Old, New       map[string]interface{}
-		Create, Remove map[string]string
-	}{
-		// Add
-		{
-			Old: map[string]interface{}{
-				"foo": "bar",
-			},
-			New: map[string]interface{}{
-				"foo": "bar",
-				"bar": "baz",
-			},
-			Create: map[string]string{
-				"bar": "baz",
-			},
-			Remove: map[string]string{},
-		},
-
-		// Modify
-		{
-			Old: map[string]interface{}{
-				"foo": "bar",
-			},
-			New: map[string]interface{}{
-				"foo": "baz",
-			},
-			Create: map[string]string{
-				"foo": "baz",
-			},
-			Remove: map[string]string{
-				"foo": "bar",
-			},
-		},
-
-		// Overlap
-		{
-			Old: map[string]interface{}{
-				"foo":   "bar",
-				"hello": "world",
-			},
-			New: map[string]interface{}{
-				"foo":   "baz",
-				"hello": "world",
-			},
-			Create: map[string]string{
-				"foo": "baz",
-			},
-			Remove: map[string]string{
-				"foo": "bar",
-			},
-		},
-
-		// Remove
-		{
-			Old: map[string]interface{}{
-				"foo": "bar",
-				"bar": "baz",
-			},
-			New: map[string]interface{}{
-				"foo": "bar",
-			},
-			Create: map[string]string{},
-			Remove: map[string]string{
-				"bar": "baz",
-			},
-		},
-	}
-
-	for i, tc := range cases {
-		c, r := diffTags(tagsFromMap(tc.Old), tagsFromMap(tc.New))
-		cm := tagsToMap(c)
-		rm := tagsToMap(r)
-		if !reflect.DeepEqual(cm, tc.Create) {
-			t.Fatalf("%d: bad create: %#v", i, cm)
-		}
-		if !reflect.DeepEqual(rm, tc.Remove) {
-			t.Fatalf("%d: bad remove: %#v", i, rm)
-		}
-	}
-}
 
 func TestIgnoringTags(t *testing.T) {
 	var ignoredTags []*ec2.Tag

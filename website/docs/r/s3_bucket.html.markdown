@@ -309,13 +309,36 @@ resource "aws_s3_bucket" "mybucket" {
 }
 ```
 
+### Using ACL policy grants
+
+```hcl
+data "aws_canonical_user_id" "current_user" {}
+
+resource "aws_s3_bucket" "bucket" {
+  bucket = "mybucket"
+
+  grant {
+    id         = "${data.aws_canonical_user_id.current_user.id}"
+    type       = "CanonicalUser"
+    permission = ["FULL_ACCESS"]
+  }
+
+  grant {
+    type       = "Group"
+    permission = ["READ", "WRITE"]
+    uri        = "http://acs.amazonaws.com/groups/s3/LogDelivery"
+  }
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:
 
 * `bucket` - (Optional, Forces new resource) The name of the bucket. If omitted, Terraform will assign a random, unique name.
 * `bucket_prefix` - (Optional, Forces new resource) Creates a unique bucket name beginning with the specified prefix. Conflicts with `bucket`.
-* `acl` - (Optional) The [canned ACL](https://docs.aws.amazon.com/AmazonS3/latest/dev/acl-overview.html#canned-acl) to apply. Defaults to "private".
+* `acl` - (Optional) The [canned ACL](https://docs.aws.amazon.com/AmazonS3/latest/dev/acl-overview.html#canned-acl) to apply. Defaults to "private".  Conflicts with `grant`.
+* `grant` - (Optional) An [ACL policy grant](https://docs.aws.amazon.com/AmazonS3/latest/dev/acl-overview.html#sample-acl) (documented below). Conflicts with `acl`.
 * `policy` - (Optional) A valid [bucket policy](https://docs.aws.amazon.com/AmazonS3/latest/dev/example-bucket-policies.html) JSON document. Note that if the policy document is not specific enough (but still valid), Terraform may view the policy as constantly changing in a `terraform plan`. In this case, please make sure you use the verbose/specific version of the policy. For more information about building AWS IAM policy documents with Terraform, see the [AWS IAM Policy Document Guide](https://learn.hashicorp.com/terraform/aws/iam-policy).
 
 * `tags` - (Optional) A mapping of tags to assign to the bucket.
@@ -457,6 +480,13 @@ The `apply_server_side_encryption_by_default` object supports the following:
 
 * `sse_algorithm` - (required) The server-side encryption algorithm to use. Valid values are `AES256` and `aws:kms`
 * `kms_master_key_id` - (optional) The AWS KMS master key ID used for the SSE-KMS encryption. This can only be used when you set the value of `sse_algorithm` as `aws:kms`. The default `aws/s3` AWS KMS master key is used if this element is absent while the `sse_algorithm` is `aws:kms`.
+
+The `grant` object supports the following:
+
+* `id` - (optional) Canonical user id to grant for. Used only when `type` is `CanonicalUser`.  
+* `type` - (required) - Type of grantee to apply for. Valid values are `CanonicalUser` and `Group`. `AmazonCustomerByEmail` is not supported.
+* `permissions` - (required) List of permissions to apply for grantee. Valid values are `READ`, `WRITE`, `READ_ACP`, `WRITE_ACP`, `FULL_ACCESS`.
+* `uri` - (optional) Uri address to grant for. Used only when `type` is `Group`.
 
 The `access_control_translation` object supports the following:
 

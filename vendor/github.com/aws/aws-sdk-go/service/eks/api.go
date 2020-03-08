@@ -2610,6 +2610,9 @@ type Cluster struct {
 	// The Unix epoch timestamp in seconds for when the cluster was created.
 	CreatedAt *time.Time `locationName:"createdAt" type:"timestamp"`
 
+	// The encryption configuration for the cluster.
+	EncryptionConfig []*EncryptionConfig `locationName:"encryptionConfig" type:"list"`
+
 	// The endpoint for your Kubernetes API server.
 	Endpoint *string `locationName:"endpoint" type:"string"`
 
@@ -2686,6 +2689,12 @@ func (s *Cluster) SetCreatedAt(v time.Time) *Cluster {
 	return s
 }
 
+// SetEncryptionConfig sets the EncryptionConfig field's value.
+func (s *Cluster) SetEncryptionConfig(v []*EncryptionConfig) *Cluster {
+	s.EncryptionConfig = v
+	return s
+}
+
 // SetEndpoint sets the Endpoint field's value.
 func (s *Cluster) SetEndpoint(v string) *Cluster {
 	s.Endpoint = &v
@@ -2752,6 +2761,9 @@ type CreateClusterInput struct {
 	// Unique, case-sensitive identifier that you provide to ensure the idempotency
 	// of the request.
 	ClientRequestToken *string `locationName:"clientRequestToken" type:"string" idempotencyToken:"true"`
+
+	// The encryption configuration for the cluster.
+	EncryptionConfig []*EncryptionConfig `locationName:"encryptionConfig" type:"list"`
 
 	// Enable or disable exporting the Kubernetes control plane logs for your cluster
 	// to CloudWatch Logs. By default, cluster control plane logs aren't exported
@@ -2835,6 +2847,12 @@ func (s *CreateClusterInput) Validate() error {
 // SetClientRequestToken sets the ClientRequestToken field's value.
 func (s *CreateClusterInput) SetClientRequestToken(v string) *CreateClusterInput {
 	s.ClientRequestToken = &v
+	return s
+}
+
+// SetEncryptionConfig sets the EncryptionConfig field's value.
+func (s *CreateClusterInput) SetEncryptionConfig(v []*EncryptionConfig) *CreateClusterInput {
+	s.EncryptionConfig = v
 	return s
 }
 
@@ -3813,6 +3831,40 @@ func (s DescribeUpdateOutput) GoString() string {
 // SetUpdate sets the Update field's value.
 func (s *DescribeUpdateOutput) SetUpdate(v *Update) *DescribeUpdateOutput {
 	s.Update = v
+	return s
+}
+
+// The encryption configuration for the cluster.
+type EncryptionConfig struct {
+	_ struct{} `type:"structure"`
+
+	// AWS Key Management Service (AWS KMS) customer master key (CMK). Either the
+	// ARN or the alias can be used.
+	Provider *Provider `locationName:"provider" type:"structure"`
+
+	// Specifies the resources to be encrypted. The only supported value is "secrets".
+	Resources []*string `locationName:"resources" type:"list"`
+}
+
+// String returns the string representation
+func (s EncryptionConfig) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s EncryptionConfig) GoString() string {
+	return s.String()
+}
+
+// SetProvider sets the Provider field's value.
+func (s *EncryptionConfig) SetProvider(v *Provider) *EncryptionConfig {
+	s.Provider = v
+	return s
+}
+
+// SetResources sets the Resources field's value.
+func (s *EncryptionConfig) SetResources(v []*string) *EncryptionConfig {
+	s.Resources = v
 	return s
 }
 
@@ -5221,6 +5273,36 @@ func (s OIDC) GoString() string {
 // SetIssuer sets the Issuer field's value.
 func (s *OIDC) SetIssuer(v string) *OIDC {
 	s.Issuer = &v
+	return s
+}
+
+// Identifies the AWS Key Management Service (AWS KMS) customer master key (CMK)
+// used to encrypt the secrets.
+type Provider struct {
+	_ struct{} `type:"structure"`
+
+	// Amazon Resource Name (ARN) or alias of the customer master key (CMK). The
+	// CMK must be symmetric, created in the same region as the cluster, and if
+	// the CMK was created in a different account, the user must have access to
+	// the CMK. For more information, see Allowing Users in Other Accounts to Use
+	// a CMK (https://docs.aws.amazon.com/kms/latest/developerguide/key-policy-modifying-external-accounts.html)
+	// in the AWS Key Management Service Developer Guide.
+	KeyArn *string `locationName:"keyArn" type:"string"`
+}
+
+// String returns the string representation
+func (s Provider) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s Provider) GoString() string {
+	return s.String()
+}
+
+// SetKeyArn sets the KeyArn field's value.
+func (s *Provider) SetKeyArn(v string) *Provider {
+	s.KeyArn = &v
 	return s
 }
 

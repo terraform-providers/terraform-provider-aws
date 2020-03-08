@@ -233,7 +233,6 @@ func testAccCheckAwsWorkspacesDirectoryExists(n string, v *workspaces.WorkspaceD
 
 		if *resp.Directories[0].DirectoryId == rs.Primary.ID {
 			*v = *resp.Directories[0]
-
 			return nil
 		}
 
