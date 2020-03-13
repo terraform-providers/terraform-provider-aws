@@ -24,6 +24,11 @@ resource "aws_inspector_assessment_template" "foo" {
     "arn:aws:inspector:us-west-2:758058086616:rulespackage/0-JJOtZiqQ",
     "arn:aws:inspector:us-west-2:758058086616:rulespackage/0-vg5GGHSD",
   ]
+
+  subscribe_to_event {
+    event = "ASSESSMENT_RUN_COMPLETED"
+    topic_arn = "arn:aws:sns:ap-southeast-2:123456789012:mytopic"
+  }
 }
 ```
 
@@ -35,6 +40,12 @@ The following arguments are supported:
 * `target_arn` - (Required) The assessment target ARN to attach the template to.
 * `duration` - (Required) The duration of the inspector run.
 * `rules_package_arns` - (Required) The rules to be used during the run.
+* `subscribe_to_event` (Optional) - A list of objects representing a subscription of an SNS topic to life-cycle events. The keys are documented below.
+
+The `subscribe_to_event` object supports the following arguments:
+
+* `event` - (Required) The name (or names) of the event (or events) the SNS topic is subscribing to. Allowed values are: `ASSESSMENT_RUN_STARTED`, `ASSESSMENT_RUN_COMPLETED`, `ASSESSMENT_RUN_STATE_CHANGED`, and `FINDING_REPORTED`.
+* `topic_arn` - (Required) The ARN of the subscribing SNS topic.
 
 ## Attributes Reference
 

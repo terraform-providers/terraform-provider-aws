@@ -2,6 +2,7 @@ package aws
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -70,15 +71,35 @@ func testAccCheckAWSInspectorTemplateExists(name string) resource.TestCheckFunc 
 	return func(s *terraform.State) error {
 		_, ok := s.RootModule().Resources[name]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("not found: %s", name)
 		}
 
 		return nil
 	}
 }
 
+func testAccCheckIsSubscribedToEvent(templateName string, eventName string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		is, err := primaryInstanceState(s, templateName)
+		if err != nil {
+			return err
+		}
+
+		for k, v := range is.Attributes {
+			if strings.HasPrefix(k, "subscribe_to_event.") && strings.HasSuffix(k, ".event") {
+				if v == eventName {
+					return nil
+				}
+			}
+		}
+		return fmt.Errorf("could not find an event named: %s", eventName)
+	}
+}
+
 func testAccAWSInspectorTemplateAssessment(rInt int) string {
 	return fmt.Sprintf(`
+data "aws_inspector_rules_packages" "rules" {}
+
 resource "aws_inspector_resource_group" "foo" {
   tags = {
     Name = "tf-acc-test-%d"
@@ -95,18 +116,15 @@ resource "aws_inspector_assessment_template" "foo" {
   target_arn = "${aws_inspector_assessment_target.foo.arn}"
   duration   = 3600
 
-  rules_package_arns = [
-    "arn:aws:inspector:us-west-2:758058086616:rulespackage/0-9hgA516p",
-    "arn:aws:inspector:us-west-2:758058086616:rulespackage/0-H5hpSawc",
-    "arn:aws:inspector:us-west-2:758058086616:rulespackage/0-JJOtZiqQ",
-    "arn:aws:inspector:us-west-2:758058086616:rulespackage/0-vg5GGHSD",
-  ]
+  rules_package_arns = data.aws_inspector_rules_packages.rules.arns
 }
 `, rInt, rInt, rInt)
 }
 
 func testAccCheckAWSInspectorTemplatetModified(rInt int) string {
 	return fmt.Sprintf(`
+data "aws_inspector_rules_packages" "rules" {}
+
 resource "aws_inspector_resource_group" "foo" {
   tags = {
     Name = "tf-acc-test-%d"
@@ -123,12 +141,7 @@ resource "aws_inspector_assessment_template" "foo" {
   target_arn = "${aws_inspector_assessment_target.foo.arn}"
   duration   = 3600
 
-  rules_package_arns = [
-    "arn:aws:inspector:us-west-2:758058086616:rulespackage/0-9hgA516p",
-    "arn:aws:inspector:us-west-2:758058086616:rulespackage/0-H5hpSawc",
-    "arn:aws:inspector:us-west-2:758058086616:rulespackage/0-JJOtZiqQ",
-    "arn:aws:inspector:us-west-2:758058086616:rulespackage/0-vg5GGHSD",
-  ]
+  rules_package_arns = data.aws_inspector_rules_packages.rules.arns
 }
 `, rInt, rInt, rInt)
 }

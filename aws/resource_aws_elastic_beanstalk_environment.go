@@ -970,9 +970,11 @@ func (e beanstalkEnvironmentError) Error() string {
 
 type beanstalkEnvironmentErrors []*beanstalkEnvironmentError
 
-func (e beanstalkEnvironmentErrors) Len() int           { return len(e) }
-func (e beanstalkEnvironmentErrors) Swap(i, j int)      { e[i], e[j] = e[j], e[i] }
-func (e beanstalkEnvironmentErrors) Less(i, j int) bool { return e[i].eventDate.Before(*e[j].eventDate) }
+func (e beanstalkEnvironmentErrors) Len() int      { return len(e) }
+func (e beanstalkEnvironmentErrors) Swap(i, j int) { e[i], e[j] = e[j], e[i] }
+func (e beanstalkEnvironmentErrors) Less(i, j int) bool {
+	return e[i].eventDate.Before(*e[j].eventDate)
+}
 
 func getBeanstalkEnvironmentErrors(conn *elasticbeanstalk.ElasticBeanstalk, environmentId string, t time.Time) (*multierror.Error, error) {
 	environmentErrors, err := conn.DescribeEvents(&elasticbeanstalk.DescribeEventsInput{
