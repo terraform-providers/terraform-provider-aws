@@ -63,6 +63,7 @@ func TestAccAWSUserLoginProfile_basic(t *testing.T) {
 	var conf iam.GetLoginProfileOutput
 
 	username := fmt.Sprintf("test-user-%d", acctest.RandInt())
+	resourceName := "aws_iam_user_login_profile.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -73,17 +74,17 @@ func TestAccAWSUserLoginProfile_basic(t *testing.T) {
 			{
 				Config: testAccAWSUserLoginProfileConfig_Required(username, "/", testPubKey1),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSUserLoginProfileExists("aws_iam_user_login_profile.user", &conf),
-					testDecryptPasswordAndTest("aws_iam_user_login_profile.user", "aws_iam_access_key.user", testPrivKey1),
-					resource.TestCheckResourceAttrSet("aws_iam_user_login_profile.user", "encrypted_password"),
-					resource.TestCheckResourceAttrSet("aws_iam_user_login_profile.user", "key_fingerprint"),
-					resource.TestCheckResourceAttr("aws_iam_user_login_profile.user", "password_length", "20"),
-					resource.TestCheckResourceAttr("aws_iam_user_login_profile.user", "password_reset_required", "true"),
-					resource.TestCheckResourceAttr("aws_iam_user_login_profile.user", "pgp_key", testPubKey1+"\n"),
+					testAccCheckAWSUserLoginProfileExists(resourceName, &conf),
+					testDecryptPasswordAndTest(resourceName, "aws_iam_access_key.test", testPrivKey1),
+					resource.TestCheckResourceAttrSet(resourceName, "encrypted_password"),
+					resource.TestCheckResourceAttrSet(resourceName, "key_fingerprint"),
+					resource.TestCheckResourceAttr(resourceName, "password_length", "20"),
+					resource.TestCheckResourceAttr(resourceName, "password_reset_required", "true"),
+					resource.TestCheckResourceAttr(resourceName, "pgp_key", testPubKey1+"\n"),
 				),
 			},
 			{
-				ResourceName:      "aws_iam_user_login_profile.user",
+				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
@@ -102,6 +103,7 @@ func TestAccAWSUserLoginProfile_keybase(t *testing.T) {
 	var conf iam.GetLoginProfileOutput
 
 	username := fmt.Sprintf("test-user-%d", acctest.RandInt())
+	resourceName := "aws_iam_user_login_profile.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -112,16 +114,16 @@ func TestAccAWSUserLoginProfile_keybase(t *testing.T) {
 			{
 				Config: testAccAWSUserLoginProfileConfig_Required(username, "/", "keybase:terraformacctest"),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSUserLoginProfileExists("aws_iam_user_login_profile.user", &conf),
-					resource.TestCheckResourceAttrSet("aws_iam_user_login_profile.user", "encrypted_password"),
-					resource.TestCheckResourceAttrSet("aws_iam_user_login_profile.user", "key_fingerprint"),
-					resource.TestCheckResourceAttr("aws_iam_user_login_profile.user", "password_length", "20"),
-					resource.TestCheckResourceAttr("aws_iam_user_login_profile.user", "password_reset_required", "true"),
-					resource.TestCheckResourceAttr("aws_iam_user_login_profile.user", "pgp_key", "keybase:terraformacctest\n"),
+					testAccCheckAWSUserLoginProfileExists(resourceName, &conf),
+					resource.TestCheckResourceAttrSet(resourceName, "encrypted_password"),
+					resource.TestCheckResourceAttrSet(resourceName, "key_fingerprint"),
+					resource.TestCheckResourceAttr(resourceName, "password_length", "20"),
+					resource.TestCheckResourceAttr(resourceName, "password_reset_required", "true"),
+					resource.TestCheckResourceAttr(resourceName, "pgp_key", "keybase:terraformacctest\n"),
 				),
 			},
 			{
-				ResourceName:      "aws_iam_user_login_profile.user",
+				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
@@ -176,6 +178,7 @@ func TestAccAWSUserLoginProfile_PasswordLength(t *testing.T) {
 	var conf iam.GetLoginProfileOutput
 
 	username := fmt.Sprintf("test-user-%d", acctest.RandInt())
+	resourceName := "aws_iam_user_login_profile.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -186,12 +189,12 @@ func TestAccAWSUserLoginProfile_PasswordLength(t *testing.T) {
 			{
 				Config: testAccAWSUserLoginProfileConfig_PasswordLength(username, "/", testPubKey1, 128),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSUserLoginProfileExists("aws_iam_user_login_profile.user", &conf),
-					resource.TestCheckResourceAttr("aws_iam_user_login_profile.user", "password_length", "128"),
+					testAccCheckAWSUserLoginProfileExists(resourceName, &conf),
+					resource.TestCheckResourceAttr(resourceName, "password_length", "128"),
 				),
 			},
 			{
-				ResourceName:      "aws_iam_user_login_profile.user",
+				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
@@ -319,7 +322,7 @@ func testAccCheckAWSUserLoginProfileExists(n string, res *iam.GetLoginProfileOut
 
 func testAccAWSUserLoginProfileConfig_base(rName, path string) string {
 	return fmt.Sprintf(`
-resource "aws_iam_user" "user" {
+resource "aws_iam_user" "test" {
   name          = "%s"
   path          = "%s"
   force_destroy = true
@@ -343,7 +346,7 @@ data "aws_iam_policy_document" "user" {
   }
 }
 
-resource "aws_iam_user_policy" "user" {
+resource "aws_iam_user_policy" "test" {
   name   = "AllowChangeOwnPassword"
   user   = aws_iam_user.user.name
   policy = data.aws_iam_policy_document.user.json
