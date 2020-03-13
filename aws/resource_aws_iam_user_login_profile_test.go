@@ -99,6 +99,35 @@ func TestAccAWSUserLoginProfile_basic(t *testing.T) {
 	})
 }
 
+func TestAccAWSUserLoginProfile_no_pgp(t *testing.T) {
+	var conf iam.GetLoginProfileOutput
+
+	username := fmt.Sprintf("test-user-%d", acctest.RandInt())
+	resourceName := "aws_iam_user_login_profile.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSUserLoginProfileDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSUserLoginProfileConfigNoPGP(username, "/"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSUserLoginProfileExists(resourceName, &conf),
+					resource.TestCheckResourceAttr(resourceName, "password_length", "20"),
+					resource.TestCheckResourceAttr(resourceName, "password_reset_required", "true"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"password_length", "password_reset_required"},
+			},
+		},
+	})
+}
+
 func TestAccAWSUserLoginProfile_keybase(t *testing.T) {
 	var conf iam.GetLoginProfileOutput
 
@@ -385,6 +414,16 @@ resource "aws_iam_user_login_profile" "user" {
 EOF
 }
 `, testAccAWSUserLoginProfileConfig_base(rName, path), pgpKey)
+}
+
+func testAccAWSUserLoginProfileConfigNoPGP(rName, path string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "aws_iam_user_login_profile" "test" {
+  user = "${aws_iam_user.test.name}"
+}
+`, testAccAWSUserLoginProfileConfig_base(rName, path))
 }
 
 const testPubKey1 = `mQENBFXbjPUBCADjNjCUQwfxKL+RR2GA6pv/1K+zJZ8UWIF9S0lk7cVIEfJiprzzwiMwBS5cD0da
