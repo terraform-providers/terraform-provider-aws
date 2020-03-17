@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/opsworks"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -17,7 +16,7 @@ import (
 ///////////////////////////////
 
 func TestAccAWSOpsworksStack_noVpcBasic(t *testing.T) {
-	stackName := fmt.Sprintf("tf-opsworks-acc-%d", acctest.RandInt())
+	stackName := acctest.RandomWithPrefix("tf-opsworks-acc")
 	resourceName := "aws_opsworks_stack.tf-acc"
 	var opsstack opsworks.Stack
 
@@ -48,7 +47,7 @@ func TestAccAWSOpsworksStack_noVpcBasic(t *testing.T) {
 }
 
 func TestAccAWSOpsworksStack_noVpcChangeServiceRoleForceNew(t *testing.T) {
-	stackName := fmt.Sprintf("tf-opsworks-acc-%d", acctest.RandInt())
+	stackName := acctest.RandomWithPrefix("tf-opsworks-acc")
 	resourceName := "aws_opsworks_stack.tf-acc"
 	var before, after opsworks.Stack
 
@@ -85,7 +84,7 @@ func TestAccAWSOpsworksStack_noVpcChangeServiceRoleForceNew(t *testing.T) {
 }
 
 func TestAccAWSOpsworksStack_vpc(t *testing.T) {
-	stackName := fmt.Sprintf("tf-opsworks-acc-%d", acctest.RandInt())
+	stackName := acctest.RandomWithPrefix("tf-opsworks-acc")
 	resourceName := "aws_opsworks_stack.tf-acc"
 	var opsstack opsworks.Stack
 
@@ -134,7 +133,7 @@ func TestAccAWSOpsworksStack_vpc(t *testing.T) {
 }
 
 func TestAccAWSOpsworksStack_noVpcCreateTags(t *testing.T) {
-	stackName := fmt.Sprintf("tf-opsworks-acc-%d", acctest.RandInt())
+	stackName := acctest.RandomWithPrefix("tf-opsworks-acc")
 	resourceName := "aws_opsworks_stack.tf-acc"
 	var opsstack opsworks.Stack
 
@@ -179,7 +178,7 @@ func TestAccAWSOpsworksStack_noVpcCreateTags(t *testing.T) {
 
 func TestAccAWSOpsworksStack_CustomCookbooks_SetPrivateProperties(t *testing.T) {
 	resourceName := "aws_opsworks_stack.tf-acc"
-	stackName := fmt.Sprintf("tf-opsworks-acc-%d", acctest.RandInt())
+	stackName := acctest.RandomWithPrefix("tf-opsworks-acc")
 	var opsstack opsworks.Stack
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -219,8 +218,8 @@ func TestAccAWSOpsworksStack_CustomCookbooks_SetPrivateProperties(t *testing.T) 
 // Tests the addition of regional endpoints and supporting the classic link used
 // to create Stack's prior to v0.9.0.
 // See https://github.com/hashicorp/terraform/issues/12842
-func TestAccAWSOpsworksStack_classicEndpoints(t *testing.T) {
-	stackName := fmt.Sprintf("tf-opsworks-acc-%d", acctest.RandInt())
+func TestAccAWSOpsWorksStack_classicEndpoints(t *testing.T) {
+	stackName := acctest.RandomWithPrefix("tf-opsworks-acc")
 	resourceName := "aws_opsworks_stack.main"
 	rInt := acctest.RandInt()
 	var opsstack opsworks.Stack
@@ -525,11 +524,8 @@ func testAccCheckAwsOpsworksStackDestroy(s *terraform.State) error {
 
 		_, err := opsworksconn.DescribeStacks(req)
 		if err != nil {
-			if awserr, ok := err.(awserr.Error); ok {
-				if awserr.Code() == "ResourceNotFoundException" {
-					// not found, all good
-					return nil
-				}
+			if isAWSErr(err, opsworks.ErrCodeResourceNotFoundException, "") {
+				return nil
 			}
 			return err
 		}
@@ -561,7 +557,6 @@ resource "aws_opsworks_stack" "tf-acc" {
   "key": "value"
 }
 EOF
-
   configuration_manager_version = "11.10"
   use_opsworks_security_groups  = false
 }
@@ -658,7 +653,6 @@ resource "aws_opsworks_stack" "tf-acc" {
   "key": "value"
 }
 EOF
-
   configuration_manager_version = "11.10"
   use_opsworks_security_groups  = false
 
@@ -759,7 +753,6 @@ resource "aws_opsworks_stack" "tf-acc" {
   "key": "value"
 }
 EOF
-
   configuration_manager_version = "11.10"
   use_opsworks_security_groups  = false
 
@@ -860,7 +853,6 @@ resource "aws_opsworks_stack" "tf-acc" {
   "key": "value"
 }
 EOF
-
   configuration_manager_version = "11.10"
   use_opsworks_security_groups  = false
 }
@@ -1025,7 +1017,6 @@ resource "aws_opsworks_stack" "tf-acc" {
   "key": "value"
 }
 EOF
-
   configuration_manager_version = "11.10"
   use_opsworks_security_groups  = false
 }
@@ -1141,7 +1132,6 @@ resource "aws_opsworks_stack" "tf-acc" {
   "key": "value"
 }
 EOF
-
   configuration_manager_version = "11.10"
   use_opsworks_security_groups  = false
   use_custom_cookbooks          = true
@@ -1224,6 +1214,7 @@ resource "aws_iam_instance_profile" "opsworks_instance" {
   role = aws_iam_role.opsworks_instance.name
 }
 `, name))
+=======
 }
 
 /////////////////////////////////////////
@@ -1269,7 +1260,6 @@ resource "aws_opsworks_stack" "tf-acc" {
   "key": "value"
 }
 EOF
-
   configuration_manager_version = "11.10"
   use_opsworks_security_groups  = false
   use_custom_cookbooks          = true
