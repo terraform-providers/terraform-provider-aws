@@ -188,31 +188,36 @@ func TestAccAWSOpsworksCustomLayer_cloudwatch(t *testing.T) {
 		CheckDestroy: testAccCheckAwsOpsworksCustomLayerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAwsOpsworksCustomLayerConfigCloudWatch(stackName),
+				Config: testAccAwsOpsworksCustomLayerConfigCloudWatch(stackName, true),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSOpsworksLayerExists(resourceName, &opslayer),
-					testAccCheckAWSOpsworksCreateLayerAttributes(&opslayer, stackName),
 					resource.TestCheckResourceAttr(resourceName, "name", stackName),
-					resource.TestCheckResourceAttr(resourceName, "auto_assign_elastic_ips", "false"),
-					resource.TestCheckResourceAttr(resourceName, "auto_healing", "true"),
-					resource.TestCheckResourceAttr(resourceName, "drain_elb_on_shutdown", "true"),
-					resource.TestCheckResourceAttr(resourceName, "instance_shutdown_timeout", "300"),
-					resource.TestCheckResourceAttr(resourceName, "custom_security_group_ids.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "system_packages.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "system_packages.1368285564", "git"),
-					resource.TestCheckResourceAttr(resourceName, "system_packages.2937857443", "golang"),
-					resource.TestCheckResourceAttr(resourceName, "ebs_volume.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "ebs_volume.3575749636.type", "gp2"),
-					resource.TestCheckResourceAttr(resourceName, "ebs_volume.3575749636.number_of_disks", "2"),
-					resource.TestCheckResourceAttr(resourceName, "ebs_volume.3575749636.mount_point", "/home"),
-					resource.TestCheckResourceAttr(resourceName, "ebs_volume.3575749636.size", "100"),
-					resource.TestCheckResourceAttr(resourceName, "ebs_volume.3575749636.encrypted", "false"),
+					resource.TestCheckResourceAttr(resourceName, "cloudwatch_configuration.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "cloudwatch_configuration.0.enabled", "true"),
 				),
 			},
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAwsOpsworksCustomLayerConfigCloudWatch(stackName, false),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSOpsworksLayerExists(resourceName, &opslayer),
+					resource.TestCheckResourceAttr(resourceName, "name", stackName),
+					resource.TestCheckResourceAttr(resourceName, "cloudwatch_configuration.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "cloudwatch_configuration.0.enabled", "false"),
+				),
+			},
+			{
+				Config: testAccAwsOpsworksCustomLayerConfigCloudWatch(stackName, true),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSOpsworksLayerExists(resourceName, &opslayer),
+					resource.TestCheckResourceAttr(resourceName, "name", stackName),
+					resource.TestCheckResourceAttr(resourceName, "cloudwatch_configuration.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "cloudwatch_configuration.0.enabled", "true"),
+				),
 			},
 		},
 	})
@@ -400,7 +405,7 @@ resource "aws_opsworks_custom_layer" "test" {
 `, name)
 }
 
-func testAccAwsOpsworksCustomLayerConfigCloudWatch(name string) string {
+func testAccAwsOpsworksCustomLayerConfigCloudWatch(name string, enabled bool) string {
 	return testAccAwsOpsworksStackConfigNoVpcCreate(name) +
 		testAccAwsOpsworksCustomLayerSecurityGroups(name) +
 		fmt.Sprintf(`
@@ -422,29 +427,15 @@ resource "aws_opsworks_custom_layer" "test" {
   drain_elb_on_shutdown     = true
   instance_shutdown_timeout = 300
 
-  system_packages = [
-    "git",
-    "golang",
-  ]
-
-  ebs_volume {
-    type            = "gp2"
-    number_of_disks = 2
-    mount_point     = "/home"
-    size            = 100
-    raid_level      = 0
-    encrypted       = false
-  }
-
   cloudwatch_configuration {
-    enabled = true
+    enabled = %[2]t
     log_streams {
       log_group_name = "${aws_cloudwatch_log_group.test.name}"
       file           = "/var/log/system.log*"
     }
   }
 }
-`, name)
+`, name, enabled)
 }
 
 func testAccAwsOpsworksCustomLayerConfigVpcCreate(name string) string {
