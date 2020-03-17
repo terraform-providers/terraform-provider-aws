@@ -18,7 +18,7 @@ import (
 func TestAccAWSOpsworksCustomLayer_basic(t *testing.T) {
 	name := acctest.RandString(10)
 	var opslayer opsworks.Layer
-	resourceName := "aws_opsworks_custom_layer.tf-acc"
+	resourceName := "aws_opsworks_custom_layer.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(opsworks.EndpointsID, t) },
@@ -106,7 +106,7 @@ func TestAccAWSOpsworksCustomLayer_tags(t *testing.T) {
 func TestAccAWSOpsworksCustomLayer_noVPC(t *testing.T) {
 	stackName := fmt.Sprintf("tf-%d", acctest.RandInt())
 	var opslayer opsworks.Layer
-	resourceName := "aws_opsworks_custom_layer.tf-acc"
+	resourceName := "aws_opsworks_custom_layer.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(opsworks.EndpointsID, t) },
@@ -139,6 +139,11 @@ func TestAccAWSOpsworksCustomLayer_noVPC(t *testing.T) {
 				),
 			},
 			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
 				Config: testAccAwsOpsworksCustomLayerConfigUpdate(stackName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "name", stackName),
@@ -167,6 +172,47 @@ func TestAccAWSOpsworksCustomLayer_noVPC(t *testing.T) {
 					}),
 					resource.TestCheckResourceAttr(resourceName, "custom_json", `{"layer_key":"layer_value2"}`),
 				),
+			},
+		},
+	})
+}
+
+func TestAccAWSOpsworksCustomLayer_cloudwatch(t *testing.T) {
+	stackName := fmt.Sprintf("tf-%d", acctest.RandInt())
+	var opslayer opsworks.Layer
+	resourceName := "aws_opsworks_custom_layer.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAwsOpsworksCustomLayerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAwsOpsworksCustomLayerConfigCloudWatch(stackName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSOpsworksLayerExists(resourceName, &opslayer),
+					testAccCheckAWSOpsworksCreateLayerAttributes(&opslayer, stackName),
+					resource.TestCheckResourceAttr(resourceName, "name", stackName),
+					resource.TestCheckResourceAttr(resourceName, "auto_assign_elastic_ips", "false"),
+					resource.TestCheckResourceAttr(resourceName, "auto_healing", "true"),
+					resource.TestCheckResourceAttr(resourceName, "drain_elb_on_shutdown", "true"),
+					resource.TestCheckResourceAttr(resourceName, "instance_shutdown_timeout", "300"),
+					resource.TestCheckResourceAttr(resourceName, "custom_security_group_ids.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "system_packages.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "system_packages.1368285564", "git"),
+					resource.TestCheckResourceAttr(resourceName, "system_packages.2937857443", "golang"),
+					resource.TestCheckResourceAttr(resourceName, "ebs_volume.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "ebs_volume.3575749636.type", "gp2"),
+					resource.TestCheckResourceAttr(resourceName, "ebs_volume.3575749636.number_of_disks", "2"),
+					resource.TestCheckResourceAttr(resourceName, "ebs_volume.3575749636.mount_point", "/home"),
+					resource.TestCheckResourceAttr(resourceName, "ebs_volume.3575749636.size", "100"),
+					resource.TestCheckResourceAttr(resourceName, "ebs_volume.3575749636.encrypted", "false"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -320,18 +366,23 @@ resource "aws_security_group" "tf-ops-acc-layer2" {
 }
 
 func testAccAwsOpsworksCustomLayerConfigNoVpcCreate(name string) string {
-	return fmt.Sprintf(`
-resource "aws_opsworks_custom_layer" "tf-acc" {
-  stack_id               = aws_opsworks_stack.tf-acc.id
-  name                   = "%s"
+	return testAccAwsOpsworksStackConfigNoVpcCreate(name) +
+		testAccAwsOpsworksCustomLayerSecurityGroups(name) +
+		fmt.Sprintf(`
+resource "aws_opsworks_custom_layer" "test" {
+  stack_id               = "${aws_opsworks_stack.tf-acc.id}"
+  name                   = %[1]q
   short_name             = "tf-ops-acc-custom-layer"
+
   auto_assign_public_ips = true
   custom_security_group_ids = [
-    aws_security_group.tf-ops-acc-layer1.id,
-    aws_security_group.tf-ops-acc-layer2.id,
+    "${aws_security_group.tf-ops-acc-layer1.id}",
+    "${aws_security_group.tf-ops-acc-layer2.id}",
   ]
+
   drain_elb_on_shutdown     = true
   instance_shutdown_timeout = 300
+
   system_packages = [
     "git",
     "golang",
@@ -346,16 +397,61 @@ resource "aws_opsworks_custom_layer" "tf-acc" {
     encrypted       = false
   }
 }
+`, name)
+}
 
-%s
+func testAccAwsOpsworksCustomLayerConfigCloudWatch(name string) string {
+	return testAccAwsOpsworksStackConfigNoVpcCreate(name) +
+		testAccAwsOpsworksCustomLayerSecurityGroups(name) +
+		fmt.Sprintf(`
+resource "aws_cloudwatch_log_group" "test" {
+  name = %[1]q
+}
 
-%s
-`, name, testAccAwsOpsworksStackConfigNoVpcCreate(name), testAccAwsOpsworksCustomLayerSecurityGroups(name))
+resource "aws_opsworks_custom_layer" "test" {
+  stack_id               = aws_opsworks_stack.tf-acc.id
+  name                   = %[1]q
+  short_name             = "tf-ops-acc-custom-layer"
+  auto_assign_public_ips = true
+
+  custom_security_group_ids = [
+    aws_security_group.tf-ops-acc-layer1.id,
+    aws_security_group.tf-ops-acc-layer2.id,
+  ]
+
+  drain_elb_on_shutdown     = true
+  instance_shutdown_timeout = 300
+
+  system_packages = [
+    "git",
+    "golang",
+  ]
+
+  ebs_volume {
+    type            = "gp2"
+    number_of_disks = 2
+    mount_point     = "/home"
+    size            = 100
+    raid_level      = 0
+    encrypted       = false
+  }
+
+  cloudwatch_configuration {
+    enabled = true
+    log_streams {
+      log_group_name = "${aws_cloudwatch_log_group.test.name}"
+      file           = "/var/log/system.log*"
+    }
+  }
+}
+`, name)
 }
 
 func testAccAwsOpsworksCustomLayerConfigVpcCreate(name string) string {
-	return fmt.Sprintf(`
-resource "aws_opsworks_custom_layer" "tf-acc" {
+	return testAccAwsOpsworksStackConfigVpcCreate(name) +
+		testAccAwsOpsworksCustomLayerSecurityGroups(name) +
+		fmt.Sprintf(`
+resource "aws_opsworks_custom_layer" "test" {
   stack_id               = aws_opsworks_stack.tf-acc.id
   name                   = "%s"
   short_name             = "tf-ops-acc-custom-layer"
@@ -382,15 +478,13 @@ resource "aws_opsworks_custom_layer" "tf-acc" {
     raid_level      = 0
   }
 }
-
-%s
-
-%s
-`, name, testAccAwsOpsworksStackConfigVpcCreate(name), testAccAwsOpsworksCustomLayerSecurityGroups(name))
+`, name)
 }
 
 func testAccAwsOpsworksCustomLayerConfigUpdate(name string) string {
-	return fmt.Sprintf(`
+	return testAccAwsOpsworksStackConfigNoVpcCreate(name) +
+		testAccAwsOpsworksCustomLayerSecurityGroups(name) +
+		fmt.Sprintf(`
 resource "aws_security_group" "tf-ops-acc-layer3" {
   name = "tf-ops-acc-layer-%[1]s"
 
@@ -402,18 +496,21 @@ resource "aws_security_group" "tf-ops-acc-layer3" {
   }
 }
 
-resource "aws_opsworks_custom_layer" "tf-acc" {
+resource "aws_opsworks_custom_layer" "test" {
   stack_id               = aws_opsworks_stack.tf-acc.id
   name                   = "%[1]s"
   short_name             = "tf-ops-acc-custom-layer"
   auto_assign_public_ips = true
+
   custom_security_group_ids = [
     aws_security_group.tf-ops-acc-layer1.id,
     aws_security_group.tf-ops-acc-layer2.id,
     aws_security_group.tf-ops-acc-layer3.id,
   ]
+
   drain_elb_on_shutdown     = false
   instance_shutdown_timeout = 120
+
   system_packages = [
     "git",
     "golang",
@@ -445,11 +542,7 @@ resource "aws_opsworks_custom_layer" "tf-acc" {
 }
 EOF
 }
-
-%s
-
-%s
-`, name, testAccAwsOpsworksStackConfigNoVpcCreate(name), testAccAwsOpsworksCustomLayerSecurityGroups(name))
+`, name)
 }
 
 func testAccAwsOpsworksCustomLayerConfigTags1(name, tagKey1, tagValue1 string) string {
