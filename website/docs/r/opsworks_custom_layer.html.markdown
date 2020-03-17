@@ -62,6 +62,20 @@ An `ebs_volume` block supports the following arguments:
 * `iops` - (Optional) For PIOPS volumes, the IOPS per disk.
 * `encrypted` - (Optional) Encrypt the volume.
 
+An `cloudwatch_configuration` block supports the following arguments:
+
+* `file` - (Required) Specifies log files that you want to push to CloudWatch Logs. File can point to a specific file or multiple files (by using wild card characters such as /var/log/system.log*).
+* `log_group_name` - (Required) Specifies the destination log group. A log group is created automatically if it doesn't already exist. 
+* `batch_count` - (Optional) Specifies the max number of log events in a batch, up to `10000`. The default value is `1000`.
+* `batch_size` - (Optional) Specifies the maximum size of log events in a batch, in bytes, up to `1048576` bytes. The default value is `32768` bytes.
+* `buffer_duration` - (Optional) Specifies the time duration for the batching of log events. The minimum value is `5000` and default value is `5000`.
+* `datetime_format` - (Optional) Specifies how the timestamp is extracted from logs. For more information, see the CloudWatch Logs Agent Reference (https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/AgentReference.html).
+* `encoding` - (Optional) Specifies the encoding of the log file so that the file can be read correctly. The default is `utf_8`.
+* `file_fingerprint_lines` - (Optional) Specifies the range of lines for identifying a file. The valid values are one number, or two dash-delimited numbers, such as `1`, `2-5`. The default value is `1`.
+* `initial_position` - (Optional) Specifies where to start to read data (`start_of_file` or `end_of_file`). The default is `start_of_file`.
+* `multiline_start_pattern` - (Optional) Specifies the pattern for identifying the start of a log message.
+* `timezone` - (Optional) Specifies the time zone of log event time stamps.
+
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
