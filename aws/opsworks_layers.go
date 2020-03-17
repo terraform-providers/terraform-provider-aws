@@ -263,6 +263,7 @@ func (lt *opsworksLayerType) SchemaResource() *schema.Resource {
 								"encoding": {
 									Type:     schema.TypeString,
 									Optional: true,
+									Default:  opsworks.CloudWatchLogsEncodingUtf8,
 								},
 								"file": {
 									Type:     schema.TypeString,

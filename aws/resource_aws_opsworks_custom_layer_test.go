@@ -181,6 +181,7 @@ func TestAccAWSOpsworksCustomLayer_cloudwatch(t *testing.T) {
 	stackName := fmt.Sprintf("tf-%d", acctest.RandInt())
 	var opslayer opsworks.Layer
 	resourceName := "aws_opsworks_custom_layer.test"
+	logGroupResourceName := "aws_cloudwatch_log_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -194,12 +195,10 @@ func TestAccAWSOpsworksCustomLayer_cloudwatch(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "name", stackName),
 					resource.TestCheckResourceAttr(resourceName, "cloudwatch_configuration.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "cloudwatch_configuration.0.enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "cloudwatch_configuration.0.log_streams.#", "1"),
+					resource.TestCheckResourceAttrPair(resourceName, "cloudwatch_configuration.0.log_streams.0.log_group_name", logGroupResourceName, "name"),
+					resource.TestCheckResourceAttr(resourceName, "cloudwatch_configuration.0.log_streams.0.file", "/var/log/system.log*"),
 				),
-			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
 			},
 			{
 				Config: testAccAwsOpsworksCustomLayerConfigCloudWatch(stackName, false),
@@ -208,15 +207,29 @@ func TestAccAWSOpsworksCustomLayer_cloudwatch(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "name", stackName),
 					resource.TestCheckResourceAttr(resourceName, "cloudwatch_configuration.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "cloudwatch_configuration.0.enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "cloudwatch_configuration.0.log_streams.#", "1"),
+					resource.TestCheckResourceAttrPair(resourceName, "cloudwatch_configuration.0.log_streams.0.log_group_name", logGroupResourceName, "name"),
+					resource.TestCheckResourceAttr(resourceName, "cloudwatch_configuration.0.log_streams.0.file", "/var/log/system.log*"),
 				),
 			},
 			{
-				Config: testAccAwsOpsworksCustomLayerConfigCloudWatch(stackName, true),
+				Config: testAccAwsOpsworksCustomLayerConfigCloudWatchFull(stackName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSOpsworksLayerExists(resourceName, &opslayer),
 					resource.TestCheckResourceAttr(resourceName, "name", stackName),
 					resource.TestCheckResourceAttr(resourceName, "cloudwatch_configuration.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "cloudwatch_configuration.0.enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "cloudwatch_configuration.0.log_streams.#", "1"),
+					resource.TestCheckResourceAttrPair(resourceName, "cloudwatch_configuration.0.log_streams.0.log_group_name", logGroupResourceName, "name"),
+					resource.TestCheckResourceAttr(resourceName, "cloudwatch_configuration.0.log_streams.0.file", "/var/log/system.lo*"),
+					resource.TestCheckResourceAttr(resourceName, "cloudwatch_configuration.0.log_streams.0.batch_count", "2000"),
+					resource.TestCheckResourceAttr(resourceName, "cloudwatch_configuration.0.log_streams.0.batch_size", "50000"),
+					resource.TestCheckResourceAttr(resourceName, "cloudwatch_configuration.0.log_streams.0.buffer_duration", "6000"),
+					resource.TestCheckResourceAttr(resourceName, "cloudwatch_configuration.0.log_streams.0.encoding", "mac_turkish"),
+					resource.TestCheckResourceAttr(resourceName, "cloudwatch_configuration.0.log_streams.0.file_fingerprint_lines", "2"),
+					resource.TestCheckResourceAttr(resourceName, "cloudwatch_configuration.0.log_streams.0.initial_position", "end_of_file"),
+					resource.TestCheckResourceAttr(resourceName, "cloudwatch_configuration.0.log_streams.0.multiline_start_pattern", "test*"),
+					resource.TestCheckResourceAttr(resourceName, "cloudwatch_configuration.0.log_streams.0.timezone", "LOCAL"),
 				),
 			},
 		},
@@ -436,6 +449,47 @@ resource "aws_opsworks_custom_layer" "test" {
   }
 }
 `, name, enabled)
+}
+
+func testAccAwsOpsworksCustomLayerConfigCloudWatchFull(name string) string {
+	return testAccAwsOpsworksStackConfigNoVpcCreate(name) +
+		testAccAwsOpsworksCustomLayerSecurityGroups(name) +
+		fmt.Sprintf(`
+resource "aws_cloudwatch_log_group" "test" {
+  name = %[1]q
+}
+
+resource "aws_opsworks_custom_layer" "test" {
+  stack_id               = "${aws_opsworks_stack.tf-acc.id}"
+  name                   = %[1]q
+  short_name             = "tf-ops-acc-custom-layer"
+  auto_assign_public_ips = true
+
+  custom_security_group_ids = [
+    "${aws_security_group.tf-ops-acc-layer1.id}",
+    "${aws_security_group.tf-ops-acc-layer2.id}",
+  ]
+
+  drain_elb_on_shutdown     = true
+  instance_shutdown_timeout = 300
+
+  cloudwatch_configuration {
+    enabled = true
+    log_streams {
+      log_group_name          = "${aws_cloudwatch_log_group.test.name}"
+      file                    = "/var/log/system.lo*"
+      batch_count             = 2000
+      batch_size              = 50000
+      buffer_duration         = 6000
+      encoding                = "mac_turkish"
+      file_fingerprint_lines  = "2"
+      initial_position        = "end_of_file"
+      multiline_start_pattern = "test*"
+      timezone                = "LOCAL"
+    }
+  }
+}
+`, name)
 }
 
 func testAccAwsOpsworksCustomLayerConfigVpcCreate(name string) string {
