@@ -227,15 +227,33 @@ func (lt *opsworksLayerType) SchemaResource() *schema.Resource {
 			Type:     schema.TypeList,
 			Optional: true,
 			MaxItems: 1,
+			DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+				if old == "1" && new == "0" && !d.Get("cloudwatch_configuration.0.enabled").(bool) {
+					return true
+				}
+				return false
+			},
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"enabled": {
 						Type:     schema.TypeBool,
 						Optional: true,
+						DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+							if old == "false" && new == "" {
+								return true
+							}
+							return false
+						},
 					},
 					"log_streams": {
 						Type:     schema.TypeList,
 						Optional: true,
+						DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+							if old == "1" && new == "0" && !d.Get("cloudwatch_configuration.0.enabled").(bool) {
+								return true
+							}
+							return false
+						},
 						Elem: &schema.Resource{
 							Schema: map[string]*schema.Schema{
 								"batch_count": {

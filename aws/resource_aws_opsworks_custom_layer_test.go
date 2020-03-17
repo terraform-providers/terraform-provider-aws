@@ -104,7 +104,7 @@ func TestAccAWSOpsworksCustomLayer_tags(t *testing.T) {
 }
 
 func TestAccAWSOpsworksCustomLayer_noVPC(t *testing.T) {
-	stackName := fmt.Sprintf("tf-%d", acctest.RandInt())
+	stackName := acctest.RandomWithPrefix("tf-acc-test")
 	var opslayer opsworks.Layer
 	resourceName := "aws_opsworks_custom_layer.test"
 
@@ -178,7 +178,7 @@ func TestAccAWSOpsworksCustomLayer_noVPC(t *testing.T) {
 }
 
 func TestAccAWSOpsworksCustomLayer_cloudwatch(t *testing.T) {
-	stackName := fmt.Sprintf("tf-%d", acctest.RandInt())
+	stackName := acctest.RandomWithPrefix("tf-acc-test")
 	var opslayer opsworks.Layer
 	resourceName := "aws_opsworks_custom_layer.test"
 	logGroupResourceName := "aws_cloudwatch_log_group.test"
