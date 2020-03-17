@@ -16,7 +16,7 @@ import (
 ///////////////////////////////
 
 func TestAccAWSOpsworksStack_noVpcBasic(t *testing.T) {
-	stackName := acctest.RandomWithPrefix("tf-opsworks-acc")
+	stackName := fmt.Sprintf("tf-opsworks-acc-%d", acctest.RandInt())
 	resourceName := "aws_opsworks_stack.tf-acc"
 	var opsstack opsworks.Stack
 
@@ -47,7 +47,7 @@ func TestAccAWSOpsworksStack_noVpcBasic(t *testing.T) {
 }
 
 func TestAccAWSOpsworksStack_noVpcChangeServiceRoleForceNew(t *testing.T) {
-	stackName := acctest.RandomWithPrefix("tf-opsworks-acc")
+	stackName := fmt.Sprintf("tf-opsworks-acc-%d", acctest.RandInt())
 	resourceName := "aws_opsworks_stack.tf-acc"
 	var before, after opsworks.Stack
 
@@ -84,7 +84,7 @@ func TestAccAWSOpsworksStack_noVpcChangeServiceRoleForceNew(t *testing.T) {
 }
 
 func TestAccAWSOpsworksStack_vpc(t *testing.T) {
-	stackName := acctest.RandomWithPrefix("tf-opsworks-acc")
+	stackName := fmt.Sprintf("tf-opsworks-acc-%d", acctest.RandInt())
 	resourceName := "aws_opsworks_stack.tf-acc"
 	var opsstack opsworks.Stack
 
@@ -133,7 +133,7 @@ func TestAccAWSOpsworksStack_vpc(t *testing.T) {
 }
 
 func TestAccAWSOpsworksStack_noVpcCreateTags(t *testing.T) {
-	stackName := acctest.RandomWithPrefix("tf-opsworks-acc")
+	stackName := fmt.Sprintf("tf-opsworks-acc-%d", acctest.RandInt())
 	resourceName := "aws_opsworks_stack.tf-acc"
 	var opsstack opsworks.Stack
 
@@ -178,7 +178,7 @@ func TestAccAWSOpsworksStack_noVpcCreateTags(t *testing.T) {
 
 func TestAccAWSOpsworksStack_CustomCookbooks_SetPrivateProperties(t *testing.T) {
 	resourceName := "aws_opsworks_stack.tf-acc"
-	stackName := acctest.RandomWithPrefix("tf-opsworks-acc")
+	stackName := fmt.Sprintf("tf-opsworks-acc-%d", acctest.RandInt())
 	var opsstack opsworks.Stack
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -194,7 +194,7 @@ func TestAccAWSOpsworksStack_CustomCookbooks_SetPrivateProperties(t *testing.T) 
 			{
 				Config: testAccAWSOpsworksStackConfig_CustomCookbooks_Set(stackName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSOpsworksStackExists(resourceName, true, &opsstack),
+					testAccCheckAWSOpsworksStackExists("aws_opsworks_stack.tf-acc", true, &opsstack),
 					resource.TestCheckResourceAttr(resourceName, "name", stackName),
 					resource.TestCheckResourceAttrPair(resourceName, "default_availability_zone", "data.aws_availability_zones.available", "names.0"),
 					resource.TestCheckResourceAttr(resourceName, "default_os", "Amazon Linux 2016.09"),
@@ -207,8 +207,14 @@ func TestAccAWSOpsworksStack_CustomCookbooks_SetPrivateProperties(t *testing.T) 
 					resource.TestCheckResourceAttr(resourceName, "custom_cookbooks_source.0.revision", "master"),
 					resource.TestCheckResourceAttr(resourceName, "custom_cookbooks_source.0.url", "https://github.com/aws/opsworks-example-cookbooks.git"),
 					resource.TestCheckResourceAttr(resourceName, "custom_cookbooks_source.0.username", "username"),
-					resource.TestCheckResourceAttr(resourceName, "custom_cookbooks_source.0.password", "password"),
-					resource.TestCheckResourceAttr(resourceName, "custom_cookbooks_source.0.ssh_key", sshKey),
+					resource.TestCheckResourceAttr(
+						"aws_opsworks_stack.tf-acc",
+						"custom_cookbooks_source.0.password",
+						"password"),
+					resource.TestCheckResourceAttr(
+						"aws_opsworks_stack.tf-acc",
+						"custom_cookbooks_source.0.ssh_key",
+						sshKey),
 				),
 			},
 		},
@@ -219,7 +225,7 @@ func TestAccAWSOpsworksStack_CustomCookbooks_SetPrivateProperties(t *testing.T) 
 // to create Stack's prior to v0.9.0.
 // See https://github.com/hashicorp/terraform/issues/12842
 func TestAccAWSOpsWorksStack_classicEndpoints(t *testing.T) {
-	stackName := acctest.RandomWithPrefix("tf-opsworks-acc")
+	stackName := fmt.Sprintf("tf-opsworks-acc-%d", acctest.RandInt())
 	resourceName := "aws_opsworks_stack.main"
 	rInt := acctest.RandInt()
 	var opsstack opsworks.Stack
@@ -524,8 +530,11 @@ func testAccCheckAwsOpsworksStackDestroy(s *terraform.State) error {
 
 		_, err := opsworksconn.DescribeStacks(req)
 		if err != nil {
-			if isAWSErr(err, opsworks.ErrCodeResourceNotFoundException, "") {
-				return nil
+			if awserr, ok := err.(awserr.Error); ok {
+				if awserr.Code() == "ResourceNotFoundException" {
+					// not found, all good
+					return nil
+				}
 			}
 			return err
 		}
@@ -563,7 +572,6 @@ EOF
 
 resource "aws_iam_role" "opsworks_service" {
   name = "%[1]s_opsworks_service2"
-
   assume_role_policy = <<EOT
 {
   "Version": "2008-10-17",
@@ -607,7 +615,7 @@ EOT
 }
 
 resource "aws_iam_role" "opsworks_instance" {
-  name = "%[1]s_opsworks_instance"
+  name = "%s_opsworks_instance"
 
   assume_role_policy = <<EOT
 {
@@ -627,7 +635,7 @@ EOT
 }
 
 resource "aws_iam_instance_profile" "opsworks_instance" {
-  name = "%[1]s_opsworks_instance"
+  name = "%s_opsworks_instance"
   role = aws_iam_role.opsworks_instance.name
 }
 `, name))
@@ -662,7 +670,7 @@ EOF
 }
 
 resource "aws_iam_role" "opsworks_service" {
-  name = "%[1]s_opsworks_service"
+  name = "%s_opsworks_service"
 
   assume_role_policy = <<EOT
 {
@@ -682,7 +690,7 @@ EOT
 }
 
 resource "aws_iam_role_policy" "opsworks_service" {
-  name = "%[1]s_opsworks_service"
+  name = "%s_opsworks_service"
   role = aws_iam_role.opsworks_service.id
 
   policy = <<EOT
@@ -707,7 +715,7 @@ EOT
 }
 
 resource "aws_iam_role" "opsworks_instance" {
-  name = "%[1]s_opsworks_instance"
+  name = "%s_opsworks_instance"
 
   assume_role_policy = <<EOT
 {
@@ -727,7 +735,7 @@ EOT
 }
 
 resource "aws_iam_instance_profile" "opsworks_instance" {
-  name = "%[1]s_opsworks_instance"
+  name = "%s_opsworks_instance"
   role = aws_iam_role.opsworks_instance.name
 }
 `, name))
@@ -762,7 +770,7 @@ EOF
 }
 
 resource "aws_iam_role" "opsworks_service" {
-  name = "%[1]s_opsworks_service"
+  name = "%s_opsworks_service"
 
   assume_role_policy = <<EOT
 {
@@ -782,7 +790,7 @@ EOT
 }
 
 resource "aws_iam_role_policy" "opsworks_service" {
-  name = "%[1]s_opsworks_service"
+  name = "%s_opsworks_service"
   role = aws_iam_role.opsworks_service.id
 
   policy = <<EOT
@@ -807,7 +815,7 @@ EOT
 }
 
 resource "aws_iam_role" "opsworks_instance" {
-  name = "%[1]s_opsworks_instance"
+  name = "%s_opsworks_instance"
 
   assume_role_policy = <<EOT
 {
@@ -827,7 +835,7 @@ EOT
 }
 
 resource "aws_iam_instance_profile" "opsworks_instance" {
-  name = "%[1]s_opsworks_instance"
+  name = "%s_opsworks_instance"
   role = aws_iam_role.opsworks_instance.name
 }
 `, name))
@@ -858,7 +866,7 @@ EOF
 }
 
 resource "aws_iam_role" "opsworks_service" {
-  name = "%[1]s_opsworks_service"
+  name = "%s_opsworks_service"
 
   assume_role_policy = <<EOT
 {
@@ -878,7 +886,7 @@ EOT
 }
 
 resource "aws_iam_role" "opsworks_service_new" {
-  name = "%[1]s_opsworks_service_new"
+  name = "%s_opsworks_service_new"
 
   assume_role_policy = <<EOT
 {
@@ -898,7 +906,7 @@ EOT
 }
 
 resource "aws_iam_role_policy" "opsworks_service_new" {
-  name = "%[1]s_opsworks_service_new"
+  name = "%s_opsworks_service_new"
   role = aws_iam_role.opsworks_service_new.id
 
   policy = <<EOT
@@ -923,7 +931,7 @@ EOT
 }
 
 resource "aws_iam_role_policy" "opsworks_service" {
-  name = "%[1]s_opsworks_service"
+  name = "%s_opsworks_service"
   role = aws_iam_role.opsworks_service.id
 
   policy = <<EOT
@@ -948,7 +956,7 @@ EOT
 }
 
 resource "aws_iam_role" "opsworks_instance" {
-  name = "%[1]s_opsworks_instance"
+  name = "%s_opsworks_instance"
 
   assume_role_policy = <<EOT
 {
@@ -968,7 +976,7 @@ EOT
 }
 
 resource "aws_iam_instance_profile" "opsworks_instance" {
-  name = "%[1]s_opsworks_instance"
+  name = "%s_opsworks_instance"
   role = aws_iam_role.opsworks_instance.name
 }
 `, name))
@@ -1022,7 +1030,7 @@ EOF
 }
 
 resource "aws_iam_role" "opsworks_service" {
-  name = "%[1]s_opsworks_service"
+  name = "%s_opsworks_service"
 
   assume_role_policy = <<EOT
 {
@@ -1042,7 +1050,7 @@ EOT
 }
 
 resource "aws_iam_role_policy" "opsworks_service" {
-  name = "%[1]s_opsworks_service"
+  name = "%s_opsworks_service"
   role = aws_iam_role.opsworks_service.id
 
   policy = <<EOT
@@ -1067,7 +1075,7 @@ EOT
 }
 
 resource "aws_iam_role" "opsworks_instance" {
-  name = "%[1]s_opsworks_instance"
+  name = "%s_opsworks_instance"
 
   assume_role_policy = <<EOT
 {
@@ -1087,7 +1095,7 @@ EOT
 }
 
 resource "aws_iam_instance_profile" "opsworks_instance" {
-  name = "%[1]s_opsworks_instance"
+  name = "%s_opsworks_instance"
   role = aws_iam_role.opsworks_instance.name
 }
 `, name))
@@ -1145,7 +1153,7 @@ EOF
 }
 
 resource "aws_iam_role" "opsworks_service" {
-  name = "%[1]s_opsworks_service"
+  name = "%s_opsworks_service"
 
   assume_role_policy = <<EOT
 {
@@ -1165,7 +1173,7 @@ EOT
 }
 
 resource "aws_iam_role_policy" "opsworks_service" {
-  name = "%[1]s_opsworks_service"
+  name = "%s_opsworks_service"
   role = aws_iam_role.opsworks_service.id
 
   policy = <<EOT
@@ -1190,7 +1198,7 @@ EOT
 }
 
 resource "aws_iam_role" "opsworks_instance" {
-  name = "%[1]s_opsworks_instance"
+  name = "%s_opsworks_instance"
 
   assume_role_policy = <<EOT
 {
@@ -1210,11 +1218,10 @@ EOT
 }
 
 resource "aws_iam_instance_profile" "opsworks_instance" {
-  name = "%[1]s_opsworks_instance"
+  name = "%s_opsworks_instance"
   role = aws_iam_role.opsworks_instance.name
 }
 `, name))
-=======
 }
 
 /////////////////////////////////////////
@@ -1276,7 +1283,7 @@ EOF
 }
 
 resource "aws_iam_role" "opsworks_service" {
-  name = "%[1]s_opsworks_service"
+  name = "%s_opsworks_service"
 
   assume_role_policy = <<EOT
 {
@@ -1296,7 +1303,7 @@ EOT
 }
 
 resource "aws_iam_role_policy" "opsworks_service" {
-  name = "%[1]s_opsworks_service"
+  name = "%s_opsworks_service"
   role = aws_iam_role.opsworks_service.id
 
   policy = <<EOT
@@ -1321,7 +1328,7 @@ EOT
 }
 
 resource "aws_iam_role" "opsworks_instance" {
-  name = "%[1]s_opsworks_instance"
+  name = "%s_opsworks_instance"
 
   assume_role_policy = <<EOT
 {
@@ -1341,7 +1348,7 @@ EOT
 }
 
 resource "aws_iam_instance_profile" "opsworks_instance" {
-  name = "%[1]s_opsworks_instance"
+  name = "%s_opsworks_instance"
   role = aws_iam_role.opsworks_instance.name
 }
 `, name, sshKey))
