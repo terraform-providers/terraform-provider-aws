@@ -45,7 +45,7 @@ func resourceAwsAcmpcaPermission() *schema.Resource {
 			"source_account": {
 				Type:     schema.TypeString,
 				ForceNew: true,
-				Required: false,
+				Optional: true,
 			},
 		},
 	}
