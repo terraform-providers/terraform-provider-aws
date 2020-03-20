@@ -1,4 +1,5 @@
 ---
+subcategory: ""
 layout: "aws"
 page_title: "Terraform AWS Provider Version 3 Upgrade Guide"
 description: |-
@@ -180,6 +181,39 @@ resource "aws_emr_cluster" "example" {
 
   master_instance_group {
     instance_type = "m4.large"
+  }
+}
+```
+
+## Resource: aws_lb_listener_rule
+
+### condition.field and condition.values Arguments Removal
+
+Switch your Terraform configuration to use the `host_header` or `path_pattern` configuration block instead.
+
+For example, given this previous configuration:
+
+```hcl
+resource "aws_lb_listener_rule" "example" {
+  # ... other configuration ...
+
+  condition {
+    field  = "path-pattern"
+    values = ["/static/*"]
+  }
+}
+```
+
+An updated configuration:
+
+```hcl
+resource "aws_lb_listener_rule" "example" {
+  # ... other configuration ...
+
+  condition {
+    path_pattern {
+      values = ["/static/*"]
+    }
   }
 }
 ```

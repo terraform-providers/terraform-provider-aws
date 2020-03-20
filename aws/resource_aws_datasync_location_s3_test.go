@@ -282,6 +282,25 @@ resource "aws_iam_role" "test" {
 POLICY
 }
 
+resource "aws_iam_role_policy" "test" {
+  role   = aws_iam_role.test.id
+  policy = <<POLICY
+{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Action": [
+      "s3:*"
+    ],
+    "Effect": "Allow",
+    "Resource": [
+      "${aws_s3_bucket.test.arn}",
+      "${aws_s3_bucket.test.arn}/*"
+    ]
+  }]
+}
+POLICY
+}
+
 resource "aws_s3_bucket" "test" {
   bucket        = %q
   force_destroy = true
@@ -298,6 +317,8 @@ resource "aws_datasync_location_s3" "test" {
   s3_config {
     bucket_access_role_arn = "${aws_iam_role.test.arn}"
   }
+
+  depends_on = [aws_iam_role_policy.test]
 }
 `)
 }
@@ -315,6 +336,8 @@ resource "aws_datasync_location_s3" "test" {
   tags = {
     %q = %q
   }
+
+  depends_on = [aws_iam_role_policy.test]
 }
 `, key1, value1)
 }
@@ -333,6 +356,8 @@ resource "aws_datasync_location_s3" "test" {
     %q = %q
     %q = %q
   }
+
+  depends_on = [aws_iam_role_policy.test]
 }
 `, key1, value1, key2, value2)
 }

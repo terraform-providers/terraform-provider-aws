@@ -1,4 +1,5 @@
 ---
+subcategory: "ECR"
 layout: "aws"
 page_title: "AWS: aws_ecr_image"
 description: |-

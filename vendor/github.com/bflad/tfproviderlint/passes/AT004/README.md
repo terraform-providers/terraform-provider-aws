@@ -37,3 +37,16 @@ resource.TestCase{
     },
 }
 ```
+
+## Ignoring Reports
+
+Singular reports can be ignored by adding the a `//lintignore:AT004` Go code comment at the end of the offending line or on the line immediately proceding, e.g.
+
+```go
+//lintignore:AT004
+const ExampleThingConfig = `
+provider "example" {}
+
+resource "example_thing" {}
+`
+```

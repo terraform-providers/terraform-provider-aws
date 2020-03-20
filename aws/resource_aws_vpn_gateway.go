@@ -11,6 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsVpnGateway() *schema.Resource {
@@ -71,13 +72,21 @@ func resourceAwsVpnGatewayCreate(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("Error creating VPN gateway: %s", err)
 	}
 
-	// Get the ID and store it
-	vpnGateway := resp.VpnGateway
-	d.SetId(*vpnGateway.VpnGatewayId)
-	log.Printf("[INFO] VPN Gateway ID: %s", *vpnGateway.VpnGatewayId)
+	d.SetId(aws.StringValue(resp.VpnGateway.VpnGatewayId))
 
-	// Attach the VPN gateway to the correct VPC
-	return resourceAwsVpnGatewayUpdate(d, meta)
+	if _, ok := d.GetOk("vpc_id"); ok {
+		if err := resourceAwsVpnGatewayAttach(d, meta); err != nil {
+			return fmt.Errorf("error attaching EC2 VPN Gateway (%s) to VPC: %s", d.Id(), err)
+		}
+	}
+
+	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
+		if err := keyvaluetags.Ec2UpdateTags(conn, d.Id(), nil, v); err != nil {
+			return fmt.Errorf("error adding EC2 VPN Gateway (%s) tags: %s", d.Id(), err)
+		}
+	}
+
+	return resourceAwsVpnGatewayRead(d, meta)
 }
 
 func resourceAwsVpnGatewayRead(d *schema.ResourceData, meta interface{}) error {
@@ -108,14 +117,17 @@ func resourceAwsVpnGatewayRead(d *schema.ResourceData, meta interface{}) error {
 		// Gateway exists but not attached to the VPC
 		d.Set("vpc_id", "")
 	} else {
-		d.Set("vpc_id", *vpnAttachment.VpcId)
+		d.Set("vpc_id", vpnAttachment.VpcId)
 	}
 
 	if vpnGateway.AvailabilityZone != nil && *vpnGateway.AvailabilityZone != "" {
 		d.Set("availability_zone", vpnGateway.AvailabilityZone)
 	}
 	d.Set("amazon_side_asn", strconv.FormatInt(aws.Int64Value(vpnGateway.AmazonSideAsn), 10))
-	d.Set("tags", tagsToMap(vpnGateway.Tags))
+
+	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(vpnGateway.Tags).IgnoreAws().Map()); err != nil {
+		return fmt.Errorf("error setting tags: %s", err)
+	}
 
 	return nil
 }
@@ -135,11 +147,13 @@ func resourceAwsVpnGatewayUpdate(d *schema.ResourceData, meta interface{}) error
 
 	conn := meta.(*AWSClient).ec2conn
 
-	if err := setTags(conn, d); err != nil {
-		return err
-	}
+	if d.HasChange("tags") {
+		o, n := d.GetChange("tags")
 
-	d.SetPartial("tags")
+		if err := keyvaluetags.Ec2UpdateTags(conn, d.Id(), o, n); err != nil {
+			return fmt.Errorf("error updating EC2 VPN Gateway (%s) tags: %s", d.Id(), err)
+		}
+	}
 
 	return resourceAwsVpnGatewayRead(d, meta)
 }

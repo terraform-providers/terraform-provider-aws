@@ -2,6 +2,10 @@
 
 package lightsail
 
+import (
+	"github.com/aws/aws-sdk-go/private/protocol"
+)
+
 const (
 
 	// ErrCodeAccessDeniedException for service response error code
@@ -53,3 +57,13 @@ const (
 	// Lightsail throws this exception when the user has not been authenticated.
 	ErrCodeUnauthenticatedException = "UnauthenticatedException"
 )
+
+var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
+	"AccessDeniedException":           newErrorAccessDeniedException,
+	"AccountSetupInProgressException": newErrorAccountSetupInProgressException,
+	"InvalidInputException":           newErrorInvalidInputException,
+	"NotFoundException":               newErrorNotFoundException,
+	"OperationFailureException":       newErrorOperationFailureException,
+	"ServiceException":                newErrorServiceException,
+	"UnauthenticatedException":        newErrorUnauthenticatedException,
+}

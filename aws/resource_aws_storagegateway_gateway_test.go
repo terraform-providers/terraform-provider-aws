@@ -76,7 +76,7 @@ func TestAccAWSStorageGatewayGateway_GatewayType_Cached(t *testing.T) {
 				Config: testAccAWSStorageGatewayGatewayConfig_GatewayType_Cached(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSStorageGatewayGatewayExists(resourceName, &gateway),
-					resource.TestMatchResourceAttr(resourceName, "arn", regexp.MustCompile(`^arn:[^:]+:storagegateway:[^:]+:[^:]+:gateway/sgw-.+$`)),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "storagegateway", regexp.MustCompile(`gateway/sgw-.+`)),
 					resource.TestCheckResourceAttrSet(resourceName, "gateway_id"),
 					resource.TestCheckResourceAttr(resourceName, "gateway_name", rName),
 					resource.TestCheckResourceAttr(resourceName, "gateway_timezone", "GMT"),
@@ -111,7 +111,7 @@ func TestAccAWSStorageGatewayGateway_GatewayType_FileS3(t *testing.T) {
 				Config: testAccAWSStorageGatewayGatewayConfig_GatewayType_FileS3(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSStorageGatewayGatewayExists(resourceName, &gateway),
-					resource.TestMatchResourceAttr(resourceName, "arn", regexp.MustCompile(`^arn:[^:]+:storagegateway:[^:]+:[^:]+:gateway/sgw-.+$`)),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "storagegateway", regexp.MustCompile(`gateway/sgw-.+`)),
 					resource.TestCheckResourceAttrSet(resourceName, "gateway_id"),
 					resource.TestCheckResourceAttr(resourceName, "gateway_name", rName),
 					resource.TestCheckResourceAttr(resourceName, "gateway_timezone", "GMT"),
@@ -146,7 +146,7 @@ func TestAccAWSStorageGatewayGateway_GatewayType_Stored(t *testing.T) {
 				Config: testAccAWSStorageGatewayGatewayConfig_GatewayType_Stored(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSStorageGatewayGatewayExists(resourceName, &gateway),
-					resource.TestMatchResourceAttr(resourceName, "arn", regexp.MustCompile(`^arn:[^:]+:storagegateway:[^:]+:[^:]+:gateway/sgw-.+$`)),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "storagegateway", regexp.MustCompile(`gateway/sgw-.+`)),
 					resource.TestCheckResourceAttrSet(resourceName, "gateway_id"),
 					resource.TestCheckResourceAttr(resourceName, "gateway_name", rName),
 					resource.TestCheckResourceAttr(resourceName, "gateway_timezone", "GMT"),
@@ -181,7 +181,7 @@ func TestAccAWSStorageGatewayGateway_GatewayType_Vtl(t *testing.T) {
 				Config: testAccAWSStorageGatewayGatewayConfig_GatewayType_Vtl(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSStorageGatewayGatewayExists(resourceName, &gateway),
-					resource.TestMatchResourceAttr(resourceName, "arn", regexp.MustCompile(`^arn:[^:]+:storagegateway:[^:]+:[^:]+:gateway/sgw-.+$`)),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "storagegateway", regexp.MustCompile(`gateway/sgw-.+`)),
 					resource.TestCheckResourceAttrSet(resourceName, "gateway_id"),
 					resource.TestCheckResourceAttr(resourceName, "gateway_name", rName),
 					resource.TestCheckResourceAttr(resourceName, "gateway_timezone", "GMT"),
@@ -197,6 +197,52 @@ func TestAccAWSStorageGatewayGateway_GatewayType_Vtl(t *testing.T) {
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"activation_key", "gateway_ip_address"},
+			},
+		},
+	})
+}
+
+func TestAccAWSStorageGatewayGateway_tags(t *testing.T) {
+	var gateway storagegateway.DescribeGatewayInformationOutput
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_storagegateway_gateway.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSStorageGatewayGatewayDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSStorageGatewayGatewayConfigTags1(rName, "key1", "value1"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSStorageGatewayGatewayExists(resourceName, &gateway),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "storagegateway", regexp.MustCompile(`gateway/sgw-.+`)),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"activation_key", "gateway_ip_address"},
+			},
+			{
+				Config: testAccAWSStorageGatewayGatewayConfigTags2(rName, "key1", "value1updated", "key2", "value2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSStorageGatewayGatewayExists(resourceName, &gateway),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1updated"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
+				),
+			},
+			{
+				Config: testAccAWSStorageGatewayGatewayConfigTags1(rName, "key2", "value2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSStorageGatewayGatewayExists(resourceName, &gateway),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
+				),
 			},
 		},
 	})
@@ -225,6 +271,34 @@ func TestAccAWSStorageGatewayGateway_GatewayName(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSStorageGatewayGatewayExists(resourceName, &gateway),
 					resource.TestCheckResourceAttr(resourceName, "gateway_name", rName2),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"activation_key", "gateway_ip_address"},
+			},
+		},
+	})
+}
+
+func TestAccAWSStorageGatewayGateway_CloudWatchLogs(t *testing.T) {
+	var gateway storagegateway.DescribeGatewayInformationOutput
+	rName1 := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_storagegateway_gateway.test"
+	resourceName2 := "aws_cloudwatch_log_group.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSStorageGatewayGatewayDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSStorageGatewayGatewayConfig_Log_Group(rName1),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSStorageGatewayGatewayExists(resourceName, &gateway),
+					resource.TestCheckResourceAttrPair(resourceName, "cloudwatch_log_group_arn", resourceName2, "arn"),
 				),
 			},
 			{
@@ -391,58 +465,51 @@ func testAccCheckAWSStorageGatewayGatewayExists(resourceName string, gateway *st
 // and security group, suitable for Storage Gateway EC2 instances of any type
 func testAccAWSStorageGateway_VPCBase(rName string) string {
 	return fmt.Sprintf(`
-data "aws_availability_zones" "available" {
-  # Error launching source instance: Unsupported: Your requested instance type (m4.xlarge) is not supported in your requested Availability Zone (us-west-2d).
-  blacklisted_zone_ids = ["usw2-az4"]
-  state                = "available"
-}
-
 resource "aws_vpc" "test" {
   cidr_block = "10.0.0.0/16"
 
   tags = {
-    Name = %q
+    Name = %[1]q
   }
 }
 
 resource "aws_subnet" "test" {
-  availability_zone = "${data.aws_availability_zones.available.names[0]}"
-  cidr_block        = "10.0.0.0/24"
-  vpc_id            = "${aws_vpc.test.id}"
+  cidr_block = "10.0.0.0/24"
+  vpc_id     = aws_vpc.test.id
 
   tags = {
-    Name = %q
+    Name = %[1]q
   }
 }
 
 resource "aws_internet_gateway" "test" {
-  vpc_id = "${aws_vpc.test.id}"
+  vpc_id = aws_vpc.test.id
 
   tags = {
-    Name = %q
+    Name = %[1]q
   }
 }
 
 resource "aws_route_table" "test" {
-  vpc_id = "${aws_vpc.test.id}"
+  vpc_id = aws_vpc.test.id
 
   route {
     cidr_block = "0.0.0.0/0"
-    gateway_id = "${aws_internet_gateway.test.id}"
+    gateway_id = aws_internet_gateway.test.id
   }
 
   tags = {
-    Name = %q
+    Name = %[1]q
   }
 }
 
 resource "aws_route_table_association" "test" {
-  subnet_id      = "${aws_subnet.test.id}"
-  route_table_id = "${aws_route_table.test.id}"
+  subnet_id      = aws_subnet.test.id
+  route_table_id = aws_route_table.test.id
 }
 
 resource "aws_security_group" "test" {
-  vpc_id = "${aws_vpc.test.id}"
+  vpc_id = aws_vpc.test.id
 
   egress {
     from_port   = 0
@@ -459,69 +526,86 @@ resource "aws_security_group" "test" {
   }
 
   tags = {
-    Name = %q
-  }
-}
-`, rName, rName, rName, rName, rName)
-}
-
-// testAccAWSStorageGateway_FileGatewayBase uses the "thinstaller" Storage
-// Gateway AMI for File Gateways
-func testAccAWSStorageGateway_FileGatewayBase(rName string) string {
-	return testAccAWSStorageGateway_VPCBase(rName) + fmt.Sprintf(`
-data "aws_ami" "aws-thinstaller" {
-  most_recent = true
-  owners      = ["amazon"]
-
-  filter {
-    name   = "name"
-    values = ["aws-thinstaller-*"]
-  }
-}
-
-resource "aws_instance" "test" {
-  depends_on = ["aws_internet_gateway.test"]
-
-  ami                         = "${data.aws_ami.aws-thinstaller.id}"
-  associate_public_ip_address = true
-  # https://docs.aws.amazon.com/storagegateway/latest/userguide/Requirements.html
-  instance_type               = "m4.xlarge"
-  vpc_security_group_ids      = ["${aws_security_group.test.id}"]
-  subnet_id                   = "${aws_subnet.test.id}"
-
-  tags = {
-    Name = %q
+    Name = %[1]q
   }
 }
 `, rName)
 }
 
-// testAccAWSStorageGateway_TapeAndVolumeGatewayBase uses the Storage Gateway
-// AMI for either Tape or Volume Gateways
-func testAccAWSStorageGateway_TapeAndVolumeGatewayBase(rName string) string {
+func testAccAWSStorageGateway_FileGatewayBase(rName string) string {
 	return testAccAWSStorageGateway_VPCBase(rName) + fmt.Sprintf(`
-data "aws_ami" "aws-storage-gateway-2" {
-  most_recent = true
-  owners      = ["amazon"]
+# Reference: https://docs.aws.amazon.com/storagegateway/latest/userguide/Requirements.html
+data "aws_ec2_instance_type_offering" "storagegateway" {
+  filter {
+    name   = "instance-type"
+    values = ["m5.xlarge", "m4.xlarge"]
+  }
 
   filter {
-    name   = "name"
-    values = ["aws-storage-gateway-2.*"]
+    name   = "location"
+    values = [aws_subnet.test.availability_zone]
   }
+  
+  location_type            = "availability-zone"
+  preferred_instance_types = ["m5.xlarge", "m4.xlarge"]
+}
+
+# Reference: https://docs.aws.amazon.com/storagegateway/latest/userguide/ec2-gateway-file.html
+data "aws_ssm_parameter" "aws_service_storagegateway_ami_FILE_S3_latest" {
+  name = "/aws/service/storagegateway/ami/FILE_S3/latest"
 }
 
 resource "aws_instance" "test" {
   depends_on = ["aws_internet_gateway.test"]
 
-  ami                         = "${data.aws_ami.aws-storage-gateway-2.id}"
+  ami                         = data.aws_ssm_parameter.aws_service_storagegateway_ami_FILE_S3_latest.value
   associate_public_ip_address = true
-  # https://docs.aws.amazon.com/storagegateway/latest/userguide/Requirements.html
-  instance_type               = "m4.xlarge"
-  vpc_security_group_ids      = ["${aws_security_group.test.id}"]
-  subnet_id                   = "${aws_subnet.test.id}"
+  instance_type               = data.aws_ec2_instance_type_offering.storagegateway.instance_type
+  vpc_security_group_ids      = [aws_security_group.test.id]
+  subnet_id                   = aws_subnet.test.id
 
   tags = {
-    Name = %q
+    Name = %[1]q
+  }
+}
+`, rName)
+}
+
+func testAccAWSStorageGateway_TapeAndVolumeGatewayBase(rName string) string {
+	return testAccAWSStorageGateway_VPCBase(rName) + fmt.Sprintf(`
+# Reference: https://docs.aws.amazon.com/storagegateway/latest/userguide/Requirements.html
+data "aws_ec2_instance_type_offering" "storagegateway" {
+  filter {
+    name   = "instance-type"
+    values = ["m5.xlarge", "m4.xlarge"]
+  }
+
+  filter {
+    name   = "location"
+    values = [aws_subnet.test.availability_zone]
+  }
+  
+  location_type            = "availability-zone"
+  preferred_instance_types = ["m5.xlarge", "m4.xlarge"]
+}
+
+# Reference: https://docs.aws.amazon.com/storagegateway/latest/userguide/ec2-gateway-common.html
+# NOTE: CACHED, STORED, and VTL Gateway Types share the same AMI
+data "aws_ssm_parameter" "aws_service_storagegateway_ami_CACHED_latest" {
+  name = "/aws/service/storagegateway/ami/CACHED/latest"
+}
+
+resource "aws_instance" "test" {
+  depends_on = ["aws_internet_gateway.test"]
+
+  ami                         = data.aws_ssm_parameter.aws_service_storagegateway_ami_CACHED_latest.value
+  associate_public_ip_address = true
+  instance_type               = data.aws_ec2_instance_type_offering.storagegateway.instance_type
+  vpc_security_group_ids      = [aws_security_group.test.id]
+  subnet_id                   = aws_subnet.test.id
+
+  tags = {
+    Name = %[1]q
   }
 }
 `, rName)
@@ -545,6 +629,22 @@ resource "aws_storagegateway_gateway" "test" {
   gateway_name       = %q
   gateway_timezone   = "GMT"
   gateway_type       = "FILE_S3"
+}
+`, rName)
+}
+
+func testAccAWSStorageGatewayGatewayConfig_Log_Group(rName string) string {
+	return testAccAWSStorageGateway_FileGatewayBase(rName) + fmt.Sprintf(`
+resource "aws_cloudwatch_log_group" "test" {
+  name = %[1]q
+}
+
+resource "aws_storagegateway_gateway" "test" {
+  gateway_ip_address 		= "${aws_instance.test.public_ip}"
+  gateway_name       		= %[1]q
+  gateway_timezone   		= "GMT"
+  gateway_type       		= "FILE_S3"
+  cloudwatch_log_group_arn	= "${aws_cloudwatch_log_group.test.arn}"
 }
 `, rName)
 }
@@ -584,62 +684,61 @@ resource "aws_storagegateway_gateway" "test" {
 
 func testAccAWSStorageGatewayGatewayConfig_SmbActiveDirectorySettings(rName string) string {
 	return fmt.Sprintf(`
+# Directory Service Directories must be deployed across multiple EC2 Availability Zones
 data "aws_availability_zones" "available" {
-  # Error launching source instance: Unsupported: Your requested instance type (m4.xlarge) is not supported in your requested Availability Zone (us-west-2d).
-  blacklisted_zone_ids = ["usw2-az4"]
-  state                = "available"
+  state = "available"
 }
 
 resource "aws_vpc" "test" {
   cidr_block = "10.0.0.0/16"
 
   tags = {
-    Name = %q
+    Name = %[1]q
   }
 }
 
 resource "aws_subnet" "test" {
   count = 2
 
-  availability_zone = "${data.aws_availability_zones.available.names[count.index]}"
+  availability_zone = data.aws_availability_zones.available.names[count.index]
   cidr_block        = "10.0.${count.index}.0/24"
-  vpc_id            = "${aws_vpc.test.id}"
+  vpc_id            = aws_vpc.test.id
 
   tags = {
-    Name = %q
+    Name = %[1]q
   }
 }
 
 resource "aws_internet_gateway" "test" {
-  vpc_id = "${aws_vpc.test.id}"
+  vpc_id = aws_vpc.test.id
 
   tags = {
-    Name = %q
+    Name = %[1]q
   }
 }
 
 resource "aws_route_table" "test" {
-  vpc_id = "${aws_vpc.test.id}"
+  vpc_id = aws_vpc.test.id
 
   route {
     cidr_block = "0.0.0.0/0"
-    gateway_id = "${aws_internet_gateway.test.id}"
+    gateway_id = aws_internet_gateway.test.id
   }
 
   tags = {
-    Name = %q
+    Name = %[1]q
   }
 }
 
 resource "aws_route_table_association" "test" {
   count = 2
 
-  subnet_id      = "${aws_subnet.test.*.id[count.index]}"
-  route_table_id = "${aws_route_table.test.id}"
+  subnet_id      = aws_subnet.test[count.index].id
+  route_table_id = aws_route_table.test.id
 }
 
 resource "aws_security_group" "test" {
-  vpc_id = "${aws_vpc.test.id}"
+  vpc_id = aws_vpc.test.id
 
   egress {
     from_port   = 0
@@ -656,7 +755,7 @@ resource "aws_security_group" "test" {
   }
 
   tags = {
-    Name = %q
+    Name = %[1]q
   }
 }
 
@@ -667,67 +766,76 @@ resource "aws_directory_service_directory" "test" {
 
   vpc_settings {
     subnet_ids = aws_subnet.test[*].id
-    vpc_id     = "${aws_vpc.test.id}"
+    vpc_id     = aws_vpc.test.id
   }
 
   tags = {
-    Name = %q
+    Name = %[1]q
   }
 }
 
 resource "aws_vpc_dhcp_options" "test" {
-  domain_name         = "${aws_directory_service_directory.test.name}"
+  domain_name         = aws_directory_service_directory.test.name
   domain_name_servers = aws_directory_service_directory.test.dns_ip_addresses
 
   tags = {
-    Name = %q
+    Name = %[1]q
   }
 }
 
 resource "aws_vpc_dhcp_options_association" "test" {
-  dhcp_options_id = "${aws_vpc_dhcp_options.test.id}"
-  vpc_id          = "${aws_vpc.test.id}"
+  dhcp_options_id = aws_vpc_dhcp_options.test.id
+  vpc_id          = aws_vpc.test.id
 }
 
-data "aws_ami" "aws-thinstaller" {
-  most_recent = true
-  owners      = ["amazon"]
+# Reference: https://docs.aws.amazon.com/storagegateway/latest/userguide/Requirements.html
+data "aws_ec2_instance_type_offering" "storagegateway" {
+  filter {
+    name   = "instance-type"
+    values = ["m5.xlarge", "m4.xlarge"]
+  }
 
   filter {
-    name   = "name"
-    values = ["aws-thinstaller-*"]
+    name   = "location"
+    values = [aws_subnet.test[0].availability_zone]
   }
+
+  location_type            = "availability-zone"
+  preferred_instance_types = ["m5.xlarge", "m4.xlarge"]
+}
+
+# Reference: https://docs.aws.amazon.com/storagegateway/latest/userguide/ec2-gateway-file.html
+data "aws_ssm_parameter" "aws_service_storagegateway_ami_FILE_S3_latest" {
+  name = "/aws/service/storagegateway/ami/FILE_S3/latest"
 }
 
 resource "aws_instance" "test" {
-  depends_on = ["aws_internet_gateway.test", "aws_vpc_dhcp_options_association.test"]
+  depends_on = [aws_internet_gateway.test, aws_vpc_dhcp_options_association.test]
 
-  ami                         = "${data.aws_ami.aws-thinstaller.id}"
+  ami                         = data.aws_ssm_parameter.aws_service_storagegateway_ami_FILE_S3_latest.value
   associate_public_ip_address = true
-
-  # https://docs.aws.amazon.com/storagegateway/latest/userguide/Requirements.html
-  instance_type          = "m4.xlarge"
-  vpc_security_group_ids = ["${aws_security_group.test.id}"]
-  subnet_id              = "${aws_subnet.test.*.id[0]}"
+  instance_type               = data.aws_ec2_instance_type_offering.storagegateway.instance_type
+  vpc_security_group_ids      = [aws_security_group.test.id]
+  subnet_id                   = aws_subnet.test[0].id
 
   tags = {
-    Name = %q
+    Name = %[1]q
   }
 }
 
 resource "aws_storagegateway_gateway" "test" {
-  gateway_ip_address = "${aws_instance.test.public_ip}"
-  gateway_name       = %q
+  gateway_ip_address = aws_instance.test.public_ip
+  gateway_name       = %[1]q
   gateway_timezone   = "GMT"
   gateway_type       = "FILE_S3"
 
   smb_active_directory_settings {
-    domain_name = "${aws_directory_service_directory.test.name}"
-    password    = "${aws_directory_service_directory.test.password}"
+    domain_name = aws_directory_service_directory.test.name
+    password    = aws_directory_service_directory.test.password
     username    = "Administrator"
   }
 }
-`, rName, rName, rName, rName, rName, rName, rName, rName, rName)
+`, rName)
 }
 
 func testAccAWSStorageGatewayGatewayConfig_SmbGuestPassword(rName, smbGuestPassword string) string {
@@ -740,4 +848,35 @@ resource "aws_storagegateway_gateway" "test" {
   smb_guest_password = %q
 }
 `, rName, smbGuestPassword)
+}
+
+func testAccAWSStorageGatewayGatewayConfigTags1(rName, tagKey1, tagValue1 string) string {
+	return testAccAWSStorageGateway_TapeAndVolumeGatewayBase(rName) + fmt.Sprintf(`
+resource "aws_storagegateway_gateway" "test" {
+  gateway_ip_address = "${aws_instance.test.public_ip}"
+  gateway_name       = %q
+  gateway_timezone   = "GMT"
+  gateway_type       = "CACHED"
+
+  tags = {
+	%q = %q
+  }
+}
+`, rName, tagKey1, tagValue1)
+}
+
+func testAccAWSStorageGatewayGatewayConfigTags2(rName, tagKey1, tagValue1, tagKey2, tagValue2 string) string {
+	return testAccAWSStorageGateway_TapeAndVolumeGatewayBase(rName) + fmt.Sprintf(`
+resource "aws_storagegateway_gateway" "test" {
+  gateway_ip_address = "${aws_instance.test.public_ip}"
+  gateway_name       = %q
+  gateway_timezone   = "GMT"
+  gateway_type       = "CACHED"
+
+  tags = {
+	%q = %q
+	%q = %q
+  }
+}
+`, rName, tagKey1, tagValue1, tagKey2, tagValue2)
 }

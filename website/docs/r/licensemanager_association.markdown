@@ -1,4 +1,5 @@
 ---
+subcategory: "License Manager"
 layout: "aws"
 page_title: "AWS: aws_licensemanager_association"
 description: |-

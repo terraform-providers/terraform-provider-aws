@@ -1,7 +1,7 @@
 package blocktoattr
 
 import (
-	"github.com/hashicorp/hcl2/hcl"
+	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/terraform-plugin-sdk/internal/configs/configschema"
 	"github.com/zclconf/go-cty/cty"
 )
@@ -116,31 +116,4 @@ func SchemaForCtyElementType(ty cty.Type) *configschema.Block {
 		}
 	}
 	return ret
-}
-
-// SchemaForCtyContainerType converts a cty list-of-object or set-of-object type
-// into an approximately-equivalent configschema.NestedBlock. If the given type
-// is not of the expected kind then this function will panic.
-func SchemaForCtyContainerType(ty cty.Type) *configschema.NestedBlock {
-	var nesting configschema.NestingMode
-	switch {
-	case ty.IsListType():
-		nesting = configschema.NestingList
-	case ty.IsSetType():
-		nesting = configschema.NestingSet
-	default:
-		panic("unsuitable type")
-	}
-	nested := SchemaForCtyElementType(ty.ElementType())
-	return &configschema.NestedBlock{
-		Nesting: nesting,
-		Block:   *nested,
-	}
-}
-
-// TypeCanBeBlocks returns true if the given type is a list-of-object or
-// set-of-object type, and would thus be subject to the blocktoattr fixup
-// if used as an attribute type.
-func TypeCanBeBlocks(ty cty.Type) bool {
-	return (ty.IsListType() || ty.IsSetType()) && ty.ElementType().IsObjectType()
 }

@@ -1,4 +1,5 @@
 ---
+subcategory: "Config"
 layout: "aws"
 page_title: "AWS: aws_config_configuration_recorder_status"
 description: |-

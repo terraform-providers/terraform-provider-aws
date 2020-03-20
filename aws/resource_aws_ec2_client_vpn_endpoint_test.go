@@ -86,6 +86,7 @@ func TestAccAwsEc2ClientVpnEndpoint_basic(t *testing.T) {
 					testAccCheckAwsEc2ClientVpnEndpointExists("aws_ec2_client_vpn_endpoint.test"),
 					resource.TestCheckResourceAttr("aws_ec2_client_vpn_endpoint.test", "authentication_options.#", "1"),
 					resource.TestCheckResourceAttr("aws_ec2_client_vpn_endpoint.test", "authentication_options.0.type", "certificate-authentication"),
+					resource.TestCheckResourceAttr("aws_ec2_client_vpn_endpoint.test", "status", ec2.ClientVpnEndpointStatusCodePendingAssociate),
 				),
 			},
 
@@ -198,10 +199,9 @@ func TestAccAwsEc2ClientVpnEndpoint_withDNSServers(t *testing.T) {
 			},
 
 			{
-				ResourceName:            "aws_ec2_client_vpn_endpoint.test",
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"dns_servers"},
+				ResourceName:      "aws_ec2_client_vpn_endpoint.test",
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})

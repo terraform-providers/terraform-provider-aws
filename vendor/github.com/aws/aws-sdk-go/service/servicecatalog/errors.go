@@ -2,6 +2,10 @@
 
 package servicecatalog
 
+import (
+	"github.com/aws/aws-sdk-go/private/protocol"
+)
+
 const (
 
 	// ErrCodeDuplicateResourceException for service response error code
@@ -59,3 +63,14 @@ const (
 	// to perform the migration process before retrying the operation.
 	ErrCodeTagOptionNotMigratedException = "TagOptionNotMigratedException"
 )
+
+var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
+	"DuplicateResourceException":     newErrorDuplicateResourceException,
+	"InvalidParametersException":     newErrorInvalidParametersException,
+	"InvalidStateException":          newErrorInvalidStateException,
+	"LimitExceededException":         newErrorLimitExceededException,
+	"OperationNotSupportedException": newErrorOperationNotSupportedException,
+	"ResourceInUseException":         newErrorResourceInUseException,
+	"ResourceNotFoundException":      newErrorResourceNotFoundException,
+	"TagOptionNotMigratedException":  newErrorTagOptionNotMigratedException,
+}

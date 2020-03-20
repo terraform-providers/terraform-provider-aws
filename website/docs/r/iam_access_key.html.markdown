@@ -1,4 +1,5 @@
 ---
+subcategory: "IAM"
 layout: "aws"
 page_title: "AWS: aws_iam_access_key"
 description: |-
@@ -47,13 +48,29 @@ output "secret" {
 }
 ```
 
+```hcl
+resource "aws_iam_user" "test" {
+  name = "test"
+  path = "/test/"
+}
+
+resource "aws_iam_access_key" "test" {
+  user = aws_iam_user.test.name
+}
+
+output "aws_iam_smtp_password_v4" {
+  value = aws_iam_access_key.test.ses_smtp_password_v4
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:
 
 * `user` - (Required) The IAM user to associate with this access key.
 * `pgp_key` - (Optional) Either a base-64 encoded PGP public key, or a
-  keybase username in the form `keybase:some_person_that_exists`.
+  keybase username in the form `keybase:some_person_that_exists`, for use
+  in the `encrypted_secret` output attribute.
 * `status` - (Optional) The access key status to apply. Defaults to `Active`.
 Valid values are `Active` and `Inactive`.
 
@@ -66,11 +83,16 @@ In addition to all arguments above, the following attributes are exported:
 * `key_fingerprint` - The fingerprint of the PGP key used to encrypt
   the secret
 * `secret` - The secret access key. Note that this will be written
-to the state file. Please supply a `pgp_key` instead, which will prevent the
-secret from being stored in plain text
-* `encrypted_secret` - The encrypted secret, base64 encoded.
+to the state file. If you use this, please protect your backend state file
+judiciously. Alternatively, you may supply a `pgp_key` instead, which will
+prevent the secret from being stored in plaintext, at the cost of preventing
+the use of the secret key in automation.
+* `encrypted_secret` - The encrypted secret, base64 encoded, if `pgp_key` was specified.
 ~> **NOTE:** The encrypted secret may be decrypted using the command line,
    for example: `terraform output encrypted_secret | base64 --decode | keybase pgp decrypt`.
-* `ses_smtp_password` - The secret access key converted into an SES SMTP
-  password by applying [AWS's documented conversion
+* `ses_smtp_password` - **DEPRECATED** The secret access key converted into an SES SMTP
+  password by applying AWS's SigV2 conversion algorithm
+* `ses_smtp_password_v4` - The secret access key converted into an SES SMTP
+  password by applying [AWS's documented Sigv4 conversion
   algorithm](https://docs.aws.amazon.com/ses/latest/DeveloperGuide/smtp-credentials.html#smtp-credentials-convert).
+  As SigV4 is region specific, valid Provider regions are `ap-south-1`, `ap-southeast-2`, `eu-central-1`, `eu-west-1`, `us-east-1` and `us-west-2`. See current [AWS SES regions](https://docs.aws.amazon.com/general/latest/gr/rande.html#ses_region)

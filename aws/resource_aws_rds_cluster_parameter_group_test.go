@@ -161,6 +161,17 @@ func TestAccAWSDBClusterParameterGroup_basic(t *testing.T) {
 						resourceName, "tags.%", "2"),
 				),
 			},
+			{
+				Config: testAccAWSDBClusterParameterGroupConfig(parameterGroupName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSDBClusterParameterGroupExists(resourceName, &v),
+					testAccCheckAWSDBClusterParameterGroupAttributes(&v, parameterGroupName),
+					testAccCheckAWSRDSClusterParameterNotUserDefined(resourceName, "collation_connection"),
+					testAccCheckAWSRDSClusterParameterNotUserDefined(resourceName, "collation_server"),
+					resource.TestCheckNoResourceAttr(resourceName, "parameter.2475805061.value"),
+					resource.TestCheckNoResourceAttr(resourceName, "parameter.1706463059.value"),
+				),
+			},
 		},
 	})
 }
@@ -399,6 +410,39 @@ func testAccCheckAWSDBClusterParameterGroupDestroy(s *terraform.State) error {
 	}
 
 	return nil
+}
+
+func testAccCheckAWSRDSClusterParameterNotUserDefined(n, paramName string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[n]
+		if !ok {
+			return fmt.Errorf("Not found: %s", n)
+		}
+
+		if rs.Primary.ID == "" {
+			return fmt.Errorf("No DB Parameter Group ID is set")
+		}
+
+		conn := testAccProvider.Meta().(*AWSClient).rdsconn
+
+		opts := rds.DescribeDBClusterParametersInput{
+			DBClusterParameterGroupName: aws.String(rs.Primary.ID),
+		}
+
+		userDefined := false
+		out, err := conn.DescribeDBClusterParameters(&opts)
+		for _, param := range out.Parameters {
+			if *param.ParameterName == paramName && aws.StringValue(param.ParameterValue) != "" {
+				// Some of these resets leave the parameter name present but with a nil value
+				userDefined = true
+			}
+		}
+
+		if userDefined {
+			return fmt.Errorf("DB Parameter %s is user defined", paramName)
+		}
+		return err
+	}
 }
 
 func testAccCheckAWSDBClusterParameterGroupAttributes(v *rds.DBClusterParameterGroup, name string) resource.TestCheckFunc {

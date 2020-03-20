@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func dataSourceAwsVpcEndpointService() *schema.Resource {
@@ -137,7 +138,7 @@ func dataSourceAwsVpcEndpointServiceRead(d *schema.ResourceData, meta interface{
 	d.Set("private_dns_name", sd.PrivateDnsName)
 	d.Set("service_id", sd.ServiceId)
 	d.Set("service_type", sd.ServiceType[0].ServiceType)
-	err = d.Set("tags", tagsToMap(sd.Tags))
+	err = d.Set("tags", keyvaluetags.Ec2KeyValueTags(sd.Tags).IgnoreAws().Map())
 	if err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}

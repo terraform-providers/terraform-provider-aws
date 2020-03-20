@@ -2,6 +2,10 @@
 
 package route53resolver
 
+import (
+	"github.com/aws/aws-sdk-go/private/protocol"
+)
+
 const (
 
 	// ErrCodeInternalServiceErrorException for service response error code
@@ -82,3 +86,19 @@ const (
 	// The specified resource doesn't exist.
 	ErrCodeUnknownResourceException = "UnknownResourceException"
 )
+
+var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
+	"InternalServiceErrorException": newErrorInternalServiceErrorException,
+	"InvalidNextTokenException":     newErrorInvalidNextTokenException,
+	"InvalidParameterException":     newErrorInvalidParameterException,
+	"InvalidPolicyDocument":         newErrorInvalidPolicyDocument,
+	"InvalidRequestException":       newErrorInvalidRequestException,
+	"InvalidTagException":           newErrorInvalidTagException,
+	"LimitExceededException":        newErrorLimitExceededException,
+	"ResourceExistsException":       newErrorResourceExistsException,
+	"ResourceInUseException":        newErrorResourceInUseException,
+	"ResourceNotFoundException":     newErrorResourceNotFoundException,
+	"ResourceUnavailableException":  newErrorResourceUnavailableException,
+	"ThrottlingException":           newErrorThrottlingException,
+	"UnknownResourceException":      newErrorUnknownResourceException,
+}

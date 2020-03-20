@@ -119,13 +119,6 @@ func resourceAwsIamInstanceProfileCreate(d *schema.ResourceData, meta interface{
 		name = resource.UniqueId()
 	}
 
-	_, hasRoles := d.GetOk("roles")
-	_, hasRole := d.GetOk("role")
-
-	if !hasRole && !hasRoles {
-		return fmt.Errorf("Either `role` or `roles` (deprecated) must be specified when creating an IAM Instance Profile")
-	}
-
 	request := &iam.CreateInstanceProfileInput{
 		InstanceProfileName: aws.String(name),
 		Path:                aws.String(d.Get("path").(string)),

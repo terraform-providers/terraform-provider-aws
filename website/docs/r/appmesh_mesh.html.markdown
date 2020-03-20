@@ -1,4 +1,5 @@
 ---
+subcategory: "AppMesh"
 layout: "aws"
 page_title: "AWS: aws_appmesh_mesh"
 description: |-

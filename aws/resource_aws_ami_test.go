@@ -26,7 +26,7 @@ func TestAccAWSAMI_basic(t *testing.T) {
 		CheckDestroy: testAccCheckAmiDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAmiConfig_basic(rName),
+				Config: testAccAmiConfig_basic(rName, 8),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAmiExists(resourceName, &ami),
 					resource.TestCheckResourceAttr(resourceName, "ena_support", "true"),
@@ -41,6 +41,75 @@ func TestAccAWSAMI_basic(t *testing.T) {
 				ImportStateVerifyIgnore: []string{
 					"manage_ebs_snapshots",
 				},
+			},
+		},
+	})
+}
+
+func TestAccAWSAMI_disappears(t *testing.T) {
+	var ami ec2.Image
+	resourceName := "aws_ami.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAmiDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAmiConfig_basic(rName, 8),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAmiExists(resourceName, &ami),
+					testAccCheckAmiDisappears(&ami),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSAMI_tags(t *testing.T) {
+	var ami ec2.Image
+	resourceName := "aws_ami.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAmiDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAmiConfigTags1(rName, "key1", "value1", 8),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAmiExists(resourceName, &ami),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"manage_ebs_snapshots",
+				},
+			},
+			{
+				Config: testAccAmiConfigTags2(rName, "key1", "value1updated", "key2", "value2", 8),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAmiExists(resourceName, &ami),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1updated"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
+				),
+			},
+			{
+				Config: testAccAmiConfigTags1(rName, "key2", "value2", 8),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAmiExists(resourceName, &ami),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
+				),
 			},
 		},
 	})
@@ -66,7 +135,7 @@ func TestAccAWSAMI_snapshotSize(t *testing.T) {
 		CheckDestroy: testAccCheckAmiDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAmiConfig_snapshotSize(rName),
+				Config: testAccAmiConfig_basic(rName, 20),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAmiExists(resourceName, &ami),
 					testAccCheckAmiBlockDevice(&ami, &bd, "/dev/sda1"),
@@ -115,6 +184,20 @@ func testAccCheckAmiDestroy(s *terraform.State) error {
 		}
 	}
 	return nil
+}
+
+func testAccCheckAmiDisappears(image *ec2.Image) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		conn := testAccProvider.Meta().(*AWSClient).ec2conn
+
+		input := &ec2.DeregisterImageInput{
+			ImageId: image.ImageId,
+		}
+
+		_, err := conn.DeregisterImage(input)
+
+		return err
+	}
 }
 
 func testAccCheckAmiExists(n string, ami *ec2.Image) resource.TestCheckFunc {
@@ -218,16 +301,16 @@ func testAccCheckAmiEbsBlockDevice(bd *ec2.BlockDeviceMapping, ed *ec2.EbsBlockD
 	}
 }
 
-func testAccAmiConfig_basic(rName string) string {
+func testAccAmiConfig_base(rName string, size int) string {
 	return fmt.Sprintf(`
 data "aws_availability_zones" "available" {}
 
 resource "aws_ebs_volume" "foo" {
   availability_zone = "${data.aws_availability_zones.available.names[0]}"
-  size              = 8
+  size              = %d
 
   tags = {
-    Name = "testAccAmiConfig_basic"
+    Name = "%[2]s"
   }
 }
 
@@ -235,13 +318,18 @@ resource "aws_ebs_snapshot" "foo" {
   volume_id = "${aws_ebs_volume.foo.id}"
 
   tags = {
-    Name = "testAccAmiConfig_basic"
+    Name = "%[2]s"
   }
 }
 
+`, size, rName)
+}
+
+func testAccAmiConfig_basic(rName string, size int) string {
+	return testAccAmiConfig_base(rName, size) + fmt.Sprintf(`
 resource "aws_ami" "test" {
   ena_support         = true
-  name                = %q
+  name                = %[1]q
   root_device_name    = "/dev/sda1"
   virtualization_type = "hvm"
 
@@ -253,29 +341,11 @@ resource "aws_ami" "test" {
 `, rName)
 }
 
-func testAccAmiConfig_snapshotSize(rName string) string {
-	return fmt.Sprintf(`
-data "aws_availability_zones" "available" {}
-
-resource "aws_ebs_volume" "foo" {
-  availability_zone = "${data.aws_availability_zones.available.names[0]}"
-  size              = 20
-
-  tags = {
-    Name = "testAccAmiConfig_snapshotSize"
-  }
-}
-
-resource "aws_ebs_snapshot" "foo" {
-  volume_id = "${aws_ebs_volume.foo.id}"
-
-  tags = {
-    Name = "TestAccAWSAMI_snapshotSize"
-  }
-}
-
+func testAccAmiConfigTags1(rName, tagKey1, tagValue1 string, size int) string {
+	return testAccAmiConfig_base(rName, size) + fmt.Sprintf(`
 resource "aws_ami" "test" {
-  name                = %q
+  ena_support         = true
+  name                = %[1]q
   root_device_name    = "/dev/sda1"
   virtualization_type = "hvm"
 
@@ -283,6 +353,31 @@ resource "aws_ami" "test" {
     device_name = "/dev/sda1"
     snapshot_id = "${aws_ebs_snapshot.foo.id}"
   }
+
+  tags = {
+    %[2]q = %[3]q
+  }
 }
-`, rName)
+`, rName, tagKey1, tagValue1)
+}
+
+func testAccAmiConfigTags2(rName, tagKey1, tagValue1, tagKey2, tagValue2 string, size int) string {
+	return testAccAmiConfig_base(rName, size) + fmt.Sprintf(`
+resource "aws_ami" "test" {
+  ena_support         = true
+  name                = %[1]q
+  root_device_name    = "/dev/sda1"
+  virtualization_type = "hvm"
+
+  ebs_block_device {
+    device_name = "/dev/sda1"
+    snapshot_id = "${aws_ebs_snapshot.foo.id}"
+  }
+
+  tags = {
+    %[2]q = %[3]q
+    %[4]q = %[5]q
+  }
+}
+`, rName, tagKey1, tagValue1, tagKey2, tagValue2)
 }

@@ -30,6 +30,9 @@ const (
 
 	// ErrCodeNoSuchPublicAccessBlockConfiguration for service response error code
 	// "NoSuchPublicAccessBlockConfiguration".
+	//
+	// Amazon S3 throws this exception if you make a GetPublicAccessBlock request
+	// against an account that doesn't have a PublicAccessBlockConfiguration set.
 	ErrCodeNoSuchPublicAccessBlockConfiguration = "NoSuchPublicAccessBlockConfiguration"
 
 	// ErrCodeNotFoundException for service response error code

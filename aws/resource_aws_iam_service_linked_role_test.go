@@ -167,6 +167,7 @@ func TestAccAWSIAMServiceLinkedRole_basic(t *testing.T) {
 					testAccCheckAWSIAMServiceLinkedRoleExists(resourceName),
 					testAccCheckResourceAttrGlobalARN(resourceName, "arn", "iam", fmt.Sprintf("role%s%s", path, name)),
 					resource.TestCheckResourceAttr(resourceName, "aws_service_name", awsServiceName),
+					testAccCheckResourceAttrRfc3339(resourceName, "create_date"),
 					resource.TestCheckResourceAttr(resourceName, "description", ""),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
 					resource.TestCheckResourceAttr(resourceName, "path", path),

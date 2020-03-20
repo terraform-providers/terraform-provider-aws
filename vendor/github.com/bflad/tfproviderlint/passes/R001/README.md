@@ -20,3 +20,17 @@ for idx, key := range keys {
 d.Set("example1", "value1")
 d.Set("example2", "value2")
 ```
+
+## Ignoring Reports
+
+Singular reports can be ignored by adding the a `//lintignore:R001` Go code comment at the end of the offending line or on the line immediately proceding, e.g.
+
+```go
+keys := []string{"example1", "example2"}
+values := []string{"value1", "value2"}
+
+for idx, key := range keys {
+    //lintignore:R001
+    d.Set(key, values[idx])
+}
+```

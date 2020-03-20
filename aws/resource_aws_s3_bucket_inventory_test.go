@@ -44,8 +44,8 @@ func TestAccAWSS3BucketInventory_basic(t *testing.T) {
 
 					resource.TestCheckResourceAttr(resourceName, "destination.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "destination.0.bucket.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "destination.0.bucket.0.bucket_arn", "arn:aws:s3:::"+bucketName),
-					resource.TestCheckResourceAttrSet(resourceName, "destination.0.bucket.0.account_id"),
+					testAccCheckResourceAttrGlobalARNNoAccount(resourceName, "destination.0.bucket.0.bucket_arn", "s3", bucketName),
+					testAccCheckResourceAttrAccountID(resourceName, "destination.0.bucket.0.account_id"),
 					resource.TestCheckResourceAttr(resourceName, "destination.0.bucket.0.format", "ORC"),
 					resource.TestCheckResourceAttr(resourceName, "destination.0.bucket.0.prefix", "inventory"),
 				),
@@ -191,21 +191,20 @@ func testAccCheckAWSS3BucketInventoryDestroy(s *terraform.State) error {
 
 func testAccAWSS3BucketInventoryConfigBucket(name string) string {
 	return fmt.Sprintf(`
-resource "aws_s3_bucket" "bucket" {
-  bucket = "%s"
+resource "aws_s3_bucket" "test" {
+  bucket = %[1]q
   acl    = "private"
 }
 `, name)
 }
 
 func testAccAWSS3BucketInventoryConfig(bucketName, inventoryName string) string {
-	return fmt.Sprintf(`
-%s
+	return testAccAWSS3BucketInventoryConfigBucket(bucketName) + fmt.Sprintf(`
 data "aws_caller_identity" "current" {}
 
 resource "aws_s3_bucket_inventory" "test" {
-  bucket = "${aws_s3_bucket.bucket.id}"
-  name   = "%s"
+  bucket = "${aws_s3_bucket.test.id}"
+  name   = %[1]q
 
   included_object_versions = "All"
 
@@ -225,21 +224,20 @@ resource "aws_s3_bucket_inventory" "test" {
   destination {
     bucket {
       format     = "ORC"
-      bucket_arn = "${aws_s3_bucket.bucket.arn}"
+      bucket_arn = "${aws_s3_bucket.test.arn}"
       account_id = "${data.aws_caller_identity.current.account_id}"
       prefix     = "inventory"
     }
   }
 }
-`, testAccAWSS3BucketInventoryConfigBucket(bucketName), inventoryName)
+`, inventoryName)
 }
 
 func testAccAWSS3BucketInventoryConfigEncryptWithSSES3(bucketName, inventoryName string) string {
-	return fmt.Sprintf(`
-%s
+	return testAccAWSS3BucketInventoryConfigBucket(bucketName) + fmt.Sprintf(`
 resource "aws_s3_bucket_inventory" "test" {
-  bucket = "${aws_s3_bucket.bucket.id}"
-  name   = "%s"
+  bucket = "${aws_s3_bucket.test.id}"
+  name   = %[1]q
 
   included_object_versions = "Current"
 
@@ -250,7 +248,7 @@ resource "aws_s3_bucket_inventory" "test" {
   destination {
     bucket {
       format     = "CSV"
-      bucket_arn = "${aws_s3_bucket.bucket.arn}"
+      bucket_arn = "${aws_s3_bucket.test.arn}"
 
       encryption {
         sse_s3 {}
@@ -258,20 +256,19 @@ resource "aws_s3_bucket_inventory" "test" {
     }
   }
 }
-`, testAccAWSS3BucketInventoryConfigBucket(bucketName), inventoryName)
+`, inventoryName)
 }
 
 func testAccAWSS3BucketInventoryConfigEncryptWithSSEKMS(bucketName, inventoryName string) string {
-	return fmt.Sprintf(`
-%s
-resource "aws_kms_key" "inventory" {
-  description             = "Terraform acc test S3 inventory SSE-KMS encryption: %s"
+	return testAccAWSS3BucketInventoryConfigBucket(bucketName) + fmt.Sprintf(`
+resource "aws_kms_key" "test" {
+  description             = "Terraform acc test S3 inventory SSE-KMS encryption: %[1]s"
   deletion_window_in_days = 7
 }
 
 resource "aws_s3_bucket_inventory" "test" {
-  bucket = "${aws_s3_bucket.bucket.id}"
-  name   = "%s"
+  bucket = "${aws_s3_bucket.test.id}"
+  name   = %[2]q
 
   included_object_versions = "Current"
 
@@ -282,15 +279,15 @@ resource "aws_s3_bucket_inventory" "test" {
   destination {
     bucket {
       format     = "Parquet"
-      bucket_arn = "${aws_s3_bucket.bucket.arn}"
+      bucket_arn = "${aws_s3_bucket.test.arn}"
 
       encryption {
         sse_kms {
-          key_id = "${aws_kms_key.inventory.arn}"
+          key_id = "${aws_kms_key.test.arn}"
         }
       }
     }
   }
 }
-`, testAccAWSS3BucketInventoryConfigBucket(bucketName), bucketName, inventoryName)
+`, bucketName, inventoryName)
 }

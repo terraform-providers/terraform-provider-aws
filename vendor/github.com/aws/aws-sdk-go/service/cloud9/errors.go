@@ -2,6 +2,10 @@
 
 package cloud9
 
+import (
+	"github.com/aws/aws-sdk-go/private/protocol"
+)
+
 const (
 
 	// ErrCodeBadRequestException for service response error code
@@ -46,3 +50,13 @@ const (
 	// Too many service requests were made over the given time period.
 	ErrCodeTooManyRequestsException = "TooManyRequestsException"
 )
+
+var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
+	"BadRequestException":          newErrorBadRequestException,
+	"ConflictException":            newErrorConflictException,
+	"ForbiddenException":           newErrorForbiddenException,
+	"InternalServerErrorException": newErrorInternalServerErrorException,
+	"LimitExceededException":       newErrorLimitExceededException,
+	"NotFoundException":            newErrorNotFoundException,
+	"TooManyRequestsException":     newErrorTooManyRequestsException,
+}

@@ -4,7 +4,7 @@
 // requests to AWS CloudHSM V2.
 //
 // For more information about AWS CloudHSM, see AWS CloudHSM (http://aws.amazon.com/cloudhsm/)
-// and the AWS CloudHSM User Guide (http://docs.aws.amazon.com/cloudhsm/latest/userguide/).
+// and the AWS CloudHSM User Guide (https://docs.aws.amazon.com/cloudhsm/latest/userguide/).
 //
 // See https://docs.aws.amazon.com/goto/WebAPI/cloudhsmv2-2017-04-28 for more information on this service.
 //

@@ -6,18 +6,19 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/storagegateway"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsStorageGatewayCachedIscsiVolume() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceAwsStorageGatewayCachedIscsiVolumeCreate,
 		Read:   resourceAwsStorageGatewayCachedIscsiVolumeRead,
+		Update: resourceAwsStorageGatewayCachedIscsiVolumeUpdate,
 		Delete: resourceAwsStorageGatewayCachedIscsiVolumeDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -85,6 +86,7 @@ func resourceAwsStorageGatewayCachedIscsiVolume() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
+			"tags": tagsSchema(),
 		},
 	}
 }
@@ -98,6 +100,7 @@ func resourceAwsStorageGatewayCachedIscsiVolumeCreate(d *schema.ResourceData, me
 		NetworkInterfaceId: aws.String(d.Get("network_interface_id").(string)),
 		TargetName:         aws.String(d.Get("target_name").(string)),
 		VolumeSizeInBytes:  aws.Int64(int64(d.Get("volume_size_in_bytes").(int))),
+		Tags:               keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().StoragegatewayTags(),
 	}
 
 	if v, ok := d.GetOk("snapshot_id"); ok {
@@ -115,6 +118,19 @@ func resourceAwsStorageGatewayCachedIscsiVolumeCreate(d *schema.ResourceData, me
 	}
 
 	d.SetId(aws.StringValue(output.VolumeARN))
+
+	return resourceAwsStorageGatewayCachedIscsiVolumeRead(d, meta)
+}
+
+func resourceAwsStorageGatewayCachedIscsiVolumeUpdate(d *schema.ResourceData, meta interface{}) error {
+	conn := meta.(*AWSClient).storagegatewayconn
+
+	if d.HasChange("tags") {
+		o, n := d.GetChange("tags")
+		if err := keyvaluetags.StoragegatewayUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
+			return fmt.Errorf("error updating tags: %s", err)
+		}
+	}
 
 	return resourceAwsStorageGatewayCachedIscsiVolumeRead(d, meta)
 }
@@ -146,11 +162,20 @@ func resourceAwsStorageGatewayCachedIscsiVolumeRead(d *schema.ResourceData, meta
 
 	volume := output.CachediSCSIVolumes[0]
 
-	d.Set("arn", aws.StringValue(volume.VolumeARN))
+	arn := aws.StringValue(volume.VolumeARN)
+	d.Set("arn", arn)
 	d.Set("snapshot_id", aws.StringValue(volume.SourceSnapshotId))
-	d.Set("volume_arn", aws.StringValue(volume.VolumeARN))
+	d.Set("volume_arn", arn)
 	d.Set("volume_id", aws.StringValue(volume.VolumeId))
 	d.Set("volume_size_in_bytes", int(aws.Int64Value(volume.VolumeSizeInBytes)))
+
+	tags, err := keyvaluetags.StoragegatewayListTags(conn, arn)
+	if err != nil {
+		return fmt.Errorf("error listing tags for resource (%s): %s", arn, err)
+	}
+	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+		return fmt.Errorf("error setting tags: %s", err)
+	}
 
 	if volume.VolumeiSCSIAttributes != nil {
 		d.Set("chap_enabled", aws.BoolValue(volume.VolumeiSCSIAttributes.ChapEnabled))

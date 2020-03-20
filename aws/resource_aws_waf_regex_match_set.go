@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/waf"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
@@ -16,12 +17,19 @@ func resourceAwsWafRegexMatchSet() *schema.Resource {
 		Read:   resourceAwsWafRegexMatchSetRead,
 		Update: resourceAwsWafRegexMatchSetUpdate,
 		Delete: resourceAwsWafRegexMatchSetDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+			},
+			"arn": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 			"regex_match_tuple": {
 				Type:     schema.TypeSet,
@@ -96,7 +104,7 @@ func resourceAwsWafRegexMatchSetRead(d *schema.ResourceData, meta interface{}) e
 
 	resp, err := conn.GetRegexMatchSet(params)
 	if err != nil {
-		if isAWSErr(err, "WAFNonexistentItemException", "") {
+		if isAWSErr(err, waf.ErrCodeNonexistentItemException, "") {
 			log.Printf("[WARN] WAF Regex Match Set (%s) not found, removing from state", d.Id())
 			d.SetId("")
 			return nil
@@ -107,6 +115,14 @@ func resourceAwsWafRegexMatchSetRead(d *schema.ResourceData, meta interface{}) e
 
 	d.Set("name", resp.RegexMatchSet.Name)
 	d.Set("regex_match_tuple", flattenWafRegexMatchTuples(resp.RegexMatchSet.RegexMatchTuples))
+
+	arn := arn.ARN{
+		Partition: meta.(*AWSClient).partition,
+		Service:   "waf",
+		AccountID: meta.(*AWSClient).accountid,
+		Resource:  fmt.Sprintf("regexmatchset/%s", d.Id()),
+	}
+	d.Set("arn", arn.String())
 
 	return nil
 }

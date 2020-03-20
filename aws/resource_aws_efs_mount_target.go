@@ -220,10 +220,7 @@ func resourceAwsEfsMountTargetRead(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Failed getting Availability Zone from subnet ID (%s): %s", *mt.SubnetId, err)
 	}
 
-	region := meta.(*AWSClient).region
-	if err := d.Set("dns_name", resourceAwsEfsMountTargetDnsName(aws.StringValue(mt.FileSystemId), region)); err != nil {
-		return fmt.Errorf("error setting dns_name: %s", err)
-	}
+	d.Set("dns_name", meta.(*AWSClient).RegionalHostname(fmt.Sprintf("%s.efs", aws.StringValue(mt.FileSystemId))))
 
 	return nil
 }
@@ -255,12 +252,23 @@ func resourceAwsEfsMountTargetDelete(d *schema.ResourceData, meta interface{}) e
 		return err
 	}
 
+	err = waitForDeleteEfsMountTarget(conn, d.Id(), 10*time.Minute)
+	if err != nil {
+		return fmt.Errorf("Error waiting for EFS mount target (%q) to delete: %s", d.Id(), err.Error())
+	}
+
+	log.Printf("[DEBUG] EFS mount target %q deleted.", d.Id())
+
+	return nil
+}
+
+func waitForDeleteEfsMountTarget(conn *efs.EFS, id string, timeout time.Duration) error {
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"available", "deleting", "deleted"},
 		Target:  []string{},
 		Refresh: func() (interface{}, string, error) {
 			resp, err := conn.DescribeMountTargets(&efs.DescribeMountTargetsInput{
-				MountTargetId: aws.String(d.Id()),
+				MountTargetId: aws.String(id),
 			})
 			if err != nil {
 				awsErr, ok := err.(awserr.Error)
@@ -284,24 +292,12 @@ func resourceAwsEfsMountTargetDelete(d *schema.ResourceData, meta interface{}) e
 			log.Printf("[DEBUG] Current status of %q: %q", *mt.MountTargetId, *mt.LifeCycleState)
 			return mt, *mt.LifeCycleState, nil
 		},
-		Timeout:    10 * time.Minute,
+		Timeout:    timeout,
 		Delay:      2 * time.Second,
 		MinTimeout: 3 * time.Second,
 	}
-
-	_, err = stateConf.WaitForState()
-	if err != nil {
-		return fmt.Errorf("Error waiting for EFS mount target (%q) to delete: %s",
-			d.Id(), err.Error())
-	}
-
-	log.Printf("[DEBUG] EFS mount target %q deleted.", d.Id())
-
-	return nil
-}
-
-func resourceAwsEfsMountTargetDnsName(fileSystemId, region string) string {
-	return fmt.Sprintf("%s.efs.%s.amazonaws.com", fileSystemId, region)
+	_, err := stateConf.WaitForState()
+	return err
 }
 
 func hasEmptyMountTargets(mto *efs.DescribeMountTargetsOutput) bool {

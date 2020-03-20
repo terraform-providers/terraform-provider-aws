@@ -1,4 +1,5 @@
 ---
+subcategory: "DynamoDB Accelerator (DAX)"
 layout: "aws"
 page_title: "AWS: aws_dax_parameter_group"
 description: |-

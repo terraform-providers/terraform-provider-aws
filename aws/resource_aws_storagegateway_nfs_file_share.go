@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsStorageGatewayNfsFileShare() *schema.Resource {
@@ -151,6 +152,7 @@ func resourceAwsStorageGatewayNfsFileShare() *schema.Resource {
 					"RootSquash",
 				}, false),
 			},
+			"tags": tagsSchema(),
 		},
 	}
 }
@@ -172,6 +174,7 @@ func resourceAwsStorageGatewayNfsFileShareCreate(d *schema.ResourceData, meta in
 		RequesterPays:        aws.Bool(d.Get("requester_pays").(bool)),
 		Role:                 aws.String(d.Get("role_arn").(string)),
 		Squash:               aws.String(d.Get("squash").(string)),
+		Tags:                 keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().StoragegatewayTags(),
 	}
 
 	if v, ok := d.GetOk("kms_key_arn"); ok && v.(string) != "" {
@@ -228,7 +231,8 @@ func resourceAwsStorageGatewayNfsFileShareRead(d *schema.ResourceData, meta inte
 
 	fileshare := output.NFSFileShareInfoList[0]
 
-	d.Set("arn", fileshare.FileShareARN)
+	arn := fileshare.FileShareARN
+	d.Set("arn", arn)
 
 	if err := d.Set("client_list", schema.NewSet(schema.HashString, flattenStringList(fileshare.ClientList))); err != nil {
 		return fmt.Errorf("error setting client_list: %s", err)
@@ -253,11 +257,26 @@ func resourceAwsStorageGatewayNfsFileShareRead(d *schema.ResourceData, meta inte
 	d.Set("role_arn", fileshare.Role)
 	d.Set("squash", fileshare.Squash)
 
+	tags, err := keyvaluetags.StoragegatewayListTags(conn, *arn)
+	if err != nil {
+		return fmt.Errorf("error listing tags for resource (%s): %s", *arn, err)
+	}
+	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+		return fmt.Errorf("error setting tags: %s", err)
+	}
+
 	return nil
 }
 
 func resourceAwsStorageGatewayNfsFileShareUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).storagegatewayconn
+
+	if d.HasChange("tags") {
+		o, n := d.GetChange("tags")
+		if err := keyvaluetags.StoragegatewayUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
+			return fmt.Errorf("error updating tags: %s", err)
+		}
+	}
 
 	input := &storagegateway.UpdateNFSFileShareInput{
 		ClientList:           expandStringSet(d.Get("client_list").(*schema.Set)),

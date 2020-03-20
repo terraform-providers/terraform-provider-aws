@@ -16,6 +16,9 @@ func resourceAwsEgressOnlyInternetGateway() *schema.Resource {
 		Create: resourceAwsEgressOnlyInternetGatewayCreate,
 		Read:   resourceAwsEgressOnlyInternetGatewayRead,
 		Delete: resourceAwsEgressOnlyInternetGatewayDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 
 		Schema: map[string]*schema.Schema{
 			"vpc_id": {
@@ -37,7 +40,7 @@ func resourceAwsEgressOnlyInternetGatewayCreate(d *schema.ResourceData, meta int
 		return fmt.Errorf("Error creating egress internet gateway: %s", err)
 	}
 
-	d.SetId(*resp.EgressOnlyInternetGateway.EgressOnlyInternetGatewayId)
+	d.SetId(aws.StringValue(resp.EgressOnlyInternetGateway.EgressOnlyInternetGatewayId))
 
 	return resourceAwsEgressOnlyInternetGatewayRead(d, meta)
 }
@@ -45,7 +48,6 @@ func resourceAwsEgressOnlyInternetGatewayCreate(d *schema.ResourceData, meta int
 func resourceAwsEgressOnlyInternetGatewayRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
 
-	var found bool
 	var req = &ec2.DescribeEgressOnlyInternetGatewaysInput{
 		EgressOnlyInternetGatewayIds: []*string{aws.String(d.Id())},
 	}
@@ -58,8 +60,8 @@ func resourceAwsEgressOnlyInternetGatewayRead(d *schema.ResourceData, meta inter
 			return resource.NonRetryableError(err)
 		}
 
-		found = hasEc2EgressOnlyInternetGateway(d.Id(), resp)
-		if d.IsNewResource() && !found {
+		igw := getEc2EgressOnlyInternetGateway(d.Id(), resp)
+		if d.IsNewResource() && igw == nil {
 			return resource.RetryableError(fmt.Errorf("Egress Only Internet Gateway (%s) not found.", d.Id()))
 		}
 		return nil
@@ -72,27 +74,29 @@ func resourceAwsEgressOnlyInternetGatewayRead(d *schema.ResourceData, meta inter
 		return fmt.Errorf("Error describing egress internet gateway: %s", err)
 	}
 
-	found = hasEc2EgressOnlyInternetGateway(d.Id(), resp)
-	if !found {
+	igw := getEc2EgressOnlyInternetGateway(d.Id(), resp)
+	if igw == nil {
 		log.Printf("[Error] Cannot find Egress Only Internet Gateway: %q", d.Id())
 		d.SetId("")
 		return nil
 	}
 
+	if len(igw.Attachments) == 1 && aws.StringValue(igw.Attachments[0].State) == ec2.AttachmentStatusAttached {
+		d.Set("vpc_id", igw.Attachments[0].VpcId)
+	}
+
 	return nil
 }
 
-func hasEc2EgressOnlyInternetGateway(id string, resp *ec2.DescribeEgressOnlyInternetGatewaysOutput) bool {
-	var found bool
+func getEc2EgressOnlyInternetGateway(id string, resp *ec2.DescribeEgressOnlyInternetGatewaysOutput) *ec2.EgressOnlyInternetGateway {
 	if resp != nil && len(resp.EgressOnlyInternetGateways) > 0 {
 		for _, igw := range resp.EgressOnlyInternetGateways {
 			if aws.StringValue(igw.EgressOnlyInternetGatewayId) == id {
-				found = true
-				break
+				return igw
 			}
 		}
 	}
-	return found
+	return nil
 }
 
 func resourceAwsEgressOnlyInternetGatewayDelete(d *schema.ResourceData, meta interface{}) error {

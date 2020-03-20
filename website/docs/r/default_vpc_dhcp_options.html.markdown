@@ -1,4 +1,5 @@
 ---
+subcategory: "VPC"
 layout: "aws"
 page_title: "AWS: aws_default_vpc_dhcp_options"
 description: |-

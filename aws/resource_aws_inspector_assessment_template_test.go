@@ -2,6 +2,7 @@ package aws
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -13,7 +14,9 @@ import (
 )
 
 func TestAccAWSInspectorTemplate_basic(t *testing.T) {
-	rInt := acctest.RandInt()
+	var v inspector.AssessmentTemplate
+	resourceName := "aws_inspector_assessment_template.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -21,15 +24,93 @@ func TestAccAWSInspectorTemplate_basic(t *testing.T) {
 		CheckDestroy: testAccCheckAWSInspectorTemplateDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSInspectorTemplateAssessment(rInt),
+				Config: testAccAWSInspectorTemplateAssessmentBasic(rName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSInspectorTemplateExists("aws_inspector_assessment_template.foo"),
+					testAccCheckAWSInspectorTemplateExists(resourceName, &v),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "inspector", regexp.MustCompile(`target/.+/template/.+`)),
+					resource.TestCheckResourceAttr(resourceName, "duration", "3600"),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttrPair(resourceName, "rules_package_arns.#", "data.aws_inspector_rules_packages.available", "arns.#"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+					resource.TestCheckResourceAttrPair(resourceName, "target_arn", "aws_inspector_assessment_target.test", "arn"),
 				),
 			},
 			{
-				Config: testAccCheckAWSInspectorTemplatetModified(rInt),
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSInspectorTemplate_disappears(t *testing.T) {
+	var v inspector.AssessmentTemplate
+	resourceName := "aws_inspector_assessment_template.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSInspectorTemplateDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSInspectorTemplateAssessmentBasic(rName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSInspectorTemplateExists("aws_inspector_assessment_template.foo"),
+					testAccCheckAWSInspectorTemplateExists(resourceName, &v),
+					testAccCheckAWSInspectorTemplateDisappears(&v),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSInspectorTemplate_tags(t *testing.T) {
+	var v inspector.AssessmentTemplate
+	resourceName := "aws_inspector_assessment_template.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSInspectorTemplateDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSInspectorTemplateAssessmentTags1(rName, "key1", "value1"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSInspectorTemplateExists(resourceName, &v),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAWSInspectorTemplateAssessmentTags2(rName, "key1", "value1updated", "key2", "value2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSInspectorTemplateExists(resourceName, &v),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1updated"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
+				),
+			},
+			{
+				Config: testAccAWSInspectorTemplateAssessmentTags1(rName, "key2", "value2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSInspectorTemplateExists(resourceName, &v),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
+				),
+			},
+			{
+				Config: testAccAWSInspectorTemplateAssessmentBasic(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSInspectorTemplateExists(resourceName, &v),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 				),
 			},
 		},
@@ -66,69 +147,109 @@ func testAccCheckAWSInspectorTemplateDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccCheckAWSInspectorTemplateExists(name string) resource.TestCheckFunc {
+func testAccCheckAWSInspectorTemplateDisappears(v *inspector.AssessmentTemplate) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		_, ok := s.RootModule().Resources[name]
-		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+		conn := testAccProvider.Meta().(*AWSClient).inspectorconn
+
+		_, err := conn.DeleteAssessmentTemplate(&inspector.DeleteAssessmentTemplateInput{
+			AssessmentTemplateArn: v.Arn,
+		})
+		if err != nil {
+			return err
 		}
 
 		return nil
 	}
 }
 
-func testAccAWSInspectorTemplateAssessment(rInt int) string {
+func testAccCheckAWSInspectorTemplateExists(name string, v *inspector.AssessmentTemplate) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[name]
+		if !ok {
+			return fmt.Errorf("Not found: %s", name)
+		}
+
+		if rs.Primary.ID == "" {
+			return fmt.Errorf("No Inspector assessment template ID is set")
+		}
+
+		conn := testAccProvider.Meta().(*AWSClient).inspectorconn
+
+		resp, err := conn.DescribeAssessmentTemplates(&inspector.DescribeAssessmentTemplatesInput{
+			AssessmentTemplateArns: aws.StringSlice([]string{rs.Primary.ID}),
+		})
+		if err != nil {
+			return err
+		}
+
+		if resp.AssessmentTemplates == nil || len(resp.AssessmentTemplates) == 0 {
+			return fmt.Errorf("Inspector assessment template not found")
+		}
+
+		*v = *resp.AssessmentTemplates[0]
+
+		return nil
+	}
+}
+
+func testAccAWSInspectorTemplateAssessmentBase(rName string) string {
 	return fmt.Sprintf(`
-resource "aws_inspector_resource_group" "foo" {
+data "aws_inspector_rules_packages" "available" {}
+
+resource "aws_inspector_resource_group" "test" {
   tags = {
-    Name = "tf-acc-test-%d"
+    Name = %[1]q
   }
 }
 
-resource "aws_inspector_assessment_target" "foo" {
-  name               = "tf-acc-test-basic-%d"
-  resource_group_arn = "${aws_inspector_resource_group.foo.arn}"
+resource "aws_inspector_assessment_target" "test" {
+  name               = %[1]q
+  resource_group_arn = "${aws_inspector_resource_group.test.arn}"
+}
+`, rName)
 }
 
-resource "aws_inspector_assessment_template" "foo" {
-  name       = "tf-acc-test-basic-tpl-%d"
-  target_arn = "${aws_inspector_assessment_target.foo.arn}"
+func testAccAWSInspectorTemplateAssessmentBasic(rName string) string {
+	return testAccAWSInspectorTemplateAssessmentBase(rName) + fmt.Sprintf(`
+resource "aws_inspector_assessment_template" "test" {
+  name       = %[1]q
+  target_arn = "${aws_inspector_assessment_target.test.arn}"
   duration   = 3600
 
-  rules_package_arns = [
-    "arn:aws:inspector:us-west-2:758058086616:rulespackage/0-9hgA516p",
-    "arn:aws:inspector:us-west-2:758058086616:rulespackage/0-H5hpSawc",
-    "arn:aws:inspector:us-west-2:758058086616:rulespackage/0-JJOtZiqQ",
-    "arn:aws:inspector:us-west-2:758058086616:rulespackage/0-vg5GGHSD",
-  ]
+  rules_package_arns = "${data.aws_inspector_rules_packages.available.arns}"
 }
-`, rInt, rInt, rInt)
+`, rName)
 }
 
-func testAccCheckAWSInspectorTemplatetModified(rInt int) string {
-	return fmt.Sprintf(`
-resource "aws_inspector_resource_group" "foo" {
+func testAccAWSInspectorTemplateAssessmentTags1(rName, tagKey1, tagValue1 string) string {
+	return testAccAWSInspectorTemplateAssessmentBase(rName) + fmt.Sprintf(`
+resource "aws_inspector_assessment_template" "test" {
+  name       = %[1]q
+  target_arn = "${aws_inspector_assessment_target.test.arn}"
+  duration   = 3600
+
+  rules_package_arns = "${data.aws_inspector_rules_packages.available.arns}"
+
   tags = {
-    Name = "tf-acc-test-%d"
+    %[2]q = %[3]q
   }
 }
-
-resource "aws_inspector_assessment_target" "foo" {
-  name               = "tf-acc-test-basic-%d"
-  resource_group_arn = "${aws_inspector_resource_group.foo.arn}"
+`, rName, tagKey1, tagValue1)
 }
 
-resource "aws_inspector_assessment_template" "foo" {
-  name       = "tf-acc-test-basic-tpl-%d"
-  target_arn = "${aws_inspector_assessment_target.foo.arn}"
+func testAccAWSInspectorTemplateAssessmentTags2(rName, tagKey1, tagValue1, tagKey2, tagValue2 string) string {
+	return testAccAWSInspectorTemplateAssessmentBase(rName) + fmt.Sprintf(`
+resource "aws_inspector_assessment_template" "test" {
+  name       = %[1]q
+  target_arn = "${aws_inspector_assessment_target.test.arn}"
   duration   = 3600
 
-  rules_package_arns = [
-    "arn:aws:inspector:us-west-2:758058086616:rulespackage/0-9hgA516p",
-    "arn:aws:inspector:us-west-2:758058086616:rulespackage/0-H5hpSawc",
-    "arn:aws:inspector:us-west-2:758058086616:rulespackage/0-JJOtZiqQ",
-    "arn:aws:inspector:us-west-2:758058086616:rulespackage/0-vg5GGHSD",
-  ]
+  rules_package_arns = "${data.aws_inspector_rules_packages.available.arns}"
+
+  tags = {
+    %[2]q = %[3]q
+    %[4]q = %[5]q
+  }
 }
-`, rInt, rInt, rInt)
+`, rName, tagKey1, tagValue1, tagKey2, tagValue2)
 }

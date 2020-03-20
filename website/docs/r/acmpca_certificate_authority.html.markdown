@@ -1,4 +1,5 @@
 ---
+subcategory: "ACM PCA"
 layout: "aws"
 page_title: "AWS: aws_acmpca_certificate_authority"
 description: |-

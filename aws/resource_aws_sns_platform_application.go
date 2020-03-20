@@ -225,9 +225,9 @@ func resourceAwsSnsPlatformApplicationRead(d *schema.ResourceData, meta interfac
 				// Some of the fetched attributes are stateful properties such as
 				// the number of subscriptions, the owner, etc. skip those
 				if resource.Schema[iKey] != nil {
-					value := *attrmap[oKey]
+					value := aws.StringValue(attrmap[oKey])
 					log.Printf("[DEBUG] Updating %s => %s -> %s", iKey, oKey, value)
-					d.Set(iKey, *attrmap[oKey])
+					d.Set(iKey, value)
 				}
 			}
 		}

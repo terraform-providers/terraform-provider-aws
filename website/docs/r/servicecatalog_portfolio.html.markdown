@@ -1,4 +1,5 @@
 ---
+subcategory: "Service Catalog"
 layout: "aws"
 page_title: "AWS: aws_servicecatalog_portfolio"
 description: |-

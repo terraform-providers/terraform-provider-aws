@@ -1,4 +1,5 @@
 ---
+subcategory: "SES"
 layout: "aws"
 page_title: "AWS: aws_ses_domain_mail_from"
 description: |-
@@ -30,7 +31,7 @@ resource "aws_route53_record" "example_ses_domain_mail_from_mx" {
   name    = "${aws_ses_domain_mail_from.example.mail_from_domain}"
   type    = "MX"
   ttl     = "600"
-  records = ["10 feedback-smtp.us-east-1.amazonses.com"]           # Change to the region in which `aws_ses_domain_identity.example` is created
+  records = ["10 feedback-smtp.us-east-1.amazonses.com"] # Change to the region in which `aws_ses_domain_identity.example` is created
 }
 
 # Example Route53 TXT record for SPF

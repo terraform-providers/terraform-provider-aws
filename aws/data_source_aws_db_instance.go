@@ -7,6 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/rds"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func dataSourceAwsDbInstance() *schema.Resource {
@@ -19,6 +20,8 @@ func dataSourceAwsDbInstance() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
+
+			"tags": tagsSchemaComputed(),
 
 			"address": {
 				Type:     schema.TypeString,
@@ -279,6 +282,7 @@ func dataSourceAwsDbInstanceRead(d *schema.ResourceData, meta interface{}) error
 	d.Set("master_username", dbInstance.MasterUsername)
 	d.Set("monitoring_interval", dbInstance.MonitoringInterval)
 	d.Set("monitoring_role_arn", dbInstance.MonitoringRoleArn)
+	d.Set("multi_az", dbInstance.MultiAZ)
 	d.Set("address", dbInstance.Endpoint.Address)
 	d.Set("port", dbInstance.Endpoint.Port)
 	d.Set("hosted_zone_id", dbInstance.Endpoint.HostedZoneId)
@@ -311,6 +315,16 @@ func dataSourceAwsDbInstanceRead(d *schema.ResourceData, meta interface{}) error
 	}
 	if err := d.Set("vpc_security_groups", vpcSecurityGroups); err != nil {
 		return fmt.Errorf("Error setting vpc_security_groups attribute: %#v, error: %#v", vpcSecurityGroups, err)
+	}
+
+	tags, err := keyvaluetags.RdsListTags(conn, d.Get("db_instance_arn").(string))
+
+	if err != nil {
+		return fmt.Errorf("error listing tags for RDS DB Instance (%s): %s", d.Get("db_instance_arn").(string), err)
+	}
+
+	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+		return fmt.Errorf("error setting tags: %s", err)
 	}
 
 	return nil

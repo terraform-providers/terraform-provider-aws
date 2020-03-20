@@ -1,4 +1,5 @@
 ---
+subcategory: "Service Discovery"
 layout: "aws"
 page_title: "AWS: aws_service_discovery_http_namespace"
 description: |-

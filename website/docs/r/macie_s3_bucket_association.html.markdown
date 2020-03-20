@@ -1,4 +1,5 @@
 ---
+subcategory: "Macie"
 layout: "aws"
 page_title: "AWS: aws_macie_s3_bucket_association"
 description: |-

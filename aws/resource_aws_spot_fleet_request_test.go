@@ -60,6 +60,7 @@ func TestAccAWSSpotFleetRequest_basic(t *testing.T) {
 	var sfr ec2.SpotFleetRequestConfig
 	rName := acctest.RandString(10)
 	rInt := acctest.RandInt()
+	validUntil := time.Now().UTC().Add(24 * time.Hour).Format(time.RFC3339)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEc2SpotFleetRequest(t) },
@@ -67,11 +68,12 @@ func TestAccAWSSpotFleetRequest_basic(t *testing.T) {
 		CheckDestroy: testAccCheckAWSSpotFleetRequestDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSSpotFleetRequestConfig(rName, rInt),
+				Config: testAccAWSSpotFleetRequestConfig(rName, rInt, validUntil),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAWSSpotFleetRequestExists("aws_spot_fleet_request.foo", &sfr),
 					resource.TestCheckResourceAttr("aws_spot_fleet_request.foo", "spot_request_state", "active"),
 					resource.TestCheckResourceAttr("aws_spot_fleet_request.foo", "excess_capacity_termination_policy", "Default"),
+					resource.TestCheckResourceAttr("aws_spot_fleet_request.foo", "valid_until", validUntil),
 				),
 			},
 		},
@@ -82,6 +84,7 @@ func TestAccAWSSpotFleetRequest_associatePublicIpAddress(t *testing.T) {
 	var sfr ec2.SpotFleetRequestConfig
 	rName := acctest.RandString(10)
 	rInt := acctest.RandInt()
+	validUntil := time.Now().UTC().Add(24 * time.Hour).Format(time.RFC3339)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEc2SpotFleetRequest(t) },
@@ -89,7 +92,7 @@ func TestAccAWSSpotFleetRequest_associatePublicIpAddress(t *testing.T) {
 		CheckDestroy: testAccCheckAWSSpotFleetRequestDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSSpotFleetRequestConfigAssociatePublicIpAddress(rName, rInt),
+				Config: testAccAWSSpotFleetRequestConfigAssociatePublicIpAddress(rName, rInt, validUntil),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAWSSpotFleetRequestExists("aws_spot_fleet_request.foo", &sfr),
 					resource.TestCheckResourceAttr("aws_spot_fleet_request.foo", "spot_request_state", "active"),
@@ -105,6 +108,7 @@ func TestAccAWSSpotFleetRequest_instanceInterruptionBehavior(t *testing.T) {
 	var sfr ec2.SpotFleetRequestConfig
 	rName := acctest.RandString(10)
 	rInt := acctest.RandInt()
+	validUntil := time.Now().UTC().Add(24 * time.Hour).Format(time.RFC3339)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEc2SpotFleetRequest(t) },
@@ -112,7 +116,7 @@ func TestAccAWSSpotFleetRequest_instanceInterruptionBehavior(t *testing.T) {
 		CheckDestroy: testAccCheckAWSSpotFleetRequestDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSSpotFleetRequestConfig(rName, rInt),
+				Config: testAccAWSSpotFleetRequestConfig(rName, rInt, validUntil),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAWSSpotFleetRequestExists("aws_spot_fleet_request.foo", &sfr),
 					resource.TestCheckResourceAttr("aws_spot_fleet_request.foo", "spot_request_state", "active"),
@@ -127,6 +131,7 @@ func TestAccAWSSpotFleetRequest_fleetType(t *testing.T) {
 	var sfr ec2.SpotFleetRequestConfig
 	rName := acctest.RandString(10)
 	rInt := acctest.RandInt()
+	validUntil := time.Now().UTC().Add(24 * time.Hour).Format(time.RFC3339)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEc2SpotFleetRequest(t) },
@@ -134,7 +139,7 @@ func TestAccAWSSpotFleetRequest_fleetType(t *testing.T) {
 		CheckDestroy: testAccCheckAWSSpotFleetRequestDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSSpotFleetRequestConfigFleetType(rName, rInt),
+				Config: testAccAWSSpotFleetRequestConfigFleetType(rName, rInt, validUntil),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAWSSpotFleetRequestExists("aws_spot_fleet_request.foo", &sfr),
 					resource.TestCheckResourceAttr("aws_spot_fleet_request.foo", "spot_request_state", "active"),
@@ -149,6 +154,7 @@ func TestAccAWSSpotFleetRequest_iamInstanceProfileArn(t *testing.T) {
 	var sfr ec2.SpotFleetRequestConfig
 	rName := acctest.RandString(10)
 	rInt := acctest.RandInt()
+	validUntil := time.Now().UTC().Add(24 * time.Hour).Format(time.RFC3339)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEc2SpotFleetRequest(t) },
@@ -156,7 +162,7 @@ func TestAccAWSSpotFleetRequest_iamInstanceProfileArn(t *testing.T) {
 		CheckDestroy: testAccCheckAWSSpotFleetRequestDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSSpotFleetRequestConfigIamInstanceProfileArn(rName, rInt),
+				Config: testAccAWSSpotFleetRequestConfigIamInstanceProfileArn(rName, rInt, validUntil),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAWSSpotFleetRequestExists(
 						"aws_spot_fleet_request.foo", &sfr),
@@ -172,6 +178,7 @@ func TestAccAWSSpotFleetRequest_changePriceForcesNewRequest(t *testing.T) {
 	var before, after ec2.SpotFleetRequestConfig
 	rName := acctest.RandString(10)
 	rInt := acctest.RandInt()
+	validUntil := time.Now().UTC().Add(24 * time.Hour).Format(time.RFC3339)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEc2SpotFleetRequest(t) },
@@ -179,7 +186,7 @@ func TestAccAWSSpotFleetRequest_changePriceForcesNewRequest(t *testing.T) {
 		CheckDestroy: testAccCheckAWSSpotFleetRequestDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSSpotFleetRequestConfig(rName, rInt),
+				Config: testAccAWSSpotFleetRequestConfig(rName, rInt, validUntil),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAWSSpotFleetRequestExists(
 						"aws_spot_fleet_request.foo", &before),
@@ -189,7 +196,7 @@ func TestAccAWSSpotFleetRequest_changePriceForcesNewRequest(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAWSSpotFleetRequestConfigChangeSpotBidPrice(rName, rInt),
+				Config: testAccAWSSpotFleetRequestConfigChangeSpotBidPrice(rName, rInt, validUntil),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAWSSpotFleetRequestExists(
 						"aws_spot_fleet_request.foo", &after),
@@ -207,6 +214,7 @@ func TestAccAWSSpotFleetRequest_updateTargetCapacity(t *testing.T) {
 	var before, after ec2.SpotFleetRequestConfig
 	rName := acctest.RandString(10)
 	rInt := acctest.RandInt()
+	validUntil := time.Now().UTC().Add(24 * time.Hour).Format(time.RFC3339)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEc2SpotFleetRequest(t) },
@@ -214,7 +222,7 @@ func TestAccAWSSpotFleetRequest_updateTargetCapacity(t *testing.T) {
 		CheckDestroy: testAccCheckAWSSpotFleetRequestDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSSpotFleetRequestConfig(rName, rInt),
+				Config: testAccAWSSpotFleetRequestConfig(rName, rInt, validUntil),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAWSSpotFleetRequestExists("aws_spot_fleet_request.foo", &before),
 					resource.TestCheckResourceAttr("aws_spot_fleet_request.foo", "spot_request_state", "active"),
@@ -222,14 +230,14 @@ func TestAccAWSSpotFleetRequest_updateTargetCapacity(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAWSSpotFleetRequestConfigTargetCapacity(rName, rInt),
+				Config: testAccAWSSpotFleetRequestConfigTargetCapacity(rName, rInt, validUntil),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAWSSpotFleetRequestExists("aws_spot_fleet_request.foo", &after),
 					resource.TestCheckResourceAttr("aws_spot_fleet_request.foo", "target_capacity", "3"),
 				),
 			},
 			{
-				Config: testAccAWSSpotFleetRequestConfig(rName, rInt),
+				Config: testAccAWSSpotFleetRequestConfig(rName, rInt, validUntil),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAWSSpotFleetRequestExists("aws_spot_fleet_request.foo", &before),
 					resource.TestCheckResourceAttr("aws_spot_fleet_request.foo", "spot_request_state", "active"),
@@ -244,6 +252,7 @@ func TestAccAWSSpotFleetRequest_updateExcessCapacityTerminationPolicy(t *testing
 	var before, after ec2.SpotFleetRequestConfig
 	rName := acctest.RandString(10)
 	rInt := acctest.RandInt()
+	validUntil := time.Now().UTC().Add(24 * time.Hour).Format(time.RFC3339)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEc2SpotFleetRequest(t) },
@@ -251,7 +260,7 @@ func TestAccAWSSpotFleetRequest_updateExcessCapacityTerminationPolicy(t *testing
 		CheckDestroy: testAccCheckAWSSpotFleetRequestDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSSpotFleetRequestConfig(rName, rInt),
+				Config: testAccAWSSpotFleetRequestConfig(rName, rInt, validUntil),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAWSSpotFleetRequestExists("aws_spot_fleet_request.foo", &before),
 					resource.TestCheckResourceAttr("aws_spot_fleet_request.foo", "spot_request_state", "active"),
@@ -259,7 +268,7 @@ func TestAccAWSSpotFleetRequest_updateExcessCapacityTerminationPolicy(t *testing
 				),
 			},
 			{
-				Config: testAccAWSSpotFleetRequestConfigExcessCapacityTermination(rName, rInt),
+				Config: testAccAWSSpotFleetRequestConfigExcessCapacityTermination(rName, rInt, validUntil),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAWSSpotFleetRequestExists("aws_spot_fleet_request.foo", &after),
 					resource.TestCheckResourceAttr("aws_spot_fleet_request.foo", "excess_capacity_termination_policy", "NoTermination"),
@@ -273,6 +282,7 @@ func TestAccAWSSpotFleetRequest_lowestPriceAzOrSubnetInRegion(t *testing.T) {
 	var sfr ec2.SpotFleetRequestConfig
 	rName := acctest.RandString(10)
 	rInt := acctest.RandInt()
+	validUntil := time.Now().UTC().Add(24 * time.Hour).Format(time.RFC3339)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEc2SpotFleetRequest(t) },
@@ -280,7 +290,7 @@ func TestAccAWSSpotFleetRequest_lowestPriceAzOrSubnetInRegion(t *testing.T) {
 		CheckDestroy: testAccCheckAWSSpotFleetRequestDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSSpotFleetRequestConfig(rName, rInt),
+				Config: testAccAWSSpotFleetRequestConfig(rName, rInt, validUntil),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAWSSpotFleetRequestExists(
 						"aws_spot_fleet_request.foo", &sfr),
@@ -296,6 +306,7 @@ func TestAccAWSSpotFleetRequest_lowestPriceAzInGivenList(t *testing.T) {
 	var sfr ec2.SpotFleetRequestConfig
 	rName := acctest.RandString(10)
 	rInt := acctest.RandInt()
+	validUntil := time.Now().UTC().Add(24 * time.Hour).Format(time.RFC3339)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEc2SpotFleetRequest(t) },
@@ -303,7 +314,7 @@ func TestAccAWSSpotFleetRequest_lowestPriceAzInGivenList(t *testing.T) {
 		CheckDestroy: testAccCheckAWSSpotFleetRequestDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSSpotFleetRequestConfigWithAzs(rName, rInt),
+				Config: testAccAWSSpotFleetRequestConfigWithAzs(rName, rInt, validUntil),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAWSSpotFleetRequestExists(
 						"aws_spot_fleet_request.foo", &sfr),
@@ -321,6 +332,7 @@ func TestAccAWSSpotFleetRequest_lowestPriceSubnetInGivenList(t *testing.T) {
 	var sfr ec2.SpotFleetRequestConfig
 	rName := acctest.RandString(10)
 	rInt := acctest.RandInt()
+	validUntil := time.Now().UTC().Add(24 * time.Hour).Format(time.RFC3339)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEc2SpotFleetRequest(t) },
@@ -328,7 +340,7 @@ func TestAccAWSSpotFleetRequest_lowestPriceSubnetInGivenList(t *testing.T) {
 		CheckDestroy: testAccCheckAWSSpotFleetRequestDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSSpotFleetRequestConfigWithSubnet(rName, rInt),
+				Config: testAccAWSSpotFleetRequestConfigWithSubnet(rName, rInt, validUntil),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAWSSpotFleetRequestExists(
 						"aws_spot_fleet_request.foo", &sfr),
@@ -344,6 +356,7 @@ func TestAccAWSSpotFleetRequest_multipleInstanceTypesInSameAz(t *testing.T) {
 	var sfr ec2.SpotFleetRequestConfig
 	rName := acctest.RandString(10)
 	rInt := acctest.RandInt()
+	validUntil := time.Now().UTC().Add(24 * time.Hour).Format(time.RFC3339)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEc2SpotFleetRequest(t) },
@@ -351,7 +364,7 @@ func TestAccAWSSpotFleetRequest_multipleInstanceTypesInSameAz(t *testing.T) {
 		CheckDestroy: testAccCheckAWSSpotFleetRequestDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSSpotFleetRequestConfigMultipleInstanceTypesinSameAz(rName, rInt),
+				Config: testAccAWSSpotFleetRequestConfigMultipleInstanceTypesinSameAz(rName, rInt, validUntil),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAWSSpotFleetRequestExists(
 						"aws_spot_fleet_request.foo", &sfr),
@@ -371,6 +384,7 @@ func TestAccAWSSpotFleetRequest_multipleInstanceTypesInSameSubnet(t *testing.T) 
 	var sfr ec2.SpotFleetRequestConfig
 	rName := acctest.RandString(10)
 	rInt := acctest.RandInt()
+	validUntil := time.Now().UTC().Add(24 * time.Hour).Format(time.RFC3339)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEc2SpotFleetRequest(t) },
@@ -378,7 +392,7 @@ func TestAccAWSSpotFleetRequest_multipleInstanceTypesInSameSubnet(t *testing.T) 
 		CheckDestroy: testAccCheckAWSSpotFleetRequestDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSSpotFleetRequestConfigMultipleInstanceTypesinSameSubnet(rName, rInt),
+				Config: testAccAWSSpotFleetRequestConfigMultipleInstanceTypesinSameSubnet(rName, rInt, validUntil),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAWSSpotFleetRequestExists(
 						"aws_spot_fleet_request.foo", &sfr),
@@ -394,6 +408,7 @@ func TestAccAWSSpotFleetRequest_overriddingSpotPrice(t *testing.T) {
 	var sfr ec2.SpotFleetRequestConfig
 	rName := acctest.RandString(10)
 	rInt := acctest.RandInt()
+	validUntil := time.Now().UTC().Add(24 * time.Hour).Format(time.RFC3339)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEc2SpotFleetRequest(t) },
@@ -401,7 +416,7 @@ func TestAccAWSSpotFleetRequest_overriddingSpotPrice(t *testing.T) {
 		CheckDestroy: testAccCheckAWSSpotFleetRequestDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSSpotFleetRequestConfigOverridingSpotPrice(rName, rInt),
+				Config: testAccAWSSpotFleetRequestConfigOverridingSpotPrice(rName, rInt, validUntil),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAWSSpotFleetRequestExists(
 						"aws_spot_fleet_request.foo", &sfr),
@@ -422,6 +437,7 @@ func TestAccAWSSpotFleetRequest_withoutSpotPrice(t *testing.T) {
 	var sfr ec2.SpotFleetRequestConfig
 	rName := acctest.RandString(10)
 	rInt := acctest.RandInt()
+	validUntil := time.Now().UTC().Add(24 * time.Hour).Format(time.RFC3339)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEc2SpotFleetRequest(t) },
@@ -429,7 +445,7 @@ func TestAccAWSSpotFleetRequest_withoutSpotPrice(t *testing.T) {
 		CheckDestroy: testAccCheckAWSSpotFleetRequestDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSSpotFleetRequestConfigWithoutSpotPrice(rName, rInt),
+				Config: testAccAWSSpotFleetRequestConfigWithoutSpotPrice(rName, rInt, validUntil),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAWSSpotFleetRequestExists(
 						"aws_spot_fleet_request.foo", &sfr),
@@ -445,6 +461,7 @@ func TestAccAWSSpotFleetRequest_diversifiedAllocation(t *testing.T) {
 	var sfr ec2.SpotFleetRequestConfig
 	rName := acctest.RandString(10)
 	rInt := acctest.RandInt()
+	validUntil := time.Now().UTC().Add(24 * time.Hour).Format(time.RFC3339)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEc2SpotFleetRequest(t) },
@@ -452,7 +469,7 @@ func TestAccAWSSpotFleetRequest_diversifiedAllocation(t *testing.T) {
 		CheckDestroy: testAccCheckAWSSpotFleetRequestDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSSpotFleetRequestConfigDiversifiedAllocation(rName, rInt),
+				Config: testAccAWSSpotFleetRequestConfigDiversifiedAllocation(rName, rInt, validUntil),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAWSSpotFleetRequestExists(
 						"aws_spot_fleet_request.foo", &sfr),
@@ -469,6 +486,7 @@ func TestAccAWSSpotFleetRequest_multipleInstancePools(t *testing.T) {
 	var sfr ec2.SpotFleetRequestConfig
 	rName := acctest.RandString(10)
 	rInt := acctest.RandInt()
+	validUntil := time.Now().UTC().Add(24 * time.Hour).Format(time.RFC3339)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEc2SpotFleetRequest(t) },
@@ -476,7 +494,7 @@ func TestAccAWSSpotFleetRequest_multipleInstancePools(t *testing.T) {
 		CheckDestroy: testAccCheckAWSSpotFleetRequestDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSSpotFleetRequestConfigMultipleInstancePools(rName, rInt),
+				Config: testAccAWSSpotFleetRequestConfigMultipleInstancePools(rName, rInt, validUntil),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAWSSpotFleetRequestExists(
 						"aws_spot_fleet_request.foo", &sfr),
@@ -494,6 +512,7 @@ func TestAccAWSSpotFleetRequest_withWeightedCapacity(t *testing.T) {
 	var sfr ec2.SpotFleetRequestConfig
 	rName := acctest.RandString(10)
 	rInt := acctest.RandInt()
+	validUntil := time.Now().UTC().Add(24 * time.Hour).Format(time.RFC3339)
 
 	fulfillSleep := func() resource.TestCheckFunc {
 		// sleep so that EC2 can fuflill the request. We do this to guard against a
@@ -515,7 +534,7 @@ func TestAccAWSSpotFleetRequest_withWeightedCapacity(t *testing.T) {
 		CheckDestroy: testAccCheckAWSSpotFleetRequestDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSSpotFleetRequestConfigWithWeightedCapacity(rName, rInt),
+				Config: testAccAWSSpotFleetRequestConfigWithWeightedCapacity(rName, rInt, validUntil),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					fulfillSleep(),
 					testAccCheckAWSSpotFleetRequestExists(
@@ -536,6 +555,7 @@ func TestAccAWSSpotFleetRequest_withEBSDisk(t *testing.T) {
 	var config ec2.SpotFleetRequestConfig
 	rName := acctest.RandString(10)
 	rInt := acctest.RandInt()
+	validUntil := time.Now().UTC().Add(24 * time.Hour).Format(time.RFC3339)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEc2SpotFleetRequest(t) },
@@ -543,7 +563,7 @@ func TestAccAWSSpotFleetRequest_withEBSDisk(t *testing.T) {
 		CheckDestroy: testAccCheckAWSSpotFleetRequestDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSSpotFleetRequestEBSConfig(rName, rInt),
+				Config: testAccAWSSpotFleetRequestEBSConfig(rName, rInt, validUntil),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAWSSpotFleetRequestExists(
 						"aws_spot_fleet_request.foo", &config),
@@ -559,6 +579,7 @@ func TestAccAWSSpotFleetRequest_LaunchSpecification_EbsBlockDevice_KmsKeyId(t *t
 	var config ec2.SpotFleetRequestConfig
 	rName := acctest.RandString(10)
 	rInt := acctest.RandInt()
+	validUntil := time.Now().UTC().Add(24 * time.Hour).Format(time.RFC3339)
 	resourceName := "aws_spot_fleet_request.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -567,7 +588,7 @@ func TestAccAWSSpotFleetRequest_LaunchSpecification_EbsBlockDevice_KmsKeyId(t *t
 		CheckDestroy: testAccCheckAWSSpotFleetRequestDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSSpotFleetRequestLaunchSpecificationEbsBlockDeviceKmsKeyId(rName, rInt),
+				Config: testAccAWSSpotFleetRequestLaunchSpecificationEbsBlockDeviceKmsKeyId(rName, rInt, validUntil),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAWSSpotFleetRequestExists(resourceName, &config),
 				),
@@ -580,6 +601,7 @@ func TestAccAWSSpotFleetRequest_LaunchSpecification_RootBlockDevice_KmsKeyId(t *
 	var config ec2.SpotFleetRequestConfig
 	rName := acctest.RandString(10)
 	rInt := acctest.RandInt()
+	validUntil := time.Now().UTC().Add(24 * time.Hour).Format(time.RFC3339)
 	resourceName := "aws_spot_fleet_request.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -588,7 +610,7 @@ func TestAccAWSSpotFleetRequest_LaunchSpecification_RootBlockDevice_KmsKeyId(t *
 		CheckDestroy: testAccCheckAWSSpotFleetRequestDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSSpotFleetRequestLaunchSpecificationRootBlockDeviceKmsKeyId(rName, rInt),
+				Config: testAccAWSSpotFleetRequestLaunchSpecificationRootBlockDeviceKmsKeyId(rName, rInt, validUntil),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAWSSpotFleetRequestExists(resourceName, &config),
 				),
@@ -601,6 +623,7 @@ func TestAccAWSSpotFleetRequest_withTags(t *testing.T) {
 	var config ec2.SpotFleetRequestConfig
 	rName := acctest.RandString(10)
 	rInt := acctest.RandInt()
+	validUntil := time.Now().UTC().Add(24 * time.Hour).Format(time.RFC3339)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEc2SpotFleetRequest(t) },
@@ -608,7 +631,7 @@ func TestAccAWSSpotFleetRequest_withTags(t *testing.T) {
 		CheckDestroy: testAccCheckAWSSpotFleetRequestDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSSpotFleetRequestTagsConfig(rName, rInt),
+				Config: testAccAWSSpotFleetRequestTagsConfig(rName, rInt, validUntil),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAWSSpotFleetRequestExists("aws_spot_fleet_request.foo", &config),
 					resource.TestCheckResourceAttr("aws_spot_fleet_request.foo", "launch_specification.24370212.tags.%", "2"),
@@ -624,6 +647,7 @@ func TestAccAWSSpotFleetRequest_placementTenancyAndGroup(t *testing.T) {
 	var sfr ec2.SpotFleetRequestConfig
 	rName := acctest.RandString(10)
 	rInt := acctest.RandInt()
+	validUntil := time.Now().UTC().Add(24 * time.Hour).Format(time.RFC3339)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEc2SpotFleetRequest(t) },
@@ -631,7 +655,7 @@ func TestAccAWSSpotFleetRequest_placementTenancyAndGroup(t *testing.T) {
 		CheckDestroy: testAccCheckAWSSpotFleetRequestDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSSpotFleetRequestTenancyGroupConfig(rName, rInt),
+				Config: testAccAWSSpotFleetRequestTenancyGroupConfig(rName, rInt, validUntil),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAWSSpotFleetRequestExists("aws_spot_fleet_request.foo", &sfr),
 					resource.TestCheckResourceAttr("aws_spot_fleet_request.foo", "spot_request_state", "active"),
@@ -646,6 +670,7 @@ func TestAccAWSSpotFleetRequest_WithELBs(t *testing.T) {
 	var sfr ec2.SpotFleetRequestConfig
 	rName := acctest.RandString(10)
 	rInt := acctest.RandInt()
+	validUntil := time.Now().UTC().Add(24 * time.Hour).Format(time.RFC3339)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEc2SpotFleetRequest(t) },
@@ -653,7 +678,7 @@ func TestAccAWSSpotFleetRequest_WithELBs(t *testing.T) {
 		CheckDestroy: testAccCheckAWSSpotFleetRequestDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSSpotFleetRequestConfigWithELBs(rName, rInt),
+				Config: testAccAWSSpotFleetRequestConfigWithELBs(rName, rInt, validUntil),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAWSSpotFleetRequestExists(
 						"aws_spot_fleet_request.foo", &sfr),
@@ -670,6 +695,7 @@ func TestAccAWSSpotFleetRequest_WithTargetGroups(t *testing.T) {
 	var sfr ec2.SpotFleetRequestConfig
 	rName := acctest.RandString(10)
 	rInt := acctest.RandInt()
+	validUntil := time.Now().UTC().Add(24 * time.Hour).Format(time.RFC3339)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEc2SpotFleetRequest(t) },
@@ -677,7 +703,7 @@ func TestAccAWSSpotFleetRequest_WithTargetGroups(t *testing.T) {
 		CheckDestroy: testAccCheckAWSSpotFleetRequestDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSSpotFleetRequestConfigWithTargetGroups(rName, rInt),
+				Config: testAccAWSSpotFleetRequestConfigWithTargetGroups(rName, rInt, validUntil),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAWSSpotFleetRequestExists(
 						"aws_spot_fleet_request.foo", &sfr),
@@ -694,6 +720,7 @@ func TestAccAWSSpotFleetRequest_WithInstanceStoreAmi(t *testing.T) {
 	t.Skip("Test fails due to test harness constraints")
 	rName := acctest.RandString(10)
 	rInt := acctest.RandInt()
+	validUntil := time.Now().UTC().Add(24 * time.Hour).Format(time.RFC3339)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEc2SpotFleetRequest(t) },
@@ -701,7 +728,7 @@ func TestAccAWSSpotFleetRequest_WithInstanceStoreAmi(t *testing.T) {
 		CheckDestroy: testAccCheckAWSSpotFleetRequestDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccAWSSpotFleetRequestLaunchSpecificationWithInstanceStoreAmi(rName, rInt),
+				Config:      testAccAWSSpotFleetRequestLaunchSpecificationWithInstanceStoreAmi(rName, rInt, validUntil),
 				ExpectError: regexp.MustCompile("Instance store backed AMIs do not provide a root device name"),
 			},
 		},
@@ -922,13 +949,13 @@ resource "aws_iam_policy_attachment" "test-attach" {
 `, rName, rInt)
 }
 
-func testAccAWSSpotFleetRequestConfig(rName string, rInt int) string {
-	return testAccAWSSpotFleetRequestConfigBase(rName, rInt) + fmt.Sprint(`
+func testAccAWSSpotFleetRequestConfig(rName string, rInt int, validUntil string) string {
+	return testAccAWSSpotFleetRequestConfigBase(rName, rInt) + fmt.Sprintf(`
 resource "aws_spot_fleet_request" "foo" {
     iam_fleet_role = "${aws_iam_role.test-role.arn}"
     spot_price = "0.005"
     target_capacity = 2
-    valid_until = "2019-11-04T20:44:20Z"
+    valid_until = %[1]q
     terminate_instances_with_expiration = true
     instance_interruption_behaviour = "stop"
     wait_for_fulfillment = true
@@ -939,16 +966,16 @@ resource "aws_spot_fleet_request" "foo" {
     }
     depends_on = ["aws_iam_policy_attachment.test-attach"]
 }
-`)
+`, validUntil)
 }
 
-func testAccAWSSpotFleetRequestConfigAssociatePublicIpAddress(rName string, rInt int) string {
-	return testAccAWSSpotFleetRequestConfigBase(rName, rInt) + fmt.Sprint(`
+func testAccAWSSpotFleetRequestConfigAssociatePublicIpAddress(rName string, rInt int, validUntil string) string {
+	return testAccAWSSpotFleetRequestConfigBase(rName, rInt) + fmt.Sprintf(`
 resource "aws_spot_fleet_request" "foo" {
     iam_fleet_role = "${aws_iam_role.test-role.arn}"
     spot_price = "0.027"
     target_capacity = 2
-    valid_until = "2019-11-04T20:44:20Z"
+    valid_until = %[1]q
     terminate_instances_with_expiration = true
     wait_for_fulfillment = true
     launch_specification {
@@ -959,16 +986,16 @@ resource "aws_spot_fleet_request" "foo" {
     }
 	depends_on = ["aws_iam_policy_attachment.test-attach"]
 }
-`)
+`, validUntil)
 }
 
-func testAccAWSSpotFleetRequestConfigTargetCapacity(rName string, rInt int) string {
-	return testAccAWSSpotFleetRequestConfigBase(rName, rInt) + fmt.Sprint(`
+func testAccAWSSpotFleetRequestConfigTargetCapacity(rName string, rInt int, validUntil string) string {
+	return testAccAWSSpotFleetRequestConfigBase(rName, rInt) + fmt.Sprintf(`
 resource "aws_spot_fleet_request" "foo" {
     iam_fleet_role = "${aws_iam_role.test-role.arn}"
     spot_price = "0.005"
     target_capacity = 3
-    valid_until = "2019-11-04T20:44:20Z"
+    valid_until = %[1]q
     fleet_type = "request"
     terminate_instances_with_expiration = true
     wait_for_fulfillment = true
@@ -978,17 +1005,17 @@ resource "aws_spot_fleet_request" "foo" {
     }
     depends_on = ["aws_iam_policy_attachment.test-attach"]
 }
-`)
+`, validUntil)
 }
 
-func testAccAWSSpotFleetRequestConfigExcessCapacityTermination(rName string, rInt int) string {
-	return testAccAWSSpotFleetRequestConfigBase(rName, rInt) + fmt.Sprint(`
+func testAccAWSSpotFleetRequestConfigExcessCapacityTermination(rName string, rInt int, validUntil string) string {
+	return testAccAWSSpotFleetRequestConfigBase(rName, rInt) + fmt.Sprintf(`
 resource "aws_spot_fleet_request" "foo" {
     iam_fleet_role = "${aws_iam_role.test-role.arn}"
     spot_price = "0.005"
     target_capacity = 2
     excess_capacity_termination_policy = "NoTermination"
-    valid_until = "2019-11-04T20:44:20Z"
+    valid_until = %[1]q
     fleet_type = "request"
     terminate_instances_with_expiration = true
     wait_for_fulfillment = true
@@ -998,16 +1025,16 @@ resource "aws_spot_fleet_request" "foo" {
     }
     depends_on = ["aws_iam_policy_attachment.test-attach"]
 }
-`)
+`, validUntil)
 }
 
-func testAccAWSSpotFleetRequestConfigFleetType(rName string, rInt int) string {
-	return testAccAWSSpotFleetRequestConfigBase(rName, rInt) + fmt.Sprint(`
+func testAccAWSSpotFleetRequestConfigFleetType(rName string, rInt int, validUntil string) string {
+	return testAccAWSSpotFleetRequestConfigBase(rName, rInt) + fmt.Sprintf(`
 resource "aws_spot_fleet_request" "foo" {
     iam_fleet_role = "${aws_iam_role.test-role.arn}"
     spot_price = "0.005"
     target_capacity = 2
-    valid_until = "2019-11-04T20:44:20Z"
+    valid_until = %[1]q
     fleet_type = "request"
     terminate_instances_with_expiration = true
     wait_for_fulfillment = true
@@ -1017,10 +1044,10 @@ resource "aws_spot_fleet_request" "foo" {
     }
     depends_on = ["aws_iam_policy_attachment.test-attach"]
 }
-`)
+`, validUntil)
 }
 
-func testAccAWSSpotFleetRequestConfigIamInstanceProfileArn(rName string, rInt int) string {
+func testAccAWSSpotFleetRequestConfigIamInstanceProfileArn(rName string, rInt int, validUntil string) string {
 	return testAccAWSSpotFleetRequestConfigBase(rName, rInt) + fmt.Sprintf(`
 resource "aws_iam_role" "test-role1" {
     name = "tf-test-role1-%[1]s"
@@ -1068,7 +1095,7 @@ resource "aws_spot_fleet_request" "foo" {
     iam_fleet_role = "${aws_iam_role.test-role.arn}"
     spot_price = "0.005"
     target_capacity = 2
-    valid_until = "2019-11-04T20:44:20Z"
+    valid_until = %[2]q
     terminate_instances_with_expiration = true
     instance_interruption_behaviour = "stop"
     wait_for_fulfillment = true
@@ -1080,16 +1107,16 @@ resource "aws_spot_fleet_request" "foo" {
     }
     depends_on = ["aws_iam_policy_attachment.test-attach"]
 }
-`, rName)
+`, rName, validUntil)
 }
 
-func testAccAWSSpotFleetRequestConfigChangeSpotBidPrice(rName string, rInt int) string {
-	return testAccAWSSpotFleetRequestConfigBase(rName, rInt) + fmt.Sprint(`
+func testAccAWSSpotFleetRequestConfigChangeSpotBidPrice(rName string, rInt int, validUntil string) string {
+	return testAccAWSSpotFleetRequestConfigBase(rName, rInt) + fmt.Sprintf(`
 resource "aws_spot_fleet_request" "foo" {
     iam_fleet_role = "${aws_iam_role.test-role.arn}"
     spot_price = "0.01"
     target_capacity = 2
-    valid_until = "2019-11-04T20:44:20Z"
+    valid_until = %[1]q
     terminate_instances_with_expiration = true
     wait_for_fulfillment = true
     launch_specification {
@@ -1099,16 +1126,16 @@ resource "aws_spot_fleet_request" "foo" {
     }
     depends_on = ["aws_iam_policy_attachment.test-attach"]
 }
-`)
+`, validUntil)
 }
 
-func testAccAWSSpotFleetRequestConfigWithAzs(rName string, rInt int) string {
-	return testAccAWSSpotFleetRequestConfigBase(rName, rInt) + fmt.Sprint(`
+func testAccAWSSpotFleetRequestConfigWithAzs(rName string, rInt int, validUntil string) string {
+	return testAccAWSSpotFleetRequestConfigBase(rName, rInt) + fmt.Sprintf(`
 resource "aws_spot_fleet_request" "foo" {
     iam_fleet_role = "${aws_iam_role.test-role.arn}"
     spot_price = "0.005"
     target_capacity = 2
-    valid_until = "2019-11-04T20:44:20Z"
+    valid_until = %[1]q
     terminate_instances_with_expiration = true
     wait_for_fulfillment = true
     launch_specification {
@@ -1125,11 +1152,11 @@ resource "aws_spot_fleet_request" "foo" {
     }
     depends_on = ["aws_iam_policy_attachment.test-attach"]
 }
-`)
+`, validUntil)
 }
 
-func testAccAWSSpotFleetRequestConfigWithSubnet(rName string, rInt int) string {
-	return testAccAWSSpotFleetRequestConfigBase(rName, rInt) + fmt.Sprint(`
+func testAccAWSSpotFleetRequestConfigWithSubnet(rName string, rInt int, validUntil string) string {
+	return testAccAWSSpotFleetRequestConfigBase(rName, rInt) + fmt.Sprintf(`
 resource "aws_vpc" "foo" {
     cidr_block = "10.1.0.0/16"
   tags = {
@@ -1159,7 +1186,7 @@ resource "aws_spot_fleet_request" "foo" {
     iam_fleet_role = "${aws_iam_role.test-role.arn}"
     spot_price = "0.05"
     target_capacity = 4
-    valid_until = "2019-11-04T20:44:20Z"
+    valid_until = %[1]q
     terminate_instances_with_expiration = true
     wait_for_fulfillment = true
     launch_specification {
@@ -1176,10 +1203,10 @@ resource "aws_spot_fleet_request" "foo" {
     }
     depends_on = ["aws_iam_policy_attachment.test-attach"]
 }
-`)
+`, validUntil)
 }
 
-func testAccAWSSpotFleetRequestConfigWithELBs(rName string, rInt int) string {
+func testAccAWSSpotFleetRequestConfigWithELBs(rName string, rInt int, validUntil string) string {
 	return testAccAWSSpotFleetRequestConfigBase(rName, rInt) + fmt.Sprintf(`
 resource "aws_vpc" "foo" {
     cidr_block = "10.1.0.0/16"
@@ -1204,7 +1231,7 @@ resource "aws_subnet" "bar" {
 }
 
 resource "aws_elb" "elb" {
-  name = "test-elb-%s"
+  name = "test-elb-%[1]s"
   subnets = ["${aws_subnet.foo.id}", "${aws_subnet.bar.id}"]
   internal = true
 
@@ -1220,7 +1247,7 @@ resource "aws_spot_fleet_request" "foo" {
     iam_fleet_role = "${aws_iam_role.test-role.arn}"
     spot_price = "0.5"
     target_capacity = 2
-    valid_until = "2029-11-04T20:44:20Z"
+    valid_until = %[2]q
     terminate_instances_with_expiration = true
     wait_for_fulfillment = true
     load_balancers = ["${aws_elb.elb.name}"]
@@ -1232,10 +1259,10 @@ resource "aws_spot_fleet_request" "foo" {
     }
     depends_on = ["aws_iam_policy_attachment.test-attach"]
 }
-`, rName)
+`, rName, validUntil)
 }
 
-func testAccAWSSpotFleetRequestConfigWithTargetGroups(rName string, rInt int) string {
+func testAccAWSSpotFleetRequestConfigWithTargetGroups(rName string, rInt int, validUntil string) string {
 	return testAccAWSSpotFleetRequestConfigBase(rName, rInt) + fmt.Sprintf(`
 resource "aws_vpc" "foo" {
     cidr_block = "10.1.0.0/16"
@@ -1260,7 +1287,7 @@ resource "aws_subnet" "bar" {
 }
 
 resource "aws_alb" "alb" {
-  name            = "test-elb-%s"
+  name            = "test-elb-%[1]s"
   internal        = true
   subnets         = ["${aws_subnet.foo.id}", "${aws_subnet.bar.id}"]
 }
@@ -1287,7 +1314,7 @@ resource "aws_spot_fleet_request" "foo" {
     iam_fleet_role = "${aws_iam_role.test-role.arn}"
     spot_price = "0.5"
     target_capacity = 2
-    valid_until = "2029-11-04T20:44:20Z"
+    valid_until = %[2]q
     terminate_instances_with_expiration = true
     wait_for_fulfillment = true
     target_group_arns = ["${aws_alb_target_group.target_group.arn}"]
@@ -1299,16 +1326,16 @@ resource "aws_spot_fleet_request" "foo" {
     }
     depends_on = ["aws_iam_policy_attachment.test-attach"]
 }
-`, rName)
+`, rName, validUntil)
 }
 
-func testAccAWSSpotFleetRequestConfigMultipleInstanceTypesinSameAz(rName string, rInt int) string {
-	return testAccAWSSpotFleetRequestConfigBase(rName, rInt) + fmt.Sprint(`
+func testAccAWSSpotFleetRequestConfigMultipleInstanceTypesinSameAz(rName string, rInt int, validUntil string) string {
+	return testAccAWSSpotFleetRequestConfigBase(rName, rInt) + fmt.Sprintf(`
 resource "aws_spot_fleet_request" "foo" {
     iam_fleet_role = "${aws_iam_role.test-role.arn}"
     spot_price = "0.025"
     target_capacity = 2
-    valid_until = "2019-11-04T20:44:20Z"
+    valid_until = %[1]q
     terminate_instances_with_expiration = true
     wait_for_fulfillment = true
     launch_specification {
@@ -1325,11 +1352,11 @@ resource "aws_spot_fleet_request" "foo" {
     }
     depends_on = ["aws_iam_policy_attachment.test-attach"]
 }
-`)
+`, validUntil)
 }
 
-func testAccAWSSpotFleetRequestConfigMultipleInstanceTypesinSameSubnet(rName string, rInt int) string {
-	return testAccAWSSpotFleetRequestConfigBase(rName, rInt) + fmt.Sprint(`
+func testAccAWSSpotFleetRequestConfigMultipleInstanceTypesinSameSubnet(rName string, rInt int, validUntil string) string {
+	return testAccAWSSpotFleetRequestConfigBase(rName, rInt) + fmt.Sprintf(`
 resource "aws_vpc" "foo" {
     cidr_block = "10.1.0.0/16"
   tags = {
@@ -1350,7 +1377,7 @@ resource "aws_spot_fleet_request" "foo" {
     iam_fleet_role = "${aws_iam_role.test-role.arn}"
     spot_price = "0.035"
     target_capacity = 4
-    valid_until = "2019-11-04T20:44:20Z"
+    valid_until = %[1]q
     terminate_instances_with_expiration = true
     wait_for_fulfillment = true
     launch_specification {
@@ -1367,16 +1394,16 @@ resource "aws_spot_fleet_request" "foo" {
     }
     depends_on = ["aws_iam_policy_attachment.test-attach"]
 }
-`)
+`, validUntil)
 }
 
-func testAccAWSSpotFleetRequestConfigOverridingSpotPrice(rName string, rInt int) string {
-	return testAccAWSSpotFleetRequestConfigBase(rName, rInt) + fmt.Sprint(`
+func testAccAWSSpotFleetRequestConfigOverridingSpotPrice(rName string, rInt int, validUntil string) string {
+	return testAccAWSSpotFleetRequestConfigBase(rName, rInt) + fmt.Sprintf(`
 resource "aws_spot_fleet_request" "foo" {
     iam_fleet_role = "${aws_iam_role.test-role.arn}"
     spot_price = "0.035"
     target_capacity = 2
-    valid_until = "2019-11-04T20:44:20Z"
+    valid_until = %[1]q
     terminate_instances_with_expiration = true
     wait_for_fulfillment = true
     launch_specification {
@@ -1394,15 +1421,15 @@ resource "aws_spot_fleet_request" "foo" {
     }
     depends_on = ["aws_iam_policy_attachment.test-attach"]
 }
-`)
+`, validUntil)
 }
 
-func testAccAWSSpotFleetRequestConfigWithoutSpotPrice(rName string, rInt int) string {
-	return testAccAWSSpotFleetRequestConfigBase(rName, rInt) + fmt.Sprint(`
+func testAccAWSSpotFleetRequestConfigWithoutSpotPrice(rName string, rInt int, validUntil string) string {
+	return testAccAWSSpotFleetRequestConfigBase(rName, rInt) + fmt.Sprintf(`
 resource "aws_spot_fleet_request" "foo" {
     iam_fleet_role = "${aws_iam_role.test-role.arn}"
     target_capacity = 2
-    valid_until = "2019-11-04T20:44:20Z"
+    valid_until = %[1]q
     terminate_instances_with_expiration = true
     wait_for_fulfillment = true
     launch_specification {
@@ -1419,16 +1446,16 @@ resource "aws_spot_fleet_request" "foo" {
     }
     depends_on = ["aws_iam_policy_attachment.test-attach"]
 }
-`)
+`, validUntil)
 }
 
-func testAccAWSSpotFleetRequestConfigMultipleInstancePools(rName string, rInt int) string {
-	return testAccAWSSpotFleetRequestConfigBase(rName, rInt) + fmt.Sprint(`
+func testAccAWSSpotFleetRequestConfigMultipleInstancePools(rName string, rInt int, validUntil string) string {
+	return testAccAWSSpotFleetRequestConfigBase(rName, rInt) + fmt.Sprintf(`
 resource "aws_spot_fleet_request" "foo" {
     iam_fleet_role = "${aws_iam_role.test-role.arn}"
     spot_price = "0.7"
     target_capacity = 30
-    valid_until = "2019-11-04T20:44:20Z"
+    valid_until = %[1]q
     instance_pools_to_use_count = 2
     terminate_instances_with_expiration = true
     wait_for_fulfillment = true
@@ -1452,16 +1479,16 @@ resource "aws_spot_fleet_request" "foo" {
     }
     depends_on = ["aws_iam_policy_attachment.test-attach"]
 }
-`)
+`, validUntil)
 }
 
-func testAccAWSSpotFleetRequestConfigDiversifiedAllocation(rName string, rInt int) string {
-	return testAccAWSSpotFleetRequestConfigBase(rName, rInt) + fmt.Sprint(`
+func testAccAWSSpotFleetRequestConfigDiversifiedAllocation(rName string, rInt int, validUntil string) string {
+	return testAccAWSSpotFleetRequestConfigBase(rName, rInt) + fmt.Sprintf(`
 resource "aws_spot_fleet_request" "foo" {
     iam_fleet_role = "${aws_iam_role.test-role.arn}"
     spot_price = "0.7"
     target_capacity = 30
-    valid_until = "2019-11-04T20:44:20Z"
+    valid_until = %[1]q
     allocation_strategy = "diversified"
     terminate_instances_with_expiration = true
     wait_for_fulfillment = true
@@ -1485,16 +1512,16 @@ resource "aws_spot_fleet_request" "foo" {
     }
     depends_on = ["aws_iam_policy_attachment.test-attach"]
 }
-`)
+`, validUntil)
 }
 
-func testAccAWSSpotFleetRequestConfigWithWeightedCapacity(rName string, rInt int) string {
-	return testAccAWSSpotFleetRequestConfigBase(rName, rInt) + fmt.Sprint(`
+func testAccAWSSpotFleetRequestConfigWithWeightedCapacity(rName string, rInt int, validUntil string) string {
+	return testAccAWSSpotFleetRequestConfigBase(rName, rInt) + fmt.Sprintf(`
 resource "aws_spot_fleet_request" "foo" {
     iam_fleet_role = "${aws_iam_role.test-role.arn}"
     spot_price = "0.7"
     target_capacity = 10
-    valid_until = "2019-11-04T20:44:20Z"
+    valid_until = %[1]q
     terminate_instances_with_expiration = true
     wait_for_fulfillment = true
     launch_specification {
@@ -1513,16 +1540,16 @@ resource "aws_spot_fleet_request" "foo" {
     }
     depends_on = ["aws_iam_policy_attachment.test-attach"]
 }
-`)
+`, validUntil)
 }
 
-func testAccAWSSpotFleetRequestEBSConfig(rName string, rInt int) string {
-	return testAccAWSSpotFleetRequestConfigBase(rName, rInt) + fmt.Sprint(`
+func testAccAWSSpotFleetRequestEBSConfig(rName string, rInt int, validUntil string) string {
+	return testAccAWSSpotFleetRequestConfigBase(rName, rInt) + fmt.Sprintf(`
 resource "aws_spot_fleet_request" "foo" {
     iam_fleet_role = "${aws_iam_role.test-role.arn}"
     spot_price = "0.005"
     target_capacity = 1
-    valid_until = "2019-11-04T20:44:20Z"
+    valid_until = %[1]q
     terminate_instances_with_expiration = true
     wait_for_fulfillment = true
     launch_specification {
@@ -1543,11 +1570,11 @@ resource "aws_spot_fleet_request" "foo" {
     }
     depends_on = ["aws_iam_policy_attachment.test-attach"]
 }
-`)
+`, validUntil)
 }
 
-func testAccAWSSpotFleetRequestLaunchSpecificationEbsBlockDeviceKmsKeyId(rName string, rInt int) string {
-	return testAccAWSSpotFleetRequestConfigBase(rName, rInt) + fmt.Sprint(`
+func testAccAWSSpotFleetRequestLaunchSpecificationEbsBlockDeviceKmsKeyId(rName string, rInt int, validUntil string) string {
+	return testAccAWSSpotFleetRequestConfigBase(rName, rInt) + fmt.Sprintf(`
 data "aws_ami" "amzn-ami-minimal-hvm-ebs" {
   most_recent = true
   owners      = ["amazon"]
@@ -1572,7 +1599,7 @@ resource "aws_spot_fleet_request" "test" {
   spot_price                          = "0.005"
   target_capacity                     = 1
   terminate_instances_with_expiration = true
-  valid_until                         = "2029-11-04T20:44:20Z"
+  valid_until                         = %[1]q
   wait_for_fulfillment                = true
 
   launch_specification {
@@ -1596,11 +1623,11 @@ resource "aws_spot_fleet_request" "test" {
 
   depends_on = ["aws_iam_policy_attachment.test-attach"]
 }
-`)
+`, validUntil)
 }
 
-func testAccAWSSpotFleetRequestLaunchSpecificationRootBlockDeviceKmsKeyId(rName string, rInt int) string {
-	return testAccAWSSpotFleetRequestConfigBase(rName, rInt) + fmt.Sprint(`
+func testAccAWSSpotFleetRequestLaunchSpecificationRootBlockDeviceKmsKeyId(rName string, rInt int, validUntil string) string {
+	return testAccAWSSpotFleetRequestConfigBase(rName, rInt) + fmt.Sprintf(`
 data "aws_ami" "amzn-ami-minimal-hvm-ebs" {
   most_recent = true
   owners      = ["amazon"]
@@ -1625,7 +1652,7 @@ resource "aws_spot_fleet_request" "test" {
   spot_price                          = "0.005"
   target_capacity                     = 1
   terminate_instances_with_expiration = true
-  valid_until                         = "2029-11-04T20:44:20Z"
+  valid_until                         = %[1]q
   wait_for_fulfillment                = true
 
   launch_specification {
@@ -1642,11 +1669,11 @@ resource "aws_spot_fleet_request" "test" {
 
   depends_on = ["aws_iam_policy_attachment.test-attach"]
 }
-`)
+`, validUntil)
 }
 
-func testAccAWSSpotFleetRequestLaunchSpecificationWithInstanceStoreAmi(rName string, rInt int) string {
-	return testAccAWSSpotFleetRequestConfigBase(rName, rInt) + fmt.Sprint(`
+func testAccAWSSpotFleetRequestLaunchSpecificationWithInstanceStoreAmi(rName string, rInt int, validUntil string) string {
+	return testAccAWSSpotFleetRequestConfigBase(rName, rInt) + fmt.Sprintf(`
 data "aws_ami" "ubuntu_instance_store" {
   most_recent = true
   owners      = ["099720109477"] # Canonical
@@ -1662,7 +1689,7 @@ resource "aws_spot_fleet_request" "foo" {
     iam_fleet_role = "${aws_iam_role.test-role.arn}"
     spot_price = "0.03"
     target_capacity = 2
-    valid_until = "2019-11-04T20:44:20Z"
+    valid_until = %[1]q
     terminate_instances_with_expiration = true
     wait_for_fulfillment = true
 
@@ -1673,16 +1700,16 @@ resource "aws_spot_fleet_request" "foo" {
 
 	depends_on = ["aws_iam_policy_attachment.test-attach"]
 }
-`)
+`, validUntil)
 }
 
-func testAccAWSSpotFleetRequestTagsConfig(rName string, rInt int) string {
-	return testAccAWSSpotFleetRequestConfigBase(rName, rInt) + fmt.Sprint(`
+func testAccAWSSpotFleetRequestTagsConfig(rName string, rInt int, validUntil string) string {
+	return testAccAWSSpotFleetRequestConfigBase(rName, rInt) + fmt.Sprintf(`
 resource "aws_spot_fleet_request" "foo" {
     iam_fleet_role = "${aws_iam_role.test-role.arn}"
     spot_price = "0.005"
     target_capacity = 1
-    valid_until = "2019-11-04T20:44:20Z"
+    valid_until = %[1]q
     terminate_instances_with_expiration = true
     wait_for_fulfillment = true
     launch_specification {
@@ -1695,13 +1722,13 @@ resource "aws_spot_fleet_request" "foo" {
     }
     depends_on = ["aws_iam_policy_attachment.test-attach"]
 }
-`)
+`, validUntil)
 }
 
-func testAccAWSSpotFleetRequestTenancyGroupConfig(rName string, rInt int) string {
+func testAccAWSSpotFleetRequestTenancyGroupConfig(rName string, rInt int, validUntil string) string {
 	return testAccAWSSpotFleetRequestConfigBase(rName, rInt) + fmt.Sprintf(`
 resource "aws_placement_group" "test" {
-	name     = "test-pg-%s"
+	name     = "test-pg-%[1]s"
 	strategy = "cluster"
 }
 
@@ -1709,7 +1736,7 @@ resource "aws_spot_fleet_request" "foo" {
     iam_fleet_role = "${aws_iam_role.test-role.arn}"
     spot_price = "0.005"
     target_capacity = 2
-    valid_until = "2019-11-04T20:44:20Z"
+    valid_until = %[2]q
     terminate_instances_with_expiration = true
     launch_specification {
         instance_type = "m1.small"
@@ -1720,5 +1747,5 @@ resource "aws_spot_fleet_request" "foo" {
     }
     depends_on = ["aws_iam_policy_attachment.test-attach"]
 }
-`, rName)
+`, rName, validUntil)
 }

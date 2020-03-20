@@ -28,9 +28,12 @@ func TestAccAWSDbInstanceDataSource_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet("data.aws_db_instance.bar", "hosted_zone_id"),
 					resource.TestCheckResourceAttrSet("data.aws_db_instance.bar", "master_username"),
 					resource.TestCheckResourceAttrSet("data.aws_db_instance.bar", "port"),
+					resource.TestCheckResourceAttrSet("data.aws_db_instance.bar", "multi_az"),
 					resource.TestCheckResourceAttrSet("data.aws_db_instance.bar", "enabled_cloudwatch_logs_exports.0"),
 					resource.TestCheckResourceAttrSet("data.aws_db_instance.bar", "enabled_cloudwatch_logs_exports.1"),
 					resource.TestCheckResourceAttrPair("data.aws_db_instance.bar", "resource_id", "aws_db_instance.bar", "resource_id"),
+					resource.TestCheckResourceAttrPair("data.aws_db_instance.bar", "tags.%", "aws_db_instance.bar", "tags.%"),
+					resource.TestCheckResourceAttrPair("data.aws_db_instance.bar", "tags.Environment", "aws_db_instance.bar", "tags.Environment"),
 				),
 			},
 		},
@@ -77,6 +80,10 @@ resource "aws_db_instance" "bar" {
     "audit",
     "error",
   ]
+
+  tags = {
+    Environment = "test"
+  }
 }
 
 data "aws_db_instance" "bar" {

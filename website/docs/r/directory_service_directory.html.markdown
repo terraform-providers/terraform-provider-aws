@@ -1,4 +1,5 @@
 ---
+subcategory: "Directory Service"
 layout: "aws"
 page_title: "AWS: aws_directory_service_directory"
 description: |-

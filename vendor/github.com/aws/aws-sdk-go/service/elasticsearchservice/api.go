@@ -67,19 +67,19 @@ func (c *ElasticsearchService) AddTagsRequest(input *AddTagsInput) (req *request
 // See the AWS API reference guide for Amazon Elasticsearch Service's
 // API operation AddTags for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBaseException "BaseException"
+// Returned Error Types:
+//   * BaseException
 //   An error occurred while processing the request.
 //
-//   * ErrCodeLimitExceededException "LimitExceededException"
+//   * LimitExceededException
 //   An exception for trying to create more than allowed resources or sub-resources.
 //   Gives http status code of 409.
 //
-//   * ErrCodeValidationException "ValidationException"
+//   * ValidationException
 //   An exception for missing / invalid input fields. Gives http status code of
 //   400.
 //
-//   * ErrCodeInternalException "InternalException"
+//   * InternalException
 //   The request processing has failed because of an unknown error, exception
 //   or failure (the failure is internal to the service) . Gives http status code
 //   of 500.
@@ -158,20 +158,20 @@ func (c *ElasticsearchService) CancelElasticsearchServiceSoftwareUpdateRequest(i
 // See the AWS API reference guide for Amazon Elasticsearch Service's
 // API operation CancelElasticsearchServiceSoftwareUpdate for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBaseException "BaseException"
+// Returned Error Types:
+//   * BaseException
 //   An error occurred while processing the request.
 //
-//   * ErrCodeInternalException "InternalException"
+//   * InternalException
 //   The request processing has failed because of an unknown error, exception
 //   or failure (the failure is internal to the service) . Gives http status code
 //   of 500.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   An exception for accessing or deleting a resource that does not exist. Gives
 //   http status code of 400.
 //
-//   * ErrCodeValidationException "ValidationException"
+//   * ValidationException
 //   An exception for missing / invalid input fields. Gives http status code of
 //   400.
 //
@@ -249,32 +249,32 @@ func (c *ElasticsearchService) CreateElasticsearchDomainRequest(input *CreateEla
 // See the AWS API reference guide for Amazon Elasticsearch Service's
 // API operation CreateElasticsearchDomain for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBaseException "BaseException"
+// Returned Error Types:
+//   * BaseException
 //   An error occurred while processing the request.
 //
-//   * ErrCodeDisabledOperationException "DisabledOperationException"
+//   * DisabledOperationException
 //   An error occured because the client wanted to access a not supported operation.
 //   Gives http status code of 409.
 //
-//   * ErrCodeInternalException "InternalException"
+//   * InternalException
 //   The request processing has failed because of an unknown error, exception
 //   or failure (the failure is internal to the service) . Gives http status code
 //   of 500.
 //
-//   * ErrCodeInvalidTypeException "InvalidTypeException"
+//   * InvalidTypeException
 //   An exception for trying to create or access sub-resource that is either invalid
 //   or not supported. Gives http status code of 409.
 //
-//   * ErrCodeLimitExceededException "LimitExceededException"
+//   * LimitExceededException
 //   An exception for trying to create more than allowed resources or sub-resources.
 //   Gives http status code of 409.
 //
-//   * ErrCodeResourceAlreadyExistsException "ResourceAlreadyExistsException"
+//   * ResourceAlreadyExistsException
 //   An exception for creating a resource that already exists. Gives http status
 //   code of 400.
 //
-//   * ErrCodeValidationException "ValidationException"
+//   * ValidationException
 //   An exception for missing / invalid input fields. Gives http status code of
 //   400.
 //
@@ -351,20 +351,20 @@ func (c *ElasticsearchService) DeleteElasticsearchDomainRequest(input *DeleteEla
 // See the AWS API reference guide for Amazon Elasticsearch Service's
 // API operation DeleteElasticsearchDomain for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBaseException "BaseException"
+// Returned Error Types:
+//   * BaseException
 //   An error occurred while processing the request.
 //
-//   * ErrCodeInternalException "InternalException"
+//   * InternalException
 //   The request processing has failed because of an unknown error, exception
 //   or failure (the failure is internal to the service) . Gives http status code
 //   of 500.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   An exception for accessing or deleting a resource that does not exist. Gives
 //   http status code of 400.
 //
-//   * ErrCodeValidationException "ValidationException"
+//   * ValidationException
 //   An exception for missing / invalid input fields. Gives http status code of
 //   400.
 //
@@ -445,16 +445,16 @@ func (c *ElasticsearchService) DeleteElasticsearchServiceRoleRequest(input *Dele
 // See the AWS API reference guide for Amazon Elasticsearch Service's
 // API operation DeleteElasticsearchServiceRole for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBaseException "BaseException"
+// Returned Error Types:
+//   * BaseException
 //   An error occurred while processing the request.
 //
-//   * ErrCodeInternalException "InternalException"
+//   * InternalException
 //   The request processing has failed because of an unknown error, exception
 //   or failure (the failure is internal to the service) . Gives http status code
 //   of 500.
 //
-//   * ErrCodeValidationException "ValidationException"
+//   * ValidationException
 //   An exception for missing / invalid input fields. Gives http status code of
 //   400.
 //
@@ -531,20 +531,20 @@ func (c *ElasticsearchService) DescribeElasticsearchDomainRequest(input *Describ
 // See the AWS API reference guide for Amazon Elasticsearch Service's
 // API operation DescribeElasticsearchDomain for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBaseException "BaseException"
+// Returned Error Types:
+//   * BaseException
 //   An error occurred while processing the request.
 //
-//   * ErrCodeInternalException "InternalException"
+//   * InternalException
 //   The request processing has failed because of an unknown error, exception
 //   or failure (the failure is internal to the service) . Gives http status code
 //   of 500.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   An exception for accessing or deleting a resource that does not exist. Gives
 //   http status code of 400.
 //
-//   * ErrCodeValidationException "ValidationException"
+//   * ValidationException
 //   An exception for missing / invalid input fields. Gives http status code of
 //   400.
 //
@@ -622,20 +622,20 @@ func (c *ElasticsearchService) DescribeElasticsearchDomainConfigRequest(input *D
 // See the AWS API reference guide for Amazon Elasticsearch Service's
 // API operation DescribeElasticsearchDomainConfig for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBaseException "BaseException"
+// Returned Error Types:
+//   * BaseException
 //   An error occurred while processing the request.
 //
-//   * ErrCodeInternalException "InternalException"
+//   * InternalException
 //   The request processing has failed because of an unknown error, exception
 //   or failure (the failure is internal to the service) . Gives http status code
 //   of 500.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   An exception for accessing or deleting a resource that does not exist. Gives
 //   http status code of 400.
 //
-//   * ErrCodeValidationException "ValidationException"
+//   * ValidationException
 //   An exception for missing / invalid input fields. Gives http status code of
 //   400.
 //
@@ -712,16 +712,16 @@ func (c *ElasticsearchService) DescribeElasticsearchDomainsRequest(input *Descri
 // See the AWS API reference guide for Amazon Elasticsearch Service's
 // API operation DescribeElasticsearchDomains for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBaseException "BaseException"
+// Returned Error Types:
+//   * BaseException
 //   An error occurred while processing the request.
 //
-//   * ErrCodeInternalException "InternalException"
+//   * InternalException
 //   The request processing has failed because of an unknown error, exception
 //   or failure (the failure is internal to the service) . Gives http status code
 //   of 500.
 //
-//   * ErrCodeValidationException "ValidationException"
+//   * ValidationException
 //   An exception for missing / invalid input fields. Gives http status code of
 //   400.
 //
@@ -799,28 +799,28 @@ func (c *ElasticsearchService) DescribeElasticsearchInstanceTypeLimitsRequest(in
 // See the AWS API reference guide for Amazon Elasticsearch Service's
 // API operation DescribeElasticsearchInstanceTypeLimits for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBaseException "BaseException"
+// Returned Error Types:
+//   * BaseException
 //   An error occurred while processing the request.
 //
-//   * ErrCodeInternalException "InternalException"
+//   * InternalException
 //   The request processing has failed because of an unknown error, exception
 //   or failure (the failure is internal to the service) . Gives http status code
 //   of 500.
 //
-//   * ErrCodeInvalidTypeException "InvalidTypeException"
+//   * InvalidTypeException
 //   An exception for trying to create or access sub-resource that is either invalid
 //   or not supported. Gives http status code of 409.
 //
-//   * ErrCodeLimitExceededException "LimitExceededException"
+//   * LimitExceededException
 //   An exception for trying to create more than allowed resources or sub-resources.
 //   Gives http status code of 409.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   An exception for accessing or deleting a resource that does not exist. Gives
 //   http status code of 400.
 //
-//   * ErrCodeValidationException "ValidationException"
+//   * ValidationException
 //   An exception for missing / invalid input fields. Gives http status code of
 //   400.
 //
@@ -902,20 +902,20 @@ func (c *ElasticsearchService) DescribeReservedElasticsearchInstanceOfferingsReq
 // See the AWS API reference guide for Amazon Elasticsearch Service's
 // API operation DescribeReservedElasticsearchInstanceOfferings for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   An exception for accessing or deleting a resource that does not exist. Gives
 //   http status code of 400.
 //
-//   * ErrCodeValidationException "ValidationException"
+//   * ValidationException
 //   An exception for missing / invalid input fields. Gives http status code of
 //   400.
 //
-//   * ErrCodeDisabledOperationException "DisabledOperationException"
+//   * DisabledOperationException
 //   An error occured because the client wanted to access a not supported operation.
 //   Gives http status code of 409.
 //
-//   * ErrCodeInternalException "InternalException"
+//   * InternalException
 //   The request processing has failed because of an unknown error, exception
 //   or failure (the failure is internal to the service) . Gives http status code
 //   of 500.
@@ -984,10 +984,12 @@ func (c *ElasticsearchService) DescribeReservedElasticsearchInstanceOfferingsPag
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*DescribeReservedElasticsearchInstanceOfferingsOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*DescribeReservedElasticsearchInstanceOfferingsOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -1048,21 +1050,21 @@ func (c *ElasticsearchService) DescribeReservedElasticsearchInstancesRequest(inp
 // See the AWS API reference guide for Amazon Elasticsearch Service's
 // API operation DescribeReservedElasticsearchInstances for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   An exception for accessing or deleting a resource that does not exist. Gives
 //   http status code of 400.
 //
-//   * ErrCodeInternalException "InternalException"
+//   * InternalException
 //   The request processing has failed because of an unknown error, exception
 //   or failure (the failure is internal to the service) . Gives http status code
 //   of 500.
 //
-//   * ErrCodeValidationException "ValidationException"
+//   * ValidationException
 //   An exception for missing / invalid input fields. Gives http status code of
 //   400.
 //
-//   * ErrCodeDisabledOperationException "DisabledOperationException"
+//   * DisabledOperationException
 //   An error occured because the client wanted to access a not supported operation.
 //   Gives http status code of 409.
 //
@@ -1130,10 +1132,12 @@ func (c *ElasticsearchService) DescribeReservedElasticsearchInstancesPagesWithCo
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*DescribeReservedElasticsearchInstancesOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*DescribeReservedElasticsearchInstancesOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -1190,23 +1194,23 @@ func (c *ElasticsearchService) GetCompatibleElasticsearchVersionsRequest(input *
 // See the AWS API reference guide for Amazon Elasticsearch Service's
 // API operation GetCompatibleElasticsearchVersions for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBaseException "BaseException"
+// Returned Error Types:
+//   * BaseException
 //   An error occurred while processing the request.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   An exception for accessing or deleting a resource that does not exist. Gives
 //   http status code of 400.
 //
-//   * ErrCodeDisabledOperationException "DisabledOperationException"
+//   * DisabledOperationException
 //   An error occured because the client wanted to access a not supported operation.
 //   Gives http status code of 409.
 //
-//   * ErrCodeValidationException "ValidationException"
+//   * ValidationException
 //   An exception for missing / invalid input fields. Gives http status code of
 //   400.
 //
-//   * ErrCodeInternalException "InternalException"
+//   * InternalException
 //   The request processing has failed because of an unknown error, exception
 //   or failure (the failure is internal to the service) . Gives http status code
 //   of 500.
@@ -1290,23 +1294,23 @@ func (c *ElasticsearchService) GetUpgradeHistoryRequest(input *GetUpgradeHistory
 // See the AWS API reference guide for Amazon Elasticsearch Service's
 // API operation GetUpgradeHistory for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBaseException "BaseException"
+// Returned Error Types:
+//   * BaseException
 //   An error occurred while processing the request.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   An exception for accessing or deleting a resource that does not exist. Gives
 //   http status code of 400.
 //
-//   * ErrCodeDisabledOperationException "DisabledOperationException"
+//   * DisabledOperationException
 //   An error occured because the client wanted to access a not supported operation.
 //   Gives http status code of 409.
 //
-//   * ErrCodeValidationException "ValidationException"
+//   * ValidationException
 //   An exception for missing / invalid input fields. Gives http status code of
 //   400.
 //
-//   * ErrCodeInternalException "InternalException"
+//   * InternalException
 //   The request processing has failed because of an unknown error, exception
 //   or failure (the failure is internal to the service) . Gives http status code
 //   of 500.
@@ -1375,10 +1379,12 @@ func (c *ElasticsearchService) GetUpgradeHistoryPagesWithContext(ctx aws.Context
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*GetUpgradeHistoryOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*GetUpgradeHistoryOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -1434,23 +1440,23 @@ func (c *ElasticsearchService) GetUpgradeStatusRequest(input *GetUpgradeStatusIn
 // See the AWS API reference guide for Amazon Elasticsearch Service's
 // API operation GetUpgradeStatus for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBaseException "BaseException"
+// Returned Error Types:
+//   * BaseException
 //   An error occurred while processing the request.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   An exception for accessing or deleting a resource that does not exist. Gives
 //   http status code of 400.
 //
-//   * ErrCodeDisabledOperationException "DisabledOperationException"
+//   * DisabledOperationException
 //   An error occured because the client wanted to access a not supported operation.
 //   Gives http status code of 409.
 //
-//   * ErrCodeValidationException "ValidationException"
+//   * ValidationException
 //   An exception for missing / invalid input fields. Gives http status code of
 //   400.
 //
-//   * ErrCodeInternalException "InternalException"
+//   * InternalException
 //   The request processing has failed because of an unknown error, exception
 //   or failure (the failure is internal to the service) . Gives http status code
 //   of 500.
@@ -1528,11 +1534,11 @@ func (c *ElasticsearchService) ListDomainNamesRequest(input *ListDomainNamesInpu
 // See the AWS API reference guide for Amazon Elasticsearch Service's
 // API operation ListDomainNames for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBaseException "BaseException"
+// Returned Error Types:
+//   * BaseException
 //   An error occurred while processing the request.
 //
-//   * ErrCodeValidationException "ValidationException"
+//   * ValidationException
 //   An exception for missing / invalid input fields. Gives http status code of
 //   400.
 //
@@ -1614,20 +1620,20 @@ func (c *ElasticsearchService) ListElasticsearchInstanceTypesRequest(input *List
 // See the AWS API reference guide for Amazon Elasticsearch Service's
 // API operation ListElasticsearchInstanceTypes for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBaseException "BaseException"
+// Returned Error Types:
+//   * BaseException
 //   An error occurred while processing the request.
 //
-//   * ErrCodeInternalException "InternalException"
+//   * InternalException
 //   The request processing has failed because of an unknown error, exception
 //   or failure (the failure is internal to the service) . Gives http status code
 //   of 500.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   An exception for accessing or deleting a resource that does not exist. Gives
 //   http status code of 400.
 //
-//   * ErrCodeValidationException "ValidationException"
+//   * ValidationException
 //   An exception for missing / invalid input fields. Gives http status code of
 //   400.
 //
@@ -1695,10 +1701,12 @@ func (c *ElasticsearchService) ListElasticsearchInstanceTypesPagesWithContext(ct
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListElasticsearchInstanceTypesOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListElasticsearchInstanceTypesOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -1759,20 +1767,20 @@ func (c *ElasticsearchService) ListElasticsearchVersionsRequest(input *ListElast
 // See the AWS API reference guide for Amazon Elasticsearch Service's
 // API operation ListElasticsearchVersions for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBaseException "BaseException"
+// Returned Error Types:
+//   * BaseException
 //   An error occurred while processing the request.
 //
-//   * ErrCodeInternalException "InternalException"
+//   * InternalException
 //   The request processing has failed because of an unknown error, exception
 //   or failure (the failure is internal to the service) . Gives http status code
 //   of 500.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   An exception for accessing or deleting a resource that does not exist. Gives
 //   http status code of 400.
 //
-//   * ErrCodeValidationException "ValidationException"
+//   * ValidationException
 //   An exception for missing / invalid input fields. Gives http status code of
 //   400.
 //
@@ -1840,10 +1848,12 @@ func (c *ElasticsearchService) ListElasticsearchVersionsPagesWithContext(ctx aws
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListElasticsearchVersionsOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListElasticsearchVersionsOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -1898,19 +1908,19 @@ func (c *ElasticsearchService) ListTagsRequest(input *ListTagsInput) (req *reque
 // See the AWS API reference guide for Amazon Elasticsearch Service's
 // API operation ListTags for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBaseException "BaseException"
+// Returned Error Types:
+//   * BaseException
 //   An error occurred while processing the request.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   An exception for accessing or deleting a resource that does not exist. Gives
 //   http status code of 400.
 //
-//   * ErrCodeValidationException "ValidationException"
+//   * ValidationException
 //   An exception for missing / invalid input fields. Gives http status code of
 //   400.
 //
-//   * ErrCodeInternalException "InternalException"
+//   * InternalException
 //   The request processing has failed because of an unknown error, exception
 //   or failure (the failure is internal to the service) . Gives http status code
 //   of 500.
@@ -1987,28 +1997,28 @@ func (c *ElasticsearchService) PurchaseReservedElasticsearchInstanceOfferingRequ
 // See the AWS API reference guide for Amazon Elasticsearch Service's
 // API operation PurchaseReservedElasticsearchInstanceOffering for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   An exception for accessing or deleting a resource that does not exist. Gives
 //   http status code of 400.
 //
-//   * ErrCodeResourceAlreadyExistsException "ResourceAlreadyExistsException"
+//   * ResourceAlreadyExistsException
 //   An exception for creating a resource that already exists. Gives http status
 //   code of 400.
 //
-//   * ErrCodeLimitExceededException "LimitExceededException"
+//   * LimitExceededException
 //   An exception for trying to create more than allowed resources or sub-resources.
 //   Gives http status code of 409.
 //
-//   * ErrCodeDisabledOperationException "DisabledOperationException"
+//   * DisabledOperationException
 //   An error occured because the client wanted to access a not supported operation.
 //   Gives http status code of 409.
 //
-//   * ErrCodeValidationException "ValidationException"
+//   * ValidationException
 //   An exception for missing / invalid input fields. Gives http status code of
 //   400.
 //
-//   * ErrCodeInternalException "InternalException"
+//   * InternalException
 //   The request processing has failed because of an unknown error, exception
 //   or failure (the failure is internal to the service) . Gives http status code
 //   of 500.
@@ -2086,15 +2096,15 @@ func (c *ElasticsearchService) RemoveTagsRequest(input *RemoveTagsInput) (req *r
 // See the AWS API reference guide for Amazon Elasticsearch Service's
 // API operation RemoveTags for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBaseException "BaseException"
+// Returned Error Types:
+//   * BaseException
 //   An error occurred while processing the request.
 //
-//   * ErrCodeValidationException "ValidationException"
+//   * ValidationException
 //   An exception for missing / invalid input fields. Gives http status code of
 //   400.
 //
-//   * ErrCodeInternalException "InternalException"
+//   * InternalException
 //   The request processing has failed because of an unknown error, exception
 //   or failure (the failure is internal to the service) . Gives http status code
 //   of 500.
@@ -2171,20 +2181,20 @@ func (c *ElasticsearchService) StartElasticsearchServiceSoftwareUpdateRequest(in
 // See the AWS API reference guide for Amazon Elasticsearch Service's
 // API operation StartElasticsearchServiceSoftwareUpdate for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBaseException "BaseException"
+// Returned Error Types:
+//   * BaseException
 //   An error occurred while processing the request.
 //
-//   * ErrCodeInternalException "InternalException"
+//   * InternalException
 //   The request processing has failed because of an unknown error, exception
 //   or failure (the failure is internal to the service) . Gives http status code
 //   of 500.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   An exception for accessing or deleting a resource that does not exist. Gives
 //   http status code of 400.
 //
-//   * ErrCodeValidationException "ValidationException"
+//   * ValidationException
 //   An exception for missing / invalid input fields. Gives http status code of
 //   400.
 //
@@ -2261,28 +2271,28 @@ func (c *ElasticsearchService) UpdateElasticsearchDomainConfigRequest(input *Upd
 // See the AWS API reference guide for Amazon Elasticsearch Service's
 // API operation UpdateElasticsearchDomainConfig for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBaseException "BaseException"
+// Returned Error Types:
+//   * BaseException
 //   An error occurred while processing the request.
 //
-//   * ErrCodeInternalException "InternalException"
+//   * InternalException
 //   The request processing has failed because of an unknown error, exception
 //   or failure (the failure is internal to the service) . Gives http status code
 //   of 500.
 //
-//   * ErrCodeInvalidTypeException "InvalidTypeException"
+//   * InvalidTypeException
 //   An exception for trying to create or access sub-resource that is either invalid
 //   or not supported. Gives http status code of 409.
 //
-//   * ErrCodeLimitExceededException "LimitExceededException"
+//   * LimitExceededException
 //   An exception for trying to create more than allowed resources or sub-resources.
 //   Gives http status code of 409.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   An exception for accessing or deleting a resource that does not exist. Gives
 //   http status code of 400.
 //
-//   * ErrCodeValidationException "ValidationException"
+//   * ValidationException
 //   An exception for missing / invalid input fields. Gives http status code of
 //   400.
 //
@@ -2359,27 +2369,27 @@ func (c *ElasticsearchService) UpgradeElasticsearchDomainRequest(input *UpgradeE
 // See the AWS API reference guide for Amazon Elasticsearch Service's
 // API operation UpgradeElasticsearchDomain for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBaseException "BaseException"
+// Returned Error Types:
+//   * BaseException
 //   An error occurred while processing the request.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   An exception for accessing or deleting a resource that does not exist. Gives
 //   http status code of 400.
 //
-//   * ErrCodeResourceAlreadyExistsException "ResourceAlreadyExistsException"
+//   * ResourceAlreadyExistsException
 //   An exception for creating a resource that already exists. Gives http status
 //   code of 400.
 //
-//   * ErrCodeDisabledOperationException "DisabledOperationException"
+//   * DisabledOperationException
 //   An error occured because the client wanted to access a not supported operation.
 //   Gives http status code of 409.
 //
-//   * ErrCodeValidationException "ValidationException"
+//   * ValidationException
 //   An exception for missing / invalid input fields. Gives http status code of
 //   400.
 //
-//   * ErrCodeInternalException "InternalException"
+//   * InternalException
 //   The request processing has failed because of an unknown error, exception
 //   or failure (the failure is internal to the service) . Gives http status code
 //   of 500.
@@ -2612,6 +2622,195 @@ func (s *AdvancedOptionsStatus) SetStatus(v *OptionStatus) *AdvancedOptionsStatu
 	return s
 }
 
+// Specifies the advanced security configuration: whether advanced security
+// is enabled, whether the internal database option is enabled.
+type AdvancedSecurityOptions struct {
+	_ struct{} `type:"structure"`
+
+	// True if advanced security is enabled.
+	Enabled *bool `type:"boolean"`
+
+	// True if the internal user database is enabled.
+	InternalUserDatabaseEnabled *bool `type:"boolean"`
+}
+
+// String returns the string representation
+func (s AdvancedSecurityOptions) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AdvancedSecurityOptions) GoString() string {
+	return s.String()
+}
+
+// SetEnabled sets the Enabled field's value.
+func (s *AdvancedSecurityOptions) SetEnabled(v bool) *AdvancedSecurityOptions {
+	s.Enabled = &v
+	return s
+}
+
+// SetInternalUserDatabaseEnabled sets the InternalUserDatabaseEnabled field's value.
+func (s *AdvancedSecurityOptions) SetInternalUserDatabaseEnabled(v bool) *AdvancedSecurityOptions {
+	s.InternalUserDatabaseEnabled = &v
+	return s
+}
+
+// Specifies the advanced security configuration: whether advanced security
+// is enabled, whether the internal database option is enabled, master username
+// and password (if internal database is enabled), and master user ARN (if IAM
+// is enabled).
+type AdvancedSecurityOptionsInput struct {
+	_ struct{} `type:"structure"`
+
+	// True if advanced security is enabled.
+	Enabled *bool `type:"boolean"`
+
+	// True if the internal user database is enabled.
+	InternalUserDatabaseEnabled *bool `type:"boolean"`
+
+	// Credentials for the master user: username and password, ARN, or both.
+	MasterUserOptions *MasterUserOptions `type:"structure"`
+}
+
+// String returns the string representation
+func (s AdvancedSecurityOptionsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AdvancedSecurityOptionsInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *AdvancedSecurityOptionsInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "AdvancedSecurityOptionsInput"}
+	if s.MasterUserOptions != nil {
+		if err := s.MasterUserOptions.Validate(); err != nil {
+			invalidParams.AddNested("MasterUserOptions", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetEnabled sets the Enabled field's value.
+func (s *AdvancedSecurityOptionsInput) SetEnabled(v bool) *AdvancedSecurityOptionsInput {
+	s.Enabled = &v
+	return s
+}
+
+// SetInternalUserDatabaseEnabled sets the InternalUserDatabaseEnabled field's value.
+func (s *AdvancedSecurityOptionsInput) SetInternalUserDatabaseEnabled(v bool) *AdvancedSecurityOptionsInput {
+	s.InternalUserDatabaseEnabled = &v
+	return s
+}
+
+// SetMasterUserOptions sets the MasterUserOptions field's value.
+func (s *AdvancedSecurityOptionsInput) SetMasterUserOptions(v *MasterUserOptions) *AdvancedSecurityOptionsInput {
+	s.MasterUserOptions = v
+	return s
+}
+
+// Specifies the status of advanced security options for the specified Elasticsearch
+// domain.
+type AdvancedSecurityOptionsStatus struct {
+	_ struct{} `type:"structure"`
+
+	// Specifies advanced security options for the specified Elasticsearch domain.
+	//
+	// Options is a required field
+	Options *AdvancedSecurityOptions `type:"structure" required:"true"`
+
+	// Status of the advanced security options for the specified Elasticsearch domain.
+	//
+	// Status is a required field
+	Status *OptionStatus `type:"structure" required:"true"`
+}
+
+// String returns the string representation
+func (s AdvancedSecurityOptionsStatus) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AdvancedSecurityOptionsStatus) GoString() string {
+	return s.String()
+}
+
+// SetOptions sets the Options field's value.
+func (s *AdvancedSecurityOptionsStatus) SetOptions(v *AdvancedSecurityOptions) *AdvancedSecurityOptionsStatus {
+	s.Options = v
+	return s
+}
+
+// SetStatus sets the Status field's value.
+func (s *AdvancedSecurityOptionsStatus) SetStatus(v *OptionStatus) *AdvancedSecurityOptionsStatus {
+	s.Status = v
+	return s
+}
+
+// An error occurred while processing the request.
+type BaseException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	// A description of the error.
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s BaseException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s BaseException) GoString() string {
+	return s.String()
+}
+
+func newErrorBaseException(v protocol.ResponseMetadata) error {
+	return &BaseException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s BaseException) Code() string {
+	return "BaseException"
+}
+
+// Message returns the exception's message.
+func (s BaseException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s BaseException) OrigErr() error {
+	return nil
+}
+
+func (s BaseException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s BaseException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s BaseException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
 // Container for the parameters to the CancelElasticsearchServiceSoftwareUpdate
 // operation. Specifies the name of the Elasticsearch domain that you wish to
 // cancel a service software update on.
@@ -2838,6 +3037,9 @@ type CreateElasticsearchDomainInput struct {
 	// for more information.
 	AdvancedOptions map[string]*string `type:"map"`
 
+	// Specifies advanced security options.
+	AdvancedSecurityOptions *AdvancedSecurityOptionsInput `type:"structure"`
+
 	// Options to specify the Cognito user and identity pools for Kibana authentication.
 	// For more information, see Amazon Cognito Authentication for Kibana (http://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/es-cognito-auth.html).
 	CognitoOptions *CognitoOptions `type:"structure"`
@@ -2905,6 +3107,11 @@ func (s *CreateElasticsearchDomainInput) Validate() error {
 	if s.DomainName != nil && len(*s.DomainName) < 3 {
 		invalidParams.Add(request.NewErrParamMinLen("DomainName", 3))
 	}
+	if s.AdvancedSecurityOptions != nil {
+		if err := s.AdvancedSecurityOptions.Validate(); err != nil {
+			invalidParams.AddNested("AdvancedSecurityOptions", err.(request.ErrInvalidParams))
+		}
+	}
 	if s.CognitoOptions != nil {
 		if err := s.CognitoOptions.Validate(); err != nil {
 			invalidParams.AddNested("CognitoOptions", err.(request.ErrInvalidParams))
@@ -2931,6 +3138,12 @@ func (s *CreateElasticsearchDomainInput) SetAccessPolicies(v string) *CreateElas
 // SetAdvancedOptions sets the AdvancedOptions field's value.
 func (s *CreateElasticsearchDomainInput) SetAdvancedOptions(v map[string]*string) *CreateElasticsearchDomainInput {
 	s.AdvancedOptions = v
+	return s
+}
+
+// SetAdvancedSecurityOptions sets the AdvancedSecurityOptions field's value.
+func (s *CreateElasticsearchDomainInput) SetAdvancedSecurityOptions(v *AdvancedSecurityOptionsInput) *CreateElasticsearchDomainInput {
+	s.AdvancedSecurityOptions = v
 	return s
 }
 
@@ -3410,9 +3623,11 @@ type DescribeElasticsearchInstanceTypeLimitsOutput struct {
 
 	// Map of Role of the Instance and Limits that are applicable. Role performed
 	// by given Instance in Elasticsearch can be one of the following:
-	//    * Data: If the given InstanceType is used as Data node
+	//    * data: If the given InstanceType is used as data node
 	//
-	//    * Master: If the given InstanceType is used as Master node
+	//    * master: If the given InstanceType is used as master node
+	//
+	//    * ultra_warm: If the given InstanceType is used as warm node
 	LimitsByRole map[string]*Limits `type:"map"`
 }
 
@@ -3587,6 +3802,63 @@ func (s *DescribeReservedElasticsearchInstancesOutput) SetNextToken(v string) *D
 func (s *DescribeReservedElasticsearchInstancesOutput) SetReservedElasticsearchInstances(v []*ReservedElasticsearchInstance) *DescribeReservedElasticsearchInstancesOutput {
 	s.ReservedElasticsearchInstances = v
 	return s
+}
+
+// An error occured because the client wanted to access a not supported operation.
+// Gives http status code of 409.
+type DisabledOperationException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s DisabledOperationException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DisabledOperationException) GoString() string {
+	return s.String()
+}
+
+func newErrorDisabledOperationException(v protocol.ResponseMetadata) error {
+	return &DisabledOperationException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s DisabledOperationException) Code() string {
+	return "DisabledOperationException"
+}
+
+// Message returns the exception's message.
+func (s DisabledOperationException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s DisabledOperationException) OrigErr() error {
+	return nil
+}
+
+func (s DisabledOperationException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s DisabledOperationException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s DisabledOperationException) RequestID() string {
+	return s.respMetadata.RequestID
 }
 
 // Options to configure endpoint for the Elasticsearch domain.
@@ -3797,8 +4069,18 @@ type ElasticsearchClusterConfig struct {
 	// The number of instances in the specified domain cluster.
 	InstanceCount *int64 `type:"integer"`
 
-	// The instance type for an Elasticsearch cluster.
+	// The instance type for an Elasticsearch cluster. UltraWarm instance types
+	// are not supported for data instances.
 	InstanceType *string `type:"string" enum:"ESPartitionInstanceType"`
+
+	// The number of warm nodes in the cluster.
+	WarmCount *int64 `type:"integer"`
+
+	// True to enable warm storage.
+	WarmEnabled *bool `type:"boolean"`
+
+	// The instance type for the Elasticsearch cluster's warm nodes.
+	WarmType *string `type:"string" enum:"ESWarmPartitionInstanceType"`
 
 	// Specifies the zone awareness configuration for a domain when zone awareness
 	// is enabled.
@@ -3847,6 +4129,24 @@ func (s *ElasticsearchClusterConfig) SetInstanceCount(v int64) *ElasticsearchClu
 // SetInstanceType sets the InstanceType field's value.
 func (s *ElasticsearchClusterConfig) SetInstanceType(v string) *ElasticsearchClusterConfig {
 	s.InstanceType = &v
+	return s
+}
+
+// SetWarmCount sets the WarmCount field's value.
+func (s *ElasticsearchClusterConfig) SetWarmCount(v int64) *ElasticsearchClusterConfig {
+	s.WarmCount = &v
+	return s
+}
+
+// SetWarmEnabled sets the WarmEnabled field's value.
+func (s *ElasticsearchClusterConfig) SetWarmEnabled(v bool) *ElasticsearchClusterConfig {
+	s.WarmEnabled = &v
+	return s
+}
+
+// SetWarmType sets the WarmType field's value.
+func (s *ElasticsearchClusterConfig) SetWarmType(v string) *ElasticsearchClusterConfig {
+	s.WarmType = &v
 	return s
 }
 
@@ -3912,6 +4212,9 @@ type ElasticsearchDomainConfig struct {
 	// for more information.
 	AdvancedOptions *AdvancedOptionsStatus `type:"structure"`
 
+	// Specifies AdvancedSecurityOptions for the domain.
+	AdvancedSecurityOptions *AdvancedSecurityOptionsStatus `type:"structure"`
+
 	// The CognitoOptions for the specified domain. For more information, see Amazon
 	// Cognito Authentication for Kibana (http://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/es-cognito-auth.html).
 	CognitoOptions *CognitoOptionsStatus `type:"structure"`
@@ -3964,6 +4267,12 @@ func (s *ElasticsearchDomainConfig) SetAccessPolicies(v *AccessPoliciesStatus) *
 // SetAdvancedOptions sets the AdvancedOptions field's value.
 func (s *ElasticsearchDomainConfig) SetAdvancedOptions(v *AdvancedOptionsStatus) *ElasticsearchDomainConfig {
 	s.AdvancedOptions = v
+	return s
+}
+
+// SetAdvancedSecurityOptions sets the AdvancedSecurityOptions field's value.
+func (s *ElasticsearchDomainConfig) SetAdvancedSecurityOptions(v *AdvancedSecurityOptionsStatus) *ElasticsearchDomainConfig {
+	s.AdvancedSecurityOptions = v
 	return s
 }
 
@@ -4043,6 +4352,9 @@ type ElasticsearchDomainStatus struct {
 
 	// Specifies the status of the AdvancedOptions
 	AdvancedOptions map[string]*string `type:"map"`
+
+	// The current status of the Elasticsearch domain's advanced security options.
+	AdvancedSecurityOptions *AdvancedSecurityOptions `type:"structure"`
 
 	// The CognitoOptions for the specified domain. For more information, see Amazon
 	// Cognito Authentication for Kibana (http://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/es-cognito-auth.html).
@@ -4148,6 +4460,12 @@ func (s *ElasticsearchDomainStatus) SetAccessPolicies(v string) *ElasticsearchDo
 // SetAdvancedOptions sets the AdvancedOptions field's value.
 func (s *ElasticsearchDomainStatus) SetAdvancedOptions(v map[string]*string) *ElasticsearchDomainStatus {
 	s.AdvancedOptions = v
+	return s
+}
+
+// SetAdvancedSecurityOptions sets the AdvancedSecurityOptions field's value.
+func (s *ElasticsearchDomainStatus) SetAdvancedSecurityOptions(v *AdvancedSecurityOptions) *ElasticsearchDomainStatus {
+	s.AdvancedSecurityOptions = v
 	return s
 }
 
@@ -4717,6 +5035,178 @@ func (s *InstanceLimits) SetInstanceCountLimits(v *InstanceCountLimits) *Instanc
 	return s
 }
 
+// The request processing has failed because of an unknown error, exception
+// or failure (the failure is internal to the service) . Gives http status code
+// of 500.
+type InternalException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s InternalException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InternalException) GoString() string {
+	return s.String()
+}
+
+func newErrorInternalException(v protocol.ResponseMetadata) error {
+	return &InternalException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s InternalException) Code() string {
+	return "InternalException"
+}
+
+// Message returns the exception's message.
+func (s InternalException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s InternalException) OrigErr() error {
+	return nil
+}
+
+func (s InternalException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s InternalException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s InternalException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// An exception for trying to create or access sub-resource that is either invalid
+// or not supported. Gives http status code of 409.
+type InvalidTypeException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidTypeException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidTypeException) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidTypeException(v protocol.ResponseMetadata) error {
+	return &InvalidTypeException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s InvalidTypeException) Code() string {
+	return "InvalidTypeException"
+}
+
+// Message returns the exception's message.
+func (s InvalidTypeException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s InvalidTypeException) OrigErr() error {
+	return nil
+}
+
+func (s InvalidTypeException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s InvalidTypeException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s InvalidTypeException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// An exception for trying to create more than allowed resources or sub-resources.
+// Gives http status code of 409.
+type LimitExceededException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s LimitExceededException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s LimitExceededException) GoString() string {
+	return s.String()
+}
+
+func newErrorLimitExceededException(v protocol.ResponseMetadata) error {
+	return &LimitExceededException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s LimitExceededException) Code() string {
+	return "LimitExceededException"
+}
+
+// Message returns the exception's message.
+func (s LimitExceededException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s LimitExceededException) OrigErr() error {
+	return nil
+}
+
+func (s LimitExceededException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s LimitExceededException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s LimitExceededException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
 // Limits for given InstanceType and for each of it's role. Limits contains
 // following StorageTypes, InstanceLimits and AdditionalLimits
 type Limits struct {
@@ -5129,6 +5619,66 @@ func (s *LogPublishingOptionsStatus) SetOptions(v map[string]*LogPublishingOptio
 // SetStatus sets the Status field's value.
 func (s *LogPublishingOptionsStatus) SetStatus(v *OptionStatus) *LogPublishingOptionsStatus {
 	s.Status = v
+	return s
+}
+
+// Credentials for the master user: username and password, ARN, or both.
+type MasterUserOptions struct {
+	_ struct{} `type:"structure"`
+
+	// ARN for the master user (if IAM is enabled).
+	MasterUserARN *string `type:"string"`
+
+	// The master user's username, which is stored in the Amazon Elasticsearch Service
+	// domain's internal database.
+	MasterUserName *string `min:"1" type:"string" sensitive:"true"`
+
+	// The master user's password, which is stored in the Amazon Elasticsearch Service
+	// domain's internal database.
+	MasterUserPassword *string `min:"8" type:"string" sensitive:"true"`
+}
+
+// String returns the string representation
+func (s MasterUserOptions) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s MasterUserOptions) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *MasterUserOptions) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "MasterUserOptions"}
+	if s.MasterUserName != nil && len(*s.MasterUserName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("MasterUserName", 1))
+	}
+	if s.MasterUserPassword != nil && len(*s.MasterUserPassword) < 8 {
+		invalidParams.Add(request.NewErrParamMinLen("MasterUserPassword", 8))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetMasterUserARN sets the MasterUserARN field's value.
+func (s *MasterUserOptions) SetMasterUserARN(v string) *MasterUserOptions {
+	s.MasterUserARN = &v
+	return s
+}
+
+// SetMasterUserName sets the MasterUserName field's value.
+func (s *MasterUserOptions) SetMasterUserName(v string) *MasterUserOptions {
+	s.MasterUserName = &v
+	return s
+}
+
+// SetMasterUserPassword sets the MasterUserPassword field's value.
+func (s *MasterUserOptions) SetMasterUserPassword(v string) *MasterUserOptions {
+	s.MasterUserPassword = &v
 	return s
 }
 
@@ -5695,6 +6245,120 @@ func (s *ReservedElasticsearchInstanceOffering) SetUsagePrice(v float64) *Reserv
 	return s
 }
 
+// An exception for creating a resource that already exists. Gives http status
+// code of 400.
+type ResourceAlreadyExistsException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s ResourceAlreadyExistsException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResourceAlreadyExistsException) GoString() string {
+	return s.String()
+}
+
+func newErrorResourceAlreadyExistsException(v protocol.ResponseMetadata) error {
+	return &ResourceAlreadyExistsException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s ResourceAlreadyExistsException) Code() string {
+	return "ResourceAlreadyExistsException"
+}
+
+// Message returns the exception's message.
+func (s ResourceAlreadyExistsException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s ResourceAlreadyExistsException) OrigErr() error {
+	return nil
+}
+
+func (s ResourceAlreadyExistsException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s ResourceAlreadyExistsException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s ResourceAlreadyExistsException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// An exception for accessing or deleting a resource that does not exist. Gives
+// http status code of 400.
+type ResourceNotFoundException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s ResourceNotFoundException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResourceNotFoundException) GoString() string {
+	return s.String()
+}
+
+func newErrorResourceNotFoundException(v protocol.ResponseMetadata) error {
+	return &ResourceNotFoundException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s ResourceNotFoundException) Code() string {
+	return "ResourceNotFoundException"
+}
+
+// Message returns the exception's message.
+func (s ResourceNotFoundException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s ResourceNotFoundException) OrigErr() error {
+	return nil
+}
+
+func (s ResourceNotFoundException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s ResourceNotFoundException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s ResourceNotFoundException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
 // The current options of an Elasticsearch domain service software options.
 type ServiceSoftwareOptions struct {
 	_ struct{} `type:"structure"`
@@ -6072,6 +6736,9 @@ type UpdateElasticsearchDomainConfigInput struct {
 	// for more information.
 	AdvancedOptions map[string]*string `type:"map"`
 
+	// Specifies advanced security options.
+	AdvancedSecurityOptions *AdvancedSecurityOptionsInput `type:"structure"`
+
 	// Options to specify the Cognito user and identity pools for Kibana authentication.
 	// For more information, see Amazon Cognito Authentication for Kibana (http://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/es-cognito-auth.html).
 	CognitoOptions *CognitoOptions `type:"structure"`
@@ -6123,6 +6790,11 @@ func (s *UpdateElasticsearchDomainConfigInput) Validate() error {
 	if s.DomainName != nil && len(*s.DomainName) < 3 {
 		invalidParams.Add(request.NewErrParamMinLen("DomainName", 3))
 	}
+	if s.AdvancedSecurityOptions != nil {
+		if err := s.AdvancedSecurityOptions.Validate(); err != nil {
+			invalidParams.AddNested("AdvancedSecurityOptions", err.(request.ErrInvalidParams))
+		}
+	}
 	if s.CognitoOptions != nil {
 		if err := s.CognitoOptions.Validate(); err != nil {
 			invalidParams.AddNested("CognitoOptions", err.(request.ErrInvalidParams))
@@ -6144,6 +6816,12 @@ func (s *UpdateElasticsearchDomainConfigInput) SetAccessPolicies(v string) *Upda
 // SetAdvancedOptions sets the AdvancedOptions field's value.
 func (s *UpdateElasticsearchDomainConfigInput) SetAdvancedOptions(v map[string]*string) *UpdateElasticsearchDomainConfigInput {
 	s.AdvancedOptions = v
+	return s
+}
+
+// SetAdvancedSecurityOptions sets the AdvancedSecurityOptions field's value.
+func (s *UpdateElasticsearchDomainConfigInput) SetAdvancedSecurityOptions(v *AdvancedSecurityOptionsInput) *UpdateElasticsearchDomainConfigInput {
+	s.AdvancedSecurityOptions = v
 	return s
 }
 
@@ -6592,6 +7270,63 @@ func (s *VPCOptions) SetSubnetIds(v []*string) *VPCOptions {
 	return s
 }
 
+// An exception for missing / invalid input fields. Gives http status code of
+// 400.
+type ValidationException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s ValidationException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ValidationException) GoString() string {
+	return s.String()
+}
+
+func newErrorValidationException(v protocol.ResponseMetadata) error {
+	return &ValidationException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s ValidationException) Code() string {
+	return "ValidationException"
+}
+
+// Message returns the exception's message.
+func (s ValidationException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s ValidationException) OrigErr() error {
+	return nil
+}
+
+func (s ValidationException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s ValidationException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s ValidationException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
 // Specifies the zone awareness configuration for the domain cluster, such as
 // the number of availability zones.
 type ZoneAwarenessConfig struct {
@@ -6712,6 +7447,12 @@ const (
 	// ESPartitionInstanceTypeC518xlargeElasticsearch is a ESPartitionInstanceType enum value
 	ESPartitionInstanceTypeC518xlargeElasticsearch = "c5.18xlarge.elasticsearch"
 
+	// ESPartitionInstanceTypeUltrawarm1MediumElasticsearch is a ESPartitionInstanceType enum value
+	ESPartitionInstanceTypeUltrawarm1MediumElasticsearch = "ultrawarm1.medium.elasticsearch"
+
+	// ESPartitionInstanceTypeUltrawarm1LargeElasticsearch is a ESPartitionInstanceType enum value
+	ESPartitionInstanceTypeUltrawarm1LargeElasticsearch = "ultrawarm1.large.elasticsearch"
+
 	// ESPartitionInstanceTypeT2MicroElasticsearch is a ESPartitionInstanceType enum value
 	ESPartitionInstanceTypeT2MicroElasticsearch = "t2.micro.elasticsearch"
 
@@ -6804,6 +7545,14 @@ const (
 
 	// ESPartitionInstanceTypeI316xlargeElasticsearch is a ESPartitionInstanceType enum value
 	ESPartitionInstanceTypeI316xlargeElasticsearch = "i3.16xlarge.elasticsearch"
+)
+
+const (
+	// ESWarmPartitionInstanceTypeUltrawarm1MediumElasticsearch is a ESWarmPartitionInstanceType enum value
+	ESWarmPartitionInstanceTypeUltrawarm1MediumElasticsearch = "ultrawarm1.medium.elasticsearch"
+
+	// ESWarmPartitionInstanceTypeUltrawarm1LargeElasticsearch is a ESWarmPartitionInstanceType enum value
+	ESWarmPartitionInstanceTypeUltrawarm1LargeElasticsearch = "ultrawarm1.large.elasticsearch"
 )
 
 // Type of Log File, it can be one of the following:

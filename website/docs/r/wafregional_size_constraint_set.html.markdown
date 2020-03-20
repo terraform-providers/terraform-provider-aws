@@ -1,4 +1,5 @@
 ---
+subcategory: "WAF Regional"
 layout: "aws"
 page_title: "AWS: aws_wafregional_size_constraint_set"
 description: |-

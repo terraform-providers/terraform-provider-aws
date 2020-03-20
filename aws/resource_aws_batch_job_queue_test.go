@@ -28,10 +28,6 @@ func testSweepBatchJobQueues(region string) error {
 	}
 	conn := client.(*AWSClient).batchconn
 
-	prefixes := []string{
-		"tf_acc",
-	}
-
 	out, err := conn.DescribeJobQueues(&batch.DescribeJobQueuesInput{})
 	if err != nil {
 		if testSweepSkipSweepError(err) {
@@ -42,17 +38,6 @@ func testSweepBatchJobQueues(region string) error {
 	}
 	for _, jobQueue := range out.JobQueues {
 		name := jobQueue.JobQueueName
-		skip := true
-		for _, prefix := range prefixes {
-			if strings.HasPrefix(*name, prefix) {
-				skip = false
-				break
-			}
-		}
-		if skip {
-			log.Printf("[INFO] Skipping Batch Job Queue: %s", *name)
-			continue
-		}
 
 		log.Printf("[INFO] Disabling Batch Job Queue: %s", *name)
 		err := disableBatchJobQueue(*name, conn)
@@ -75,6 +60,7 @@ func TestAccAWSBatchJobQueue_basic(t *testing.T) {
 	var jq batch.JobQueueDetail
 	ri := acctest.RandInt()
 	config := fmt.Sprintf(testAccBatchJobQueueBasic, ri)
+	resourceName := "aws_batch_job_queue.test_queue"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSBatch(t) },
 		Providers:    testAccProviders,
@@ -83,9 +69,14 @@ func TestAccAWSBatchJobQueue_basic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckBatchJobQueueExists("aws_batch_job_queue.test_queue", &jq),
+					testAccCheckBatchJobQueueExists(resourceName, &jq),
 					testAccCheckBatchJobQueueAttributes(&jq),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -118,6 +109,7 @@ func TestAccAWSBatchJobQueue_update(t *testing.T) {
 	ri := acctest.RandInt()
 	config := fmt.Sprintf(testAccBatchJobQueueBasic, ri)
 	updateConfig := fmt.Sprintf(testAccBatchJobQueueUpdate, ri)
+	resourceName := "aws_batch_job_queue.test_queue"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSBatch(t) },
 		Providers:    testAccProviders,
@@ -126,16 +118,21 @@ func TestAccAWSBatchJobQueue_update(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckBatchJobQueueExists("aws_batch_job_queue.test_queue", &jq),
+					testAccCheckBatchJobQueueExists(resourceName, &jq),
 					testAccCheckBatchJobQueueAttributes(&jq),
 				),
 			},
 			{
 				Config: updateConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckBatchJobQueueExists("aws_batch_job_queue.test_queue", &jq),
+					testAccCheckBatchJobQueueExists(resourceName, &jq),
 					testAccCheckBatchJobQueueAttributes(&jq),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})

@@ -1,4 +1,5 @@
 ---
+subcategory: "S3"
 layout: "aws"
 page_title: "AWS: aws_s3_bucket_metric"
 description: |-

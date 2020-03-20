@@ -1,4 +1,5 @@
 ---
+subcategory: "SSM"
 layout: "aws"
 page_title: "AWS: aws_ssm_document"
 description: |-
@@ -23,6 +24,7 @@ output "content" {
   value = "${data.aws_ssm_document.foo.content}"
 }
 ```
+
 To get the contents of the custom document.
 
 ```hcl

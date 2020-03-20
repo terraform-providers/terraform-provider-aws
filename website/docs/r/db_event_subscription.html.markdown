@@ -1,4 +1,5 @@
 ---
+subcategory: "RDS"
 layout: "aws"
 page_title: "AWS: aws_db_event_subscription"
 description: |-

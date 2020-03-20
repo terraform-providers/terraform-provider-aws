@@ -1,4 +1,5 @@
 ---
+subcategory: "DataSync"
 layout: "aws"
 page_title: "AWS: aws_datasync_location_s3"
 description: |-

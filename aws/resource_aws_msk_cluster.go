@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsMskCluster() *schema.Resource {
@@ -188,7 +189,6 @@ func resourceAwsMskCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Default:  kafka.EnhancedMonitoringDefault,
-				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					kafka.EnhancedMonitoringDefault,
 					kafka.EnhancedMonitoringPerBroker,
@@ -204,7 +204,53 @@ func resourceAwsMskCluster() *schema.Resource {
 			"number_of_broker_nodes": {
 				Type:     schema.TypeInt,
 				Required: true,
-				ForceNew: true,
+			},
+			"open_monitoring": {
+				Type:             schema.TypeList,
+				Optional:         true,
+				DiffSuppressFunc: suppressMissingOptionalConfigurationBlock,
+				MaxItems:         1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"prometheus": {
+							Type:     schema.TypeList,
+							Required: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"jmx_exporter": {
+										Type:             schema.TypeList,
+										Optional:         true,
+										DiffSuppressFunc: suppressMissingOptionalConfigurationBlock,
+										MaxItems:         1,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"enabled_in_broker": {
+													Type:     schema.TypeBool,
+													Required: true,
+												},
+											},
+										},
+									},
+									"node_exporter": {
+										Type:             schema.TypeList,
+										Optional:         true,
+										DiffSuppressFunc: suppressMissingOptionalConfigurationBlock,
+										MaxItems:         1,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"enabled_in_broker": {
+													Type:     schema.TypeBool,
+													Required: true,
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
 			},
 			"tags": tagsSchema(),
 			"zookeeper_connect_string": {
@@ -227,7 +273,8 @@ func resourceAwsMskClusterCreate(d *schema.ResourceData, meta interface{}) error
 		EnhancedMonitoring:   aws.String(d.Get("enhanced_monitoring").(string)),
 		KafkaVersion:         aws.String(d.Get("kafka_version").(string)),
 		NumberOfBrokerNodes:  aws.Int64(int64(d.Get("number_of_broker_nodes").(int))),
-		Tags:                 tagsFromMapMskCluster(d.Get("tags").(map[string]interface{})),
+		OpenMonitoring:       expandMskOpenMonitoring(d.Get("open_monitoring").([]interface{})),
+		Tags:                 keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().KafkaTags(),
 	}
 
 	out, err := conn.CreateCluster(input)
@@ -338,8 +385,12 @@ func resourceAwsMskClusterRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("kafka_version", aws.StringValue(cluster.CurrentBrokerSoftwareInfo.KafkaVersion))
 	d.Set("number_of_broker_nodes", aws.Int64Value(cluster.NumberOfBrokerNodes))
 
-	if err := d.Set("tags", tagsToMapMskCluster(cluster.Tags)); err != nil {
+	if err := d.Set("tags", keyvaluetags.KafkaKeyValueTags(cluster.Tags).IgnoreAws().Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
+	}
+
+	if err := d.Set("open_monitoring", flattenMskOpenMonitoring(cluster.OpenMonitoring)); err != nil {
+		return fmt.Errorf("error setting open_monitoring: %s", err)
 	}
 
 	d.Set("zookeeper_connect_string", aws.StringValue(cluster.ZookeeperConnectString))
@@ -379,6 +430,55 @@ func resourceAwsMskClusterUpdate(d *schema.ResourceData, meta interface{}) error
 		}
 	}
 
+	if d.HasChange("number_of_broker_nodes") {
+		input := &kafka.UpdateBrokerCountInput{
+			ClusterArn:                aws.String(d.Id()),
+			CurrentVersion:            aws.String(d.Get("current_version").(string)),
+			TargetNumberOfBrokerNodes: aws.Int64(int64(d.Get("number_of_broker_nodes").(int))),
+		}
+
+		output, err := conn.UpdateBrokerCount(input)
+
+		if err != nil {
+			return fmt.Errorf("error updating MSK Cluster (%s) broker count: %s", d.Id(), err)
+		}
+
+		if output == nil {
+			return fmt.Errorf("error updating MSK Cluster (%s) broker count: empty response", d.Id())
+		}
+
+		clusterOperationARN := aws.StringValue(output.ClusterOperationArn)
+
+		if err := waitForMskClusterOperation(conn, clusterOperationARN); err != nil {
+			return fmt.Errorf("error waiting for MSK Cluster (%s) operation (%s): %s", d.Id(), clusterOperationARN, err)
+		}
+	}
+
+	if d.HasChange("enhanced_monitoring") || d.HasChange("open_monitoring") {
+		input := &kafka.UpdateMonitoringInput{
+			ClusterArn:         aws.String(d.Id()),
+			CurrentVersion:     aws.String(d.Get("current_version").(string)),
+			EnhancedMonitoring: aws.String(d.Get("enhanced_monitoring").(string)),
+			OpenMonitoring:     expandMskOpenMonitoring(d.Get("open_monitoring").([]interface{})),
+		}
+
+		output, err := conn.UpdateMonitoring(input)
+
+		if err != nil {
+			return fmt.Errorf("error updating MSK Cluster (%s) monitoring: %s", d.Id(), err)
+		}
+
+		if output == nil {
+			return fmt.Errorf("error updating MSK Cluster (%s) monitoring: empty response", d.Id())
+		}
+
+		clusterOperationARN := aws.StringValue(output.ClusterOperationArn)
+
+		if err := waitForMskClusterOperation(conn, clusterOperationARN); err != nil {
+			return fmt.Errorf("error waiting for MSK Cluster (%s) operation (%s): %s", d.Id(), clusterOperationARN, err)
+		}
+	}
+
 	if d.HasChange("configuration_info") {
 		input := &kafka.UpdateClusterConfigurationInput{
 			ClusterArn:        aws.String(d.Id()),
@@ -404,8 +504,10 @@ func resourceAwsMskClusterUpdate(d *schema.ResourceData, meta interface{}) error
 	}
 
 	if d.HasChange("tags") {
-		if err := setTagsMskCluster(conn, d, d.Id()); err != nil {
-			return fmt.Errorf("failed updating tags for msk cluster %q: %s", d.Id(), err)
+		o, n := d.GetChange("tags")
+
+		if err := keyvaluetags.KafkaUpdateTags(conn, d.Id(), o, n); err != nil {
+			return fmt.Errorf("error updating MSK Cluster (%s) tags: %s", d.Id(), err)
 		}
 	}
 
@@ -513,6 +615,63 @@ func expandMskClusterTls(l []interface{}) *kafka.Tls {
 	return tls
 }
 
+func expandMskOpenMonitoring(l []interface{}) *kafka.OpenMonitoringInfo {
+	if len(l) == 0 || l[0] == nil {
+		return nil
+	}
+
+	m := l[0].(map[string]interface{})
+
+	openMonitoring := &kafka.OpenMonitoringInfo{
+		Prometheus: expandMskOpenMonitoringPrometheus(m["prometheus"].([]interface{})),
+	}
+
+	return openMonitoring
+}
+
+func expandMskOpenMonitoringPrometheus(l []interface{}) *kafka.PrometheusInfo {
+	if len(l) == 0 || l[0] == nil {
+		return nil
+	}
+
+	m := l[0].(map[string]interface{})
+
+	prometheus := &kafka.PrometheusInfo{
+		JmxExporter:  expandMskOpenMonitoringPrometheusJmxExporter(m["jmx_exporter"].([]interface{})),
+		NodeExporter: expandMskOpenMonitoringPrometheusNodeExporter(m["node_exporter"].([]interface{})),
+	}
+
+	return prometheus
+}
+
+func expandMskOpenMonitoringPrometheusJmxExporter(l []interface{}) *kafka.JmxExporterInfo {
+	if len(l) == 0 || l[0] == nil {
+		return nil
+	}
+
+	m := l[0].(map[string]interface{})
+
+	jmxExporter := &kafka.JmxExporterInfo{
+		EnabledInBroker: aws.Bool(m["enabled_in_broker"].(bool)),
+	}
+
+	return jmxExporter
+}
+
+func expandMskOpenMonitoringPrometheusNodeExporter(l []interface{}) *kafka.NodeExporterInfo {
+	if len(l) == 0 || l[0] == nil {
+		return nil
+	}
+
+	m := l[0].(map[string]interface{})
+
+	nodeExporter := &kafka.NodeExporterInfo{
+		EnabledInBroker: aws.Bool(m["enabled_in_broker"].(bool)),
+	}
+
+	return nodeExporter
+}
+
 func flattenMskBrokerNodeGroupInfo(b *kafka.BrokerNodeGroupInfo) []map[string]interface{} {
 
 	if b == nil {
@@ -591,6 +750,55 @@ func flattenMskTls(tls *kafka.Tls) []map[string]interface{} {
 
 	m := map[string]interface{}{
 		"certificate_authority_arns": aws.StringValueSlice(tls.CertificateAuthorityArnList),
+	}
+
+	return []map[string]interface{}{m}
+}
+
+func flattenMskOpenMonitoring(e *kafka.OpenMonitoring) []map[string]interface{} {
+	if e == nil {
+		return []map[string]interface{}{}
+	}
+
+	m := map[string]interface{}{
+		"prometheus": flattenMskOpenMonitoringPrometheus(e.Prometheus),
+	}
+
+	return []map[string]interface{}{m}
+}
+
+func flattenMskOpenMonitoringPrometheus(e *kafka.Prometheus) []map[string]interface{} {
+	if e == nil {
+		return []map[string]interface{}{}
+	}
+
+	m := map[string]interface{}{
+		"jmx_exporter":  flattenMskOpenMonitoringPrometheusJmxExporter(e.JmxExporter),
+		"node_exporter": flattenMskOpenMonitoringPrometheusNodeExporter(e.NodeExporter),
+	}
+
+	return []map[string]interface{}{m}
+}
+
+func flattenMskOpenMonitoringPrometheusJmxExporter(e *kafka.JmxExporter) []map[string]interface{} {
+	if e == nil {
+		return []map[string]interface{}{}
+	}
+
+	m := map[string]interface{}{
+		"enabled_in_broker": aws.BoolValue(e.EnabledInBroker),
+	}
+
+	return []map[string]interface{}{m}
+}
+
+func flattenMskOpenMonitoringPrometheusNodeExporter(e *kafka.NodeExporter) []map[string]interface{} {
+	if e == nil {
+		return []map[string]interface{}{}
+	}
+
+	m := map[string]interface{}{
+		"enabled_in_broker": aws.BoolValue(e.EnabledInBroker),
 	}
 
 	return []map[string]interface{}{m}

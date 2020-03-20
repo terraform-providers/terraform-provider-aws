@@ -45,6 +45,9 @@
 //    * StartPipelineExecution, which runs the most recent revision of an artifact
 //    through the pipeline.
 //
+//    * StopPipelineExecution, which stops the specified pipeline execution
+//    from continuing through the pipeline.
+//
 //    * UpdatePipeline, which updates a pipeline with edits or changes to the
 //    structure of the pipeline.
 //

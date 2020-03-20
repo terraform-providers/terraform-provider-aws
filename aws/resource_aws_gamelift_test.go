@@ -28,7 +28,6 @@ func testAccAWSGameliftSampleGame(region string) (*testAccGameliftGame, error) {
 	bucket := fmt.Sprintf("gamelift-sample-builds-prod-%s", region)
 	key := fmt.Sprintf("%s/server/sample_build_%s", version, version)
 	roleArn := fmt.Sprintf("arn:aws:iam::%s:role/sample-build-upload-role-%s", accId, region)
-
 	launchPath := `C:\game\Bin64.Release.Dedicated\MultiplayerProjectLauncher_Server.exe`
 
 	gg := &testAccGameliftGame{

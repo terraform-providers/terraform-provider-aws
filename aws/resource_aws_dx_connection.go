@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/directconnect"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsDxConnection() *schema.Resource {
@@ -69,6 +70,10 @@ func resourceAwsDxConnectionCreate(d *schema.ResourceData, meta interface{}) err
 		Location:       aws.String(d.Get("location").(string)),
 	}
 
+	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
+		req.Tags = keyvaluetags.New(v).IgnoreAws().DirectconnectTags()
+	}
+
 	log.Printf("[DEBUG] Creating Direct Connect connection: %#v", req)
 	resp, err := conn.CreateConnection(req)
 	if err != nil {
@@ -76,7 +81,8 @@ func resourceAwsDxConnectionCreate(d *schema.ResourceData, meta interface{}) err
 	}
 
 	d.SetId(aws.StringValue(resp.ConnectionId))
-	return resourceAwsDxConnectionUpdate(d, meta)
+
+	return resourceAwsDxConnectionRead(d, meta)
 }
 
 func resourceAwsDxConnectionRead(d *schema.ResourceData, meta interface{}) error {
@@ -127,22 +133,29 @@ func resourceAwsDxConnectionRead(d *schema.ResourceData, meta interface{}) error
 	d.Set("has_logical_redundancy", connection.HasLogicalRedundancy)
 	d.Set("aws_device", connection.AwsDeviceV2)
 
-	err1 := getTagsDX(conn, d, arn)
-	return err1
+	tags, err := keyvaluetags.DirectconnectListTags(conn, arn)
+
+	if err != nil {
+		return fmt.Errorf("error listing tags for Direct Connect connection (%s): %s", arn, err)
+	}
+
+	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+		return fmt.Errorf("error setting tags: %s", err)
+	}
+
+	return nil
 }
 
 func resourceAwsDxConnectionUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).dxconn
 
-	arn := arn.ARN{
-		Partition: meta.(*AWSClient).partition,
-		Region:    meta.(*AWSClient).region,
-		Service:   "directconnect",
-		AccountID: meta.(*AWSClient).accountid,
-		Resource:  fmt.Sprintf("dxcon/%s", d.Id()),
-	}.String()
-	if err := setTagsDX(conn, d, arn); err != nil {
-		return err
+	arn := d.Get("arn").(string)
+	if d.HasChange("tags") {
+		o, n := d.GetChange("tags")
+
+		if err := keyvaluetags.DirectconnectUpdateTags(conn, arn, o, n); err != nil {
+			return fmt.Errorf("error updating Direct Connect connection (%s) tags: %s", arn, err)
+		}
 	}
 
 	return resourceAwsDxConnectionRead(d, meta)

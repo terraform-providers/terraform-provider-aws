@@ -1,4 +1,5 @@
 ---
+subcategory: "VPC"
 layout: "aws"
 page_title: "AWS: aws_vpc_endpoint_subnet_association"
 description: |-

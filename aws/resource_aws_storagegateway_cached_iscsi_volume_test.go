@@ -82,17 +82,17 @@ func TestAccAWSStorageGatewayCachedIscsiVolume_Basic(t *testing.T) {
 				Config: testAccAWSStorageGatewayCachedIscsiVolumeConfig_Basic(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSStorageGatewayCachedIscsiVolumeExists(resourceName, &cachedIscsiVolume),
-					resource.TestMatchResourceAttr(resourceName, "arn", regexp.MustCompile(`^arn:[^:]+:storagegateway:[^:]+:\d{12}:gateway/sgw-.+/volume/vol-.+$`)),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "storagegateway", regexp.MustCompile(`gateway/sgw-.+/volume/vol-.+`)),
 					resource.TestCheckResourceAttr(resourceName, "chap_enabled", "false"),
-					resource.TestMatchResourceAttr(resourceName, "gateway_arn", regexp.MustCompile(`^arn:[^:]+:storagegateway:[^:]+:\d{12}:gateway/sgw-.+$`)),
+					testAccMatchResourceAttrRegionalARN(resourceName, "gateway_arn", "storagegateway", regexp.MustCompile(`gateway/sgw-.+`)),
 					resource.TestCheckResourceAttr(resourceName, "lun_number", "0"),
 					resource.TestMatchResourceAttr(resourceName, "network_interface_id", regexp.MustCompile(`^\d+\.\d+\.\d+\.\d+$`)),
 					resource.TestMatchResourceAttr(resourceName, "network_interface_port", regexp.MustCompile(`^\d+$`)),
 					resource.TestCheckResourceAttr(resourceName, "snapshot_id", ""),
-					resource.TestMatchResourceAttr(resourceName, "target_arn", regexp.MustCompile(fmt.Sprintf("^arn:[^:]+:storagegateway:[^:]+:\\d{12}:gateway/sgw-.+/target/iqn.1997-05.com.amazon:%s$", rName))),
+					testAccMatchResourceAttrRegionalARN(resourceName, "target_arn", "storagegateway", regexp.MustCompile(fmt.Sprintf(`gateway/sgw-.+/target/iqn.1997-05.com.amazon:%s`, rName))),
 					resource.TestCheckResourceAttr(resourceName, "target_name", rName),
 					resource.TestMatchResourceAttr(resourceName, "volume_id", regexp.MustCompile(`^vol-.+$`)),
-					resource.TestMatchResourceAttr(resourceName, "volume_arn", regexp.MustCompile(`^arn:[^:]+:storagegateway:[^:]+:\d{12}:gateway/sgw-.+/volume/vol-.+$`)),
+					testAccMatchResourceAttrRegionalARN(resourceName, "volume_arn", "storagegateway", regexp.MustCompile(`gateway/sgw-.+/volume/vol-.`)),
 					resource.TestCheckResourceAttr(resourceName, "volume_size_in_bytes", "5368709120"),
 				),
 			},
@@ -100,6 +100,53 @@ func TestAccAWSStorageGatewayCachedIscsiVolume_Basic(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSStorageGatewayCachedIscsiVolume_Tags(t *testing.T) {
+	var cachedIscsiVolume storagegateway.CachediSCSIVolume
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_storagegateway_cached_iscsi_volume.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSStorageGatewayCachedIscsiVolumeDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSStorageGatewayCachedIscsiVolumeConfigTags1(rName, "key1", "value1"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSStorageGatewayCachedIscsiVolumeExists(resourceName, &cachedIscsiVolume),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "storagegateway", regexp.MustCompile(`gateway/sgw-.+/volume/vol-.+`)),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAWSStorageGatewayCachedIscsiVolumeConfigTags2(rName, "key1", "value1updated", "key2", "value2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSStorageGatewayCachedIscsiVolumeExists(resourceName, &cachedIscsiVolume),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "storagegateway", regexp.MustCompile(`gateway/sgw-.+/volume/vol-.+`)),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1updated"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
+				),
+			},
+			{
+				Config: testAccAWSStorageGatewayCachedIscsiVolumeConfigTags1(rName, "key2", "value2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSStorageGatewayCachedIscsiVolumeExists(resourceName, &cachedIscsiVolume),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "storagegateway", regexp.MustCompile(`gateway/sgw-.+/volume/vol-.+`)),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
+				),
 			},
 		},
 	})
@@ -119,17 +166,17 @@ func TestAccAWSStorageGatewayCachedIscsiVolume_SnapshotId(t *testing.T) {
 				Config: testAccAWSStorageGatewayCachedIscsiVolumeConfig_SnapshotId(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSStorageGatewayCachedIscsiVolumeExists(resourceName, &cachedIscsiVolume),
-					resource.TestMatchResourceAttr(resourceName, "arn", regexp.MustCompile(`^arn:[^:]+:storagegateway:[^:]+:\d{12}:gateway/sgw-.+/volume/vol-.+$`)),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "storagegateway", regexp.MustCompile(`gateway/sgw-.+/volume/vol-.+`)),
 					resource.TestCheckResourceAttr(resourceName, "chap_enabled", "false"),
-					resource.TestMatchResourceAttr(resourceName, "gateway_arn", regexp.MustCompile(`^arn:[^:]+:storagegateway:[^:]+:\d{12}:gateway/sgw-.+$`)),
+					testAccMatchResourceAttrRegionalARN(resourceName, "gateway_arn", "storagegateway", regexp.MustCompile(`gateway/sgw-.+`)),
 					resource.TestCheckResourceAttr(resourceName, "lun_number", "0"),
 					resource.TestMatchResourceAttr(resourceName, "network_interface_id", regexp.MustCompile(`^\d+\.\d+\.\d+\.\d+$`)),
 					resource.TestMatchResourceAttr(resourceName, "network_interface_port", regexp.MustCompile(`^\d+$`)),
 					resource.TestMatchResourceAttr(resourceName, "snapshot_id", regexp.MustCompile(`^snap-.+$`)),
-					resource.TestMatchResourceAttr(resourceName, "target_arn", regexp.MustCompile(fmt.Sprintf("^arn:[^:]+:storagegateway:[^:]+:\\d{12}:gateway/sgw-.+/target/iqn.1997-05.com.amazon:%s$", rName))),
+					testAccMatchResourceAttrRegionalARN(resourceName, "target_arn", "storagegateway", regexp.MustCompile(fmt.Sprintf(`gateway/sgw-.+/target/iqn.1997-05.com.amazon:%s`, rName))),
 					resource.TestCheckResourceAttr(resourceName, "target_name", rName),
 					resource.TestMatchResourceAttr(resourceName, "volume_id", regexp.MustCompile(`^vol-.+$`)),
-					resource.TestMatchResourceAttr(resourceName, "volume_arn", regexp.MustCompile(`^arn:[^:]+:storagegateway:[^:]+:\d{12}:gateway/sgw-.+/volume/vol-.+$`)),
+					testAccMatchResourceAttrRegionalARN(resourceName, "volume_arn", "storagegateway", regexp.MustCompile(`gateway/sgw-.+/volume/vol-.`)),
 					resource.TestCheckResourceAttr(resourceName, "volume_size_in_bytes", "5368709120"),
 				),
 			},
@@ -157,16 +204,16 @@ func TestAccAWSStorageGatewayCachedIscsiVolume_SourceVolumeArn(t *testing.T) {
 				Config: testAccAWSStorageGatewayCachedIscsiVolumeConfig_SourceVolumeArn(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSStorageGatewayCachedIscsiVolumeExists(resourceName, &cachedIscsiVolume),
-					resource.TestMatchResourceAttr(resourceName, "arn", regexp.MustCompile(`^arn:[^:]+:storagegateway:[^:]+:\d{12}:gateway/sgw-.+/volume/vol-.+$`)),
-					resource.TestMatchResourceAttr(resourceName, "gateway_arn", regexp.MustCompile(`^arn:[^:]+:storagegateway:[^:]+:\d{12}:gateway/sgw-.+$`)),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "storagegateway", regexp.MustCompile(`gateway/sgw-.+/volume/vol-.+`)),
+					testAccMatchResourceAttrRegionalARN(resourceName, "gateway_arn", "storagegateway", regexp.MustCompile(`gateway/sgw-.+`)),
 					resource.TestMatchResourceAttr(resourceName, "network_interface_id", regexp.MustCompile(`^\d+\.\d+\.\d+\.\d+$`)),
 					resource.TestMatchResourceAttr(resourceName, "network_interface_port", regexp.MustCompile(`^\d+$`)),
 					resource.TestCheckResourceAttr(resourceName, "snapshot_id", ""),
-					resource.TestMatchResourceAttr(resourceName, "source_volume_arn", regexp.MustCompile(`^arn:[^:]+:storagegateway:[^:]+:\d{12}:gateway/sgw-.+/volume/vol-.+$`)),
-					resource.TestMatchResourceAttr(resourceName, "target_arn", regexp.MustCompile(fmt.Sprintf("^arn:[^:]+:storagegateway:[^:]+:\\d{12}:gateway/sgw-.+/target/iqn.1997-05.com.amazon:%s$", rName))),
+					testAccMatchResourceAttrRegionalARN(resourceName, "source_volume_arn", "storagegateway", regexp.MustCompile(`gateway/sgw-.+/volume/vol-.+`)),
+					testAccMatchResourceAttrRegionalARN(resourceName, "target_arn", "storagegateway", regexp.MustCompile(fmt.Sprintf(`gateway/sgw-.+/target/iqn.1997-05.com.amazon:%s`, rName))),
 					resource.TestCheckResourceAttr(resourceName, "target_name", rName),
 					resource.TestMatchResourceAttr(resourceName, "volume_id", regexp.MustCompile(`^vol-.+$`)),
-					resource.TestMatchResourceAttr(resourceName, "volume_arn", regexp.MustCompile(`^arn:[^:]+:storagegateway:[^:]+:\d{12}:gateway/sgw-.+/volume/vol-.+$`)),
+					testAccMatchResourceAttrRegionalARN(resourceName, "volume_arn", "storagegateway", regexp.MustCompile(`gateway/sgw-.+/volume/vol-.`)),
 					resource.TestCheckResourceAttr(resourceName, "volume_size_in_bytes", "1073741824"),
 				),
 			},
@@ -289,6 +336,109 @@ resource "aws_storagegateway_cached_iscsi_volume" "test" {
   volume_size_in_bytes = 5368709120
 }
 `, rName, rName)
+}
+
+func testAccAWSStorageGatewayCachedIscsiVolumeConfigTags1(rName, tagKey1, tagValue1 string) string {
+	return testAccAWSStorageGatewayGatewayConfig_GatewayType_Cached(rName) + fmt.Sprintf(`
+resource "aws_ebs_volume" "test" {
+ availability_zone = "${aws_instance.test.availability_zone}"
+ size              = 10
+ type              = "gp2"
+
+ tags = {
+   Name = %q
+ }
+}
+
+resource "aws_volume_attachment" "test" {
+ device_name  = "/dev/xvdc"
+ force_detach = true
+ instance_id  = "${aws_instance.test.id}"
+ volume_id    = "${aws_ebs_volume.test.id}"
+}
+
+data "aws_storagegateway_local_disk" "test" {
+ disk_path   = "${aws_volume_attachment.test.device_name}"
+ gateway_arn = "${aws_storagegateway_gateway.test.arn}"
+}
+
+resource "aws_storagegateway_cache" "test" {
+ # ACCEPTANCE TESTING WORKAROUND:
+ # Data sources are not refreshed before plan after apply in TestStep
+ # Step 0 error: After applying this step, the plan was not empty:
+ #   disk_id:     "0b68f77a-709b-4c79-ad9d-d7728014b291" => "/dev/xvdc" (forces new resource)
+ # We expect this data source value to change due to how Storage Gateway works.
+ lifecycle {
+   ignore_changes = ["disk_id"]
+ }
+
+ disk_id     = "${data.aws_storagegateway_local_disk.test.id}"
+ gateway_arn = "${aws_storagegateway_gateway.test.arn}"
+}
+
+resource "aws_storagegateway_cached_iscsi_volume" "test" {
+ gateway_arn          = "${aws_storagegateway_cache.test.gateway_arn}"
+ network_interface_id = "${aws_instance.test.private_ip}"
+ target_name          = %q
+ volume_size_in_bytes = 5368709120
+
+  tags = {
+	%q = %q
+  }
+}
+`, rName, rName, tagKey1, tagValue1)
+}
+
+func testAccAWSStorageGatewayCachedIscsiVolumeConfigTags2(rName, tagKey1, tagValue1, tagKey2, tagValue2 string) string {
+	return testAccAWSStorageGatewayGatewayConfig_GatewayType_Cached(rName) + fmt.Sprintf(`
+resource "aws_ebs_volume" "test" {
+ availability_zone = "${aws_instance.test.availability_zone}"
+ size              = 10
+ type              = "gp2"
+
+ tags = {
+   Name = %q
+ }
+}
+
+resource "aws_volume_attachment" "test" {
+ device_name  = "/dev/xvdc"
+ force_detach = true
+ instance_id  = "${aws_instance.test.id}"
+ volume_id    = "${aws_ebs_volume.test.id}"
+}
+
+data "aws_storagegateway_local_disk" "test" {
+ disk_path   = "${aws_volume_attachment.test.device_name}"
+ gateway_arn = "${aws_storagegateway_gateway.test.arn}"
+}
+
+resource "aws_storagegateway_cache" "test" {
+ # ACCEPTANCE TESTING WORKAROUND:
+ # Data sources are not refreshed before plan after apply in TestStep
+ # Step 0 error: After applying this step, the plan was not empty:
+ #   disk_id:     "0b68f77a-709b-4c79-ad9d-d7728014b291" => "/dev/xvdc" (forces new resource)
+ # We expect this data source value to change due to how Storage Gateway works.
+ lifecycle {
+   ignore_changes = ["disk_id"]
+ }
+
+ disk_id     = "${data.aws_storagegateway_local_disk.test.id}"
+ gateway_arn = "${aws_storagegateway_gateway.test.arn}"
+}
+
+resource "aws_storagegateway_cached_iscsi_volume" "test" {
+ gateway_arn          = "${aws_storagegateway_cache.test.gateway_arn}"
+ network_interface_id = "${aws_instance.test.private_ip}"
+ target_name          = %q
+ volume_size_in_bytes = 5368709120
+
+  tags = {
+	%q = %q
+	%q = %q
+  }
+}
+`, rName, rName, tagKey1, tagValue1, tagKey2, tagValue2)
 }
 
 func testAccAWSStorageGatewayCachedIscsiVolumeConfig_SnapshotId(rName string) string {

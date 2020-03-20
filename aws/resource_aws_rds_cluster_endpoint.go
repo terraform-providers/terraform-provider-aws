@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 const (
@@ -70,6 +71,7 @@ func resourceAwsRDSClusterEndpoint() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"tags": tagsSchema(),
 		},
 	}
 }
@@ -85,6 +87,7 @@ func resourceAwsRDSClusterEndpointCreate(d *schema.ResourceData, meta interface{
 		DBClusterIdentifier:         aws.String(clusterId),
 		DBClusterEndpointIdentifier: aws.String(endpointId),
 		EndpointType:                aws.String(endpointType),
+		Tags:                        keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().RdsTags(),
 	}
 
 	if v := d.Get("static_members"); v != nil {
@@ -140,9 +143,10 @@ func resourceAwsRDSClusterEndpointRead(d *schema.ResourceData, meta interface{})
 		return nil
 	}
 
+	arn := clusterEp.DBClusterEndpointArn
 	d.Set("cluster_endpoint_identifier", clusterEp.DBClusterEndpointIdentifier)
 	d.Set("cluster_identifier", clusterEp.DBClusterIdentifier)
-	d.Set("arn", clusterEp.DBClusterEndpointArn)
+	d.Set("arn", arn)
 	d.Set("endpoint", clusterEp.Endpoint)
 	d.Set("custom_endpoint_type", clusterEp.CustomEndpointType)
 
@@ -154,6 +158,16 @@ func resourceAwsRDSClusterEndpointRead(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("error setting static_members: %s", err)
 	}
 
+	tags, err := keyvaluetags.RdsListTags(conn, *arn)
+
+	if err != nil {
+		return fmt.Errorf("error listing tags for RDS Cluster Endpoint (%s): %s", *arn, err)
+	}
+
+	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+		return fmt.Errorf("error setting tags: %s", err)
+	}
+
 	return nil
 }
 
@@ -161,6 +175,14 @@ func resourceAwsRDSClusterEndpointUpdate(d *schema.ResourceData, meta interface{
 	conn := meta.(*AWSClient).rdsconn
 	input := &rds.ModifyDBClusterEndpointInput{
 		DBClusterEndpointIdentifier: aws.String(d.Id()),
+	}
+
+	if d.HasChange("tags") {
+		o, n := d.GetChange("tags")
+
+		if err := keyvaluetags.RdsUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
+			return fmt.Errorf("error updating RDS Cluster Endpoint (%s) tags: %s", d.Get("arn").(string), err)
+		}
 	}
 
 	if v, ok := d.GetOk("custom_endpoint_type"); ok {

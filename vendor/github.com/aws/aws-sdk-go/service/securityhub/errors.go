@@ -2,6 +2,10 @@
 
 package securityhub
 
+import (
+	"github.com/aws/aws-sdk-go/private/protocol"
+)
+
 const (
 
 	// ErrCodeAccessDeniedException for service response error code
@@ -48,3 +52,13 @@ const (
 	// The request was rejected because we can't find the specified resource.
 	ErrCodeResourceNotFoundException = "ResourceNotFoundException"
 )
+
+var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
+	"AccessDeniedException":     newErrorAccessDeniedException,
+	"InternalException":         newErrorInternalException,
+	"InvalidAccessException":    newErrorInvalidAccessException,
+	"InvalidInputException":     newErrorInvalidInputException,
+	"LimitExceededException":    newErrorLimitExceededException,
+	"ResourceConflictException": newErrorResourceConflictException,
+	"ResourceNotFoundException": newErrorResourceNotFoundException,
+}

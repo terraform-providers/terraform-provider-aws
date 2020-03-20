@@ -2,40 +2,76 @@ package aws
 
 import (
 	"fmt"
-	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
-func TestAccDataSourceAwsEfsFileSystem(t *testing.T) {
+func TestAccDataSourceAwsEfsFileSystem_id(t *testing.T) {
+	dataSourceName := "data.aws_efs_file_system.test"
+	resourceName := "aws_efs_file_system.test"
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAwsEfsFileSystemConfig,
+				Config: testAccDataSourceAwsEfsFileSystemIDConfig,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrPair("data.aws_efs_file_system.by_id", "arn", "aws_efs_file_system.test", "arn"),
-					testAccDataSourceAwsEfsFileSystemCheck("data.aws_efs_file_system.by_creation_token"),
-					testAccDataSourceAwsEfsFileSystemCheck("data.aws_efs_file_system.by_id"),
-					resource.TestMatchResourceAttr("data.aws_efs_file_system.by_creation_token", "dns_name", regexp.MustCompile(`^[^.]+.efs.([a-z]{2}-(gov-)?[a-z]+-\d{1})?.amazonaws.com$`)),
-					resource.TestMatchResourceAttr("data.aws_efs_file_system.by_id", "dns_name", regexp.MustCompile(`^[^.]+.efs.([a-z]{2}-(gov-)?[a-z]+-\d{1})?.amazonaws.com$`)),
+					testAccDataSourceAwsEfsFileSystemCheck(dataSourceName, resourceName),
+					resource.TestCheckResourceAttrPair(dataSourceName, "arn", resourceName, "arn"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "performance_mode", resourceName, "performance_mode"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "creation_token", resourceName, "creation_token"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "encrypted", resourceName, "encrypted"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "kms_key_id", resourceName, "kms_key_id"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "tags", resourceName, "tags"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "dns_name", resourceName, "dns_name"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "provisioned_throughput_in_mibps", resourceName, "provisioned_throughput_in_mibps"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "throughput_mode", resourceName, "throughput_mode"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "lifecycle_policy", resourceName, "lifecycle_policy"),
 				),
 			},
 		},
 	})
 }
 
-func testAccDataSourceAwsEfsFileSystemCheck(name string) resource.TestCheckFunc {
+func TestAccDataSourceAwsEfsFileSystem_name(t *testing.T) {
+	dataSourceName := "data.aws_efs_file_system.test"
+	resourceName := "aws_efs_file_system.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceAwsEfsFileSystemNameConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccDataSourceAwsEfsFileSystemCheck(dataSourceName, resourceName),
+					resource.TestCheckResourceAttrPair(dataSourceName, "arn", resourceName, "arn"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "performance_mode", resourceName, "performance_mode"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "creation_token", resourceName, "creation_token"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "encrypted", resourceName, "encrypted"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "kms_key_id", resourceName, "kms_key_id"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "tags", resourceName, "tags"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "dns_name", resourceName, "dns_name"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "provisioned_throughput_in_mibps", resourceName, "provisioned_throughput_in_mibps"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "throughput_mode", resourceName, "throughput_mode"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "lifecycle_policy", resourceName, "lifecycle_policy"),
+				),
+			},
+		},
+	})
+}
+
+func testAccDataSourceAwsEfsFileSystemCheck(dName, rName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[dName]
 		if !ok {
-			return fmt.Errorf("root module has no resource called %s", name)
+			return fmt.Errorf("root module has no resource called %s", dName)
 		}
 
-		efsRs, ok := s.RootModule().Resources["aws_efs_file_system.test"]
+		efsRs, ok := s.RootModule().Resources[rName]
 		if !ok {
 			return fmt.Errorf("can't find aws_efs_file_system.test in state")
 		}
@@ -62,14 +98,18 @@ func testAccDataSourceAwsEfsFileSystemCheck(name string) resource.TestCheckFunc 
 	}
 }
 
-const testAccDataSourceAwsEfsFileSystemConfig = `
+const testAccDataSourceAwsEfsFileSystemNameConfig = `
 resource "aws_efs_file_system" "test" {}
 
-data "aws_efs_file_system" "by_creation_token" {
-  creation_token = "${aws_efs_file_system.test.creation_token}"
+data "aws_efs_file_system" "test" {
+creation_token = "${aws_efs_file_system.test.creation_token}"
 }
+`
 
-data "aws_efs_file_system" "by_id" {
+const testAccDataSourceAwsEfsFileSystemIDConfig = `
+resource "aws_efs_file_system" "test" {}
+
+data "aws_efs_file_system" "test" {
   file_system_id = "${aws_efs_file_system.test.id}"
 }
 `

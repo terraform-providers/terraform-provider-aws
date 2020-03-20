@@ -1,4 +1,5 @@
 ---
+subcategory: "Firewall Manager (FMS)"
 layout: "aws"
 page_title: "AWS: aws_fms_admin_account"
 description: |-

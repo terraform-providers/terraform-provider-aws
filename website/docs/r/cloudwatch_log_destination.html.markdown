@@ -1,4 +1,5 @@
 ---
+subcategory: "CloudWatch"
 layout: "aws"
 page_title: "AWS: aws_cloudwatch_log_destination"
 description: |-
@@ -25,7 +26,7 @@ The following arguments are supported:
 
 * `name` - (Required) A name for the log destination
 * `role_arn` - (Required) The ARN of an IAM role that grants Amazon CloudWatch Logs permissions to put data into the target
-* `target_arn` - (Required) The ARN of the target Amazon Kinesis stream or Amazon Lambda resource for the destination
+* `target_arn` - (Required) The ARN of the target Amazon Kinesis stream resource for the destination
 
 ## Attributes Reference
 

@@ -1,4 +1,5 @@
 ---
+subcategory: "RAM"
 layout: "aws"
 page_title: "AWS: aws_ram_principal_association"
 description: |-

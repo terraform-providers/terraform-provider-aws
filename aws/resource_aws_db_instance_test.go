@@ -119,6 +119,7 @@ func TestAccAWSDBInstance_basic(t *testing.T) {
 					"final_snapshot_identifier",
 					"password",
 					"skip_final_snapshot",
+					"delete_automated_backups",
 				},
 			},
 		},
@@ -331,6 +332,7 @@ func TestAccAWSDBInstance_DeletionProtection(t *testing.T) {
 					"final_snapshot_identifier",
 					"password",
 					"skip_final_snapshot",
+					"delete_automated_backups",
 				},
 			},
 			{
@@ -916,6 +918,33 @@ func TestAccAWSDBInstance_ReplicateSourceDb_VpcSecurityGroupIds(t *testing.T) {
 					testAccCheckAWSDBInstanceExists(resourceName, &dbInstance),
 					testAccCheckAWSDBInstanceReplicaAttributes(&sourceDbInstance, &dbInstance),
 					resource.TestCheckResourceAttr(resourceName, "vpc_security_group_ids.#", "1"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSDBInstance_ReplicateSourceDb_CACertificateIdentifier(t *testing.T) {
+	var dbInstance, sourceDbInstance rds.DBInstance
+
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	caName := "rds-ca-2019"
+	sourceResourceName := "aws_db_instance.source"
+	resourceName := "aws_db_instance.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSDBInstanceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSDBInstanceConfig_ReplicateSourceDb_CACertificateIdentifier(rName, caName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSDBInstanceExists(sourceResourceName, &sourceDbInstance),
+					testAccCheckAWSDBInstanceExists(resourceName, &dbInstance),
+					testAccCheckAWSDBInstanceReplicaAttributes(&sourceDbInstance, &dbInstance),
+					resource.TestCheckResourceAttr(sourceResourceName, "ca_cert_identifier", caName),
+					resource.TestCheckResourceAttr(resourceName, "ca_cert_identifier", caName),
 				),
 			},
 		},
@@ -1976,6 +2005,7 @@ func TestAccAWSDBInstance_cloudwatchLogsExportConfiguration(t *testing.T) {
 					"final_snapshot_identifier",
 					"password",
 					"skip_final_snapshot",
+					"delete_automated_backups",
 				},
 			},
 		},
@@ -2038,6 +2068,39 @@ func TestAccAWSDBInstance_cloudwatchLogsExportConfigurationUpdate(t *testing.T) 
 	})
 }
 
+func TestAccAWSDBInstance_EnabledCloudwatchLogsExports_MSSQL(t *testing.T) {
+	var dbInstance rds.DBInstance
+
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_db_instance.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSDBInstanceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSDBInstanceConfig_EnabledCloudwatchLogsExports_MSSQL(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSDBInstanceExists(resourceName, &dbInstance),
+					resource.TestCheckResourceAttr(resourceName, "enabled_cloudwatch_logs_exports.#", "2"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"apply_immediately",
+					"final_snapshot_identifier",
+					"password",
+					"skip_final_snapshot",
+				},
+			},
+		},
+	})
+}
+
 func TestAccAWSDBInstance_EnabledCloudwatchLogsExports_Oracle(t *testing.T) {
 	var dbInstance rds.DBInstance
 
@@ -2065,6 +2128,7 @@ func TestAccAWSDBInstance_EnabledCloudwatchLogsExports_Oracle(t *testing.T) {
 					"final_snapshot_identifier",
 					"password",
 					"skip_final_snapshot",
+					"delete_automated_backups",
 				},
 			},
 		},
@@ -2098,10 +2162,66 @@ func TestAccAWSDBInstance_EnabledCloudwatchLogsExports_Postgresql(t *testing.T) 
 					"final_snapshot_identifier",
 					"password",
 					"skip_final_snapshot",
+					"delete_automated_backups",
 				},
 			},
 		},
 	})
+}
+
+func TestAccAWSDBInstance_NoDeleteAutomatedBackups(t *testing.T) {
+	var dbInstance rds.DBInstance
+
+	rName := acctest.RandomWithPrefix("tf-testacc-nodelautobak")
+	resourceName := "aws_db_instance.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSDBInstanceAutomatedBackups,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSDBInstanceConfig_NoDeleteAutomatedBackups(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSDBInstanceExists(resourceName, &dbInstance),
+				),
+			},
+		},
+	})
+}
+
+func testAccCheckAWSDBInstanceAutomatedBackups(s *terraform.State) error {
+	conn := testAccProvider.Meta().(*AWSClient).rdsconn
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "aws_db_instance" {
+			continue
+		}
+
+		log.Printf("[INFO] Trying to locate the DBInstance Automated Backup")
+		describeOutput, err := conn.DescribeDBInstanceAutomatedBackups(
+			&rds.DescribeDBInstanceAutomatedBackupsInput{
+				DBInstanceIdentifier: aws.String(rs.Primary.ID),
+			})
+		if err != nil {
+			return err
+		}
+
+		if describeOutput == nil || len(describeOutput.DBInstanceAutomatedBackups) == 0 {
+			return fmt.Errorf("Automated backup for %s not found", rs.Primary.ID)
+		}
+
+		log.Printf("[INFO] Deleting automated backup for %s", rs.Primary.ID)
+		_, err = conn.DeleteDBInstanceAutomatedBackup(
+			&rds.DeleteDBInstanceAutomatedBackupInput{
+				DbiResourceId: describeOutput.DBInstanceAutomatedBackups[0].DbiResourceId,
+			})
+		if err != nil {
+			return err
+		}
+	}
+
+	return testAccCheckAWSDBInstanceDestroy(s)
 }
 
 func testAccCheckAWSDBInstanceDestroy(s *terraform.State) error {
@@ -2583,6 +2703,35 @@ func TestAccAWSDBInstance_SnapshotIdentifier_PerformanceInsightsEnabled(t *testi
 	})
 }
 
+func TestAccAWSDBInstance_CACertificateIdentifier(t *testing.T) {
+	var dbInstance rds.DBInstance
+
+	resourceName := "aws_db_instance.bar"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSDBInstanceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(testAccAWSDBInstanceConfigWithCACertificateIdentifier, "rds-ca-2015"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSDBInstanceExists(resourceName, &dbInstance),
+					resource.TestCheckResourceAttr(resourceName, "ca_cert_identifier", "rds-ca-2015"),
+				),
+			},
+			// Ensure we are able to modify the CACertIdentifier
+			{
+				Config: fmt.Sprintf(testAccAWSDBInstanceConfigWithCACertificateIdentifier, "rds-ca-2019"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSDBInstanceExists(resourceName, &dbInstance),
+					resource.TestCheckResourceAttr(resourceName, "ca_cert_identifier", "rds-ca-2019"),
+				),
+			},
+		},
+	})
+}
+
 // Database names cannot collide, and deletion takes so long, that making the
 // name a bit random helps so able we can kill a test that's just waiting for a
 // delete and not be blocked on kicking off another one.
@@ -2690,32 +2839,44 @@ resource "aws_db_instance" "bar" {
 }
 `
 
+const testAccAWSDBInstanceConfigWithCACertificateIdentifier = `
+resource "aws_db_instance" "bar" {
+	allocated_storage = 10
+	engine = "MySQL"
+	instance_class = "db.t2.micro"
+	name = "baz"
+	password = "barbarbarbar"
+	username = "foo"
+	ca_cert_identifier = "%s"
+	apply_immediately = true
+	skip_final_snapshot = true
+	timeouts {
+		create = "30m"
+	}
+}`
+
 func testAccAWSDBInstanceConfigWithOptionGroup(rName string) string {
 	return fmt.Sprintf(`
-resource "aws_db_option_group" "bar" {
-  name                     = "%s"
-  option_group_description = "Test option group for terraform"
+resource "aws_db_option_group" "test" {
   engine_name              = "mysql"
   major_engine_version     = "5.6"
+  name                     = %[1]q
+  option_group_description = "Test option group for terraform"
 }
 
 resource "aws_db_instance" "bar" {
-  identifier = "foobarbaz-test-terraform-%d"
-
-  allocated_storage = 10
-  engine            = "MySQL"
-  instance_class    = "db.t2.micro"
-  name              = "baz"
-  password          = "barbarbarbar"
-  username          = "foo"
-
-  backup_retention_period = 0
-  skip_final_snapshot     = true
-
-  parameter_group_name = "default.mysql5.6"
-  option_group_name    = "${aws_db_option_group.bar.name}"
+  allocated_storage   = 10
+  engine              = aws_db_option_group.test.engine_name
+  engine_version      = aws_db_option_group.test.major_engine_version
+  identifier          = %[1]q
+  instance_class      = "db.t2.micro"
+  name                = "baz"
+  option_group_name   = aws_db_option_group.test.name
+  password            = "barbarbarbar"
+  skip_final_snapshot = true
+  username            = "foo"
 }
-`, rName, acctest.RandInt())
+`, rName)
 }
 
 func testAccCheckAWSDBIAMAuth(n int) string {
@@ -4199,7 +4360,23 @@ resource "aws_db_instance" "test" {
   enabled_cloudwatch_logs_exports = ["alert", "listener", "trace"]
   engine                          = "oracle-se"
   identifier                      = %q
-  instance_class                  = "db.t2.micro"
+  instance_class                  = "db.t3.micro"
+  password                        = "avoid-plaintext-passwords"
+  username                        = "tfacctest"
+  skip_final_snapshot             = true
+}
+`, rName)
+}
+
+func testAccAWSDBInstanceConfig_EnabledCloudwatchLogsExports_MSSQL(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_db_instance" "test" {
+  allocated_storage               = 20
+  enabled_cloudwatch_logs_exports = ["agent", "error"]
+  engine                          = "sqlserver-se"
+  identifier                      = %q
+  instance_class                  = "db.m4.large"
+  license_model                   = "license-included"
   password                        = "avoid-plaintext-passwords"
   username                        = "tfacctest"
   skip_final_snapshot             = true
@@ -4673,6 +4850,30 @@ resource "aws_db_instance" "test" {
   vpc_security_group_ids = ["${aws_security_group.test.id}"]
 }
 `, rName, rName, rName)
+}
+
+func testAccAWSDBInstanceConfig_ReplicateSourceDb_CACertificateIdentifier(rName string, caName string) string {
+	return fmt.Sprintf(`
+resource "aws_db_instance" "source" {
+  allocated_storage       = 5
+  backup_retention_period = 1
+  engine                  = "mysql"
+  identifier              = "%s-source"
+  instance_class          = "db.t2.micro"
+  password                = "avoid-plaintext-passwords"
+  username                = "tfacctest"
+  ca_cert_identifier      = %q
+  skip_final_snapshot     = true
+}
+
+resource "aws_db_instance" "test" {
+  identifier          = %q
+  instance_class      = "${aws_db_instance.source.instance_class}"
+  replicate_source_db = "${aws_db_instance.source.id}"
+  ca_cert_identifier  = %q
+  skip_final_snapshot = true
+}
+`, rName, caName, rName, caName)
 }
 
 func testAccAWSDBInstanceConfig_SnapshotIdentifier(rName string) string {
@@ -5552,4 +5753,21 @@ resource "aws_db_instance" "test" {
   skip_final_snapshot                   = true
 }
 `, rName, rName, rName)
+}
+
+func testAccAWSDBInstanceConfig_NoDeleteAutomatedBackups(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_db_instance" "test" {
+  allocated_storage               = 10
+  engine                          = "mariadb"
+  identifier                      = "%s"
+  instance_class                  = "db.t2.micro"
+  password                        = "avoid-plaintext-passwords"
+  username                        = "tfacctest"
+  skip_final_snapshot             = true
+
+  backup_retention_period         = 1
+  delete_automated_backups        = false
+}
+`, rName)
 }

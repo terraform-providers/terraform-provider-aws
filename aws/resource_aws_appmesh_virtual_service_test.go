@@ -2,7 +2,7 @@ package aws
 
 import (
 	"fmt"
-	"regexp"
+	"log"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -12,13 +12,79 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
+func init() {
+	resource.AddTestSweepers("aws_appmesh_virtual_service", &resource.Sweeper{
+		Name: "aws_appmesh_virtual_service",
+		F:    testSweepAppmeshVirtualServices,
+	})
+}
+
+func testSweepAppmeshVirtualServices(region string) error {
+	client, err := sharedClientForRegion(region)
+	if err != nil {
+		return fmt.Errorf("error getting client: %s", err)
+	}
+	conn := client.(*AWSClient).appmeshconn
+
+	err = conn.ListMeshesPages(&appmesh.ListMeshesInput{}, func(page *appmesh.ListMeshesOutput, isLast bool) bool {
+		if page == nil {
+			return !isLast
+		}
+
+		for _, mesh := range page.Meshes {
+			listVirtualServicesInput := &appmesh.ListVirtualServicesInput{
+				MeshName: mesh.MeshName,
+			}
+			meshName := aws.StringValue(mesh.MeshName)
+
+			err := conn.ListVirtualServicesPages(listVirtualServicesInput, func(page *appmesh.ListVirtualServicesOutput, isLast bool) bool {
+				if page == nil {
+					return !isLast
+				}
+
+				for _, virtualService := range page.VirtualServices {
+					input := &appmesh.DeleteVirtualServiceInput{
+						MeshName:           mesh.MeshName,
+						VirtualServiceName: virtualService.VirtualServiceName,
+					}
+					virtualServiceName := aws.StringValue(virtualService.VirtualServiceName)
+
+					log.Printf("[INFO] Deleting Appmesh Mesh (%s) Virtual Service: %s", meshName, virtualServiceName)
+					_, err := conn.DeleteVirtualService(input)
+
+					if err != nil {
+						log.Printf("[ERROR] Error deleting Appmesh Mesh (%s) Virtual Service (%s): %s", meshName, virtualServiceName, err)
+					}
+				}
+
+				return !isLast
+			})
+
+			if err != nil {
+				log.Printf("[ERROR] Error retrieving Appmesh Mesh (%s) Virtual Services: %s", meshName, err)
+			}
+		}
+
+		return !isLast
+	})
+	if err != nil {
+		if testSweepSkipSweepError(err) {
+			log.Printf("[WARN] Skipping Appmesh Virtual Service sweep for %s: %s", region, err)
+			return nil
+		}
+		return fmt.Errorf("error retrieving Appmesh Virtual Services: %s", err)
+	}
+
+	return nil
+}
+
 func testAccAwsAppmeshVirtualService_virtualNode(t *testing.T) {
 	var vs appmesh.VirtualServiceData
-	resourceName := "aws_appmesh_virtual_service.foo"
-	meshName := fmt.Sprintf("tf-test-mesh-%d", acctest.RandInt())
-	vnName1 := fmt.Sprintf("tf-test-node-%d", acctest.RandInt())
-	vnName2 := fmt.Sprintf("tf-test-node-%d", acctest.RandInt())
-	vsName := fmt.Sprintf("tf-test-%d.mesh.local", acctest.RandInt())
+	resourceName := "aws_appmesh_virtual_service.test"
+	meshName := acctest.RandomWithPrefix("tf-acc-test")
+	vnName1 := acctest.RandomWithPrefix("tf-acc-test")
+	vnName2 := acctest.RandomWithPrefix("tf-acc-test")
+	vsName := fmt.Sprintf("tf-acc-test-%d.mesh.local", acctest.RandInt())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -37,8 +103,7 @@ func testAccAwsAppmeshVirtualService_virtualNode(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "spec.0.provider.0.virtual_node.0.virtual_node_name", vnName1),
 					resource.TestCheckResourceAttrSet(resourceName, "created_date"),
 					resource.TestCheckResourceAttrSet(resourceName, "last_updated_date"),
-					resource.TestMatchResourceAttr(
-						resourceName, "arn", regexp.MustCompile(fmt.Sprintf("^arn:[^:]+:appmesh:[^:]+:\\d{12}:mesh/%s/virtualService/%s", meshName, vsName))),
+					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "appmesh", fmt.Sprintf("mesh/%s/virtualService/%s", meshName, vsName)),
 				),
 			},
 			{
@@ -65,11 +130,11 @@ func testAccAwsAppmeshVirtualService_virtualNode(t *testing.T) {
 
 func testAccAwsAppmeshVirtualService_virtualRouter(t *testing.T) {
 	var vs appmesh.VirtualServiceData
-	resourceName := "aws_appmesh_virtual_service.foo"
-	meshName := fmt.Sprintf("tf-test-mesh-%d", acctest.RandInt())
-	vrName1 := fmt.Sprintf("tf-test-router-%d", acctest.RandInt())
-	vrName2 := fmt.Sprintf("tf-test-router-%d", acctest.RandInt())
-	vsName := fmt.Sprintf("tf-test-%d.mesh.local", acctest.RandInt())
+	resourceName := "aws_appmesh_virtual_service.test"
+	meshName := acctest.RandomWithPrefix("tf-acc-test")
+	vrName1 := acctest.RandomWithPrefix("tf-acc-test")
+	vrName2 := acctest.RandomWithPrefix("tf-acc-test")
+	vsName := fmt.Sprintf("tf-acc-test-%d.mesh.local", acctest.RandInt())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -88,9 +153,7 @@ func testAccAwsAppmeshVirtualService_virtualRouter(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "spec.0.provider.0.virtual_router.0.virtual_router_name", vrName1),
 					resource.TestCheckResourceAttrSet(resourceName, "created_date"),
 					resource.TestCheckResourceAttrSet(resourceName, "last_updated_date"),
-					resource.TestMatchResourceAttr(
-						resourceName, "arn", regexp.MustCompile(fmt.Sprintf("^arn:[^:]+:appmesh:[^:]+:\\d{12}:mesh/%s/virtualService/%s", meshName, vsName))),
-				),
+					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "appmesh", fmt.Sprintf("mesh/%s/virtualService/%s", meshName, vsName))),
 			},
 			{
 				Config: testAccAppmeshVirtualServiceConfig_virtualRouter(meshName, vrName1, vrName2, vsName, "aws_appmesh_virtual_router.bar"),
@@ -110,11 +173,11 @@ func testAccAwsAppmeshVirtualService_virtualRouter(t *testing.T) {
 
 func testAccAwsAppmeshVirtualService_tags(t *testing.T) {
 	var vs appmesh.VirtualServiceData
-	resourceName := "aws_appmesh_virtual_service.foo"
-	meshName := fmt.Sprintf("tf-test-mesh-%d", acctest.RandInt())
-	vnName1 := fmt.Sprintf("tf-test-node-%d", acctest.RandInt())
-	vnName2 := fmt.Sprintf("tf-test-node-%d", acctest.RandInt())
-	vsName := fmt.Sprintf("tf-test-%d.mesh.local", acctest.RandInt())
+	resourceName := "aws_appmesh_virtual_service.test"
+	meshName := acctest.RandomWithPrefix("tf-acc-test")
+	vnName1 := acctest.RandomWithPrefix("tf-acc-test")
+	vnName2 := acctest.RandomWithPrefix("tf-acc-test")
+	vsName := fmt.Sprintf("tf-acc-test-%d.mesh.local", acctest.RandInt())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -215,32 +278,32 @@ func testAccCheckAppmeshVirtualServiceExists(name string, v *appmesh.VirtualServ
 
 func testAccAppmeshVirtualServiceConfig_virtualNode(meshName, vnName1, vnName2, vsName, rName string) string {
 	return fmt.Sprintf(`
-resource "aws_appmesh_mesh" "foo" {
-  name = "%s"
+resource "aws_appmesh_mesh" "test" {
+  name = %[1]q
 }
 
 resource "aws_appmesh_virtual_node" "foo" {
-  name      = "%s"
-  mesh_name = "${aws_appmesh_mesh.foo.id}"
+  name      = %[2]q
+  mesh_name = "${aws_appmesh_mesh.test.id}"
 
   spec {}
 }
 
 resource "aws_appmesh_virtual_node" "bar" {
-  name      = "%s"
-  mesh_name = "${aws_appmesh_mesh.foo.id}"
+  name      = %[3]q
+  mesh_name = "${aws_appmesh_mesh.test.id}"
 
   spec {}
 }
 
-resource "aws_appmesh_virtual_service" "foo" {
-  name      = "%s"
-  mesh_name = "${aws_appmesh_mesh.foo.id}"
+resource "aws_appmesh_virtual_service" "test" {
+  name      = %[4]q
+  mesh_name = "${aws_appmesh_mesh.test.id}"
 
   spec {
     provider {
       virtual_node {
-        virtual_node_name = "${%s.name}"
+        virtual_node_name = "${%[5]s.name}"
       }
     }
   }
@@ -250,13 +313,13 @@ resource "aws_appmesh_virtual_service" "foo" {
 
 func testAccAppmeshVirtualServiceConfig_virtualRouter(meshName, vrName1, vrName2, vsName, rName string) string {
 	return fmt.Sprintf(`
-resource "aws_appmesh_mesh" "foo" {
-  name = "%s"
+resource "aws_appmesh_mesh" "test" {
+  name = %[1]q
 }
 
 resource "aws_appmesh_virtual_router" "foo" {
-  name      = "%s"
-  mesh_name = "${aws_appmesh_mesh.foo.id}"
+  name      = %[2]q
+  mesh_name = "${aws_appmesh_mesh.test.id}"
 
   spec {
     listener {
@@ -269,8 +332,8 @@ resource "aws_appmesh_virtual_router" "foo" {
 }
 
 resource "aws_appmesh_virtual_router" "bar" {
-  name      = "%s"
-  mesh_name = "${aws_appmesh_mesh.foo.id}"
+  name      = %[3]q
+  mesh_name = "${aws_appmesh_mesh.test.id}"
 
   spec {
     listener {
@@ -282,14 +345,14 @@ resource "aws_appmesh_virtual_router" "bar" {
   }
 }
 
-resource "aws_appmesh_virtual_service" "foo" {
-  name      = "%s"
-  mesh_name = "${aws_appmesh_mesh.foo.id}"
+resource "aws_appmesh_virtual_service" "test" {
+  name      = %[4]q
+  mesh_name = "${aws_appmesh_mesh.test.id}"
 
   spec {
     provider {
       virtual_router {
-        virtual_router_name = "${%s.name}"
+        virtual_router_name = "${%[5]s.name}"
       }
     }
   }
@@ -299,32 +362,32 @@ resource "aws_appmesh_virtual_service" "foo" {
 
 func testAccAppmeshVirtualServiceConfig_tags(meshName, vnName1, vnName2, vsName, rName, tagKey1, tagValue1, tagKey2, tagValue2 string) string {
 	return fmt.Sprintf(`
-resource "aws_appmesh_mesh" "foo" {
-  name = "%[1]s"
+resource "aws_appmesh_mesh" "test" {
+  name = %[1]q
 }
 
 resource "aws_appmesh_virtual_node" "foo" {
-  name      = "%[2]s"
-  mesh_name = "${aws_appmesh_mesh.foo.id}"
+  name      = %[2]q
+  mesh_name = "${aws_appmesh_mesh.test.id}"
 
   spec {}
 }
 
 resource "aws_appmesh_virtual_node" "bar" {
-  name      = "%[3]s"
-  mesh_name = "${aws_appmesh_mesh.foo.id}"
+  name      = %[3]q
+  mesh_name = "${aws_appmesh_mesh.test.id}"
 
   spec {}
 }
 
-resource "aws_appmesh_virtual_service" "foo" {
-  name      = "%[4]s"
-  mesh_name = "${aws_appmesh_mesh.foo.id}"
+resource "aws_appmesh_virtual_service" "test" {
+  name      = %[4]q
+  mesh_name = "${aws_appmesh_mesh.test.id}"
 
   spec {
     provider {
       virtual_node {
-        virtual_node_name = "${%s.name}"
+        virtual_node_name = "${%[5]s.name}"
       }
     }
   }

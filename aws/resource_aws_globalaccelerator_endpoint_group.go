@@ -128,8 +128,8 @@ func resourceAwsGlobalAcceleratorEndpointGroupCreate(d *schema.ResourceData, met
 		opts.ThresholdCount = aws.Int64(int64(v.(int)))
 	}
 
-	if v, ok := d.GetOk("traffic_dial_percentage"); ok {
-		opts.TrafficDialPercentage = aws.Float64(v.(float64))
+	if v, ok := d.Get("traffic_dial_percentage").(float64); ok {
+		opts.TrafficDialPercentage = aws.Float64(v)
 	}
 
 	if v, ok := d.GetOk("endpoint_configuration"); ok {
@@ -151,7 +151,7 @@ func resourceAwsGlobalAcceleratorEndpointGroupCreate(d *schema.ResourceData, met
 		return err
 	}
 
-	err = resourceAwsGlobalAcceleratorAcceleratorWaitForState(conn, acceleratorArn)
+	err = resourceAwsGlobalAcceleratorAcceleratorWaitForDeployedState(conn, acceleratorArn)
 
 	if err != nil {
 		return err
@@ -279,8 +279,8 @@ func resourceAwsGlobalAcceleratorEndpointGroupUpdate(d *schema.ResourceData, met
 		opts.ThresholdCount = aws.Int64(int64(v.(int)))
 	}
 
-	if v, ok := d.GetOk("traffic_dial_percentage"); ok {
-		opts.TrafficDialPercentage = aws.Float64(v.(float64))
+	if v, ok := d.Get("traffic_dial_percentage").(float64); ok {
+		opts.TrafficDialPercentage = aws.Float64(v)
 	}
 
 	if v, ok := d.GetOk("endpoint_configuration"); ok {
@@ -302,7 +302,7 @@ func resourceAwsGlobalAcceleratorEndpointGroupUpdate(d *schema.ResourceData, met
 		return err
 	}
 
-	err = resourceAwsGlobalAcceleratorAcceleratorWaitForState(conn, acceleratorArn)
+	err = resourceAwsGlobalAcceleratorAcceleratorWaitForDeployedState(conn, acceleratorArn)
 
 	if err != nil {
 		return err
@@ -332,7 +332,7 @@ func resourceAwsGlobalAcceleratorEndpointGroupDelete(d *schema.ResourceData, met
 		return err
 	}
 
-	err = resourceAwsGlobalAcceleratorAcceleratorWaitForState(conn, acceleratorArn)
+	err = resourceAwsGlobalAcceleratorAcceleratorWaitForDeployedState(conn, acceleratorArn)
 
 	if err != nil {
 		return err

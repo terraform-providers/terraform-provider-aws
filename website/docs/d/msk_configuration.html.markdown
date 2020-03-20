@@ -1,4 +1,5 @@
 ---
+subcategory: "Managed Streaming for Kafka (MSK)"
 layout: "aws"
 page_title: "AWS: aws_msk_configuration"
 description: |-

@@ -1,4 +1,5 @@
 ---
+subcategory: "RDS"
 layout: "aws"
 page_title: "AWS: aws_db_cluster_snapshot"
 description: |-
@@ -79,3 +80,4 @@ In addition to all arguments above, the following attributes are exported:
 * `status` - The status of this DB Cluster Snapshot.
 * `storage_encrypted` - Specifies whether the DB cluster snapshot is encrypted.
 * `vpc_id` - The VPC ID associated with the DB cluster snapshot.
+* `tags` - A mapping of tags for the resource.

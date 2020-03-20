@@ -2,6 +2,10 @@
 
 package licensemanager
 
+import (
+	"github.com/aws/aws-sdk-go/private/protocol"
+)
+
 const (
 
 	// ErrCodeAccessDeniedException for service response error code
@@ -68,3 +72,16 @@ const (
 	// The server experienced an internal error. Try again.
 	ErrCodeServerInternalException = "ServerInternalException"
 )
+
+var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
+	"AccessDeniedException":          newErrorAccessDeniedException,
+	"AuthorizationException":         newErrorAuthorizationException,
+	"FailedDependencyException":      newErrorFailedDependencyException,
+	"FilterLimitExceededException":   newErrorFilterLimitExceededException,
+	"InvalidParameterValueException": newErrorInvalidParameterValueException,
+	"InvalidResourceStateException":  newErrorInvalidResourceStateException,
+	"LicenseUsageException":          newErrorLicenseUsageException,
+	"RateLimitExceededException":     newErrorRateLimitExceededException,
+	"ResourceLimitExceededException": newErrorResourceLimitExceededException,
+	"ServerInternalException":        newErrorServerInternalException,
+}

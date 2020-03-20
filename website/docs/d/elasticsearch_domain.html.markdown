@@ -1,4 +1,5 @@
 ---
+subcategory: "ElasticSearch"
 layout: "aws"
 page_title: "AWS: aws_elasticsearch_domain"
 description: |-

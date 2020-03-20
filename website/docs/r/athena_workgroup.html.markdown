@@ -1,4 +1,5 @@
 ---
+subcategory: "Athena"
 layout: "aws"
 page_title: "AWS: aws_athena_workgroup"
 description: |-

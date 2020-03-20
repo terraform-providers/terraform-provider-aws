@@ -87,9 +87,43 @@ func TestAccAWSElasticSearchDomain_basic(t *testing.T) {
 	})
 }
 
+func TestAccAWSElasticSearchDomain_RequireHTTPS(t *testing.T) {
+	var domain elasticsearch.ElasticsearchDomainStatus
+	ri := acctest.RandInt()
+	resourceId := fmt.Sprintf("tf-test-%d", ri)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckESDomainDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccESDomainConfig_DomainEndpointOptions(ri, true, "Policy-Min-TLS-1-0-2019-07"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckESDomainExists("aws_elasticsearch_domain.example", &domain),
+					testAccCheckESDomainEndpointOptions(true, "Policy-Min-TLS-1-0-2019-07", &domain),
+				),
+			},
+			{
+				ResourceName:      "aws_elasticsearch_domain.example",
+				ImportState:       true,
+				ImportStateId:     resourceId,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccESDomainConfig_DomainEndpointOptions(ri, true, "Policy-Min-TLS-1-2-2019-07"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckESDomainExists("aws_elasticsearch_domain.example", &domain),
+					testAccCheckESDomainEndpointOptions(true, "Policy-Min-TLS-1-2-2019-07", &domain),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAWSElasticSearchDomain_ClusterConfig_ZoneAwarenessConfig(t *testing.T) {
 	var domain1, domain2, domain3, domain4 elasticsearch.ElasticsearchDomainStatus
-	rName := acctest.RandomWithPrefix("tf-acc-test")[:28]
+	rName := fmt.Sprintf("tf-acc-test-%s", acctest.RandStringFromCharSet(16, acctest.CharSetAlphaNum)) // len = 28
 	resourceName := "aws_elasticsearch_domain.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -602,7 +636,6 @@ func TestAccAWSElasticSearchDomain_NodeToNodeEncryption(t *testing.T) {
 
 func TestAccAWSElasticSearchDomain_tags(t *testing.T) {
 	var domain elasticsearch.ElasticsearchDomainStatus
-	var td elasticsearch.ListTagsOutput
 	ri := acctest.RandInt()
 	resourceId := fmt.Sprintf("tf-test-%d", ri)
 	resourceName := "aws_elasticsearch_domain.test"
@@ -616,6 +649,7 @@ func TestAccAWSElasticSearchDomain_tags(t *testing.T) {
 				Config: testAccESDomainConfig(ri),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckESDomainExists(resourceName, &domain),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 				),
 			},
 			{
@@ -628,9 +662,9 @@ func TestAccAWSElasticSearchDomain_tags(t *testing.T) {
 				Config: testAccESDomainConfig_TagUpdate(ri),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckESDomainExists(resourceName, &domain),
-					testAccLoadESTags(&domain, &td),
-					testAccCheckElasticsearchServiceTags(&td.TagList, "foo", "bar"),
-					testAccCheckElasticsearchServiceTags(&td.TagList, "new", "type"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.foo", "bar"),
+					resource.TestCheckResourceAttr(resourceName, "tags.new", "type"),
 				),
 			},
 		},
@@ -759,6 +793,19 @@ func TestAccAWSElasticSearchDomain_update_version(t *testing.T) {
 		}})
 }
 
+func testAccCheckESDomainEndpointOptions(enforceHTTPS bool, tls string, status *elasticsearch.ElasticsearchDomainStatus) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		options := status.DomainEndpointOptions
+		if *options.EnforceHTTPS != enforceHTTPS {
+			return fmt.Errorf("EnforceHTTPS differ. Given: %t, Expected: %t", *options.EnforceHTTPS, enforceHTTPS)
+		}
+		if *options.TLSSecurityPolicy != tls {
+			return fmt.Errorf("TLSSecurityPolicy differ. Given: %s, Expected: %s", *options.TLSSecurityPolicy, tls)
+		}
+		return nil
+	}
+}
+
 func testAccCheckESNumberOfSecurityGroups(numberOfSecurityGroups int, status *elasticsearch.ElasticsearchDomainStatus) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		count := len(status.VPCOptions.SecurityGroupIds)
@@ -833,24 +880,6 @@ func testAccCheckESCognitoOptions(enabled bool, status *elasticsearch.Elasticsea
 		conf := status.CognitoOptions
 		if *conf.Enabled != enabled {
 			return fmt.Errorf("CognitoOptions not set properly. Given: %t, Expected: %t", *conf.Enabled, enabled)
-		}
-		return nil
-	}
-}
-
-func testAccLoadESTags(conf *elasticsearch.ElasticsearchDomainStatus, td *elasticsearch.ListTagsOutput) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*AWSClient).esconn
-
-		describe, err := conn.ListTags(&elasticsearch.ListTagsInput{
-			ARN: conf.ARN,
-		})
-
-		if err != nil {
-			return err
-		}
-		if len(describe.TagList) > 0 {
-			*td = *describe
 		}
 		return nil
 	}
@@ -974,6 +1003,24 @@ resource "aws_elasticsearch_domain" "test" {
   }
 }
 `, randInt)
+}
+
+func testAccESDomainConfig_DomainEndpointOptions(randInt int, enforceHttps bool, tlsSecurityPolicy string) string {
+	return fmt.Sprintf(`
+resource "aws_elasticsearch_domain" "example" {
+  domain_name = "tf-test-%[1]d"
+
+  domain_endpoint_options {
+    enforce_https       = %[2]t
+    tls_security_policy = %[3]q
+  }
+
+  ebs_options {
+    ebs_enabled = true
+    volume_size = 10
+  }
+}
+`, randInt, enforceHttps, tlsSecurityPolicy)
 }
 
 func testAccESDomainConfig_ClusterConfig_ZoneAwarenessConfig_AvailabilityZoneCount(rName string, availabilityZoneCount int) string {
@@ -1630,7 +1677,7 @@ resource "aws_cognito_identity_pool" "example" {
 }
 
 resource "aws_iam_role" "example" {
-	name = "tf-test-%d" 
+	name = "tf-test-%d"
 	path = "/service-role/"
 	assume_role_policy = "${data.aws_iam_policy_document.assume-role-policy.json}"
 }
@@ -1640,14 +1687,14 @@ data "aws_iam_policy_document" "assume-role-policy" {
     sid     = ""
 		actions = ["sts:AssumeRole"]
 		effect  = "Allow"
-		
+
     principals {
       type        = "Service"
       identifiers = ["es.${data.aws_partition.current.dns_suffix}"]
     }
   }
 }
-	
+
 resource "aws_iam_role_policy_attachment" "example" {
 	role       = "${aws_iam_role.example.name}"
 	policy_arn = "arn:${data.aws_partition.current.partition}:iam::aws:policy/AmazonESCognitoAccess"
@@ -1659,7 +1706,7 @@ resource "aws_elasticsearch_domain" "test" {
 	elasticsearch_version = "6.0"
 
 	%s
-	
+
   ebs_options {
     ebs_enabled = true
     volume_size = 10

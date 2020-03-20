@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func dataSourceAwsVpcEndpoint() *schema.Resource {
@@ -36,6 +37,7 @@ func dataSourceAwsVpcEndpoint() *schema.Resource {
 					},
 				},
 			},
+			"filter": ec2CustomFiltersSchema(),
 			"id": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -125,6 +127,12 @@ func dataSourceAwsVpcEndpointRead(d *schema.ResourceData, meta interface{}) erro
 			"service-name":       d.Get("service_name").(string),
 		},
 	)
+	req.Filters = append(req.Filters, buildEC2TagFilterList(
+		keyvaluetags.New(d.Get("tags").(map[string]interface{})).Ec2Tags(),
+	)...)
+	req.Filters = append(req.Filters, buildEC2CustomFilterList(
+		d.Get("filter").(*schema.Set),
+	)...)
 	if len(req.Filters) == 0 {
 		// Don't send an empty filters list; the EC2 API won't accept it.
 		req.Filters = nil
@@ -200,7 +208,7 @@ func dataSourceAwsVpcEndpointRead(d *schema.ResourceData, meta interface{}) erro
 	if err != nil {
 		return fmt.Errorf("error setting subnet_ids: %s", err)
 	}
-	err = d.Set("tags", tagsToMap(vpce.Tags))
+	err = d.Set("tags", keyvaluetags.Ec2KeyValueTags(vpce.Tags).IgnoreAws().Map())
 	if err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}

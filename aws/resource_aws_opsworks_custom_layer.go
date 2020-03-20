@@ -1,12 +1,13 @@
 package aws
 
 import (
+	"github.com/aws/aws-sdk-go/service/opsworks"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 func resourceAwsOpsworksCustomLayer() *schema.Resource {
 	layerType := &opsworksLayerType{
-		TypeName:        "custom",
+		TypeName:        opsworks.LayerTypeCustom,
 		CustomShortName: true,
 
 		// The "custom" layer type has no additional attributes

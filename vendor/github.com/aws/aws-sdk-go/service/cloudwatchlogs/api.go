@@ -67,6 +67,10 @@ func (c *CloudWatchLogs) AssociateKmsKeyRequest(input *AssociateKmsKeyInput) (re
 // within Amazon CloudWatch Logs. This enables Amazon CloudWatch Logs to decrypt
 // this data whenever it is requested.
 //
+// Important: CloudWatch Logs supports only symmetric CMKs. Do not use an associate
+// an asymmetric CMK with your log group. For more information, see Using Symmetric
+// and Asymmetric Keys (https://docs.aws.amazon.com/kms/latest/developerguide/symmetric-asymmetric.html).
+//
 // Note that it can take up to 5 minutes for this operation to take effect.
 //
 // If you attempt to associate a CMK with a log group but the CMK does not exist
@@ -79,17 +83,17 @@ func (c *CloudWatchLogs) AssociateKmsKeyRequest(input *AssociateKmsKeyInput) (re
 // See the AWS API reference guide for Amazon CloudWatch Logs's
 // API operation AssociateKmsKey for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+// Returned Error Types:
+//   * InvalidParameterException
 //   A parameter is specified incorrectly.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The specified resource does not exist.
 //
-//   * ErrCodeOperationAbortedException "OperationAbortedException"
+//   * OperationAbortedException
 //   Multiple requests to update the same resource were in conflict.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   The service cannot complete the request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/logs-2014-03-28/AssociateKmsKey
@@ -170,17 +174,17 @@ func (c *CloudWatchLogs) CancelExportTaskRequest(input *CancelExportTaskInput) (
 // See the AWS API reference guide for Amazon CloudWatch Logs's
 // API operation CancelExportTask for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+// Returned Error Types:
+//   * InvalidParameterException
 //   A parameter is specified incorrectly.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The specified resource does not exist.
 //
-//   * ErrCodeInvalidOperationException "InvalidOperationException"
+//   * InvalidOperationException
 //   The operation is not valid on the specified resource.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   The service cannot complete the request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/logs-2014-03-28/CancelExportTask
@@ -272,23 +276,23 @@ func (c *CloudWatchLogs) CreateExportTaskRequest(input *CreateExportTaskInput) (
 // See the AWS API reference guide for Amazon CloudWatch Logs's
 // API operation CreateExportTask for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+// Returned Error Types:
+//   * InvalidParameterException
 //   A parameter is specified incorrectly.
 //
-//   * ErrCodeLimitExceededException "LimitExceededException"
+//   * LimitExceededException
 //   You have reached the maximum number of resources that can be created.
 //
-//   * ErrCodeOperationAbortedException "OperationAbortedException"
+//   * OperationAbortedException
 //   Multiple requests to update the same resource were in conflict.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   The service cannot complete the request.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The specified resource does not exist.
 //
-//   * ErrCodeResourceAlreadyExistsException "ResourceAlreadyExistsException"
+//   * ResourceAlreadyExistsException
 //   The specified resource already exists.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/logs-2014-03-28/CreateExportTask
@@ -360,7 +364,7 @@ func (c *CloudWatchLogs) CreateLogGroupRequest(input *CreateLogGroupInput) (req 
 //
 // Creates a log group with the specified name.
 //
-// You can create up to 5000 log groups per account.
+// You can create up to 20,000 log groups per account.
 //
 // You must use the following guidelines when naming a log group:
 //
@@ -369,7 +373,8 @@ func (c *CloudWatchLogs) CreateLogGroupRequest(input *CreateLogGroupInput) (req 
 //    * Log group names can be between 1 and 512 characters long.
 //
 //    * Log group names consist of the following characters: a-z, A-Z, 0-9,
-//    '_' (underscore), '-' (hyphen), '/' (forward slash), and '.' (period).
+//    '_' (underscore), '-' (hyphen), '/' (forward slash), '.' (period), and
+//    '#' (number sign)
 //
 // If you associate a AWS Key Management Service (AWS KMS) customer master key
 // (CMK) with the log group, ingested data is encrypted using the CMK. This
@@ -381,6 +386,10 @@ func (c *CloudWatchLogs) CreateLogGroupRequest(input *CreateLogGroupInput) (req 
 // exist or the CMK is disabled, you will receive an InvalidParameterException
 // error.
 //
+// Important: CloudWatch Logs supports only symmetric CMKs. Do not associate
+// an asymmetric CMK with your log group. For more information, see Using Symmetric
+// and Asymmetric Keys (https://docs.aws.amazon.com/kms/latest/developerguide/symmetric-asymmetric.html).
+//
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
 // the error.
@@ -388,20 +397,20 @@ func (c *CloudWatchLogs) CreateLogGroupRequest(input *CreateLogGroupInput) (req 
 // See the AWS API reference guide for Amazon CloudWatch Logs's
 // API operation CreateLogGroup for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+// Returned Error Types:
+//   * InvalidParameterException
 //   A parameter is specified incorrectly.
 //
-//   * ErrCodeResourceAlreadyExistsException "ResourceAlreadyExistsException"
+//   * ResourceAlreadyExistsException
 //   The specified resource already exists.
 //
-//   * ErrCodeLimitExceededException "LimitExceededException"
+//   * LimitExceededException
 //   You have reached the maximum number of resources that can be created.
 //
-//   * ErrCodeOperationAbortedException "OperationAbortedException"
+//   * OperationAbortedException
 //   Multiple requests to update the same resource were in conflict.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   The service cannot complete the request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/logs-2014-03-28/CreateLogGroup
@@ -474,7 +483,8 @@ func (c *CloudWatchLogs) CreateLogStreamRequest(input *CreateLogStreamInput) (re
 // Creates a log stream for the specified log group.
 //
 // There is no limit on the number of log streams that you can create for a
-// log group.
+// log group. There is a limit of 50 TPS on CreateLogStream operations, after
+// which transactions are throttled.
 //
 // You must use the following guidelines when naming a log stream:
 //
@@ -491,17 +501,17 @@ func (c *CloudWatchLogs) CreateLogStreamRequest(input *CreateLogStreamInput) (re
 // See the AWS API reference guide for Amazon CloudWatch Logs's
 // API operation CreateLogStream for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+// Returned Error Types:
+//   * InvalidParameterException
 //   A parameter is specified incorrectly.
 //
-//   * ErrCodeResourceAlreadyExistsException "ResourceAlreadyExistsException"
+//   * ResourceAlreadyExistsException
 //   The specified resource already exists.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The specified resource does not exist.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   The service cannot complete the request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/logs-2014-03-28/CreateLogStream
@@ -582,17 +592,17 @@ func (c *CloudWatchLogs) DeleteDestinationRequest(input *DeleteDestinationInput)
 // See the AWS API reference guide for Amazon CloudWatch Logs's
 // API operation DeleteDestination for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+// Returned Error Types:
+//   * InvalidParameterException
 //   A parameter is specified incorrectly.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The specified resource does not exist.
 //
-//   * ErrCodeOperationAbortedException "OperationAbortedException"
+//   * OperationAbortedException
 //   Multiple requests to update the same resource were in conflict.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   The service cannot complete the request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/logs-2014-03-28/DeleteDestination
@@ -672,17 +682,17 @@ func (c *CloudWatchLogs) DeleteLogGroupRequest(input *DeleteLogGroupInput) (req 
 // See the AWS API reference guide for Amazon CloudWatch Logs's
 // API operation DeleteLogGroup for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+// Returned Error Types:
+//   * InvalidParameterException
 //   A parameter is specified incorrectly.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The specified resource does not exist.
 //
-//   * ErrCodeOperationAbortedException "OperationAbortedException"
+//   * OperationAbortedException
 //   Multiple requests to update the same resource were in conflict.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   The service cannot complete the request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/logs-2014-03-28/DeleteLogGroup
@@ -762,17 +772,17 @@ func (c *CloudWatchLogs) DeleteLogStreamRequest(input *DeleteLogStreamInput) (re
 // See the AWS API reference guide for Amazon CloudWatch Logs's
 // API operation DeleteLogStream for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+// Returned Error Types:
+//   * InvalidParameterException
 //   A parameter is specified incorrectly.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The specified resource does not exist.
 //
-//   * ErrCodeOperationAbortedException "OperationAbortedException"
+//   * OperationAbortedException
 //   Multiple requests to update the same resource were in conflict.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   The service cannot complete the request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/logs-2014-03-28/DeleteLogStream
@@ -851,17 +861,17 @@ func (c *CloudWatchLogs) DeleteMetricFilterRequest(input *DeleteMetricFilterInpu
 // See the AWS API reference guide for Amazon CloudWatch Logs's
 // API operation DeleteMetricFilter for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+// Returned Error Types:
+//   * InvalidParameterException
 //   A parameter is specified incorrectly.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The specified resource does not exist.
 //
-//   * ErrCodeOperationAbortedException "OperationAbortedException"
+//   * OperationAbortedException
 //   Multiple requests to update the same resource were in conflict.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   The service cannot complete the request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/logs-2014-03-28/DeleteMetricFilter
@@ -941,14 +951,14 @@ func (c *CloudWatchLogs) DeleteResourcePolicyRequest(input *DeleteResourcePolicy
 // See the AWS API reference guide for Amazon CloudWatch Logs's
 // API operation DeleteResourcePolicy for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+// Returned Error Types:
+//   * InvalidParameterException
 //   A parameter is specified incorrectly.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The specified resource does not exist.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   The service cannot complete the request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/logs-2014-03-28/DeleteResourcePolicy
@@ -1030,17 +1040,17 @@ func (c *CloudWatchLogs) DeleteRetentionPolicyRequest(input *DeleteRetentionPoli
 // See the AWS API reference guide for Amazon CloudWatch Logs's
 // API operation DeleteRetentionPolicy for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+// Returned Error Types:
+//   * InvalidParameterException
 //   A parameter is specified incorrectly.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The specified resource does not exist.
 //
-//   * ErrCodeOperationAbortedException "OperationAbortedException"
+//   * OperationAbortedException
 //   Multiple requests to update the same resource were in conflict.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   The service cannot complete the request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/logs-2014-03-28/DeleteRetentionPolicy
@@ -1119,17 +1129,17 @@ func (c *CloudWatchLogs) DeleteSubscriptionFilterRequest(input *DeleteSubscripti
 // See the AWS API reference guide for Amazon CloudWatch Logs's
 // API operation DeleteSubscriptionFilter for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+// Returned Error Types:
+//   * InvalidParameterException
 //   A parameter is specified incorrectly.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The specified resource does not exist.
 //
-//   * ErrCodeOperationAbortedException "OperationAbortedException"
+//   * OperationAbortedException
 //   Multiple requests to update the same resource were in conflict.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   The service cannot complete the request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/logs-2014-03-28/DeleteSubscriptionFilter
@@ -1214,11 +1224,11 @@ func (c *CloudWatchLogs) DescribeDestinationsRequest(input *DescribeDestinations
 // See the AWS API reference guide for Amazon CloudWatch Logs's
 // API operation DescribeDestinations for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+// Returned Error Types:
+//   * InvalidParameterException
 //   A parameter is specified incorrectly.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   The service cannot complete the request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/logs-2014-03-28/DescribeDestinations
@@ -1287,10 +1297,12 @@ func (c *CloudWatchLogs) DescribeDestinationsPagesWithContext(ctx aws.Context, i
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*DescribeDestinationsOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*DescribeDestinationsOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -1348,11 +1360,11 @@ func (c *CloudWatchLogs) DescribeExportTasksRequest(input *DescribeExportTasksIn
 // See the AWS API reference guide for Amazon CloudWatch Logs's
 // API operation DescribeExportTasks for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+// Returned Error Types:
+//   * InvalidParameterException
 //   A parameter is specified incorrectly.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   The service cannot complete the request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/logs-2014-03-28/DescribeExportTasks
@@ -1437,11 +1449,11 @@ func (c *CloudWatchLogs) DescribeLogGroupsRequest(input *DescribeLogGroupsInput)
 // See the AWS API reference guide for Amazon CloudWatch Logs's
 // API operation DescribeLogGroups for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+// Returned Error Types:
+//   * InvalidParameterException
 //   A parameter is specified incorrectly.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   The service cannot complete the request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/logs-2014-03-28/DescribeLogGroups
@@ -1510,10 +1522,12 @@ func (c *CloudWatchLogs) DescribeLogGroupsPagesWithContext(ctx aws.Context, inpu
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*DescribeLogGroupsOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*DescribeLogGroupsOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -1581,14 +1595,14 @@ func (c *CloudWatchLogs) DescribeLogStreamsRequest(input *DescribeLogStreamsInpu
 // See the AWS API reference guide for Amazon CloudWatch Logs's
 // API operation DescribeLogStreams for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+// Returned Error Types:
+//   * InvalidParameterException
 //   A parameter is specified incorrectly.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The specified resource does not exist.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   The service cannot complete the request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/logs-2014-03-28/DescribeLogStreams
@@ -1657,10 +1671,12 @@ func (c *CloudWatchLogs) DescribeLogStreamsPagesWithContext(ctx aws.Context, inp
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*DescribeLogStreamsOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*DescribeLogStreamsOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -1725,14 +1741,14 @@ func (c *CloudWatchLogs) DescribeMetricFiltersRequest(input *DescribeMetricFilte
 // See the AWS API reference guide for Amazon CloudWatch Logs's
 // API operation DescribeMetricFilters for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+// Returned Error Types:
+//   * InvalidParameterException
 //   A parameter is specified incorrectly.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The specified resource does not exist.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   The service cannot complete the request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/logs-2014-03-28/DescribeMetricFilters
@@ -1801,10 +1817,12 @@ func (c *CloudWatchLogs) DescribeMetricFiltersPagesWithContext(ctx aws.Context, 
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*DescribeMetricFiltersOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*DescribeMetricFiltersOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -1864,14 +1882,14 @@ func (c *CloudWatchLogs) DescribeQueriesRequest(input *DescribeQueriesInput) (re
 // See the AWS API reference guide for Amazon CloudWatch Logs's
 // API operation DescribeQueries for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+// Returned Error Types:
+//   * InvalidParameterException
 //   A parameter is specified incorrectly.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The specified resource does not exist.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   The service cannot complete the request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/logs-2014-03-28/DescribeQueries
@@ -1949,11 +1967,11 @@ func (c *CloudWatchLogs) DescribeResourcePoliciesRequest(input *DescribeResource
 // See the AWS API reference guide for Amazon CloudWatch Logs's
 // API operation DescribeResourcePolicies for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+// Returned Error Types:
+//   * InvalidParameterException
 //   A parameter is specified incorrectly.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   The service cannot complete the request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/logs-2014-03-28/DescribeResourcePolicies
@@ -2039,14 +2057,14 @@ func (c *CloudWatchLogs) DescribeSubscriptionFiltersRequest(input *DescribeSubsc
 // See the AWS API reference guide for Amazon CloudWatch Logs's
 // API operation DescribeSubscriptionFilters for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+// Returned Error Types:
+//   * InvalidParameterException
 //   A parameter is specified incorrectly.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The specified resource does not exist.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   The service cannot complete the request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/logs-2014-03-28/DescribeSubscriptionFilters
@@ -2115,10 +2133,12 @@ func (c *CloudWatchLogs) DescribeSubscriptionFiltersPagesWithContext(ctx aws.Con
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*DescribeSubscriptionFiltersOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*DescribeSubscriptionFiltersOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -2184,17 +2204,17 @@ func (c *CloudWatchLogs) DisassociateKmsKeyRequest(input *DisassociateKmsKeyInpu
 // See the AWS API reference guide for Amazon CloudWatch Logs's
 // API operation DisassociateKmsKey for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+// Returned Error Types:
+//   * InvalidParameterException
 //   A parameter is specified incorrectly.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The specified resource does not exist.
 //
-//   * ErrCodeOperationAbortedException "OperationAbortedException"
+//   * OperationAbortedException
 //   Multiple requests to update the same resource were in conflict.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   The service cannot complete the request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/logs-2014-03-28/DisassociateKmsKey
@@ -2286,14 +2306,14 @@ func (c *CloudWatchLogs) FilterLogEventsRequest(input *FilterLogEventsInput) (re
 // See the AWS API reference guide for Amazon CloudWatch Logs's
 // API operation FilterLogEvents for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+// Returned Error Types:
+//   * InvalidParameterException
 //   A parameter is specified incorrectly.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The specified resource does not exist.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   The service cannot complete the request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/logs-2014-03-28/FilterLogEvents
@@ -2362,10 +2382,12 @@ func (c *CloudWatchLogs) FilterLogEventsPagesWithContext(ctx aws.Context, input 
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*FilterLogEventsOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*FilterLogEventsOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -2433,14 +2455,14 @@ func (c *CloudWatchLogs) GetLogEventsRequest(input *GetLogEventsInput) (req *req
 // See the AWS API reference guide for Amazon CloudWatch Logs's
 // API operation GetLogEvents for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+// Returned Error Types:
+//   * InvalidParameterException
 //   A parameter is specified incorrectly.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The specified resource does not exist.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   The service cannot complete the request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/logs-2014-03-28/GetLogEvents
@@ -2509,10 +2531,12 @@ func (c *CloudWatchLogs) GetLogEventsPagesWithContext(ctx aws.Context, input *Ge
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*GetLogEventsOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*GetLogEventsOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -2577,17 +2601,17 @@ func (c *CloudWatchLogs) GetLogGroupFieldsRequest(input *GetLogGroupFieldsInput)
 // See the AWS API reference guide for Amazon CloudWatch Logs's
 // API operation GetLogGroupFields for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+// Returned Error Types:
+//   * InvalidParameterException
 //   A parameter is specified incorrectly.
 //
-//   * ErrCodeLimitExceededException "LimitExceededException"
+//   * LimitExceededException
 //   You have reached the maximum number of resources that can be created.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The specified resource does not exist.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   The service cannot complete the request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/logs-2014-03-28/GetLogGroupFields
@@ -2670,17 +2694,17 @@ func (c *CloudWatchLogs) GetLogRecordRequest(input *GetLogRecordInput) (req *req
 // See the AWS API reference guide for Amazon CloudWatch Logs's
 // API operation GetLogRecord for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+// Returned Error Types:
+//   * InvalidParameterException
 //   A parameter is specified incorrectly.
 //
-//   * ErrCodeLimitExceededException "LimitExceededException"
+//   * LimitExceededException
 //   You have reached the maximum number of resources that can be created.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The specified resource does not exist.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   The service cannot complete the request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/logs-2014-03-28/GetLogRecord
@@ -2768,14 +2792,14 @@ func (c *CloudWatchLogs) GetQueryResultsRequest(input *GetQueryResultsInput) (re
 // See the AWS API reference guide for Amazon CloudWatch Logs's
 // API operation GetQueryResults for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+// Returned Error Types:
+//   * InvalidParameterException
 //   A parameter is specified incorrectly.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The specified resource does not exist.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   The service cannot complete the request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/logs-2014-03-28/GetQueryResults
@@ -2853,11 +2877,11 @@ func (c *CloudWatchLogs) ListTagsLogGroupRequest(input *ListTagsLogGroupInput) (
 // See the AWS API reference guide for Amazon CloudWatch Logs's
 // API operation ListTagsLogGroup for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   The specified resource does not exist.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   The service cannot complete the request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/logs-2014-03-28/ListTagsLogGroup
@@ -2926,11 +2950,12 @@ func (c *CloudWatchLogs) PutDestinationRequest(input *PutDestinationInput) (req 
 
 // PutDestination API operation for Amazon CloudWatch Logs.
 //
-// Creates or updates a destination. A destination encapsulates a physical resource
-// (such as an Amazon Kinesis stream) and enables you to subscribe to a real-time
-// stream of log events for a different account, ingested using PutLogEvents.
-// A destination can be an Amazon Kinesis stream, Amazon Kinesis Data Firehose
-// strea, or an AWS Lambda function.
+// Creates or updates a destination. This operation is used only to create destinations
+// for cross-account subscriptions.
+//
+// A destination encapsulates a physical resource (such as an Amazon Kinesis
+// stream) and enables you to subscribe to a real-time stream of log events
+// for a different account, ingested using PutLogEvents.
 //
 // Through an access policy, a destination controls what is written to it. By
 // default, PutDestination does not set any access policy with the destination,
@@ -2945,14 +2970,14 @@ func (c *CloudWatchLogs) PutDestinationRequest(input *PutDestinationInput) (req 
 // See the AWS API reference guide for Amazon CloudWatch Logs's
 // API operation PutDestination for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+// Returned Error Types:
+//   * InvalidParameterException
 //   A parameter is specified incorrectly.
 //
-//   * ErrCodeOperationAbortedException "OperationAbortedException"
+//   * OperationAbortedException
 //   Multiple requests to update the same resource were in conflict.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   The service cannot complete the request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/logs-2014-03-28/PutDestination
@@ -3034,14 +3059,14 @@ func (c *CloudWatchLogs) PutDestinationPolicyRequest(input *PutDestinationPolicy
 // See the AWS API reference guide for Amazon CloudWatch Logs's
 // API operation PutDestinationPolicy for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+// Returned Error Types:
+//   * InvalidParameterException
 //   A parameter is specified incorrectly.
 //
-//   * ErrCodeOperationAbortedException "OperationAbortedException"
+//   * OperationAbortedException
 //   Multiple requests to update the same resource were in conflict.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   The service cannot complete the request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/logs-2014-03-28/PutDestinationPolicy
@@ -3114,9 +3139,10 @@ func (c *CloudWatchLogs) PutLogEventsRequest(input *PutLogEventsInput) (req *req
 //
 // You must include the sequence token obtained from the response of the previous
 // call. An upload in a newly created log stream does not require a sequence
-// token. You can also get the sequence token using DescribeLogStreams. If you
-// call PutLogEvents twice within a narrow time period using the same value
-// for sequenceToken, both calls may be successful, or one may be rejected.
+// token. You can also get the sequence token in the expectedSequenceToken field
+// from InvalidSequenceTokenException. If you call PutLogEvents twice within
+// a narrow time period using the same value for sequenceToken, both calls may
+// be successful, or one may be rejected.
 //
 // The batch of events must satisfy the following constraints:
 //
@@ -3136,10 +3162,13 @@ func (c *CloudWatchLogs) PutLogEventsRequest(input *PutLogEventsInput) (req *req
 //    for PowerShell and the AWS SDK for .NET, the timestamp is specified in
 //    .NET format: yyyy-mm-ddThh:mm:ss. For example, 2017-09-15T13:45:30.)
 //
-//    * The maximum number of log events in a batch is 10,000.
-//
 //    * A batch of log events in a single request cannot span more than 24 hours.
 //    Otherwise, the operation fails.
+//
+//    * The maximum number of log events in a batch is 10,000.
+//
+//    * There is a quota of 5 requests per second per log stream. Additional
+//    requests are throttled. This quota can't be changed.
 //
 // If a call to PutLogEvents returns "UnrecognizedClientException" the most
 // likely cause is an invalid AWS access key ID or secret key.
@@ -3151,23 +3180,24 @@ func (c *CloudWatchLogs) PutLogEventsRequest(input *PutLogEventsInput) (req *req
 // See the AWS API reference guide for Amazon CloudWatch Logs's
 // API operation PutLogEvents for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+// Returned Error Types:
+//   * InvalidParameterException
 //   A parameter is specified incorrectly.
 //
-//   * ErrCodeInvalidSequenceTokenException "InvalidSequenceTokenException"
-//   The sequence token is not valid.
+//   * InvalidSequenceTokenException
+//   The sequence token is not valid. You can get the correct sequence token in
+//   the expectedSequenceToken field in the InvalidSequenceTokenException message.
 //
-//   * ErrCodeDataAlreadyAcceptedException "DataAlreadyAcceptedException"
+//   * DataAlreadyAcceptedException
 //   The event was already logged.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The specified resource does not exist.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   The service cannot complete the request.
 //
-//   * ErrCodeUnrecognizedClientException "UnrecognizedClientException"
+//   * UnrecognizedClientException
 //   The most likely cause is an invalid AWS access key ID or secret key.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/logs-2014-03-28/PutLogEvents
@@ -3251,20 +3281,20 @@ func (c *CloudWatchLogs) PutMetricFilterRequest(input *PutMetricFilterInput) (re
 // See the AWS API reference guide for Amazon CloudWatch Logs's
 // API operation PutMetricFilter for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+// Returned Error Types:
+//   * InvalidParameterException
 //   A parameter is specified incorrectly.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The specified resource does not exist.
 //
-//   * ErrCodeOperationAbortedException "OperationAbortedException"
+//   * OperationAbortedException
 //   Multiple requests to update the same resource were in conflict.
 //
-//   * ErrCodeLimitExceededException "LimitExceededException"
+//   * LimitExceededException
 //   You have reached the maximum number of resources that can be created.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   The service cannot complete the request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/logs-2014-03-28/PutMetricFilter
@@ -3344,14 +3374,14 @@ func (c *CloudWatchLogs) PutResourcePolicyRequest(input *PutResourcePolicyInput)
 // See the AWS API reference guide for Amazon CloudWatch Logs's
 // API operation PutResourcePolicy for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+// Returned Error Types:
+//   * InvalidParameterException
 //   A parameter is specified incorrectly.
 //
-//   * ErrCodeLimitExceededException "LimitExceededException"
+//   * LimitExceededException
 //   You have reached the maximum number of resources that can be created.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   The service cannot complete the request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/logs-2014-03-28/PutResourcePolicy
@@ -3432,17 +3462,17 @@ func (c *CloudWatchLogs) PutRetentionPolicyRequest(input *PutRetentionPolicyInpu
 // See the AWS API reference guide for Amazon CloudWatch Logs's
 // API operation PutRetentionPolicy for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+// Returned Error Types:
+//   * InvalidParameterException
 //   A parameter is specified incorrectly.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The specified resource does not exist.
 //
-//   * ErrCodeOperationAbortedException "OperationAbortedException"
+//   * OperationAbortedException
 //   Multiple requests to update the same resource were in conflict.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   The service cannot complete the request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/logs-2014-03-28/PutRetentionPolicy
@@ -3541,20 +3571,20 @@ func (c *CloudWatchLogs) PutSubscriptionFilterRequest(input *PutSubscriptionFilt
 // See the AWS API reference guide for Amazon CloudWatch Logs's
 // API operation PutSubscriptionFilter for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+// Returned Error Types:
+//   * InvalidParameterException
 //   A parameter is specified incorrectly.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The specified resource does not exist.
 //
-//   * ErrCodeOperationAbortedException "OperationAbortedException"
+//   * OperationAbortedException
 //   Multiple requests to update the same resource were in conflict.
 //
-//   * ErrCodeLimitExceededException "LimitExceededException"
+//   * LimitExceededException
 //   You have reached the maximum number of resources that can be created.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   The service cannot complete the request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/logs-2014-03-28/PutSubscriptionFilter
@@ -3639,24 +3669,24 @@ func (c *CloudWatchLogs) StartQueryRequest(input *StartQueryInput) (req *request
 // See the AWS API reference guide for Amazon CloudWatch Logs's
 // API operation StartQuery for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeMalformedQueryException "MalformedQueryException"
+// Returned Error Types:
+//   * MalformedQueryException
 //   The query string is not valid. Details about this error are displayed in
 //   a QueryCompileError object. For more information, see .
 //
 //   For more information about valid query syntax, see CloudWatch Logs Insights
 //   Query Syntax (https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CWL_QuerySyntax.html).
 //
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+//   * InvalidParameterException
 //   A parameter is specified incorrectly.
 //
-//   * ErrCodeLimitExceededException "LimitExceededException"
+//   * LimitExceededException
 //   You have reached the maximum number of resources that can be created.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The specified resource does not exist.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   The service cannot complete the request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/logs-2014-03-28/StartQuery
@@ -3736,14 +3766,14 @@ func (c *CloudWatchLogs) StopQueryRequest(input *StopQueryInput) (req *request.R
 // See the AWS API reference guide for Amazon CloudWatch Logs's
 // API operation StopQuery for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+// Returned Error Types:
+//   * InvalidParameterException
 //   A parameter is specified incorrectly.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The specified resource does not exist.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   The service cannot complete the request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/logs-2014-03-28/StopQuery
@@ -3829,11 +3859,11 @@ func (c *CloudWatchLogs) TagLogGroupRequest(input *TagLogGroupInput) (req *reque
 // See the AWS API reference guide for Amazon CloudWatch Logs's
 // API operation TagLogGroup for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   The specified resource does not exist.
 //
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+//   * InvalidParameterException
 //   A parameter is specified incorrectly.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/logs-2014-03-28/TagLogGroup
@@ -3913,11 +3943,11 @@ func (c *CloudWatchLogs) TestMetricFilterRequest(input *TestMetricFilterInput) (
 // See the AWS API reference guide for Amazon CloudWatch Logs's
 // API operation TestMetricFilter for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+// Returned Error Types:
+//   * InvalidParameterException
 //   A parameter is specified incorrectly.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   The service cannot complete the request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/logs-2014-03-28/TestMetricFilter
@@ -3999,8 +4029,8 @@ func (c *CloudWatchLogs) UntagLogGroupRequest(input *UntagLogGroupInput) (req *r
 // See the AWS API reference guide for Amazon CloudWatch Logs's
 // API operation UntagLogGroup for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   The specified resource does not exist.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/logs-2014-03-28/UntagLogGroup
@@ -4029,8 +4059,9 @@ type AssociateKmsKeyInput struct {
 	_ struct{} `type:"structure"`
 
 	// The Amazon Resource Name (ARN) of the CMK to use when encrypting log data.
-	// For more information, see Amazon Resource Names - AWS Key Management Service
-	// (AWS KMS) (https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html#arn-syntax-kms).
+	// This must be a symmetric CMK. For more information, see Amazon Resource Names
+	// - AWS Key Management Service (AWS KMS) (https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html#arn-syntax-kms)
+	// and Using Symmetric and Asymmetric Keys (https://docs.aws.amazon.com/kms/latest/developerguide/symmetric-asymmetric.html).
 	//
 	// KmsKeyId is a required field
 	KmsKeyId *string `locationName:"kmsKeyId" type:"string" required:"true"`
@@ -4448,6 +4479,64 @@ func (s CreateLogStreamOutput) String() string {
 // GoString returns the string representation
 func (s CreateLogStreamOutput) GoString() string {
 	return s.String()
+}
+
+// The event was already logged.
+type DataAlreadyAcceptedException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	ExpectedSequenceToken *string `locationName:"expectedSequenceToken" min:"1" type:"string"`
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s DataAlreadyAcceptedException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DataAlreadyAcceptedException) GoString() string {
+	return s.String()
+}
+
+func newErrorDataAlreadyAcceptedException(v protocol.ResponseMetadata) error {
+	return &DataAlreadyAcceptedException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s DataAlreadyAcceptedException) Code() string {
+	return "DataAlreadyAcceptedException"
+}
+
+// Message returns the exception's message.
+func (s DataAlreadyAcceptedException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s DataAlreadyAcceptedException) OrigErr() error {
+	return nil
+}
+
+func (s DataAlreadyAcceptedException) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s DataAlreadyAcceptedException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s DataAlreadyAcceptedException) RequestID() string {
+	return s.respMetadata.RequestID
 }
 
 type DeleteDestinationInput struct {
@@ -6311,6 +6400,8 @@ type GetLogEventsInput struct {
 
 	// The token for the next set of items to return. (You received this token from
 	// a previous call.)
+	//
+	// Using this token works only when you specify true for startFromHead.
 	NextToken *string `locationName:"nextToken" min:"1" type:"string"`
 
 	// If the value is true, the earliest log events are returned first. If the
@@ -6745,6 +6836,233 @@ func (s *InputLogEvent) SetTimestamp(v int64) *InputLogEvent {
 	return s
 }
 
+// The operation is not valid on the specified resource.
+type InvalidOperationException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidOperationException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidOperationException) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidOperationException(v protocol.ResponseMetadata) error {
+	return &InvalidOperationException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s InvalidOperationException) Code() string {
+	return "InvalidOperationException"
+}
+
+// Message returns the exception's message.
+func (s InvalidOperationException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s InvalidOperationException) OrigErr() error {
+	return nil
+}
+
+func (s InvalidOperationException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s InvalidOperationException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s InvalidOperationException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// A parameter is specified incorrectly.
+type InvalidParameterException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidParameterException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidParameterException) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidParameterException(v protocol.ResponseMetadata) error {
+	return &InvalidParameterException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s InvalidParameterException) Code() string {
+	return "InvalidParameterException"
+}
+
+// Message returns the exception's message.
+func (s InvalidParameterException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s InvalidParameterException) OrigErr() error {
+	return nil
+}
+
+func (s InvalidParameterException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s InvalidParameterException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s InvalidParameterException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// The sequence token is not valid. You can get the correct sequence token in
+// the expectedSequenceToken field in the InvalidSequenceTokenException message.
+type InvalidSequenceTokenException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	ExpectedSequenceToken *string `locationName:"expectedSequenceToken" min:"1" type:"string"`
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidSequenceTokenException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidSequenceTokenException) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidSequenceTokenException(v protocol.ResponseMetadata) error {
+	return &InvalidSequenceTokenException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s InvalidSequenceTokenException) Code() string {
+	return "InvalidSequenceTokenException"
+}
+
+// Message returns the exception's message.
+func (s InvalidSequenceTokenException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s InvalidSequenceTokenException) OrigErr() error {
+	return nil
+}
+
+func (s InvalidSequenceTokenException) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s InvalidSequenceTokenException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s InvalidSequenceTokenException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// You have reached the maximum number of resources that can be created.
+type LimitExceededException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s LimitExceededException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s LimitExceededException) GoString() string {
+	return s.String()
+}
+
+func newErrorLimitExceededException(v protocol.ResponseMetadata) error {
+	return &LimitExceededException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s LimitExceededException) Code() string {
+	return "LimitExceededException"
+}
+
+// Message returns the exception's message.
+func (s LimitExceededException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s LimitExceededException) OrigErr() error {
+	return nil
+}
+
+func (s LimitExceededException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s LimitExceededException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s LimitExceededException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
 type ListTagsLogGroupInput struct {
 	_ struct{} `type:"structure"`
 
@@ -6956,9 +7274,9 @@ type LogStream struct {
 
 	// The number of bytes stored.
 	//
-	// IMPORTANT: Starting on June 17, 2019, this parameter will be deprecated for
-	// log streams, and will be reported as zero. This change applies only to log
-	// streams. The storedBytes parameter for log groups is not affected.
+	// IMPORTANT:On June 17, 2019, this parameter was deprecated for log streams,
+	// and is always reported as zero. This change applies only to log streams.
+	// The storedBytes parameter for log groups is not affected.
 	//
 	// Deprecated: Starting on June 17, 2019, this parameter will be deprecated for log streams, and will be reported as zero. This change applies only to log streams. The storedBytes parameter for log groups is not affected.
 	StoredBytes *int64 `locationName:"storedBytes" deprecated:"true" type:"long"`
@@ -7023,6 +7341,69 @@ func (s *LogStream) SetStoredBytes(v int64) *LogStream {
 func (s *LogStream) SetUploadSequenceToken(v string) *LogStream {
 	s.UploadSequenceToken = &v
 	return s
+}
+
+// The query string is not valid. Details about this error are displayed in
+// a QueryCompileError object. For more information, see .
+//
+// For more information about valid query syntax, see CloudWatch Logs Insights
+// Query Syntax (https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CWL_QuerySyntax.html).
+type MalformedQueryException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+
+	// Reserved.
+	QueryCompileError *QueryCompileError `locationName:"queryCompileError" type:"structure"`
+}
+
+// String returns the string representation
+func (s MalformedQueryException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s MalformedQueryException) GoString() string {
+	return s.String()
+}
+
+func newErrorMalformedQueryException(v protocol.ResponseMetadata) error {
+	return &MalformedQueryException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s MalformedQueryException) Code() string {
+	return "MalformedQueryException"
+}
+
+// Message returns the exception's message.
+func (s MalformedQueryException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s MalformedQueryException) OrigErr() error {
+	return nil
+}
+
+func (s MalformedQueryException) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s MalformedQueryException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s MalformedQueryException) RequestID() string {
+	return s.respMetadata.RequestID
 }
 
 // Metric filters express how CloudWatch Logs would extract metric observations
@@ -7210,6 +7591,62 @@ func (s *MetricTransformation) SetMetricNamespace(v string) *MetricTransformatio
 func (s *MetricTransformation) SetMetricValue(v string) *MetricTransformation {
 	s.MetricValue = &v
 	return s
+}
+
+// Multiple requests to update the same resource were in conflict.
+type OperationAbortedException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s OperationAbortedException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s OperationAbortedException) GoString() string {
+	return s.String()
+}
+
+func newErrorOperationAbortedException(v protocol.ResponseMetadata) error {
+	return &OperationAbortedException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s OperationAbortedException) Code() string {
+	return "OperationAbortedException"
+}
+
+// Message returns the exception's message.
+func (s OperationAbortedException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s OperationAbortedException) OrigErr() error {
+	return nil
+}
+
+func (s OperationAbortedException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s OperationAbortedException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s OperationAbortedException) RequestID() string {
+	return s.respMetadata.RequestID
 }
 
 // Represents a log event.
@@ -8183,6 +8620,118 @@ func (s *RejectedLogEventsInfo) SetTooOldLogEventEndIndex(v int64) *RejectedLogE
 	return s
 }
 
+// The specified resource already exists.
+type ResourceAlreadyExistsException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s ResourceAlreadyExistsException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResourceAlreadyExistsException) GoString() string {
+	return s.String()
+}
+
+func newErrorResourceAlreadyExistsException(v protocol.ResponseMetadata) error {
+	return &ResourceAlreadyExistsException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s ResourceAlreadyExistsException) Code() string {
+	return "ResourceAlreadyExistsException"
+}
+
+// Message returns the exception's message.
+func (s ResourceAlreadyExistsException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s ResourceAlreadyExistsException) OrigErr() error {
+	return nil
+}
+
+func (s ResourceAlreadyExistsException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s ResourceAlreadyExistsException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s ResourceAlreadyExistsException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// The specified resource does not exist.
+type ResourceNotFoundException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s ResourceNotFoundException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResourceNotFoundException) GoString() string {
+	return s.String()
+}
+
+func newErrorResourceNotFoundException(v protocol.ResponseMetadata) error {
+	return &ResourceNotFoundException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s ResourceNotFoundException) Code() string {
+	return "ResourceNotFoundException"
+}
+
+// Message returns the exception's message.
+func (s ResourceNotFoundException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s ResourceNotFoundException) OrigErr() error {
+	return nil
+}
+
+func (s ResourceNotFoundException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s ResourceNotFoundException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s ResourceNotFoundException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
 // A policy enabling one or more entities to put logs to a log group in this
 // account.
 type ResourcePolicy struct {
@@ -8294,6 +8843,62 @@ func (s *SearchedLogStream) SetSearchedCompletely(v bool) *SearchedLogStream {
 	return s
 }
 
+// The service cannot complete the request.
+type ServiceUnavailableException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s ServiceUnavailableException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ServiceUnavailableException) GoString() string {
+	return s.String()
+}
+
+func newErrorServiceUnavailableException(v protocol.ResponseMetadata) error {
+	return &ServiceUnavailableException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s ServiceUnavailableException) Code() string {
+	return "ServiceUnavailableException"
+}
+
+// Message returns the exception's message.
+func (s ServiceUnavailableException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s ServiceUnavailableException) OrigErr() error {
+	return nil
+}
+
+func (s ServiceUnavailableException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s ServiceUnavailableException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s ServiceUnavailableException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
 type StartQueryInput struct {
 	_ struct{} `type:"structure"`
 
@@ -8306,6 +8911,7 @@ type StartQueryInput struct {
 
 	// The maximum number of log events to return in the query. If the query string
 	// uses the fields command, only the specified fields and their values are returned.
+	// The default is 1000.
 	Limit *int64 `locationName:"limit" min:"1" type:"integer"`
 
 	// The log group on which to perform the query.
@@ -8723,6 +9329,62 @@ func (s TestMetricFilterOutput) GoString() string {
 func (s *TestMetricFilterOutput) SetMatches(v []*MetricFilterMatchRecord) *TestMetricFilterOutput {
 	s.Matches = v
 	return s
+}
+
+// The most likely cause is an invalid AWS access key ID or secret key.
+type UnrecognizedClientException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s UnrecognizedClientException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UnrecognizedClientException) GoString() string {
+	return s.String()
+}
+
+func newErrorUnrecognizedClientException(v protocol.ResponseMetadata) error {
+	return &UnrecognizedClientException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s UnrecognizedClientException) Code() string {
+	return "UnrecognizedClientException"
+}
+
+// Message returns the exception's message.
+func (s UnrecognizedClientException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s UnrecognizedClientException) OrigErr() error {
+	return nil
+}
+
+func (s UnrecognizedClientException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s UnrecognizedClientException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s UnrecognizedClientException) RequestID() string {
+	return s.respMetadata.RequestID
 }
 
 type UntagLogGroupInput struct {

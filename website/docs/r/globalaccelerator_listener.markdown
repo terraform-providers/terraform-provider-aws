@@ -1,4 +1,5 @@
 ---
+subcategory: "Global Accelerator"
 layout: "aws"
 page_title: "AWS: aws_globalaccelerator_listener"
 description: |-

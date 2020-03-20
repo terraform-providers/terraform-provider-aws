@@ -1,4 +1,5 @@
 ---
+subcategory: "Transfer"
 layout: "aws"
 page_title: "AWS: aws_transfer_server"
 description: |-

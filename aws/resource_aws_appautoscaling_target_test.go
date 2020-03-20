@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"regexp"
 	"testing"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -55,6 +56,7 @@ func TestAccAWSAppautoScalingTarget_basic(t *testing.T) {
 
 func TestAccAWSAppautoScalingTarget_spotFleetRequest(t *testing.T) {
 	var target applicationautoscaling.ScalableTarget
+	validUntil := time.Now().UTC().Add(24 * time.Hour).Format(time.RFC3339)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
@@ -63,7 +65,7 @@ func TestAccAWSAppautoScalingTarget_spotFleetRequest(t *testing.T) {
 		CheckDestroy:  testAccCheckAWSAppautoscalingTargetDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSAppautoscalingTargetSpotFleetRequestConfig,
+				Config: testAccAWSAppautoscalingTargetSpotFleetRequestConfig(validUntil),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSAppautoscalingTargetExists("aws_appautoscaling_target.test", &target),
 					resource.TestCheckResourceAttr("aws_appautoscaling_target.test", "service_namespace", "ec2"),
@@ -637,7 +639,8 @@ resource "aws_appautoscaling_target" "bar" {
 `, rInt, rInt, rInt, rInt, rInt, rInt, rInt, rInt)
 }
 
-var testAccAWSAppautoscalingTargetSpotFleetRequestConfig = fmt.Sprintf(`
+func testAccAWSAppautoscalingTargetSpotFleetRequestConfig(validUntil string) string {
+	return fmt.Sprintf(`
 data "aws_ami" "amzn-ami-minimal-hvm-ebs" {
   most_recent = true
   owners      = ["amazon"]
@@ -684,7 +687,7 @@ resource "aws_spot_fleet_request" "test" {
   iam_fleet_role = "${aws_iam_role.fleet_role.arn}"
   spot_price = "0.005"
   target_capacity = 2
-  valid_until = "2019-11-04T20:44:20Z"
+  valid_until = %[1]q
   terminate_instances_with_expiration = true
 
   launch_specification {
@@ -700,7 +703,8 @@ resource "aws_appautoscaling_target" "test" {
   min_capacity = 1
   max_capacity = 3
 }
-`)
+`, validUntil)
+}
 
 func testAccAWSAppautoscalingTarget_multipleTargets(tableName string) string {
 	return fmt.Sprintf(`

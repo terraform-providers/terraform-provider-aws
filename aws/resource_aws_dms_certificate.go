@@ -126,8 +126,8 @@ func resourceAwsDmsCertificateSetState(d *schema.ResourceData, cert *dms.Certifi
 	if cert.CertificatePem != nil && *cert.CertificatePem != "" {
 		d.Set("certificate_pem", cert.CertificatePem)
 	}
-	if cert.CertificateWallet != nil && len(cert.CertificateWallet) == 0 {
-		d.Set("certificate_wallet", cert.CertificateWallet)
+	if cert.CertificateWallet != nil && len(cert.CertificateWallet) != 0 {
+		d.Set("certificate_wallet", string(cert.CertificateWallet))
 	}
 
 	return nil

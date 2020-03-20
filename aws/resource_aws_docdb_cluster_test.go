@@ -41,6 +41,8 @@ func TestAccAWSDocDBCluster_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "hosted_zone_id"),
 					resource.TestCheckResourceAttr(resourceName,
 						"enabled_cloudwatch_logs_exports.0", "audit"),
+					resource.TestCheckResourceAttr(resourceName,
+						"enabled_cloudwatch_logs_exports.1", "profiler"),
 				),
 			},
 			{
@@ -556,6 +558,7 @@ resource "aws_docdb_cluster" "default" {
 
   enabled_cloudwatch_logs_exports = [
     "audit",
+    "profiler",
   ]
 }
 `, n)

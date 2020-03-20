@@ -1185,6 +1185,99 @@ func (c *CloudSearch) DescribeAvailabilityOptionsWithContext(ctx aws.Context, in
 	return out, req.Send()
 }
 
+const opDescribeDomainEndpointOptions = "DescribeDomainEndpointOptions"
+
+// DescribeDomainEndpointOptionsRequest generates a "aws/request.Request" representing the
+// client's request for the DescribeDomainEndpointOptions operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DescribeDomainEndpointOptions for more information on using the DescribeDomainEndpointOptions
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the DescribeDomainEndpointOptionsRequest method.
+//    req, resp := client.DescribeDomainEndpointOptionsRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+func (c *CloudSearch) DescribeDomainEndpointOptionsRequest(input *DescribeDomainEndpointOptionsInput) (req *request.Request, output *DescribeDomainEndpointOptionsOutput) {
+	op := &request.Operation{
+		Name:       opDescribeDomainEndpointOptions,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &DescribeDomainEndpointOptionsInput{}
+	}
+
+	output = &DescribeDomainEndpointOptionsOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// DescribeDomainEndpointOptions API operation for Amazon CloudSearch.
+//
+// Returns the domain's endpoint options, specifically whether all requests
+// to the domain must arrive over HTTPS. For more information, see Configuring
+// Domain Endpoint Options (http://docs.aws.amazon.com/cloudsearch/latest/developerguide/configuring-domain-endpoint-options.html)
+// in the Amazon CloudSearch Developer Guide.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon CloudSearch's
+// API operation DescribeDomainEndpointOptions for usage and error information.
+//
+// Returned Error Codes:
+//   * ErrCodeBaseException "BaseException"
+//   An error occurred while processing the request.
+//
+//   * ErrCodeInternalException "InternalException"
+//   An internal error occurred while processing the request. If this problem
+//   persists, report an issue from the Service Health Dashboard (http://status.aws.amazon.com/).
+//
+//   * ErrCodeLimitExceededException "LimitExceeded"
+//   The request was rejected because a resource limit has already been met.
+//
+//   * ErrCodeResourceNotFoundException "ResourceNotFound"
+//   The request was rejected because it attempted to reference a resource that
+//   does not exist.
+//
+//   * ErrCodeDisabledOperationException "DisabledAction"
+//   The request was rejected because it attempted an operation which is not enabled.
+//
+func (c *CloudSearch) DescribeDomainEndpointOptions(input *DescribeDomainEndpointOptionsInput) (*DescribeDomainEndpointOptionsOutput, error) {
+	req, out := c.DescribeDomainEndpointOptionsRequest(input)
+	return out, req.Send()
+}
+
+// DescribeDomainEndpointOptionsWithContext is the same as DescribeDomainEndpointOptions with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DescribeDomainEndpointOptions for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *CloudSearch) DescribeDomainEndpointOptionsWithContext(ctx aws.Context, input *DescribeDomainEndpointOptionsInput, opts ...request.Option) (*DescribeDomainEndpointOptionsOutput, error) {
+	req, out := c.DescribeDomainEndpointOptionsRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opDescribeDomains = "DescribeDomains"
 
 // DescribeDomainsRequest generates a "aws/request.Request" representing the
@@ -1953,6 +2046,9 @@ func (c *CloudSearch) UpdateAvailabilityOptionsRequest(input *UpdateAvailability
 //   * ErrCodeDisabledOperationException "DisabledAction"
 //   The request was rejected because it attempted an operation which is not enabled.
 //
+//   * ErrCodeValidationException "ValidationException"
+//   The request was rejected because it has invalid parameters.
+//
 func (c *CloudSearch) UpdateAvailabilityOptions(input *UpdateAvailabilityOptionsInput) (*UpdateAvailabilityOptionsOutput, error) {
 	req, out := c.UpdateAvailabilityOptionsRequest(input)
 	return out, req.Send()
@@ -1969,6 +2065,105 @@ func (c *CloudSearch) UpdateAvailabilityOptions(input *UpdateAvailabilityOptions
 // for more information on using Contexts.
 func (c *CloudSearch) UpdateAvailabilityOptionsWithContext(ctx aws.Context, input *UpdateAvailabilityOptionsInput, opts ...request.Option) (*UpdateAvailabilityOptionsOutput, error) {
 	req, out := c.UpdateAvailabilityOptionsRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opUpdateDomainEndpointOptions = "UpdateDomainEndpointOptions"
+
+// UpdateDomainEndpointOptionsRequest generates a "aws/request.Request" representing the
+// client's request for the UpdateDomainEndpointOptions operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See UpdateDomainEndpointOptions for more information on using the UpdateDomainEndpointOptions
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the UpdateDomainEndpointOptionsRequest method.
+//    req, resp := client.UpdateDomainEndpointOptionsRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+func (c *CloudSearch) UpdateDomainEndpointOptionsRequest(input *UpdateDomainEndpointOptionsInput) (req *request.Request, output *UpdateDomainEndpointOptionsOutput) {
+	op := &request.Operation{
+		Name:       opUpdateDomainEndpointOptions,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &UpdateDomainEndpointOptionsInput{}
+	}
+
+	output = &UpdateDomainEndpointOptionsOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// UpdateDomainEndpointOptions API operation for Amazon CloudSearch.
+//
+// Updates the domain's endpoint options, specifically whether all requests
+// to the domain must arrive over HTTPS. For more information, see Configuring
+// Domain Endpoint Options (http://docs.aws.amazon.com/cloudsearch/latest/developerguide/configuring-domain-endpoint-options.html)
+// in the Amazon CloudSearch Developer Guide.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon CloudSearch's
+// API operation UpdateDomainEndpointOptions for usage and error information.
+//
+// Returned Error Codes:
+//   * ErrCodeBaseException "BaseException"
+//   An error occurred while processing the request.
+//
+//   * ErrCodeInternalException "InternalException"
+//   An internal error occurred while processing the request. If this problem
+//   persists, report an issue from the Service Health Dashboard (http://status.aws.amazon.com/).
+//
+//   * ErrCodeInvalidTypeException "InvalidType"
+//   The request was rejected because it specified an invalid type definition.
+//
+//   * ErrCodeLimitExceededException "LimitExceeded"
+//   The request was rejected because a resource limit has already been met.
+//
+//   * ErrCodeResourceNotFoundException "ResourceNotFound"
+//   The request was rejected because it attempted to reference a resource that
+//   does not exist.
+//
+//   * ErrCodeDisabledOperationException "DisabledAction"
+//   The request was rejected because it attempted an operation which is not enabled.
+//
+//   * ErrCodeValidationException "ValidationException"
+//   The request was rejected because it has invalid parameters.
+//
+func (c *CloudSearch) UpdateDomainEndpointOptions(input *UpdateDomainEndpointOptionsInput) (*UpdateDomainEndpointOptionsOutput, error) {
+	req, out := c.UpdateDomainEndpointOptionsRequest(input)
+	return out, req.Send()
+}
+
+// UpdateDomainEndpointOptionsWithContext is the same as UpdateDomainEndpointOptions with the addition of
+// the ability to pass a context and additional request options.
+//
+// See UpdateDomainEndpointOptions for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *CloudSearch) UpdateDomainEndpointOptionsWithContext(ctx aws.Context, input *UpdateDomainEndpointOptionsInput, opts ...request.Option) (*UpdateDomainEndpointOptionsOutput, error) {
+	req, out := c.UpdateDomainEndpointOptionsRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -3715,6 +3910,85 @@ func (s *DescribeAvailabilityOptionsOutput) SetAvailabilityOptions(v *Availabili
 	return s
 }
 
+// Container for the parameters to the DescribeDomainEndpointOptions operation.
+// Specify the name of the domain you want to describe. To show the active configuration
+// and exclude any pending changes, set the Deployed option to true.
+type DescribeDomainEndpointOptionsInput struct {
+	_ struct{} `type:"structure"`
+
+	// Whether to retrieve the latest configuration (which might be in a Processing
+	// state) or the current, active configuration. Defaults to false.
+	Deployed *bool `type:"boolean"`
+
+	// A string that represents the name of a domain.
+	//
+	// DomainName is a required field
+	DomainName *string `min:"3" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s DescribeDomainEndpointOptionsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeDomainEndpointOptionsInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DescribeDomainEndpointOptionsInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DescribeDomainEndpointOptionsInput"}
+	if s.DomainName == nil {
+		invalidParams.Add(request.NewErrParamRequired("DomainName"))
+	}
+	if s.DomainName != nil && len(*s.DomainName) < 3 {
+		invalidParams.Add(request.NewErrParamMinLen("DomainName", 3))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetDeployed sets the Deployed field's value.
+func (s *DescribeDomainEndpointOptionsInput) SetDeployed(v bool) *DescribeDomainEndpointOptionsInput {
+	s.Deployed = &v
+	return s
+}
+
+// SetDomainName sets the DomainName field's value.
+func (s *DescribeDomainEndpointOptionsInput) SetDomainName(v string) *DescribeDomainEndpointOptionsInput {
+	s.DomainName = &v
+	return s
+}
+
+// The result of a DescribeDomainEndpointOptions request. Contains the status
+// and configuration of a search domain's endpoint options.
+type DescribeDomainEndpointOptionsOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The status and configuration of a search domain's endpoint options.
+	DomainEndpointOptions *DomainEndpointOptionsStatus `type:"structure"`
+}
+
+// String returns the string representation
+func (s DescribeDomainEndpointOptionsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeDomainEndpointOptionsOutput) GoString() string {
+	return s.String()
+}
+
+// SetDomainEndpointOptions sets the DomainEndpointOptions field's value.
+func (s *DescribeDomainEndpointOptionsOutput) SetDomainEndpointOptions(v *DomainEndpointOptionsStatus) *DescribeDomainEndpointOptionsOutput {
+	s.DomainEndpointOptions = v
+	return s
+}
+
 // Container for the parameters to the DescribeDomains operation. By default
 // shows the status of all domains. To restrict the response to particular domains,
 // specify the names of the domains you want to describe.
@@ -4266,6 +4540,76 @@ func (s *DocumentSuggesterOptions) SetSortExpression(v string) *DocumentSuggeste
 // SetSourceField sets the SourceField field's value.
 func (s *DocumentSuggesterOptions) SetSourceField(v string) *DocumentSuggesterOptions {
 	s.SourceField = &v
+	return s
+}
+
+// The domain's endpoint options.
+type DomainEndpointOptions struct {
+	_ struct{} `type:"structure"`
+
+	// Whether the domain is HTTPS only enabled.
+	EnforceHTTPS *bool `type:"boolean"`
+
+	// The minimum required TLS version
+	TLSSecurityPolicy *string `type:"string" enum:"TLSSecurityPolicy"`
+}
+
+// String returns the string representation
+func (s DomainEndpointOptions) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DomainEndpointOptions) GoString() string {
+	return s.String()
+}
+
+// SetEnforceHTTPS sets the EnforceHTTPS field's value.
+func (s *DomainEndpointOptions) SetEnforceHTTPS(v bool) *DomainEndpointOptions {
+	s.EnforceHTTPS = &v
+	return s
+}
+
+// SetTLSSecurityPolicy sets the TLSSecurityPolicy field's value.
+func (s *DomainEndpointOptions) SetTLSSecurityPolicy(v string) *DomainEndpointOptions {
+	s.TLSSecurityPolicy = &v
+	return s
+}
+
+// The configuration and status of the domain's endpoint options.
+type DomainEndpointOptionsStatus struct {
+	_ struct{} `type:"structure"`
+
+	// The domain endpoint options configured for the domain.
+	//
+	// Options is a required field
+	Options *DomainEndpointOptions `type:"structure" required:"true"`
+
+	// The status of the configured domain endpoint options.
+	//
+	// Status is a required field
+	Status *OptionStatus `type:"structure" required:"true"`
+}
+
+// String returns the string representation
+func (s DomainEndpointOptionsStatus) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DomainEndpointOptionsStatus) GoString() string {
+	return s.String()
+}
+
+// SetOptions sets the Options field's value.
+func (s *DomainEndpointOptionsStatus) SetOptions(v *DomainEndpointOptions) *DomainEndpointOptionsStatus {
+	s.Options = v
+	return s
+}
+
+// SetStatus sets the Status field's value.
+func (s *DomainEndpointOptionsStatus) SetStatus(v *OptionStatus) *DomainEndpointOptionsStatus {
+	s.Status = v
 	return s
 }
 
@@ -6005,6 +6349,91 @@ func (s *UpdateAvailabilityOptionsOutput) SetAvailabilityOptions(v *Availability
 	return s
 }
 
+// Container for the parameters to the UpdateDomainEndpointOptions operation.
+// Specifies the name of the domain you want to update and the domain endpoint
+// options.
+type UpdateDomainEndpointOptionsInput struct {
+	_ struct{} `type:"structure"`
+
+	// Whether to require that all requests to the domain arrive over HTTPS. We
+	// recommend Policy-Min-TLS-1-2-2019-07 for TLSSecurityPolicy. For compatibility
+	// with older clients, the default is Policy-Min-TLS-1-0-2019-07.
+	//
+	// DomainEndpointOptions is a required field
+	DomainEndpointOptions *DomainEndpointOptions `type:"structure" required:"true"`
+
+	// A string that represents the name of a domain.
+	//
+	// DomainName is a required field
+	DomainName *string `min:"3" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s UpdateDomainEndpointOptionsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateDomainEndpointOptionsInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *UpdateDomainEndpointOptionsInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "UpdateDomainEndpointOptionsInput"}
+	if s.DomainEndpointOptions == nil {
+		invalidParams.Add(request.NewErrParamRequired("DomainEndpointOptions"))
+	}
+	if s.DomainName == nil {
+		invalidParams.Add(request.NewErrParamRequired("DomainName"))
+	}
+	if s.DomainName != nil && len(*s.DomainName) < 3 {
+		invalidParams.Add(request.NewErrParamMinLen("DomainName", 3))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetDomainEndpointOptions sets the DomainEndpointOptions field's value.
+func (s *UpdateDomainEndpointOptionsInput) SetDomainEndpointOptions(v *DomainEndpointOptions) *UpdateDomainEndpointOptionsInput {
+	s.DomainEndpointOptions = v
+	return s
+}
+
+// SetDomainName sets the DomainName field's value.
+func (s *UpdateDomainEndpointOptionsInput) SetDomainName(v string) *UpdateDomainEndpointOptionsInput {
+	s.DomainName = &v
+	return s
+}
+
+// The result of a UpdateDomainEndpointOptions request. Contains the configuration
+// and status of the domain's endpoint options.
+type UpdateDomainEndpointOptionsOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The newly-configured domain endpoint options.
+	DomainEndpointOptions *DomainEndpointOptionsStatus `type:"structure"`
+}
+
+// String returns the string representation
+func (s UpdateDomainEndpointOptionsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateDomainEndpointOptionsOutput) GoString() string {
+	return s.String()
+}
+
+// SetDomainEndpointOptions sets the DomainEndpointOptions field's value.
+func (s *UpdateDomainEndpointOptionsOutput) SetDomainEndpointOptions(v *DomainEndpointOptionsStatus) *UpdateDomainEndpointOptionsOutput {
+	s.DomainEndpointOptions = v
+	return s
+}
+
 // Container for the parameters to the UpdateScalingParameters operation. Specifies
 // the name of the domain you want to update and the scaling parameters you
 // want to configure.
@@ -6407,4 +6836,13 @@ const (
 
 	// SuggesterFuzzyMatchingHigh is a SuggesterFuzzyMatching enum value
 	SuggesterFuzzyMatchingHigh = "high"
+)
+
+// The minimum required TLS version.
+const (
+	// TLSSecurityPolicyPolicyMinTls10201907 is a TLSSecurityPolicy enum value
+	TLSSecurityPolicyPolicyMinTls10201907 = "Policy-Min-TLS-1-0-2019-07"
+
+	// TLSSecurityPolicyPolicyMinTls12201907 is a TLSSecurityPolicy enum value
+	TLSSecurityPolicyPolicyMinTls12201907 = "Policy-Min-TLS-1-2-2019-07"
 )

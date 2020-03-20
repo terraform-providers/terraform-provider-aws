@@ -1,4 +1,5 @@
 ---
+subcategory: "CloudFormation"
 layout: "aws"
 page_title: "AWS: aws_cloudformation_export"
 description: |-

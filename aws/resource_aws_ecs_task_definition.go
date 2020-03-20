@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsEcsTaskDefinition() *schema.Resource {
@@ -85,15 +86,17 @@ func resourceAwsEcsTaskDefinition() *schema.Resource {
 			},
 
 			"task_role_arn": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validateArn,
 			},
 
 			"execution_role_arn": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validateArn,
 			},
 
 			"memory": {
@@ -176,6 +179,26 @@ func resourceAwsEcsTaskDefinition() *schema.Resource {
 								},
 							},
 						},
+						"efs_volume_configuration": {
+							Type:     schema.TypeList,
+							Optional: true,
+							ForceNew: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"file_system_id": {
+										Type:     schema.TypeString,
+										ForceNew: true,
+										Required: true,
+									},
+									"root_directory": {
+										Type:     schema.TypeString,
+										ForceNew: true,
+										Optional: true,
+									},
+								},
+							},
+						},
 					},
 				},
 				Set: resourceAwsEcsTaskDefinitionVolumeHash,
@@ -192,6 +215,9 @@ func resourceAwsEcsTaskDefinition() *schema.Resource {
 							Type:     schema.TypeString,
 							ForceNew: true,
 							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								ecs.TaskDefinitionPlacementConstraintTypeMemberOf,
+							}, false),
 						},
 						"expression": {
 							Type:     schema.TypeString,
@@ -291,7 +317,7 @@ func resourceAwsEcsTaskDefinitionCreate(d *schema.ResourceData, meta interface{}
 
 	// ClientException: Tags can not be empty.
 	if v, ok := d.GetOk("tags"); ok {
-		input.Tags = tagsFromMapECS(v.(map[string]interface{}))
+		input.Tags = keyvaluetags.New(v.(map[string]interface{})).IgnoreAws().EcsTags()
 	}
 
 	if v, ok := d.GetOk("task_role_arn"); ok {
@@ -389,9 +415,9 @@ func resourceAwsEcsTaskDefinitionCreate(d *schema.ResourceData, meta interface{}
 	taskDefinition := *out.TaskDefinition
 
 	log.Printf("[DEBUG] ECS task definition registered: %q (rev. %d)",
-		*taskDefinition.TaskDefinitionArn, *taskDefinition.Revision)
+		aws.StringValue(taskDefinition.TaskDefinitionArn), aws.Int64Value(taskDefinition.Revision))
 
-	d.SetId(*taskDefinition.Family)
+	d.SetId(aws.StringValue(taskDefinition.Family))
 	d.Set("arn", taskDefinition.TaskDefinitionArn)
 
 	return resourceAwsEcsTaskDefinitionRead(d, meta)
@@ -413,13 +439,13 @@ func resourceAwsEcsTaskDefinitionRead(d *schema.ResourceData, meta interface{}) 
 
 	taskDefinition := out.TaskDefinition
 
-	if aws.StringValue(taskDefinition.Status) == "INACTIVE" {
+	if aws.StringValue(taskDefinition.Status) == ecs.TaskDefinitionStatusInactive {
 		log.Printf("[DEBUG] Removing ECS task definition %s because it's INACTIVE", aws.StringValue(out.TaskDefinition.Family))
 		d.SetId("")
 		return nil
 	}
 
-	d.SetId(*taskDefinition.Family)
+	d.SetId(aws.StringValue(taskDefinition.Family))
 	d.Set("arn", taskDefinition.TaskDefinitionArn)
 	d.Set("family", taskDefinition.Family)
 	d.Set("revision", taskDefinition.Revision)
@@ -438,8 +464,10 @@ func resourceAwsEcsTaskDefinitionRead(d *schema.ResourceData, meta interface{}) 
 	d.Set("cpu", taskDefinition.Cpu)
 	d.Set("memory", taskDefinition.Memory)
 	d.Set("network_mode", taskDefinition.NetworkMode)
+	d.Set("ipc_mode", taskDefinition.IpcMode)
+	d.Set("pid_mode", taskDefinition.PidMode)
 
-	if err := d.Set("tags", tagsToMapECS(out.Tags)); err != nil {
+	if err := d.Set("tags", keyvaluetags.EcsKeyValueTags(out.Tags).IgnoreAws().Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
@@ -502,38 +530,10 @@ func resourceAwsEcsTaskDefinitionUpdate(d *schema.ResourceData, meta interface{}
 	conn := meta.(*AWSClient).ecsconn
 
 	if d.HasChange("tags") {
-		oldTagsRaw, newTagsRaw := d.GetChange("tags")
-		oldTagsMap := oldTagsRaw.(map[string]interface{})
-		newTagsMap := newTagsRaw.(map[string]interface{})
-		createTags, removeTags := diffTagsECS(tagsFromMapECS(oldTagsMap), tagsFromMapECS(newTagsMap))
+		o, n := d.GetChange("tags")
 
-		if len(removeTags) > 0 {
-			removeTagKeys := make([]*string, len(removeTags))
-			for i, removeTag := range removeTags {
-				removeTagKeys[i] = removeTag.Key
-			}
-
-			input := &ecs.UntagResourceInput{
-				ResourceArn: aws.String(d.Get("arn").(string)),
-				TagKeys:     removeTagKeys,
-			}
-
-			log.Printf("[DEBUG] Untagging ECS Cluster: %s", input)
-			if _, err := conn.UntagResource(input); err != nil {
-				return fmt.Errorf("error untagging ECS Cluster (%s): %s", d.Get("arn").(string), err)
-			}
-		}
-
-		if len(createTags) > 0 {
-			input := &ecs.TagResourceInput{
-				ResourceArn: aws.String(d.Get("arn").(string)),
-				Tags:        createTags,
-			}
-
-			log.Printf("[DEBUG] Tagging ECS Cluster: %s", input)
-			if _, err := conn.TagResource(input); err != nil {
-				return fmt.Errorf("error tagging ECS Cluster (%s): %s", d.Get("arn").(string), err)
-			}
+		if err := keyvaluetags.EcsUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
+			return fmt.Errorf("error updating ECS Task Definition (%s) tags: %s", d.Id(), err)
 		}
 	}
 

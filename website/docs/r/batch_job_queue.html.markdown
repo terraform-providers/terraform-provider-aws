@@ -1,4 +1,5 @@
 ---
+subcategory: "Batch"
 layout: "aws"
 page_title: "AWS: aws_batch_job_queue"
 description: |-
@@ -38,3 +39,11 @@ The following arguments are supported:
 In addition to all arguments above, the following attributes are exported:
 
 * `arn` - The Amazon Resource Name of the job queue.
+
+## Import
+
+Batch Job Queue can be imported using the `arn`, e.g.
+
+```
+$ terraform import aws_batch_job_queue.test_queue arn:aws:batch:us-east-1:123456789012:job-queue/sample
+```

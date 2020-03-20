@@ -67,11 +67,11 @@ func (c *DirectConnect) AcceptDirectConnectGatewayAssociationProposalRequest(inp
 // See the AWS API reference guide for AWS Direct Connect's
 // API operation AcceptDirectConnectGatewayAssociationProposal for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeServerException "DirectConnectServerException"
+// Returned Error Types:
+//   * ServerException
 //   A server-side error occurred.
 //
-//   * ErrCodeClientException "DirectConnectClientException"
+//   * ClientException
 //   One or more parameters are not valid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/directconnect-2012-10-25/AcceptDirectConnectGatewayAssociationProposal
@@ -161,11 +161,11 @@ func (c *DirectConnect) AllocateConnectionOnInterconnectRequest(input *AllocateC
 // See the AWS API reference guide for AWS Direct Connect's
 // API operation AllocateConnectionOnInterconnect for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeServerException "DirectConnectServerException"
+// Returned Error Types:
+//   * ServerException
 //   A server-side error occurred.
 //
-//   * ErrCodeClientException "DirectConnectClientException"
+//   * ClientException
 //   One or more parameters are not valid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/directconnect-2012-10-25/AllocateConnectionOnInterconnect
@@ -256,17 +256,17 @@ func (c *DirectConnect) AllocateHostedConnectionRequest(input *AllocateHostedCon
 // See the AWS API reference guide for AWS Direct Connect's
 // API operation AllocateHostedConnection for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeDuplicateTagKeysException "DuplicateTagKeysException"
+// Returned Error Types:
+//   * DuplicateTagKeysException
 //   A tag key was specified more than once.
 //
-//   * ErrCodeTooManyTagsException "TooManyTagsException"
+//   * TooManyTagsException
 //   You have reached the limit on the number of tags that can be assigned.
 //
-//   * ErrCodeServerException "DirectConnectServerException"
+//   * ServerException
 //   A server-side error occurred.
 //
-//   * ErrCodeClientException "DirectConnectClientException"
+//   * ClientException
 //   One or more parameters are not valid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/directconnect-2012-10-25/AllocateHostedConnection
@@ -348,17 +348,17 @@ func (c *DirectConnect) AllocatePrivateVirtualInterfaceRequest(input *AllocatePr
 // See the AWS API reference guide for AWS Direct Connect's
 // API operation AllocatePrivateVirtualInterface for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeDuplicateTagKeysException "DuplicateTagKeysException"
+// Returned Error Types:
+//   * DuplicateTagKeysException
 //   A tag key was specified more than once.
 //
-//   * ErrCodeTooManyTagsException "TooManyTagsException"
+//   * TooManyTagsException
 //   You have reached the limit on the number of tags that can be assigned.
 //
-//   * ErrCodeServerException "DirectConnectServerException"
+//   * ServerException
 //   A server-side error occurred.
 //
-//   * ErrCodeClientException "DirectConnectClientException"
+//   * ClientException
 //   One or more parameters are not valid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/directconnect-2012-10-25/AllocatePrivateVirtualInterface
@@ -448,17 +448,17 @@ func (c *DirectConnect) AllocatePublicVirtualInterfaceRequest(input *AllocatePub
 // See the AWS API reference guide for AWS Direct Connect's
 // API operation AllocatePublicVirtualInterface for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeDuplicateTagKeysException "DuplicateTagKeysException"
+// Returned Error Types:
+//   * DuplicateTagKeysException
 //   A tag key was specified more than once.
 //
-//   * ErrCodeTooManyTagsException "TooManyTagsException"
+//   * TooManyTagsException
 //   You have reached the limit on the number of tags that can be assigned.
 //
-//   * ErrCodeServerException "DirectConnectServerException"
+//   * ServerException
 //   A server-side error occurred.
 //
-//   * ErrCodeClientException "DirectConnectClientException"
+//   * ClientException
 //   One or more parameters are not valid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/directconnect-2012-10-25/AllocatePublicVirtualInterface
@@ -546,17 +546,17 @@ func (c *DirectConnect) AllocateTransitVirtualInterfaceRequest(input *AllocateTr
 // See the AWS API reference guide for AWS Direct Connect's
 // API operation AllocateTransitVirtualInterface for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeDuplicateTagKeysException "DuplicateTagKeysException"
+// Returned Error Types:
+//   * DuplicateTagKeysException
 //   A tag key was specified more than once.
 //
-//   * ErrCodeTooManyTagsException "TooManyTagsException"
+//   * TooManyTagsException
 //   You have reached the limit on the number of tags that can be assigned.
 //
-//   * ErrCodeServerException "DirectConnectServerException"
+//   * ServerException
 //   A server-side error occurred.
 //
-//   * ErrCodeClientException "DirectConnectClientException"
+//   * ClientException
 //   One or more parameters are not valid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/directconnect-2012-10-25/AllocateTransitVirtualInterface
@@ -650,11 +650,11 @@ func (c *DirectConnect) AssociateConnectionWithLagRequest(input *AssociateConnec
 // See the AWS API reference guide for AWS Direct Connect's
 // API operation AssociateConnectionWithLag for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeServerException "DirectConnectServerException"
+// Returned Error Types:
+//   * ServerException
 //   A server-side error occurred.
 //
-//   * ErrCodeClientException "DirectConnectClientException"
+//   * ClientException
 //   One or more parameters are not valid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/directconnect-2012-10-25/AssociateConnectionWithLag
@@ -738,11 +738,11 @@ func (c *DirectConnect) AssociateHostedConnectionRequest(input *AssociateHostedC
 // See the AWS API reference guide for AWS Direct Connect's
 // API operation AssociateHostedConnection for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeServerException "DirectConnectServerException"
+// Returned Error Types:
+//   * ServerException
 //   A server-side error occurred.
 //
-//   * ErrCodeClientException "DirectConnectClientException"
+//   * ClientException
 //   One or more parameters are not valid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/directconnect-2012-10-25/AssociateHostedConnection
@@ -833,11 +833,11 @@ func (c *DirectConnect) AssociateVirtualInterfaceRequest(input *AssociateVirtual
 // See the AWS API reference guide for AWS Direct Connect's
 // API operation AssociateVirtualInterface for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeServerException "DirectConnectServerException"
+// Returned Error Types:
+//   * ServerException
 //   A server-side error occurred.
 //
-//   * ErrCodeClientException "DirectConnectClientException"
+//   * ClientException
 //   One or more parameters are not valid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/directconnect-2012-10-25/AssociateVirtualInterface
@@ -919,11 +919,11 @@ func (c *DirectConnect) ConfirmConnectionRequest(input *ConfirmConnectionInput) 
 // See the AWS API reference guide for AWS Direct Connect's
 // API operation ConfirmConnection for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeServerException "DirectConnectServerException"
+// Returned Error Types:
+//   * ServerException
 //   A server-side error occurred.
 //
-//   * ErrCodeClientException "DirectConnectClientException"
+//   * ClientException
 //   One or more parameters are not valid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/directconnect-2012-10-25/ConfirmConnection
@@ -1005,11 +1005,11 @@ func (c *DirectConnect) ConfirmPrivateVirtualInterfaceRequest(input *ConfirmPriv
 // See the AWS API reference guide for AWS Direct Connect's
 // API operation ConfirmPrivateVirtualInterface for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeServerException "DirectConnectServerException"
+// Returned Error Types:
+//   * ServerException
 //   A server-side error occurred.
 //
-//   * ErrCodeClientException "DirectConnectClientException"
+//   * ClientException
 //   One or more parameters are not valid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/directconnect-2012-10-25/ConfirmPrivateVirtualInterface
@@ -1090,11 +1090,11 @@ func (c *DirectConnect) ConfirmPublicVirtualInterfaceRequest(input *ConfirmPubli
 // See the AWS API reference guide for AWS Direct Connect's
 // API operation ConfirmPublicVirtualInterface for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeServerException "DirectConnectServerException"
+// Returned Error Types:
+//   * ServerException
 //   A server-side error occurred.
 //
-//   * ErrCodeClientException "DirectConnectClientException"
+//   * ClientException
 //   One or more parameters are not valid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/directconnect-2012-10-25/ConfirmPublicVirtualInterface
@@ -1175,11 +1175,11 @@ func (c *DirectConnect) ConfirmTransitVirtualInterfaceRequest(input *ConfirmTran
 // See the AWS API reference guide for AWS Direct Connect's
 // API operation ConfirmTransitVirtualInterface for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeServerException "DirectConnectServerException"
+// Returned Error Types:
+//   * ServerException
 //   A server-side error occurred.
 //
-//   * ErrCodeClientException "DirectConnectClientException"
+//   * ClientException
 //   One or more parameters are not valid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/directconnect-2012-10-25/ConfirmTransitVirtualInterface
@@ -1271,11 +1271,11 @@ func (c *DirectConnect) CreateBGPPeerRequest(input *CreateBGPPeerInput) (req *re
 // See the AWS API reference guide for AWS Direct Connect's
 // API operation CreateBGPPeer for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeServerException "DirectConnectServerException"
+// Returned Error Types:
+//   * ServerException
 //   A server-side error occurred.
 //
-//   * ErrCodeClientException "DirectConnectClientException"
+//   * ClientException
 //   One or more parameters are not valid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/directconnect-2012-10-25/CreateBGPPeer
@@ -1366,17 +1366,17 @@ func (c *DirectConnect) CreateConnectionRequest(input *CreateConnectionInput) (r
 // See the AWS API reference guide for AWS Direct Connect's
 // API operation CreateConnection for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeDuplicateTagKeysException "DuplicateTagKeysException"
+// Returned Error Types:
+//   * DuplicateTagKeysException
 //   A tag key was specified more than once.
 //
-//   * ErrCodeTooManyTagsException "TooManyTagsException"
+//   * TooManyTagsException
 //   You have reached the limit on the number of tags that can be assigned.
 //
-//   * ErrCodeServerException "DirectConnectServerException"
+//   * ServerException
 //   A server-side error occurred.
 //
-//   * ErrCodeClientException "DirectConnectClientException"
+//   * ClientException
 //   One or more parameters are not valid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/directconnect-2012-10-25/CreateConnection
@@ -1460,11 +1460,11 @@ func (c *DirectConnect) CreateDirectConnectGatewayRequest(input *CreateDirectCon
 // See the AWS API reference guide for AWS Direct Connect's
 // API operation CreateDirectConnectGateway for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeServerException "DirectConnectServerException"
+// Returned Error Types:
+//   * ServerException
 //   A server-side error occurred.
 //
-//   * ErrCodeClientException "DirectConnectClientException"
+//   * ClientException
 //   One or more parameters are not valid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/directconnect-2012-10-25/CreateDirectConnectGateway
@@ -1544,11 +1544,11 @@ func (c *DirectConnect) CreateDirectConnectGatewayAssociationRequest(input *Crea
 // See the AWS API reference guide for AWS Direct Connect's
 // API operation CreateDirectConnectGatewayAssociation for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeServerException "DirectConnectServerException"
+// Returned Error Types:
+//   * ServerException
 //   A server-side error occurred.
 //
-//   * ErrCodeClientException "DirectConnectClientException"
+//   * ClientException
 //   One or more parameters are not valid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/directconnect-2012-10-25/CreateDirectConnectGatewayAssociation
@@ -1632,11 +1632,11 @@ func (c *DirectConnect) CreateDirectConnectGatewayAssociationProposalRequest(inp
 // See the AWS API reference guide for AWS Direct Connect's
 // API operation CreateDirectConnectGatewayAssociationProposal for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeServerException "DirectConnectServerException"
+// Returned Error Types:
+//   * ServerException
 //   A server-side error occurred.
 //
-//   * ErrCodeClientException "DirectConnectClientException"
+//   * ClientException
 //   One or more parameters are not valid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/directconnect-2012-10-25/CreateDirectConnectGatewayAssociationProposal
@@ -1736,17 +1736,17 @@ func (c *DirectConnect) CreateInterconnectRequest(input *CreateInterconnectInput
 // See the AWS API reference guide for AWS Direct Connect's
 // API operation CreateInterconnect for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeDuplicateTagKeysException "DuplicateTagKeysException"
+// Returned Error Types:
+//   * DuplicateTagKeysException
 //   A tag key was specified more than once.
 //
-//   * ErrCodeTooManyTagsException "TooManyTagsException"
+//   * TooManyTagsException
 //   You have reached the limit on the number of tags that can be assigned.
 //
-//   * ErrCodeServerException "DirectConnectServerException"
+//   * ServerException
 //   A server-side error occurred.
 //
-//   * ErrCodeClientException "DirectConnectClientException"
+//   * ClientException
 //   One or more parameters are not valid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/directconnect-2012-10-25/CreateInterconnect
@@ -1848,17 +1848,17 @@ func (c *DirectConnect) CreateLagRequest(input *CreateLagInput) (req *request.Re
 // See the AWS API reference guide for AWS Direct Connect's
 // API operation CreateLag for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeDuplicateTagKeysException "DuplicateTagKeysException"
+// Returned Error Types:
+//   * DuplicateTagKeysException
 //   A tag key was specified more than once.
 //
-//   * ErrCodeTooManyTagsException "TooManyTagsException"
+//   * TooManyTagsException
 //   You have reached the limit on the number of tags that can be assigned.
 //
-//   * ErrCodeServerException "DirectConnectServerException"
+//   * ServerException
 //   A server-side error occurred.
 //
-//   * ErrCodeClientException "DirectConnectClientException"
+//   * ClientException
 //   One or more parameters are not valid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/directconnect-2012-10-25/CreateLag
@@ -1942,17 +1942,17 @@ func (c *DirectConnect) CreatePrivateVirtualInterfaceRequest(input *CreatePrivat
 // See the AWS API reference guide for AWS Direct Connect's
 // API operation CreatePrivateVirtualInterface for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeDuplicateTagKeysException "DuplicateTagKeysException"
+// Returned Error Types:
+//   * DuplicateTagKeysException
 //   A tag key was specified more than once.
 //
-//   * ErrCodeTooManyTagsException "TooManyTagsException"
+//   * TooManyTagsException
 //   You have reached the limit on the number of tags that can be assigned.
 //
-//   * ErrCodeServerException "DirectConnectServerException"
+//   * ServerException
 //   A server-side error occurred.
 //
-//   * ErrCodeClientException "DirectConnectClientException"
+//   * ClientException
 //   One or more parameters are not valid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/directconnect-2012-10-25/CreatePrivateVirtualInterface
@@ -2036,17 +2036,17 @@ func (c *DirectConnect) CreatePublicVirtualInterfaceRequest(input *CreatePublicV
 // See the AWS API reference guide for AWS Direct Connect's
 // API operation CreatePublicVirtualInterface for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeDuplicateTagKeysException "DuplicateTagKeysException"
+// Returned Error Types:
+//   * DuplicateTagKeysException
 //   A tag key was specified more than once.
 //
-//   * ErrCodeTooManyTagsException "TooManyTagsException"
+//   * TooManyTagsException
 //   You have reached the limit on the number of tags that can be assigned.
 //
-//   * ErrCodeServerException "DirectConnectServerException"
+//   * ServerException
 //   A server-side error occurred.
 //
-//   * ErrCodeClientException "DirectConnectClientException"
+//   * ClientException
 //   One or more parameters are not valid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/directconnect-2012-10-25/CreatePublicVirtualInterface
@@ -2133,17 +2133,17 @@ func (c *DirectConnect) CreateTransitVirtualInterfaceRequest(input *CreateTransi
 // See the AWS API reference guide for AWS Direct Connect's
 // API operation CreateTransitVirtualInterface for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeDuplicateTagKeysException "DuplicateTagKeysException"
+// Returned Error Types:
+//   * DuplicateTagKeysException
 //   A tag key was specified more than once.
 //
-//   * ErrCodeTooManyTagsException "TooManyTagsException"
+//   * TooManyTagsException
 //   You have reached the limit on the number of tags that can be assigned.
 //
-//   * ErrCodeServerException "DirectConnectServerException"
+//   * ServerException
 //   A server-side error occurred.
 //
-//   * ErrCodeClientException "DirectConnectClientException"
+//   * ClientException
 //   One or more parameters are not valid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/directconnect-2012-10-25/CreateTransitVirtualInterface
@@ -2224,11 +2224,11 @@ func (c *DirectConnect) DeleteBGPPeerRequest(input *DeleteBGPPeerInput) (req *re
 // See the AWS API reference guide for AWS Direct Connect's
 // API operation DeleteBGPPeer for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeServerException "DirectConnectServerException"
+// Returned Error Types:
+//   * ServerException
 //   A server-side error occurred.
 //
-//   * ErrCodeClientException "DirectConnectClientException"
+//   * ClientException
 //   One or more parameters are not valid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/directconnect-2012-10-25/DeleteBGPPeer
@@ -2311,11 +2311,11 @@ func (c *DirectConnect) DeleteConnectionRequest(input *DeleteConnectionInput) (r
 // See the AWS API reference guide for AWS Direct Connect's
 // API operation DeleteConnection for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeServerException "DirectConnectServerException"
+// Returned Error Types:
+//   * ServerException
 //   A server-side error occurred.
 //
-//   * ErrCodeClientException "DirectConnectClientException"
+//   * ClientException
 //   One or more parameters are not valid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/directconnect-2012-10-25/DeleteConnection
@@ -2395,11 +2395,11 @@ func (c *DirectConnect) DeleteDirectConnectGatewayRequest(input *DeleteDirectCon
 // See the AWS API reference guide for AWS Direct Connect's
 // API operation DeleteDirectConnectGateway for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeServerException "DirectConnectServerException"
+// Returned Error Types:
+//   * ServerException
 //   A server-side error occurred.
 //
-//   * ErrCodeClientException "DirectConnectClientException"
+//   * ClientException
 //   One or more parameters are not valid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/directconnect-2012-10-25/DeleteDirectConnectGateway
@@ -2483,11 +2483,11 @@ func (c *DirectConnect) DeleteDirectConnectGatewayAssociationRequest(input *Dele
 // See the AWS API reference guide for AWS Direct Connect's
 // API operation DeleteDirectConnectGatewayAssociation for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeServerException "DirectConnectServerException"
+// Returned Error Types:
+//   * ServerException
 //   A server-side error occurred.
 //
-//   * ErrCodeClientException "DirectConnectClientException"
+//   * ClientException
 //   One or more parameters are not valid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/directconnect-2012-10-25/DeleteDirectConnectGatewayAssociation
@@ -2566,11 +2566,11 @@ func (c *DirectConnect) DeleteDirectConnectGatewayAssociationProposalRequest(inp
 // See the AWS API reference guide for AWS Direct Connect's
 // API operation DeleteDirectConnectGatewayAssociationProposal for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeServerException "DirectConnectServerException"
+// Returned Error Types:
+//   * ServerException
 //   A server-side error occurred.
 //
-//   * ErrCodeClientException "DirectConnectClientException"
+//   * ClientException
 //   One or more parameters are not valid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/directconnect-2012-10-25/DeleteDirectConnectGatewayAssociationProposal
@@ -2650,11 +2650,11 @@ func (c *DirectConnect) DeleteInterconnectRequest(input *DeleteInterconnectInput
 // See the AWS API reference guide for AWS Direct Connect's
 // API operation DeleteInterconnect for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeServerException "DirectConnectServerException"
+// Returned Error Types:
+//   * ServerException
 //   A server-side error occurred.
 //
-//   * ErrCodeClientException "DirectConnectClientException"
+//   * ClientException
 //   One or more parameters are not valid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/directconnect-2012-10-25/DeleteInterconnect
@@ -2733,11 +2733,11 @@ func (c *DirectConnect) DeleteLagRequest(input *DeleteLagInput) (req *request.Re
 // See the AWS API reference guide for AWS Direct Connect's
 // API operation DeleteLag for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeServerException "DirectConnectServerException"
+// Returned Error Types:
+//   * ServerException
 //   A server-side error occurred.
 //
-//   * ErrCodeClientException "DirectConnectClientException"
+//   * ClientException
 //   One or more parameters are not valid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/directconnect-2012-10-25/DeleteLag
@@ -2815,11 +2815,11 @@ func (c *DirectConnect) DeleteVirtualInterfaceRequest(input *DeleteVirtualInterf
 // See the AWS API reference guide for AWS Direct Connect's
 // API operation DeleteVirtualInterface for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeServerException "DirectConnectServerException"
+// Returned Error Types:
+//   * ServerException
 //   A server-side error occurred.
 //
-//   * ErrCodeClientException "DirectConnectClientException"
+//   * ClientException
 //   One or more parameters are not valid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/directconnect-2012-10-25/DeleteVirtualInterface
@@ -2910,11 +2910,11 @@ func (c *DirectConnect) DescribeConnectionLoaRequest(input *DescribeConnectionLo
 // See the AWS API reference guide for AWS Direct Connect's
 // API operation DescribeConnectionLoa for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeServerException "DirectConnectServerException"
+// Returned Error Types:
+//   * ServerException
 //   A server-side error occurred.
 //
-//   * ErrCodeClientException "DirectConnectClientException"
+//   * ClientException
 //   One or more parameters are not valid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/directconnect-2012-10-25/DescribeConnectionLoa
@@ -2996,11 +2996,11 @@ func (c *DirectConnect) DescribeConnectionsRequest(input *DescribeConnectionsInp
 // See the AWS API reference guide for AWS Direct Connect's
 // API operation DescribeConnections for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeServerException "DirectConnectServerException"
+// Returned Error Types:
+//   * ServerException
 //   A server-side error occurred.
 //
-//   * ErrCodeClientException "DirectConnectClientException"
+//   * ClientException
 //   One or more parameters are not valid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/directconnect-2012-10-25/DescribeConnections
@@ -3087,11 +3087,11 @@ func (c *DirectConnect) DescribeConnectionsOnInterconnectRequest(input *Describe
 // See the AWS API reference guide for AWS Direct Connect's
 // API operation DescribeConnectionsOnInterconnect for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeServerException "DirectConnectServerException"
+// Returned Error Types:
+//   * ServerException
 //   A server-side error occurred.
 //
-//   * ErrCodeClientException "DirectConnectClientException"
+//   * ClientException
 //   One or more parameters are not valid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/directconnect-2012-10-25/DescribeConnectionsOnInterconnect
@@ -3174,11 +3174,11 @@ func (c *DirectConnect) DescribeDirectConnectGatewayAssociationProposalsRequest(
 // See the AWS API reference guide for AWS Direct Connect's
 // API operation DescribeDirectConnectGatewayAssociationProposals for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeServerException "DirectConnectServerException"
+// Returned Error Types:
+//   * ServerException
 //   A server-side error occurred.
 //
-//   * ErrCodeClientException "DirectConnectClientException"
+//   * ClientException
 //   One or more parameters are not valid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/directconnect-2012-10-25/DescribeDirectConnectGatewayAssociationProposals
@@ -3263,11 +3263,11 @@ func (c *DirectConnect) DescribeDirectConnectGatewayAssociationsRequest(input *D
 // See the AWS API reference guide for AWS Direct Connect's
 // API operation DescribeDirectConnectGatewayAssociations for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeServerException "DirectConnectServerException"
+// Returned Error Types:
+//   * ServerException
 //   A server-side error occurred.
 //
-//   * ErrCodeClientException "DirectConnectClientException"
+//   * ClientException
 //   One or more parameters are not valid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/directconnect-2012-10-25/DescribeDirectConnectGatewayAssociations
@@ -3351,11 +3351,11 @@ func (c *DirectConnect) DescribeDirectConnectGatewayAttachmentsRequest(input *De
 // See the AWS API reference guide for AWS Direct Connect's
 // API operation DescribeDirectConnectGatewayAttachments for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeServerException "DirectConnectServerException"
+// Returned Error Types:
+//   * ServerException
 //   A server-side error occurred.
 //
-//   * ErrCodeClientException "DirectConnectClientException"
+//   * ClientException
 //   One or more parameters are not valid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/directconnect-2012-10-25/DescribeDirectConnectGatewayAttachments
@@ -3434,11 +3434,11 @@ func (c *DirectConnect) DescribeDirectConnectGatewaysRequest(input *DescribeDire
 // See the AWS API reference guide for AWS Direct Connect's
 // API operation DescribeDirectConnectGateways for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeServerException "DirectConnectServerException"
+// Returned Error Types:
+//   * ServerException
 //   A server-side error occurred.
 //
-//   * ErrCodeClientException "DirectConnectClientException"
+//   * ClientException
 //   One or more parameters are not valid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/directconnect-2012-10-25/DescribeDirectConnectGateways
@@ -3519,11 +3519,11 @@ func (c *DirectConnect) DescribeHostedConnectionsRequest(input *DescribeHostedCo
 // See the AWS API reference guide for AWS Direct Connect's
 // API operation DescribeHostedConnections for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeServerException "DirectConnectServerException"
+// Returned Error Types:
+//   * ServerException
 //   A server-side error occurred.
 //
-//   * ErrCodeClientException "DirectConnectClientException"
+//   * ClientException
 //   One or more parameters are not valid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/directconnect-2012-10-25/DescribeHostedConnections
@@ -3614,11 +3614,11 @@ func (c *DirectConnect) DescribeInterconnectLoaRequest(input *DescribeInterconne
 // See the AWS API reference guide for AWS Direct Connect's
 // API operation DescribeInterconnectLoa for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeServerException "DirectConnectServerException"
+// Returned Error Types:
+//   * ServerException
 //   A server-side error occurred.
 //
-//   * ErrCodeClientException "DirectConnectClientException"
+//   * ClientException
 //   One or more parameters are not valid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/directconnect-2012-10-25/DescribeInterconnectLoa
@@ -3700,11 +3700,11 @@ func (c *DirectConnect) DescribeInterconnectsRequest(input *DescribeInterconnect
 // See the AWS API reference guide for AWS Direct Connect's
 // API operation DescribeInterconnects for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeServerException "DirectConnectServerException"
+// Returned Error Types:
+//   * ServerException
 //   A server-side error occurred.
 //
-//   * ErrCodeClientException "DirectConnectClientException"
+//   * ClientException
 //   One or more parameters are not valid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/directconnect-2012-10-25/DescribeInterconnects
@@ -3782,11 +3782,11 @@ func (c *DirectConnect) DescribeLagsRequest(input *DescribeLagsInput) (req *requ
 // See the AWS API reference guide for AWS Direct Connect's
 // API operation DescribeLags for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeServerException "DirectConnectServerException"
+// Returned Error Types:
+//   * ServerException
 //   A server-side error occurred.
 //
-//   * ErrCodeClientException "DirectConnectClientException"
+//   * ClientException
 //   One or more parameters are not valid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/directconnect-2012-10-25/DescribeLags
@@ -3871,11 +3871,11 @@ func (c *DirectConnect) DescribeLoaRequest(input *DescribeLoaInput) (req *reques
 // See the AWS API reference guide for AWS Direct Connect's
 // API operation DescribeLoa for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeServerException "DirectConnectServerException"
+// Returned Error Types:
+//   * ServerException
 //   A server-side error occurred.
 //
-//   * ErrCodeClientException "DirectConnectClientException"
+//   * ClientException
 //   One or more parameters are not valid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/directconnect-2012-10-25/DescribeLoa
@@ -3954,11 +3954,11 @@ func (c *DirectConnect) DescribeLocationsRequest(input *DescribeLocationsInput) 
 // See the AWS API reference guide for AWS Direct Connect's
 // API operation DescribeLocations for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeServerException "DirectConnectServerException"
+// Returned Error Types:
+//   * ServerException
 //   A server-side error occurred.
 //
-//   * ErrCodeClientException "DirectConnectClientException"
+//   * ClientException
 //   One or more parameters are not valid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/directconnect-2012-10-25/DescribeLocations
@@ -4036,11 +4036,11 @@ func (c *DirectConnect) DescribeTagsRequest(input *DescribeTagsInput) (req *requ
 // See the AWS API reference guide for AWS Direct Connect's
 // API operation DescribeTags for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeServerException "DirectConnectServerException"
+// Returned Error Types:
+//   * ServerException
 //   A server-side error occurred.
 //
-//   * ErrCodeClientException "DirectConnectClientException"
+//   * ClientException
 //   One or more parameters are not valid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/directconnect-2012-10-25/DescribeTags
@@ -4121,11 +4121,11 @@ func (c *DirectConnect) DescribeVirtualGatewaysRequest(input *DescribeVirtualGat
 // See the AWS API reference guide for AWS Direct Connect's
 // API operation DescribeVirtualGateways for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeServerException "DirectConnectServerException"
+// Returned Error Types:
+//   * ServerException
 //   A server-side error occurred.
 //
-//   * ErrCodeClientException "DirectConnectClientException"
+//   * ClientException
 //   One or more parameters are not valid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/directconnect-2012-10-25/DescribeVirtualGateways
@@ -4210,11 +4210,11 @@ func (c *DirectConnect) DescribeVirtualInterfacesRequest(input *DescribeVirtualI
 // See the AWS API reference guide for AWS Direct Connect's
 // API operation DescribeVirtualInterfaces for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeServerException "DirectConnectServerException"
+// Returned Error Types:
+//   * ServerException
 //   A server-side error occurred.
 //
-//   * ErrCodeClientException "DirectConnectClientException"
+//   * ClientException
 //   One or more parameters are not valid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/directconnect-2012-10-25/DescribeVirtualInterfaces
@@ -4302,11 +4302,11 @@ func (c *DirectConnect) DisassociateConnectionFromLagRequest(input *Disassociate
 // See the AWS API reference guide for AWS Direct Connect's
 // API operation DisassociateConnectionFromLag for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeServerException "DirectConnectServerException"
+// Returned Error Types:
+//   * ServerException
 //   A server-side error occurred.
 //
-//   * ErrCodeClientException "DirectConnectClientException"
+//   * ClientException
 //   One or more parameters are not valid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/directconnect-2012-10-25/DisassociateConnectionFromLag
@@ -4389,17 +4389,17 @@ func (c *DirectConnect) TagResourceRequest(input *TagResourceInput) (req *reques
 // See the AWS API reference guide for AWS Direct Connect's
 // API operation TagResource for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeDuplicateTagKeysException "DuplicateTagKeysException"
+// Returned Error Types:
+//   * DuplicateTagKeysException
 //   A tag key was specified more than once.
 //
-//   * ErrCodeTooManyTagsException "TooManyTagsException"
+//   * TooManyTagsException
 //   You have reached the limit on the number of tags that can be assigned.
 //
-//   * ErrCodeServerException "DirectConnectServerException"
+//   * ServerException
 //   A server-side error occurred.
 //
-//   * ErrCodeClientException "DirectConnectClientException"
+//   * ClientException
 //   One or more parameters are not valid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/directconnect-2012-10-25/TagResource
@@ -4478,11 +4478,11 @@ func (c *DirectConnect) UntagResourceRequest(input *UntagResourceInput) (req *re
 // See the AWS API reference guide for AWS Direct Connect's
 // API operation UntagResource for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeServerException "DirectConnectServerException"
+// Returned Error Types:
+//   * ServerException
 //   A server-side error occurred.
 //
-//   * ErrCodeClientException "DirectConnectClientException"
+//   * ClientException
 //   One or more parameters are not valid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/directconnect-2012-10-25/UntagResource
@@ -4562,11 +4562,11 @@ func (c *DirectConnect) UpdateDirectConnectGatewayAssociationRequest(input *Upda
 // See the AWS API reference guide for AWS Direct Connect's
 // API operation UpdateDirectConnectGatewayAssociation for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeServerException "DirectConnectServerException"
+// Returned Error Types:
+//   * ServerException
 //   A server-side error occurred.
 //
-//   * ErrCodeClientException "DirectConnectClientException"
+//   * ClientException
 //   One or more parameters are not valid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/directconnect-2012-10-25/UpdateDirectConnectGatewayAssociation
@@ -4658,11 +4658,11 @@ func (c *DirectConnect) UpdateLagRequest(input *UpdateLagInput) (req *request.Re
 // See the AWS API reference guide for AWS Direct Connect's
 // API operation UpdateLag for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeServerException "DirectConnectServerException"
+// Returned Error Types:
+//   * ServerException
 //   A server-side error occurred.
 //
-//   * ErrCodeClientException "DirectConnectClientException"
+//   * ClientException
 //   One or more parameters are not valid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/directconnect-2012-10-25/UpdateLag
@@ -4747,11 +4747,11 @@ func (c *DirectConnect) UpdateVirtualInterfaceAttributesRequest(input *UpdateVir
 // See the AWS API reference guide for AWS Direct Connect's
 // API operation UpdateVirtualInterfaceAttributes for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeServerException "DirectConnectServerException"
+// Returned Error Types:
+//   * ServerException
 //   A server-side error occurred.
 //
-//   * ErrCodeClientException "DirectConnectClientException"
+//   * ClientException
 //   One or more parameters are not valid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/directconnect-2012-10-25/UpdateVirtualInterfaceAttributes
@@ -5656,6 +5656,62 @@ func (s *BGPPeer) SetBgpStatus(v string) *BGPPeer {
 func (s *BGPPeer) SetCustomerAddress(v string) *BGPPeer {
 	s.CustomerAddress = &v
 	return s
+}
+
+// One or more parameters are not valid.
+type ClientException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s ClientException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ClientException) GoString() string {
+	return s.String()
+}
+
+func newErrorClientException(v protocol.ResponseMetadata) error {
+	return &ClientException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s ClientException) Code() string {
+	return "DirectConnectClientException"
+}
+
+// Message returns the exception's message.
+func (s ClientException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s ClientException) OrigErr() error {
+	return nil
+}
+
+func (s ClientException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s ClientException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s ClientException) RequestID() string {
+	return s.respMetadata.RequestID
 }
 
 type ConfirmConnectionInput struct {
@@ -8656,6 +8712,62 @@ func (s *DisassociateConnectionFromLagInput) SetLagId(v string) *DisassociateCon
 	return s
 }
 
+// A tag key was specified more than once.
+type DuplicateTagKeysException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s DuplicateTagKeysException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DuplicateTagKeysException) GoString() string {
+	return s.String()
+}
+
+func newErrorDuplicateTagKeysException(v protocol.ResponseMetadata) error {
+	return &DuplicateTagKeysException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s DuplicateTagKeysException) Code() string {
+	return "DuplicateTagKeysException"
+}
+
+// Message returns the exception's message.
+func (s DuplicateTagKeysException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s DuplicateTagKeysException) OrigErr() error {
+	return nil
+}
+
+func (s DuplicateTagKeysException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s DuplicateTagKeysException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s DuplicateTagKeysException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
 // Information about a Direct Connect gateway, which enables you to connect
 // virtual interfaces and virtual private gateway or transit gateways.
 type Gateway struct {
@@ -10420,6 +10532,62 @@ func (s *RouteFilterPrefix) SetCidr(v string) *RouteFilterPrefix {
 	return s
 }
 
+// A server-side error occurred.
+type ServerException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s ServerException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ServerException) GoString() string {
+	return s.String()
+}
+
+func newErrorServerException(v protocol.ResponseMetadata) error {
+	return &ServerException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s ServerException) Code() string {
+	return "DirectConnectServerException"
+}
+
+// Message returns the exception's message.
+func (s ServerException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s ServerException) OrigErr() error {
+	return nil
+}
+
+func (s ServerException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s ServerException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s ServerException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
 // Information about a tag.
 type Tag struct {
 	_ struct{} `type:"structure"`
@@ -10548,6 +10716,62 @@ func (s TagResourceOutput) String() string {
 // GoString returns the string representation
 func (s TagResourceOutput) GoString() string {
 	return s.String()
+}
+
+// You have reached the limit on the number of tags that can be assigned.
+type TooManyTagsException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s TooManyTagsException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s TooManyTagsException) GoString() string {
+	return s.String()
+}
+
+func newErrorTooManyTagsException(v protocol.ResponseMetadata) error {
+	return &TooManyTagsException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s TooManyTagsException) Code() string {
+	return "TooManyTagsException"
+}
+
+// Message returns the exception's message.
+func (s TooManyTagsException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s TooManyTagsException) OrigErr() error {
+	return nil
+}
+
+func (s TooManyTagsException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s TooManyTagsException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s TooManyTagsException) RequestID() string {
+	return s.respMetadata.RequestID
 }
 
 type UntagResourceInput struct {

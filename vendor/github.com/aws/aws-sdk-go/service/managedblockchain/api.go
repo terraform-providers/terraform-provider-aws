@@ -66,37 +66,37 @@ func (c *ManagedBlockchain) CreateMemberRequest(input *CreateMemberInput) (req *
 // See the AWS API reference guide for Amazon Managed Blockchain's
 // API operation CreateMember for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidRequestException "InvalidRequestException"
+// Returned Error Types:
+//   * InvalidRequestException
 //   The action or operation requested is invalid. Verify that the action is typed
 //   correctly.
 //
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+//   * AccessDeniedException
 //   You do not have sufficient access to perform this action.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   A requested resource does not exist on the network. It may have been deleted
 //   or referenced inaccurately.
 //
-//   * ErrCodeResourceAlreadyExistsException "ResourceAlreadyExistsException"
+//   * ResourceAlreadyExistsException
 //   A resource request is issued for a resource that already exists.
 //
-//   * ErrCodeResourceNotReadyException "ResourceNotReadyException"
+//   * ResourceNotReadyException
 //   The requested resource exists but is not in a status that can complete the
 //   operation.
 //
-//   * ErrCodeThrottlingException "ThrottlingException"
+//   * ThrottlingException
 //   The request or operation could not be performed because a service is throttling
 //   requests. The most common source of throttling errors is launching EC2 instances
 //   such that your service limit for EC2 instances is exceeded. Request a limit
 //   increase or delete unused resources if possible.
 //
-//   * ErrCodeResourceLimitExceededException "ResourceLimitExceededException"
+//   * ResourceLimitExceededException
 //   The maximum number of resources of that type already exist. Ensure the resources
 //   requested are within the boundaries of the service edition and your account
 //   limits.
 //
-//   * ErrCodeInternalServiceErrorException "InternalServiceErrorException"
+//   * InternalServiceErrorException
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -175,29 +175,29 @@ func (c *ManagedBlockchain) CreateNetworkRequest(input *CreateNetworkInput) (req
 // See the AWS API reference guide for Amazon Managed Blockchain's
 // API operation CreateNetwork for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidRequestException "InvalidRequestException"
+// Returned Error Types:
+//   * InvalidRequestException
 //   The action or operation requested is invalid. Verify that the action is typed
 //   correctly.
 //
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+//   * AccessDeniedException
 //   You do not have sufficient access to perform this action.
 //
-//   * ErrCodeResourceAlreadyExistsException "ResourceAlreadyExistsException"
+//   * ResourceAlreadyExistsException
 //   A resource request is issued for a resource that already exists.
 //
-//   * ErrCodeThrottlingException "ThrottlingException"
+//   * ThrottlingException
 //   The request or operation could not be performed because a service is throttling
 //   requests. The most common source of throttling errors is launching EC2 instances
 //   such that your service limit for EC2 instances is exceeded. Request a limit
 //   increase or delete unused resources if possible.
 //
-//   * ErrCodeResourceLimitExceededException "ResourceLimitExceededException"
+//   * ResourceLimitExceededException
 //   The maximum number of resources of that type already exist. Ensure the resources
 //   requested are within the boundaries of the service edition and your account
 //   limits.
 //
-//   * ErrCodeInternalServiceErrorException "InternalServiceErrorException"
+//   * InternalServiceErrorException
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -276,37 +276,37 @@ func (c *ManagedBlockchain) CreateNodeRequest(input *CreateNodeInput) (req *requ
 // See the AWS API reference guide for Amazon Managed Blockchain's
 // API operation CreateNode for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidRequestException "InvalidRequestException"
+// Returned Error Types:
+//   * InvalidRequestException
 //   The action or operation requested is invalid. Verify that the action is typed
 //   correctly.
 //
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+//   * AccessDeniedException
 //   You do not have sufficient access to perform this action.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   A requested resource does not exist on the network. It may have been deleted
 //   or referenced inaccurately.
 //
-//   * ErrCodeResourceAlreadyExistsException "ResourceAlreadyExistsException"
+//   * ResourceAlreadyExistsException
 //   A resource request is issued for a resource that already exists.
 //
-//   * ErrCodeResourceNotReadyException "ResourceNotReadyException"
+//   * ResourceNotReadyException
 //   The requested resource exists but is not in a status that can complete the
 //   operation.
 //
-//   * ErrCodeThrottlingException "ThrottlingException"
+//   * ThrottlingException
 //   The request or operation could not be performed because a service is throttling
 //   requests. The most common source of throttling errors is launching EC2 instances
 //   such that your service limit for EC2 instances is exceeded. Request a limit
 //   increase or delete unused resources if possible.
 //
-//   * ErrCodeResourceLimitExceededException "ResourceLimitExceededException"
+//   * ResourceLimitExceededException
 //   The maximum number of resources of that type already exist. Ensure the resources
 //   requested are within the boundaries of the service edition and your account
 //   limits.
 //
-//   * ErrCodeInternalServiceErrorException "InternalServiceErrorException"
+//   * InternalServiceErrorException
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -387,29 +387,29 @@ func (c *ManagedBlockchain) CreateProposalRequest(input *CreateProposalInput) (r
 // See the AWS API reference guide for Amazon Managed Blockchain's
 // API operation CreateProposal for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidRequestException "InvalidRequestException"
+// Returned Error Types:
+//   * InvalidRequestException
 //   The action or operation requested is invalid. Verify that the action is typed
 //   correctly.
 //
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+//   * AccessDeniedException
 //   You do not have sufficient access to perform this action.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   A requested resource does not exist on the network. It may have been deleted
 //   or referenced inaccurately.
 //
-//   * ErrCodeResourceNotReadyException "ResourceNotReadyException"
+//   * ResourceNotReadyException
 //   The requested resource exists but is not in a status that can complete the
 //   operation.
 //
-//   * ErrCodeThrottlingException "ThrottlingException"
+//   * ThrottlingException
 //   The request or operation could not be performed because a service is throttling
 //   requests. The most common source of throttling errors is launching EC2 instances
 //   such that your service limit for EC2 instances is exceeded. Request a limit
 //   increase or delete unused resources if possible.
 //
-//   * ErrCodeInternalServiceErrorException "InternalServiceErrorException"
+//   * InternalServiceErrorException
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -495,29 +495,29 @@ func (c *ManagedBlockchain) DeleteMemberRequest(input *DeleteMemberInput) (req *
 // See the AWS API reference guide for Amazon Managed Blockchain's
 // API operation DeleteMember for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidRequestException "InvalidRequestException"
+// Returned Error Types:
+//   * InvalidRequestException
 //   The action or operation requested is invalid. Verify that the action is typed
 //   correctly.
 //
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+//   * AccessDeniedException
 //   You do not have sufficient access to perform this action.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   A requested resource does not exist on the network. It may have been deleted
 //   or referenced inaccurately.
 //
-//   * ErrCodeResourceNotReadyException "ResourceNotReadyException"
+//   * ResourceNotReadyException
 //   The requested resource exists but is not in a status that can complete the
 //   operation.
 //
-//   * ErrCodeThrottlingException "ThrottlingException"
+//   * ThrottlingException
 //   The request or operation could not be performed because a service is throttling
 //   requests. The most common source of throttling errors is launching EC2 instances
 //   such that your service limit for EC2 instances is exceeded. Request a limit
 //   increase or delete unused resources if possible.
 //
-//   * ErrCodeInternalServiceErrorException "InternalServiceErrorException"
+//   * InternalServiceErrorException
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -598,29 +598,29 @@ func (c *ManagedBlockchain) DeleteNodeRequest(input *DeleteNodeInput) (req *requ
 // See the AWS API reference guide for Amazon Managed Blockchain's
 // API operation DeleteNode for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidRequestException "InvalidRequestException"
+// Returned Error Types:
+//   * InvalidRequestException
 //   The action or operation requested is invalid. Verify that the action is typed
 //   correctly.
 //
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+//   * AccessDeniedException
 //   You do not have sufficient access to perform this action.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   A requested resource does not exist on the network. It may have been deleted
 //   or referenced inaccurately.
 //
-//   * ErrCodeResourceNotReadyException "ResourceNotReadyException"
+//   * ResourceNotReadyException
 //   The requested resource exists but is not in a status that can complete the
 //   operation.
 //
-//   * ErrCodeThrottlingException "ThrottlingException"
+//   * ThrottlingException
 //   The request or operation could not be performed because a service is throttling
 //   requests. The most common source of throttling errors is launching EC2 instances
 //   such that your service limit for EC2 instances is exceeded. Request a limit
 //   increase or delete unused resources if possible.
 //
-//   * ErrCodeInternalServiceErrorException "InternalServiceErrorException"
+//   * InternalServiceErrorException
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -699,25 +699,25 @@ func (c *ManagedBlockchain) GetMemberRequest(input *GetMemberInput) (req *reques
 // See the AWS API reference guide for Amazon Managed Blockchain's
 // API operation GetMember for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidRequestException "InvalidRequestException"
+// Returned Error Types:
+//   * InvalidRequestException
 //   The action or operation requested is invalid. Verify that the action is typed
 //   correctly.
 //
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+//   * AccessDeniedException
 //   You do not have sufficient access to perform this action.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   A requested resource does not exist on the network. It may have been deleted
 //   or referenced inaccurately.
 //
-//   * ErrCodeThrottlingException "ThrottlingException"
+//   * ThrottlingException
 //   The request or operation could not be performed because a service is throttling
 //   requests. The most common source of throttling errors is launching EC2 instances
 //   such that your service limit for EC2 instances is exceeded. Request a limit
 //   increase or delete unused resources if possible.
 //
-//   * ErrCodeInternalServiceErrorException "InternalServiceErrorException"
+//   * InternalServiceErrorException
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -796,25 +796,25 @@ func (c *ManagedBlockchain) GetNetworkRequest(input *GetNetworkInput) (req *requ
 // See the AWS API reference guide for Amazon Managed Blockchain's
 // API operation GetNetwork for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidRequestException "InvalidRequestException"
+// Returned Error Types:
+//   * InvalidRequestException
 //   The action or operation requested is invalid. Verify that the action is typed
 //   correctly.
 //
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+//   * AccessDeniedException
 //   You do not have sufficient access to perform this action.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   A requested resource does not exist on the network. It may have been deleted
 //   or referenced inaccurately.
 //
-//   * ErrCodeThrottlingException "ThrottlingException"
+//   * ThrottlingException
 //   The request or operation could not be performed because a service is throttling
 //   requests. The most common source of throttling errors is launching EC2 instances
 //   such that your service limit for EC2 instances is exceeded. Request a limit
 //   increase or delete unused resources if possible.
 //
-//   * ErrCodeInternalServiceErrorException "InternalServiceErrorException"
+//   * InternalServiceErrorException
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -893,25 +893,25 @@ func (c *ManagedBlockchain) GetNodeRequest(input *GetNodeInput) (req *request.Re
 // See the AWS API reference guide for Amazon Managed Blockchain's
 // API operation GetNode for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidRequestException "InvalidRequestException"
+// Returned Error Types:
+//   * InvalidRequestException
 //   The action or operation requested is invalid. Verify that the action is typed
 //   correctly.
 //
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+//   * AccessDeniedException
 //   You do not have sufficient access to perform this action.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   A requested resource does not exist on the network. It may have been deleted
 //   or referenced inaccurately.
 //
-//   * ErrCodeThrottlingException "ThrottlingException"
+//   * ThrottlingException
 //   The request or operation could not be performed because a service is throttling
 //   requests. The most common source of throttling errors is launching EC2 instances
 //   such that your service limit for EC2 instances is exceeded. Request a limit
 //   increase or delete unused resources if possible.
 //
-//   * ErrCodeInternalServiceErrorException "InternalServiceErrorException"
+//   * InternalServiceErrorException
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -990,25 +990,25 @@ func (c *ManagedBlockchain) GetProposalRequest(input *GetProposalInput) (req *re
 // See the AWS API reference guide for Amazon Managed Blockchain's
 // API operation GetProposal for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidRequestException "InvalidRequestException"
+// Returned Error Types:
+//   * InvalidRequestException
 //   The action or operation requested is invalid. Verify that the action is typed
 //   correctly.
 //
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+//   * AccessDeniedException
 //   You do not have sufficient access to perform this action.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   A requested resource does not exist on the network. It may have been deleted
 //   or referenced inaccurately.
 //
-//   * ErrCodeThrottlingException "ThrottlingException"
+//   * ThrottlingException
 //   The request or operation could not be performed because a service is throttling
 //   requests. The most common source of throttling errors is launching EC2 instances
 //   such that your service limit for EC2 instances is exceeded. Request a limit
 //   increase or delete unused resources if possible.
 //
-//   * ErrCodeInternalServiceErrorException "InternalServiceErrorException"
+//   * InternalServiceErrorException
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -1093,30 +1093,30 @@ func (c *ManagedBlockchain) ListInvitationsRequest(input *ListInvitationsInput) 
 // See the AWS API reference guide for Amazon Managed Blockchain's
 // API operation ListInvitations for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidRequestException "InvalidRequestException"
+// Returned Error Types:
+//   * InvalidRequestException
 //   The action or operation requested is invalid. Verify that the action is typed
 //   correctly.
 //
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+//   * AccessDeniedException
 //   You do not have sufficient access to perform this action.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   A requested resource does not exist on the network. It may have been deleted
 //   or referenced inaccurately.
 //
-//   * ErrCodeThrottlingException "ThrottlingException"
+//   * ThrottlingException
 //   The request or operation could not be performed because a service is throttling
 //   requests. The most common source of throttling errors is launching EC2 instances
 //   such that your service limit for EC2 instances is exceeded. Request a limit
 //   increase or delete unused resources if possible.
 //
-//   * ErrCodeResourceLimitExceededException "ResourceLimitExceededException"
+//   * ResourceLimitExceededException
 //   The maximum number of resources of that type already exist. Ensure the resources
 //   requested are within the boundaries of the service edition and your account
 //   limits.
 //
-//   * ErrCodeInternalServiceErrorException "InternalServiceErrorException"
+//   * InternalServiceErrorException
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -1185,10 +1185,12 @@ func (c *ManagedBlockchain) ListInvitationsPagesWithContext(ctx aws.Context, inp
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListInvitationsOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListInvitationsOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -1251,21 +1253,21 @@ func (c *ManagedBlockchain) ListMembersRequest(input *ListMembersInput) (req *re
 // See the AWS API reference guide for Amazon Managed Blockchain's
 // API operation ListMembers for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidRequestException "InvalidRequestException"
+// Returned Error Types:
+//   * InvalidRequestException
 //   The action or operation requested is invalid. Verify that the action is typed
 //   correctly.
 //
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+//   * AccessDeniedException
 //   You do not have sufficient access to perform this action.
 //
-//   * ErrCodeThrottlingException "ThrottlingException"
+//   * ThrottlingException
 //   The request or operation could not be performed because a service is throttling
 //   requests. The most common source of throttling errors is launching EC2 instances
 //   such that your service limit for EC2 instances is exceeded. Request a limit
 //   increase or delete unused resources if possible.
 //
-//   * ErrCodeInternalServiceErrorException "InternalServiceErrorException"
+//   * InternalServiceErrorException
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -1334,10 +1336,12 @@ func (c *ManagedBlockchain) ListMembersPagesWithContext(ctx aws.Context, input *
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListMembersOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListMembersOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -1401,21 +1405,21 @@ func (c *ManagedBlockchain) ListNetworksRequest(input *ListNetworksInput) (req *
 // See the AWS API reference guide for Amazon Managed Blockchain's
 // API operation ListNetworks for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidRequestException "InvalidRequestException"
+// Returned Error Types:
+//   * InvalidRequestException
 //   The action or operation requested is invalid. Verify that the action is typed
 //   correctly.
 //
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+//   * AccessDeniedException
 //   You do not have sufficient access to perform this action.
 //
-//   * ErrCodeThrottlingException "ThrottlingException"
+//   * ThrottlingException
 //   The request or operation could not be performed because a service is throttling
 //   requests. The most common source of throttling errors is launching EC2 instances
 //   such that your service limit for EC2 instances is exceeded. Request a limit
 //   increase or delete unused resources if possible.
 //
-//   * ErrCodeInternalServiceErrorException "InternalServiceErrorException"
+//   * InternalServiceErrorException
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -1484,10 +1488,12 @@ func (c *ManagedBlockchain) ListNetworksPagesWithContext(ctx aws.Context, input 
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListNetworksOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListNetworksOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -1550,21 +1556,21 @@ func (c *ManagedBlockchain) ListNodesRequest(input *ListNodesInput) (req *reques
 // See the AWS API reference guide for Amazon Managed Blockchain's
 // API operation ListNodes for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidRequestException "InvalidRequestException"
+// Returned Error Types:
+//   * InvalidRequestException
 //   The action or operation requested is invalid. Verify that the action is typed
 //   correctly.
 //
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+//   * AccessDeniedException
 //   You do not have sufficient access to perform this action.
 //
-//   * ErrCodeThrottlingException "ThrottlingException"
+//   * ThrottlingException
 //   The request or operation could not be performed because a service is throttling
 //   requests. The most common source of throttling errors is launching EC2 instances
 //   such that your service limit for EC2 instances is exceeded. Request a limit
 //   increase or delete unused resources if possible.
 //
-//   * ErrCodeInternalServiceErrorException "InternalServiceErrorException"
+//   * InternalServiceErrorException
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -1633,10 +1639,12 @@ func (c *ManagedBlockchain) ListNodesPagesWithContext(ctx aws.Context, input *Li
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListNodesOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListNodesOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -1700,21 +1708,21 @@ func (c *ManagedBlockchain) ListProposalVotesRequest(input *ListProposalVotesInp
 // See the AWS API reference guide for Amazon Managed Blockchain's
 // API operation ListProposalVotes for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidRequestException "InvalidRequestException"
+// Returned Error Types:
+//   * InvalidRequestException
 //   The action or operation requested is invalid. Verify that the action is typed
 //   correctly.
 //
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+//   * AccessDeniedException
 //   You do not have sufficient access to perform this action.
 //
-//   * ErrCodeThrottlingException "ThrottlingException"
+//   * ThrottlingException
 //   The request or operation could not be performed because a service is throttling
 //   requests. The most common source of throttling errors is launching EC2 instances
 //   such that your service limit for EC2 instances is exceeded. Request a limit
 //   increase or delete unused resources if possible.
 //
-//   * ErrCodeInternalServiceErrorException "InternalServiceErrorException"
+//   * InternalServiceErrorException
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -1783,10 +1791,12 @@ func (c *ManagedBlockchain) ListProposalVotesPagesWithContext(ctx aws.Context, i
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListProposalVotesOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListProposalVotesOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -1849,25 +1859,25 @@ func (c *ManagedBlockchain) ListProposalsRequest(input *ListProposalsInput) (req
 // See the AWS API reference guide for Amazon Managed Blockchain's
 // API operation ListProposals for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidRequestException "InvalidRequestException"
+// Returned Error Types:
+//   * InvalidRequestException
 //   The action or operation requested is invalid. Verify that the action is typed
 //   correctly.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   A requested resource does not exist on the network. It may have been deleted
 //   or referenced inaccurately.
 //
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+//   * AccessDeniedException
 //   You do not have sufficient access to perform this action.
 //
-//   * ErrCodeThrottlingException "ThrottlingException"
+//   * ThrottlingException
 //   The request or operation could not be performed because a service is throttling
 //   requests. The most common source of throttling errors is launching EC2 instances
 //   such that your service limit for EC2 instances is exceeded. Request a limit
 //   increase or delete unused resources if possible.
 //
-//   * ErrCodeInternalServiceErrorException "InternalServiceErrorException"
+//   * InternalServiceErrorException
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -1936,10 +1946,12 @@ func (c *ManagedBlockchain) ListProposalsPagesWithContext(ctx aws.Context, input
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListProposalsOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListProposalsOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -1999,27 +2011,27 @@ func (c *ManagedBlockchain) RejectInvitationRequest(input *RejectInvitationInput
 // See the AWS API reference guide for Amazon Managed Blockchain's
 // API operation RejectInvitation for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidRequestException "InvalidRequestException"
+// Returned Error Types:
+//   * InvalidRequestException
 //   The action or operation requested is invalid. Verify that the action is typed
 //   correctly.
 //
-//   * ErrCodeIllegalActionException "IllegalActionException"
+//   * IllegalActionException
 //
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+//   * AccessDeniedException
 //   You do not have sufficient access to perform this action.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   A requested resource does not exist on the network. It may have been deleted
 //   or referenced inaccurately.
 //
-//   * ErrCodeThrottlingException "ThrottlingException"
+//   * ThrottlingException
 //   The request or operation could not be performed because a service is throttling
 //   requests. The most common source of throttling errors is launching EC2 instances
 //   such that your service limit for EC2 instances is exceeded. Request a limit
 //   increase or delete unused resources if possible.
 //
-//   * ErrCodeInternalServiceErrorException "InternalServiceErrorException"
+//   * InternalServiceErrorException
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -2101,27 +2113,27 @@ func (c *ManagedBlockchain) VoteOnProposalRequest(input *VoteOnProposalInput) (r
 // See the AWS API reference guide for Amazon Managed Blockchain's
 // API operation VoteOnProposal for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidRequestException "InvalidRequestException"
+// Returned Error Types:
+//   * InvalidRequestException
 //   The action or operation requested is invalid. Verify that the action is typed
 //   correctly.
 //
-//   * ErrCodeIllegalActionException "IllegalActionException"
+//   * IllegalActionException
 //
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+//   * AccessDeniedException
 //   You do not have sufficient access to perform this action.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   A requested resource does not exist on the network. It may have been deleted
 //   or referenced inaccurately.
 //
-//   * ErrCodeThrottlingException "ThrottlingException"
+//   * ThrottlingException
 //   The request or operation could not be performed because a service is throttling
 //   requests. The most common source of throttling errors is launching EC2 instances
 //   such that your service limit for EC2 instances is exceeded. Request a limit
 //   increase or delete unused resources if possible.
 //
-//   * ErrCodeInternalServiceErrorException "InternalServiceErrorException"
+//   * InternalServiceErrorException
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -2145,6 +2157,62 @@ func (c *ManagedBlockchain) VoteOnProposalWithContext(ctx aws.Context, input *Vo
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
+}
+
+// You do not have sufficient access to perform this action.
+type AccessDeniedException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s AccessDeniedException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AccessDeniedException) GoString() string {
+	return s.String()
+}
+
+func newErrorAccessDeniedException(v protocol.ResponseMetadata) error {
+	return &AccessDeniedException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s AccessDeniedException) Code() string {
+	return "AccessDeniedException"
+}
+
+// Message returns the exception's message.
+func (s AccessDeniedException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s AccessDeniedException) OrigErr() error {
+	return nil
+}
+
+func (s AccessDeniedException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s AccessDeniedException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s AccessDeniedException) RequestID() string {
+	return s.respMetadata.RequestID
 }
 
 // A policy type that defines the voting rules for the network. The rules decide
@@ -3242,6 +3310,175 @@ func (s GetProposalOutput) GoString() string {
 func (s *GetProposalOutput) SetProposal(v *Proposal) *GetProposalOutput {
 	s.Proposal = v
 	return s
+}
+
+type IllegalActionException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s IllegalActionException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s IllegalActionException) GoString() string {
+	return s.String()
+}
+
+func newErrorIllegalActionException(v protocol.ResponseMetadata) error {
+	return &IllegalActionException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s IllegalActionException) Code() string {
+	return "IllegalActionException"
+}
+
+// Message returns the exception's message.
+func (s IllegalActionException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s IllegalActionException) OrigErr() error {
+	return nil
+}
+
+func (s IllegalActionException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s IllegalActionException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s IllegalActionException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// The request processing has failed because of an unknown error, exception
+// or failure.
+type InternalServiceErrorException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s InternalServiceErrorException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InternalServiceErrorException) GoString() string {
+	return s.String()
+}
+
+func newErrorInternalServiceErrorException(v protocol.ResponseMetadata) error {
+	return &InternalServiceErrorException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s InternalServiceErrorException) Code() string {
+	return "InternalServiceErrorException"
+}
+
+// Message returns the exception's message.
+func (s InternalServiceErrorException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s InternalServiceErrorException) OrigErr() error {
+	return nil
+}
+
+func (s InternalServiceErrorException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s InternalServiceErrorException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s InternalServiceErrorException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// The action or operation requested is invalid. Verify that the action is typed
+// correctly.
+type InvalidRequestException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidRequestException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidRequestException) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidRequestException(v protocol.ResponseMetadata) error {
+	return &InvalidRequestException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s InvalidRequestException) Code() string {
+	return "InvalidRequestException"
+}
+
+// Message returns the exception's message.
+func (s InvalidRequestException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s InvalidRequestException) OrigErr() error {
+	return nil
+}
+
+func (s InvalidRequestException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s InvalidRequestException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s InvalidRequestException) RequestID() string {
+	return s.respMetadata.RequestID
 }
 
 // An invitation to an AWS account to create a member and join the network.
@@ -5409,6 +5646,293 @@ func (s *RemoveAction) Validate() error {
 func (s *RemoveAction) SetMemberId(v string) *RemoveAction {
 	s.MemberId = &v
 	return s
+}
+
+// A resource request is issued for a resource that already exists.
+type ResourceAlreadyExistsException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s ResourceAlreadyExistsException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResourceAlreadyExistsException) GoString() string {
+	return s.String()
+}
+
+func newErrorResourceAlreadyExistsException(v protocol.ResponseMetadata) error {
+	return &ResourceAlreadyExistsException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s ResourceAlreadyExistsException) Code() string {
+	return "ResourceAlreadyExistsException"
+}
+
+// Message returns the exception's message.
+func (s ResourceAlreadyExistsException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s ResourceAlreadyExistsException) OrigErr() error {
+	return nil
+}
+
+func (s ResourceAlreadyExistsException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s ResourceAlreadyExistsException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s ResourceAlreadyExistsException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// The maximum number of resources of that type already exist. Ensure the resources
+// requested are within the boundaries of the service edition and your account
+// limits.
+type ResourceLimitExceededException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s ResourceLimitExceededException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResourceLimitExceededException) GoString() string {
+	return s.String()
+}
+
+func newErrorResourceLimitExceededException(v protocol.ResponseMetadata) error {
+	return &ResourceLimitExceededException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s ResourceLimitExceededException) Code() string {
+	return "ResourceLimitExceededException"
+}
+
+// Message returns the exception's message.
+func (s ResourceLimitExceededException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s ResourceLimitExceededException) OrigErr() error {
+	return nil
+}
+
+func (s ResourceLimitExceededException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s ResourceLimitExceededException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s ResourceLimitExceededException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// A requested resource does not exist on the network. It may have been deleted
+// or referenced inaccurately.
+type ResourceNotFoundException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s ResourceNotFoundException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResourceNotFoundException) GoString() string {
+	return s.String()
+}
+
+func newErrorResourceNotFoundException(v protocol.ResponseMetadata) error {
+	return &ResourceNotFoundException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s ResourceNotFoundException) Code() string {
+	return "ResourceNotFoundException"
+}
+
+// Message returns the exception's message.
+func (s ResourceNotFoundException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s ResourceNotFoundException) OrigErr() error {
+	return nil
+}
+
+func (s ResourceNotFoundException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s ResourceNotFoundException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s ResourceNotFoundException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// The requested resource exists but is not in a status that can complete the
+// operation.
+type ResourceNotReadyException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s ResourceNotReadyException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResourceNotReadyException) GoString() string {
+	return s.String()
+}
+
+func newErrorResourceNotReadyException(v protocol.ResponseMetadata) error {
+	return &ResourceNotReadyException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s ResourceNotReadyException) Code() string {
+	return "ResourceNotReadyException"
+}
+
+// Message returns the exception's message.
+func (s ResourceNotReadyException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s ResourceNotReadyException) OrigErr() error {
+	return nil
+}
+
+func (s ResourceNotReadyException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s ResourceNotReadyException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s ResourceNotReadyException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// The request or operation could not be performed because a service is throttling
+// requests. The most common source of throttling errors is launching EC2 instances
+// such that your service limit for EC2 instances is exceeded. Request a limit
+// increase or delete unused resources if possible.
+type ThrottlingException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s ThrottlingException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ThrottlingException) GoString() string {
+	return s.String()
+}
+
+func newErrorThrottlingException(v protocol.ResponseMetadata) error {
+	return &ThrottlingException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s ThrottlingException) Code() string {
+	return "ThrottlingException"
+}
+
+// Message returns the exception's message.
+func (s ThrottlingException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s ThrottlingException) OrigErr() error {
+	return nil
+}
+
+func (s ThrottlingException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s ThrottlingException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s ThrottlingException) RequestID() string {
+	return s.respMetadata.RequestID
 }
 
 type VoteOnProposalInput struct {

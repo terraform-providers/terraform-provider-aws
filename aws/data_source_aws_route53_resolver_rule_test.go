@@ -6,10 +6,11 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 func TestAccDataSourceAwsRoute53ResolverRule_basic(t *testing.T) {
-	rName := fmt.Sprintf("tf-testacc-r53-resolver-%s", acctest.RandStringFromCharSet(8, acctest.CharSetAlphaNum))
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_route53_resolver_rule.example"
 	ds1ResourceName := "data.aws_route53_resolver_rule.by_resolver_rule_id"
 	ds2ResourceName := "data.aws_route53_resolver_rule.by_domain_name"
@@ -61,7 +62,7 @@ func TestAccDataSourceAwsRoute53ResolverRule_basic(t *testing.T) {
 }
 
 func TestAccDataSourceAwsRoute53ResolverRule_ResolverEndpointIdWithTags(t *testing.T) {
-	rName := fmt.Sprintf("tf-testacc-r53-resolver-%s", acctest.RandStringFromCharSet(8, acctest.CharSetAlphaNum))
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_route53_resolver_rule.example"
 	ds1ResourceName := "data.aws_route53_resolver_rule.by_resolver_endpoint_id"
 
@@ -86,6 +87,78 @@ func TestAccDataSourceAwsRoute53ResolverRule_ResolverEndpointIdWithTags(t *testi
 					resource.TestCheckResourceAttrPair(ds1ResourceName, "tags.Key1", resourceName, "tags.Key1"),
 					resource.TestCheckResourceAttrPair(ds1ResourceName, "tags.Key2", resourceName, "tags.Key2"),
 				),
+			},
+		},
+	})
+}
+
+func TestAccDataSourceAwsRoute53ResolverRule_SharedByMe(t *testing.T) {
+	var providers []*schema.Provider
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_route53_resolver_rule.example"
+	ds1ResourceName := "data.aws_route53_resolver_rule.by_resolver_endpoint_id"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccAlternateAccountPreCheck(t)
+			testAccPreCheckAWSRoute53Resolver(t)
+		},
+		ProviderFactories: testAccProviderFactories(&providers),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceAwsRoute53ResolverRule_sharedByMe(rName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrPair(ds1ResourceName, "id", resourceName, "id"),
+					resource.TestCheckResourceAttrPair(ds1ResourceName, "arn", resourceName, "arn"),
+					resource.TestCheckResourceAttrPair(ds1ResourceName, "domain_name", resourceName, "domain_name"),
+					resource.TestCheckResourceAttrPair(ds1ResourceName, "name", resourceName, "name"),
+					resource.TestCheckResourceAttrPair(ds1ResourceName, "owner_id", resourceName, "owner_id"),
+					resource.TestCheckResourceAttrPair(ds1ResourceName, "resolver_endpoint_id", resourceName, "resolver_endpoint_id"),
+					resource.TestCheckResourceAttrPair(ds1ResourceName, "resolver_rule_id", resourceName, "id"),
+					resource.TestCheckResourceAttrPair(ds1ResourceName, "rule_type", resourceName, "rule_type"),
+					resource.TestCheckResourceAttr(ds1ResourceName, "share_status", "SHARED_BY_ME"),
+					resource.TestCheckResourceAttrPair(ds1ResourceName, "tags.%", resourceName, "tags.%"),
+					resource.TestCheckResourceAttr(ds1ResourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttrPair(ds1ResourceName, "tags.Key1", resourceName, "tags.Key1"),
+					resource.TestCheckResourceAttrPair(ds1ResourceName, "tags.Key2", resourceName, "tags.Key2"),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
+func TestAccDataSourceAwsRoute53ResolverRule_SharedWithMe(t *testing.T) {
+	var providers []*schema.Provider
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_route53_resolver_rule.example"
+	ds1ResourceName := "data.aws_route53_resolver_rule.by_resolver_endpoint_id"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccAlternateAccountPreCheck(t)
+			testAccPreCheckAWSRoute53Resolver(t)
+		},
+		ProviderFactories: testAccProviderFactories(&providers),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceAwsRoute53ResolverRule_sharedWithMe(rName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrPair(ds1ResourceName, "id", resourceName, "id"),
+					resource.TestCheckResourceAttrPair(ds1ResourceName, "arn", resourceName, "arn"),
+					resource.TestCheckResourceAttrPair(ds1ResourceName, "domain_name", resourceName, "domain_name"),
+					resource.TestCheckResourceAttrPair(ds1ResourceName, "name", resourceName, "name"),
+					resource.TestCheckResourceAttrPair(ds1ResourceName, "owner_id", resourceName, "owner_id"),
+					resource.TestCheckResourceAttrPair(ds1ResourceName, "resolver_endpoint_id", resourceName, "resolver_endpoint_id"),
+					resource.TestCheckResourceAttrPair(ds1ResourceName, "resolver_rule_id", resourceName, "id"),
+					resource.TestCheckResourceAttrPair(ds1ResourceName, "rule_type", resourceName, "rule_type"),
+					resource.TestCheckResourceAttr(ds1ResourceName, "share_status", "SHARED_WITH_ME"),
+					// Tags cannot be retrieved for rules shared with us.
+					resource.TestCheckResourceAttr(ds1ResourceName, "tags.%", "0"),
+				),
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
@@ -135,6 +208,96 @@ resource "aws_route53_resolver_rule" "example" {
 
 data "aws_route53_resolver_rule" "by_resolver_endpoint_id" {
   resolver_endpoint_id = "${aws_route53_resolver_rule.example.resolver_endpoint_id}"
+}
+`, rName)
+}
+
+func testAccDataSourceAwsRoute53ResolverRule_sharedByMe(rName string) string {
+	return testAccAlternateAccountProviderConfig() + testAccRoute53ResolverRuleConfig_resolverEndpoint(rName) + fmt.Sprintf(`
+resource "aws_route53_resolver_rule" "example" {
+  domain_name = "%[1]s.example.com"
+  rule_type   = "FORWARD"
+  name        = %[1]q
+
+  resolver_endpoint_id = "${aws_route53_resolver_endpoint.bar.id}"
+
+  target_ip {
+    ip = "192.0.2.7"
+  }
+
+  tags = {
+    "Key1" = "Value1"
+    "Key2" = "Value2"
+  }
+}
+
+resource "aws_ram_resource_share" "test" {
+  name                      = %[1]q
+  allow_external_principals = true
+}
+
+resource "aws_ram_resource_association" "test" {
+  resource_arn       = "${aws_route53_resolver_rule.example.arn}"
+  resource_share_arn = "${aws_ram_resource_share.test.arn}"
+}
+
+data "aws_organizations_organization" "test" {}
+
+resource "aws_ram_principal_association" "test" {
+  principal          = "${data.aws_organizations_organization.test.arn}"
+  resource_share_arn = "${aws_ram_resource_share.test.arn}"
+}
+
+data "aws_route53_resolver_rule" "by_resolver_endpoint_id" {
+  resolver_endpoint_id = "${aws_route53_resolver_rule.example.resolver_endpoint_id}"
+
+  depends_on = ["aws_ram_resource_association.test", "aws_ram_principal_association.test"]
+}
+`, rName)
+}
+
+func testAccDataSourceAwsRoute53ResolverRule_sharedWithMe(rName string) string {
+	return testAccAlternateAccountProviderConfig() + testAccRoute53ResolverRuleConfig_resolverEndpoint(rName) + fmt.Sprintf(`
+resource "aws_route53_resolver_rule" "example" {
+  domain_name = "%[1]s.example.com"
+  rule_type   = "FORWARD"
+  name        = %[1]q
+
+  resolver_endpoint_id = "${aws_route53_resolver_endpoint.bar.id}"
+
+  target_ip {
+    ip = "192.0.2.7"
+  }
+
+  tags = {
+    "Key1" = "Value1"
+    "Key2" = "Value2"
+  }
+}
+
+resource "aws_ram_resource_share" "test" {
+  name                      = %[1]q
+  allow_external_principals = true
+}
+
+resource "aws_ram_resource_association" "test" {
+  resource_arn       = "${aws_route53_resolver_rule.example.arn}"
+  resource_share_arn = "${aws_ram_resource_share.test.arn}"
+}
+
+data "aws_organizations_organization" "test" {}
+
+resource "aws_ram_principal_association" "test" {
+  principal          = "${data.aws_organizations_organization.test.arn}"
+  resource_share_arn = "${aws_ram_resource_share.test.arn}"
+}
+
+data "aws_route53_resolver_rule" "by_resolver_endpoint_id" {
+  provider = "aws.alternate"
+
+  resolver_endpoint_id = "${aws_route53_resolver_rule.example.resolver_endpoint_id}"
+
+  depends_on = ["aws_ram_resource_association.test", "aws_ram_principal_association.test"]
 }
 `, rName)
 }

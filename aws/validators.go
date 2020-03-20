@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/apigateway"
 	"github.com/aws/aws-sdk-go/service/cognitoidentity"
 	"github.com/aws/aws-sdk-go/service/configservice"
@@ -21,47 +22,15 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-// FloatAtLeast returns a SchemaValidateFunc which tests if the provided value
-// is of type float and is at least min (inclusive)
-func FloatAtLeast(min float64) schema.SchemaValidateFunc {
-	return func(i interface{}, k string) (s []string, es []error) {
-		v, ok := i.(float64)
-		if !ok {
-			es = append(es, fmt.Errorf("expected type of %s to be float", k))
-			return
-		}
+const (
+	awsAccountIDRegexpPattern = `^(aws|\d{12})$`
+	awsPartitionRegexpPattern = `^aws(-[a-z]+)*$`
+	awsRegionRegexpPattern    = `^[a-z]{2}(-[a-z]+)+-\d$`
+)
 
-		if v < min {
-			es = append(es, fmt.Errorf("expected %s to be at least (%f), got %f", k, min, v))
-			return
-		}
-
-		return
-	}
-}
-
-// validateStringNotMatch returns a SchemaValidateFunc which tests if the provided value
-// does not match a given regexp. Optionally an error message can be provided to
-// return something friendlier than "must match some globby regexp".
-// This function is an inverse copy of validation.StringMatch and will be
-// migrated to the Terraform Provider SDK.
-func validateStringNotMatch(r *regexp.Regexp, message string) schema.SchemaValidateFunc {
-	return func(i interface{}, k string) ([]string, []error) {
-		v, ok := i.(string)
-		if !ok {
-			return nil, []error{fmt.Errorf("expected type of %s to be string", k)}
-		}
-
-		if ok := r.MatchString(v); ok {
-			if message != "" {
-				return nil, []error{fmt.Errorf("invalid value for %s (%s)", k, message)}
-
-			}
-			return nil, []error{fmt.Errorf("expected value of %s to not match regular expression %q", k, r)}
-		}
-		return nil, nil
-	}
-}
+var awsAccountIDRegexp = regexp.MustCompile(awsAccountIDRegexpPattern)
+var awsPartitionRegexp = regexp.MustCompile(awsPartitionRegexpPattern)
+var awsRegionRegexp = regexp.MustCompile(awsRegionRegexpPattern)
 
 // validateTypeStringNullableBoolean provides custom error messaging for TypeString booleans
 // Some arguments require three values: true, false, and "" (unspecified).
@@ -303,6 +272,10 @@ func validateDocDBIdentifier(v interface{}, k string) (ws []string, errors []err
 	if regexp.MustCompile(`-$`).MatchString(value) {
 		errors = append(errors, fmt.Errorf(
 			"%q cannot end with a hyphen", k))
+	}
+	if len(value) > 63 {
+		errors = append(errors, fmt.Errorf(
+			"%q cannot be greater than 63 characters", k))
 	}
 	return
 }
@@ -688,12 +661,29 @@ func validateArn(v interface{}, k string) (ws []string, errors []error) {
 		return
 	}
 
-	// http://docs.aws.amazon.com/lambda/latest/dg/API_AddPermission.html
-	pattern := `^arn:[\w-]+:([a-zA-Z0-9\-])+:([a-z]{2}-(gov-)?[a-z]+-\d{1})?:(\d{12})?:(.*)$`
-	if !regexp.MustCompile(pattern).MatchString(value) {
-		errors = append(errors, fmt.Errorf(
-			"%q doesn't look like a valid ARN (%q): %q",
-			k, pattern, value))
+	parsedARN, err := arn.Parse(value)
+
+	if err != nil {
+		errors = append(errors, fmt.Errorf("%q (%s) is an invalid ARN: %s", k, value, err))
+		return
+	}
+
+	if parsedARN.Partition == "" {
+		errors = append(errors, fmt.Errorf("%q (%s) is an invalid ARN: missing partition value", k, value))
+	} else if !awsPartitionRegexp.MatchString(parsedARN.Partition) {
+		errors = append(errors, fmt.Errorf("%q (%s) is an invalid ARN: invalid partition value (expecting to match regular expression: %s)", k, value, awsPartitionRegexpPattern))
+	}
+
+	if parsedARN.Region != "" && !awsRegionRegexp.MatchString(parsedARN.Region) {
+		errors = append(errors, fmt.Errorf("%q (%s) is an invalid ARN: invalid region value (expecting to match regular expression: %s)", k, value, awsRegionRegexpPattern))
+	}
+
+	if parsedARN.AccountID != "" && !awsAccountIDRegexp.MatchString(parsedARN.AccountID) {
+		errors = append(errors, fmt.Errorf("%q (%s) is an invalid ARN: invalid account ID value (expecting to match regular expression: %s)", k, value, awsAccountIDRegexpPattern))
+	}
+
+	if parsedARN.Resource == "" {
+		errors = append(errors, fmt.Errorf("%q (%s) is an invalid ARN: missing resource value", k, value))
 	}
 
 	return
@@ -1821,6 +1811,14 @@ func validateBatchName(v interface{}, k string) (ws []string, errors []error) {
 	return
 }
 
+func validateBatchPrefix(v interface{}, k string) (ws []string, errors []error) {
+	value := v.(string)
+	if !regexp.MustCompile(`^[0-9a-zA-Z]{1}[0-9a-zA-Z_\-]{0,101}$`).MatchString(value) {
+		errors = append(errors, fmt.Errorf("%q (%q) must be up to 102 letters (uppercase and lowercase), numbers, underscores and dashes, and must start with an alphanumeric.", k, v))
+	}
+	return
+}
+
 func validateSecurityGroupRuleDescription(v interface{}, k string) (ws []string, errors []error) {
 	value := v.(string)
 	if len(value) > 255 {
@@ -1830,7 +1828,7 @@ func validateSecurityGroupRuleDescription(v interface{}, k string) (ws []string,
 
 	// https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_IpRange.html. Note that
 	// "" is an allowable description value.
-	pattern := `^[A-Za-z0-9 \.\_\-\:\/\(\)\#\,\@\[\]\+\=\;\{\}\!\$\*]*$`
+	pattern := `^[A-Za-z0-9 \.\_\-\:\/\(\)\#\,\@\[\]\+\=\&\;\{\}\!\$\*]*$`
 	if !regexp.MustCompile(pattern).MatchString(value) {
 		errors = append(errors, fmt.Errorf(
 			"%q doesn't comply with restrictions (%q): %q",

@@ -8,9 +8,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/redshift"
-
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsRedshiftSnapshotSchedule() *schema.Resource {
@@ -65,7 +65,7 @@ func resourceAwsRedshiftSnapshotSchedule() *schema.Resource {
 
 func resourceAwsRedshiftSnapshotScheduleCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).redshiftconn
-	tags := tagsFromMapRedshift(d.Get("tags").(map[string]interface{}))
+	tags := keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().RedshiftTags()
 	var identifier string
 	if v, ok := d.GetOk("identifier"); ok {
 		identifier = v.(string)
@@ -119,7 +119,10 @@ func resourceAwsRedshiftSnapshotScheduleRead(d *schema.ResourceData, meta interf
 	if err := d.Set("definitions", flattenStringList(snapshotSchedule.ScheduleDefinitions)); err != nil {
 		return fmt.Errorf("Error setting definitions: %s", err)
 	}
-	d.Set("tags", tagsToMapRedshift(snapshotSchedule.Tags))
+
+	if err := d.Set("tags", keyvaluetags.RedshiftKeyValueTags(snapshotSchedule.Tags).IgnoreAws().Map()); err != nil {
+		return fmt.Errorf("error setting tags: %s", err)
+	}
 
 	arn := arn.ARN{
 		Partition: meta.(*AWSClient).partition,
@@ -138,9 +141,13 @@ func resourceAwsRedshiftSnapshotScheduleUpdate(d *schema.ResourceData, meta inte
 	conn := meta.(*AWSClient).redshiftconn
 	d.Partial(true)
 
-	if tagErr := setTagsRedshift(conn, d); tagErr != nil {
-		return tagErr
-	} else {
+	if d.HasChange("tags") {
+		o, n := d.GetChange("tags")
+
+		if err := keyvaluetags.RedshiftUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
+			return fmt.Errorf("error updating Redshift Snapshot Schedule (%s) tags: %s", d.Get("arn").(string), err)
+		}
+
 		d.SetPartial("tags")
 	}
 

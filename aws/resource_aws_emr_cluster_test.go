@@ -10,6 +10,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/emr"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -91,6 +92,7 @@ func TestAccAWSEMRCluster_basic(t *testing.T) {
 					testAccCheckAWSEmrClusterExists("aws_emr_cluster.tf-test-cluster", &cluster),
 					resource.TestCheckResourceAttr("aws_emr_cluster.tf-test-cluster", "scale_down_behavior", "TERMINATE_AT_TASK_COMPLETION"),
 					resource.TestCheckResourceAttr("aws_emr_cluster.tf-test-cluster", "step.#", "0"),
+					resource.TestCheckResourceAttrSet("aws_emr_cluster.tf-test-cluster", "arn"),
 				),
 			},
 			{
@@ -674,6 +676,48 @@ func TestAccAWSEMRCluster_updateAutoScalingPolicy(t *testing.T) {
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"configurations", "keep_job_flow_alive_when_no_steps"},
+			},
+		},
+	})
+}
+
+func TestAccAWSEMRCluster_Ec2Attributes_DefaultManagedSecurityGroups(t *testing.T) {
+	var cluster emr.Cluster
+	var vpc ec2.Vpc
+
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_emr_cluster.tf-test-cluster"
+	vpcResourceName := "aws_vpc.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSEmrDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSEmrClusterConfigEc2AttributesDefaultManagedSecurityGroups(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSEmrClusterExists(resourceName, &cluster),
+					testAccCheckVpcExists(vpcResourceName, &vpc),
+				),
+			},
+			{
+				Config:      testAccAWSEmrClusterConfigEc2AttributesDefaultManagedSecurityGroups(rName),
+				Destroy:     true,
+				ExpectError: regexp.MustCompile(`DependencyViolation`),
+			},
+			{
+				PreConfig: func() {
+					conn := testAccProvider.Meta().(*AWSClient).ec2conn
+
+					err := testAccEmrDeleteManagedSecurityGroups(conn, &vpc)
+
+					if err != nil {
+						t.Fatal(err)
+					}
+				},
+				Config:  testAccAWSEmrClusterConfigEc2AttributesDefaultManagedSecurityGroups(rName),
+				Destroy: true,
 			},
 		},
 	})
@@ -1362,6 +1406,39 @@ func TestAccAWSEMRCluster_root_volume_size(t *testing.T) {
 	})
 }
 
+func TestAccAWSEMRCluster_step_concurrency_level(t *testing.T) {
+	var cluster emr.Cluster
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_emr_cluster.tf-test-cluster"
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSEmrDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSEmrClusterConfigStepConcurrencyLevel(rName, 2),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSEmrClusterExists(resourceName, &cluster),
+					resource.TestCheckResourceAttr(resourceName, "step_concurrency_level", "2"),
+				),
+			},
+			{
+				Config: testAccAWSEmrClusterConfigStepConcurrencyLevel(rName, 1),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSEmrClusterExists(resourceName, &cluster),
+					resource.TestCheckResourceAttr(resourceName, "step_concurrency_level", "1"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"configurations", "keep_job_flow_alive_when_no_steps"},
+			},
+		},
+	})
+}
+
 func TestAccAWSEMRCluster_custom_ami_id(t *testing.T) {
 	var cluster emr.Cluster
 	r := acctest.RandInt()
@@ -1570,9 +1647,107 @@ func testAccCheckAWSEmrClusterRecreated(i, j *emr.Cluster) resource.TestCheckFun
 	}
 }
 
+func testAccEmrDeleteManagedSecurityGroups(conn *ec2.EC2, vpc *ec2.Vpc) error {
+	// Reference: https://docs.aws.amazon.com/emr/latest/ManagementGuide/emr-man-sec-groups.html
+	managedSecurityGroups := map[string]*ec2.SecurityGroup{
+		"ElasticMapReduce-master": nil,
+		"ElasticMapReduce-slave":  nil,
+	}
+
+	for groupName := range managedSecurityGroups {
+		securityGroup, err := testAccEmrDescribeManagedSecurityGroup(conn, vpc, groupName)
+
+		if err != nil {
+			return fmt.Errorf("error describing EMR Managed Security Group (%s): %s", groupName, err)
+		}
+
+		managedSecurityGroups[groupName] = securityGroup
+	}
+
+	// EMR Managed Security Groups rules reference each other, so rules from all
+	// groups must be revoked first.
+	for groupName, securityGroup := range managedSecurityGroups {
+		if securityGroup == nil {
+			continue
+		}
+
+		err := testAccEmrRevokeManagedSecurityGroup(conn, securityGroup)
+
+		if err != nil {
+			return fmt.Errorf("error revoking EMR Managed Security Group (%s): %s", groupName, err)
+		}
+	}
+
+	for groupName, securityGroup := range managedSecurityGroups {
+		if securityGroup == nil {
+			continue
+		}
+
+		err := testAccEmrDeleteManagedSecurityGroup(conn, securityGroup)
+
+		if err != nil {
+			return fmt.Errorf("error deleting EMR Managed Security Group (%s): %s", groupName, err)
+		}
+	}
+
+	return nil
+}
+
+func testAccEmrDescribeManagedSecurityGroup(conn *ec2.EC2, vpc *ec2.Vpc, securityGroupName string) (*ec2.SecurityGroup, error) {
+	input := &ec2.DescribeSecurityGroupsInput{
+		Filters: []*ec2.Filter{
+			{
+				Name:   aws.String("group-name"),
+				Values: aws.StringSlice([]string{securityGroupName}),
+			},
+			{
+				Name:   aws.String("vpc-id"),
+				Values: []*string{vpc.VpcId},
+			},
+		},
+	}
+
+	output, err := conn.DescribeSecurityGroups(input)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if output == nil || len(output.SecurityGroups) != 1 {
+		return nil, nil
+	}
+
+	return output.SecurityGroups[0], nil
+}
+
+func testAccEmrRevokeManagedSecurityGroup(conn *ec2.EC2, securityGroup *ec2.SecurityGroup) error {
+	input := &ec2.RevokeSecurityGroupIngressInput{
+		GroupId:       securityGroup.GroupId,
+		IpPermissions: securityGroup.IpPermissions,
+	}
+
+	_, err := conn.RevokeSecurityGroupIngress(input)
+
+	return err
+}
+
+func testAccEmrDeleteManagedSecurityGroup(conn *ec2.EC2, securityGroup *ec2.SecurityGroup) error {
+	input := &ec2.DeleteSecurityGroupInput{
+		GroupId: securityGroup.GroupId,
+	}
+
+	_, err := conn.DeleteSecurityGroup(input)
+
+	return err
+}
+
 func testAccAWSEmrClusterConfigBaseVpc(mapPublicIpOnLaunch bool) string {
 	return fmt.Sprintf(`
-data "aws_availability_zones" "current" {}
+data "aws_availability_zones" "available" {
+  # Many instance types are not available in this availability zone
+  blacklisted_zone_ids = ["usw2-az4"]
+  state                = "available"
+}
 
 resource "aws_vpc" "test" {
   cidr_block           = "10.0.0.0/16"
@@ -1619,7 +1794,7 @@ resource "aws_security_group" "test" {
 }
 
 resource "aws_subnet" "test" {
-  availability_zone       = "${data.aws_availability_zones.current.names[0]}"
+  availability_zone       = "${data.aws_availability_zones.available.names[0]}"
   cidr_block              = "10.0.0.0/24"
   map_public_ip_on_launch = %[1]t
   vpc_id                  = "${aws_vpc.test.id}"
@@ -1646,7 +1821,7 @@ resource "aws_route_table_association" "test" {
 }
 
 func testAccAWSEmrClusterConfig_bootstrap(r string) string {
-	return fmt.Sprintf(`
+	return testAccAWSEmrClusterConfigBaseVpc(false) + fmt.Sprintf(`
 resource "aws_emr_cluster" "test" {
   name                 = "%s"
   release_label        = "emr-5.0.0"
@@ -1656,12 +1831,12 @@ resource "aws_emr_cluster" "test" {
   core_instance_type   = "c4.large"
   core_instance_count  = 1
   service_role         = "${aws_iam_role.iam_emr_default_role.arn}"
-  depends_on           = ["aws_main_route_table_association.a"]
+  depends_on           = ["aws_route_table_association.test"]
 
   ec2_attributes {
-    subnet_id                         = "${aws_subnet.main.id}"
-    emr_managed_master_security_group = "${aws_security_group.allow_all.id}"
-    emr_managed_slave_security_group  = "${aws_security_group.allow_all.id}"
+    subnet_id                         = "${aws_subnet.test.id}"
+    emr_managed_master_security_group = "${aws_security_group.test.id}"
+    emr_managed_slave_security_group  = "${aws_security_group.test.id}"
     instance_profile                  = "${aws_iam_instance_profile.emr_profile.arn}"
   }
 
@@ -1849,76 +2024,6 @@ resource "aws_iam_policy" "iam_emr_profile_policy" {
 EOT
 }
 
-resource "aws_vpc" "main" {
-  cidr_block           = "168.31.0.0/16"
-  enable_dns_hostnames = true
-
-  tags = {
-    Name = "terraform-testacc-emr-cluster-bootstrap"
-  }
-}
-
-resource "aws_subnet" "main" {
-  vpc_id     = "${aws_vpc.main.id}"
-  cidr_block = "168.31.0.0/20"
-
-  tags = {
-    Name = "tf-acc-emr-cluster-bootstrap"
-  }
-}
-
-resource "aws_internet_gateway" "gw" {
-  vpc_id = "${aws_vpc.main.id}"
-}
-
-resource "aws_route_table" "r" {
-  vpc_id = "${aws_vpc.main.id}"
-
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = "${aws_internet_gateway.gw.id}"
-  }
-}
-
-resource "aws_main_route_table_association" "a" {
-  vpc_id         = "${aws_vpc.main.id}"
-  route_table_id = "${aws_route_table.r.id}"
-}
-
-resource "aws_security_group" "allow_all" {
-  name        = "allow_all"
-  description = "Allow all inbound traffic"
-  vpc_id      = "${aws_vpc.main.id}"
-
-  ingress {
-    from_port = 0
-    to_port   = 0
-    protocol  = "-1"
-    self      = true
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  depends_on = ["aws_subnet.main"]
-
-  lifecycle {
-    ignore_changes = ["ingress", "egress"]
-  }
-
-  tags = {
-    Name = "emr_test"
-  }
-}
-
-output "cluser_id" {
-  value = "${aws_emr_cluster.test.id}"
-}
-
 resource "aws_s3_bucket" "tester" {
   bucket = "%s"
   acl    = "public-read"
@@ -1937,16 +2042,16 @@ EOF
 }
 
 func testAccAWSEmrClusterConfig(r int) string {
-	return fmt.Sprintf(`
+	return testAccAWSEmrClusterConfigBaseVpc(false) + fmt.Sprintf(`
 resource "aws_emr_cluster" "tf-test-cluster" {
   name          = "emr-test-%[1]d"
   release_label = "emr-4.6.0"
   applications  = ["Spark"]
 
   ec2_attributes {
-    subnet_id                         = "${aws_subnet.main.id}"
-    emr_managed_master_security_group = "${aws_security_group.allow_all.id}"
-    emr_managed_slave_security_group  = "${aws_security_group.allow_all.id}"
+    subnet_id                         = "${aws_subnet.test.id}"
+    emr_managed_master_security_group = "${aws_security_group.test.id}"
+    emr_managed_slave_security_group  = "${aws_security_group.test.id}"
     instance_profile                  = "${aws_iam_instance_profile.emr_profile.arn}"
   }
 
@@ -1974,77 +2079,11 @@ resource "aws_emr_cluster" "tf-test-cluster" {
 
   configurations = "test-fixtures/emr_configurations.json"
 
-  depends_on = ["aws_main_route_table_association.a"]
+  depends_on = ["aws_route_table_association.test"]
 
   service_role         = "${aws_iam_role.iam_emr_default_role.arn}"
   autoscaling_role     = "${aws_iam_role.emr-autoscaling-role.arn}"
   ebs_root_volume_size = 21
-}
-
-resource "aws_security_group" "allow_all" {
-  name        = "allow_all_%[1]d"
-  description = "Allow all inbound traffic"
-  vpc_id      = "${aws_vpc.main.id}"
-
-  ingress {
-    from_port = 0
-    to_port   = 0
-    protocol  = "-1"
-    self      = true
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  depends_on = ["aws_subnet.main"]
-
-  lifecycle {
-    ignore_changes = ["ingress", "egress"]
-  }
-
-  tags = {
-    Name = "emr_test"
-  }
-}
-
-resource "aws_vpc" "main" {
-  cidr_block           = "168.31.0.0/16"
-  enable_dns_hostnames = true
-
-  tags = {
-    Name = "terraform-testacc-emr-cluster"
-  }
-}
-
-resource "aws_subnet" "main" {
-  vpc_id     = "${aws_vpc.main.id}"
-  cidr_block = "168.31.0.0/20"
-
-  tags = {
-    Name = "tf-acc-emr-cluster"
-  }
-}
-
-resource "aws_internet_gateway" "gw" {
-  vpc_id = "${aws_vpc.main.id}"
-}
-
-resource "aws_route_table" "r" {
-  vpc_id = "${aws_vpc.main.id}"
-
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = "${aws_internet_gateway.gw.id}"
-  }
-}
-
-resource "aws_main_route_table_association" "a" {
-  vpc_id         = "${aws_vpc.main.id}"
-  route_table_id = "${aws_route_table.r.id}"
 }
 
 ###
@@ -2243,7 +2282,7 @@ resource "aws_iam_role_policy_attachment" "emr-autoscaling-role" {
 }
 
 func testAccAWSEmrClusterConfigAdditionalInfo(r int) string {
-	return fmt.Sprintf(`
+	return testAccAWSEmrClusterConfigBaseVpc(false) + fmt.Sprintf(`
 resource "aws_emr_cluster" "tf-test-cluster" {
   name          = "emr-test-%[1]d"
   release_label = "emr-4.6.0"
@@ -2259,9 +2298,9 @@ resource "aws_emr_cluster" "tf-test-cluster" {
 EOF
 
   ec2_attributes {
-    subnet_id                         = "${aws_subnet.main.id}"
-    emr_managed_master_security_group = "${aws_security_group.allow_all.id}"
-    emr_managed_slave_security_group  = "${aws_security_group.allow_all.id}"
+    subnet_id                         = "${aws_subnet.test.id}"
+    emr_managed_master_security_group = "${aws_security_group.test.id}"
+    emr_managed_slave_security_group  = "${aws_security_group.test.id}"
     instance_profile                  = "${aws_iam_instance_profile.emr_profile.arn}"
   }
 
@@ -2289,77 +2328,11 @@ EOF
 
   configurations = "test-fixtures/emr_configurations.json"
 
-  depends_on = ["aws_main_route_table_association.a"]
+  depends_on = ["aws_route_table_association.test"]
 
   service_role         = "${aws_iam_role.iam_emr_default_role.arn}"
   autoscaling_role     = "${aws_iam_role.emr-autoscaling-role.arn}"
   ebs_root_volume_size = 21
-}
-
-resource "aws_security_group" "allow_all" {
-  name        = "allow_all_%[1]d"
-  description = "Allow all inbound traffic"
-  vpc_id      = "${aws_vpc.main.id}"
-
-  ingress {
-    from_port = 0
-    to_port   = 0
-    protocol  = "-1"
-    self      = true
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  depends_on = ["aws_subnet.main"]
-
-  lifecycle {
-    ignore_changes = ["ingress", "egress"]
-  }
-
-  tags = {
-    Name = "emr_test"
-  }
-}
-
-resource "aws_vpc" "main" {
-  cidr_block           = "168.31.0.0/16"
-  enable_dns_hostnames = true
-
-  tags = {
-    Name = "terraform-testacc-emr-cluster"
-  }
-}
-
-resource "aws_subnet" "main" {
-  vpc_id     = "${aws_vpc.main.id}"
-  cidr_block = "168.31.0.0/20"
-
-  tags = {
-    Name = "tf-acc-emr-cluster"
-  }
-}
-
-resource "aws_internet_gateway" "gw" {
-  vpc_id = "${aws_vpc.main.id}"
-}
-
-resource "aws_route_table" "r" {
-  vpc_id = "${aws_vpc.main.id}"
-
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = "${aws_internet_gateway.gw.id}"
-  }
-}
-
-resource "aws_main_route_table_association" "a" {
-  vpc_id         = "${aws_vpc.main.id}"
-  route_table_id = "${aws_route_table.r.id}"
 }
 
 ###
@@ -2558,16 +2531,16 @@ resource "aws_iam_role_policy_attachment" "emr-autoscaling-role" {
 }
 
 func testAccAWSEmrClusterConfigConfigurationsJson(r int) string {
-	return fmt.Sprintf(`
+	return testAccAWSEmrClusterConfigBaseVpc(false) + fmt.Sprintf(`
 resource "aws_emr_cluster" "tf-test-cluster" {
   name          = "emr-test-%[1]d"
   release_label = "emr-4.6.0"
   applications  = ["Hadoop", "Spark"]
 
   ec2_attributes {
-    subnet_id                         = "${aws_subnet.main.id}"
-    emr_managed_master_security_group = "${aws_security_group.allow_all.id}"
-    emr_managed_slave_security_group  = "${aws_security_group.allow_all.id}"
+    subnet_id                         = "${aws_subnet.test.id}"
+    emr_managed_master_security_group = "${aws_security_group.test.id}"
+    emr_managed_slave_security_group  = "${aws_security_group.test.id}"
     instance_profile                  = "${aws_iam_instance_profile.emr_profile.arn}"
   }
 
@@ -2613,76 +2586,10 @@ resource "aws_emr_cluster" "tf-test-cluster" {
  ]
 EOF
 
-  depends_on = ["aws_main_route_table_association.a"]
+  depends_on = ["aws_route_table_association.test"]
 
   service_role         = "${aws_iam_role.iam_emr_default_role.arn}"
   ebs_root_volume_size = 21
-}
-
-resource "aws_security_group" "allow_all" {
-  name        = "allow_all_%[1]d"
-  description = "Allow all inbound traffic"
-  vpc_id      = "${aws_vpc.main.id}"
-
-  ingress {
-    from_port = 0
-    to_port   = 0
-    protocol  = "-1"
-    self      = true
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  depends_on = ["aws_subnet.main"]
-
-  lifecycle {
-    ignore_changes = ["ingress", "egress"]
-  }
-
-  tags = {
-    Name = "emr_test"
-  }
-}
-
-resource "aws_vpc" "main" {
-  cidr_block           = "168.31.0.0/16"
-  enable_dns_hostnames = true
-
-  tags = {
-    Name = "terraform-testacc-emr-cluster"
-  }
-}
-
-resource "aws_subnet" "main" {
-  vpc_id     = "${aws_vpc.main.id}"
-  cidr_block = "168.31.0.0/20"
-
-  tags = {
-    Name = "tf-acc-emr-cluster"
-  }
-}
-
-resource "aws_internet_gateway" "gw" {
-  vpc_id = "${aws_vpc.main.id}"
-}
-
-resource "aws_route_table" "r" {
-  vpc_id = "${aws_vpc.main.id}"
-
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = "${aws_internet_gateway.gw.id}"
-  }
-}
-
-resource "aws_main_route_table_association" "a" {
-  vpc_id         = "${aws_vpc.main.id}"
-  route_table_id = "${aws_route_table.r.id}"
 }
 
 ###
@@ -2858,9 +2765,7 @@ EOT
 }
 
 func testAccAWSEmrClusterConfig_Kerberos_ClusterDedicatedKdc(r int, password string) string {
-	return fmt.Sprintf(`
-data "aws_availability_zones" "available" {}
-
+	return testAccAWSEmrClusterConfigBaseVpc(false) + fmt.Sprintf(`
 resource "aws_emr_security_configuration" "foo" {
   configuration = <<EOF
 {
@@ -2889,10 +2794,10 @@ resource "aws_emr_cluster" "tf-test-cluster" {
   termination_protection            = false
 
   ec2_attributes {
-    emr_managed_master_security_group = "${aws_security_group.allow_all.id}"
-    emr_managed_slave_security_group  = "${aws_security_group.allow_all.id}"
+    emr_managed_master_security_group = "${aws_security_group.test.id}"
+    emr_managed_slave_security_group  = "${aws_security_group.test.id}"
     instance_profile                  = "EMR_EC2_DefaultRole"
-    subnet_id                         = "${aws_subnet.main.0.id}"
+    subnet_id                         = "${aws_subnet.test.id}"
   }
 
   kerberos_attributes {
@@ -2900,94 +2805,22 @@ resource "aws_emr_cluster" "tf-test-cluster" {
     realm              = "EC2.INTERNAL"
   }
 
-  depends_on = ["aws_main_route_table_association.a"]
-}
-
-resource "aws_security_group" "allow_all" {
-  name        = "allow_all_%[1]d"
-  description = "Allow all inbound traffic"
-  vpc_id      = "${aws_vpc.main.id}"
-
-  ingress {
-    from_port = 0
-    to_port   = 0
-    protocol  = "-1"
-    self      = true
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  depends_on = ["aws_subnet.main"]
-
-  lifecycle {
-    ignore_changes = ["ingress", "egress"]
-  }
-
-  tags = {
-    Name = "emr_test"
-  }
-}
-
-resource "aws_vpc" "main" {
-  cidr_block           = "10.0.0.0/16"
-  enable_dns_hostnames = true
-
-  tags = {
-    Name = "terraform-testacc-emr-cluster-kerberos-cluster-dedicated-kdc"
-  }
-}
-
-resource "aws_subnet" "main" {
-  availability_zone = "${element(data.aws_availability_zones.available.names, count.index)}"
-  count             = 2
-  cidr_block        = "10.0.${count.index}.0/24"
-  vpc_id            = "${aws_vpc.main.id}"
-
-  tags = {
-    Name = "tf-acc-emr-cluster-kerberos-cluster-dedicated-kdc"
-  }
-}
-
-resource "aws_internet_gateway" "gw" {
-  vpc_id = "${aws_vpc.main.id}"
-
-  tags = {
-    Name = "terraform-testacc-emr-cluster-kerberos-cluster-dedicated-kdc"
-  }
-}
-
-resource "aws_route_table" "r" {
-  vpc_id = "${aws_vpc.main.id}"
-
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = "${aws_internet_gateway.gw.id}"
-  }
-}
-
-resource "aws_main_route_table_association" "a" {
-  route_table_id = "${aws_route_table.r.id}"
-  vpc_id         = "${aws_vpc.main.id}"
+  depends_on = ["aws_route_table_association.test"]
 }
 `, r, password)
 }
 
 func testAccAWSEmrClusterConfig_SecurityConfiguration(rInt int) string {
-	return fmt.Sprintf(`
+	return testAccAWSEmrClusterConfigBaseVpc(false) + fmt.Sprintf(`
 resource "aws_emr_cluster" "tf-test-cluster" {
   name          = "emr-test-%[1]d"
   release_label = "emr-5.5.0"
   applications  = ["Spark"]
 
   ec2_attributes {
-    subnet_id                         = "${aws_subnet.main.id}"
-    emr_managed_master_security_group = "${aws_security_group.allow_all.id}"
-    emr_managed_slave_security_group  = "${aws_security_group.allow_all.id}"
+    subnet_id                         = "${aws_subnet.test.id}"
+    emr_managed_master_security_group = "${aws_security_group.test.id}"
+    emr_managed_slave_security_group  = "${aws_security_group.test.id}"
     instance_profile                  = "${aws_iam_instance_profile.emr_profile.arn}"
   }
 
@@ -3015,76 +2848,10 @@ resource "aws_emr_cluster" "tf-test-cluster" {
 
   configurations = "test-fixtures/emr_configurations.json"
 
-  depends_on = ["aws_main_route_table_association.a"]
+  depends_on = ["aws_route_table_association.test"]
 
   service_role     = "${aws_iam_role.iam_emr_default_role.arn}"
   autoscaling_role = "${aws_iam_role.emr-autoscaling-role.arn}"
-}
-
-resource "aws_security_group" "allow_all" {
-  name        = "allow_all_%[1]d"
-  description = "Allow all inbound traffic"
-  vpc_id      = "${aws_vpc.main.id}"
-
-  ingress {
-    from_port = 0
-    to_port   = 0
-    protocol  = "-1"
-    self      = true
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  depends_on = ["aws_subnet.main"]
-
-  lifecycle {
-    ignore_changes = ["ingress", "egress"]
-  }
-
-  tags = {
-    Name = "emr_test"
-  }
-}
-
-resource "aws_vpc" "main" {
-  cidr_block           = "168.31.0.0/16"
-  enable_dns_hostnames = true
-
-  tags = {
-    Name = "terraform-testacc-emr-cluster-security-configuration"
-  }
-}
-
-resource "aws_subnet" "main" {
-  vpc_id     = "${aws_vpc.main.id}"
-  cidr_block = "168.31.0.0/20"
-
-  tags = {
-    Name = "tf-acc-emr-cluster-security-configuration"
-  }
-}
-
-resource "aws_internet_gateway" "gw" {
-  vpc_id = "${aws_vpc.main.id}"
-}
-
-resource "aws_route_table" "r" {
-  vpc_id = "${aws_vpc.main.id}"
-
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = "${aws_internet_gateway.gw.id}"
-  }
-}
-
-resource "aws_main_route_table_association" "a" {
-  vpc_id         = "${aws_vpc.main.id}"
-  route_table_id = "${aws_route_table.r.id}"
 }
 
 ###
@@ -3369,9 +3136,7 @@ func testAccAWSEmrClusterConfig_Step_Zeroed(rInt int) string {
 }
 
 func testAccAWSEmrClusterConfig_Step(rInt int, stepConfig string) string {
-	return fmt.Sprintf(`
-data "aws_availability_zones" "available" {}
-
+	return testAccAWSEmrClusterConfigBaseVpc(false) + fmt.Sprintf(`
 resource "aws_emr_cluster" "tf-test-cluster" {
   applications                      = ["Spark"]
   core_instance_count               = 1
@@ -3385,92 +3150,20 @@ resource "aws_emr_cluster" "tf-test-cluster" {
   termination_protection            = false
 
   ec2_attributes {
-    emr_managed_master_security_group = "${aws_security_group.allow_all.id}"
-    emr_managed_slave_security_group  = "${aws_security_group.allow_all.id}"
+    emr_managed_master_security_group = "${aws_security_group.test.id}"
+    emr_managed_slave_security_group  = "${aws_security_group.test.id}"
     instance_profile                  = "EMR_EC2_DefaultRole"
-    subnet_id                         = "${aws_subnet.main.0.id}"
+    subnet_id                         = "${aws_subnet.test.id}"
   }
 
   %[2]s
 
-  depends_on = ["aws_main_route_table_association.a"]
+  depends_on = ["aws_route_table_association.test"]
 }
 
 resource "aws_s3_bucket" "test" {
   bucket        = "tf-acc-test-%[1]d"
   force_destroy = true
-}
-
-resource "aws_security_group" "allow_all" {
-  name        = "allow_all_%[1]d"
-  description = "Allow all inbound traffic"
-  vpc_id      = "${aws_vpc.main.id}"
-
-  ingress {
-    from_port = 0
-    to_port   = 0
-    protocol  = "-1"
-    self      = true
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  depends_on = ["aws_subnet.main"]
-
-  lifecycle {
-    ignore_changes = ["ingress", "egress"]
-  }
-
-  tags = {
-    Name = "emr_test"
-  }
-}
-
-resource "aws_vpc" "main" {
-  cidr_block           = "10.0.0.0/16"
-  enable_dns_hostnames = true
-
-  tags = {
-    Name = "terraform-testacc-emr-cluster-step"
-  }
-}
-
-resource "aws_subnet" "main" {
-  availability_zone = "${element(data.aws_availability_zones.available.names, count.index)}"
-  count             = 2
-  cidr_block        = "10.0.${count.index}.0/24"
-  vpc_id            = "${aws_vpc.main.id}"
-
-  tags = {
-    Name = "terraform-testacc-emr-cluster-step"
-  }
-}
-
-resource "aws_internet_gateway" "gw" {
-  vpc_id = "${aws_vpc.main.id}"
-
-  tags = {
-    Name = "terraform-testacc-emr-cluster-step"
-  }
-}
-
-resource "aws_route_table" "r" {
-  vpc_id = "${aws_vpc.main.id}"
-
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = "${aws_internet_gateway.gw.id}"
-  }
-}
-
-resource "aws_main_route_table_association" "a" {
-  route_table_id = "${aws_route_table.r.id}"
-  vpc_id         = "${aws_vpc.main.id}"
 }
 `, rInt, stepConfig)
 }
@@ -3797,16 +3490,16 @@ resource "aws_emr_cluster" "test" {
 }
 
 func testAccAWSEmrClusterConfigInstanceGroups(r int) string {
-	return fmt.Sprintf(`
+	return testAccAWSEmrClusterConfigBaseVpc(false) + fmt.Sprintf(`
 resource "aws_emr_cluster" "tf-test-cluster" {
   name          = "emr-test-%[1]d"
   release_label = "emr-4.6.0"
   applications  = ["Spark"]
 
   ec2_attributes {
-    subnet_id                         = "${aws_subnet.main.id}"
-    emr_managed_master_security_group = "${aws_security_group.allow_all.id}"
-    emr_managed_slave_security_group  = "${aws_security_group.allow_all.id}"
+    subnet_id                         = "${aws_subnet.test.id}"
+    emr_managed_master_security_group = "${aws_security_group.test.id}"
+    emr_managed_slave_security_group  = "${aws_security_group.test.id}"
     instance_profile                  = "${aws_iam_instance_profile.emr_profile.arn}"
   }
 
@@ -3882,76 +3575,10 @@ EOT
 
   configurations = "test-fixtures/emr_configurations.json"
 
-  depends_on = ["aws_main_route_table_association.a"]
+  depends_on = ["aws_route_table_association.test"]
 
   service_role     = "${aws_iam_role.iam_emr_default_role.arn}"
   autoscaling_role = "${aws_iam_role.emr-autoscaling-role.arn}"
-}
-
-resource "aws_security_group" "allow_all" {
-  name        = "allow_all_%[1]d"
-  description = "Allow all inbound traffic"
-  vpc_id      = "${aws_vpc.main.id}"
-
-  ingress {
-    from_port = 0
-    to_port   = 0
-    protocol  = "-1"
-    self      = true
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  depends_on = ["aws_subnet.main"]
-
-  lifecycle {
-    ignore_changes = ["ingress", "egress"]
-  }
-
-  tags = {
-    Name = "emr_test"
-  }
-}
-
-resource "aws_vpc" "main" {
-  cidr_block           = "168.31.0.0/16"
-  enable_dns_hostnames = true
-
-  tags = {
-    Name = "terraform-testacc-emr-cluster-instance-groups"
-  }
-}
-
-resource "aws_subnet" "main" {
-  vpc_id     = "${aws_vpc.main.id}"
-  cidr_block = "168.31.0.0/20"
-
-  tags = {
-    Name = "tf-acc-emr-cluster-instance-groups"
-  }
-}
-
-resource "aws_internet_gateway" "gw" {
-  vpc_id = "${aws_vpc.main.id}"
-}
-
-resource "aws_route_table" "r" {
-  vpc_id = "${aws_vpc.main.id}"
-
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = "${aws_internet_gateway.gw.id}"
-  }
-}
-
-resource "aws_main_route_table_association" "a" {
-  vpc_id         = "${aws_vpc.main.id}"
-  route_table_id = "${aws_route_table.r.id}"
 }
 
 ###
@@ -4150,16 +3777,16 @@ resource "aws_iam_role_policy_attachment" "emr-autoscaling-role" {
 }
 
 func testAccAWSEmrClusterConfigInstanceGroupsName(r int) string {
-	return fmt.Sprintf(`
+	return testAccAWSEmrClusterConfigBaseVpc(false) + fmt.Sprintf(`
 resource "aws_emr_cluster" "tf-test-cluster" {
   name          = "emr-test-%[1]d"
   release_label = "emr-4.6.0"
   applications  = ["Spark"]
 
   ec2_attributes {
-    subnet_id                         = "${aws_subnet.main.id}"
-    emr_managed_master_security_group = "${aws_security_group.allow_all.id}"
-    emr_managed_slave_security_group  = "${aws_security_group.allow_all.id}"
+    subnet_id                         = "${aws_subnet.test.id}"
+    emr_managed_master_security_group = "${aws_security_group.test.id}"
+    emr_managed_slave_security_group  = "${aws_security_group.test.id}"
     instance_profile                  = "${aws_iam_instance_profile.emr_profile.arn}"
   }
 
@@ -4216,76 +3843,10 @@ resource "aws_emr_cluster" "tf-test-cluster" {
 
   configurations = "test-fixtures/emr_configurations.json"
 
-  depends_on = ["aws_main_route_table_association.a"]
+  depends_on = ["aws_route_table_association.test"]
 
   service_role     = "${aws_iam_role.iam_emr_default_role.arn}"
   autoscaling_role = "${aws_iam_role.emr-autoscaling-role.arn}"
-}
-
-resource "aws_security_group" "allow_all" {
-  name        = "allow_all_%[1]d"
-  description = "Allow all inbound traffic"
-  vpc_id      = "${aws_vpc.main.id}"
-
-  ingress {
-    from_port = 0
-    to_port   = 0
-    protocol  = "-1"
-    self      = true
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  depends_on = ["aws_subnet.main"]
-
-  lifecycle {
-    ignore_changes = ["ingress", "egress"]
-  }
-
-  tags = {
-    Name = "emr_test"
-  }
-}
-
-resource "aws_vpc" "main" {
-  cidr_block           = "168.31.0.0/16"
-  enable_dns_hostnames = true
-
-  tags = {
-    Name = "terraform-testacc-emr-cluster-instance-groups"
-  }
-}
-
-resource "aws_subnet" "main" {
-  vpc_id     = "${aws_vpc.main.id}"
-  cidr_block = "168.31.0.0/20"
-
-  tags = {
-    Name = "tf-acc-emr-cluster-instance-groups"
-  }
-}
-
-resource "aws_internet_gateway" "gw" {
-  vpc_id = "${aws_vpc.main.id}"
-}
-
-resource "aws_route_table" "r" {
-  vpc_id = "${aws_vpc.main.id}"
-
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = "${aws_internet_gateway.gw.id}"
-  }
-}
-
-resource "aws_main_route_table_association" "a" {
-  vpc_id         = "${aws_vpc.main.id}"
-  route_table_id = "${aws_route_table.r.id}"
 }
 
 ###
@@ -4484,16 +4045,16 @@ resource "aws_iam_role_policy_attachment" "emr-autoscaling-role" {
 }
 
 func testAccAWSEmrClusterConfigInstanceGroupsUpdate(r int) string {
-	return fmt.Sprintf(`
+	return testAccAWSEmrClusterConfigBaseVpc(false) + fmt.Sprintf(`
 resource "aws_emr_cluster" "tf-test-cluster" {
   name          = "emr-test-%[1]d"
   release_label = "emr-4.6.0"
   applications  = ["Spark"]
 
   ec2_attributes {
-    subnet_id                         = "${aws_subnet.main.id}"
-    emr_managed_master_security_group = "${aws_security_group.allow_all.id}"
-    emr_managed_slave_security_group  = "${aws_security_group.allow_all.id}"
+    subnet_id                         = "${aws_subnet.test.id}"
+    emr_managed_master_security_group = "${aws_security_group.test.id}"
+    emr_managed_slave_security_group  = "${aws_security_group.test.id}"
     instance_profile                  = "${aws_iam_instance_profile.emr_profile.arn}"
   }
 
@@ -4569,76 +4130,10 @@ EOT
 
   configurations = "test-fixtures/emr_configurations.json"
 
-  depends_on = ["aws_main_route_table_association.a"]
+  depends_on = ["aws_route_table_association.test"]
 
   service_role     = "${aws_iam_role.iam_emr_default_role.arn}"
   autoscaling_role = "${aws_iam_role.emr-autoscaling-role.arn}"
-}
-
-resource "aws_security_group" "allow_all" {
-  name        = "allow_all_%[1]d"
-  description = "Allow all inbound traffic"
-  vpc_id      = "${aws_vpc.main.id}"
-
-  ingress {
-    from_port = 0
-    to_port   = 0
-    protocol  = "-1"
-    self      = true
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  depends_on = ["aws_subnet.main"]
-
-  lifecycle {
-    ignore_changes = ["ingress", "egress"]
-  }
-
-  tags = {
-    Name = "emr_test"
-  }
-}
-
-resource "aws_vpc" "main" {
-  cidr_block           = "168.31.0.0/16"
-  enable_dns_hostnames = true
-
-  tags = {
-    Name = "terraform-testacc-emr-cluster-instance-groups"
-  }
-}
-
-resource "aws_subnet" "main" {
-  vpc_id     = "${aws_vpc.main.id}"
-  cidr_block = "168.31.0.0/20"
-
-  tags = {
-    Name = "tf-acc-emr-cluster-instance-groups"
-  }
-}
-
-resource "aws_internet_gateway" "gw" {
-  vpc_id = "${aws_vpc.main.id}"
-}
-
-resource "aws_route_table" "r" {
-  vpc_id = "${aws_vpc.main.id}"
-
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = "${aws_internet_gateway.gw.id}"
-  }
-}
-
-resource "aws_main_route_table_association" "a" {
-  vpc_id         = "${aws_vpc.main.id}"
-  route_table_id = "${aws_route_table.r.id}"
 }
 
 ###
@@ -4837,16 +4332,16 @@ resource "aws_iam_role_policy_attachment" "emr-autoscaling-role" {
 }
 
 func testAccAWSEmrClusterConfigInstanceGroups_st1(r int) string {
-	return fmt.Sprintf(`
+	return testAccAWSEmrClusterConfigBaseVpc(false) + fmt.Sprintf(`
 resource "aws_emr_cluster" "tf-test-cluster" {
   name          = "emr-test-%[1]d"
   release_label = "emr-4.6.0"
   applications  = ["Spark"]
 
   ec2_attributes {
-    subnet_id                         = "${aws_subnet.main.id}"
-    emr_managed_master_security_group = "${aws_security_group.allow_all.id}"
-    emr_managed_slave_security_group  = "${aws_security_group.allow_all.id}"
+    subnet_id                         = "${aws_subnet.test.id}"
+    emr_managed_master_security_group = "${aws_security_group.test.id}"
+    emr_managed_slave_security_group  = "${aws_security_group.test.id}"
     instance_profile                  = "${aws_iam_instance_profile.emr_profile.arn}"
   }
 
@@ -4920,76 +4415,10 @@ EOT
     args = ["instance.isMaster=true", "echo running on master node"]
   }
 
-  depends_on = ["aws_main_route_table_association.a"]
+  depends_on = ["aws_route_table_association.test"]
 
   service_role     = "${aws_iam_role.iam_emr_default_role.arn}"
   autoscaling_role = "${aws_iam_role.emr-autoscaling-role.arn}"
-}
-
-resource "aws_security_group" "allow_all" {
-  name        = "allow_all_%[1]d"
-  description = "Allow all inbound traffic"
-  vpc_id      = "${aws_vpc.main.id}"
-
-  ingress {
-    from_port = 0
-    to_port   = 0
-    protocol  = "-1"
-    self      = true
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  depends_on = ["aws_subnet.main"]
-
-  lifecycle {
-    ignore_changes = ["ingress", "egress"]
-  }
-
-  tags = {
-    Name = "emr_test"
-  }
-}
-
-resource "aws_vpc" "main" {
-  cidr_block           = "168.31.0.0/16"
-  enable_dns_hostnames = true
-
-  tags = {
-    Name = "terraform-testacc-emr-cluster-instance-groups"
-  }
-}
-
-resource "aws_subnet" "main" {
-  vpc_id     = "${aws_vpc.main.id}"
-  cidr_block = "168.31.0.0/20"
-
-  tags = {
-    Name = "tf-acc-emr-cluster-instance-groups"
-  }
-}
-
-resource "aws_internet_gateway" "gw" {
-  vpc_id = "${aws_vpc.main.id}"
-}
-
-resource "aws_route_table" "r" {
-  vpc_id = "${aws_vpc.main.id}"
-
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = "${aws_internet_gateway.gw.id}"
-  }
-}
-
-resource "aws_main_route_table_association" "a" {
-  vpc_id         = "${aws_vpc.main.id}"
-  route_table_id = "${aws_route_table.r.id}"
 }
 
 ###
@@ -5188,16 +4617,16 @@ resource "aws_iam_role_policy_attachment" "emr-autoscaling-role" {
 }
 
 func testAccAWSEmrClusterConfigInstanceGroups_updateAutoScalingPolicy(r int) string {
-	return fmt.Sprintf(`
+	return testAccAWSEmrClusterConfigBaseVpc(false) + fmt.Sprintf(`
 resource "aws_emr_cluster" "tf-test-cluster" {
   name          = "emr-test-%[1]d"
   release_label = "emr-4.6.0"
   applications  = ["Spark"]
 
   ec2_attributes {
-    subnet_id                         = "${aws_subnet.main.id}"
-    emr_managed_master_security_group = "${aws_security_group.allow_all.id}"
-    emr_managed_slave_security_group  = "${aws_security_group.allow_all.id}"
+    subnet_id                         = "${aws_subnet.test.id}"
+    emr_managed_master_security_group = "${aws_security_group.test.id}"
+    emr_managed_slave_security_group  = "${aws_security_group.test.id}"
     instance_profile                  = "${aws_iam_instance_profile.emr_profile.arn}"
   }
 
@@ -5271,76 +4700,10 @@ EOT
     args = ["instance.isMaster=true", "echo running on master node"]
   }
 
-  depends_on = ["aws_main_route_table_association.a"]
+  depends_on = ["aws_route_table_association.test"]
 
   service_role     = "${aws_iam_role.iam_emr_default_role.arn}"
   autoscaling_role = "${aws_iam_role.emr-autoscaling-role.arn}"
-}
-
-resource "aws_security_group" "allow_all" {
-  name        = "allow_all_%[1]d"
-  description = "Allow all inbound traffic"
-  vpc_id      = "${aws_vpc.main.id}"
-
-  ingress {
-    from_port = 0
-    to_port   = 0
-    protocol  = "-1"
-    self      = true
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  depends_on = ["aws_subnet.main"]
-
-  lifecycle {
-    ignore_changes = ["ingress", "egress"]
-  }
-
-  tags = {
-    Name = "emr_test"
-  }
-}
-
-resource "aws_vpc" "main" {
-  cidr_block           = "168.31.0.0/16"
-  enable_dns_hostnames = true
-
-  tags = {
-    Name = "terraform-testacc-emr-cluster-instance-groups"
-  }
-}
-
-resource "aws_subnet" "main" {
-  vpc_id     = "${aws_vpc.main.id}"
-  cidr_block = "168.31.0.0/20"
-
-  tags = {
-    Name = "tf-acc-emr-cluster-instance-groups"
-  }
-}
-
-resource "aws_internet_gateway" "gw" {
-  vpc_id = "${aws_vpc.main.id}"
-}
-
-resource "aws_route_table" "r" {
-  vpc_id = "${aws_vpc.main.id}"
-
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = "${aws_internet_gateway.gw.id}"
-  }
-}
-
-resource "aws_main_route_table_association" "a" {
-  vpc_id         = "${aws_vpc.main.id}"
-  route_table_id = "${aws_route_table.r.id}"
 }
 
 ###
@@ -5538,6 +4901,29 @@ resource "aws_iam_role_policy_attachment" "emr-autoscaling-role" {
 `, r)
 }
 
+func testAccAWSEmrClusterConfigEc2AttributesDefaultManagedSecurityGroups(rName string) string {
+	return testAccAWSEmrClusterConfigBaseVpc(false) + fmt.Sprintf(`
+resource "aws_emr_cluster" "tf-test-cluster" {
+  applications                      = ["Spark"]
+  keep_job_flow_alive_when_no_steps = true
+  name                              = %[1]q
+  release_label                     = "emr-5.28.0"
+  service_role                      = "EMR_DefaultRole"
+
+  ec2_attributes {
+    instance_profile = "EMR_EC2_DefaultRole"
+    subnet_id        = "${aws_subnet.test.id}"
+  }
+
+  master_instance_group {
+    instance_type = "m4.large"
+  }
+
+  depends_on = ["aws_route_table_association.test"]
+}
+`, rName)
+}
+
 func testAccAWSEmrClusterConfigMasterInstanceGroupBidPrice(rName, bidPrice string) string {
 	return testAccAWSEmrClusterConfigBaseVpc(false) + fmt.Sprintf(`
 resource "aws_emr_cluster" "test" {
@@ -5672,16 +5058,16 @@ resource "aws_emr_cluster" "test" {
 }
 
 func testAccAWSEmrClusterConfigTerminationPolicy(r int, term string) string {
-	return fmt.Sprintf(`
+	return testAccAWSEmrClusterConfigBaseVpc(false) + fmt.Sprintf(`
 resource "aws_emr_cluster" "tf-test-cluster" {
   name          = "emr-test-%[1]d"
   release_label = "emr-4.6.0"
   applications  = ["Spark"]
 
   ec2_attributes {
-    subnet_id                         = "${aws_subnet.main.id}"
-    emr_managed_master_security_group = "${aws_security_group.allow_all.id}"
-    emr_managed_slave_security_group  = "${aws_security_group.allow_all.id}"
+    subnet_id                         = "${aws_subnet.test.id}"
+    emr_managed_master_security_group = "${aws_security_group.test.id}"
+    emr_managed_slave_security_group  = "${aws_security_group.test.id}"
     instance_profile                  = "${aws_iam_instance_profile.emr_profile.arn}"
   }
 
@@ -5707,76 +5093,10 @@ resource "aws_emr_cluster" "tf-test-cluster" {
 
   configurations = "test-fixtures/emr_configurations.json"
 
-  depends_on = ["aws_main_route_table_association.a"]
+  depends_on = ["aws_route_table_association.test"]
 
   service_role     = "${aws_iam_role.iam_emr_default_role.arn}"
   autoscaling_role = "${aws_iam_role.emr-autoscaling-role.arn}"
-}
-
-resource "aws_security_group" "allow_all" {
-  name        = "allow_all_%[1]d"
-  description = "Allow all inbound traffic"
-  vpc_id      = "${aws_vpc.main.id}"
-
-  ingress {
-    from_port = 0
-    to_port   = 0
-    protocol  = "-1"
-    self      = true
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  depends_on = ["aws_subnet.main"]
-
-  lifecycle {
-    ignore_changes = ["ingress", "egress"]
-  }
-
-  tags = {
-    Name = "emr_test"
-  }
-}
-
-resource "aws_vpc" "main" {
-  cidr_block           = "168.31.0.0/16"
-  enable_dns_hostnames = true
-
-  tags = {
-    Name = "terraform-testacc-emr-cluster-termination-policy"
-  }
-}
-
-resource "aws_subnet" "main" {
-  vpc_id     = "${aws_vpc.main.id}"
-  cidr_block = "168.31.0.0/20"
-
-  tags = {
-    Name = "tf-acc-emr-cluster-termination-policy"
-  }
-}
-
-resource "aws_internet_gateway" "gw" {
-  vpc_id = "${aws_vpc.main.id}"
-}
-
-resource "aws_route_table" "r" {
-  vpc_id = "${aws_vpc.main.id}"
-
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = "${aws_internet_gateway.gw.id}"
-  }
-}
-
-resource "aws_main_route_table_association" "a" {
-  vpc_id         = "${aws_vpc.main.id}"
-  route_table_id = "${aws_route_table.r.id}"
 }
 
 ###
@@ -5975,16 +5295,16 @@ resource "aws_iam_role_policy_attachment" "emr-autoscaling-role" {
 }
 
 func testAccAWSEmrClusterConfig_keepJob(r int, keepJob string) string {
-	return fmt.Sprintf(`
+	return testAccAWSEmrClusterConfigBaseVpc(false) + fmt.Sprintf(`
 resource "aws_emr_cluster" "tf-test-cluster" {
   name          = "emr-test-%[1]d"
   release_label = "emr-4.6.0"
   applications  = ["Spark"]
 
   ec2_attributes {
-    subnet_id                         = "${aws_subnet.main.id}"
-    emr_managed_master_security_group = "${aws_security_group.allow_all.id}"
-    emr_managed_slave_security_group  = "${aws_security_group.allow_all.id}"
+    subnet_id                         = "${aws_subnet.test.id}"
+    emr_managed_master_security_group = "${aws_security_group.test.id}"
+    emr_managed_slave_security_group  = "${aws_security_group.test.id}"
     instance_profile                  = "${aws_iam_instance_profile.emr_profile.arn}"
   }
 
@@ -6020,76 +5340,10 @@ resource "aws_emr_cluster" "tf-test-cluster" {
 
   configurations = "test-fixtures/emr_configurations.json"
 
-  depends_on = ["aws_main_route_table_association.a"]
+  depends_on = ["aws_route_table_association.test"]
 
   service_role     = "${aws_iam_role.iam_emr_default_role.arn}"
   autoscaling_role = "${aws_iam_role.emr-autoscaling-role.arn}"
-}
-
-resource "aws_security_group" "allow_all" {
-  name        = "allow_all_%[1]d"
-  description = "Allow all inbound traffic"
-  vpc_id      = "${aws_vpc.main.id}"
-
-  ingress {
-    from_port = 0
-    to_port   = 0
-    protocol  = "-1"
-    self      = true
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  depends_on = ["aws_subnet.main"]
-
-  lifecycle {
-    ignore_changes = ["ingress", "egress"]
-  }
-
-  tags = {
-    Name = "emr_test"
-  }
-}
-
-resource "aws_vpc" "main" {
-  cidr_block           = "168.31.0.0/16"
-  enable_dns_hostnames = true
-
-  tags = {
-    Name = "terraform-testacc-emr-cluster-termination-policy"
-  }
-}
-
-resource "aws_subnet" "main" {
-  vpc_id     = "${aws_vpc.main.id}"
-  cidr_block = "168.31.0.0/20"
-
-  tags = {
-    Name = "tf-acc-emr-cluster-termination-policy"
-  }
-}
-
-resource "aws_internet_gateway" "gw" {
-  vpc_id = "${aws_vpc.main.id}"
-}
-
-resource "aws_route_table" "r" {
-  vpc_id = "${aws_vpc.main.id}"
-
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = "${aws_internet_gateway.gw.id}"
-  }
-}
-
-resource "aws_main_route_table_association" "a" {
-  vpc_id         = "${aws_vpc.main.id}"
-  route_table_id = "${aws_route_table.r.id}"
 }
 
 ###
@@ -6288,16 +5542,16 @@ resource "aws_iam_role_policy_attachment" "emr-autoscaling-role" {
 }
 
 func testAccAWSEmrClusterConfigVisibleToAllUsersUpdated(r int) string {
-	return fmt.Sprintf(`
+	return testAccAWSEmrClusterConfigBaseVpc(false) + fmt.Sprintf(`
 resource "aws_emr_cluster" "tf-test-cluster" {
   name          = "emr-test-%d"
   release_label = "emr-4.6.0"
   applications  = ["Spark"]
 
   ec2_attributes {
-    subnet_id                         = "${aws_subnet.main.id}"
-    emr_managed_master_security_group = "${aws_security_group.allow_all.id}"
-    emr_managed_slave_security_group  = "${aws_security_group.allow_all.id}"
+    subnet_id                         = "${aws_subnet.test.id}"
+    emr_managed_master_security_group = "${aws_security_group.test.id}"
+    emr_managed_slave_security_group  = "${aws_security_group.test.id}"
     instance_profile                  = "${aws_iam_instance_profile.emr_profile.arn}"
   }
 
@@ -6323,76 +5577,10 @@ resource "aws_emr_cluster" "tf-test-cluster" {
 
   configurations = "test-fixtures/emr_configurations.json"
 
-  depends_on = ["aws_main_route_table_association.a"]
+  depends_on = ["aws_route_table_association.test"]
 
   service_role     = "${aws_iam_role.iam_emr_default_role.arn}"
   autoscaling_role = "${aws_iam_role.emr-autoscaling-role.arn}"
-}
-
-resource "aws_security_group" "allow_all" {
-  name        = "allow_all_%d"
-  description = "Allow all inbound traffic"
-  vpc_id      = "${aws_vpc.main.id}"
-
-  ingress {
-    from_port = 0
-    to_port   = 0
-    protocol  = "-1"
-    self      = true
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  depends_on = ["aws_subnet.main"]
-
-  lifecycle {
-    ignore_changes = ["ingress", "egress"]
-  }
-
-  tags = {
-    Name = "emr_test"
-  }
-}
-
-resource "aws_vpc" "main" {
-  cidr_block           = "168.31.0.0/16"
-  enable_dns_hostnames = true
-
-  tags = {
-    Name = "terraform-testacc-emr-cluster-visible-to-all-users"
-  }
-}
-
-resource "aws_subnet" "main" {
-  vpc_id     = "${aws_vpc.main.id}"
-  cidr_block = "168.31.0.0/20"
-
-  tags = {
-    Name = "tf-acc-emr-cluster-visible-to-all-users"
-  }
-}
-
-resource "aws_internet_gateway" "gw" {
-  vpc_id = "${aws_vpc.main.id}"
-}
-
-resource "aws_route_table" "r" {
-  vpc_id = "${aws_vpc.main.id}"
-
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = "${aws_internet_gateway.gw.id}"
-  }
-}
-
-resource "aws_main_route_table_association" "a" {
-  vpc_id         = "${aws_vpc.main.id}"
-  route_table_id = "${aws_route_table.r.id}"
 }
 
 ###
@@ -6587,20 +5775,20 @@ resource "aws_iam_role_policy_attachment" "emr-autoscaling-role" {
   role       = "${aws_iam_role.emr-autoscaling-role.name}"
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonElasticMapReduceforAutoScalingRole"
 }
-`, r, r, r, r, r, r, r, r)
+`, r, r, r, r, r, r, r)
 }
 
 func testAccAWSEmrClusterConfigUpdatedTags(r int) string {
-	return fmt.Sprintf(`
+	return testAccAWSEmrClusterConfigBaseVpc(false) + fmt.Sprintf(`
 resource "aws_emr_cluster" "tf-test-cluster" {
   name          = "emr-test-%[1]d"
   release_label = "emr-4.6.0"
   applications  = ["Spark"]
 
   ec2_attributes {
-    subnet_id                         = "${aws_subnet.main.id}"
-    emr_managed_master_security_group = "${aws_security_group.allow_all.id}"
-    emr_managed_slave_security_group  = "${aws_security_group.allow_all.id}"
+    subnet_id                         = "${aws_subnet.test.id}"
+    emr_managed_master_security_group = "${aws_security_group.test.id}"
+    emr_managed_slave_security_group  = "${aws_security_group.test.id}"
     instance_profile                  = "${aws_iam_instance_profile.emr_profile.arn}"
   }
 
@@ -6625,76 +5813,10 @@ resource "aws_emr_cluster" "tf-test-cluster" {
 
   configurations = "test-fixtures/emr_configurations.json"
 
-  depends_on = ["aws_main_route_table_association.a"]
+  depends_on = ["aws_route_table_association.test"]
 
   service_role     = "${aws_iam_role.iam_emr_default_role.arn}"
   autoscaling_role = "${aws_iam_role.emr-autoscaling-role.arn}"
-}
-
-resource "aws_security_group" "allow_all" {
-  name        = "allow_all_%[1]d"
-  description = "Allow all inbound traffic"
-  vpc_id      = "${aws_vpc.main.id}"
-
-  ingress {
-    from_port = 0
-    to_port   = 0
-    protocol  = "-1"
-    self      = true
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  depends_on = ["aws_subnet.main"]
-
-  lifecycle {
-    ignore_changes = ["ingress", "egress"]
-  }
-
-  tags = {
-    Name = "emr_test"
-  }
-}
-
-resource "aws_vpc" "main" {
-  cidr_block           = "168.31.0.0/16"
-  enable_dns_hostnames = true
-
-  tags = {
-    Name = "terraform-testacc-emr-cluster-updated-tags"
-  }
-}
-
-resource "aws_subnet" "main" {
-  vpc_id     = "${aws_vpc.main.id}"
-  cidr_block = "168.31.0.0/20"
-
-  tags = {
-    Name = "tf-acc-emr-cluster-updated-tags"
-  }
-}
-
-resource "aws_internet_gateway" "gw" {
-  vpc_id = "${aws_vpc.main.id}"
-}
-
-resource "aws_route_table" "r" {
-  vpc_id = "${aws_vpc.main.id}"
-
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = "${aws_internet_gateway.gw.id}"
-  }
-}
-
-resource "aws_main_route_table_association" "a" {
-  vpc_id         = "${aws_vpc.main.id}"
-  route_table_id = "${aws_route_table.r.id}"
 }
 
 ###
@@ -6893,16 +6015,16 @@ resource "aws_iam_role_policy_attachment" "emr-autoscaling-role" {
 }
 
 func testAccAWSEmrClusterConfigUpdatedRootVolumeSize(r int) string {
-	return fmt.Sprintf(`
+	return testAccAWSEmrClusterConfigBaseVpc(false) + fmt.Sprintf(`
 resource "aws_emr_cluster" "tf-test-cluster" {
   name          = "emr-test-%d"
   release_label = "emr-4.6.0"
   applications  = ["Spark"]
 
   ec2_attributes {
-    subnet_id                         = "${aws_subnet.main.id}"
-    emr_managed_master_security_group = "${aws_security_group.allow_all.id}"
-    emr_managed_slave_security_group  = "${aws_security_group.allow_all.id}"
+    subnet_id                         = "${aws_subnet.test.id}"
+    emr_managed_master_security_group = "${aws_security_group.test.id}"
+    emr_managed_slave_security_group  = "${aws_security_group.test.id}"
     instance_profile                  = "${aws_iam_instance_profile.emr_profile.arn}"
   }
 
@@ -6928,77 +6050,11 @@ resource "aws_emr_cluster" "tf-test-cluster" {
 
   configurations = "test-fixtures/emr_configurations.json"
 
-  depends_on = ["aws_main_route_table_association.a"]
+  depends_on = ["aws_route_table_association.test"]
 
   service_role         = "${aws_iam_role.iam_emr_default_role.arn}"
   autoscaling_role     = "${aws_iam_role.emr-autoscaling-role.arn}"
   ebs_root_volume_size = 48
-}
-
-resource "aws_security_group" "allow_all" {
-  name        = "allow_all_%d"
-  description = "Allow all inbound traffic"
-  vpc_id      = "${aws_vpc.main.id}"
-
-  ingress {
-    from_port = 0
-    to_port   = 0
-    protocol  = "-1"
-    self      = true
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  depends_on = ["aws_subnet.main"]
-
-  lifecycle {
-    ignore_changes = ["ingress", "egress"]
-  }
-
-  tags = {
-    Name = "emr_test"
-  }
-}
-
-resource "aws_vpc" "main" {
-  cidr_block           = "168.31.0.0/16"
-  enable_dns_hostnames = true
-
-  tags = {
-    Name = "terraform-testacc-emr-cluster-updated-root-volume-size"
-  }
-}
-
-resource "aws_subnet" "main" {
-  vpc_id     = "${aws_vpc.main.id}"
-  cidr_block = "168.31.0.0/20"
-
-  tags = {
-    Name = "tf-acc-emr-cluster-updated-root-volume-size"
-  }
-}
-
-resource "aws_internet_gateway" "gw" {
-  vpc_id = "${aws_vpc.main.id}"
-}
-
-resource "aws_route_table" "r" {
-  vpc_id = "${aws_vpc.main.id}"
-
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = "${aws_internet_gateway.gw.id}"
-  }
-}
-
-resource "aws_main_route_table_association" "a" {
-  vpc_id         = "${aws_vpc.main.id}"
-  route_table_id = "${aws_route_table.r.id}"
 }
 
 ###
@@ -7193,62 +6249,14 @@ resource "aws_iam_role_policy_attachment" "emr-autoscaling-role" {
   role       = "${aws_iam_role.emr-autoscaling-role.name}"
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonElasticMapReduceforAutoScalingRole"
 }
-`, r, r, r, r, r, r, r, r)
+`, r, r, r, r, r, r, r)
 }
 
 func testAccAWSEmrClusterConfigS3Logging(rInt int) string {
-	return fmt.Sprintf(`
+	return testAccAWSEmrClusterConfigBaseVpc(false) + fmt.Sprintf(`
 resource "aws_s3_bucket" "test" {
   bucket        = "tf-acc-test-%d"
   force_destroy = true
-}
-
-resource "aws_vpc" "test" {
-  cidr_block = "10.0.0.0/24"
-
-  tags = {
-    Name = "terraform-testacc-emr-cluster-s3-logging"
-  }
-}
-
-resource "aws_subnet" "test" {
-  vpc_id     = "${aws_vpc.test.id}"
-  cidr_block = "10.0.0.0/24"
-
-  tags = {
-    Name = "tf-acc-emr-cluster-s3-logging"
-  }
-}
-
-resource "aws_internet_gateway" "main" {
-  vpc_id = "${aws_vpc.test.id}"
-}
-
-resource "aws_route_table" "test" {
-  vpc_id = "${aws_vpc.test.id}"
-
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = "${aws_internet_gateway.main.id}"
-  }
-}
-
-resource "aws_route_table_association" "test" {
-  subnet_id      = "${aws_subnet.test.id}"
-  route_table_id = "${aws_route_table.test.id}"
-}
-
-resource "aws_security_group" "test" {
-  name        = "tf-acc-test-%d"
-  description = "tf acceptance test"
-  vpc_id      = "${aws_vpc.test.id}"
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
 }
 
 resource "aws_emr_cluster" "tf-test-cluster" {
@@ -7282,20 +6290,20 @@ resource "aws_emr_cluster" "tf-test-cluster" {
 }
 
 data "aws_caller_identity" "current" {}
-`, rInt, rInt, rInt)
+`, rInt, rInt)
 }
 
 func testAccAWSEmrClusterConfigCustomAmiID(r int) string {
-	return fmt.Sprintf(`
+	return testAccAWSEmrClusterConfigBaseVpc(false) + fmt.Sprintf(`
 resource "aws_emr_cluster" "tf-test-cluster" {
   name          = "emr-test-%d"
   release_label = "emr-5.7.0"
   applications  = ["Spark"]
 
   ec2_attributes {
-    subnet_id                         = "${aws_subnet.main.id}"
-    emr_managed_master_security_group = "${aws_security_group.allow_all.id}"
-    emr_managed_slave_security_group  = "${aws_security_group.allow_all.id}"
+    subnet_id                         = "${aws_subnet.test.id}"
+    emr_managed_master_security_group = "${aws_security_group.test.id}"
+    emr_managed_slave_security_group  = "${aws_security_group.test.id}"
     instance_profile                  = "${aws_iam_instance_profile.emr_profile.arn}"
   }
 
@@ -7321,78 +6329,12 @@ resource "aws_emr_cluster" "tf-test-cluster" {
 
   configurations = "test-fixtures/emr_configurations.json"
 
-  depends_on = ["aws_main_route_table_association.a"]
+  depends_on = ["aws_route_table_association.test"]
 
   service_role         = "${aws_iam_role.iam_emr_default_role.arn}"
   autoscaling_role     = "${aws_iam_role.emr-autoscaling-role.arn}"
   ebs_root_volume_size = 48
   custom_ami_id        = "${data.aws_ami.emr-custom-ami.id}"
-}
-
-resource "aws_security_group" "allow_all" {
-  name        = "allow_all_%d"
-  description = "Allow all inbound traffic"
-  vpc_id      = "${aws_vpc.main.id}"
-
-  ingress {
-    from_port = 0
-    to_port   = 0
-    protocol  = "-1"
-    self      = true
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  depends_on = ["aws_subnet.main"]
-
-  lifecycle {
-    ignore_changes = ["ingress", "egress"]
-  }
-
-  tags = {
-    Name = "emr_test"
-  }
-}
-
-resource "aws_vpc" "main" {
-  cidr_block           = "168.31.0.0/16"
-  enable_dns_hostnames = true
-
-  tags = {
-    Name = "terraform-testacc-emr-cluster-custom-ami-id"
-  }
-}
-
-resource "aws_subnet" "main" {
-  vpc_id     = "${aws_vpc.main.id}"
-  cidr_block = "168.31.0.0/20"
-
-  tags = {
-    Name = "tf-acc-emr-cluster-custom-ami-id"
-  }
-}
-
-resource "aws_internet_gateway" "gw" {
-  vpc_id = "${aws_vpc.main.id}"
-}
-
-resource "aws_route_table" "r" {
-  vpc_id = "${aws_vpc.main.id}"
-
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = "${aws_internet_gateway.gw.id}"
-  }
-}
-
-resource "aws_main_route_table_association" "a" {
-  vpc_id         = "${aws_vpc.main.id}"
-  route_table_id = "${aws_route_table.r.id}"
 }
 
 ###
@@ -7613,5 +6555,32 @@ data "aws_ami" "emr-custom-ami" {
     values = ["hvm"]
   }
 }
-`, r, r, r, r, r, r, r, r)
+`, r, r, r, r, r, r, r)
+}
+
+func testAccAWSEmrClusterConfigStepConcurrencyLevel(rName string, stepConcurrencyLevel int) string {
+	return testAccAWSEmrClusterConfigBaseVpc(false) + fmt.Sprintf(`
+resource "aws_emr_cluster" "tf-test-cluster" {
+  applications                      = ["Spark"]
+  keep_job_flow_alive_when_no_steps = true
+  name                              = %[1]q
+  release_label                     = "emr-5.28.0"
+  service_role                      = "EMR_DefaultRole"
+
+  ec2_attributes {
+    emr_managed_master_security_group = "${aws_security_group.test.id}"
+    emr_managed_slave_security_group  = "${aws_security_group.test.id}"
+    instance_profile                  = "EMR_EC2_DefaultRole"
+    subnet_id                         = "${aws_subnet.test.id}"
+  }
+
+  master_instance_group {
+    instance_type = "m4.large"
+  }
+
+  step_concurrency_level = %[2]d
+
+  depends_on = ["aws_route_table_association.test"]
+}
+`, rName, stepConcurrencyLevel)
 }

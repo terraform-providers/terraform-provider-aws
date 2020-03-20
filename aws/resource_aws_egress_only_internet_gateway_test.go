@@ -63,6 +63,8 @@ func testSweepEc2EgressOnlyInternetGateways(region string) error {
 
 func TestAccAWSEgressOnlyInternetGateway_basic(t *testing.T) {
 	var igw ec2.EgressOnlyInternetGateway
+	resourceName := "aws_egress_only_internet_gateway.test"
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -71,8 +73,13 @@ func TestAccAWSEgressOnlyInternetGateway_basic(t *testing.T) {
 			{
 				Config: testAccAWSEgressOnlyInternetGatewayConfig_basic,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckAWSEgressOnlyInternetGatewayExists("aws_egress_only_internet_gateway.foo", &igw),
+					testAccCheckAWSEgressOnlyInternetGatewayExists(resourceName, &igw),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -132,15 +139,16 @@ func testAccCheckAWSEgressOnlyInternetGatewayExists(n string, igw *ec2.EgressOnl
 }
 
 const testAccAWSEgressOnlyInternetGatewayConfig_basic = `
-resource "aws_vpc" "foo" {
-	cidr_block = "10.1.0.0/16"
-	assign_generated_ipv6_cidr_block = true
-	tags = {
-		Name = "terraform-testacc-egress-only-igw-basic"
-	}
+resource "aws_vpc" "test" {
+  cidr_block                       = "10.1.0.0/16"
+  assign_generated_ipv6_cidr_block = true
+
+  tags = {
+    Name = "terraform-testacc-egress-only-igw-basic"
+  }
 }
 
-resource "aws_egress_only_internet_gateway" "foo" {
-  	vpc_id = "${aws_vpc.foo.id}"
+resource "aws_egress_only_internet_gateway" "test" {
+  vpc_id = "${aws_vpc.test.id}"
 }
 `

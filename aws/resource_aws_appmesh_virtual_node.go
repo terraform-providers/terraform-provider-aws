@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsAppmeshVirtualNode() *schema.Resource {
@@ -235,12 +236,13 @@ func resourceAwsAppmeshVirtualNode() *schema.Resource {
 												"namespace_name": {
 													Type:         schema.TypeString,
 													Required:     true,
-													ValidateFunc: validateServiceDiscoveryHttpNamespaceName,
+													ValidateFunc: validation.StringLenBetween(1, 1024),
 												},
 
 												"service_name": {
-													Type:     schema.TypeString,
-													Required: true,
+													Type:         schema.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringLenBetween(1, 1024),
 												},
 											},
 										},
@@ -303,7 +305,7 @@ func resourceAwsAppmeshVirtualNodeCreate(d *schema.ResourceData, meta interface{
 		MeshName:        aws.String(d.Get("mesh_name").(string)),
 		VirtualNodeName: aws.String(d.Get("name").(string)),
 		Spec:            expandAppmeshVirtualNodeSpec(d.Get("spec").([]interface{})),
-		Tags:            tagsFromMapAppmesh(d.Get("tags").(map[string]interface{})),
+		Tags:            keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().AppmeshTags(),
 	}
 
 	log.Printf("[DEBUG] Creating App Mesh virtual node: %#v", req)
@@ -338,9 +340,10 @@ func resourceAwsAppmeshVirtualNodeRead(d *schema.ResourceData, meta interface{})
 		return nil
 	}
 
+	arn := aws.StringValue(resp.VirtualNode.Metadata.Arn)
 	d.Set("name", resp.VirtualNode.VirtualNodeName)
 	d.Set("mesh_name", resp.VirtualNode.MeshName)
-	d.Set("arn", resp.VirtualNode.Metadata.Arn)
+	d.Set("arn", arn)
 	d.Set("created_date", resp.VirtualNode.Metadata.CreatedAt.Format(time.RFC3339))
 	d.Set("last_updated_date", resp.VirtualNode.Metadata.LastUpdatedAt.Format(time.RFC3339))
 	err = d.Set("spec", flattenAppmeshVirtualNodeSpec(resp.VirtualNode.Spec))
@@ -348,14 +351,14 @@ func resourceAwsAppmeshVirtualNodeRead(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("error setting spec: %s", err)
 	}
 
-	err = saveTagsAppmesh(conn, d, aws.StringValue(resp.VirtualNode.Metadata.Arn))
-	if isAWSErr(err, appmesh.ErrCodeNotFoundException, "") {
-		log.Printf("[WARN] App Mesh virtual node (%s) not found, removing from state", d.Id())
-		d.SetId("")
-		return nil
-	}
+	tags, err := keyvaluetags.AppmeshListTags(conn, arn)
+
 	if err != nil {
-		return fmt.Errorf("error saving tags: %s", err)
+		return fmt.Errorf("error listing tags for App Mesh virtual node (%s): %s", arn, err)
+	}
+
+	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+		return fmt.Errorf("error setting tags: %s", err)
 	}
 
 	return nil
@@ -379,14 +382,13 @@ func resourceAwsAppmeshVirtualNodeUpdate(d *schema.ResourceData, meta interface{
 		}
 	}
 
-	err := setTagsAppmesh(conn, d, d.Get("arn").(string))
-	if isAWSErr(err, appmesh.ErrCodeNotFoundException, "") {
-		log.Printf("[WARN] App Mesh virtual node (%s) not found, removing from state", d.Id())
-		d.SetId("")
-		return nil
-	}
-	if err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	arn := d.Get("arn").(string)
+	if d.HasChange("tags") {
+		o, n := d.GetChange("tags")
+
+		if err := keyvaluetags.AppmeshUpdateTags(conn, arn, o, n); err != nil {
+			return fmt.Errorf("error updating App Mesh virtual node (%s) tags: %s", arn, err)
+		}
 	}
 
 	return resourceAwsAppmeshVirtualNodeRead(d, meta)

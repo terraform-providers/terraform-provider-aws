@@ -1,4 +1,5 @@
 ---
+subcategory: "CodeDeploy"
 layout: "aws"
 page_title: "AWS: aws_codedeploy_app"
 description: |-

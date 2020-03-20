@@ -31,7 +31,7 @@ var initRequest func(*request.Request)
 const (
 	ServiceName = "DocDB" // Name of service.
 	EndpointsID = "rds"   // ID to lookup a service endpoint with.
-	ServiceID   = "DocDB" // ServiceID is a unique identifer of a specific service.
+	ServiceID   = "DocDB" // ServiceID is a unique identifier of a specific service.
 )
 
 // New creates a new instance of the DocDB client with a session.
@@ -39,6 +39,8 @@ const (
 // aws.Config parameter to add your extra config.
 //
 // Example:
+//     mySession := session.Must(session.NewSession())
+//
 //     // Create a DocDB client from just a session.
 //     svc := docdb.New(mySession)
 //

@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/mitchellh/copystructure"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsMqBroker() *schema.Resource {
@@ -163,7 +164,6 @@ func resourceAwsMqBroker() *schema.Resource {
 				Type:     schema.TypeSet,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 				Required: true,
-				ForceNew: true,
 			},
 			"subnet_ids": {
 				Type:     schema.TypeSet,
@@ -264,7 +264,7 @@ func resourceAwsMqBrokerCreate(d *schema.ResourceData, meta interface{}) error {
 		input.SubnetIds = expandStringList(v.(*schema.Set).List())
 	}
 	if v, ok := d.GetOk("tags"); ok {
-		input.Tags = tagsFromMapGeneric(v.(map[string]interface{}))
+		input.Tags = keyvaluetags.New(v.(map[string]interface{})).IgnoreAws().MqTags()
 	}
 
 	log.Printf("[INFO] Creating MQ Broker: %s", input)
@@ -376,11 +376,31 @@ func resourceAwsMqBrokerRead(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	return getTagsMQ(conn, d, aws.StringValue(out.BrokerArn))
+	tags, err := keyvaluetags.MqListTags(conn, aws.StringValue(out.BrokerArn))
+	if err != nil {
+		return fmt.Errorf("error listing tags for MQ Broker (%s): %s", d.Id(), err)
+	}
+	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+		return fmt.Errorf("error setting tags: %s", err)
+	}
+
+	return nil
 }
 
 func resourceAwsMqBrokerUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).mqconn
+
+	requiresReboot := false
+
+	if d.HasChange("security_groups") {
+		_, err := conn.UpdateBroker(&mq.UpdateBrokerRequest{
+			BrokerId:       aws.String(d.Id()),
+			SecurityGroups: expandStringSet(d.Get("security_groups").(*schema.Set)),
+		})
+		if err != nil {
+			return fmt.Errorf("error updating MQ Broker (%s) security groups: %s", d.Id(), err)
+		}
+	}
 
 	if d.HasChange("configuration") || d.HasChange("logs") {
 		_, err := conn.UpdateBroker(&mq.UpdateBrokerRequest{
@@ -389,25 +409,34 @@ func resourceAwsMqBrokerUpdate(d *schema.ResourceData, meta interface{}) error {
 			Logs:          expandMqLogs(d.Get("logs").([]interface{})),
 		})
 		if err != nil {
-			return err
+			return fmt.Errorf("error updating MQ Broker (%s) configuration: %s", d.Id(), err)
 		}
+		requiresReboot = true
 	}
 
 	if d.HasChange("user") {
 		o, n := d.GetChange("user")
-		err := updateAwsMqBrokerUsers(conn, d.Id(),
+		var err error
+		// d.HasChange("user") always reports a change when running resourceAwsMqBrokerUpdate
+		// updateAwsMqBrokerUsers needs to be called to know if changes to user are actually made
+		var usersUpdated bool
+		usersUpdated, err = updateAwsMqBrokerUsers(conn, d.Id(),
 			o.(*schema.Set).List(), n.(*schema.Set).List())
 		if err != nil {
-			return err
+			return fmt.Errorf("error updating MQ Broker (%s) user: %s", d.Id(), err)
+		}
+
+		if usersUpdated {
+			requiresReboot = true
 		}
 	}
 
-	if d.Get("apply_immediately").(bool) {
+	if d.Get("apply_immediately").(bool) && requiresReboot {
 		_, err := conn.RebootBroker(&mq.RebootBrokerInput{
 			BrokerId: aws.String(d.Id()),
 		})
 		if err != nil {
-			return err
+			return fmt.Errorf("error rebooting MQ Broker (%s): %s", d.Id(), err)
 		}
 
 		stateConf := resource.StateChangeConf{
@@ -434,8 +463,12 @@ func resourceAwsMqBrokerUpdate(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
-	if tagErr := setTagsMQ(conn, d, d.Get("arn").(string)); tagErr != nil {
-		return fmt.Errorf("error setting mq broker tags: %s", tagErr)
+	if d.HasChange("tags") {
+		o, n := d.GetChange("tags")
+
+		if err := keyvaluetags.MqUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
+			return fmt.Errorf("error updating MQ Broker (%s) tags: %s", d.Get("arn").(string), err)
+		}
 	}
 
 	return nil
@@ -502,32 +535,38 @@ func waitForMqBrokerDeletion(conn *mq.MQ, id string) error {
 	return err
 }
 
-func updateAwsMqBrokerUsers(conn *mq.MQ, bId string, oldUsers, newUsers []interface{}) error {
+func updateAwsMqBrokerUsers(conn *mq.MQ, bId string, oldUsers, newUsers []interface{}) (bool, error) {
+	// If there are any user creates/deletes/updates, updatedUsers will be set to true
+	updatedUsers := false
+
 	createL, deleteL, updateL, err := diffAwsMqBrokerUsers(bId, oldUsers, newUsers)
 	if err != nil {
-		return err
+		return updatedUsers, err
 	}
 
 	for _, c := range createL {
 		_, err := conn.CreateUser(c)
+		updatedUsers = true
 		if err != nil {
-			return err
+			return updatedUsers, err
 		}
 	}
 	for _, d := range deleteL {
 		_, err := conn.DeleteUser(d)
+		updatedUsers = true
 		if err != nil {
-			return err
+			return updatedUsers, err
 		}
 	}
 	for _, u := range updateL {
 		_, err := conn.UpdateUser(u)
+		updatedUsers = true
 		if err != nil {
-			return err
+			return updatedUsers, err
 		}
 	}
 
-	return nil
+	return updatedUsers, nil
 }
 
 func diffAwsMqBrokerUsers(bId string, oldUsers, newUsers []interface{}) (

@@ -3,6 +3,7 @@
 package ram
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -65,35 +66,35 @@ func (c *RAM) AcceptResourceShareInvitationRequest(input *AcceptResourceShareInv
 // See the AWS API reference guide for AWS Resource Access Manager's
 // API operation AcceptResourceShareInvitation for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeMalformedArnException "MalformedArnException"
+// Returned Error Types:
+//   * MalformedArnException
 //   The format of an Amazon Resource Name (ARN) is not valid.
 //
-//   * ErrCodeOperationNotPermittedException "OperationNotPermittedException"
+//   * OperationNotPermittedException
 //   The requested operation is not permitted.
 //
-//   * ErrCodeResourceShareInvitationArnNotFoundException "ResourceShareInvitationArnNotFoundException"
+//   * ResourceShareInvitationArnNotFoundException
 //   The Amazon Resource Name (ARN) for an invitation was not found.
 //
-//   * ErrCodeResourceShareInvitationAlreadyAcceptedException "ResourceShareInvitationAlreadyAcceptedException"
+//   * ResourceShareInvitationAlreadyAcceptedException
 //   The invitation was already accepted.
 //
-//   * ErrCodeResourceShareInvitationAlreadyRejectedException "ResourceShareInvitationAlreadyRejectedException"
+//   * ResourceShareInvitationAlreadyRejectedException
 //   The invitation was already rejected.
 //
-//   * ErrCodeResourceShareInvitationExpiredException "ResourceShareInvitationExpiredException"
+//   * ResourceShareInvitationExpiredException
 //   The invitation is expired.
 //
-//   * ErrCodeServerInternalException "ServerInternalException"
+//   * ServerInternalException
 //   The service could not respond to the request due to an internal problem.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   The service is not available.
 //
-//   * ErrCodeInvalidClientTokenException "InvalidClientTokenException"
+//   * InvalidClientTokenException
 //   A client token is not valid.
 //
-//   * ErrCodeIdempotentParameterMismatchException "IdempotentParameterMismatchException"
+//   * IdempotentParameterMismatchException
 //   A client token input parameter was reused with an operation, but at least
 //   one of the other input parameters is different from the previous call to
 //   the operation.
@@ -174,43 +175,43 @@ func (c *RAM) AssociateResourceShareRequest(input *AssociateResourceShareInput) 
 // See the AWS API reference guide for AWS Resource Access Manager's
 // API operation AssociateResourceShare for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeIdempotentParameterMismatchException "IdempotentParameterMismatchException"
+// Returned Error Types:
+//   * IdempotentParameterMismatchException
 //   A client token input parameter was reused with an operation, but at least
 //   one of the other input parameters is different from the previous call to
 //   the operation.
 //
-//   * ErrCodeUnknownResourceException "UnknownResourceException"
+//   * UnknownResourceException
 //   A specified resource was not found.
 //
-//   * ErrCodeInvalidStateTransitionException "InvalidStateTransitionException"
+//   * InvalidStateTransitionException
 //   The requested state transition is not valid.
 //
-//   * ErrCodeResourceShareLimitExceededException "ResourceShareLimitExceededException"
+//   * ResourceShareLimitExceededException
 //   The requested resource share exceeds the limit for your account.
 //
-//   * ErrCodeMalformedArnException "MalformedArnException"
+//   * MalformedArnException
 //   The format of an Amazon Resource Name (ARN) is not valid.
 //
-//   * ErrCodeInvalidStateTransitionException "InvalidStateTransitionException"
+//   * InvalidStateTransitionException
 //   The requested state transition is not valid.
 //
-//   * ErrCodeInvalidClientTokenException "InvalidClientTokenException"
+//   * InvalidClientTokenException
 //   A client token is not valid.
 //
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+//   * InvalidParameterException
 //   A parameter is not valid.
 //
-//   * ErrCodeOperationNotPermittedException "OperationNotPermittedException"
+//   * OperationNotPermittedException
 //   The requested operation is not permitted.
 //
-//   * ErrCodeServerInternalException "ServerInternalException"
+//   * ServerInternalException
 //   The service could not respond to the request due to an internal problem.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   The service is not available.
 //
-//   * ErrCodeUnknownResourceException "UnknownResourceException"
+//   * UnknownResourceException
 //   A specified resource was not found.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/ram-2018-01-04/AssociateResourceShare
@@ -230,6 +231,103 @@ func (c *RAM) AssociateResourceShare(input *AssociateResourceShareInput) (*Assoc
 // for more information on using Contexts.
 func (c *RAM) AssociateResourceShareWithContext(ctx aws.Context, input *AssociateResourceShareInput, opts ...request.Option) (*AssociateResourceShareOutput, error) {
 	req, out := c.AssociateResourceShareRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opAssociateResourceSharePermission = "AssociateResourceSharePermission"
+
+// AssociateResourceSharePermissionRequest generates a "aws/request.Request" representing the
+// client's request for the AssociateResourceSharePermission operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See AssociateResourceSharePermission for more information on using the AssociateResourceSharePermission
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the AssociateResourceSharePermissionRequest method.
+//    req, resp := client.AssociateResourceSharePermissionRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/ram-2018-01-04/AssociateResourceSharePermission
+func (c *RAM) AssociateResourceSharePermissionRequest(input *AssociateResourceSharePermissionInput) (req *request.Request, output *AssociateResourceSharePermissionOutput) {
+	op := &request.Operation{
+		Name:       opAssociateResourceSharePermission,
+		HTTPMethod: "POST",
+		HTTPPath:   "/associateresourcesharepermission",
+	}
+
+	if input == nil {
+		input = &AssociateResourceSharePermissionInput{}
+	}
+
+	output = &AssociateResourceSharePermissionOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// AssociateResourceSharePermission API operation for AWS Resource Access Manager.
+//
+// Associates a permission with a resource share.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Resource Access Manager's
+// API operation AssociateResourceSharePermission for usage and error information.
+//
+// Returned Error Types:
+//   * MalformedArnException
+//   The format of an Amazon Resource Name (ARN) is not valid.
+//
+//   * UnknownResourceException
+//   A specified resource was not found.
+//
+//   * InvalidParameterException
+//   A parameter is not valid.
+//
+//   * InvalidClientTokenException
+//   A client token is not valid.
+//
+//   * ServerInternalException
+//   The service could not respond to the request due to an internal problem.
+//
+//   * ServiceUnavailableException
+//   The service is not available.
+//
+//   * OperationNotPermittedException
+//   The requested operation is not permitted.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/ram-2018-01-04/AssociateResourceSharePermission
+func (c *RAM) AssociateResourceSharePermission(input *AssociateResourceSharePermissionInput) (*AssociateResourceSharePermissionOutput, error) {
+	req, out := c.AssociateResourceSharePermissionRequest(input)
+	return out, req.Send()
+}
+
+// AssociateResourceSharePermissionWithContext is the same as AssociateResourceSharePermission with the addition of
+// the ability to pass a context and additional request options.
+//
+// See AssociateResourceSharePermission for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *RAM) AssociateResourceSharePermissionWithContext(ctx aws.Context, input *AssociateResourceSharePermissionInput, opts ...request.Option) (*AssociateResourceSharePermissionOutput, error) {
+	req, out := c.AssociateResourceSharePermissionRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -288,40 +386,40 @@ func (c *RAM) CreateResourceShareRequest(input *CreateResourceShareInput) (req *
 // See the AWS API reference guide for AWS Resource Access Manager's
 // API operation CreateResourceShare for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeIdempotentParameterMismatchException "IdempotentParameterMismatchException"
+// Returned Error Types:
+//   * IdempotentParameterMismatchException
 //   A client token input parameter was reused with an operation, but at least
 //   one of the other input parameters is different from the previous call to
 //   the operation.
 //
-//   * ErrCodeInvalidStateTransitionException "InvalidStateTransitionException"
+//   * InvalidStateTransitionException
 //   The requested state transition is not valid.
 //
-//   * ErrCodeUnknownResourceException "UnknownResourceException"
+//   * UnknownResourceException
 //   A specified resource was not found.
 //
-//   * ErrCodeMalformedArnException "MalformedArnException"
+//   * MalformedArnException
 //   The format of an Amazon Resource Name (ARN) is not valid.
 //
-//   * ErrCodeInvalidClientTokenException "InvalidClientTokenException"
+//   * InvalidClientTokenException
 //   A client token is not valid.
 //
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+//   * InvalidParameterException
 //   A parameter is not valid.
 //
-//   * ErrCodeOperationNotPermittedException "OperationNotPermittedException"
+//   * OperationNotPermittedException
 //   The requested operation is not permitted.
 //
-//   * ErrCodeResourceShareLimitExceededException "ResourceShareLimitExceededException"
+//   * ResourceShareLimitExceededException
 //   The requested resource share exceeds the limit for your account.
 //
-//   * ErrCodeTagPolicyViolationException "TagPolicyViolationException"
+//   * TagPolicyViolationException
 //   The specified tag is a reserved word and cannot be used.
 //
-//   * ErrCodeServerInternalException "ServerInternalException"
+//   * ServerInternalException
 //   The service could not respond to the request due to an internal problem.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   The service is not available.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/ram-2018-01-04/CreateResourceShare
@@ -399,34 +497,34 @@ func (c *RAM) DeleteResourceShareRequest(input *DeleteResourceShareInput) (req *
 // See the AWS API reference guide for AWS Resource Access Manager's
 // API operation DeleteResourceShare for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeOperationNotPermittedException "OperationNotPermittedException"
+// Returned Error Types:
+//   * OperationNotPermittedException
 //   The requested operation is not permitted.
 //
-//   * ErrCodeIdempotentParameterMismatchException "IdempotentParameterMismatchException"
+//   * IdempotentParameterMismatchException
 //   A client token input parameter was reused with an operation, but at least
 //   one of the other input parameters is different from the previous call to
 //   the operation.
 //
-//   * ErrCodeInvalidStateTransitionException "InvalidStateTransitionException"
+//   * InvalidStateTransitionException
 //   The requested state transition is not valid.
 //
-//   * ErrCodeUnknownResourceException "UnknownResourceException"
+//   * UnknownResourceException
 //   A specified resource was not found.
 //
-//   * ErrCodeMalformedArnException "MalformedArnException"
+//   * MalformedArnException
 //   The format of an Amazon Resource Name (ARN) is not valid.
 //
-//   * ErrCodeInvalidClientTokenException "InvalidClientTokenException"
+//   * InvalidClientTokenException
 //   A client token is not valid.
 //
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+//   * InvalidParameterException
 //   A parameter is not valid.
 //
-//   * ErrCodeServerInternalException "ServerInternalException"
+//   * ServerInternalException
 //   The service could not respond to the request due to an internal problem.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   The service is not available.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/ram-2018-01-04/DeleteResourceShare
@@ -505,37 +603,37 @@ func (c *RAM) DisassociateResourceShareRequest(input *DisassociateResourceShareI
 // See the AWS API reference guide for AWS Resource Access Manager's
 // API operation DisassociateResourceShare for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeIdempotentParameterMismatchException "IdempotentParameterMismatchException"
+// Returned Error Types:
+//   * IdempotentParameterMismatchException
 //   A client token input parameter was reused with an operation, but at least
 //   one of the other input parameters is different from the previous call to
 //   the operation.
 //
-//   * ErrCodeResourceShareLimitExceededException "ResourceShareLimitExceededException"
+//   * ResourceShareLimitExceededException
 //   The requested resource share exceeds the limit for your account.
 //
-//   * ErrCodeMalformedArnException "MalformedArnException"
+//   * MalformedArnException
 //   The format of an Amazon Resource Name (ARN) is not valid.
 //
-//   * ErrCodeInvalidStateTransitionException "InvalidStateTransitionException"
+//   * InvalidStateTransitionException
 //   The requested state transition is not valid.
 //
-//   * ErrCodeInvalidClientTokenException "InvalidClientTokenException"
+//   * InvalidClientTokenException
 //   A client token is not valid.
 //
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+//   * InvalidParameterException
 //   A parameter is not valid.
 //
-//   * ErrCodeOperationNotPermittedException "OperationNotPermittedException"
+//   * OperationNotPermittedException
 //   The requested operation is not permitted.
 //
-//   * ErrCodeServerInternalException "ServerInternalException"
+//   * ServerInternalException
 //   The service could not respond to the request due to an internal problem.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   The service is not available.
 //
-//   * ErrCodeUnknownResourceException "UnknownResourceException"
+//   * UnknownResourceException
 //   A specified resource was not found.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/ram-2018-01-04/DisassociateResourceShare
@@ -555,6 +653,103 @@ func (c *RAM) DisassociateResourceShare(input *DisassociateResourceShareInput) (
 // for more information on using Contexts.
 func (c *RAM) DisassociateResourceShareWithContext(ctx aws.Context, input *DisassociateResourceShareInput, opts ...request.Option) (*DisassociateResourceShareOutput, error) {
 	req, out := c.DisassociateResourceShareRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opDisassociateResourceSharePermission = "DisassociateResourceSharePermission"
+
+// DisassociateResourceSharePermissionRequest generates a "aws/request.Request" representing the
+// client's request for the DisassociateResourceSharePermission operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DisassociateResourceSharePermission for more information on using the DisassociateResourceSharePermission
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the DisassociateResourceSharePermissionRequest method.
+//    req, resp := client.DisassociateResourceSharePermissionRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/ram-2018-01-04/DisassociateResourceSharePermission
+func (c *RAM) DisassociateResourceSharePermissionRequest(input *DisassociateResourceSharePermissionInput) (req *request.Request, output *DisassociateResourceSharePermissionOutput) {
+	op := &request.Operation{
+		Name:       opDisassociateResourceSharePermission,
+		HTTPMethod: "POST",
+		HTTPPath:   "/disassociateresourcesharepermission",
+	}
+
+	if input == nil {
+		input = &DisassociateResourceSharePermissionInput{}
+	}
+
+	output = &DisassociateResourceSharePermissionOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// DisassociateResourceSharePermission API operation for AWS Resource Access Manager.
+//
+// Disassociates an AWS RAM permission from a resource share.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Resource Access Manager's
+// API operation DisassociateResourceSharePermission for usage and error information.
+//
+// Returned Error Types:
+//   * MalformedArnException
+//   The format of an Amazon Resource Name (ARN) is not valid.
+//
+//   * UnknownResourceException
+//   A specified resource was not found.
+//
+//   * InvalidParameterException
+//   A parameter is not valid.
+//
+//   * InvalidClientTokenException
+//   A client token is not valid.
+//
+//   * ServerInternalException
+//   The service could not respond to the request due to an internal problem.
+//
+//   * ServiceUnavailableException
+//   The service is not available.
+//
+//   * OperationNotPermittedException
+//   The requested operation is not permitted.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/ram-2018-01-04/DisassociateResourceSharePermission
+func (c *RAM) DisassociateResourceSharePermission(input *DisassociateResourceSharePermissionInput) (*DisassociateResourceSharePermissionOutput, error) {
+	req, out := c.DisassociateResourceSharePermissionRequest(input)
+	return out, req.Send()
+}
+
+// DisassociateResourceSharePermissionWithContext is the same as DisassociateResourceSharePermission with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DisassociateResourceSharePermission for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *RAM) DisassociateResourceSharePermissionWithContext(ctx aws.Context, input *DisassociateResourceSharePermissionInput, opts ...request.Option) (*DisassociateResourceSharePermissionOutput, error) {
+	req, out := c.DisassociateResourceSharePermissionRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -615,14 +810,14 @@ func (c *RAM) EnableSharingWithAwsOrganizationRequest(input *EnableSharingWithAw
 // See the AWS API reference guide for AWS Resource Access Manager's
 // API operation EnableSharingWithAwsOrganization for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeOperationNotPermittedException "OperationNotPermittedException"
+// Returned Error Types:
+//   * OperationNotPermittedException
 //   The requested operation is not permitted.
 //
-//   * ErrCodeServerInternalException "ServerInternalException"
+//   * ServerInternalException
 //   The service could not respond to the request due to an internal problem.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   The service is not available.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/ram-2018-01-04/EnableSharingWithAwsOrganization
@@ -642,6 +837,100 @@ func (c *RAM) EnableSharingWithAwsOrganization(input *EnableSharingWithAwsOrgani
 // for more information on using Contexts.
 func (c *RAM) EnableSharingWithAwsOrganizationWithContext(ctx aws.Context, input *EnableSharingWithAwsOrganizationInput, opts ...request.Option) (*EnableSharingWithAwsOrganizationOutput, error) {
 	req, out := c.EnableSharingWithAwsOrganizationRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opGetPermission = "GetPermission"
+
+// GetPermissionRequest generates a "aws/request.Request" representing the
+// client's request for the GetPermission operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See GetPermission for more information on using the GetPermission
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the GetPermissionRequest method.
+//    req, resp := client.GetPermissionRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/ram-2018-01-04/GetPermission
+func (c *RAM) GetPermissionRequest(input *GetPermissionInput) (req *request.Request, output *GetPermissionOutput) {
+	op := &request.Operation{
+		Name:       opGetPermission,
+		HTTPMethod: "POST",
+		HTTPPath:   "/getpermission",
+	}
+
+	if input == nil {
+		input = &GetPermissionInput{}
+	}
+
+	output = &GetPermissionOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// GetPermission API operation for AWS Resource Access Manager.
+//
+// Gets the contents of an AWS RAM permission in JSON format.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Resource Access Manager's
+// API operation GetPermission for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidParameterException
+//   A parameter is not valid.
+//
+//   * MalformedArnException
+//   The format of an Amazon Resource Name (ARN) is not valid.
+//
+//   * UnknownResourceException
+//   A specified resource was not found.
+//
+//   * ServerInternalException
+//   The service could not respond to the request due to an internal problem.
+//
+//   * ServiceUnavailableException
+//   The service is not available.
+//
+//   * OperationNotPermittedException
+//   The requested operation is not permitted.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/ram-2018-01-04/GetPermission
+func (c *RAM) GetPermission(input *GetPermissionInput) (*GetPermissionOutput, error) {
+	req, out := c.GetPermissionRequest(input)
+	return out, req.Send()
+}
+
+// GetPermissionWithContext is the same as GetPermission with the addition of
+// the ability to pass a context and additional request options.
+//
+// See GetPermission for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *RAM) GetPermissionWithContext(ctx aws.Context, input *GetPermissionInput, opts ...request.Option) (*GetPermissionOutput, error) {
+	req, out := c.GetPermissionRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -706,20 +995,20 @@ func (c *RAM) GetResourcePoliciesRequest(input *GetResourcePoliciesInput) (req *
 // See the AWS API reference guide for AWS Resource Access Manager's
 // API operation GetResourcePolicies for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeMalformedArnException "MalformedArnException"
+// Returned Error Types:
+//   * MalformedArnException
 //   The format of an Amazon Resource Name (ARN) is not valid.
 //
-//   * ErrCodeInvalidNextTokenException "InvalidNextTokenException"
+//   * InvalidNextTokenException
 //   The specified value for NextToken is not valid.
 //
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+//   * InvalidParameterException
 //   A parameter is not valid.
 //
-//   * ErrCodeServerInternalException "ServerInternalException"
+//   * ServerInternalException
 //   The service could not respond to the request due to an internal problem.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   The service is not available.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/ram-2018-01-04/GetResourcePolicies
@@ -787,10 +1076,12 @@ func (c *RAM) GetResourcePoliciesPagesWithContext(ctx aws.Context, input *GetRes
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*GetResourcePoliciesOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*GetResourcePoliciesOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -853,26 +1144,26 @@ func (c *RAM) GetResourceShareAssociationsRequest(input *GetResourceShareAssocia
 // See the AWS API reference guide for AWS Resource Access Manager's
 // API operation GetResourceShareAssociations for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeUnknownResourceException "UnknownResourceException"
+// Returned Error Types:
+//   * UnknownResourceException
 //   A specified resource was not found.
 //
-//   * ErrCodeMalformedArnException "MalformedArnException"
+//   * MalformedArnException
 //   The format of an Amazon Resource Name (ARN) is not valid.
 //
-//   * ErrCodeInvalidNextTokenException "InvalidNextTokenException"
+//   * InvalidNextTokenException
 //   The specified value for NextToken is not valid.
 //
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+//   * InvalidParameterException
 //   A parameter is not valid.
 //
-//   * ErrCodeOperationNotPermittedException "OperationNotPermittedException"
+//   * OperationNotPermittedException
 //   The requested operation is not permitted.
 //
-//   * ErrCodeServerInternalException "ServerInternalException"
+//   * ServerInternalException
 //   The service could not respond to the request due to an internal problem.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   The service is not available.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/ram-2018-01-04/GetResourceShareAssociations
@@ -940,10 +1231,12 @@ func (c *RAM) GetResourceShareAssociationsPagesWithContext(ctx aws.Context, inpu
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*GetResourceShareAssociationsOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*GetResourceShareAssociationsOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -1006,26 +1299,26 @@ func (c *RAM) GetResourceShareInvitationsRequest(input *GetResourceShareInvitati
 // See the AWS API reference guide for AWS Resource Access Manager's
 // API operation GetResourceShareInvitations for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceShareInvitationArnNotFoundException "ResourceShareInvitationArnNotFoundException"
+// Returned Error Types:
+//   * ResourceShareInvitationArnNotFoundException
 //   The Amazon Resource Name (ARN) for an invitation was not found.
 //
-//   * ErrCodeInvalidMaxResultsException "InvalidMaxResultsException"
+//   * InvalidMaxResultsException
 //   The specified value for MaxResults is not valid.
 //
-//   * ErrCodeMalformedArnException "MalformedArnException"
+//   * MalformedArnException
 //   The format of an Amazon Resource Name (ARN) is not valid.
 //
-//   * ErrCodeInvalidNextTokenException "InvalidNextTokenException"
+//   * InvalidNextTokenException
 //   The specified value for NextToken is not valid.
 //
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+//   * InvalidParameterException
 //   A parameter is not valid.
 //
-//   * ErrCodeServerInternalException "ServerInternalException"
+//   * ServerInternalException
 //   The service could not respond to the request due to an internal problem.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   The service is not available.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/ram-2018-01-04/GetResourceShareInvitations
@@ -1093,10 +1386,12 @@ func (c *RAM) GetResourceShareInvitationsPagesWithContext(ctx aws.Context, input
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*GetResourceShareInvitationsOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*GetResourceShareInvitationsOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -1160,23 +1455,23 @@ func (c *RAM) GetResourceSharesRequest(input *GetResourceSharesInput) (req *requ
 // See the AWS API reference guide for AWS Resource Access Manager's
 // API operation GetResourceShares for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeUnknownResourceException "UnknownResourceException"
+// Returned Error Types:
+//   * UnknownResourceException
 //   A specified resource was not found.
 //
-//   * ErrCodeMalformedArnException "MalformedArnException"
+//   * MalformedArnException
 //   The format of an Amazon Resource Name (ARN) is not valid.
 //
-//   * ErrCodeInvalidNextTokenException "InvalidNextTokenException"
+//   * InvalidNextTokenException
 //   The specified value for NextToken is not valid.
 //
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+//   * InvalidParameterException
 //   A parameter is not valid.
 //
-//   * ErrCodeServerInternalException "ServerInternalException"
+//   * ServerInternalException
 //   The service could not respond to the request due to an internal problem.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   The service is not available.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/ram-2018-01-04/GetResourceShares
@@ -1244,10 +1539,12 @@ func (c *RAM) GetResourceSharesPagesWithContext(ctx aws.Context, input *GetResou
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*GetResourceSharesOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*GetResourceSharesOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -1311,32 +1608,32 @@ func (c *RAM) ListPendingInvitationResourcesRequest(input *ListPendingInvitation
 // See the AWS API reference guide for AWS Resource Access Manager's
 // API operation ListPendingInvitationResources for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeMalformedArnException "MalformedArnException"
+// Returned Error Types:
+//   * MalformedArnException
 //   The format of an Amazon Resource Name (ARN) is not valid.
 //
-//   * ErrCodeInvalidNextTokenException "InvalidNextTokenException"
+//   * InvalidNextTokenException
 //   The specified value for NextToken is not valid.
 //
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+//   * InvalidParameterException
 //   A parameter is not valid.
 //
-//   * ErrCodeServerInternalException "ServerInternalException"
+//   * ServerInternalException
 //   The service could not respond to the request due to an internal problem.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   The service is not available.
 //
-//   * ErrCodeResourceShareInvitationArnNotFoundException "ResourceShareInvitationArnNotFoundException"
+//   * ResourceShareInvitationArnNotFoundException
 //   The Amazon Resource Name (ARN) for an invitation was not found.
 //
-//   * ErrCodeMissingRequiredParameterException "MissingRequiredParameterException"
+//   * MissingRequiredParameterException
 //   A required input parameter is missing.
 //
-//   * ErrCodeResourceShareInvitationAlreadyRejectedException "ResourceShareInvitationAlreadyRejectedException"
+//   * ResourceShareInvitationAlreadyRejectedException
 //   The invitation was already rejected.
 //
-//   * ErrCodeResourceShareInvitationExpiredException "ResourceShareInvitationExpiredException"
+//   * ResourceShareInvitationExpiredException
 //   The invitation is expired.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/ram-2018-01-04/ListPendingInvitationResources
@@ -1404,11 +1701,104 @@ func (c *RAM) ListPendingInvitationResourcesPagesWithContext(ctx aws.Context, in
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListPendingInvitationResourcesOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListPendingInvitationResourcesOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
+}
+
+const opListPermissions = "ListPermissions"
+
+// ListPermissionsRequest generates a "aws/request.Request" representing the
+// client's request for the ListPermissions operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See ListPermissions for more information on using the ListPermissions
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the ListPermissionsRequest method.
+//    req, resp := client.ListPermissionsRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/ram-2018-01-04/ListPermissions
+func (c *RAM) ListPermissionsRequest(input *ListPermissionsInput) (req *request.Request, output *ListPermissionsOutput) {
+	op := &request.Operation{
+		Name:       opListPermissions,
+		HTTPMethod: "POST",
+		HTTPPath:   "/listpermissions",
+	}
+
+	if input == nil {
+		input = &ListPermissionsInput{}
+	}
+
+	output = &ListPermissionsOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// ListPermissions API operation for AWS Resource Access Manager.
+//
+// Lists the AWS RAM permissions.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Resource Access Manager's
+// API operation ListPermissions for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidParameterException
+//   A parameter is not valid.
+//
+//   * InvalidNextTokenException
+//   The specified value for NextToken is not valid.
+//
+//   * ServerInternalException
+//   The service could not respond to the request due to an internal problem.
+//
+//   * ServiceUnavailableException
+//   The service is not available.
+//
+//   * OperationNotPermittedException
+//   The requested operation is not permitted.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/ram-2018-01-04/ListPermissions
+func (c *RAM) ListPermissions(input *ListPermissionsInput) (*ListPermissionsOutput, error) {
+	req, out := c.ListPermissionsRequest(input)
+	return out, req.Send()
+}
+
+// ListPermissionsWithContext is the same as ListPermissions with the addition of
+// the ability to pass a context and additional request options.
+//
+// See ListPermissions for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *RAM) ListPermissionsWithContext(ctx aws.Context, input *ListPermissionsInput, opts ...request.Option) (*ListPermissionsOutput, error) {
+	req, out := c.ListPermissionsRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
 }
 
 const opListPrincipals = "ListPrincipals"
@@ -1461,8 +1851,8 @@ func (c *RAM) ListPrincipalsRequest(input *ListPrincipalsInput) (req *request.Re
 
 // ListPrincipals API operation for AWS Resource Access Manager.
 //
-// Lists the principals that you have shared resources with or the principals
-// that have shared resources with you.
+// Lists the principals that you have shared resources with or that have shared
+// resources with you.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1471,23 +1861,23 @@ func (c *RAM) ListPrincipalsRequest(input *ListPrincipalsInput) (req *request.Re
 // See the AWS API reference guide for AWS Resource Access Manager's
 // API operation ListPrincipals for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeMalformedArnException "MalformedArnException"
+// Returned Error Types:
+//   * MalformedArnException
 //   The format of an Amazon Resource Name (ARN) is not valid.
 //
-//   * ErrCodeUnknownResourceException "UnknownResourceException"
+//   * UnknownResourceException
 //   A specified resource was not found.
 //
-//   * ErrCodeInvalidNextTokenException "InvalidNextTokenException"
+//   * InvalidNextTokenException
 //   The specified value for NextToken is not valid.
 //
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+//   * InvalidParameterException
 //   A parameter is not valid.
 //
-//   * ErrCodeServerInternalException "ServerInternalException"
+//   * ServerInternalException
 //   The service could not respond to the request due to an internal problem.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   The service is not available.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/ram-2018-01-04/ListPrincipals
@@ -1555,11 +1945,110 @@ func (c *RAM) ListPrincipalsPagesWithContext(ctx aws.Context, input *ListPrincip
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListPrincipalsOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListPrincipalsOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
+}
+
+const opListResourceSharePermissions = "ListResourceSharePermissions"
+
+// ListResourceSharePermissionsRequest generates a "aws/request.Request" representing the
+// client's request for the ListResourceSharePermissions operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See ListResourceSharePermissions for more information on using the ListResourceSharePermissions
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the ListResourceSharePermissionsRequest method.
+//    req, resp := client.ListResourceSharePermissionsRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/ram-2018-01-04/ListResourceSharePermissions
+func (c *RAM) ListResourceSharePermissionsRequest(input *ListResourceSharePermissionsInput) (req *request.Request, output *ListResourceSharePermissionsOutput) {
+	op := &request.Operation{
+		Name:       opListResourceSharePermissions,
+		HTTPMethod: "POST",
+		HTTPPath:   "/listresourcesharepermissions",
+	}
+
+	if input == nil {
+		input = &ListResourceSharePermissionsInput{}
+	}
+
+	output = &ListResourceSharePermissionsOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// ListResourceSharePermissions API operation for AWS Resource Access Manager.
+//
+// Lists the AWS RAM permissions that are associated with a resource share.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Resource Access Manager's
+// API operation ListResourceSharePermissions for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidParameterException
+//   A parameter is not valid.
+//
+//   * MalformedArnException
+//   The format of an Amazon Resource Name (ARN) is not valid.
+//
+//   * UnknownResourceException
+//   A specified resource was not found.
+//
+//   * InvalidNextTokenException
+//   The specified value for NextToken is not valid.
+//
+//   * ServerInternalException
+//   The service could not respond to the request due to an internal problem.
+//
+//   * ServiceUnavailableException
+//   The service is not available.
+//
+//   * OperationNotPermittedException
+//   The requested operation is not permitted.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/ram-2018-01-04/ListResourceSharePermissions
+func (c *RAM) ListResourceSharePermissions(input *ListResourceSharePermissionsInput) (*ListResourceSharePermissionsOutput, error) {
+	req, out := c.ListResourceSharePermissionsRequest(input)
+	return out, req.Send()
+}
+
+// ListResourceSharePermissionsWithContext is the same as ListResourceSharePermissions with the addition of
+// the ability to pass a context and additional request options.
+//
+// See ListResourceSharePermissions for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *RAM) ListResourceSharePermissionsWithContext(ctx aws.Context, input *ListResourceSharePermissionsInput, opts ...request.Option) (*ListResourceSharePermissionsOutput, error) {
+	req, out := c.ListResourceSharePermissionsRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
 }
 
 const opListResources = "ListResources"
@@ -1622,26 +2111,26 @@ func (c *RAM) ListResourcesRequest(input *ListResourcesInput) (req *request.Requ
 // See the AWS API reference guide for AWS Resource Access Manager's
 // API operation ListResources for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidResourceTypeException "InvalidResourceTypeException"
+// Returned Error Types:
+//   * InvalidResourceTypeException
 //   The specified resource type is not valid.
 //
-//   * ErrCodeUnknownResourceException "UnknownResourceException"
+//   * UnknownResourceException
 //   A specified resource was not found.
 //
-//   * ErrCodeMalformedArnException "MalformedArnException"
+//   * MalformedArnException
 //   The format of an Amazon Resource Name (ARN) is not valid.
 //
-//   * ErrCodeInvalidNextTokenException "InvalidNextTokenException"
+//   * InvalidNextTokenException
 //   The specified value for NextToken is not valid.
 //
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+//   * InvalidParameterException
 //   A parameter is not valid.
 //
-//   * ErrCodeServerInternalException "ServerInternalException"
+//   * ServerInternalException
 //   The service could not respond to the request due to an internal problem.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   The service is not available.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/ram-2018-01-04/ListResources
@@ -1709,11 +2198,116 @@ func (c *RAM) ListResourcesPagesWithContext(ctx aws.Context, input *ListResource
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListResourcesOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListResourcesOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
+}
+
+const opPromoteResourceShareCreatedFromPolicy = "PromoteResourceShareCreatedFromPolicy"
+
+// PromoteResourceShareCreatedFromPolicyRequest generates a "aws/request.Request" representing the
+// client's request for the PromoteResourceShareCreatedFromPolicy operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See PromoteResourceShareCreatedFromPolicy for more information on using the PromoteResourceShareCreatedFromPolicy
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the PromoteResourceShareCreatedFromPolicyRequest method.
+//    req, resp := client.PromoteResourceShareCreatedFromPolicyRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/ram-2018-01-04/PromoteResourceShareCreatedFromPolicy
+func (c *RAM) PromoteResourceShareCreatedFromPolicyRequest(input *PromoteResourceShareCreatedFromPolicyInput) (req *request.Request, output *PromoteResourceShareCreatedFromPolicyOutput) {
+	op := &request.Operation{
+		Name:       opPromoteResourceShareCreatedFromPolicy,
+		HTTPMethod: "POST",
+		HTTPPath:   "/promoteresourcesharecreatedfrompolicy",
+	}
+
+	if input == nil {
+		input = &PromoteResourceShareCreatedFromPolicyInput{}
+	}
+
+	output = &PromoteResourceShareCreatedFromPolicyOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// PromoteResourceShareCreatedFromPolicy API operation for AWS Resource Access Manager.
+//
+// Resource shares that were created by attaching a policy to a resource are
+// visible only to the resource share owner, and the resource share cannot be
+// modified in AWS RAM.
+//
+// Use this API action to promote the resource share. When you promote the resource
+// share, it becomes:
+//
+//    * Visible to all principals that it is shared with.
+//
+//    * Modifiable in AWS RAM.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Resource Access Manager's
+// API operation PromoteResourceShareCreatedFromPolicy for usage and error information.
+//
+// Returned Error Types:
+//   * MalformedArnException
+//   The format of an Amazon Resource Name (ARN) is not valid.
+//
+//   * OperationNotPermittedException
+//   The requested operation is not permitted.
+//
+//   * InvalidParameterException
+//   A parameter is not valid.
+//
+//   * MissingRequiredParameterException
+//   A required input parameter is missing.
+//
+//   * ServerInternalException
+//   The service could not respond to the request due to an internal problem.
+//
+//   * ServiceUnavailableException
+//   The service is not available.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/ram-2018-01-04/PromoteResourceShareCreatedFromPolicy
+func (c *RAM) PromoteResourceShareCreatedFromPolicy(input *PromoteResourceShareCreatedFromPolicyInput) (*PromoteResourceShareCreatedFromPolicyOutput, error) {
+	req, out := c.PromoteResourceShareCreatedFromPolicyRequest(input)
+	return out, req.Send()
+}
+
+// PromoteResourceShareCreatedFromPolicyWithContext is the same as PromoteResourceShareCreatedFromPolicy with the addition of
+// the ability to pass a context and additional request options.
+//
+// See PromoteResourceShareCreatedFromPolicy for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *RAM) PromoteResourceShareCreatedFromPolicyWithContext(ctx aws.Context, input *PromoteResourceShareCreatedFromPolicyInput, opts ...request.Option) (*PromoteResourceShareCreatedFromPolicyOutput, error) {
+	req, out := c.PromoteResourceShareCreatedFromPolicyRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
 }
 
 const opRejectResourceShareInvitation = "RejectResourceShareInvitation"
@@ -1769,35 +2363,35 @@ func (c *RAM) RejectResourceShareInvitationRequest(input *RejectResourceShareInv
 // See the AWS API reference guide for AWS Resource Access Manager's
 // API operation RejectResourceShareInvitation for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeMalformedArnException "MalformedArnException"
+// Returned Error Types:
+//   * MalformedArnException
 //   The format of an Amazon Resource Name (ARN) is not valid.
 //
-//   * ErrCodeOperationNotPermittedException "OperationNotPermittedException"
+//   * OperationNotPermittedException
 //   The requested operation is not permitted.
 //
-//   * ErrCodeResourceShareInvitationArnNotFoundException "ResourceShareInvitationArnNotFoundException"
+//   * ResourceShareInvitationArnNotFoundException
 //   The Amazon Resource Name (ARN) for an invitation was not found.
 //
-//   * ErrCodeResourceShareInvitationAlreadyAcceptedException "ResourceShareInvitationAlreadyAcceptedException"
+//   * ResourceShareInvitationAlreadyAcceptedException
 //   The invitation was already accepted.
 //
-//   * ErrCodeResourceShareInvitationAlreadyRejectedException "ResourceShareInvitationAlreadyRejectedException"
+//   * ResourceShareInvitationAlreadyRejectedException
 //   The invitation was already rejected.
 //
-//   * ErrCodeResourceShareInvitationExpiredException "ResourceShareInvitationExpiredException"
+//   * ResourceShareInvitationExpiredException
 //   The invitation is expired.
 //
-//   * ErrCodeServerInternalException "ServerInternalException"
+//   * ServerInternalException
 //   The service could not respond to the request due to an internal problem.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   The service is not available.
 //
-//   * ErrCodeInvalidClientTokenException "InvalidClientTokenException"
+//   * InvalidClientTokenException
 //   A client token is not valid.
 //
-//   * ErrCodeIdempotentParameterMismatchException "IdempotentParameterMismatchException"
+//   * IdempotentParameterMismatchException
 //   A client token input parameter was reused with an operation, but at least
 //   one of the other input parameters is different from the previous call to
 //   the operation.
@@ -1878,26 +2472,26 @@ func (c *RAM) TagResourceRequest(input *TagResourceInput) (req *request.Request,
 // See the AWS API reference guide for AWS Resource Access Manager's
 // API operation TagResource for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+// Returned Error Types:
+//   * InvalidParameterException
 //   A parameter is not valid.
 //
-//   * ErrCodeMalformedArnException "MalformedArnException"
+//   * MalformedArnException
 //   The format of an Amazon Resource Name (ARN) is not valid.
 //
-//   * ErrCodeTagLimitExceededException "TagLimitExceededException"
+//   * TagLimitExceededException
 //   The requested tags exceed the limit for your account.
 //
-//   * ErrCodeResourceArnNotFoundException "ResourceArnNotFoundException"
+//   * ResourceArnNotFoundException
 //   An Amazon Resource Name (ARN) was not found.
 //
-//   * ErrCodeTagPolicyViolationException "TagPolicyViolationException"
+//   * TagPolicyViolationException
 //   The specified tag is a reserved word and cannot be used.
 //
-//   * ErrCodeServerInternalException "ServerInternalException"
+//   * ServerInternalException
 //   The service could not respond to the request due to an internal problem.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   The service is not available.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/ram-2018-01-04/TagResource
@@ -1976,14 +2570,14 @@ func (c *RAM) UntagResourceRequest(input *UntagResourceInput) (req *request.Requ
 // See the AWS API reference guide for AWS Resource Access Manager's
 // API operation UntagResource for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+// Returned Error Types:
+//   * InvalidParameterException
 //   A parameter is not valid.
 //
-//   * ErrCodeServerInternalException "ServerInternalException"
+//   * ServerInternalException
 //   The service could not respond to the request due to an internal problem.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   The service is not available.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/ram-2018-01-04/UntagResource
@@ -2061,34 +2655,34 @@ func (c *RAM) UpdateResourceShareRequest(input *UpdateResourceShareInput) (req *
 // See the AWS API reference guide for AWS Resource Access Manager's
 // API operation UpdateResourceShare for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeIdempotentParameterMismatchException "IdempotentParameterMismatchException"
+// Returned Error Types:
+//   * IdempotentParameterMismatchException
 //   A client token input parameter was reused with an operation, but at least
 //   one of the other input parameters is different from the previous call to
 //   the operation.
 //
-//   * ErrCodeMissingRequiredParameterException "MissingRequiredParameterException"
+//   * MissingRequiredParameterException
 //   A required input parameter is missing.
 //
-//   * ErrCodeUnknownResourceException "UnknownResourceException"
+//   * UnknownResourceException
 //   A specified resource was not found.
 //
-//   * ErrCodeMalformedArnException "MalformedArnException"
+//   * MalformedArnException
 //   The format of an Amazon Resource Name (ARN) is not valid.
 //
-//   * ErrCodeInvalidClientTokenException "InvalidClientTokenException"
+//   * InvalidClientTokenException
 //   A client token is not valid.
 //
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+//   * InvalidParameterException
 //   A parameter is not valid.
 //
-//   * ErrCodeOperationNotPermittedException "OperationNotPermittedException"
+//   * OperationNotPermittedException
 //   The requested operation is not permitted.
 //
-//   * ErrCodeServerInternalException "ServerInternalException"
+//   * ServerInternalException
 //   The service could not respond to the request due to an internal problem.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   The service is not available.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/ram-2018-01-04/UpdateResourceShare
@@ -2293,6 +2887,112 @@ func (s *AssociateResourceShareOutput) SetResourceShareAssociations(v []*Resourc
 	return s
 }
 
+type AssociateResourceSharePermissionInput struct {
+	_ struct{} `type:"structure"`
+
+	// A unique, case-sensitive identifier that you provide to ensure the idempotency
+	// of the request.
+	ClientToken *string `locationName:"clientToken" type:"string"`
+
+	// The ARN of the AWS RAM permission to associate with the resource share.
+	//
+	// PermissionArn is a required field
+	PermissionArn *string `locationName:"permissionArn" type:"string" required:"true"`
+
+	// Indicates whether the permission should replace the permissions that are
+	// currently associated with the resource share. Use true to replace the current
+	// permissions. Use false to add the permission to the current permission.
+	Replace *bool `locationName:"replace" type:"boolean"`
+
+	// The Amazon Resource Name (ARN) of the resource share.
+	//
+	// ResourceShareArn is a required field
+	ResourceShareArn *string `locationName:"resourceShareArn" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s AssociateResourceSharePermissionInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AssociateResourceSharePermissionInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *AssociateResourceSharePermissionInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "AssociateResourceSharePermissionInput"}
+	if s.PermissionArn == nil {
+		invalidParams.Add(request.NewErrParamRequired("PermissionArn"))
+	}
+	if s.ResourceShareArn == nil {
+		invalidParams.Add(request.NewErrParamRequired("ResourceShareArn"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetClientToken sets the ClientToken field's value.
+func (s *AssociateResourceSharePermissionInput) SetClientToken(v string) *AssociateResourceSharePermissionInput {
+	s.ClientToken = &v
+	return s
+}
+
+// SetPermissionArn sets the PermissionArn field's value.
+func (s *AssociateResourceSharePermissionInput) SetPermissionArn(v string) *AssociateResourceSharePermissionInput {
+	s.PermissionArn = &v
+	return s
+}
+
+// SetReplace sets the Replace field's value.
+func (s *AssociateResourceSharePermissionInput) SetReplace(v bool) *AssociateResourceSharePermissionInput {
+	s.Replace = &v
+	return s
+}
+
+// SetResourceShareArn sets the ResourceShareArn field's value.
+func (s *AssociateResourceSharePermissionInput) SetResourceShareArn(v string) *AssociateResourceSharePermissionInput {
+	s.ResourceShareArn = &v
+	return s
+}
+
+type AssociateResourceSharePermissionOutput struct {
+	_ struct{} `type:"structure"`
+
+	// A unique, case-sensitive identifier that you provide to ensure the idempotency
+	// of the request.
+	ClientToken *string `locationName:"clientToken" type:"string"`
+
+	// Indicates whether the request succeeded.
+	ReturnValue *bool `locationName:"returnValue" type:"boolean"`
+}
+
+// String returns the string representation
+func (s AssociateResourceSharePermissionOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AssociateResourceSharePermissionOutput) GoString() string {
+	return s.String()
+}
+
+// SetClientToken sets the ClientToken field's value.
+func (s *AssociateResourceSharePermissionOutput) SetClientToken(v string) *AssociateResourceSharePermissionOutput {
+	s.ClientToken = &v
+	return s
+}
+
+// SetReturnValue sets the ReturnValue field's value.
+func (s *AssociateResourceSharePermissionOutput) SetReturnValue(v bool) *AssociateResourceSharePermissionOutput {
+	s.ReturnValue = &v
+	return s
+}
+
 type CreateResourceShareInput struct {
 	_ struct{} `type:"structure"`
 
@@ -2308,6 +3008,11 @@ type CreateResourceShareInput struct {
 	//
 	// Name is a required field
 	Name *string `locationName:"name" type:"string" required:"true"`
+
+	// The ARNs of the permissions to associate with the resource share. If you
+	// do not specify an ARN for the permission, AWS RAM automatically attaches
+	// the default version of the permission for each resource type.
+	PermissionArns []*string `locationName:"permissionArns" type:"list"`
 
 	// The principals to associate with the resource share. The possible values
 	// are IDs of AWS accounts, the ARN of an OU or organization from AWS Organizations.
@@ -2359,6 +3064,12 @@ func (s *CreateResourceShareInput) SetClientToken(v string) *CreateResourceShare
 // SetName sets the Name field's value.
 func (s *CreateResourceShareInput) SetName(v string) *CreateResourceShareInput {
 	s.Name = &v
+	return s
+}
+
+// SetPermissionArns sets the PermissionArns field's value.
+func (s *CreateResourceShareInput) SetPermissionArns(v []*string) *CreateResourceShareInput {
+	s.PermissionArns = v
 	return s
 }
 
@@ -2504,7 +3215,7 @@ type DisassociateResourceShareInput struct {
 	// The principals.
 	Principals []*string `locationName:"principals" type:"list"`
 
-	// The Amazon Resource Names (ARN) of the resources.
+	// The Amazon Resource Names (ARNs) of the resources.
 	ResourceArns []*string `locationName:"resourceArns" type:"list"`
 
 	// The Amazon Resource Name (ARN) of the resource share.
@@ -2593,6 +3304,101 @@ func (s *DisassociateResourceShareOutput) SetResourceShareAssociations(v []*Reso
 	return s
 }
 
+type DisassociateResourceSharePermissionInput struct {
+	_ struct{} `type:"structure"`
+
+	// A unique, case-sensitive identifier that you provide to ensure the idempotency
+	// of the request.
+	ClientToken *string `locationName:"clientToken" type:"string"`
+
+	// The ARN of the permission to disassociate from the resource share.
+	//
+	// PermissionArn is a required field
+	PermissionArn *string `locationName:"permissionArn" type:"string" required:"true"`
+
+	// The Amazon Resource Name (ARN) of the resource share.
+	//
+	// ResourceShareArn is a required field
+	ResourceShareArn *string `locationName:"resourceShareArn" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s DisassociateResourceSharePermissionInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DisassociateResourceSharePermissionInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DisassociateResourceSharePermissionInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DisassociateResourceSharePermissionInput"}
+	if s.PermissionArn == nil {
+		invalidParams.Add(request.NewErrParamRequired("PermissionArn"))
+	}
+	if s.ResourceShareArn == nil {
+		invalidParams.Add(request.NewErrParamRequired("ResourceShareArn"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetClientToken sets the ClientToken field's value.
+func (s *DisassociateResourceSharePermissionInput) SetClientToken(v string) *DisassociateResourceSharePermissionInput {
+	s.ClientToken = &v
+	return s
+}
+
+// SetPermissionArn sets the PermissionArn field's value.
+func (s *DisassociateResourceSharePermissionInput) SetPermissionArn(v string) *DisassociateResourceSharePermissionInput {
+	s.PermissionArn = &v
+	return s
+}
+
+// SetResourceShareArn sets the ResourceShareArn field's value.
+func (s *DisassociateResourceSharePermissionInput) SetResourceShareArn(v string) *DisassociateResourceSharePermissionInput {
+	s.ResourceShareArn = &v
+	return s
+}
+
+type DisassociateResourceSharePermissionOutput struct {
+	_ struct{} `type:"structure"`
+
+	// A unique, case-sensitive identifier that you provide to ensure the idempotency
+	// of the request.
+	ClientToken *string `locationName:"clientToken" type:"string"`
+
+	// Indicates whether the request succeeded.
+	ReturnValue *bool `locationName:"returnValue" type:"boolean"`
+}
+
+// String returns the string representation
+func (s DisassociateResourceSharePermissionOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DisassociateResourceSharePermissionOutput) GoString() string {
+	return s.String()
+}
+
+// SetClientToken sets the ClientToken field's value.
+func (s *DisassociateResourceSharePermissionOutput) SetClientToken(v string) *DisassociateResourceSharePermissionOutput {
+	s.ClientToken = &v
+	return s
+}
+
+// SetReturnValue sets the ReturnValue field's value.
+func (s *DisassociateResourceSharePermissionOutput) SetReturnValue(v bool) *DisassociateResourceSharePermissionOutput {
+	s.ReturnValue = &v
+	return s
+}
+
 type EnableSharingWithAwsOrganizationInput struct {
 	_ struct{} `type:"structure"`
 }
@@ -2627,6 +3433,76 @@ func (s EnableSharingWithAwsOrganizationOutput) GoString() string {
 // SetReturnValue sets the ReturnValue field's value.
 func (s *EnableSharingWithAwsOrganizationOutput) SetReturnValue(v bool) *EnableSharingWithAwsOrganizationOutput {
 	s.ReturnValue = &v
+	return s
+}
+
+type GetPermissionInput struct {
+	_ struct{} `type:"structure"`
+
+	// The ARN of the permission.
+	//
+	// PermissionArn is a required field
+	PermissionArn *string `locationName:"permissionArn" type:"string" required:"true"`
+
+	// The identifier for the version of the permission.
+	PermissionVersion *int64 `locationName:"permissionVersion" type:"integer"`
+}
+
+// String returns the string representation
+func (s GetPermissionInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetPermissionInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *GetPermissionInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "GetPermissionInput"}
+	if s.PermissionArn == nil {
+		invalidParams.Add(request.NewErrParamRequired("PermissionArn"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetPermissionArn sets the PermissionArn field's value.
+func (s *GetPermissionInput) SetPermissionArn(v string) *GetPermissionInput {
+	s.PermissionArn = &v
+	return s
+}
+
+// SetPermissionVersion sets the PermissionVersion field's value.
+func (s *GetPermissionInput) SetPermissionVersion(v int64) *GetPermissionInput {
+	s.PermissionVersion = &v
+	return s
+}
+
+type GetPermissionOutput struct {
+	_ struct{} `type:"structure"`
+
+	// Information about the permission.
+	Permission *ResourceSharePermissionDetail `locationName:"permission" type:"structure"`
+}
+
+// String returns the string representation
+func (s GetPermissionOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetPermissionOutput) GoString() string {
+	return s.String()
+}
+
+// SetPermission sets the Permission field's value.
+func (s *GetPermissionOutput) SetPermission(v *ResourceSharePermissionDetail) *GetPermissionOutput {
+	s.Permission = v
 	return s
 }
 
@@ -2738,7 +3614,9 @@ type GetResourceShareAssociationsInput struct {
 	// The association status.
 	AssociationStatus *string `locationName:"associationStatus" type:"string" enum:"ResourceShareAssociationStatus"`
 
-	// The association type.
+	// The association type. Specify PRINCIPAL to list the principals that are associated
+	// with the specified resource share. Specify RESOURCE to list the resources
+	// that are associated with the specified resource share.
 	//
 	// AssociationType is a required field
 	AssociationType *string `locationName:"associationType" type:"string" required:"true" enum:"ResourceShareAssociationType"`
@@ -3089,6 +3967,400 @@ func (s *GetResourceSharesOutput) SetResourceShares(v []*ResourceShare) *GetReso
 	return s
 }
 
+// A client token input parameter was reused with an operation, but at least
+// one of the other input parameters is different from the previous call to
+// the operation.
+type IdempotentParameterMismatchException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s IdempotentParameterMismatchException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s IdempotentParameterMismatchException) GoString() string {
+	return s.String()
+}
+
+func newErrorIdempotentParameterMismatchException(v protocol.ResponseMetadata) error {
+	return &IdempotentParameterMismatchException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s IdempotentParameterMismatchException) Code() string {
+	return "IdempotentParameterMismatchException"
+}
+
+// Message returns the exception's message.
+func (s IdempotentParameterMismatchException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s IdempotentParameterMismatchException) OrigErr() error {
+	return nil
+}
+
+func (s IdempotentParameterMismatchException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s IdempotentParameterMismatchException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s IdempotentParameterMismatchException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// A client token is not valid.
+type InvalidClientTokenException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidClientTokenException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidClientTokenException) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidClientTokenException(v protocol.ResponseMetadata) error {
+	return &InvalidClientTokenException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s InvalidClientTokenException) Code() string {
+	return "InvalidClientTokenException"
+}
+
+// Message returns the exception's message.
+func (s InvalidClientTokenException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s InvalidClientTokenException) OrigErr() error {
+	return nil
+}
+
+func (s InvalidClientTokenException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s InvalidClientTokenException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s InvalidClientTokenException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// The specified value for MaxResults is not valid.
+type InvalidMaxResultsException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidMaxResultsException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidMaxResultsException) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidMaxResultsException(v protocol.ResponseMetadata) error {
+	return &InvalidMaxResultsException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s InvalidMaxResultsException) Code() string {
+	return "InvalidMaxResultsException"
+}
+
+// Message returns the exception's message.
+func (s InvalidMaxResultsException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s InvalidMaxResultsException) OrigErr() error {
+	return nil
+}
+
+func (s InvalidMaxResultsException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s InvalidMaxResultsException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s InvalidMaxResultsException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// The specified value for NextToken is not valid.
+type InvalidNextTokenException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidNextTokenException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidNextTokenException) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidNextTokenException(v protocol.ResponseMetadata) error {
+	return &InvalidNextTokenException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s InvalidNextTokenException) Code() string {
+	return "InvalidNextTokenException"
+}
+
+// Message returns the exception's message.
+func (s InvalidNextTokenException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s InvalidNextTokenException) OrigErr() error {
+	return nil
+}
+
+func (s InvalidNextTokenException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s InvalidNextTokenException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s InvalidNextTokenException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// A parameter is not valid.
+type InvalidParameterException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidParameterException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidParameterException) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidParameterException(v protocol.ResponseMetadata) error {
+	return &InvalidParameterException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s InvalidParameterException) Code() string {
+	return "InvalidParameterException"
+}
+
+// Message returns the exception's message.
+func (s InvalidParameterException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s InvalidParameterException) OrigErr() error {
+	return nil
+}
+
+func (s InvalidParameterException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s InvalidParameterException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s InvalidParameterException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// The specified resource type is not valid.
+type InvalidResourceTypeException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidResourceTypeException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidResourceTypeException) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidResourceTypeException(v protocol.ResponseMetadata) error {
+	return &InvalidResourceTypeException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s InvalidResourceTypeException) Code() string {
+	return "InvalidResourceTypeException"
+}
+
+// Message returns the exception's message.
+func (s InvalidResourceTypeException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s InvalidResourceTypeException) OrigErr() error {
+	return nil
+}
+
+func (s InvalidResourceTypeException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s InvalidResourceTypeException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s InvalidResourceTypeException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// The requested state transition is not valid.
+type InvalidStateTransitionException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidStateTransitionException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidStateTransitionException) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidStateTransitionException(v protocol.ResponseMetadata) error {
+	return &InvalidStateTransitionException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s InvalidStateTransitionException) Code() string {
+	return "InvalidStateTransitionException"
+}
+
+// Message returns the exception's message.
+func (s InvalidStateTransitionException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s InvalidStateTransitionException) OrigErr() error {
+	return nil
+}
+
+func (s InvalidStateTransitionException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s InvalidStateTransitionException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s InvalidStateTransitionException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
 type ListPendingInvitationResourcesInput struct {
 	_ struct{} `type:"structure"`
 
@@ -3182,6 +4454,95 @@ func (s *ListPendingInvitationResourcesOutput) SetResources(v []*Resource) *List
 	return s
 }
 
+type ListPermissionsInput struct {
+	_ struct{} `type:"structure"`
+
+	// The maximum number of results to return with a single call. To retrieve the
+	// remaining results, make another call with the returned nextToken value.
+	MaxResults *int64 `locationName:"maxResults" min:"1" type:"integer"`
+
+	// The token for the next page of results.
+	NextToken *string `locationName:"nextToken" type:"string"`
+
+	// Specifies the resource type for which to list permissions. For example, to
+	// list only permissions that apply to EC2 subnets, specify ec2:Subnet.
+	ResourceType *string `locationName:"resourceType" type:"string"`
+}
+
+// String returns the string representation
+func (s ListPermissionsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListPermissionsInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ListPermissionsInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ListPermissionsInput"}
+	if s.MaxResults != nil && *s.MaxResults < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("MaxResults", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetMaxResults sets the MaxResults field's value.
+func (s *ListPermissionsInput) SetMaxResults(v int64) *ListPermissionsInput {
+	s.MaxResults = &v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListPermissionsInput) SetNextToken(v string) *ListPermissionsInput {
+	s.NextToken = &v
+	return s
+}
+
+// SetResourceType sets the ResourceType field's value.
+func (s *ListPermissionsInput) SetResourceType(v string) *ListPermissionsInput {
+	s.ResourceType = &v
+	return s
+}
+
+type ListPermissionsOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The token to use to retrieve the next page of results. This value is null
+	// when there are no more results to return.
+	NextToken *string `locationName:"nextToken" type:"string"`
+
+	// Information about the permissions.
+	Permissions []*ResourceSharePermissionSummary `locationName:"permissions" type:"list"`
+}
+
+// String returns the string representation
+func (s ListPermissionsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListPermissionsOutput) GoString() string {
+	return s.String()
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListPermissionsOutput) SetNextToken(v string) *ListPermissionsOutput {
+	s.NextToken = &v
+	return s
+}
+
+// SetPermissions sets the Permissions field's value.
+func (s *ListPermissionsOutput) SetPermissions(v []*ResourceSharePermissionSummary) *ListPermissionsOutput {
+	s.Permissions = v
+	return s
+}
+
 type ListPrincipalsInput struct {
 	_ struct{} `type:"structure"`
 
@@ -3208,8 +4569,9 @@ type ListPrincipalsInput struct {
 
 	// The resource type.
 	//
-	// Valid values: route53resolver:ResolverRule | ec2:TransitGateway | ec2:Subnet
-	// | license-manager:LicenseConfiguration
+	// Valid values: ec2:CapacityReservation | ec2:Subnet | ec2:TrafficMirrorTarget
+	// | ec2:TransitGateway | license-manager:LicenseConfiguration | rds:Cluster
+	// | route53resolver:ResolverRule I resource-groups:Group
 	ResourceType *string `locationName:"resourceType" type:"string"`
 }
 
@@ -3314,6 +4676,99 @@ func (s *ListPrincipalsOutput) SetPrincipals(v []*Principal) *ListPrincipalsOutp
 	return s
 }
 
+type ListResourceSharePermissionsInput struct {
+	_ struct{} `type:"structure"`
+
+	// The maximum number of results to return with a single call. To retrieve the
+	// remaining results, make another call with the returned nextToken value.
+	MaxResults *int64 `locationName:"maxResults" min:"1" type:"integer"`
+
+	// The token for the next page of results.
+	NextToken *string `locationName:"nextToken" type:"string"`
+
+	// The Amazon Resource Name (ARN) of the resource share.
+	//
+	// ResourceShareArn is a required field
+	ResourceShareArn *string `locationName:"resourceShareArn" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s ListResourceSharePermissionsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListResourceSharePermissionsInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ListResourceSharePermissionsInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ListResourceSharePermissionsInput"}
+	if s.MaxResults != nil && *s.MaxResults < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("MaxResults", 1))
+	}
+	if s.ResourceShareArn == nil {
+		invalidParams.Add(request.NewErrParamRequired("ResourceShareArn"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetMaxResults sets the MaxResults field's value.
+func (s *ListResourceSharePermissionsInput) SetMaxResults(v int64) *ListResourceSharePermissionsInput {
+	s.MaxResults = &v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListResourceSharePermissionsInput) SetNextToken(v string) *ListResourceSharePermissionsInput {
+	s.NextToken = &v
+	return s
+}
+
+// SetResourceShareArn sets the ResourceShareArn field's value.
+func (s *ListResourceSharePermissionsInput) SetResourceShareArn(v string) *ListResourceSharePermissionsInput {
+	s.ResourceShareArn = &v
+	return s
+}
+
+type ListResourceSharePermissionsOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The token to use to retrieve the next page of results. This value is null
+	// when there are no more results to return.
+	NextToken *string `locationName:"nextToken" type:"string"`
+
+	// The permissions associated with the resource share.
+	Permissions []*ResourceSharePermissionSummary `locationName:"permissions" type:"list"`
+}
+
+// String returns the string representation
+func (s ListResourceSharePermissionsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListResourceSharePermissionsOutput) GoString() string {
+	return s.String()
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListResourceSharePermissionsOutput) SetNextToken(v string) *ListResourceSharePermissionsOutput {
+	s.NextToken = &v
+	return s
+}
+
+// SetPermissions sets the Permissions field's value.
+func (s *ListResourceSharePermissionsOutput) SetPermissions(v []*ResourceSharePermissionSummary) *ListResourceSharePermissionsOutput {
+	s.Permissions = v
+	return s
+}
+
 type ListResourcesInput struct {
 	_ struct{} `type:"structure"`
 
@@ -3340,8 +4795,9 @@ type ListResourcesInput struct {
 
 	// The resource type.
 	//
-	// Valid values: route53resolver:ResolverRule | ec2:TransitGateway | ec2:Subnet
-	// | license-manager:LicenseConfiguration
+	// Valid values: ec2:CapacityReservation | ec2:Subnet | ec2:TrafficMirrorTarget
+	// | ec2:TransitGateway | license-manager:LicenseConfiguration | rds:Cluster
+	// | route53resolver:ResolverRule | resource-groups:Group
 	ResourceType *string `locationName:"resourceType" type:"string"`
 }
 
@@ -3446,6 +4902,174 @@ func (s *ListResourcesOutput) SetResources(v []*Resource) *ListResourcesOutput {
 	return s
 }
 
+// The format of an Amazon Resource Name (ARN) is not valid.
+type MalformedArnException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s MalformedArnException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s MalformedArnException) GoString() string {
+	return s.String()
+}
+
+func newErrorMalformedArnException(v protocol.ResponseMetadata) error {
+	return &MalformedArnException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s MalformedArnException) Code() string {
+	return "MalformedArnException"
+}
+
+// Message returns the exception's message.
+func (s MalformedArnException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s MalformedArnException) OrigErr() error {
+	return nil
+}
+
+func (s MalformedArnException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s MalformedArnException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s MalformedArnException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// A required input parameter is missing.
+type MissingRequiredParameterException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s MissingRequiredParameterException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s MissingRequiredParameterException) GoString() string {
+	return s.String()
+}
+
+func newErrorMissingRequiredParameterException(v protocol.ResponseMetadata) error {
+	return &MissingRequiredParameterException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s MissingRequiredParameterException) Code() string {
+	return "MissingRequiredParameterException"
+}
+
+// Message returns the exception's message.
+func (s MissingRequiredParameterException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s MissingRequiredParameterException) OrigErr() error {
+	return nil
+}
+
+func (s MissingRequiredParameterException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s MissingRequiredParameterException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s MissingRequiredParameterException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// The requested operation is not permitted.
+type OperationNotPermittedException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s OperationNotPermittedException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s OperationNotPermittedException) GoString() string {
+	return s.String()
+}
+
+func newErrorOperationNotPermittedException(v protocol.ResponseMetadata) error {
+	return &OperationNotPermittedException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s OperationNotPermittedException) Code() string {
+	return "OperationNotPermittedException"
+}
+
+// Message returns the exception's message.
+func (s OperationNotPermittedException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s OperationNotPermittedException) OrigErr() error {
+	return nil
+}
+
+func (s OperationNotPermittedException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s OperationNotPermittedException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s OperationNotPermittedException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
 // Describes a principal for use with AWS Resource Access Manager.
 type Principal struct {
 	_ struct{} `type:"structure"`
@@ -3504,6 +5128,67 @@ func (s *Principal) SetLastUpdatedTime(v time.Time) *Principal {
 // SetResourceShareArn sets the ResourceShareArn field's value.
 func (s *Principal) SetResourceShareArn(v string) *Principal {
 	s.ResourceShareArn = &v
+	return s
+}
+
+type PromoteResourceShareCreatedFromPolicyInput struct {
+	_ struct{} `type:"structure"`
+
+	// The ARN of the resource share to promote.
+	//
+	// ResourceShareArn is a required field
+	ResourceShareArn *string `location:"querystring" locationName:"resourceShareArn" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s PromoteResourceShareCreatedFromPolicyInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s PromoteResourceShareCreatedFromPolicyInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *PromoteResourceShareCreatedFromPolicyInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "PromoteResourceShareCreatedFromPolicyInput"}
+	if s.ResourceShareArn == nil {
+		invalidParams.Add(request.NewErrParamRequired("ResourceShareArn"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetResourceShareArn sets the ResourceShareArn field's value.
+func (s *PromoteResourceShareCreatedFromPolicyInput) SetResourceShareArn(v string) *PromoteResourceShareCreatedFromPolicyInput {
+	s.ResourceShareArn = &v
+	return s
+}
+
+type PromoteResourceShareCreatedFromPolicyOutput struct {
+	_ struct{} `type:"structure"`
+
+	// Indicates whether the request succeeded.
+	ReturnValue *bool `locationName:"returnValue" type:"boolean"`
+}
+
+// String returns the string representation
+func (s PromoteResourceShareCreatedFromPolicyOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s PromoteResourceShareCreatedFromPolicyOutput) GoString() string {
+	return s.String()
+}
+
+// SetReturnValue sets the ReturnValue field's value.
+func (s *PromoteResourceShareCreatedFromPolicyOutput) SetReturnValue(v bool) *PromoteResourceShareCreatedFromPolicyOutput {
+	s.ReturnValue = &v
 	return s
 }
 
@@ -3601,6 +5286,10 @@ type Resource struct {
 	// The time when the association was last updated.
 	LastUpdatedTime *time.Time `locationName:"lastUpdatedTime" type:"timestamp"`
 
+	// The ARN of the resource group. This value is returned only if the resource
+	// is a resource group.
+	ResourceGroupArn *string `locationName:"resourceGroupArn" type:"string"`
+
 	// The Amazon Resource Name (ARN) of the resource share.
 	ResourceShareArn *string `locationName:"resourceShareArn" type:"string"`
 
@@ -3642,6 +5331,12 @@ func (s *Resource) SetLastUpdatedTime(v time.Time) *Resource {
 	return s
 }
 
+// SetResourceGroupArn sets the ResourceGroupArn field's value.
+func (s *Resource) SetResourceGroupArn(v string) *Resource {
+	s.ResourceGroupArn = &v
+	return s
+}
+
 // SetResourceShareArn sets the ResourceShareArn field's value.
 func (s *Resource) SetResourceShareArn(v string) *Resource {
 	s.ResourceShareArn = &v
@@ -3666,6 +5361,62 @@ func (s *Resource) SetType(v string) *Resource {
 	return s
 }
 
+// An Amazon Resource Name (ARN) was not found.
+type ResourceArnNotFoundException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s ResourceArnNotFoundException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResourceArnNotFoundException) GoString() string {
+	return s.String()
+}
+
+func newErrorResourceArnNotFoundException(v protocol.ResponseMetadata) error {
+	return &ResourceArnNotFoundException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s ResourceArnNotFoundException) Code() string {
+	return "ResourceArnNotFoundException"
+}
+
+// Message returns the exception's message.
+func (s ResourceArnNotFoundException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s ResourceArnNotFoundException) OrigErr() error {
+	return nil
+}
+
+func (s ResourceArnNotFoundException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s ResourceArnNotFoundException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s ResourceArnNotFoundException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
 // Describes a resource share.
 type ResourceShare struct {
 	_ struct{} `type:"structure"`
@@ -3676,6 +5427,21 @@ type ResourceShare struct {
 
 	// The time when the resource share was created.
 	CreationTime *time.Time `locationName:"creationTime" type:"timestamp"`
+
+	// Indicates how the resource share was created. Possible values include:
+	//
+	//    * CREATED_FROM_POLICY - Indicates that the resource share was created
+	//    from an AWS Identity and Access Management (AWS IAM) policy attached to
+	//    a resource. These resource shares are visible only to the AWS account
+	//    that created it. They cannot be modified in AWS RAM.
+	//
+	//    * PROMOTING_TO_STANDARD - The resource share is in the process of being
+	//    promoted. For more information, see PromoteResourceShareCreatedFromPolicy.
+	//
+	//    * STANDARD - Indicates that the resource share was created in AWS RAM
+	//    using the console or APIs. These resource shares are visible to all principals.
+	//    They can be modified in AWS RAM.
+	FeatureSet *string `locationName:"featureSet" type:"string" enum:"ResourceShareFeatureSet"`
 
 	// The time when the resource share was last updated.
 	LastUpdatedTime *time.Time `locationName:"lastUpdatedTime" type:"timestamp"`
@@ -3718,6 +5484,12 @@ func (s *ResourceShare) SetAllowExternalPrincipals(v bool) *ResourceShare {
 // SetCreationTime sets the CreationTime field's value.
 func (s *ResourceShare) SetCreationTime(v time.Time) *ResourceShare {
 	s.CreationTime = &v
+	return s
+}
+
+// SetFeatureSet sets the FeatureSet field's value.
+func (s *ResourceShare) SetFeatureSet(v string) *ResourceShare {
+	s.FeatureSet = &v
 	return s
 }
 
@@ -3952,6 +5724,576 @@ func (s *ResourceShareInvitation) SetStatus(v string) *ResourceShareInvitation {
 	return s
 }
 
+// The invitation was already accepted.
+type ResourceShareInvitationAlreadyAcceptedException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s ResourceShareInvitationAlreadyAcceptedException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResourceShareInvitationAlreadyAcceptedException) GoString() string {
+	return s.String()
+}
+
+func newErrorResourceShareInvitationAlreadyAcceptedException(v protocol.ResponseMetadata) error {
+	return &ResourceShareInvitationAlreadyAcceptedException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s ResourceShareInvitationAlreadyAcceptedException) Code() string {
+	return "ResourceShareInvitationAlreadyAcceptedException"
+}
+
+// Message returns the exception's message.
+func (s ResourceShareInvitationAlreadyAcceptedException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s ResourceShareInvitationAlreadyAcceptedException) OrigErr() error {
+	return nil
+}
+
+func (s ResourceShareInvitationAlreadyAcceptedException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s ResourceShareInvitationAlreadyAcceptedException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s ResourceShareInvitationAlreadyAcceptedException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// The invitation was already rejected.
+type ResourceShareInvitationAlreadyRejectedException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s ResourceShareInvitationAlreadyRejectedException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResourceShareInvitationAlreadyRejectedException) GoString() string {
+	return s.String()
+}
+
+func newErrorResourceShareInvitationAlreadyRejectedException(v protocol.ResponseMetadata) error {
+	return &ResourceShareInvitationAlreadyRejectedException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s ResourceShareInvitationAlreadyRejectedException) Code() string {
+	return "ResourceShareInvitationAlreadyRejectedException"
+}
+
+// Message returns the exception's message.
+func (s ResourceShareInvitationAlreadyRejectedException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s ResourceShareInvitationAlreadyRejectedException) OrigErr() error {
+	return nil
+}
+
+func (s ResourceShareInvitationAlreadyRejectedException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s ResourceShareInvitationAlreadyRejectedException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s ResourceShareInvitationAlreadyRejectedException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// The Amazon Resource Name (ARN) for an invitation was not found.
+type ResourceShareInvitationArnNotFoundException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s ResourceShareInvitationArnNotFoundException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResourceShareInvitationArnNotFoundException) GoString() string {
+	return s.String()
+}
+
+func newErrorResourceShareInvitationArnNotFoundException(v protocol.ResponseMetadata) error {
+	return &ResourceShareInvitationArnNotFoundException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s ResourceShareInvitationArnNotFoundException) Code() string {
+	return "ResourceShareInvitationArnNotFoundException"
+}
+
+// Message returns the exception's message.
+func (s ResourceShareInvitationArnNotFoundException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s ResourceShareInvitationArnNotFoundException) OrigErr() error {
+	return nil
+}
+
+func (s ResourceShareInvitationArnNotFoundException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s ResourceShareInvitationArnNotFoundException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s ResourceShareInvitationArnNotFoundException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// The invitation is expired.
+type ResourceShareInvitationExpiredException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s ResourceShareInvitationExpiredException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResourceShareInvitationExpiredException) GoString() string {
+	return s.String()
+}
+
+func newErrorResourceShareInvitationExpiredException(v protocol.ResponseMetadata) error {
+	return &ResourceShareInvitationExpiredException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s ResourceShareInvitationExpiredException) Code() string {
+	return "ResourceShareInvitationExpiredException"
+}
+
+// Message returns the exception's message.
+func (s ResourceShareInvitationExpiredException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s ResourceShareInvitationExpiredException) OrigErr() error {
+	return nil
+}
+
+func (s ResourceShareInvitationExpiredException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s ResourceShareInvitationExpiredException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s ResourceShareInvitationExpiredException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// The requested resource share exceeds the limit for your account.
+type ResourceShareLimitExceededException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s ResourceShareLimitExceededException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResourceShareLimitExceededException) GoString() string {
+	return s.String()
+}
+
+func newErrorResourceShareLimitExceededException(v protocol.ResponseMetadata) error {
+	return &ResourceShareLimitExceededException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s ResourceShareLimitExceededException) Code() string {
+	return "ResourceShareLimitExceededException"
+}
+
+// Message returns the exception's message.
+func (s ResourceShareLimitExceededException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s ResourceShareLimitExceededException) OrigErr() error {
+	return nil
+}
+
+func (s ResourceShareLimitExceededException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s ResourceShareLimitExceededException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s ResourceShareLimitExceededException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// Information about an AWS RAM permission.
+type ResourceSharePermissionDetail struct {
+	_ struct{} `type:"structure"`
+
+	// The ARN of the permission.
+	Arn *string `locationName:"arn" type:"string"`
+
+	// The date and time when the permission was created.
+	CreationTime *time.Time `locationName:"creationTime" type:"timestamp"`
+
+	// The identifier for the version of the permission that is set as the default
+	// version.
+	DefaultVersion *bool `locationName:"defaultVersion" type:"boolean"`
+
+	// The date and time when the permission was last updated.
+	LastUpdatedTime *time.Time `locationName:"lastUpdatedTime" type:"timestamp"`
+
+	// The name of the permission.
+	Name *string `locationName:"name" type:"string"`
+
+	// The permission's effect and actions in JSON format. The effect indicates
+	// whether the actions are allowed or denied. The actions list the API actions
+	// to which the principal is granted or denied access.
+	Permission *string `locationName:"permission" type:"string"`
+
+	// The resource type to which the permission applies.
+	ResourceType *string `locationName:"resourceType" type:"string"`
+
+	// The identifier for the version of the permission.
+	Version *string `locationName:"version" type:"string"`
+}
+
+// String returns the string representation
+func (s ResourceSharePermissionDetail) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResourceSharePermissionDetail) GoString() string {
+	return s.String()
+}
+
+// SetArn sets the Arn field's value.
+func (s *ResourceSharePermissionDetail) SetArn(v string) *ResourceSharePermissionDetail {
+	s.Arn = &v
+	return s
+}
+
+// SetCreationTime sets the CreationTime field's value.
+func (s *ResourceSharePermissionDetail) SetCreationTime(v time.Time) *ResourceSharePermissionDetail {
+	s.CreationTime = &v
+	return s
+}
+
+// SetDefaultVersion sets the DefaultVersion field's value.
+func (s *ResourceSharePermissionDetail) SetDefaultVersion(v bool) *ResourceSharePermissionDetail {
+	s.DefaultVersion = &v
+	return s
+}
+
+// SetLastUpdatedTime sets the LastUpdatedTime field's value.
+func (s *ResourceSharePermissionDetail) SetLastUpdatedTime(v time.Time) *ResourceSharePermissionDetail {
+	s.LastUpdatedTime = &v
+	return s
+}
+
+// SetName sets the Name field's value.
+func (s *ResourceSharePermissionDetail) SetName(v string) *ResourceSharePermissionDetail {
+	s.Name = &v
+	return s
+}
+
+// SetPermission sets the Permission field's value.
+func (s *ResourceSharePermissionDetail) SetPermission(v string) *ResourceSharePermissionDetail {
+	s.Permission = &v
+	return s
+}
+
+// SetResourceType sets the ResourceType field's value.
+func (s *ResourceSharePermissionDetail) SetResourceType(v string) *ResourceSharePermissionDetail {
+	s.ResourceType = &v
+	return s
+}
+
+// SetVersion sets the Version field's value.
+func (s *ResourceSharePermissionDetail) SetVersion(v string) *ResourceSharePermissionDetail {
+	s.Version = &v
+	return s
+}
+
+// Information about a permission that is associated with a resource share.
+type ResourceSharePermissionSummary struct {
+	_ struct{} `type:"structure"`
+
+	// The ARN of the permission.
+	Arn *string `locationName:"arn" type:"string"`
+
+	// The date and time when the permission was created.
+	CreationTime *time.Time `locationName:"creationTime" type:"timestamp"`
+
+	// The identifier for the version of the permission that is set as the default
+	// version.
+	DefaultVersion *bool `locationName:"defaultVersion" type:"boolean"`
+
+	// The date and time when the permission was last updated.
+	LastUpdatedTime *time.Time `locationName:"lastUpdatedTime" type:"timestamp"`
+
+	// The name of the permission.
+	Name *string `locationName:"name" type:"string"`
+
+	// The type of resource to which the permission applies.
+	ResourceType *string `locationName:"resourceType" type:"string"`
+
+	// The current status of the permission.
+	Status *string `locationName:"status" type:"string"`
+
+	// The identifier for the version of the permission.
+	Version *string `locationName:"version" type:"string"`
+}
+
+// String returns the string representation
+func (s ResourceSharePermissionSummary) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResourceSharePermissionSummary) GoString() string {
+	return s.String()
+}
+
+// SetArn sets the Arn field's value.
+func (s *ResourceSharePermissionSummary) SetArn(v string) *ResourceSharePermissionSummary {
+	s.Arn = &v
+	return s
+}
+
+// SetCreationTime sets the CreationTime field's value.
+func (s *ResourceSharePermissionSummary) SetCreationTime(v time.Time) *ResourceSharePermissionSummary {
+	s.CreationTime = &v
+	return s
+}
+
+// SetDefaultVersion sets the DefaultVersion field's value.
+func (s *ResourceSharePermissionSummary) SetDefaultVersion(v bool) *ResourceSharePermissionSummary {
+	s.DefaultVersion = &v
+	return s
+}
+
+// SetLastUpdatedTime sets the LastUpdatedTime field's value.
+func (s *ResourceSharePermissionSummary) SetLastUpdatedTime(v time.Time) *ResourceSharePermissionSummary {
+	s.LastUpdatedTime = &v
+	return s
+}
+
+// SetName sets the Name field's value.
+func (s *ResourceSharePermissionSummary) SetName(v string) *ResourceSharePermissionSummary {
+	s.Name = &v
+	return s
+}
+
+// SetResourceType sets the ResourceType field's value.
+func (s *ResourceSharePermissionSummary) SetResourceType(v string) *ResourceSharePermissionSummary {
+	s.ResourceType = &v
+	return s
+}
+
+// SetStatus sets the Status field's value.
+func (s *ResourceSharePermissionSummary) SetStatus(v string) *ResourceSharePermissionSummary {
+	s.Status = &v
+	return s
+}
+
+// SetVersion sets the Version field's value.
+func (s *ResourceSharePermissionSummary) SetVersion(v string) *ResourceSharePermissionSummary {
+	s.Version = &v
+	return s
+}
+
+// The service could not respond to the request due to an internal problem.
+type ServerInternalException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s ServerInternalException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ServerInternalException) GoString() string {
+	return s.String()
+}
+
+func newErrorServerInternalException(v protocol.ResponseMetadata) error {
+	return &ServerInternalException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s ServerInternalException) Code() string {
+	return "ServerInternalException"
+}
+
+// Message returns the exception's message.
+func (s ServerInternalException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s ServerInternalException) OrigErr() error {
+	return nil
+}
+
+func (s ServerInternalException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s ServerInternalException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s ServerInternalException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// The service is not available.
+type ServiceUnavailableException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s ServiceUnavailableException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ServiceUnavailableException) GoString() string {
+	return s.String()
+}
+
+func newErrorServiceUnavailableException(v protocol.ResponseMetadata) error {
+	return &ServiceUnavailableException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s ServiceUnavailableException) Code() string {
+	return "ServiceUnavailableException"
+}
+
+// Message returns the exception's message.
+func (s ServiceUnavailableException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s ServiceUnavailableException) OrigErr() error {
+	return nil
+}
+
+func (s ServiceUnavailableException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s ServiceUnavailableException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s ServiceUnavailableException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
 // Information about a tag.
 type Tag struct {
 	_ struct{} `type:"structure"`
@@ -4018,6 +6360,118 @@ func (s *TagFilter) SetTagValues(v []*string) *TagFilter {
 	return s
 }
 
+// The requested tags exceed the limit for your account.
+type TagLimitExceededException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s TagLimitExceededException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s TagLimitExceededException) GoString() string {
+	return s.String()
+}
+
+func newErrorTagLimitExceededException(v protocol.ResponseMetadata) error {
+	return &TagLimitExceededException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s TagLimitExceededException) Code() string {
+	return "TagLimitExceededException"
+}
+
+// Message returns the exception's message.
+func (s TagLimitExceededException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s TagLimitExceededException) OrigErr() error {
+	return nil
+}
+
+func (s TagLimitExceededException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s TagLimitExceededException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s TagLimitExceededException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// The specified tag is a reserved word and cannot be used.
+type TagPolicyViolationException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s TagPolicyViolationException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s TagPolicyViolationException) GoString() string {
+	return s.String()
+}
+
+func newErrorTagPolicyViolationException(v protocol.ResponseMetadata) error {
+	return &TagPolicyViolationException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s TagPolicyViolationException) Code() string {
+	return "TagPolicyViolationException"
+}
+
+// Message returns the exception's message.
+func (s TagPolicyViolationException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s TagPolicyViolationException) OrigErr() error {
+	return nil
+}
+
+func (s TagPolicyViolationException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s TagPolicyViolationException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s TagPolicyViolationException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
 type TagResourceInput struct {
 	_ struct{} `type:"structure"`
 
@@ -4082,6 +6536,62 @@ func (s TagResourceOutput) String() string {
 // GoString returns the string representation
 func (s TagResourceOutput) GoString() string {
 	return s.String()
+}
+
+// A specified resource was not found.
+type UnknownResourceException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s UnknownResourceException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UnknownResourceException) GoString() string {
+	return s.String()
+}
+
+func newErrorUnknownResourceException(v protocol.ResponseMetadata) error {
+	return &UnknownResourceException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s UnknownResourceException) Code() string {
+	return "UnknownResourceException"
+}
+
+// Message returns the exception's message.
+func (s UnknownResourceException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s UnknownResourceException) OrigErr() error {
+	return nil
+}
+
+func (s UnknownResourceException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s UnknownResourceException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s UnknownResourceException) RequestID() string {
+	return s.respMetadata.RequestID
 }
 
 type UntagResourceInput struct {
@@ -4281,6 +6791,17 @@ const (
 
 	// ResourceShareAssociationTypeResource is a ResourceShareAssociationType enum value
 	ResourceShareAssociationTypeResource = "RESOURCE"
+)
+
+const (
+	// ResourceShareFeatureSetCreatedFromPolicy is a ResourceShareFeatureSet enum value
+	ResourceShareFeatureSetCreatedFromPolicy = "CREATED_FROM_POLICY"
+
+	// ResourceShareFeatureSetPromotingToStandard is a ResourceShareFeatureSet enum value
+	ResourceShareFeatureSetPromotingToStandard = "PROMOTING_TO_STANDARD"
+
+	// ResourceShareFeatureSetStandard is a ResourceShareFeatureSet enum value
+	ResourceShareFeatureSetStandard = "STANDARD"
 )
 
 const (

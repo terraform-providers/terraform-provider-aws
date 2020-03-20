@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/opsworks"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -15,8 +13,10 @@ import (
 // These tests assume the existence of predefined Opsworks IAM roles named `aws-opsworks-ec2-role`
 // and `aws-opsworks-service-role`.
 
-func TestAccAWSOpsworksRailsAppLayer(t *testing.T) {
-	stackName := fmt.Sprintf("tf-%d", acctest.RandInt())
+func TestAccAWSOpsworksRailsAppLayer_basic(t *testing.T) {
+	var opslayer opsworks.Layer
+	stackName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_opsworks_rails_app_layer.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -25,23 +25,55 @@ func TestAccAWSOpsworksRailsAppLayer(t *testing.T) {
 			{
 				Config: testAccAwsOpsworksRailsAppLayerConfigVpcCreate(stackName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(
-						"aws_opsworks_rails_app_layer.tf-acc", "name", stackName,
-					),
-					resource.TestCheckResourceAttr(
-						"aws_opsworks_rails_app_layer.tf-acc", "manage_bundler", "true",
-					),
+					testAccCheckAWSOpsworksLayerExists(resourceName, &opslayer),
+					resource.TestCheckResourceAttr(resourceName, "name", stackName),
+					resource.TestCheckResourceAttr(resourceName, "manage_bundler", "true"),
 				),
 			},
 			{
 				Config: testAccAwsOpsworksRailsAppLayerNoManageBundlerConfigVpcCreate(stackName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(
-						"aws_opsworks_rails_app_layer.tf-acc", "name", stackName,
-					),
-					resource.TestCheckResourceAttr(
-						"aws_opsworks_rails_app_layer.tf-acc", "manage_bundler", "false",
-					),
+					testAccCheckAWSOpsworksLayerExists(resourceName, &opslayer),
+					resource.TestCheckResourceAttr(resourceName, "name", stackName),
+					resource.TestCheckResourceAttr(resourceName, "manage_bundler", "false"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSOpsworksRailsAppLayer_tags(t *testing.T) {
+	var opslayer opsworks.Layer
+	stackName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_opsworks_rails_app_layer.test"
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAwsOpsworksRailsAppLayerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAwsOpsworksRailsAppLayerConfigTags1(stackName, "key1", "value1"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSOpsworksLayerExists(resourceName, &opslayer),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1"),
+				),
+			},
+			{
+				Config: testAccAwsOpsworksRailsAppLayerConfigTags2(stackName, "key1", "value1updated", "key2", "value2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSOpsworksLayerExists(resourceName, &opslayer),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1updated"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
+				),
+			},
+			{
+				Config: testAccAwsOpsworksRailsAppLayerConfigTags1(stackName, "key2", "value2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSOpsworksLayerExists(resourceName, &opslayer),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
 				),
 			},
 		},
@@ -49,35 +81,14 @@ func TestAccAWSOpsworksRailsAppLayer(t *testing.T) {
 }
 
 func testAccCheckAwsOpsworksRailsAppLayerDestroy(s *terraform.State) error {
-	opsworksconn := testAccProvider.Meta().(*AWSClient).opsworksconn
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "aws_opsworks_rails_app_layer" {
-			continue
-		}
-		req := &opsworks.DescribeLayersInput{
-			LayerIds: []*string{
-				aws.String(rs.Primary.ID),
-			},
-		}
-
-		_, err := opsworksconn.DescribeLayers(req)
-		if err != nil {
-			if awserr, ok := err.(awserr.Error); ok {
-				if awserr.Code() == "ResourceNotFoundException" {
-					// not found, good to go
-					return nil
-				}
-			}
-			return err
-		}
-	}
-
-	return fmt.Errorf("Fall through error on OpsWorks custom layer test")
+	return testAccCheckAwsOpsworksLayerDestroy("aws_opsworks_rails_app_layer", s)
 }
 
 func testAccAwsOpsworksRailsAppLayerConfigVpcCreate(name string) string {
-	return fmt.Sprintf(`
-resource "aws_opsworks_rails_app_layer" "tf-acc" {
+	return testAccAwsOpsworksStackConfigVpcCreate(name) +
+		testAccAwsOpsworksCustomLayerSecurityGroups(name) +
+		fmt.Sprintf(`
+resource "aws_opsworks_rails_app_layer" "test" {
   stack_id = "${aws_opsworks_stack.tf-acc.id}"
   name     = "%s"
 
@@ -86,18 +97,14 @@ resource "aws_opsworks_rails_app_layer" "tf-acc" {
     "${aws_security_group.tf-ops-acc-layer2.id}",
   ]
 }
-
-%s
-
-
-%s
-
-`, name, testAccAwsOpsworksStackConfigVpcCreate(name), testAccAwsOpsworksCustomLayerSecurityGroups(name))
+`, name)
 }
 
 func testAccAwsOpsworksRailsAppLayerNoManageBundlerConfigVpcCreate(name string) string {
-	return fmt.Sprintf(`
-resource "aws_opsworks_rails_app_layer" "tf-acc" {
+	return testAccAwsOpsworksStackConfigVpcCreate(name) +
+		testAccAwsOpsworksCustomLayerSecurityGroups(name) +
+		fmt.Sprintf(`
+resource "aws_opsworks_rails_app_layer" "test" {
   stack_id = "${aws_opsworks_stack.tf-acc.id}"
   name     = "%s"
 
@@ -108,11 +115,46 @@ resource "aws_opsworks_rails_app_layer" "tf-acc" {
 
   manage_bundler = false
 }
+`, name)
+}
 
-%s
+func testAccAwsOpsworksRailsAppLayerConfigTags1(name, tagKey1, tagValue1 string) string {
+	return testAccAwsOpsworksStackConfigVpcCreate(name) +
+		testAccAwsOpsworksCustomLayerSecurityGroups(name) +
+		fmt.Sprintf(`
+resource "aws_opsworks_rails_app_layer" "test" {
+  stack_id = "${aws_opsworks_stack.tf-acc.id}"
+  name     = "%s"
 
+  custom_security_group_ids = [
+    "${aws_security_group.tf-ops-acc-layer1.id}",
+    "${aws_security_group.tf-ops-acc-layer2.id}",
+  ]
 
-%s
+  tags = {
+    %[2]q = %[3]q
+  }
+}
+`, name, tagKey1, tagValue1)
+}
 
-`, name, testAccAwsOpsworksStackConfigVpcCreate(name), testAccAwsOpsworksCustomLayerSecurityGroups(name))
+func testAccAwsOpsworksRailsAppLayerConfigTags2(name, tagKey1, tagValue1, tagKey2, tagValue2 string) string {
+	return testAccAwsOpsworksStackConfigVpcCreate(name) +
+		testAccAwsOpsworksCustomLayerSecurityGroups(name) +
+		fmt.Sprintf(`
+resource "aws_opsworks_rails_app_layer" "test" {
+  stack_id = "${aws_opsworks_stack.tf-acc.id}"
+  name     = "%s"
+
+  custom_security_group_ids = [
+    "${aws_security_group.tf-ops-acc-layer1.id}",
+    "${aws_security_group.tf-ops-acc-layer2.id}",
+  ]
+
+  tags = {
+    %[2]q = %[3]q
+    %[4]q = %[5]q
+  }
+}
+`, name, tagKey1, tagValue1, tagKey2, tagValue2)
 }

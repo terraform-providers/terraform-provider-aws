@@ -68,18 +68,18 @@ func (c *MediaConvert) AssociateCertificateRequest(input *AssociateCertificateIn
 // See the AWS API reference guide for AWS Elemental MediaConvert's
 // API operation AssociateCertificate for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //
-//   * ErrCodeForbiddenException "ForbiddenException"
+//   * ForbiddenException
 //
-//   * ErrCodeNotFoundException "NotFoundException"
+//   * NotFoundException
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //
-//   * ErrCodeConflictException "ConflictException"
+//   * ConflictException
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/mediaconvert-2017-08-29/AssociateCertificate
 func (c *MediaConvert) AssociateCertificate(input *AssociateCertificateInput) (*AssociateCertificateOutput, error) {
@@ -158,18 +158,18 @@ func (c *MediaConvert) CancelJobRequest(input *CancelJobInput) (req *request.Req
 // See the AWS API reference guide for AWS Elemental MediaConvert's
 // API operation CancelJob for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //
-//   * ErrCodeForbiddenException "ForbiddenException"
+//   * ForbiddenException
 //
-//   * ErrCodeNotFoundException "NotFoundException"
+//   * NotFoundException
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //
-//   * ErrCodeConflictException "ConflictException"
+//   * ConflictException
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/mediaconvert-2017-08-29/CancelJob
 func (c *MediaConvert) CancelJob(input *CancelJobInput) (*CancelJobOutput, error) {
@@ -247,18 +247,18 @@ func (c *MediaConvert) CreateJobRequest(input *CreateJobInput) (req *request.Req
 // See the AWS API reference guide for AWS Elemental MediaConvert's
 // API operation CreateJob for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //
-//   * ErrCodeForbiddenException "ForbiddenException"
+//   * ForbiddenException
 //
-//   * ErrCodeNotFoundException "NotFoundException"
+//   * NotFoundException
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //
-//   * ErrCodeConflictException "ConflictException"
+//   * ConflictException
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/mediaconvert-2017-08-29/CreateJob
 func (c *MediaConvert) CreateJob(input *CreateJobInput) (*CreateJobOutput, error) {
@@ -336,18 +336,18 @@ func (c *MediaConvert) CreateJobTemplateRequest(input *CreateJobTemplateInput) (
 // See the AWS API reference guide for AWS Elemental MediaConvert's
 // API operation CreateJobTemplate for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //
-//   * ErrCodeForbiddenException "ForbiddenException"
+//   * ForbiddenException
 //
-//   * ErrCodeNotFoundException "NotFoundException"
+//   * NotFoundException
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //
-//   * ErrCodeConflictException "ConflictException"
+//   * ConflictException
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/mediaconvert-2017-08-29/CreateJobTemplate
 func (c *MediaConvert) CreateJobTemplate(input *CreateJobTemplateInput) (*CreateJobTemplateOutput, error) {
@@ -425,18 +425,18 @@ func (c *MediaConvert) CreatePresetRequest(input *CreatePresetInput) (req *reque
 // See the AWS API reference guide for AWS Elemental MediaConvert's
 // API operation CreatePreset for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //
-//   * ErrCodeForbiddenException "ForbiddenException"
+//   * ForbiddenException
 //
-//   * ErrCodeNotFoundException "NotFoundException"
+//   * NotFoundException
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //
-//   * ErrCodeConflictException "ConflictException"
+//   * ConflictException
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/mediaconvert-2017-08-29/CreatePreset
 func (c *MediaConvert) CreatePreset(input *CreatePresetInput) (*CreatePresetOutput, error) {
@@ -514,18 +514,18 @@ func (c *MediaConvert) CreateQueueRequest(input *CreateQueueInput) (req *request
 // See the AWS API reference guide for AWS Elemental MediaConvert's
 // API operation CreateQueue for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //
-//   * ErrCodeForbiddenException "ForbiddenException"
+//   * ForbiddenException
 //
-//   * ErrCodeNotFoundException "NotFoundException"
+//   * NotFoundException
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //
-//   * ErrCodeConflictException "ConflictException"
+//   * ConflictException
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/mediaconvert-2017-08-29/CreateQueue
 func (c *MediaConvert) CreateQueue(input *CreateQueueInput) (*CreateQueueOutput, error) {
@@ -603,18 +603,18 @@ func (c *MediaConvert) DeleteJobTemplateRequest(input *DeleteJobTemplateInput) (
 // See the AWS API reference guide for AWS Elemental MediaConvert's
 // API operation DeleteJobTemplate for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //
-//   * ErrCodeForbiddenException "ForbiddenException"
+//   * ForbiddenException
 //
-//   * ErrCodeNotFoundException "NotFoundException"
+//   * NotFoundException
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //
-//   * ErrCodeConflictException "ConflictException"
+//   * ConflictException
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/mediaconvert-2017-08-29/DeleteJobTemplate
 func (c *MediaConvert) DeleteJobTemplate(input *DeleteJobTemplateInput) (*DeleteJobTemplateOutput, error) {
@@ -692,18 +692,18 @@ func (c *MediaConvert) DeletePresetRequest(input *DeletePresetInput) (req *reque
 // See the AWS API reference guide for AWS Elemental MediaConvert's
 // API operation DeletePreset for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //
-//   * ErrCodeForbiddenException "ForbiddenException"
+//   * ForbiddenException
 //
-//   * ErrCodeNotFoundException "NotFoundException"
+//   * NotFoundException
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //
-//   * ErrCodeConflictException "ConflictException"
+//   * ConflictException
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/mediaconvert-2017-08-29/DeletePreset
 func (c *MediaConvert) DeletePreset(input *DeletePresetInput) (*DeletePresetOutput, error) {
@@ -781,18 +781,18 @@ func (c *MediaConvert) DeleteQueueRequest(input *DeleteQueueInput) (req *request
 // See the AWS API reference guide for AWS Elemental MediaConvert's
 // API operation DeleteQueue for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //
-//   * ErrCodeForbiddenException "ForbiddenException"
+//   * ForbiddenException
 //
-//   * ErrCodeNotFoundException "NotFoundException"
+//   * NotFoundException
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //
-//   * ErrCodeConflictException "ConflictException"
+//   * ConflictException
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/mediaconvert-2017-08-29/DeleteQueue
 func (c *MediaConvert) DeleteQueue(input *DeleteQueueInput) (*DeleteQueueOutput, error) {
@@ -876,18 +876,18 @@ func (c *MediaConvert) DescribeEndpointsRequest(input *DescribeEndpointsInput) (
 // See the AWS API reference guide for AWS Elemental MediaConvert's
 // API operation DescribeEndpoints for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //
-//   * ErrCodeForbiddenException "ForbiddenException"
+//   * ForbiddenException
 //
-//   * ErrCodeNotFoundException "NotFoundException"
+//   * NotFoundException
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //
-//   * ErrCodeConflictException "ConflictException"
+//   * ConflictException
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/mediaconvert-2017-08-29/DescribeEndpoints
 func (c *MediaConvert) DescribeEndpoints(input *DescribeEndpointsInput) (*DescribeEndpointsOutput, error) {
@@ -954,10 +954,12 @@ func (c *MediaConvert) DescribeEndpointsPagesWithContext(ctx aws.Context, input 
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*DescribeEndpointsOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*DescribeEndpointsOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -1016,18 +1018,18 @@ func (c *MediaConvert) DisassociateCertificateRequest(input *DisassociateCertifi
 // See the AWS API reference guide for AWS Elemental MediaConvert's
 // API operation DisassociateCertificate for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //
-//   * ErrCodeForbiddenException "ForbiddenException"
+//   * ForbiddenException
 //
-//   * ErrCodeNotFoundException "NotFoundException"
+//   * NotFoundException
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //
-//   * ErrCodeConflictException "ConflictException"
+//   * ConflictException
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/mediaconvert-2017-08-29/DisassociateCertificate
 func (c *MediaConvert) DisassociateCertificate(input *DisassociateCertificateInput) (*DisassociateCertificateOutput, error) {
@@ -1104,18 +1106,18 @@ func (c *MediaConvert) GetJobRequest(input *GetJobInput) (req *request.Request, 
 // See the AWS API reference guide for AWS Elemental MediaConvert's
 // API operation GetJob for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //
-//   * ErrCodeForbiddenException "ForbiddenException"
+//   * ForbiddenException
 //
-//   * ErrCodeNotFoundException "NotFoundException"
+//   * NotFoundException
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //
-//   * ErrCodeConflictException "ConflictException"
+//   * ConflictException
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/mediaconvert-2017-08-29/GetJob
 func (c *MediaConvert) GetJob(input *GetJobInput) (*GetJobOutput, error) {
@@ -1192,18 +1194,18 @@ func (c *MediaConvert) GetJobTemplateRequest(input *GetJobTemplateInput) (req *r
 // See the AWS API reference guide for AWS Elemental MediaConvert's
 // API operation GetJobTemplate for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //
-//   * ErrCodeForbiddenException "ForbiddenException"
+//   * ForbiddenException
 //
-//   * ErrCodeNotFoundException "NotFoundException"
+//   * NotFoundException
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //
-//   * ErrCodeConflictException "ConflictException"
+//   * ConflictException
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/mediaconvert-2017-08-29/GetJobTemplate
 func (c *MediaConvert) GetJobTemplate(input *GetJobTemplateInput) (*GetJobTemplateOutput, error) {
@@ -1280,18 +1282,18 @@ func (c *MediaConvert) GetPresetRequest(input *GetPresetInput) (req *request.Req
 // See the AWS API reference guide for AWS Elemental MediaConvert's
 // API operation GetPreset for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //
-//   * ErrCodeForbiddenException "ForbiddenException"
+//   * ForbiddenException
 //
-//   * ErrCodeNotFoundException "NotFoundException"
+//   * NotFoundException
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //
-//   * ErrCodeConflictException "ConflictException"
+//   * ConflictException
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/mediaconvert-2017-08-29/GetPreset
 func (c *MediaConvert) GetPreset(input *GetPresetInput) (*GetPresetOutput, error) {
@@ -1368,18 +1370,18 @@ func (c *MediaConvert) GetQueueRequest(input *GetQueueInput) (req *request.Reque
 // See the AWS API reference guide for AWS Elemental MediaConvert's
 // API operation GetQueue for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //
-//   * ErrCodeForbiddenException "ForbiddenException"
+//   * ForbiddenException
 //
-//   * ErrCodeNotFoundException "NotFoundException"
+//   * NotFoundException
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //
-//   * ErrCodeConflictException "ConflictException"
+//   * ConflictException
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/mediaconvert-2017-08-29/GetQueue
 func (c *MediaConvert) GetQueue(input *GetQueueInput) (*GetQueueOutput, error) {
@@ -1464,18 +1466,18 @@ func (c *MediaConvert) ListJobTemplatesRequest(input *ListJobTemplatesInput) (re
 // See the AWS API reference guide for AWS Elemental MediaConvert's
 // API operation ListJobTemplates for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //
-//   * ErrCodeForbiddenException "ForbiddenException"
+//   * ForbiddenException
 //
-//   * ErrCodeNotFoundException "NotFoundException"
+//   * NotFoundException
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //
-//   * ErrCodeConflictException "ConflictException"
+//   * ConflictException
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/mediaconvert-2017-08-29/ListJobTemplates
 func (c *MediaConvert) ListJobTemplates(input *ListJobTemplatesInput) (*ListJobTemplatesOutput, error) {
@@ -1542,10 +1544,12 @@ func (c *MediaConvert) ListJobTemplatesPagesWithContext(ctx aws.Context, input *
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListJobTemplatesOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListJobTemplatesOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -1611,18 +1615,18 @@ func (c *MediaConvert) ListJobsRequest(input *ListJobsInput) (req *request.Reque
 // See the AWS API reference guide for AWS Elemental MediaConvert's
 // API operation ListJobs for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //
-//   * ErrCodeForbiddenException "ForbiddenException"
+//   * ForbiddenException
 //
-//   * ErrCodeNotFoundException "NotFoundException"
+//   * NotFoundException
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //
-//   * ErrCodeConflictException "ConflictException"
+//   * ConflictException
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/mediaconvert-2017-08-29/ListJobs
 func (c *MediaConvert) ListJobs(input *ListJobsInput) (*ListJobsOutput, error) {
@@ -1689,10 +1693,12 @@ func (c *MediaConvert) ListJobsPagesWithContext(ctx aws.Context, input *ListJobs
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListJobsOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListJobsOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -1757,18 +1763,18 @@ func (c *MediaConvert) ListPresetsRequest(input *ListPresetsInput) (req *request
 // See the AWS API reference guide for AWS Elemental MediaConvert's
 // API operation ListPresets for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //
-//   * ErrCodeForbiddenException "ForbiddenException"
+//   * ForbiddenException
 //
-//   * ErrCodeNotFoundException "NotFoundException"
+//   * NotFoundException
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //
-//   * ErrCodeConflictException "ConflictException"
+//   * ConflictException
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/mediaconvert-2017-08-29/ListPresets
 func (c *MediaConvert) ListPresets(input *ListPresetsInput) (*ListPresetsOutput, error) {
@@ -1835,10 +1841,12 @@ func (c *MediaConvert) ListPresetsPagesWithContext(ctx aws.Context, input *ListP
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListPresetsOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListPresetsOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -1903,18 +1911,18 @@ func (c *MediaConvert) ListQueuesRequest(input *ListQueuesInput) (req *request.R
 // See the AWS API reference guide for AWS Elemental MediaConvert's
 // API operation ListQueues for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //
-//   * ErrCodeForbiddenException "ForbiddenException"
+//   * ForbiddenException
 //
-//   * ErrCodeNotFoundException "NotFoundException"
+//   * NotFoundException
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //
-//   * ErrCodeConflictException "ConflictException"
+//   * ConflictException
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/mediaconvert-2017-08-29/ListQueues
 func (c *MediaConvert) ListQueues(input *ListQueuesInput) (*ListQueuesOutput, error) {
@@ -1981,10 +1989,12 @@ func (c *MediaConvert) ListQueuesPagesWithContext(ctx aws.Context, input *ListQu
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListQueuesOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListQueuesOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -2041,18 +2051,18 @@ func (c *MediaConvert) ListTagsForResourceRequest(input *ListTagsForResourceInpu
 // See the AWS API reference guide for AWS Elemental MediaConvert's
 // API operation ListTagsForResource for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //
-//   * ErrCodeForbiddenException "ForbiddenException"
+//   * ForbiddenException
 //
-//   * ErrCodeNotFoundException "NotFoundException"
+//   * NotFoundException
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //
-//   * ErrCodeConflictException "ConflictException"
+//   * ConflictException
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/mediaconvert-2017-08-29/ListTagsForResource
 func (c *MediaConvert) ListTagsForResource(input *ListTagsForResourceInput) (*ListTagsForResourceOutput, error) {
@@ -2131,18 +2141,18 @@ func (c *MediaConvert) TagResourceRequest(input *TagResourceInput) (req *request
 // See the AWS API reference guide for AWS Elemental MediaConvert's
 // API operation TagResource for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //
-//   * ErrCodeForbiddenException "ForbiddenException"
+//   * ForbiddenException
 //
-//   * ErrCodeNotFoundException "NotFoundException"
+//   * NotFoundException
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //
-//   * ErrCodeConflictException "ConflictException"
+//   * ConflictException
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/mediaconvert-2017-08-29/TagResource
 func (c *MediaConvert) TagResource(input *TagResourceInput) (*TagResourceOutput, error) {
@@ -2221,18 +2231,18 @@ func (c *MediaConvert) UntagResourceRequest(input *UntagResourceInput) (req *req
 // See the AWS API reference guide for AWS Elemental MediaConvert's
 // API operation UntagResource for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //
-//   * ErrCodeForbiddenException "ForbiddenException"
+//   * ForbiddenException
 //
-//   * ErrCodeNotFoundException "NotFoundException"
+//   * NotFoundException
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //
-//   * ErrCodeConflictException "ConflictException"
+//   * ConflictException
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/mediaconvert-2017-08-29/UntagResource
 func (c *MediaConvert) UntagResource(input *UntagResourceInput) (*UntagResourceOutput, error) {
@@ -2309,18 +2319,18 @@ func (c *MediaConvert) UpdateJobTemplateRequest(input *UpdateJobTemplateInput) (
 // See the AWS API reference guide for AWS Elemental MediaConvert's
 // API operation UpdateJobTemplate for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //
-//   * ErrCodeForbiddenException "ForbiddenException"
+//   * ForbiddenException
 //
-//   * ErrCodeNotFoundException "NotFoundException"
+//   * NotFoundException
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //
-//   * ErrCodeConflictException "ConflictException"
+//   * ConflictException
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/mediaconvert-2017-08-29/UpdateJobTemplate
 func (c *MediaConvert) UpdateJobTemplate(input *UpdateJobTemplateInput) (*UpdateJobTemplateOutput, error) {
@@ -2397,18 +2407,18 @@ func (c *MediaConvert) UpdatePresetRequest(input *UpdatePresetInput) (req *reque
 // See the AWS API reference guide for AWS Elemental MediaConvert's
 // API operation UpdatePreset for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //
-//   * ErrCodeForbiddenException "ForbiddenException"
+//   * ForbiddenException
 //
-//   * ErrCodeNotFoundException "NotFoundException"
+//   * NotFoundException
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //
-//   * ErrCodeConflictException "ConflictException"
+//   * ConflictException
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/mediaconvert-2017-08-29/UpdatePreset
 func (c *MediaConvert) UpdatePreset(input *UpdatePresetInput) (*UpdatePresetOutput, error) {
@@ -2485,18 +2495,18 @@ func (c *MediaConvert) UpdateQueueRequest(input *UpdateQueueInput) (req *request
 // See the AWS API reference guide for AWS Elemental MediaConvert's
 // API operation UpdateQueue for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //
-//   * ErrCodeForbiddenException "ForbiddenException"
+//   * ForbiddenException
 //
-//   * ErrCodeNotFoundException "NotFoundException"
+//   * NotFoundException
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //
-//   * ErrCodeConflictException "ConflictException"
+//   * ConflictException
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/mediaconvert-2017-08-29/UpdateQueue
 func (c *MediaConvert) UpdateQueue(input *UpdateQueueInput) (*UpdateQueueOutput, error) {
@@ -3005,8 +3015,8 @@ func (s AssociateCertificateOutput) GoString() string {
 // depending on the value that you choose for Audio codec (Codec). For each
 // codec enum that you choose, define the corresponding settings object. The
 // following lists the codec enum, settings object pairs. * AAC, AacSettings
-// * MP2, Mp2Settings * WAV, WavSettings * AIFF, AiffSettings * AC3, Ac3Settings
-// * EAC3, Eac3Settings * EAC3_ATMOS, Eac3AtmosSettings
+// * MP2, Mp2Settings * MP3, Mp3Settings * WAV, WavSettings * AIFF, AiffSettings
+// * AC3, Ac3Settings * EAC3, Eac3Settings * EAC3_ATMOS, Eac3AtmosSettings
 type AudioCodecSettings struct {
 	_ struct{} `type:"structure"`
 
@@ -3041,6 +3051,10 @@ type AudioCodecSettings struct {
 	// Required when you set (Codec) under (AudioDescriptions)>(CodecSettings) to
 	// the value MP2.
 	Mp2Settings *Mp2Settings `locationName:"mp2Settings" type:"structure"`
+
+	// Required when you set Codec, under AudioDescriptions>CodecSettings, to the
+	// value MP3.
+	Mp3Settings *Mp3Settings `locationName:"mp3Settings" type:"structure"`
 
 	// Required when you set (Codec) under (AudioDescriptions)>(CodecSettings) to
 	// the value WAV.
@@ -3088,6 +3102,11 @@ func (s *AudioCodecSettings) Validate() error {
 	if s.Mp2Settings != nil {
 		if err := s.Mp2Settings.Validate(); err != nil {
 			invalidParams.AddNested("Mp2Settings", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.Mp3Settings != nil {
+		if err := s.Mp3Settings.Validate(); err != nil {
+			invalidParams.AddNested("Mp3Settings", err.(request.ErrInvalidParams))
 		}
 	}
 	if s.WavSettings != nil {
@@ -3144,6 +3163,12 @@ func (s *AudioCodecSettings) SetMp2Settings(v *Mp2Settings) *AudioCodecSettings 
 	return s
 }
 
+// SetMp3Settings sets the Mp3Settings field's value.
+func (s *AudioCodecSettings) SetMp3Settings(v *Mp3Settings) *AudioCodecSettings {
+	s.Mp3Settings = v
+	return s
+}
+
 // SetWavSettings sets the WavSettings field's value.
 func (s *AudioCodecSettings) SetWavSettings(v *WavSettings) *AudioCodecSettings {
 	s.WavSettings = v
@@ -3188,16 +3213,20 @@ type AudioDescription struct {
 	// depending on the value that you choose for Audio codec (Codec). For each
 	// codec enum that you choose, define the corresponding settings object. The
 	// following lists the codec enum, settings object pairs. * AAC, AacSettings
-	// * MP2, Mp2Settings * WAV, WavSettings * AIFF, AiffSettings * AC3, Ac3Settings
-	// * EAC3, Eac3Settings * EAC3_ATMOS, Eac3AtmosSettings
+	// * MP2, Mp2Settings * MP3, Mp3Settings * WAV, WavSettings * AIFF, AiffSettings
+	// * AC3, Ac3Settings * EAC3, Eac3Settings * EAC3_ATMOS, Eac3AtmosSettings
 	CodecSettings *AudioCodecSettings `locationName:"codecSettings" type:"structure"`
 
-	// Specify the language for this audio output track, using the ISO 639-2 or
-	// ISO 639-3 three-letter language code. The language specified will be used
-	// when 'Follow Input Language Code' is not selected or when 'Follow Input Language
-	// Code' is selected but there is no ISO 639 language code specified by the
-	// input.
-	CustomLanguageCode *string `locationName:"customLanguageCode" min:"3" type:"string"`
+	// Specify the language for this audio output track. The service puts this language
+	// code into your output audio track when you set Language code control (AudioLanguageCodeControl)
+	// to Use configured (USE_CONFIGURED). The service also uses your specified
+	// custom language code when you set Language code control (AudioLanguageCodeControl)
+	// to Follow input (FOLLOW_INPUT), but your input file doesn't specify a language
+	// code. For all outputs, you can use an ISO 639-2 or ISO 639-3 code. For streaming
+	// outputs, you can also use any other code in the full RFC-5646 specification.
+	// Streaming outputs are those that are in one of the following output groups:
+	// CMAF, DASH ISO, Apple HLS, or Microsoft Smooth Streaming.
+	CustomLanguageCode *string `locationName:"customLanguageCode" type:"string"`
 
 	// Indicates the language of the audio output track. The ISO 639 language specified
 	// in the 'Language Code' drop down will be used when 'Follow Input Language
@@ -3205,10 +3234,12 @@ type AudioDescription struct {
 	// there is no ISO 639 language code specified by the input.
 	LanguageCode *string `locationName:"languageCode" type:"string" enum:"LanguageCode"`
 
-	// Choosing FOLLOW_INPUT will cause the ISO 639 language code of the output
-	// to follow the ISO 639 language code of the input. The language specified
-	// for languageCode' will be used when USE_CONFIGURED is selected or when FOLLOW_INPUT
-	// is selected but there is no ISO 639 language code specified by the input.
+	// Specify which source for language code takes precedence for this audio track.
+	// When you choose Follow input (FOLLOW_INPUT), the service uses the language
+	// code from the input track if it's present. If there's no languge code on
+	// the input track, the service uses the code that you specify in the setting
+	// Language code (languageCode or customLanguageCode). When you choose Use configured
+	// (USE_CONFIGURED), the service uses the language code that you specify.
 	LanguageCodeControl *string `locationName:"languageCodeControl" type:"string" enum:"AudioLanguageCodeControl"`
 
 	// Advanced audio remixing settings.
@@ -3234,9 +3265,6 @@ func (s AudioDescription) GoString() string {
 // Validate inspects the fields of the type to determine if they are valid.
 func (s *AudioDescription) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "AudioDescription"}
-	if s.CustomLanguageCode != nil && len(*s.CustomLanguageCode) < 3 {
-		invalidParams.Add(request.NewErrParamMinLen("CustomLanguageCode", 3))
-	}
 	if s.AudioNormalizationSettings != nil {
 		if err := s.AudioNormalizationSettings.Validate(); err != nil {
 			invalidParams.AddNested("AudioNormalizationSettings", err.(request.ErrInvalidParams))
@@ -3341,8 +3369,7 @@ type AudioNormalizationSettings struct {
 	AlgorithmControl *string `locationName:"algorithmControl" type:"string" enum:"AudioNormalizationAlgorithmControl"`
 
 	// Content measuring above this level will be corrected to the target level.
-	// Content measuring below this level will not be corrected. Gating only applies
-	// when not using real_time_correction.
+	// Content measuring below this level will not be corrected.
 	CorrectionGateLevel *int64 `locationName:"correctionGateLevel" type:"integer"`
 
 	// If set to LOG, log each output's audio track loudness to a CSV file.
@@ -3628,6 +3655,61 @@ func (s *AvailBlanking) Validate() error {
 func (s *AvailBlanking) SetAvailBlankingImage(v string) *AvailBlanking {
 	s.AvailBlankingImage = &v
 	return s
+}
+
+type BadRequestException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s BadRequestException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s BadRequestException) GoString() string {
+	return s.String()
+}
+
+func newErrorBadRequestException(v protocol.ResponseMetadata) error {
+	return &BadRequestException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s BadRequestException) Code() string {
+	return "BadRequestException"
+}
+
+// Message returns the exception's message.
+func (s BadRequestException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s BadRequestException) OrigErr() error {
+	return nil
+}
+
+func (s BadRequestException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s BadRequestException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s BadRequestException) RequestID() string {
+	return s.respMetadata.RequestID
 }
 
 // Burn-In Destination Settings.
@@ -3933,13 +4015,16 @@ type CaptionDescription struct {
 	// each input.
 	CaptionSelectorName *string `locationName:"captionSelectorName" min:"1" type:"string"`
 
-	// Indicates the language of the caption output track, using the ISO 639-2 or
-	// ISO 639-3 three-letter language code. For most captions output formats, the
-	// encoder puts this language information in the output captions metadata. If
-	// your output captions format is DVB-Sub or Burn in, the encoder uses this
-	// language information to choose the font language for rendering the captions
-	// text.
-	CustomLanguageCode *string `locationName:"customLanguageCode" min:"3" type:"string"`
+	// Specify the language for this captions output track. For most captions output
+	// formats, the encoder puts this language information in the output captions
+	// metadata. If your output captions format is DVB-Sub or Burn in, the encoder
+	// uses this language information when automatically selecting the font script
+	// for rendering the captions text. For all outputs, you can use an ISO 639-2
+	// or ISO 639-3 code. For streaming outputs, you can also use any other code
+	// in the full RFC-5646 specification. Streaming outputs are those that are
+	// in one of the following output groups: CMAF, DASH ISO, Apple HLS, or Microsoft
+	// Smooth Streaming.
+	CustomLanguageCode *string `locationName:"customLanguageCode" type:"string"`
 
 	// Specific settings required by destination type. Note that burnin_destination_settings
 	// are not available if the source of the caption data is Embedded or Teletext.
@@ -3975,9 +4060,6 @@ func (s *CaptionDescription) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "CaptionDescription"}
 	if s.CaptionSelectorName != nil && len(*s.CaptionSelectorName) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("CaptionSelectorName", 1))
-	}
-	if s.CustomLanguageCode != nil && len(*s.CustomLanguageCode) < 3 {
-		invalidParams.Add(request.NewErrParamMinLen("CustomLanguageCode", 3))
 	}
 	if s.DestinationSettings != nil {
 		if err := s.DestinationSettings.Validate(); err != nil {
@@ -4025,13 +4107,16 @@ func (s *CaptionDescription) SetLanguageDescription(v string) *CaptionDescriptio
 type CaptionDescriptionPreset struct {
 	_ struct{} `type:"structure"`
 
-	// Indicates the language of the caption output track, using the ISO 639-2 or
-	// ISO 639-3 three-letter language code. For most captions output formats, the
-	// encoder puts this language information in the output captions metadata. If
-	// your output captions format is DVB-Sub or Burn in, the encoder uses this
-	// language information to choose the font language for rendering the captions
-	// text.
-	CustomLanguageCode *string `locationName:"customLanguageCode" min:"3" type:"string"`
+	// Specify the language for this captions output track. For most captions output
+	// formats, the encoder puts this language information in the output captions
+	// metadata. If your output captions format is DVB-Sub or Burn in, the encoder
+	// uses this language information when automatically selecting the font script
+	// for rendering the captions text. For all outputs, you can use an ISO 639-2
+	// or ISO 639-3 code. For streaming outputs, you can also use any other code
+	// in the full RFC-5646 specification. Streaming outputs are those that are
+	// in one of the following output groups: CMAF, DASH ISO, Apple HLS, or Microsoft
+	// Smooth Streaming.
+	CustomLanguageCode *string `locationName:"customLanguageCode" type:"string"`
 
 	// Specific settings required by destination type. Note that burnin_destination_settings
 	// are not available if the source of the caption data is Embedded or Teletext.
@@ -4065,9 +4150,6 @@ func (s CaptionDescriptionPreset) GoString() string {
 // Validate inspects the fields of the type to determine if they are valid.
 func (s *CaptionDescriptionPreset) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "CaptionDescriptionPreset"}
-	if s.CustomLanguageCode != nil && len(*s.CustomLanguageCode) < 3 {
-		invalidParams.Add(request.NewErrParamMinLen("CustomLanguageCode", 3))
-	}
 	if s.DestinationSettings != nil {
 		if err := s.DestinationSettings.Validate(); err != nil {
 			invalidParams.AddNested("DestinationSettings", err.(request.ErrInvalidParams))
@@ -4455,6 +4537,61 @@ func (s *ChannelMapping) SetOutputChannels(v []*OutputChannelMapping) *ChannelMa
 	return s
 }
 
+// Specify the details for each pair of HLS and DASH additional manifests that
+// you want the service to generate for this CMAF output group. Each pair of
+// manifests can reference a different subset of outputs in the group.
+type CmafAdditionalManifest struct {
+	_ struct{} `type:"structure"`
+
+	// Specify a name modifier that the service adds to the name of this manifest
+	// to make it different from the file names of the other main manifests in the
+	// output group. For example, say that the default main manifest for your HLS
+	// group is film-name.m3u8. If you enter "-no-premium" for this setting, then
+	// the file name the service generates for this top-level manifest is film-name-no-premium.m3u8.
+	// For HLS output groups, specify a manifestNameModifier that is different from
+	// the nameModifier of the output. The service uses the output name modifier
+	// to create unique names for the individual variant manifests.
+	ManifestNameModifier *string `locationName:"manifestNameModifier" min:"1" type:"string"`
+
+	// Specify the outputs that you want this additional top-level manifest to reference.
+	SelectedOutputs []*string `locationName:"selectedOutputs" type:"list"`
+}
+
+// String returns the string representation
+func (s CmafAdditionalManifest) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CmafAdditionalManifest) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *CmafAdditionalManifest) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "CmafAdditionalManifest"}
+	if s.ManifestNameModifier != nil && len(*s.ManifestNameModifier) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ManifestNameModifier", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetManifestNameModifier sets the ManifestNameModifier field's value.
+func (s *CmafAdditionalManifest) SetManifestNameModifier(v string) *CmafAdditionalManifest {
+	s.ManifestNameModifier = &v
+	return s
+}
+
+// SetSelectedOutputs sets the SelectedOutputs field's value.
+func (s *CmafAdditionalManifest) SetSelectedOutputs(v []*string) *CmafAdditionalManifest {
+	s.SelectedOutputs = v
+	return s
+}
+
 // Settings for CMAF encryption
 type CmafEncryptionSettings struct {
 	_ struct{} `type:"structure"`
@@ -4550,6 +4687,14 @@ func (s *CmafEncryptionSettings) SetType(v string) *CmafEncryptionSettings {
 type CmafGroupSettings struct {
 	_ struct{} `type:"structure"`
 
+	// By default, the service creates one top-level .m3u8 HLS manifest and one
+	// top -level .mpd DASH manifest for each CMAF output group in your job. These
+	// default manifests reference every output in the output group. To create additional
+	// top-level manifests that reference a subset of the outputs in the output
+	// group, specify a list of them here. For each additional manifest that you
+	// specify, the service creates one HLS manifest and one DASH manifest.
+	AdditionalManifests []*CmafAdditionalManifest `locationName:"additionalManifests" type:"list"`
+
 	// A partial URI prefix that will be put in the manifest file at the top level
 	// BaseURL element. Can be used if streams are delivered from a different URL
 	// than the manifest file.
@@ -4641,6 +4786,14 @@ type CmafGroupSettings struct {
 
 	// When set to ENABLED, an Apple HLS manifest will be generated for this output.
 	WriteHlsManifest *string `locationName:"writeHlsManifest" type:"string" enum:"CmafWriteHLSManifest"`
+
+	// When you enable Precise segment duration in DASH manifests (writeSegmentTimelineInRepresentation),
+	// your DASH manifest shows precise segment durations. The segment duration
+	// information appears inside the SegmentTimeline element, inside SegmentTemplate
+	// at the Representation level. When this feature isn't enabled, the segment
+	// durations in your DASH manifest are approximate. The segment duration information
+	// appears in the duration attribute of the SegmentTemplate element.
+	WriteSegmentTimelineInRepresentation *string `locationName:"writeSegmentTimelineInRepresentation" type:"string" enum:"CmafWriteSegmentTimelineInRepresentation"`
 }
 
 // String returns the string representation
@@ -4662,6 +4815,16 @@ func (s *CmafGroupSettings) Validate() error {
 	if s.SegmentLength != nil && *s.SegmentLength < 1 {
 		invalidParams.Add(request.NewErrParamMinValue("SegmentLength", 1))
 	}
+	if s.AdditionalManifests != nil {
+		for i, v := range s.AdditionalManifests {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "AdditionalManifests", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
 	if s.Encryption != nil {
 		if err := s.Encryption.Validate(); err != nil {
 			invalidParams.AddNested("Encryption", err.(request.ErrInvalidParams))
@@ -4672,6 +4835,12 @@ func (s *CmafGroupSettings) Validate() error {
 		return invalidParams
 	}
 	return nil
+}
+
+// SetAdditionalManifests sets the AdditionalManifests field's value.
+func (s *CmafGroupSettings) SetAdditionalManifests(v []*CmafAdditionalManifest) *CmafGroupSettings {
+	s.AdditionalManifests = v
+	return s
 }
 
 // SetBaseUrl sets the BaseUrl field's value.
@@ -4773,6 +4942,51 @@ func (s *CmafGroupSettings) SetWriteDashManifest(v string) *CmafGroupSettings {
 // SetWriteHlsManifest sets the WriteHlsManifest field's value.
 func (s *CmafGroupSettings) SetWriteHlsManifest(v string) *CmafGroupSettings {
 	s.WriteHlsManifest = &v
+	return s
+}
+
+// SetWriteSegmentTimelineInRepresentation sets the WriteSegmentTimelineInRepresentation field's value.
+func (s *CmafGroupSettings) SetWriteSegmentTimelineInRepresentation(v string) *CmafGroupSettings {
+	s.WriteSegmentTimelineInRepresentation = &v
+	return s
+}
+
+// Settings for MP4 segments in CMAF
+type CmfcSettings struct {
+	_ struct{} `type:"structure"`
+
+	// Use this setting only when you specify SCTE-35 markers from ESAM. Choose
+	// INSERT to put SCTE-35 markers in this output at the insertion points that
+	// you specify in an ESAM XML document. Provide the document in the setting
+	// SCC XML (sccXml).
+	Scte35Esam *string `locationName:"scte35Esam" type:"string" enum:"CmfcScte35Esam"`
+
+	// Ignore this setting unless you have SCTE-35 markers in your input video file.
+	// Choose Passthrough (PASSTHROUGH) if you want SCTE-35 markers that appear
+	// in your input to also appear in this output. Choose None (NONE) if you don't
+	// want those SCTE-35 markers in this output.
+	Scte35Source *string `locationName:"scte35Source" type:"string" enum:"CmfcScte35Source"`
+}
+
+// String returns the string representation
+func (s CmfcSettings) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CmfcSettings) GoString() string {
+	return s.String()
+}
+
+// SetScte35Esam sets the Scte35Esam field's value.
+func (s *CmfcSettings) SetScte35Esam(v string) *CmfcSettings {
+	s.Scte35Esam = &v
+	return s
+}
+
+// SetScte35Source sets the Scte35Source field's value.
+func (s *CmfcSettings) SetScte35Source(v string) *CmfcSettings {
+	s.Scte35Source = &v
 	return s
 }
 
@@ -4882,9 +5096,67 @@ func (s *ColorCorrector) SetSaturation(v int64) *ColorCorrector {
 	return s
 }
 
+type ConflictException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s ConflictException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ConflictException) GoString() string {
+	return s.String()
+}
+
+func newErrorConflictException(v protocol.ResponseMetadata) error {
+	return &ConflictException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s ConflictException) Code() string {
+	return "ConflictException"
+}
+
+// Message returns the exception's message.
+func (s ConflictException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s ConflictException) OrigErr() error {
+	return nil
+}
+
+func (s ConflictException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s ConflictException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s ConflictException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
 // Container specific settings.
 type ContainerSettings struct {
 	_ struct{} `type:"structure"`
+
+	// Settings for MP4 segments in CMAF
+	CmfcSettings *CmfcSettings `locationName:"cmfcSettings" type:"structure"`
 
 	// Container for this output. Some containers require a container settings object.
 	// If not specified, the default object will be created.
@@ -4914,6 +5186,9 @@ type ContainerSettings struct {
 	// Settings for MP4 container. You can create audio-only AAC outputs with this
 	// container.
 	Mp4Settings *Mp4Settings `locationName:"mp4Settings" type:"structure"`
+
+	// Settings for MP4 segments in DASH
+	MpdSettings *MpdSettings `locationName:"mpdSettings" type:"structure"`
 }
 
 // String returns the string representation
@@ -4944,6 +5219,12 @@ func (s *ContainerSettings) Validate() error {
 		return invalidParams
 	}
 	return nil
+}
+
+// SetCmfcSettings sets the CmfcSettings field's value.
+func (s *ContainerSettings) SetCmfcSettings(v *CmfcSettings) *ContainerSettings {
+	s.CmfcSettings = v
+	return s
 }
 
 // SetContainer sets the Container field's value.
@@ -4979,6 +5260,12 @@ func (s *ContainerSettings) SetMovSettings(v *MovSettings) *ContainerSettings {
 // SetMp4Settings sets the Mp4Settings field's value.
 func (s *ContainerSettings) SetMp4Settings(v *Mp4Settings) *ContainerSettings {
 	s.Mp4Settings = v
+	return s
+}
+
+// SetMpdSettings sets the MpdSettings field's value.
+func (s *ContainerSettings) SetMpdSettings(v *MpdSettings) *ContainerSettings {
+	s.MpdSettings = v
 	return s
 }
 
@@ -5597,6 +5884,58 @@ func (s *CreateQueueOutput) SetQueue(v *Queue) *CreateQueueOutput {
 	return s
 }
 
+// Specify the details for each additional DASH manifest that you want the service
+// to generate for this output group. Each manifest can reference a different
+// subset of outputs in the group.
+type DashAdditionalManifest struct {
+	_ struct{} `type:"structure"`
+
+	// Specify a name modifier that the service adds to the name of this manifest
+	// to make it different from the file names of the other main manifests in the
+	// output group. For example, say that the default main manifest for your DASH
+	// group is film-name.mpd. If you enter "-no-premium" for this setting, then
+	// the file name the service generates for this top-level manifest is film-name-no-premium.mpd.
+	ManifestNameModifier *string `locationName:"manifestNameModifier" min:"1" type:"string"`
+
+	// Specify the outputs that you want this additional top-level manifest to reference.
+	SelectedOutputs []*string `locationName:"selectedOutputs" type:"list"`
+}
+
+// String returns the string representation
+func (s DashAdditionalManifest) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DashAdditionalManifest) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DashAdditionalManifest) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DashAdditionalManifest"}
+	if s.ManifestNameModifier != nil && len(*s.ManifestNameModifier) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ManifestNameModifier", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetManifestNameModifier sets the ManifestNameModifier field's value.
+func (s *DashAdditionalManifest) SetManifestNameModifier(v string) *DashAdditionalManifest {
+	s.ManifestNameModifier = &v
+	return s
+}
+
+// SetSelectedOutputs sets the SelectedOutputs field's value.
+func (s *DashAdditionalManifest) SetSelectedOutputs(v []*string) *DashAdditionalManifest {
+	s.SelectedOutputs = v
+	return s
+}
+
 // Specifies DRM settings for DASH outputs.
 type DashIsoEncryptionSettings struct {
 	_ struct{} `type:"structure"`
@@ -5641,6 +5980,12 @@ func (s *DashIsoEncryptionSettings) SetSpekeKeyProvider(v *SpekeKeyProvider) *Da
 // DASH_ISO_GROUP_SETTINGS.
 type DashIsoGroupSettings struct {
 	_ struct{} `type:"structure"`
+
+	// By default, the service creates one .mpd DASH manifest for each DASH ISO
+	// output group in your job. This default manifest references every output in
+	// the output group. To create additional DASH manifests that reference a subset
+	// of the outputs in the output group, specify a list of them here.
+	AdditionalManifests []*DashAdditionalManifest `locationName:"additionalManifests" type:"list"`
 
 	// A partial URI prefix that will be put in the manifest (.mpd) file at the
 	// top level BaseURL element. Can be used if streams are delivered from a different
@@ -5725,11 +6070,27 @@ func (s *DashIsoGroupSettings) Validate() error {
 	if s.SegmentLength != nil && *s.SegmentLength < 1 {
 		invalidParams.Add(request.NewErrParamMinValue("SegmentLength", 1))
 	}
+	if s.AdditionalManifests != nil {
+		for i, v := range s.AdditionalManifests {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "AdditionalManifests", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
 	}
 	return nil
+}
+
+// SetAdditionalManifests sets the AdditionalManifests field's value.
+func (s *DashIsoGroupSettings) SetAdditionalManifests(v []*DashAdditionalManifest) *DashIsoGroupSettings {
+	s.AdditionalManifests = v
+	return s
 }
 
 // SetBaseUrl sets the BaseUrl field's value.
@@ -6195,6 +6556,88 @@ func (s DisassociateCertificateOutput) GoString() string {
 	return s.String()
 }
 
+// Settings for Dolby Vision
+type DolbyVision struct {
+	_ struct{} `type:"structure"`
+
+	// Use these settings when you set DolbyVisionLevel6Mode to SPECIFY to override
+	// the MaxCLL and MaxFALL values in your input with new values.
+	L6Metadata *DolbyVisionLevel6Metadata `locationName:"l6Metadata" type:"structure"`
+
+	// Use Dolby Vision Mode to choose how the service will handle Dolby Vision
+	// MaxCLL and MaxFALL properies.
+	L6Mode *string `locationName:"l6Mode" type:"string" enum:"DolbyVisionLevel6Mode"`
+
+	// In the current MediaConvert implementation, the Dolby Vision profile is always
+	// 5 (PROFILE_5). Therefore, all of your inputs must contain Dolby Vision frame
+	// interleaved data.
+	Profile *string `locationName:"profile" type:"string" enum:"DolbyVisionProfile"`
+}
+
+// String returns the string representation
+func (s DolbyVision) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DolbyVision) GoString() string {
+	return s.String()
+}
+
+// SetL6Metadata sets the L6Metadata field's value.
+func (s *DolbyVision) SetL6Metadata(v *DolbyVisionLevel6Metadata) *DolbyVision {
+	s.L6Metadata = v
+	return s
+}
+
+// SetL6Mode sets the L6Mode field's value.
+func (s *DolbyVision) SetL6Mode(v string) *DolbyVision {
+	s.L6Mode = &v
+	return s
+}
+
+// SetProfile sets the Profile field's value.
+func (s *DolbyVision) SetProfile(v string) *DolbyVision {
+	s.Profile = &v
+	return s
+}
+
+// Use these settings when you set DolbyVisionLevel6Mode to SPECIFY to override
+// the MaxCLL and MaxFALL values in your input with new values.
+type DolbyVisionLevel6Metadata struct {
+	_ struct{} `type:"structure"`
+
+	// Maximum Content Light Level. Static HDR metadata that corresponds to the
+	// brightest pixel in the entire stream. Measured in nits.
+	MaxCll *int64 `locationName:"maxCll" type:"integer"`
+
+	// Maximum Frame-Average Light Level. Static HDR metadata that corresponds to
+	// the highest frame-average brightness in the entire stream. Measured in nits.
+	MaxFall *int64 `locationName:"maxFall" type:"integer"`
+}
+
+// String returns the string representation
+func (s DolbyVisionLevel6Metadata) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DolbyVisionLevel6Metadata) GoString() string {
+	return s.String()
+}
+
+// SetMaxCll sets the MaxCll field's value.
+func (s *DolbyVisionLevel6Metadata) SetMaxCll(v int64) *DolbyVisionLevel6Metadata {
+	s.MaxCll = &v
+	return s
+}
+
+// SetMaxFall sets the MaxFall field's value.
+func (s *DolbyVisionLevel6Metadata) SetMaxFall(v int64) *DolbyVisionLevel6Metadata {
+	s.MaxFall = &v
+	return s
+}
+
 // Inserts DVB Network Information Table (NIT) at the specified table repetition
 // interval.
 type DvbNitSettings struct {
@@ -6414,6 +6857,11 @@ type DvbSubDestinationSettings struct {
 	// burn-in and DVB-Sub font settings must match.
 	ShadowYOffset *int64 `locationName:"shadowYOffset" type:"integer"`
 
+	// Specify whether your DVB subtitles are standard or for hearing impaired.
+	// Choose hearing impaired if your subtitles include audio descriptions and
+	// dialogue. Choose standard if your subtitles include only dialogue.
+	SubtitlingType *string `locationName:"subtitlingType" type:"string" enum:"DvbSubtitlingType"`
+
 	// Only applies to jobs with input captions in Teletext or STL formats. Specify
 	// whether the spacing between letters in your captions is set by the captions
 	// grid or varies depending on letter width. Choose fixed grid to conform to
@@ -6550,6 +6998,12 @@ func (s *DvbSubDestinationSettings) SetShadowXOffset(v int64) *DvbSubDestination
 // SetShadowYOffset sets the ShadowYOffset field's value.
 func (s *DvbSubDestinationSettings) SetShadowYOffset(v int64) *DvbSubDestinationSettings {
 	s.ShadowYOffset = &v
+	return s
+}
+
+// SetSubtitlingType sets the SubtitlingType field's value.
+func (s *DvbSubDestinationSettings) SetSubtitlingType(v string) *DvbSubDestinationSettings {
+	s.SubtitlingType = &v
 	return s
 }
 
@@ -7510,6 +7964,61 @@ func (s *FileSourceSettings) SetTimeDelta(v int64) *FileSourceSettings {
 	return s
 }
 
+type ForbiddenException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s ForbiddenException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ForbiddenException) GoString() string {
+	return s.String()
+}
+
+func newErrorForbiddenException(v protocol.ResponseMetadata) error {
+	return &ForbiddenException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s ForbiddenException) Code() string {
+	return "ForbiddenException"
+}
+
+// Message returns the exception's message.
+func (s ForbiddenException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s ForbiddenException) OrigErr() error {
+	return nil
+}
+
+func (s ForbiddenException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s ForbiddenException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s ForbiddenException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
 // Required when you set (Codec) under (VideoDescription)>(CodecSettings) to
 // the value FRAME_CAPTURE.
 type FrameCaptureSettings struct {
@@ -7882,11 +8391,22 @@ type H264QvbrSettings struct {
 	MaxAverageBitrate *int64 `locationName:"maxAverageBitrate" min:"1000" type:"integer"`
 
 	// Required when you use QVBR rate control mode. That is, when you specify qvbrSettings
-	// within h264Settings. Specify the target quality level for this output, from
-	// 1 to 10. Use higher numbers for greater quality. Level 10 results in nearly
-	// lossless compression. The quality level for most broadcast-quality transcodes
-	// is between 6 and 9.
+	// within h264Settings. Specify the general target quality level for this output,
+	// from 1 to 10. Use higher numbers for greater quality. Level 10 results in
+	// nearly lossless compression. The quality level for most broadcast-quality
+	// transcodes is between 6 and 9. Optionally, to specify a value between whole
+	// numbers, also provide a value for the setting qvbrQualityLevelFineTune. For
+	// example, if you want your QVBR quality level to be 7.33, set qvbrQualityLevel
+	// to 7 and set qvbrQualityLevelFineTune to .33.
 	QvbrQualityLevel *int64 `locationName:"qvbrQualityLevel" min:"1" type:"integer"`
+
+	// Optional. Specify a value here to set the QVBR quality to a level that is
+	// between whole numbers. For example, if you want your QVBR quality level to
+	// be 7.33, set qvbrQualityLevel to 7 and set qvbrQualityLevelFineTune to .33.
+	// MediaConvert rounds your QVBR quality level to the nearest third of a whole
+	// number. For example, if you set qvbrQualityLevel to 7 and you set qvbrQualityLevelFineTune
+	// to .25, your actual QVBR quality level is 7.33.
+	QvbrQualityLevelFineTune *float64 `locationName:"qvbrQualityLevelFineTune" type:"double"`
 }
 
 // String returns the string representation
@@ -7924,6 +8444,12 @@ func (s *H264QvbrSettings) SetMaxAverageBitrate(v int64) *H264QvbrSettings {
 // SetQvbrQualityLevel sets the QvbrQualityLevel field's value.
 func (s *H264QvbrSettings) SetQvbrQualityLevel(v int64) *H264QvbrSettings {
 	s.QvbrQualityLevel = &v
+	return s
+}
+
+// SetQvbrQualityLevelFineTune sets the QvbrQualityLevelFineTune field's value.
+func (s *H264QvbrSettings) SetQvbrQualityLevelFineTune(v float64) *H264QvbrSettings {
+	s.QvbrQualityLevelFineTune = &v
 	return s
 }
 
@@ -8422,11 +8948,22 @@ type H265QvbrSettings struct {
 	MaxAverageBitrate *int64 `locationName:"maxAverageBitrate" min:"1000" type:"integer"`
 
 	// Required when you use QVBR rate control mode. That is, when you specify qvbrSettings
-	// within h265Settings. Specify the target quality level for this output, from
-	// 1 to 10. Use higher numbers for greater quality. Level 10 results in nearly
-	// lossless compression. The quality level for most broadcast-quality transcodes
-	// is between 6 and 9.
+	// within h265Settings. Specify the general target quality level for this output,
+	// from 1 to 10. Use higher numbers for greater quality. Level 10 results in
+	// nearly lossless compression. The quality level for most broadcast-quality
+	// transcodes is between 6 and 9. Optionally, to specify a value between whole
+	// numbers, also provide a value for the setting qvbrQualityLevelFineTune. For
+	// example, if you want your QVBR quality level to be 7.33, set qvbrQualityLevel
+	// to 7 and set qvbrQualityLevelFineTune to .33.
 	QvbrQualityLevel *int64 `locationName:"qvbrQualityLevel" min:"1" type:"integer"`
+
+	// Optional. Specify a value here to set the QVBR quality to a level that is
+	// between whole numbers. For example, if you want your QVBR quality level to
+	// be 7.33, set qvbrQualityLevel to 7 and set qvbrQualityLevelFineTune to .33.
+	// MediaConvert rounds your QVBR quality level to the nearest third of a whole
+	// number. For example, if you set qvbrQualityLevel to 7 and you set qvbrQualityLevelFineTune
+	// to .25, your actual QVBR quality level is 7.33.
+	QvbrQualityLevelFineTune *float64 `locationName:"qvbrQualityLevelFineTune" type:"double"`
 }
 
 // String returns the string representation
@@ -8464,6 +9001,12 @@ func (s *H265QvbrSettings) SetMaxAverageBitrate(v int64) *H265QvbrSettings {
 // SetQvbrQualityLevel sets the QvbrQualityLevel field's value.
 func (s *H265QvbrSettings) SetQvbrQualityLevel(v int64) *H265QvbrSettings {
 	s.QvbrQualityLevel = &v
+	return s
+}
+
+// SetQvbrQualityLevelFineTune sets the QvbrQualityLevelFineTune field's value.
+func (s *H265QvbrSettings) SetQvbrQualityLevelFineTune(v float64) *H265QvbrSettings {
+	s.QvbrQualityLevelFineTune = &v
 	return s
 }
 
@@ -8664,14 +9207,15 @@ type H265Settings struct {
 	UnregisteredSeiTimecode *string `locationName:"unregisteredSeiTimecode" type:"string" enum:"H265UnregisteredSeiTimecode"`
 
 	// If the location of parameter set NAL units doesn't matter in your workflow,
-	// ignore this setting. Use this setting in your CMAF, DASH, or file MP4 output.
-	// For file MP4 outputs, choosing HVC1 can create video that doesn't work properly
-	// with some downstream systems and video players. Choose HVC1 to mark your
-	// output as HVC1. This makes your output compliant with the following specification:
-	// ISO IECJTC1 SC29 N13798 Text ISO/IEC FDIS 14496-15 3rd Edition. For these
-	// outputs, the service stores parameter set NAL units in the sample headers
-	// but not in the samples directly. The service defaults to marking your output
-	// as HEV1. For these outputs, the service writes parameter set NAL units directly
+	// ignore this setting. Use this setting only with CMAF or DASH outputs, or
+	// with standalone file outputs in an MPEG-4 container (MP4 outputs). Choose
+	// HVC1 to mark your output as HVC1. This makes your output compliant with the
+	// following specification: ISO IECJTC1 SC29 N13798 Text ISO/IEC FDIS 14496-15
+	// 3rd Edition. For these outputs, the service stores parameter set NAL units
+	// in the sample headers but not in the samples directly. For MP4 outputs, when
+	// you choose HVC1, your output video might not work properly with some downstream
+	// systems and video players. The service defaults to marking your output as
+	// HEV1. For these outputs, the service writes parameter set NAL units directly
 	// into the samples.
 	WriteMp4PackagingType *string `locationName:"writeMp4PackagingType" type:"string" enum:"H265WriteMp4PackagingType"`
 }
@@ -9108,6 +9652,61 @@ func (s *Hdr10Metadata) SetWhitePointY(v int64) *Hdr10Metadata {
 	return s
 }
 
+// Specify the details for each additional HLS manifest that you want the service
+// to generate for this output group. Each manifest can reference a different
+// subset of outputs in the group.
+type HlsAdditionalManifest struct {
+	_ struct{} `type:"structure"`
+
+	// Specify a name modifier that the service adds to the name of this manifest
+	// to make it different from the file names of the other main manifests in the
+	// output group. For example, say that the default main manifest for your HLS
+	// group is film-name.m3u8. If you enter "-no-premium" for this setting, then
+	// the file name the service generates for this top-level manifest is film-name-no-premium.m3u8.
+	// For HLS output groups, specify a manifestNameModifier that is different from
+	// the nameModifier of the output. The service uses the output name modifier
+	// to create unique names for the individual variant manifests.
+	ManifestNameModifier *string `locationName:"manifestNameModifier" min:"1" type:"string"`
+
+	// Specify the outputs that you want this additional top-level manifest to reference.
+	SelectedOutputs []*string `locationName:"selectedOutputs" type:"list"`
+}
+
+// String returns the string representation
+func (s HlsAdditionalManifest) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s HlsAdditionalManifest) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *HlsAdditionalManifest) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "HlsAdditionalManifest"}
+	if s.ManifestNameModifier != nil && len(*s.ManifestNameModifier) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ManifestNameModifier", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetManifestNameModifier sets the ManifestNameModifier field's value.
+func (s *HlsAdditionalManifest) SetManifestNameModifier(v string) *HlsAdditionalManifest {
+	s.ManifestNameModifier = &v
+	return s
+}
+
+// SetSelectedOutputs sets the SelectedOutputs field's value.
+func (s *HlsAdditionalManifest) SetSelectedOutputs(v []*string) *HlsAdditionalManifest {
+	s.SelectedOutputs = v
+	return s
+}
+
 // Caption Language Mapping
 type HlsCaptionLanguageMapping struct {
 	_ struct{} `type:"structure"`
@@ -9115,7 +9714,7 @@ type HlsCaptionLanguageMapping struct {
 	// Caption channel.
 	CaptionChannel *int64 `locationName:"captionChannel" type:"integer"`
 
-	// Specify the language for this caption channel, using the ISO 639-2 or ISO
+	// Specify the language for this captions channel, using the ISO 639-2 or ISO
 	// 639-3 three-letter language code
 	CustomLanguageCode *string `locationName:"customLanguageCode" min:"3" type:"string"`
 
@@ -9286,6 +9885,12 @@ type HlsGroupSettings struct {
 	// themselves.
 	AdMarkers []*string `locationName:"adMarkers" type:"list"`
 
+	// By default, the service creates one top-level .m3u8 HLS manifest for each
+	// HLS output group in your job. This default manifest references every output
+	// in the output group. To create additional top-level manifests that reference
+	// a subset of the outputs in the output group, specify a list of them here.
+	AdditionalManifests []*HlsAdditionalManifest `locationName:"additionalManifests" type:"list"`
+
 	// A partial URI prefix that will be prepended to each output in the media .m3u8
 	// file. Can be used if base manifest is delivered from a different URL than
 	// the main .m3u8 file.
@@ -9420,6 +10025,16 @@ func (s *HlsGroupSettings) Validate() error {
 	if s.TimestampDeltaMilliseconds != nil && *s.TimestampDeltaMilliseconds < -2.147483648e+09 {
 		invalidParams.Add(request.NewErrParamMinValue("TimestampDeltaMilliseconds", -2.147483648e+09))
 	}
+	if s.AdditionalManifests != nil {
+		for i, v := range s.AdditionalManifests {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "AdditionalManifests", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
 	if s.CaptionLanguageMappings != nil {
 		for i, v := range s.CaptionLanguageMappings {
 			if v == nil {
@@ -9445,6 +10060,12 @@ func (s *HlsGroupSettings) Validate() error {
 // SetAdMarkers sets the AdMarkers field's value.
 func (s *HlsGroupSettings) SetAdMarkers(v []*string) *HlsGroupSettings {
 	s.AdMarkers = v
+	return s
+}
+
+// SetAdditionalManifests sets the AdditionalManifests field's value.
+func (s *HlsGroupSettings) SetAdditionalManifests(v []*HlsAdditionalManifest) *HlsGroupSettings {
+	s.AdditionalManifests = v
 	return s
 }
 
@@ -9621,7 +10242,10 @@ type HlsSettings struct {
 	// manifest
 	IFrameOnlyManifest *string `locationName:"iFrameOnlyManifest" type:"string" enum:"HlsIFrameOnlyManifest"`
 
-	// String concatenated to end of segment filenames. Accepts "Format Identifiers":#format_identifier_parameters.
+	// Use this setting to add an identifying string to the filename of each segment.
+	// The service adds this string between the name modifier and segment index
+	// number. You can use format identifiers in the string. For more information,
+	// see https://docs.aws.amazon.com/mediaconvert/latest/ug/using-variables-in-your-job-settings.html
 	SegmentModifier *string `locationName:"segmentModifier" type:"string"`
 }
 
@@ -10645,6 +11269,61 @@ func (s *InsertableImage) SetStartTime(v string) *InsertableImage {
 func (s *InsertableImage) SetWidth(v int64) *InsertableImage {
 	s.Width = &v
 	return s
+}
+
+type InternalServerErrorException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s InternalServerErrorException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InternalServerErrorException) GoString() string {
+	return s.String()
+}
+
+func newErrorInternalServerErrorException(v protocol.ResponseMetadata) error {
+	return &InternalServerErrorException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s InternalServerErrorException) Code() string {
+	return "InternalServerErrorException"
+}
+
+// Message returns the exception's message.
+func (s InternalServerErrorException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s InternalServerErrorException) OrigErr() error {
+	return nil
+}
+
+func (s InternalServerErrorException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s InternalServerErrorException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s InternalServerErrorException) RequestID() string {
+	return s.respMetadata.RequestID
 }
 
 // Each job converts an input file into an output file or files. For more information,
@@ -12979,6 +13658,91 @@ func (s *Mp2Settings) SetSampleRate(v int64) *Mp2Settings {
 	return s
 }
 
+// Required when you set Codec, under AudioDescriptions>CodecSettings, to the
+// value MP3.
+type Mp3Settings struct {
+	_ struct{} `type:"structure"`
+
+	// Specify the average bitrate in bits per second.
+	Bitrate *int64 `locationName:"bitrate" min:"16000" type:"integer"`
+
+	// Specify the number of channels in this output audio track. Choosing Mono
+	// on the console gives you 1 output channel; choosing Stereo gives you 2. In
+	// the API, valid values are 1 and 2.
+	Channels *int64 `locationName:"channels" min:"1" type:"integer"`
+
+	// Specify whether the service encodes this MP3 audio output with a constant
+	// bitrate (CBR) or a variable bitrate (VBR).
+	RateControlMode *string `locationName:"rateControlMode" type:"string" enum:"Mp3RateControlMode"`
+
+	// Sample rate in hz.
+	SampleRate *int64 `locationName:"sampleRate" min:"22050" type:"integer"`
+
+	// Required when you set Bitrate control mode (rateControlMode) to VBR. Specify
+	// the audio quality of this MP3 output from 0 (highest quality) to 9 (lowest
+	// quality).
+	VbrQuality *int64 `locationName:"vbrQuality" type:"integer"`
+}
+
+// String returns the string representation
+func (s Mp3Settings) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s Mp3Settings) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *Mp3Settings) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "Mp3Settings"}
+	if s.Bitrate != nil && *s.Bitrate < 16000 {
+		invalidParams.Add(request.NewErrParamMinValue("Bitrate", 16000))
+	}
+	if s.Channels != nil && *s.Channels < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("Channels", 1))
+	}
+	if s.SampleRate != nil && *s.SampleRate < 22050 {
+		invalidParams.Add(request.NewErrParamMinValue("SampleRate", 22050))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetBitrate sets the Bitrate field's value.
+func (s *Mp3Settings) SetBitrate(v int64) *Mp3Settings {
+	s.Bitrate = &v
+	return s
+}
+
+// SetChannels sets the Channels field's value.
+func (s *Mp3Settings) SetChannels(v int64) *Mp3Settings {
+	s.Channels = &v
+	return s
+}
+
+// SetRateControlMode sets the RateControlMode field's value.
+func (s *Mp3Settings) SetRateControlMode(v string) *Mp3Settings {
+	s.RateControlMode = &v
+	return s
+}
+
+// SetSampleRate sets the SampleRate field's value.
+func (s *Mp3Settings) SetSampleRate(v int64) *Mp3Settings {
+	s.SampleRate = &v
+	return s
+}
+
+// SetVbrQuality sets the VbrQuality field's value.
+func (s *Mp3Settings) SetVbrQuality(v int64) *Mp3Settings {
+	s.VbrQuality = &v
+	return s
+}
+
 // Settings for MP4 container. You can create audio-only AAC outputs with this
 // container.
 type Mp4Settings struct {
@@ -12989,6 +13753,14 @@ type Mp4Settings struct {
 	// and a 'cslg' (composition shift least greatest) box will be included per
 	// 14496-1 amendment 1. This improves compatibility with Apple players and tools.
 	CslgAtom *string `locationName:"cslgAtom" type:"string" enum:"Mp4CslgAtom"`
+
+	// Ignore this setting unless compliance to the CTTS box version specification
+	// matters in your workflow. Specify a value of 1 to set your CTTS box version
+	// to 1 and make your output compliant with the specification. When you specify
+	// a value of 1, you must also set CSLG atom (cslgAtom) to the value INCLUDE.
+	// Keep the default value 0 to set your CTTS box version to 0. This can provide
+	// backward compatibility for some players and packagers.
+	CttsVersion *int64 `locationName:"cttsVersion" type:"integer"`
 
 	// Inserts a free-space box immediately after the moov box.
 	FreeSpaceBox *string `locationName:"freeSpaceBox" type:"string" enum:"Mp4FreeSpaceBox"`
@@ -13019,6 +13791,12 @@ func (s *Mp4Settings) SetCslgAtom(v string) *Mp4Settings {
 	return s
 }
 
+// SetCttsVersion sets the CttsVersion field's value.
+func (s *Mp4Settings) SetCttsVersion(v int64) *Mp4Settings {
+	s.CttsVersion = &v
+	return s
+}
+
 // SetFreeSpaceBox sets the FreeSpaceBox field's value.
 func (s *Mp4Settings) SetFreeSpaceBox(v string) *Mp4Settings {
 	s.FreeSpaceBox = &v
@@ -13034,6 +13812,59 @@ func (s *Mp4Settings) SetMoovPlacement(v string) *Mp4Settings {
 // SetMp4MajorBrand sets the Mp4MajorBrand field's value.
 func (s *Mp4Settings) SetMp4MajorBrand(v string) *Mp4Settings {
 	s.Mp4MajorBrand = &v
+	return s
+}
+
+// Settings for MP4 segments in DASH
+type MpdSettings struct {
+	_ struct{} `type:"structure"`
+
+	// Use this setting only in DASH output groups that include sidecar TTML or
+	// IMSC captions. You specify sidecar captions in a separate output from your
+	// audio and video. Choose Raw (RAW) for captions in a single XML file in a
+	// raw container. Choose Fragmented MPEG-4 (FRAGMENTED_MP4) for captions in
+	// XML format contained within fragmented MP4 files. This set of fragmented
+	// MP4 files is separate from your video and audio fragmented MP4 files.
+	CaptionContainerType *string `locationName:"captionContainerType" type:"string" enum:"MpdCaptionContainerType"`
+
+	// Use this setting only when you specify SCTE-35 markers from ESAM. Choose
+	// INSERT to put SCTE-35 markers in this output at the insertion points that
+	// you specify in an ESAM XML document. Provide the document in the setting
+	// SCC XML (sccXml).
+	Scte35Esam *string `locationName:"scte35Esam" type:"string" enum:"MpdScte35Esam"`
+
+	// Ignore this setting unless you have SCTE-35 markers in your input video file.
+	// Choose Passthrough (PASSTHROUGH) if you want SCTE-35 markers that appear
+	// in your input to also appear in this output. Choose None (NONE) if you don't
+	// want those SCTE-35 markers in this output.
+	Scte35Source *string `locationName:"scte35Source" type:"string" enum:"MpdScte35Source"`
+}
+
+// String returns the string representation
+func (s MpdSettings) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s MpdSettings) GoString() string {
+	return s.String()
+}
+
+// SetCaptionContainerType sets the CaptionContainerType field's value.
+func (s *MpdSettings) SetCaptionContainerType(v string) *MpdSettings {
+	s.CaptionContainerType = &v
+	return s
+}
+
+// SetScte35Esam sets the Scte35Esam field's value.
+func (s *MpdSettings) SetScte35Esam(v string) *MpdSettings {
+	s.Scte35Esam = &v
+	return s
+}
+
+// SetScte35Source sets the Scte35Source field's value.
+func (s *MpdSettings) SetScte35Source(v string) *MpdSettings {
+	s.Scte35Source = &v
 	return s
 }
 
@@ -13415,6 +14246,58 @@ func (s *Mpeg2Settings) SetTemporalAdaptiveQuantization(v string) *Mpeg2Settings
 	return s
 }
 
+// Specify the details for each additional Microsoft Smooth Streaming manifest
+// that you want the service to generate for this output group. Each manifest
+// can reference a different subset of outputs in the group.
+type MsSmoothAdditionalManifest struct {
+	_ struct{} `type:"structure"`
+
+	// Specify a name modifier that the service adds to the name of this manifest
+	// to make it different from the file names of the other main manifests in the
+	// output group. For example, say that the default main manifest for your Microsoft
+	// Smooth group is film-name.ismv. If you enter "-no-premium" for this setting,
+	// then the file name the service generates for this top-level manifest is film-name-no-premium.ismv.
+	ManifestNameModifier *string `locationName:"manifestNameModifier" min:"1" type:"string"`
+
+	// Specify the outputs that you want this additional top-level manifest to reference.
+	SelectedOutputs []*string `locationName:"selectedOutputs" type:"list"`
+}
+
+// String returns the string representation
+func (s MsSmoothAdditionalManifest) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s MsSmoothAdditionalManifest) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *MsSmoothAdditionalManifest) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "MsSmoothAdditionalManifest"}
+	if s.ManifestNameModifier != nil && len(*s.ManifestNameModifier) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ManifestNameModifier", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetManifestNameModifier sets the ManifestNameModifier field's value.
+func (s *MsSmoothAdditionalManifest) SetManifestNameModifier(v string) *MsSmoothAdditionalManifest {
+	s.ManifestNameModifier = &v
+	return s
+}
+
+// SetSelectedOutputs sets the SelectedOutputs field's value.
+func (s *MsSmoothAdditionalManifest) SetSelectedOutputs(v []*string) *MsSmoothAdditionalManifest {
+	s.SelectedOutputs = v
+	return s
+}
+
 // If you are using DRM, set DRM System (MsSmoothEncryptionSettings) to specify
 // the value SpekeKeyProvider.
 type MsSmoothEncryptionSettings struct {
@@ -13446,6 +14329,13 @@ func (s *MsSmoothEncryptionSettings) SetSpekeKeyProvider(v *SpekeKeyProvider) *M
 // MS_SMOOTH_GROUP_SETTINGS.
 type MsSmoothGroupSettings struct {
 	_ struct{} `type:"structure"`
+
+	// By default, the service creates one .ism Microsoft Smooth Streaming manifest
+	// for each Microsoft Smooth Streaming output group in your job. This default
+	// manifest references every output in the output group. To create additional
+	// manifests that reference a subset of the outputs in the output group, specify
+	// a list of them here.
+	AdditionalManifests []*MsSmoothAdditionalManifest `locationName:"additionalManifests" type:"list"`
 
 	// COMBINE_DUPLICATE_STREAMS combines identical audio encoding settings across
 	// a Microsoft Smooth output group into a single audio stream.
@@ -13491,11 +14381,27 @@ func (s *MsSmoothGroupSettings) Validate() error {
 	if s.FragmentLength != nil && *s.FragmentLength < 1 {
 		invalidParams.Add(request.NewErrParamMinValue("FragmentLength", 1))
 	}
+	if s.AdditionalManifests != nil {
+		for i, v := range s.AdditionalManifests {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "AdditionalManifests", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
 	}
 	return nil
+}
+
+// SetAdditionalManifests sets the AdditionalManifests field's value.
+func (s *MsSmoothGroupSettings) SetAdditionalManifests(v []*MsSmoothAdditionalManifest) *MsSmoothGroupSettings {
+	s.AdditionalManifests = v
+	return s
 }
 
 // SetAudioDeduplication sets the AudioDeduplication field's value.
@@ -13800,6 +14706,61 @@ func (s *NoiseReducerTemporalFilterSettings) SetSpeed(v int64) *NoiseReducerTemp
 func (s *NoiseReducerTemporalFilterSettings) SetStrength(v int64) *NoiseReducerTemporalFilterSettings {
 	s.Strength = &v
 	return s
+}
+
+type NotFoundException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s NotFoundException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s NotFoundException) GoString() string {
+	return s.String()
+}
+
+func newErrorNotFoundException(v protocol.ResponseMetadata) error {
+	return &NotFoundException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s NotFoundException) Code() string {
+	return "NotFoundException"
+}
+
+// Message returns the exception's message.
+func (s NotFoundException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s NotFoundException) OrigErr() error {
+	return nil
+}
+
+func (s NotFoundException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s NotFoundException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s NotFoundException) RequestID() string {
+	return s.respMetadata.RequestID
 }
 
 // An output object describes the settings for a single output file or stream
@@ -15056,9 +16017,40 @@ func (s *ResourceTags) SetTags(v map[string]*string) *ResourceTags {
 	return s
 }
 
+// Optional. Have MediaConvert automatically apply Amazon S3 access control
+// for the outputs in this output group. When you don't use this setting, S3
+// automatically applies the default access control list PRIVATE.
+type S3DestinationAccessControl struct {
+	_ struct{} `type:"structure"`
+
+	// Choose an Amazon S3 canned ACL for MediaConvert to apply to this output.
+	CannedAcl *string `locationName:"cannedAcl" type:"string" enum:"S3ObjectCannedAcl"`
+}
+
+// String returns the string representation
+func (s S3DestinationAccessControl) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s S3DestinationAccessControl) GoString() string {
+	return s.String()
+}
+
+// SetCannedAcl sets the CannedAcl field's value.
+func (s *S3DestinationAccessControl) SetCannedAcl(v string) *S3DestinationAccessControl {
+	s.CannedAcl = &v
+	return s
+}
+
 // Settings associated with S3 destination
 type S3DestinationSettings struct {
 	_ struct{} `type:"structure"`
+
+	// Optional. Have MediaConvert automatically apply Amazon S3 access control
+	// for the outputs in this output group. When you don't use this setting, S3
+	// automatically applies the default access control list PRIVATE.
+	AccessControl *S3DestinationAccessControl `locationName:"accessControl" type:"structure"`
 
 	// Settings for how your job outputs are encrypted as they are uploaded to Amazon
 	// S3.
@@ -15073,6 +16065,12 @@ func (s S3DestinationSettings) String() string {
 // GoString returns the string representation
 func (s S3DestinationSettings) GoString() string {
 	return s.String()
+}
+
+// SetAccessControl sets the AccessControl field's value.
+func (s *S3DestinationSettings) SetAccessControl(v *S3DestinationAccessControl) *S3DestinationSettings {
+	s.AccessControl = v
+	return s
 }
 
 // SetEncryption sets the Encryption field's value.
@@ -15720,6 +16718,61 @@ func (s *Timing) SetSubmitTime(v time.Time) *Timing {
 	return s
 }
 
+type TooManyRequestsException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s TooManyRequestsException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s TooManyRequestsException) GoString() string {
+	return s.String()
+}
+
+func newErrorTooManyRequestsException(v protocol.ResponseMetadata) error {
+	return &TooManyRequestsException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s TooManyRequestsException) Code() string {
+	return "TooManyRequestsException"
+}
+
+// Message returns the exception's message.
+func (s TooManyRequestsException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s TooManyRequestsException) OrigErr() error {
+	return nil
+}
+
+func (s TooManyRequestsException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s TooManyRequestsException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s TooManyRequestsException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
 // Settings specific to caption sources that are specified by track number.
 // Currently, this is only IMSC captions in an IMF package. If your caption
 // source is IMSC 1.1 in a separate xml file, use FileSourceSettings instead
@@ -16231,9 +17284,9 @@ func (s *UpdateQueueOutput) SetQueue(v *Queue) *UpdateQueueOutput {
 // the group of settings related to video encoding. The settings in this group
 // vary depending on the value that you choose for Video codec (Codec). For
 // each codec enum that you choose, define the corresponding settings object.
-// The following lists the codec enum, settings object pairs. * H_264, H264Settings
-// * H_265, H265Settings * MPEG2, Mpeg2Settings * PRORES, ProresSettings * FRAME_CAPTURE,
-// FrameCaptureSettings
+// The following lists the codec enum, settings object pairs. * FRAME_CAPTURE,
+// FrameCaptureSettings * H_264, H264Settings * H_265, H265Settings * MPEG2,
+// Mpeg2Settings * PRORES, ProresSettings
 type VideoCodecSettings struct {
 	_ struct{} `type:"structure"`
 
@@ -16363,9 +17416,9 @@ type VideoDescription struct {
 	// the group of settings related to video encoding. The settings in this group
 	// vary depending on the value that you choose for Video codec (Codec). For
 	// each codec enum that you choose, define the corresponding settings object.
-	// The following lists the codec enum, settings object pairs. * H_264, H264Settings
-	// * H_265, H265Settings * MPEG2, Mpeg2Settings * PRORES, ProresSettings * FRAME_CAPTURE,
-	// FrameCaptureSettings
+	// The following lists the codec enum, settings object pairs. * FRAME_CAPTURE,
+	// FrameCaptureSettings * H_264, H264Settings * H_265, H265Settings * MPEG2,
+	// Mpeg2Settings * PRORES, ProresSettings
 	CodecSettings *VideoCodecSettings `locationName:"codecSettings" type:"structure"`
 
 	// Choose Insert (INSERT) for this setting to include color metadata in this
@@ -16631,6 +17684,9 @@ type VideoPreprocessor struct {
 	// picture.
 	Deinterlacer *Deinterlacer `locationName:"deinterlacer" type:"structure"`
 
+	// Enable Dolby Vision feature to produce Dolby Vision compatible video output.
+	DolbyVision *DolbyVision `locationName:"dolbyVision" type:"structure"`
+
 	// Enable the Image inserter (ImageInserter) feature to include a graphic overlay
 	// on your video. Enable or disable this feature for each output individually.
 	// This setting is disabled by default.
@@ -16698,6 +17754,12 @@ func (s *VideoPreprocessor) SetDeinterlacer(v *Deinterlacer) *VideoPreprocessor 
 	return s
 }
 
+// SetDolbyVision sets the DolbyVision field's value.
+func (s *VideoPreprocessor) SetDolbyVision(v *DolbyVision) *VideoPreprocessor {
+	s.DolbyVision = v
+	return s
+}
+
 // SetImageInserter sets the ImageInserter field's value.
 func (s *VideoPreprocessor) SetImageInserter(v *ImageInserter) *VideoPreprocessor {
 	s.ImageInserter = v
@@ -16719,6 +17781,14 @@ func (s *VideoPreprocessor) SetTimecodeBurnin(v *TimecodeBurnin) *VideoPreproces
 // Selector for video.
 type VideoSelector struct {
 	_ struct{} `type:"structure"`
+
+	// Ignore this setting unless this input is a QuickTime animation with an alpha
+	// channel. Use this setting to create separate Key and Fill outputs. In each
+	// output, specify which part of the input MediaConvert uses. Leave this setting
+	// at the default value DISCARD to delete the alpha channel and preserve the
+	// video. Set it to REMAP_TO_LUMA to delete the video and map the alpha channel
+	// to the luma channel of your outputs.
+	AlphaBehavior *string `locationName:"alphaBehavior" type:"string" enum:"AlphaBehavior"`
 
 	// If your input video has accurate color space metadata, or if you don't know
 	// about color space, leave this set to the default value Follow (FOLLOW). The
@@ -16801,6 +17871,12 @@ func (s *VideoSelector) Validate() error {
 		return invalidParams
 	}
 	return nil
+}
+
+// SetAlphaBehavior sets the AlphaBehavior field's value.
+func (s *VideoSelector) SetAlphaBehavior(v string) *VideoSelector {
+	s.AlphaBehavior = &v
+	return s
 }
 
 // SetColorSpace sets the ColorSpace field's value.
@@ -17144,6 +18220,20 @@ const (
 	AfdSignalingFixed = "FIXED"
 )
 
+// Ignore this setting unless this input is a QuickTime animation with an alpha
+// channel. Use this setting to create separate Key and Fill outputs. In each
+// output, specify which part of the input MediaConvert uses. Leave this setting
+// at the default value DISCARD to delete the alpha channel and preserve the
+// video. Set it to REMAP_TO_LUMA to delete the video and map the alpha channel
+// to the luma channel of your outputs.
+const (
+	// AlphaBehaviorDiscard is a AlphaBehavior enum value
+	AlphaBehaviorDiscard = "DISCARD"
+
+	// AlphaBehaviorRemapToLuma is a AlphaBehavior enum value
+	AlphaBehaviorRemapToLuma = "REMAP_TO_LUMA"
+)
+
 // Specify whether this set of input captions appears in your outputs in both
 // 608 and 708 format. If you choose Upconvert (UPCONVERT), MediaConvert includes
 // the captions data in two ways: it passes the 608 data through using the 608
@@ -17187,6 +18277,9 @@ const (
 	// AudioCodecMp2 is a AudioCodec enum value
 	AudioCodecMp2 = "MP2"
 
+	// AudioCodecMp3 is a AudioCodec enum value
+	AudioCodecMp3 = "MP3"
+
 	// AudioCodecWav is a AudioCodec enum value
 	AudioCodecWav = "WAV"
 
@@ -17217,10 +18310,12 @@ const (
 	AudioDefaultSelectionNotDefault = "NOT_DEFAULT"
 )
 
-// Choosing FOLLOW_INPUT will cause the ISO 639 language code of the output
-// to follow the ISO 639 language code of the input. The language specified
-// for languageCode' will be used when USE_CONFIGURED is selected or when FOLLOW_INPUT
-// is selected but there is no ISO 639 language code specified by the input.
+// Specify which source for language code takes precedence for this audio track.
+// When you choose Follow input (FOLLOW_INPUT), the service uses the language
+// code from the input track if it's present. If there's no languge code on
+// the input track, the service uses the code that you specify in the setting
+// Language code (languageCode or customLanguageCode). When you choose Use configured
+// (USE_CONFIGURED), the service uses the language code that you specify.
 const (
 	// AudioLanguageCodeControlFollowInput is a AudioLanguageCodeControl enum value
 	AudioLanguageCodeControlFollowInput = "FOLLOW_INPUT"
@@ -17635,6 +18730,44 @@ const (
 	CmafWriteHLSManifestEnabled = "ENABLED"
 )
 
+// When you enable Precise segment duration in DASH manifests (writeSegmentTimelineInRepresentation),
+// your DASH manifest shows precise segment durations. The segment duration
+// information appears inside the SegmentTimeline element, inside SegmentTemplate
+// at the Representation level. When this feature isn't enabled, the segment
+// durations in your DASH manifest are approximate. The segment duration information
+// appears in the duration attribute of the SegmentTemplate element.
+const (
+	// CmafWriteSegmentTimelineInRepresentationEnabled is a CmafWriteSegmentTimelineInRepresentation enum value
+	CmafWriteSegmentTimelineInRepresentationEnabled = "ENABLED"
+
+	// CmafWriteSegmentTimelineInRepresentationDisabled is a CmafWriteSegmentTimelineInRepresentation enum value
+	CmafWriteSegmentTimelineInRepresentationDisabled = "DISABLED"
+)
+
+// Use this setting only when you specify SCTE-35 markers from ESAM. Choose
+// INSERT to put SCTE-35 markers in this output at the insertion points that
+// you specify in an ESAM XML document. Provide the document in the setting
+// SCC XML (sccXml).
+const (
+	// CmfcScte35EsamInsert is a CmfcScte35Esam enum value
+	CmfcScte35EsamInsert = "INSERT"
+
+	// CmfcScte35EsamNone is a CmfcScte35Esam enum value
+	CmfcScte35EsamNone = "NONE"
+)
+
+// Ignore this setting unless you have SCTE-35 markers in your input video file.
+// Choose Passthrough (PASSTHROUGH) if you want SCTE-35 markers that appear
+// in your input to also appear in this output. Choose None (NONE) if you don't
+// want those SCTE-35 markers in this output.
+const (
+	// CmfcScte35SourcePassthrough is a CmfcScte35Source enum value
+	CmfcScte35SourcePassthrough = "PASSTHROUGH"
+
+	// CmfcScte35SourceNone is a CmfcScte35Source enum value
+	CmfcScte35SourceNone = "NONE"
+)
+
 // Choose Insert (INSERT) for this setting to include color metadata in this
 // output. Choose Ignore (IGNORE) to exclude color metadata from this output.
 // If you don't specify a value, the service sets this to Insert by default.
@@ -17886,6 +19019,27 @@ const (
 	DescribeEndpointsModeGetOnly = "GET_ONLY"
 )
 
+// Use Dolby Vision Mode to choose how the service will handle Dolby Vision
+// MaxCLL and MaxFALL properies.
+const (
+	// DolbyVisionLevel6ModePassthrough is a DolbyVisionLevel6Mode enum value
+	DolbyVisionLevel6ModePassthrough = "PASSTHROUGH"
+
+	// DolbyVisionLevel6ModeRecalculate is a DolbyVisionLevel6Mode enum value
+	DolbyVisionLevel6ModeRecalculate = "RECALCULATE"
+
+	// DolbyVisionLevel6ModeSpecify is a DolbyVisionLevel6Mode enum value
+	DolbyVisionLevel6ModeSpecify = "SPECIFY"
+)
+
+// In the current MediaConvert implementation, the Dolby Vision profile is always
+// 5 (PROFILE_5). Therefore, all of your inputs must contain Dolby Vision frame
+// interleaved data.
+const (
+	// DolbyVisionProfileProfile5 is a DolbyVisionProfile enum value
+	DolbyVisionProfileProfile5 = "PROFILE_5"
+)
+
 // Applies only to 29.97 fps outputs. When this feature is enabled, the service
 // will use drop-frame timecode on outputs. If it is not possible to use drop-frame
 // timecode, the system will fall back to non-drop-frame. This setting is enabled
@@ -17999,6 +19153,17 @@ const (
 
 	// DvbSubtitleTeletextSpacingProportional is a DvbSubtitleTeletextSpacing enum value
 	DvbSubtitleTeletextSpacingProportional = "PROPORTIONAL"
+)
+
+// Specify whether your DVB subtitles are standard or for hearing impaired.
+// Choose hearing impaired if your subtitles include audio descriptions and
+// dialogue. Choose standard if your subtitles include only dialogue.
+const (
+	// DvbSubtitlingTypeHearingImpaired is a DvbSubtitlingType enum value
+	DvbSubtitlingTypeHearingImpaired = "HEARING_IMPAIRED"
+
+	// DvbSubtitlingTypeStandard is a DvbSubtitlingType enum value
+	DvbSubtitlingTypeStandard = "STANDARD"
 )
 
 // Specify the bitstream mode for the E-AC-3 stream that the encoder emits.
@@ -19065,14 +20230,15 @@ const (
 )
 
 // If the location of parameter set NAL units doesn't matter in your workflow,
-// ignore this setting. Use this setting in your CMAF, DASH, or file MP4 output.
-// For file MP4 outputs, choosing HVC1 can create video that doesn't work properly
-// with some downstream systems and video players. Choose HVC1 to mark your
-// output as HVC1. This makes your output compliant with the following specification:
-// ISO IECJTC1 SC29 N13798 Text ISO/IEC FDIS 14496-15 3rd Edition. For these
-// outputs, the service stores parameter set NAL units in the sample headers
-// but not in the samples directly. The service defaults to marking your output
-// as HEV1. For these outputs, the service writes parameter set NAL units directly
+// ignore this setting. Use this setting only with CMAF or DASH outputs, or
+// with standalone file outputs in an MPEG-4 container (MP4 outputs). Choose
+// HVC1 to mark your output as HVC1. This makes your output compliant with the
+// following specification: ISO IECJTC1 SC29 N13798 Text ISO/IEC FDIS 14496-15
+// 3rd Edition. For these outputs, the service stores parameter set NAL units
+// in the sample headers but not in the samples directly. For MP4 outputs, when
+// you choose HVC1, your output video might not work properly with some downstream
+// systems and video players. The service defaults to marking your output as
+// HEV1. For these outputs, the service writes parameter set NAL units directly
 // into the samples.
 const (
 	// H265WriteMp4PackagingTypeHvc1 is a H265WriteMp4PackagingType enum value
@@ -20298,6 +21464,16 @@ const (
 	MovReferenceExternal = "EXTERNAL"
 )
 
+// Specify whether the service encodes this MP3 audio output with a constant
+// bitrate (CBR) or a variable bitrate (VBR).
+const (
+	// Mp3RateControlModeCbr is a Mp3RateControlMode enum value
+	Mp3RateControlModeCbr = "CBR"
+
+	// Mp3RateControlModeVbr is a Mp3RateControlMode enum value
+	Mp3RateControlModeVbr = "VBR"
+)
+
 // When enabled, file composition times will start at zero, composition times
 // in the 'ctts' (composition time to sample) box for B-frames will be negative,
 // and a 'cslg' (composition shift least greatest) box will be included per
@@ -20328,6 +21504,44 @@ const (
 
 	// Mp4MoovPlacementNormal is a Mp4MoovPlacement enum value
 	Mp4MoovPlacementNormal = "NORMAL"
+)
+
+// Use this setting only in DASH output groups that include sidecar TTML or
+// IMSC captions. You specify sidecar captions in a separate output from your
+// audio and video. Choose Raw (RAW) for captions in a single XML file in a
+// raw container. Choose Fragmented MPEG-4 (FRAGMENTED_MP4) for captions in
+// XML format contained within fragmented MP4 files. This set of fragmented
+// MP4 files is separate from your video and audio fragmented MP4 files.
+const (
+	// MpdCaptionContainerTypeRaw is a MpdCaptionContainerType enum value
+	MpdCaptionContainerTypeRaw = "RAW"
+
+	// MpdCaptionContainerTypeFragmentedMp4 is a MpdCaptionContainerType enum value
+	MpdCaptionContainerTypeFragmentedMp4 = "FRAGMENTED_MP4"
+)
+
+// Use this setting only when you specify SCTE-35 markers from ESAM. Choose
+// INSERT to put SCTE-35 markers in this output at the insertion points that
+// you specify in an ESAM XML document. Provide the document in the setting
+// SCC XML (sccXml).
+const (
+	// MpdScte35EsamInsert is a MpdScte35Esam enum value
+	MpdScte35EsamInsert = "INSERT"
+
+	// MpdScte35EsamNone is a MpdScte35Esam enum value
+	MpdScte35EsamNone = "NONE"
+)
+
+// Ignore this setting unless you have SCTE-35 markers in your input video file.
+// Choose Passthrough (PASSTHROUGH) if you want SCTE-35 markers that appear
+// in your input to also appear in this output. Choose None (NONE) if you don't
+// want those SCTE-35 markers in this output.
+const (
+	// MpdScte35SourcePassthrough is a MpdScte35Source enum value
+	MpdScte35SourcePassthrough = "PASSTHROUGH"
+
+	// MpdScte35SourceNone is a MpdScte35Source enum value
+	MpdScte35SourceNone = "NONE"
 )
 
 // Adaptive quantization. Allows intra-frame quantizers to vary to improve visual
@@ -20864,6 +22078,21 @@ const (
 	RespondToAfdPassthrough = "PASSTHROUGH"
 )
 
+// Choose an Amazon S3 canned ACL for MediaConvert to apply to this output.
+const (
+	// S3ObjectCannedAclPublicRead is a S3ObjectCannedAcl enum value
+	S3ObjectCannedAclPublicRead = "PUBLIC_READ"
+
+	// S3ObjectCannedAclAuthenticatedRead is a S3ObjectCannedAcl enum value
+	S3ObjectCannedAclAuthenticatedRead = "AUTHENTICATED_READ"
+
+	// S3ObjectCannedAclBucketOwnerRead is a S3ObjectCannedAcl enum value
+	S3ObjectCannedAclBucketOwnerRead = "BUCKET_OWNER_READ"
+
+	// S3ObjectCannedAclBucketOwnerFullControl is a S3ObjectCannedAcl enum value
+	S3ObjectCannedAclBucketOwnerFullControl = "BUCKET_OWNER_FULL_CONTROL"
+)
+
 // Specify how you want your data keys managed. AWS uses data keys to encrypt
 // your content. AWS also encrypts the data keys themselves, using a customer
 // master key (CMK), and then stores the encrypted data keys alongside your
@@ -20909,6 +22138,9 @@ const (
 
 	// SccDestinationFramerateFramerate24 is a SccDestinationFramerate enum value
 	SccDestinationFramerateFramerate24 = "FRAMERATE_24"
+
+	// SccDestinationFramerateFramerate25 is a SccDestinationFramerate enum value
+	SccDestinationFramerateFramerate25 = "FRAMERATE_25"
 
 	// SccDestinationFramerateFramerate2997Dropframe is a SccDestinationFramerate enum value
 	SccDestinationFramerateFramerate2997Dropframe = "FRAMERATE_29_97_DROPFRAME"

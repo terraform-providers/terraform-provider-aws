@@ -1,4 +1,5 @@
 ---
+subcategory: "ElastiCache"
 layout: "aws"
 page_title: "AWS: aws_elasticache_subnet_group"
 description: |-

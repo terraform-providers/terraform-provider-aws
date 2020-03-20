@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/internal/svchost"
+	svchost "github.com/hashicorp/terraform-svchost"
 )
 
 var (
@@ -35,14 +35,6 @@ var (
 		fmt.Sprintf("^(%s)\\/(%s)\\/(%s)(?:\\/\\/(.*))?$",
 			nameSubRe, nameSubRe, providerSubRe))
 
-	// NameRe is a regular expression defining the format allowed for namespace
-	// or name fields in module registry implementations.
-	NameRe = regexp.MustCompile("^" + nameSubRe + "$")
-
-	// ProviderRe is a regular expression defining the format allowed for
-	// provider fields in module registry implementations.
-	ProviderRe = regexp.MustCompile("^" + providerSubRe + "$")
-
 	// these hostnames are not allowed as registry sources, because they are
 	// already special case module sources in terraform.
 	disallowed = map[string]bool{
@@ -65,28 +57,6 @@ type Module struct {
 	RawName      string
 	RawProvider  string
 	RawSubmodule string
-}
-
-// NewModule construct a new module source from separate parts. Pass empty
-// string if host or submodule are not needed.
-func NewModule(host, namespace, name, provider, submodule string) (*Module, error) {
-	m := &Module{
-		RawNamespace: namespace,
-		RawName:      name,
-		RawProvider:  provider,
-		RawSubmodule: submodule,
-	}
-	if host != "" {
-		h := NewFriendlyHost(host)
-		if h != nil {
-			fmt.Println("HOST:", h)
-			if !h.Valid() || disallowed[h.Display()] {
-				return nil, ErrInvalidModuleSource
-			}
-		}
-		m.RawHost = h
-	}
-	return m, nil
 }
 
 // ParseModuleSource attempts to parse source as a Terraform registry module

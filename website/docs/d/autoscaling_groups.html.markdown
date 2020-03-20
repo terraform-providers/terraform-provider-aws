@@ -1,4 +1,5 @@
 ---
+subcategory: "Autoscaling"
 layout: "aws"
 page_title: "AWS: aws_autoscaling_groups"
 description: |-

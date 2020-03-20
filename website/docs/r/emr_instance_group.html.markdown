@@ -1,4 +1,5 @@
 ---
+subcategory: "Elastic Map Reduce (EMR)"
 layout: "aws"
 page_title: "AWS: aws_emr_instance_group"
 description: |-

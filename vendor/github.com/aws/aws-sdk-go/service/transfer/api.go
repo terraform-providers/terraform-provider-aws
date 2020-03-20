@@ -69,18 +69,18 @@ func (c *Transfer) CreateServerRequest(input *CreateServerInput) (req *request.R
 // See the AWS API reference guide for AWS Transfer for SFTP's
 // API operation CreateServer for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+// Returned Error Types:
+//   * ServiceUnavailableException
 //   The request has failed because the AWS Transfer for SFTP service is not available.
 //
-//   * ErrCodeInternalServiceError "InternalServiceError"
+//   * InternalServiceError
 //   This exception is thrown when an error occurs in the AWS Transfer for SFTP
 //   service.
 //
-//   * ErrCodeInvalidRequestException "InvalidRequestException"
+//   * InvalidRequestException
 //   This exception is thrown when the client submits a malformed request.
 //
-//   * ErrCodeResourceExistsException "ResourceExistsException"
+//   * ResourceExistsException
 //   The requested resource does not exist.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/transfer-2018-11-05/CreateServer
@@ -164,21 +164,21 @@ func (c *Transfer) CreateUserRequest(input *CreateUserInput) (req *request.Reque
 // See the AWS API reference guide for AWS Transfer for SFTP's
 // API operation CreateUser for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+// Returned Error Types:
+//   * ServiceUnavailableException
 //   The request has failed because the AWS Transfer for SFTP service is not available.
 //
-//   * ErrCodeInternalServiceError "InternalServiceError"
+//   * InternalServiceError
 //   This exception is thrown when an error occurs in the AWS Transfer for SFTP
 //   service.
 //
-//   * ErrCodeInvalidRequestException "InvalidRequestException"
+//   * InvalidRequestException
 //   This exception is thrown when the client submits a malformed request.
 //
-//   * ErrCodeResourceExistsException "ResourceExistsException"
+//   * ResourceExistsException
 //   The requested resource does not exist.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   This exception is thrown when a resource is not found by the AWS Transfer
 //   for SFTP service.
 //
@@ -260,18 +260,18 @@ func (c *Transfer) DeleteServerRequest(input *DeleteServerInput) (req *request.R
 // See the AWS API reference guide for AWS Transfer for SFTP's
 // API operation DeleteServer for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+// Returned Error Types:
+//   * ServiceUnavailableException
 //   The request has failed because the AWS Transfer for SFTP service is not available.
 //
-//   * ErrCodeInternalServiceError "InternalServiceError"
+//   * InternalServiceError
 //   This exception is thrown when an error occurs in the AWS Transfer for SFTP
 //   service.
 //
-//   * ErrCodeInvalidRequestException "InvalidRequestException"
+//   * InvalidRequestException
 //   This exception is thrown when the client submits a malformed request.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   This exception is thrown when a resource is not found by the AWS Transfer
 //   for SFTP service.
 //
@@ -353,22 +353,22 @@ func (c *Transfer) DeleteSshPublicKeyRequest(input *DeleteSshPublicKeyInput) (re
 // See the AWS API reference guide for AWS Transfer for SFTP's
 // API operation DeleteSshPublicKey for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+// Returned Error Types:
+//   * ServiceUnavailableException
 //   The request has failed because the AWS Transfer for SFTP service is not available.
 //
-//   * ErrCodeInternalServiceError "InternalServiceError"
+//   * InternalServiceError
 //   This exception is thrown when an error occurs in the AWS Transfer for SFTP
 //   service.
 //
-//   * ErrCodeInvalidRequestException "InvalidRequestException"
+//   * InvalidRequestException
 //   This exception is thrown when the client submits a malformed request.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   This exception is thrown when a resource is not found by the AWS Transfer
 //   for SFTP service.
 //
-//   * ErrCodeThrottlingException "ThrottlingException"
+//   * ThrottlingException
 //   The request was denied due to request throttling.
 //
 //   HTTP Status Code: 400
@@ -453,18 +453,18 @@ func (c *Transfer) DeleteUserRequest(input *DeleteUserInput) (req *request.Reque
 // See the AWS API reference guide for AWS Transfer for SFTP's
 // API operation DeleteUser for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+// Returned Error Types:
+//   * ServiceUnavailableException
 //   The request has failed because the AWS Transfer for SFTP service is not available.
 //
-//   * ErrCodeInternalServiceError "InternalServiceError"
+//   * InternalServiceError
 //   This exception is thrown when an error occurs in the AWS Transfer for SFTP
 //   service.
 //
-//   * ErrCodeInvalidRequestException "InvalidRequestException"
+//   * InvalidRequestException
 //   This exception is thrown when the client submits a malformed request.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   This exception is thrown when a resource is not found by the AWS Transfer
 //   for SFTP service.
 //
@@ -536,7 +536,8 @@ func (c *Transfer) DescribeServerRequest(input *DescribeServerInput) (req *reque
 //
 // Describes the server that you specify by passing the ServerId parameter.
 //
-// The response contains a description of the server's properties.
+// The response contains a description of the server's properties. When you
+// set EndpointType to VPC, the response will contain the EndpointDetails.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -545,18 +546,18 @@ func (c *Transfer) DescribeServerRequest(input *DescribeServerInput) (req *reque
 // See the AWS API reference guide for AWS Transfer for SFTP's
 // API operation DescribeServer for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+// Returned Error Types:
+//   * ServiceUnavailableException
 //   The request has failed because the AWS Transfer for SFTP service is not available.
 //
-//   * ErrCodeInternalServiceError "InternalServiceError"
+//   * InternalServiceError
 //   This exception is thrown when an error occurs in the AWS Transfer for SFTP
 //   service.
 //
-//   * ErrCodeInvalidRequestException "InvalidRequestException"
+//   * InvalidRequestException
 //   This exception is thrown when the client submits a malformed request.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   This exception is thrown when a resource is not found by the AWS Transfer
 //   for SFTP service.
 //
@@ -639,18 +640,18 @@ func (c *Transfer) DescribeUserRequest(input *DescribeUserInput) (req *request.R
 // See the AWS API reference guide for AWS Transfer for SFTP's
 // API operation DescribeUser for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+// Returned Error Types:
+//   * ServiceUnavailableException
 //   The request has failed because the AWS Transfer for SFTP service is not available.
 //
-//   * ErrCodeInternalServiceError "InternalServiceError"
+//   * InternalServiceError
 //   This exception is thrown when an error occurs in the AWS Transfer for SFTP
 //   service.
 //
-//   * ErrCodeInvalidRequestException "InvalidRequestException"
+//   * InvalidRequestException
 //   This exception is thrown when the client submits a malformed request.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   This exception is thrown when a resource is not found by the AWS Transfer
 //   for SFTP service.
 //
@@ -733,25 +734,25 @@ func (c *Transfer) ImportSshPublicKeyRequest(input *ImportSshPublicKeyInput) (re
 // See the AWS API reference guide for AWS Transfer for SFTP's
 // API operation ImportSshPublicKey for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+// Returned Error Types:
+//   * ServiceUnavailableException
 //   The request has failed because the AWS Transfer for SFTP service is not available.
 //
-//   * ErrCodeInternalServiceError "InternalServiceError"
+//   * InternalServiceError
 //   This exception is thrown when an error occurs in the AWS Transfer for SFTP
 //   service.
 //
-//   * ErrCodeInvalidRequestException "InvalidRequestException"
+//   * InvalidRequestException
 //   This exception is thrown when the client submits a malformed request.
 //
-//   * ErrCodeResourceExistsException "ResourceExistsException"
+//   * ResourceExistsException
 //   The requested resource does not exist.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   This exception is thrown when a resource is not found by the AWS Transfer
 //   for SFTP service.
 //
-//   * ErrCodeThrottlingException "ThrottlingException"
+//   * ThrottlingException
 //   The request was denied due to request throttling.
 //
 //   HTTP Status Code: 400
@@ -838,18 +839,18 @@ func (c *Transfer) ListServersRequest(input *ListServersInput) (req *request.Req
 // See the AWS API reference guide for AWS Transfer for SFTP's
 // API operation ListServers for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+// Returned Error Types:
+//   * ServiceUnavailableException
 //   The request has failed because the AWS Transfer for SFTP service is not available.
 //
-//   * ErrCodeInternalServiceError "InternalServiceError"
+//   * InternalServiceError
 //   This exception is thrown when an error occurs in the AWS Transfer for SFTP
 //   service.
 //
-//   * ErrCodeInvalidNextTokenException "InvalidNextTokenException"
+//   * InvalidNextTokenException
 //   The NextToken parameter that was passed is invalid.
 //
-//   * ErrCodeInvalidRequestException "InvalidRequestException"
+//   * InvalidRequestException
 //   This exception is thrown when the client submits a malformed request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/transfer-2018-11-05/ListServers
@@ -917,10 +918,12 @@ func (c *Transfer) ListServersPagesWithContext(ctx aws.Context, input *ListServe
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListServersOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListServersOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -984,18 +987,18 @@ func (c *Transfer) ListTagsForResourceRequest(input *ListTagsForResourceInput) (
 // See the AWS API reference guide for AWS Transfer for SFTP's
 // API operation ListTagsForResource for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+// Returned Error Types:
+//   * ServiceUnavailableException
 //   The request has failed because the AWS Transfer for SFTP service is not available.
 //
-//   * ErrCodeInternalServiceError "InternalServiceError"
+//   * InternalServiceError
 //   This exception is thrown when an error occurs in the AWS Transfer for SFTP
 //   service.
 //
-//   * ErrCodeInvalidNextTokenException "InvalidNextTokenException"
+//   * InvalidNextTokenException
 //   The NextToken parameter that was passed is invalid.
 //
-//   * ErrCodeInvalidRequestException "InvalidRequestException"
+//   * InvalidRequestException
 //   This exception is thrown when the client submits a malformed request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/transfer-2018-11-05/ListTagsForResource
@@ -1063,10 +1066,12 @@ func (c *Transfer) ListTagsForResourcePagesWithContext(ctx aws.Context, input *L
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListTagsForResourceOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListTagsForResourceOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -1129,21 +1134,21 @@ func (c *Transfer) ListUsersRequest(input *ListUsersInput) (req *request.Request
 // See the AWS API reference guide for AWS Transfer for SFTP's
 // API operation ListUsers for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+// Returned Error Types:
+//   * ServiceUnavailableException
 //   The request has failed because the AWS Transfer for SFTP service is not available.
 //
-//   * ErrCodeInternalServiceError "InternalServiceError"
+//   * InternalServiceError
 //   This exception is thrown when an error occurs in the AWS Transfer for SFTP
 //   service.
 //
-//   * ErrCodeInvalidNextTokenException "InvalidNextTokenException"
+//   * InvalidNextTokenException
 //   The NextToken parameter that was passed is invalid.
 //
-//   * ErrCodeInvalidRequestException "InvalidRequestException"
+//   * InvalidRequestException
 //   This exception is thrown when the client submits a malformed request.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   This exception is thrown when a resource is not found by the AWS Transfer
 //   for SFTP service.
 //
@@ -1212,10 +1217,12 @@ func (c *Transfer) ListUsersPagesWithContext(ctx aws.Context, input *ListUsersIn
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListUsersOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListUsersOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -1281,22 +1288,22 @@ func (c *Transfer) StartServerRequest(input *StartServerInput) (req *request.Req
 // See the AWS API reference guide for AWS Transfer for SFTP's
 // API operation StartServer for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+// Returned Error Types:
+//   * ServiceUnavailableException
 //   The request has failed because the AWS Transfer for SFTP service is not available.
 //
-//   * ErrCodeInternalServiceError "InternalServiceError"
+//   * InternalServiceError
 //   This exception is thrown when an error occurs in the AWS Transfer for SFTP
 //   service.
 //
-//   * ErrCodeInvalidRequestException "InvalidRequestException"
+//   * InvalidRequestException
 //   This exception is thrown when the client submits a malformed request.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   This exception is thrown when a resource is not found by the AWS Transfer
 //   for SFTP service.
 //
-//   * ErrCodeThrottlingException "ThrottlingException"
+//   * ThrottlingException
 //   The request was denied due to request throttling.
 //
 //   HTTP Status Code: 400
@@ -1387,22 +1394,22 @@ func (c *Transfer) StopServerRequest(input *StopServerInput) (req *request.Reque
 // See the AWS API reference guide for AWS Transfer for SFTP's
 // API operation StopServer for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+// Returned Error Types:
+//   * ServiceUnavailableException
 //   The request has failed because the AWS Transfer for SFTP service is not available.
 //
-//   * ErrCodeInternalServiceError "InternalServiceError"
+//   * InternalServiceError
 //   This exception is thrown when an error occurs in the AWS Transfer for SFTP
 //   service.
 //
-//   * ErrCodeInvalidRequestException "InvalidRequestException"
+//   * InvalidRequestException
 //   This exception is thrown when the client submits a malformed request.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   This exception is thrown when a resource is not found by the AWS Transfer
 //   for SFTP service.
 //
-//   * ErrCodeThrottlingException "ThrottlingException"
+//   * ThrottlingException
 //   The request was denied due to request throttling.
 //
 //   HTTP Status Code: 400
@@ -1486,18 +1493,18 @@ func (c *Transfer) TagResourceRequest(input *TagResourceInput) (req *request.Req
 // See the AWS API reference guide for AWS Transfer for SFTP's
 // API operation TagResource for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+// Returned Error Types:
+//   * ServiceUnavailableException
 //   The request has failed because the AWS Transfer for SFTP service is not available.
 //
-//   * ErrCodeInternalServiceError "InternalServiceError"
+//   * InternalServiceError
 //   This exception is thrown when an error occurs in the AWS Transfer for SFTP
 //   service.
 //
-//   * ErrCodeInvalidRequestException "InvalidRequestException"
+//   * InvalidRequestException
 //   This exception is thrown when the client submits a malformed request.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   This exception is thrown when a resource is not found by the AWS Transfer
 //   for SFTP service.
 //
@@ -1580,18 +1587,18 @@ func (c *Transfer) TestIdentityProviderRequest(input *TestIdentityProviderInput)
 // See the AWS API reference guide for AWS Transfer for SFTP's
 // API operation TestIdentityProvider for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+// Returned Error Types:
+//   * ServiceUnavailableException
 //   The request has failed because the AWS Transfer for SFTP service is not available.
 //
-//   * ErrCodeInternalServiceError "InternalServiceError"
+//   * InternalServiceError
 //   This exception is thrown when an error occurs in the AWS Transfer for SFTP
 //   service.
 //
-//   * ErrCodeInvalidRequestException "InvalidRequestException"
+//   * InvalidRequestException
 //   This exception is thrown when the client submits a malformed request.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   This exception is thrown when a resource is not found by the AWS Transfer
 //   for SFTP service.
 //
@@ -1674,18 +1681,18 @@ func (c *Transfer) UntagResourceRequest(input *UntagResourceInput) (req *request
 // See the AWS API reference guide for AWS Transfer for SFTP's
 // API operation UntagResource for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+// Returned Error Types:
+//   * ServiceUnavailableException
 //   The request has failed because the AWS Transfer for SFTP service is not available.
 //
-//   * ErrCodeInternalServiceError "InternalServiceError"
+//   * InternalServiceError
 //   This exception is thrown when an error occurs in the AWS Transfer for SFTP
 //   service.
 //
-//   * ErrCodeInvalidRequestException "InvalidRequestException"
+//   * InvalidRequestException
 //   This exception is thrown when the client submits a malformed request.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   This exception is thrown when a resource is not found by the AWS Transfer
 //   for SFTP service.
 //
@@ -1767,25 +1774,30 @@ func (c *Transfer) UpdateServerRequest(input *UpdateServerInput) (req *request.R
 // See the AWS API reference guide for AWS Transfer for SFTP's
 // API operation UpdateServer for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+// Returned Error Types:
+//   * ServiceUnavailableException
 //   The request has failed because the AWS Transfer for SFTP service is not available.
 //
-//   * ErrCodeInternalServiceError "InternalServiceError"
+//   * ConflictException
+//   This exception is thrown when the UpdatServer is called for a server that
+//   has VPC as the endpoint type and the server's VpcEndpointID is not in the
+//   available state.
+//
+//   * InternalServiceError
 //   This exception is thrown when an error occurs in the AWS Transfer for SFTP
 //   service.
 //
-//   * ErrCodeInvalidRequestException "InvalidRequestException"
+//   * InvalidRequestException
 //   This exception is thrown when the client submits a malformed request.
 //
-//   * ErrCodeResourceExistsException "ResourceExistsException"
+//   * ResourceExistsException
 //   The requested resource does not exist.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   This exception is thrown when a resource is not found by the AWS Transfer
 //   for SFTP service.
 //
-//   * ErrCodeThrottlingException "ThrottlingException"
+//   * ThrottlingException
 //   The request was denied due to request throttling.
 //
 //   HTTP Status Code: 400
@@ -1869,22 +1881,22 @@ func (c *Transfer) UpdateUserRequest(input *UpdateUserInput) (req *request.Reque
 // See the AWS API reference guide for AWS Transfer for SFTP's
 // API operation UpdateUser for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+// Returned Error Types:
+//   * ServiceUnavailableException
 //   The request has failed because the AWS Transfer for SFTP service is not available.
 //
-//   * ErrCodeInternalServiceError "InternalServiceError"
+//   * InternalServiceError
 //   This exception is thrown when an error occurs in the AWS Transfer for SFTP
 //   service.
 //
-//   * ErrCodeInvalidRequestException "InvalidRequestException"
+//   * InvalidRequestException
 //   This exception is thrown when the client submits a malformed request.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   This exception is thrown when a resource is not found by the AWS Transfer
 //   for SFTP service.
 //
-//   * ErrCodeThrottlingException "ThrottlingException"
+//   * ThrottlingException
 //   The request was denied due to request throttling.
 //
 //   HTTP Status Code: 400
@@ -1911,17 +1923,78 @@ func (c *Transfer) UpdateUserWithContext(ctx aws.Context, input *UpdateUserInput
 	return out, req.Send()
 }
 
+// This exception is thrown when the UpdatServer is called for a server that
+// has VPC as the endpoint type and the server's VpcEndpointID is not in the
+// available state.
+type ConflictException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s ConflictException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ConflictException) GoString() string {
+	return s.String()
+}
+
+func newErrorConflictException(v protocol.ResponseMetadata) error {
+	return &ConflictException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s ConflictException) Code() string {
+	return "ConflictException"
+}
+
+// Message returns the exception's message.
+func (s ConflictException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s ConflictException) OrigErr() error {
+	return nil
+}
+
+func (s ConflictException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s ConflictException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s ConflictException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
 type CreateServerInput struct {
 	_ struct{} `type:"structure"`
 
-	// The virtual private cloud (VPC) endpoint settings that you want to configure
-	// for your SFTP server. This parameter is required when you specify a value
-	// for the EndpointType parameter.
+	// The virtual private cloud (VPC) endpoint settings that are configured for
+	// your SFTP server. With a VPC endpoint, you can restrict access to your SFTP
+	// server to resources only within your VPC. To control incoming internet traffic,
+	// you will need to invoke the UpdateServer API and attach an Elastic IP to
+	// your server's endpoint.
 	EndpointDetails *EndpointDetails `type:"structure"`
 
-	// The type of VPC endpoint that you want your SFTP server to connect to. If
-	// you connect to a VPC endpoint, your SFTP server isn't accessible over the
-	// public internet.
+	// The type of VPC endpoint that you want your SFTP server to connect to. You
+	// can choose to connect to the public internet or a virtual private cloud (VPC)
+	// endpoint. With a VPC endpoint, you can restrict access to your SFTP server
+	// and resources only within your VPC.
 	EndpointType *string `type:"string" enum:"EndpointType"`
 
 	// The RSA private key as generated by the ssh-keygen -N "" -f my-new-server-key
@@ -2092,6 +2165,14 @@ type CreateUserInput struct {
 	// In most cases, you can use this value instead of the scope down policy to
 	// lock your user down to the designated home directory ("chroot"). To do this,
 	// you can set Entry to '/' and set Target to the HomeDirectory parameter value.
+	//
+	// If the target of a logical directory entry does not exist in S3, the entry
+	// will be ignored. As a workaround, you can use the S3 api to create 0 byte
+	// objects as place holders for your directory. If using the CLI, use the s3api
+	// call instead of s3 so you can use the put-object operation. For example,
+	// you use the following: aws s3api put-object --bucket bucketname --key path/to/folder/.
+	// Make sure that the end of the key name ends in a / for it to be considered
+	// a folder.
 	HomeDirectoryMappings []*HomeDirectoryMapEntry `min:"1" type:"list"`
 
 	// The type of landing directory (folder) you want your users' home directory
@@ -2955,13 +3036,30 @@ func (s *DescribedUser) SetUserName(v string) *DescribedUser {
 	return s
 }
 
-// The configuration settings for the virtual private cloud (VPC) endpoint for
-// your SFTP server.
+// The virtual private cloud (VPC) endpoint settings that are configured for
+// your SFTP server. With a VPC endpoint, you can restrict access to your SFTP
+// server and resources only within your VPC. To control incoming internet traffic,
+// invoke the UpdateServer API and attach an Elastic IP to your server's endpoint.
 type EndpointDetails struct {
 	_ struct{} `type:"structure"`
 
+	// A list of address allocation IDs that are required to attach an Elastic IP
+	// address to your SFTP server's endpoint. This is only valid in the UpdateServer
+	// API.
+	//
+	// This property can only be use when EndpointType is set to VPC.
+	AddressAllocationIds []*string `type:"list"`
+
+	// A list of subnet IDs that are required to host your SFTP server endpoint
+	// in your VPC.
+	SubnetIds []*string `type:"list"`
+
 	// The ID of the VPC endpoint.
 	VpcEndpointId *string `min:"22" type:"string"`
+
+	// The VPC ID of the virtual private cloud in which the SFTP server's endpoint
+	// will be hosted.
+	VpcId *string `type:"string"`
 }
 
 // String returns the string representation
@@ -2987,9 +3085,27 @@ func (s *EndpointDetails) Validate() error {
 	return nil
 }
 
+// SetAddressAllocationIds sets the AddressAllocationIds field's value.
+func (s *EndpointDetails) SetAddressAllocationIds(v []*string) *EndpointDetails {
+	s.AddressAllocationIds = v
+	return s
+}
+
+// SetSubnetIds sets the SubnetIds field's value.
+func (s *EndpointDetails) SetSubnetIds(v []*string) *EndpointDetails {
+	s.SubnetIds = v
+	return s
+}
+
 // SetVpcEndpointId sets the VpcEndpointId field's value.
 func (s *EndpointDetails) SetVpcEndpointId(v string) *EndpointDetails {
 	s.VpcEndpointId = &v
+	return s
+}
+
+// SetVpcId sets the VpcId field's value.
+func (s *EndpointDetails) SetVpcId(v string) *EndpointDetails {
+	s.VpcId = &v
 	return s
 }
 
@@ -3216,6 +3332,175 @@ func (s *ImportSshPublicKeyOutput) SetSshPublicKeyId(v string) *ImportSshPublicK
 func (s *ImportSshPublicKeyOutput) SetUserName(v string) *ImportSshPublicKeyOutput {
 	s.UserName = &v
 	return s
+}
+
+// This exception is thrown when an error occurs in the AWS Transfer for SFTP
+// service.
+type InternalServiceError struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s InternalServiceError) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InternalServiceError) GoString() string {
+	return s.String()
+}
+
+func newErrorInternalServiceError(v protocol.ResponseMetadata) error {
+	return &InternalServiceError{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s InternalServiceError) Code() string {
+	return "InternalServiceError"
+}
+
+// Message returns the exception's message.
+func (s InternalServiceError) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s InternalServiceError) OrigErr() error {
+	return nil
+}
+
+func (s InternalServiceError) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s InternalServiceError) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s InternalServiceError) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// The NextToken parameter that was passed is invalid.
+type InvalidNextTokenException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidNextTokenException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidNextTokenException) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidNextTokenException(v protocol.ResponseMetadata) error {
+	return &InvalidNextTokenException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s InvalidNextTokenException) Code() string {
+	return "InvalidNextTokenException"
+}
+
+// Message returns the exception's message.
+func (s InvalidNextTokenException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s InvalidNextTokenException) OrigErr() error {
+	return nil
+}
+
+func (s InvalidNextTokenException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s InvalidNextTokenException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s InvalidNextTokenException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// This exception is thrown when the client submits a malformed request.
+type InvalidRequestException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidRequestException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidRequestException) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidRequestException(v protocol.ResponseMetadata) error {
+	return &InvalidRequestException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s InvalidRequestException) Code() string {
+	return "InvalidRequestException"
+}
+
+// Message returns the exception's message.
+func (s InvalidRequestException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s InvalidRequestException) OrigErr() error {
+	return nil
+}
+
+func (s InvalidRequestException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s InvalidRequestException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s InvalidRequestException) RequestID() string {
+	return s.respMetadata.RequestID
 }
 
 type ListServersInput struct {
@@ -3712,6 +3997,187 @@ func (s *ListedUser) SetUserName(v string) *ListedUser {
 	return s
 }
 
+// The requested resource does not exist.
+type ResourceExistsException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"Message" type:"string"`
+
+	// Resource is a required field
+	Resource *string `type:"string" required:"true"`
+
+	// ResourceType is a required field
+	ResourceType *string `type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s ResourceExistsException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResourceExistsException) GoString() string {
+	return s.String()
+}
+
+func newErrorResourceExistsException(v protocol.ResponseMetadata) error {
+	return &ResourceExistsException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s ResourceExistsException) Code() string {
+	return "ResourceExistsException"
+}
+
+// Message returns the exception's message.
+func (s ResourceExistsException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s ResourceExistsException) OrigErr() error {
+	return nil
+}
+
+func (s ResourceExistsException) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s ResourceExistsException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s ResourceExistsException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// This exception is thrown when a resource is not found by the AWS Transfer
+// for SFTP service.
+type ResourceNotFoundException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"Message" type:"string"`
+
+	// Resource is a required field
+	Resource *string `type:"string" required:"true"`
+
+	// ResourceType is a required field
+	ResourceType *string `type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s ResourceNotFoundException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResourceNotFoundException) GoString() string {
+	return s.String()
+}
+
+func newErrorResourceNotFoundException(v protocol.ResponseMetadata) error {
+	return &ResourceNotFoundException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s ResourceNotFoundException) Code() string {
+	return "ResourceNotFoundException"
+}
+
+// Message returns the exception's message.
+func (s ResourceNotFoundException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s ResourceNotFoundException) OrigErr() error {
+	return nil
+}
+
+func (s ResourceNotFoundException) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s ResourceNotFoundException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s ResourceNotFoundException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// The request has failed because the AWS Transfer for SFTP service is not available.
+type ServiceUnavailableException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s ServiceUnavailableException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ServiceUnavailableException) GoString() string {
+	return s.String()
+}
+
+func newErrorServiceUnavailableException(v protocol.ResponseMetadata) error {
+	return &ServiceUnavailableException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s ServiceUnavailableException) Code() string {
+	return "ServiceUnavailableException"
+}
+
+// Message returns the exception's message.
+func (s ServiceUnavailableException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s ServiceUnavailableException) OrigErr() error {
+	return nil
+}
+
+func (s ServiceUnavailableException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s ServiceUnavailableException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s ServiceUnavailableException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
 // Provides information about the public Secure Shell (SSH) key that is associated
 // with a user account for a specific server (as identified by ServerId). The
 // information returned includes the date the key was imported, the public key
@@ -4140,6 +4606,66 @@ func (s *TestIdentityProviderOutput) SetUrl(v string) *TestIdentityProviderOutpu
 	return s
 }
 
+// The request was denied due to request throttling.
+//
+// HTTP Status Code: 400
+type ThrottlingException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+
+	RetryAfterSeconds *string `type:"string"`
+}
+
+// String returns the string representation
+func (s ThrottlingException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ThrottlingException) GoString() string {
+	return s.String()
+}
+
+func newErrorThrottlingException(v protocol.ResponseMetadata) error {
+	return &ThrottlingException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s ThrottlingException) Code() string {
+	return "ThrottlingException"
+}
+
+// Message returns the exception's message.
+func (s ThrottlingException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s ThrottlingException) OrigErr() error {
+	return nil
+}
+
+func (s ThrottlingException) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s ThrottlingException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s ThrottlingException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
 type UntagResourceInput struct {
 	_ struct{} `type:"structure"`
 
@@ -4220,8 +4746,10 @@ type UpdateServerInput struct {
 	_ struct{} `type:"structure"`
 
 	// The virtual private cloud (VPC) endpoint settings that are configured for
-	// your SFTP server. With a VPC endpoint, your SFTP server isn't accessible
-	// over the public internet.
+	// your SFTP server. With a VPC endpoint, you can restrict access to your SFTP
+	// server to resources only within your VPC. To control incoming internet traffic,
+	// you will need to associate one or more Elastic IP addresses with your server's
+	// endpoint.
 	EndpointDetails *EndpointDetails `type:"structure"`
 
 	// The type of endpoint that you want your SFTP server to connect to. You can
@@ -4376,6 +4904,14 @@ type UpdateUserInput struct {
 	// In most cases, you can use this value instead of the scope down policy to
 	// lock your user down to the designated home directory ("chroot"). To do this,
 	// you can set Entry to '/' and set Target to the HomeDirectory parameter value.
+	//
+	// If the target of a logical directory entry does not exist in S3, the entry
+	// will be ignored. As a workaround, you can use the S3 api to create 0 byte
+	// objects as place holders for your directory. If using the CLI, use the s3api
+	// call instead of s3 so you can use the put-object operation. For example,
+	// you use the following: aws s3api put-object --bucket bucketname --key path/to/folder/.
+	// Make sure that the end of the key name ends in a / for it to be considered
+	// a folder.
 	HomeDirectoryMappings []*HomeDirectoryMapEntry `min:"1" type:"list"`
 
 	// The type of landing directory (folder) you want your users' home directory
@@ -4559,6 +5095,9 @@ func (s *UpdateUserOutput) SetUserName(v string) *UpdateUserOutput {
 const (
 	// EndpointTypePublic is a EndpointType enum value
 	EndpointTypePublic = "PUBLIC"
+
+	// EndpointTypeVpc is a EndpointType enum value
+	EndpointTypeVpc = "VPC"
 
 	// EndpointTypeVpcEndpoint is a EndpointType enum value
 	EndpointTypeVpcEndpoint = "VPC_ENDPOINT"

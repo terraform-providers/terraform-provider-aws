@@ -16,7 +16,7 @@ func TestAccAWSAPIGatewayDocumentationPart_basic(t *testing.T) {
 	var conf apigateway.DocumentationPart
 
 	rString := acctest.RandString(8)
-	apiName := fmt.Sprintf("tf_acc_api_doc_part_basic_%s", rString)
+	apiName := fmt.Sprintf("tf-acc-test_api_doc_part_basic_%s", rString)
 	properties := `{"description":"Terraform Acceptance Test"}`
 	uProperties := `{"description":"Terraform Acceptance Test Updated"}`
 
@@ -60,7 +60,7 @@ func TestAccAWSAPIGatewayDocumentationPart_method(t *testing.T) {
 	var conf apigateway.DocumentationPart
 
 	rString := acctest.RandString(8)
-	apiName := fmt.Sprintf("tf_acc_api_doc_part_method_%s", rString)
+	apiName := fmt.Sprintf("tf-acc-test_api_doc_part_method_%s", rString)
 	properties := `{"description":"Terraform Acceptance Test"}`
 	uProperties := `{"description":"Terraform Acceptance Test Updated"}`
 
@@ -108,7 +108,7 @@ func TestAccAWSAPIGatewayDocumentationPart_responseHeader(t *testing.T) {
 	var conf apigateway.DocumentationPart
 
 	rString := acctest.RandString(8)
-	apiName := fmt.Sprintf("tf_acc_api_doc_part_resp_header_%s", rString)
+	apiName := fmt.Sprintf("tf-acc-test_api_doc_part_resp_header_%s", rString)
 	properties := `{"description":"Terraform Acceptance Test"}`
 	uProperties := `{"description":"Terraform Acceptance Test Updated"}`
 
@@ -167,7 +167,7 @@ func testAccCheckAWSAPIGatewayDocumentationPartExists(n string, res *apigateway.
 			return fmt.Errorf("No API Gateway Documentation Part ID is set")
 		}
 
-		conn := testAccProvider.Meta().(*AWSClient).apigateway
+		conn := testAccProvider.Meta().(*AWSClient).apigatewayconn
 
 		apiId, id, err := decodeApiGatewayDocumentationPartId(rs.Primary.ID)
 		if err != nil {
@@ -190,7 +190,7 @@ func testAccCheckAWSAPIGatewayDocumentationPartExists(n string, res *apigateway.
 }
 
 func testAccCheckAWSAPIGatewayDocumentationPartDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*AWSClient).apigateway
+	conn := testAccProvider.Meta().(*AWSClient).apigatewayconn
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "aws_api_gateway_documentation_part" {

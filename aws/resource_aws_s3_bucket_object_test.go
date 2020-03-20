@@ -409,6 +409,44 @@ func TestAccAWSS3BucketObject_updatesWithVersioning(t *testing.T) {
 	})
 }
 
+func TestAccAWSS3BucketObject_updatesWithVersioningViaAccessPoint(t *testing.T) {
+	var originalObj, modifiedObj s3.GetObjectOutput
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_s3_bucket_object.test"
+	accessPointResourceName := "aws_s3_access_point.test"
+
+	sourceInitial := testAccAWSS3BucketObjectCreateTempFile(t, "initial versioned object state")
+	defer os.Remove(sourceInitial)
+	sourceModified := testAccAWSS3BucketObjectCreateTempFile(t, "modified versioned object")
+	defer os.Remove(sourceInitial)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSS3BucketObjectDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSS3BucketObjectConfig_updateableViaAccessPoint(rName, true, sourceInitial),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSS3BucketObjectExists(resourceName, &originalObj),
+					testAccCheckAWSS3BucketObjectBody(&originalObj, "initial versioned object state"),
+					resource.TestCheckResourceAttrPair(resourceName, "bucket", accessPointResourceName, "arn"),
+					resource.TestCheckResourceAttr(resourceName, "etag", "cee4407fa91906284e2a5e5e03e86b1b"),
+				),
+			},
+			{
+				Config: testAccAWSS3BucketObjectConfig_updateableViaAccessPoint(rName, true, sourceModified),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSS3BucketObjectExists(resourceName, &modifiedObj),
+					testAccCheckAWSS3BucketObjectBody(&modifiedObj, "modified versioned object"),
+					resource.TestCheckResourceAttr(resourceName, "etag", "00b8c73b1b50e7cc932362c7225b8e29"),
+					testAccCheckAWSS3BucketObjectVersionIdDiffers(&modifiedObj, &originalObj),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAWSS3BucketObject_kms(t *testing.T) {
 	var obj s3.GetObjectOutput
 	resourceName := "aws_s3_bucket_object.object"
@@ -630,9 +668,9 @@ func TestAccAWSS3BucketObject_tags(t *testing.T) {
 					testAccCheckAWSS3BucketObjectBody(&obj2, "stuff"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "4"),
 					resource.TestCheckResourceAttr(resourceName, "tags.Key2", "BBB"),
-					resource.TestCheckResourceAttr(resourceName, "tags.Key3", "XXX"),
+					resource.TestCheckResourceAttr(resourceName, "tags.Key3", "X X"),
 					resource.TestCheckResourceAttr(resourceName, "tags.Key4", "DDD"),
-					resource.TestCheckResourceAttr(resourceName, "tags.Key5", "EEE"),
+					resource.TestCheckResourceAttr(resourceName, "tags.Key5", "E:/"),
 				),
 			},
 			{
@@ -694,9 +732,9 @@ func TestAccAWSS3BucketObject_tagsLeadingSlash(t *testing.T) {
 					testAccCheckAWSS3BucketObjectBody(&obj2, "stuff"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "4"),
 					resource.TestCheckResourceAttr(resourceName, "tags.Key2", "BBB"),
-					resource.TestCheckResourceAttr(resourceName, "tags.Key3", "XXX"),
+					resource.TestCheckResourceAttr(resourceName, "tags.Key3", "X X"),
 					resource.TestCheckResourceAttr(resourceName, "tags.Key4", "DDD"),
-					resource.TestCheckResourceAttr(resourceName, "tags.Key5", "EEE"),
+					resource.TestCheckResourceAttr(resourceName, "tags.Key5", "E:/"),
 				),
 			},
 			{
@@ -1234,6 +1272,30 @@ resource "aws_s3_bucket_object" "object" {
 `, randInt, bucketVersioning, source, source)
 }
 
+func testAccAWSS3BucketObjectConfig_updateableViaAccessPoint(rName string, bucketVersioning bool, source string) string {
+	return fmt.Sprintf(`
+resource "aws_s3_bucket" "test" {
+  bucket = %[1]q
+
+  versioning {
+    enabled = %[2]t
+  }
+}
+
+resource "aws_s3_access_point" "test" {
+  bucket = "${aws_s3_bucket.test.bucket}"
+  name   = %[1]q
+}
+
+resource "aws_s3_bucket_object" "test" {
+  bucket = "${aws_s3_access_point.test.arn}"
+  key    = "updateable-key"
+  source = %[3]q
+  etag   = "${filemd5(%[3]q)}"
+}
+`, rName, bucketVersioning, source)
+}
+
 func testAccAWSS3BucketObjectConfig_withKMSId(randInt int, source string) string {
 	return fmt.Sprintf(`
 resource "aws_kms_key" "kms_key_1" {}
@@ -1341,9 +1403,9 @@ resource "aws_s3_bucket_object" "object" {
 
   tags = {
     Key2 = "BBB"
-    Key3 = "XXX"
+    Key3 = "X X"
     Key4 = "DDD"
-    Key5 = "EEE"
+    Key5 = "E:/"
   }
 }
 `, randInt, key, content)

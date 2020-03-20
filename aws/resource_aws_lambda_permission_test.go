@@ -3,6 +3,7 @@ package aws
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"regexp"
 	"strings"
 	"testing"
@@ -315,6 +316,31 @@ func TestAccAWSLambdaPermission_withQualifier(t *testing.T) {
 	})
 }
 
+func TestAccAWSLambdaPermission_disappears(t *testing.T) {
+	var statement LambdaPolicyStatement
+
+	rString := acctest.RandString(8)
+	funcName := fmt.Sprintf("tf_acc_lambda_perm_multi_%s", rString)
+	roleName := fmt.Sprintf("tf_acc_role_lambda_perm_multi_%s", rString)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSLambdaPermissionDestroy,
+		Steps: []resource.TestStep{
+			// Here we delete the Lambda permission to verify the follow-on refresh after this step
+			// should not error.
+			{
+				Config: testAccAWSLambdaPermissionConfig_multiplePerms(funcName, roleName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccAWSLambdaPermissionDisappears("aws_lambda_permission.first", &statement),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
 func TestAccAWSLambdaPermission_multiplePerms(t *testing.T) {
 	var firstStatement LambdaPolicyStatement
 	var firstStatementModified LambdaPolicyStatement
@@ -495,6 +521,41 @@ func TestAccAWSLambdaPermission_withIAMRole(t *testing.T) {
 	})
 }
 
+func testAccAWSLambdaPermissionDisappears(n string, statement *LambdaPolicyStatement) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[n]
+		if !ok {
+			return fmt.Errorf("Not found: %s", n)
+		}
+
+		conn := testAccProvider.Meta().(*AWSClient).lambdaconn
+
+		if rs.Primary.ID == "" {
+			return fmt.Errorf("No resource ID is set")
+		}
+
+		// Delete permission out of band
+		input := lambda.RemovePermissionInput{
+			FunctionName: aws.String(rs.Primary.Attributes["function_name"]),
+			StatementId:  aws.String(rs.Primary.ID),
+		}
+
+		_, err := conn.RemovePermission(&input)
+		if err != nil {
+			// Missing whole policy or Lambda function (API error)
+			if awsErr, ok := err.(awserr.Error); ok {
+				if awsErr.Code() == "ResourceNotFoundException" {
+					log.Printf("[WARN] No Lambda Permission Policy found: %v", input)
+					return nil
+				}
+			}
+			return err
+		}
+
+		return err
+	}
+}
+
 func testAccCheckLambdaPermissionExists(n string, statement *LambdaPolicyStatement) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
@@ -643,7 +704,7 @@ func testAccAWSLambdaPermissionConfig(funcName, roleName string) string {
 resource "aws_lambda_permission" "allow_cloudwatch" {
   statement_id       = "AllowExecutionFromCloudWatch"
   action             = "lambda:InvokeFunction"
-  function_name      = "${aws_lambda_function.test_lambda.arn}"
+  function_name      = aws_lambda_function.test_lambda.arn
   principal          = "events.amazonaws.com"
   event_source_token = "test-event-source-token"
 }
@@ -651,9 +712,9 @@ resource "aws_lambda_permission" "allow_cloudwatch" {
 resource "aws_lambda_function" "test_lambda" {
   filename      = "test-fixtures/lambdatest.zip"
   function_name = "%s"
-  role          = "${aws_iam_role.iam_for_lambda.arn}"
+  role          = aws_iam_role.iam_for_lambda.arn
   handler       = "exports.handler"
-  runtime       = "nodejs8.10"
+  runtime       = "nodejs12.x"
 }
 
 resource "aws_iam_role" "iam_for_lambda" {
@@ -683,7 +744,7 @@ func testAccAWSLambdaPermissionConfigStatementIdDuplicate(rName string) string {
 resource "aws_lambda_permission" "test1" {
   action             = "lambda:InvokeFunction"
   event_source_token = "test-event-source-token"
-  function_name      = "${aws_lambda_function.test.arn}"
+  function_name      = aws_lambda_function.test.arn
   principal          = "events.amazonaws.com"
   statement_id       = "AllowExecutionFromCloudWatch"
 }
@@ -691,7 +752,7 @@ resource "aws_lambda_permission" "test1" {
 resource "aws_lambda_permission" "test2" {
   action             = "lambda:InvokeFunction"
   event_source_token = "test-event-source-token"
-  function_name      = "${aws_lambda_function.test.arn}"
+  function_name      = aws_lambda_function.test.arn
   principal          = "events.amazonaws.com"
   statement_id       = "AllowExecutionFromCloudWatch"
 }
@@ -700,8 +761,8 @@ resource "aws_lambda_function" "test" {
   filename      = "test-fixtures/lambdatest.zip"
   function_name = %q
   handler       = "exports.handler"
-  role          = "${aws_iam_role.test.arn}"
-  runtime       = "nodejs8.10"
+  role          = aws_iam_role.test.arn
+  runtime       = "nodejs12.x"
 }
 
 resource "aws_iam_role" "test" {
@@ -731,16 +792,16 @@ func testAccAWSLambdaPermissionConfig_withRawFunctionName(funcName, roleName str
 resource "aws_lambda_permission" "with_raw_func_name" {
   statement_id  = "AllowExecutionWithRawFuncName"
   action        = "lambda:InvokeFunction"
-  function_name = "${aws_lambda_function.test_lambda.arn}"
+  function_name = aws_lambda_function.test_lambda.arn
   principal     = "events.amazonaws.com"
 }
 
 resource "aws_lambda_function" "test_lambda" {
   filename      = "test-fixtures/lambdatest.zip"
   function_name = "%s"
-  role          = "${aws_iam_role.iam_for_lambda.arn}"
+  role          = aws_iam_role.iam_for_lambda.arn
   handler       = "exports.handler"
-  runtime       = "nodejs8.10"
+  runtime       = "nodejs12.x"
 }
 
 resource "aws_iam_role" "iam_for_lambda" {
@@ -770,16 +831,16 @@ func testAccAWSLambdaPermissionConfig_withStatementIdPrefix(rName string) string
 resource "aws_lambda_permission" "with_statement_id_prefix" {
   statement_id_prefix = "AllowExecutionWithStatementIdPrefix-"
   action              = "lambda:InvokeFunction"
-  function_name       = "${aws_lambda_function.test_lambda.arn}"
+  function_name       = aws_lambda_function.test_lambda.arn
   principal           = "events.amazonaws.com"
 }
 
 resource "aws_lambda_function" "test_lambda" {
   filename      = "test-fixtures/lambdatest.zip"
   function_name = "lambda_function_name_perm"
-  role          = "${aws_iam_role.iam_for_lambda.arn}"
+  role          = aws_iam_role.iam_for_lambda.arn
   handler       = "exports.handler"
-  runtime       = "nodejs8.10"
+  runtime       = "nodejs12.x"
 }
 
 resource "aws_iam_role" "iam_for_lambda" {
@@ -809,26 +870,26 @@ func testAccAWSLambdaPermissionConfig_withQualifier(aliasName, funcName, roleNam
 resource "aws_lambda_permission" "with_qualifier" {
   statement_id   = "AllowExecutionWithQualifier"
   action         = "lambda:InvokeFunction"
-  function_name  = "${aws_lambda_function.test_lambda.arn}"
+  function_name  = aws_lambda_function.test_lambda.arn
   principal      = "events.amazonaws.com"
   source_account = "111122223333"
   source_arn     = "arn:aws:events:eu-west-1:111122223333:rule/RunDaily"
-  qualifier      = "${aws_lambda_alias.test_alias.name}"
+  qualifier      = aws_lambda_alias.test_alias.name
 }
 
 resource "aws_lambda_alias" "test_alias" {
   name             = "%s"
   description      = "a sample description"
-  function_name    = "${aws_lambda_function.test_lambda.arn}"
+  function_name    = aws_lambda_function.test_lambda.arn
   function_version = "$LATEST"
 }
 
 resource "aws_lambda_function" "test_lambda" {
   filename      = "test-fixtures/lambdatest.zip"
   function_name = "%s"
-  role          = "${aws_iam_role.iam_for_lambda.arn}"
+  role          = aws_iam_role.iam_for_lambda.arn
   handler       = "exports.handler"
-  runtime       = "nodejs8.10"
+  runtime       = "nodejs12.x"
 }
 
 resource "aws_iam_role" "iam_for_lambda" {
@@ -857,14 +918,14 @@ var testAccAWSLambdaPermissionConfig_multiplePerms_tpl = `
 resource "aws_lambda_permission" "first" {
     statement_id = "AllowExecutionFirst"
     action = "lambda:InvokeFunction"
-    function_name = "${aws_lambda_function.test_lambda.arn}"
+    function_name = aws_lambda_function.test_lambda.arn
     principal = "events.amazonaws.com"
 }
 
 resource "aws_lambda_permission" "%s" {
     statement_id = "%s"
     action = "lambda:*"
-    function_name = "${aws_lambda_function.test_lambda.arn}"
+    function_name = aws_lambda_function.test_lambda.arn
     principal = "events.amazonaws.com"
 }
 %s
@@ -872,9 +933,9 @@ resource "aws_lambda_permission" "%s" {
 resource "aws_lambda_function" "test_lambda" {
     filename = "test-fixtures/lambdatest.zip"
     function_name = "%s"
-    role = "${aws_iam_role.iam_for_lambda.arn}"
+    role = aws_iam_role.iam_for_lambda.arn
     handler = "exports.handler"
-    runtime = "nodejs8.10"
+    runtime = "nodejs12.x"
 }
 
 resource "aws_iam_role" "iam_for_lambda" {
@@ -908,7 +969,7 @@ func testAccAWSLambdaPermissionConfig_multiplePermsModified(funcName, roleName s
 resource "aws_lambda_permission" "third" {
     statement_id = "AllowExecutionThird"
     action = "lambda:*"
-    function_name = "${aws_lambda_function.test_lambda.arn}"
+    function_name = aws_lambda_function.test_lambda.arn
     principal = "events.amazonaws.com"
 }
 `, funcName, roleName)
@@ -919,9 +980,9 @@ func testAccAWSLambdaPermissionConfig_withS3(bucketName, funcName, roleName stri
 resource "aws_lambda_permission" "with_s3" {
   statement_id  = "AllowExecutionFromS3"
   action        = "lambda:InvokeFunction"
-  function_name = "${aws_lambda_function.my-func.arn}"
+  function_name = aws_lambda_function.my-func.arn
   principal     = "s3.amazonaws.com"
-  source_arn    = "${aws_s3_bucket.default.arn}"
+  source_arn    = aws_s3_bucket.default.arn
 }
 
 resource "aws_s3_bucket" "default" {
@@ -932,9 +993,9 @@ resource "aws_s3_bucket" "default" {
 resource "aws_lambda_function" "my-func" {
   filename      = "test-fixtures/lambdatest.zip"
   function_name = "%s"
-  role          = "${aws_iam_role.police.arn}"
+  role          = aws_iam_role.police.arn
   handler       = "exports.handler"
-  runtime       = "nodejs8.10"
+  runtime       = "nodejs12.x"
 }
 
 resource "aws_iam_role" "police" {
@@ -964,9 +1025,9 @@ func testAccAWSLambdaPermissionConfig_withSNS(topicName, funcName, roleName stri
 resource "aws_lambda_permission" "with_sns" {
   statement_id  = "AllowExecutionFromSNS"
   action        = "lambda:InvokeFunction"
-  function_name = "${aws_lambda_function.my-func.arn}"
+  function_name = aws_lambda_function.my-func.arn
   principal     = "sns.amazonaws.com"
-  source_arn    = "${aws_sns_topic.default.arn}"
+  source_arn    = aws_sns_topic.default.arn
 }
 
 resource "aws_sns_topic" "default" {
@@ -974,17 +1035,17 @@ resource "aws_sns_topic" "default" {
 }
 
 resource "aws_sns_topic_subscription" "lambda" {
-  topic_arn = "${aws_sns_topic.default.arn}"
+  topic_arn = aws_sns_topic.default.arn
   protocol  = "lambda"
-  endpoint  = "${aws_lambda_function.my-func.arn}"
+  endpoint  = aws_lambda_function.my-func.arn
 }
 
 resource "aws_lambda_function" "my-func" {
   filename      = "test-fixtures/lambdatest.zip"
   function_name = "%s"
-  role          = "${aws_iam_role.police.arn}"
+  role          = aws_iam_role.police.arn
   handler       = "exports.handler"
-  runtime       = "nodejs8.10"
+  runtime       = "nodejs12.x"
 }
 
 resource "aws_iam_role" "police" {
@@ -1014,16 +1075,16 @@ func testAccAWSLambdaPermissionConfig_withIAMRole(funcName, roleName string) str
 resource "aws_lambda_permission" "iam_role" {
   statement_id  = "AllowExecutionFromIAMRole"
   action        = "lambda:InvokeFunction"
-  function_name = "${aws_lambda_function.my-func.arn}"
-  principal     = "${aws_iam_role.police.arn}"
+  function_name = aws_lambda_function.my-func.arn
+  principal     = aws_iam_role.police.arn
 }
 
 resource "aws_lambda_function" "my-func" {
   filename      = "test-fixtures/lambdatest.zip"
   function_name = "%s"
-  role          = "${aws_iam_role.police.arn}"
+  role          = aws_iam_role.police.arn
   handler       = "exports.handler"
-  runtime       = "nodejs8.10"
+  runtime       = "nodejs12.x"
 }
 
 resource "aws_iam_role" "police" {

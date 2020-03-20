@@ -3,6 +3,7 @@
 package qldb
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -65,17 +66,17 @@ func (c *QLDB) CreateLedgerRequest(input *CreateLedgerInput) (req *request.Reque
 // See the AWS API reference guide for Amazon QLDB's
 // API operation CreateLedger for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+// Returned Error Types:
+//   * InvalidParameterException
 //   One or more parameters in the request aren't valid.
 //
-//   * ErrCodeResourceAlreadyExistsException "ResourceAlreadyExistsException"
+//   * ResourceAlreadyExistsException
 //   The specified resource already exists.
 //
-//   * ErrCodeLimitExceededException "LimitExceededException"
+//   * LimitExceededException
 //   You have reached the limit on the maximum number of resources allowed.
 //
-//   * ErrCodeResourceInUseException "ResourceInUseException"
+//   * ResourceInUseException
 //   The specified resource can't be modified at this time.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/qldb-2019-01-02/CreateLedger
@@ -160,17 +161,17 @@ func (c *QLDB) DeleteLedgerRequest(input *DeleteLedgerInput) (req *request.Reque
 // See the AWS API reference guide for Amazon QLDB's
 // API operation DeleteLedger for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+// Returned Error Types:
+//   * InvalidParameterException
 //   One or more parameters in the request aren't valid.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The specified resource doesn't exist.
 //
-//   * ErrCodeResourceInUseException "ResourceInUseException"
+//   * ResourceInUseException
 //   The specified resource can't be modified at this time.
 //
-//   * ErrCodeResourcePreconditionNotMetException "ResourcePreconditionNotMetException"
+//   * ResourcePreconditionNotMetException
 //   The operation failed because a condition wasn't satisfied in advance.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/qldb-2019-01-02/DeleteLedger
@@ -254,8 +255,8 @@ func (c *QLDB) DescribeJournalS3ExportRequest(input *DescribeJournalS3ExportInpu
 // See the AWS API reference guide for Amazon QLDB's
 // API operation DescribeJournalS3Export for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   The specified resource doesn't exist.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/qldb-2019-01-02/DescribeJournalS3Export
@@ -333,11 +334,11 @@ func (c *QLDB) DescribeLedgerRequest(input *DescribeLedgerInput) (req *request.R
 // See the AWS API reference guide for Amazon QLDB's
 // API operation DescribeLedger for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+// Returned Error Types:
+//   * InvalidParameterException
 //   One or more parameters in the request aren't valid.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The specified resource doesn't exist.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/qldb-2019-01-02/DescribeLedger
@@ -424,11 +425,11 @@ func (c *QLDB) ExportJournalToS3Request(input *ExportJournalToS3Input) (req *req
 // See the AWS API reference guide for Amazon QLDB's
 // API operation ExportJournalToS3 for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   The specified resource doesn't exist.
 //
-//   * ErrCodeResourcePreconditionNotMetException "ResourcePreconditionNotMetException"
+//   * ResourcePreconditionNotMetException
 //   The operation failed because a condition wasn't satisfied in advance.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/qldb-2019-01-02/ExportJournalToS3
@@ -514,14 +515,14 @@ func (c *QLDB) GetBlockRequest(input *GetBlockInput) (req *request.Request, outp
 // See the AWS API reference guide for Amazon QLDB's
 // API operation GetBlock for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+// Returned Error Types:
+//   * InvalidParameterException
 //   One or more parameters in the request aren't valid.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The specified resource doesn't exist.
 //
-//   * ErrCodeResourcePreconditionNotMetException "ResourcePreconditionNotMetException"
+//   * ResourcePreconditionNotMetException
 //   The operation failed because a condition wasn't satisfied in advance.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/qldb-2019-01-02/GetBlock
@@ -600,14 +601,14 @@ func (c *QLDB) GetDigestRequest(input *GetDigestInput) (req *request.Request, ou
 // See the AWS API reference guide for Amazon QLDB's
 // API operation GetDigest for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+// Returned Error Types:
+//   * InvalidParameterException
 //   One or more parameters in the request aren't valid.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The specified resource doesn't exist.
 //
-//   * ErrCodeResourcePreconditionNotMetException "ResourcePreconditionNotMetException"
+//   * ResourcePreconditionNotMetException
 //   The operation failed because a condition wasn't satisfied in advance.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/qldb-2019-01-02/GetDigest
@@ -687,14 +688,14 @@ func (c *QLDB) GetRevisionRequest(input *GetRevisionInput) (req *request.Request
 // See the AWS API reference guide for Amazon QLDB's
 // API operation GetRevision for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+// Returned Error Types:
+//   * InvalidParameterException
 //   One or more parameters in the request aren't valid.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The specified resource doesn't exist.
 //
-//   * ErrCodeResourcePreconditionNotMetException "ResourcePreconditionNotMetException"
+//   * ResourcePreconditionNotMetException
 //   The operation failed because a condition wasn't satisfied in advance.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/qldb-2019-01-02/GetRevision
@@ -846,10 +847,12 @@ func (c *QLDB) ListJournalS3ExportsPagesWithContext(ctx aws.Context, input *List
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListJournalS3ExportsOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListJournalS3ExportsOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -980,10 +983,12 @@ func (c *QLDB) ListJournalS3ExportsForLedgerPagesWithContext(ctx aws.Context, in
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListJournalS3ExportsForLedgerOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListJournalS3ExportsForLedgerOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -1114,10 +1119,12 @@ func (c *QLDB) ListLedgersPagesWithContext(ctx aws.Context, input *ListLedgersIn
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListLedgersOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListLedgersOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -1174,11 +1181,11 @@ func (c *QLDB) ListTagsForResourceRequest(input *ListTagsForResourceInput) (req 
 // See the AWS API reference guide for Amazon QLDB's
 // API operation ListTagsForResource for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+// Returned Error Types:
+//   * InvalidParameterException
 //   One or more parameters in the request aren't valid.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The specified resource doesn't exist.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/qldb-2019-01-02/ListTagsForResource
@@ -1260,11 +1267,11 @@ func (c *QLDB) TagResourceRequest(input *TagResourceInput) (req *request.Request
 // See the AWS API reference guide for Amazon QLDB's
 // API operation TagResource for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+// Returned Error Types:
+//   * InvalidParameterException
 //   One or more parameters in the request aren't valid.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The specified resource doesn't exist.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/qldb-2019-01-02/TagResource
@@ -1344,11 +1351,11 @@ func (c *QLDB) UntagResourceRequest(input *UntagResourceInput) (req *request.Req
 // See the AWS API reference guide for Amazon QLDB's
 // API operation UntagResource for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+// Returned Error Types:
+//   * InvalidParameterException
 //   One or more parameters in the request aren't valid.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The specified resource doesn't exist.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/qldb-2019-01-02/UntagResource
@@ -1426,11 +1433,11 @@ func (c *QLDB) UpdateLedgerRequest(input *UpdateLedgerInput) (req *request.Reque
 // See the AWS API reference guide for Amazon QLDB's
 // API operation UpdateLedger for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+// Returned Error Types:
+//   * InvalidParameterException
 //   One or more parameters in the request aren't valid.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The specified resource doesn't exist.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/qldb-2019-01-02/UpdateLedger
@@ -2339,6 +2346,65 @@ func (s *GetRevisionOutput) SetRevision(v *ValueHolder) *GetRevisionOutput {
 	return s
 }
 
+// One or more parameters in the request aren't valid.
+type InvalidParameterException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"Message" type:"string"`
+
+	// The name of the invalid parameter.
+	ParameterName *string `type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidParameterException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidParameterException) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidParameterException(v protocol.ResponseMetadata) error {
+	return &InvalidParameterException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s InvalidParameterException) Code() string {
+	return "InvalidParameterException"
+}
+
+// Message returns the exception's message.
+func (s InvalidParameterException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s InvalidParameterException) OrigErr() error {
+	return nil
+}
+
+func (s InvalidParameterException) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s InvalidParameterException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s InvalidParameterException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
 // The information about a journal export job, including the ledger name, export
 // ID, when it was created, current status, and its start and end time export
 // parameters.
@@ -2497,6 +2563,65 @@ func (s *LedgerSummary) SetName(v string) *LedgerSummary {
 func (s *LedgerSummary) SetState(v string) *LedgerSummary {
 	s.State = &v
 	return s
+}
+
+// You have reached the limit on the maximum number of resources allowed.
+type LimitExceededException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"Message" type:"string"`
+
+	// The type of resource.
+	ResourceType *string `type:"string"`
+}
+
+// String returns the string representation
+func (s LimitExceededException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s LimitExceededException) GoString() string {
+	return s.String()
+}
+
+func newErrorLimitExceededException(v protocol.ResponseMetadata) error {
+	return &LimitExceededException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s LimitExceededException) Code() string {
+	return "LimitExceededException"
+}
+
+// Message returns the exception's message.
+func (s LimitExceededException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s LimitExceededException) OrigErr() error {
+	return nil
+}
+
+func (s LimitExceededException) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s LimitExceededException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s LimitExceededException) RequestID() string {
+	return s.respMetadata.RequestID
 }
 
 type ListJournalS3ExportsForLedgerInput struct {
@@ -2850,6 +2975,254 @@ func (s ListTagsForResourceOutput) GoString() string {
 func (s *ListTagsForResourceOutput) SetTags(v map[string]*string) *ListTagsForResourceOutput {
 	s.Tags = v
 	return s
+}
+
+// The specified resource already exists.
+type ResourceAlreadyExistsException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"Message" type:"string"`
+
+	// The name of the resource.
+	ResourceName *string `type:"string"`
+
+	// The type of resource.
+	ResourceType *string `type:"string"`
+}
+
+// String returns the string representation
+func (s ResourceAlreadyExistsException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResourceAlreadyExistsException) GoString() string {
+	return s.String()
+}
+
+func newErrorResourceAlreadyExistsException(v protocol.ResponseMetadata) error {
+	return &ResourceAlreadyExistsException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s ResourceAlreadyExistsException) Code() string {
+	return "ResourceAlreadyExistsException"
+}
+
+// Message returns the exception's message.
+func (s ResourceAlreadyExistsException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s ResourceAlreadyExistsException) OrigErr() error {
+	return nil
+}
+
+func (s ResourceAlreadyExistsException) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s ResourceAlreadyExistsException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s ResourceAlreadyExistsException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// The specified resource can't be modified at this time.
+type ResourceInUseException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"Message" type:"string"`
+
+	// The name of the resource.
+	ResourceName *string `type:"string"`
+
+	// The type of resource.
+	ResourceType *string `type:"string"`
+}
+
+// String returns the string representation
+func (s ResourceInUseException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResourceInUseException) GoString() string {
+	return s.String()
+}
+
+func newErrorResourceInUseException(v protocol.ResponseMetadata) error {
+	return &ResourceInUseException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s ResourceInUseException) Code() string {
+	return "ResourceInUseException"
+}
+
+// Message returns the exception's message.
+func (s ResourceInUseException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s ResourceInUseException) OrigErr() error {
+	return nil
+}
+
+func (s ResourceInUseException) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s ResourceInUseException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s ResourceInUseException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// The specified resource doesn't exist.
+type ResourceNotFoundException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"Message" type:"string"`
+
+	// The name of the resource.
+	ResourceName *string `type:"string"`
+
+	// The type of resource.
+	ResourceType *string `type:"string"`
+}
+
+// String returns the string representation
+func (s ResourceNotFoundException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResourceNotFoundException) GoString() string {
+	return s.String()
+}
+
+func newErrorResourceNotFoundException(v protocol.ResponseMetadata) error {
+	return &ResourceNotFoundException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s ResourceNotFoundException) Code() string {
+	return "ResourceNotFoundException"
+}
+
+// Message returns the exception's message.
+func (s ResourceNotFoundException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s ResourceNotFoundException) OrigErr() error {
+	return nil
+}
+
+func (s ResourceNotFoundException) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s ResourceNotFoundException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s ResourceNotFoundException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// The operation failed because a condition wasn't satisfied in advance.
+type ResourcePreconditionNotMetException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"Message" type:"string"`
+
+	// The name of the resource.
+	ResourceName *string `type:"string"`
+
+	// The type of resource.
+	ResourceType *string `type:"string"`
+}
+
+// String returns the string representation
+func (s ResourcePreconditionNotMetException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResourcePreconditionNotMetException) GoString() string {
+	return s.String()
+}
+
+func newErrorResourcePreconditionNotMetException(v protocol.ResponseMetadata) error {
+	return &ResourcePreconditionNotMetException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s ResourcePreconditionNotMetException) Code() string {
+	return "ResourcePreconditionNotMetException"
+}
+
+// Message returns the exception's message.
+func (s ResourcePreconditionNotMetException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s ResourcePreconditionNotMetException) OrigErr() error {
+	return nil
+}
+
+func (s ResourcePreconditionNotMetException) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s ResourcePreconditionNotMetException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s ResourcePreconditionNotMetException) RequestID() string {
+	return s.respMetadata.RequestID
 }
 
 // The encryption settings that are used by a journal export job to write data

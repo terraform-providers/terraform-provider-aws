@@ -88,6 +88,7 @@ func TestAccAWSAppsyncGraphqlApi_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "uris.GRAPHQL"),
 					resource.TestCheckNoResourceAttr(resourceName, "tags"),
 					resource.TestCheckResourceAttr(resourceName, "additional_authentication_provider.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "xray_enabled", "false"),
 				),
 			},
 			{
@@ -141,6 +142,7 @@ func TestAccAWSAppsyncGraphqlApi_Schema(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "log_config.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "openid_connect_config.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "user_pool_config.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "xray_enabled", "false"),
 					resource.TestCheckResourceAttrSet(resourceName, "schema"),
 					resource.TestCheckResourceAttrSet(resourceName, "uris.%"),
 					resource.TestCheckResourceAttrSet(resourceName, "uris.GRAPHQL"),
@@ -867,6 +869,34 @@ func TestAccAWSAppsyncGraphqlApi_AdditionalAuthentication_Multiple(t *testing.T)
 	})
 }
 
+func TestAccAWSAppsyncGraphqlApi_XrayEnabled(t *testing.T) {
+	var api1, api2 appsync.GraphqlApi
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_appsync_graphql_api.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSAppSync(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAwsAppsyncGraphqlApiDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAppsyncGraphqlApiConfig_XrayEnabled(rName, true),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsAppsyncGraphqlApiExists(resourceName, &api1),
+					resource.TestCheckResourceAttr(resourceName, "xray_enabled", "true"),
+				),
+			},
+			{
+				Config: testAccAppsyncGraphqlApiConfig_XrayEnabled(rName, false),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsAppsyncGraphqlApiExists(resourceName, &api2),
+					resource.TestCheckResourceAttr(resourceName, "xray_enabled", "false"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckAwsAppsyncGraphqlApiDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*AWSClient).appsyncconn
 	for _, rs := range s.RootModule().Resources {
@@ -1239,4 +1269,14 @@ resource "aws_appsync_graphql_api" "test" {
   }
 }
 `, rName, rName, issuer)
+}
+
+func testAccAppsyncGraphqlApiConfig_XrayEnabled(rName string, xrayEnabled bool) string {
+	return fmt.Sprintf(`
+resource "aws_appsync_graphql_api" "test" {
+  authentication_type = "API_KEY"
+  name                = %q
+  xray_enabled        = %t
+}
+`, rName, xrayEnabled)
 }

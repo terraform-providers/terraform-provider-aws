@@ -1,4 +1,5 @@
 ---
+subcategory: "MediaStore"
 layout: "aws"
 page_title: "AWS: aws_media_store_container"
 description: |-

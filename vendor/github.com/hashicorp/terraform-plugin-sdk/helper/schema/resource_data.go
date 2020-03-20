@@ -133,6 +133,16 @@ func (d *ResourceData) getRaw(key string, level getSource) getResult {
 	return d.get(parts, level)
 }
 
+// HasChanges returns whether or not any of the given keys has been changed.
+func (d *ResourceData) HasChanges(keys ...string) bool {
+	for _, key := range keys {
+		if d.HasChange(key) {
+			return true
+		}
+	}
+	return false
+}
+
 // HasChange returns whether or not the given key has been changed.
 func (d *ResourceData) HasChange(key string) bool {
 	o, n := d.GetChange(key)
@@ -152,6 +162,9 @@ func (d *ResourceData) HasChange(key string) bool {
 // When partial state mode is enabled, then only key prefixes specified
 // by SetPartial will be in the final state. This allows providers to return
 // partial states for partially applied resources (when errors occur).
+//
+// Deprecated: Partial state has very limited benefit given Terraform refreshes
+// before operations by default.
 func (d *ResourceData) Partial(on bool) {
 	d.partial = on
 	if on {
@@ -201,6 +214,9 @@ func (d *ResourceData) Set(key string, value interface{}) error {
 //
 // If partial state mode is disabled, then this has no effect. Additionally,
 // whenever partial state mode is toggled, the partial data is cleared.
+//
+// Deprecated: Partial state has very limited benefit given Terraform refreshes
+// before operations by default.
 func (d *ResourceData) SetPartial(k string) {
 	if d.partial {
 		d.partialMap[k] = struct{}{}

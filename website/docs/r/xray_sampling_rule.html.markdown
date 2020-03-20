@@ -1,4 +1,5 @@
 ---
+subcategory: "XRay"
 layout: "aws"
 page_title: "AWS: aws_xray_sampling_rule"
 description: |-

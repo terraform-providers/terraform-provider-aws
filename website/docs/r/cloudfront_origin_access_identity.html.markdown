@@ -1,4 +1,5 @@
 ---
+subcategory: "CloudFront"
 layout: "aws"
 page_title: "AWS: aws_cloudfront_origin_access_identity"
 description: |-

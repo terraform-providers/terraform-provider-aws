@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/wafregional"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsWafRegionalWebAcl() *schema.Resource {
@@ -140,6 +141,7 @@ func resourceAwsWafRegionalWebAcl() *schema.Resource {
 					},
 				},
 			},
+			"tags": tagsSchema(),
 		},
 	}
 }
@@ -147,6 +149,7 @@ func resourceAwsWafRegionalWebAcl() *schema.Resource {
 func resourceAwsWafRegionalWebAclCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).wafregionalconn
 	region := meta.(*AWSClient).region
+	tags := keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().WafregionalTags()
 
 	wr := newWafRegionalRetryer(conn, region)
 	out, err := wr.RetryWithToken(func(token *string) (interface{}, error) {
@@ -155,6 +158,10 @@ func resourceAwsWafRegionalWebAclCreate(d *schema.ResourceData, meta interface{}
 			DefaultAction: expandWafAction(d.Get("default_action").([]interface{})),
 			MetricName:    aws.String(d.Get("metric_name").(string)),
 			Name:          aws.String(d.Get("name").(string)),
+		}
+
+		if len(tags) > 0 {
+			params.Tags = tags
 		}
 
 		return conn.CreateWebACL(params)
@@ -176,10 +183,38 @@ func resourceAwsWafRegionalWebAclCreate(d *schema.ResourceData, meta interface{}
 			Service:   "waf-regional",
 		}.String()
 	}
-	// Set for update
-	d.Set("arn", webACLARN)
 
-	return resourceAwsWafRegionalWebAclUpdate(d, meta)
+	loggingConfiguration := d.Get("logging_configuration").([]interface{})
+
+	if len(loggingConfiguration) == 1 {
+		input := &waf.PutLoggingConfigurationInput{
+			LoggingConfiguration: expandWAFRegionalLoggingConfiguration(loggingConfiguration, webACLARN),
+		}
+
+		log.Printf("[DEBUG] Updating WAF Regional Web ACL (%s) Logging Configuration: %s", d.Id(), input)
+		if _, err := conn.PutLoggingConfiguration(input); err != nil {
+			return fmt.Errorf("error Updating WAF Regional Web ACL (%s) Logging Configuration: %s", d.Id(), err)
+		}
+	}
+
+	rules := d.Get("rule").(*schema.Set).List()
+	if len(rules) > 0 {
+		wr := newWafRegionalRetryer(conn, region)
+		_, err := wr.RetryWithToken(func(token *string) (interface{}, error) {
+			req := &waf.UpdateWebACLInput{
+				ChangeToken:   token,
+				DefaultAction: expandWafAction(d.Get("default_action").([]interface{})),
+				Updates:       diffWafWebAclRules([]interface{}{}, rules),
+				WebACLId:      aws.String(d.Id()),
+			}
+			return conn.UpdateWebACL(req)
+		})
+		if err != nil {
+			return fmt.Errorf("Error Updating WAF Regional ACL: %s", err)
+		}
+	}
+
+	return resourceAwsWafRegionalWebAclRead(d, meta)
 }
 
 func resourceAwsWafRegionalWebAclRead(d *schema.ResourceData, meta interface{}) error {
@@ -225,6 +260,14 @@ func resourceAwsWafRegionalWebAclRead(d *schema.ResourceData, meta interface{}) 
 	d.Set("metric_name", resp.WebACL.MetricName)
 	if err := d.Set("rule", flattenWafWebAclRules(resp.WebACL.Rules)); err != nil {
 		return fmt.Errorf("error setting rule: %s", err)
+	}
+
+	tags, err := keyvaluetags.WafregionalListTags(conn, webACLARN)
+	if err != nil {
+		return fmt.Errorf("error listing tags for WAF Regional ACL (%s): %s", webACLARN, err)
+	}
+	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+		return fmt.Errorf("error setting tags: %s", err)
 	}
 
 	getLoggingConfigurationInput := &waf.GetLoggingConfigurationInput{
@@ -294,6 +337,14 @@ func resourceAwsWafRegionalWebAclUpdate(d *schema.ResourceData, meta interface{}
 			if _, err := conn.DeleteLoggingConfiguration(input); err != nil {
 				return fmt.Errorf("error deleting WAF Regional Web ACL (%s) Logging Configuration: %s", d.Id(), err)
 			}
+		}
+	}
+
+	if d.HasChange("tags") {
+		o, n := d.GetChange("tags")
+
+		if err := keyvaluetags.WafregionalUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
+			return fmt.Errorf("error updating tags: %s", err)
 		}
 	}
 

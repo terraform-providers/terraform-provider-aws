@@ -3,6 +3,7 @@ package aws
 import (
 	"fmt"
 	"log"
+	"regexp"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -130,18 +131,59 @@ func TestAccAWSWafRegionalRateBasedRule_basic(t *testing.T) {
 				Config: testAccAWSWafRegionalRateBasedRuleConfig(wafRuleName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSWafRegionalRateBasedRuleExists(resourceName, &v),
-					resource.TestCheckResourceAttr(
-						resourceName, "name", wafRuleName),
-					resource.TestCheckResourceAttr(
-						resourceName, "predicate.#", "1"),
-					resource.TestCheckResourceAttr(
-						resourceName, "metric_name", wafRuleName),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "waf-regional", regexp.MustCompile(`ratebasedrule/.+`)),
+					resource.TestCheckResourceAttr(resourceName, "name", wafRuleName),
+					resource.TestCheckResourceAttr(resourceName, "predicate.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "metric_name", wafRuleName),
 				),
 			},
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSWafRegionalRateBasedRule_tags(t *testing.T) {
+	var v waf.RateBasedRule
+	resourceName := "aws_wafregional_rate_based_rule.wafrule"
+	wafRuleName := fmt.Sprintf("wafrule%s", acctest.RandString(5))
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSWafRegionalRateBasedRuleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSWafRegionalRateBasedRuleConfigTags1(wafRuleName, "key1", "value1"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSWafRegionalRateBasedRuleExists(resourceName, &v),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAWSWafRegionalRateBasedRuleConfigTags2(wafRuleName, "key1", "value1updated", "key2", "value2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSWafRegionalRateBasedRuleExists(resourceName, &v),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1updated"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
+				),
+			},
+			{
+				Config: testAccAWSWafRegionalRateBasedRuleConfigTags1(wafRuleName, "key2", "value2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSWafRegionalRateBasedRuleExists(resourceName, &v),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
+				),
 			},
 		},
 	})
@@ -162,12 +204,9 @@ func TestAccAWSWafRegionalRateBasedRule_changeNameForceNew(t *testing.T) {
 				Config: testAccAWSWafRegionalRateBasedRuleConfig(wafRuleName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSWafRegionalRateBasedRuleExists(resourceName, &before),
-					resource.TestCheckResourceAttr(
-						resourceName, "name", wafRuleName),
-					resource.TestCheckResourceAttr(
-						resourceName, "predicate.#", "1"),
-					resource.TestCheckResourceAttr(
-						resourceName, "metric_name", wafRuleName),
+					resource.TestCheckResourceAttr(resourceName, "name", wafRuleName),
+					resource.TestCheckResourceAttr(resourceName, "predicate.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "metric_name", wafRuleName),
 				),
 			},
 			{
@@ -175,12 +214,9 @@ func TestAccAWSWafRegionalRateBasedRule_changeNameForceNew(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSWafRegionalRateBasedRuleExists(resourceName, &after),
 					testAccCheckAWSWafRateBasedRuleIdDiffers(&before, &after),
-					resource.TestCheckResourceAttr(
-						resourceName, "name", wafRuleNewName),
-					resource.TestCheckResourceAttr(
-						resourceName, "predicate.#", "1"),
-					resource.TestCheckResourceAttr(
-						resourceName, "metric_name", wafRuleNewName),
+					resource.TestCheckResourceAttr(resourceName, "name", wafRuleNewName),
+					resource.TestCheckResourceAttr(resourceName, "predicate.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "metric_name", wafRuleNewName),
 				),
 			},
 			{
@@ -349,10 +385,8 @@ func TestAccAWSWafRegionalRateBasedRule_noPredicates(t *testing.T) {
 				Config: testAccAWSWafRegionalRateBasedRuleConfig_noPredicates(ruleName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAWSWafRegionalRateBasedRuleExists(resourceName, &rule),
-					resource.TestCheckResourceAttr(
-						resourceName, "name", ruleName),
-					resource.TestCheckResourceAttr(
-						resourceName, "predicate.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "name", ruleName),
+					resource.TestCheckResourceAttr(resourceName, "predicate.#", "0"),
 				),
 			},
 			{
@@ -479,7 +513,7 @@ func testAccCheckAWSWafRegionalRateBasedRuleExists(n string, v *waf.RateBasedRul
 func testAccAWSWafRegionalRateBasedRuleConfig(name string) string {
 	return fmt.Sprintf(`
 resource "aws_wafregional_ipset" "ipset" {
-  name = "%s"
+  name = %[1]q
 
   ip_set_descriptor {
     type  = "IPV4"
@@ -488,8 +522,8 @@ resource "aws_wafregional_ipset" "ipset" {
 }
 
 resource "aws_wafregional_rate_based_rule" "wafrule" {
-  name        = "%s"
-  metric_name = "%s"
+  name        = %[1]q
+  metric_name = %[1]q
   rate_key    = "IP"
   rate_limit  = 2000
 
@@ -499,13 +533,74 @@ resource "aws_wafregional_rate_based_rule" "wafrule" {
     type    = "IPMatch"
   }
 }
-`, name, name, name)
+`, name)
+}
+
+func testAccAWSWafRegionalRateBasedRuleConfigTags1(name, tagKey1, tagValue1 string) string {
+	return fmt.Sprintf(`
+resource "aws_wafregional_ipset" "ipset" {
+  name = %[1]q
+
+  ip_set_descriptor {
+    type  = "IPV4"
+    value = "192.0.7.0/24"
+  }
+}
+
+resource "aws_wafregional_rate_based_rule" "wafrule" {
+  name        = %[1]q
+  metric_name = %[1]q
+  rate_key    = "IP"
+  rate_limit  = 2000
+
+  predicate {
+    data_id = "${aws_wafregional_ipset.ipset.id}"
+    negated = false
+    type    = "IPMatch"
+  }
+
+  tags = {
+    %[2]q = %[3]q
+  }
+}
+`, name, tagKey1, tagValue1)
+}
+
+func testAccAWSWafRegionalRateBasedRuleConfigTags2(name, tagKey1, tagValue1, tagKey2, tagValue2 string) string {
+	return fmt.Sprintf(`
+resource "aws_wafregional_ipset" "ipset" {
+  name = %[1]q
+
+  ip_set_descriptor {
+    type  = "IPV4"
+    value = "192.0.7.0/24"
+  }
+}
+
+resource "aws_wafregional_rate_based_rule" "wafrule" {
+  name        = %[1]q
+  metric_name = %[1]q
+  rate_key    = "IP"
+  rate_limit  = 2000
+
+  predicate {
+    data_id = "${aws_wafregional_ipset.ipset.id}"
+    negated = false
+    type    = "IPMatch"
+  }
+
+  tags = {
+    %[2]q = %[3]q
+    %[4]q = %[5]q
+  }
+}
+`, name, tagKey1, tagValue1, tagKey2, tagValue2)
 }
 
 func testAccAWSWafRegionalRateBasedRuleConfigChangeName(name string) string {
 	return fmt.Sprintf(`
 resource "aws_wafregional_ipset" "ipset" {
-  name = "%s"
+  name = %[1]q
 
   ip_set_descriptor {
     type  = "IPV4"
@@ -514,8 +609,8 @@ resource "aws_wafregional_ipset" "ipset" {
 }
 
 resource "aws_wafregional_rate_based_rule" "wafrule" {
-  name        = "%s"
-  metric_name = "%s"
+  name        = %[1]q
+  metric_name = %[1]q
   rate_key    = "IP"
   rate_limit  = 2000
 
@@ -525,13 +620,13 @@ resource "aws_wafregional_rate_based_rule" "wafrule" {
     type    = "IPMatch"
   }
 }
-`, name, name, name)
+`, name)
 }
 
 func testAccAWSWafRegionalRateBasedRuleConfig_changePredicates(name string) string {
 	return fmt.Sprintf(`
 resource "aws_wafregional_ipset" "ipset" {
-  name = "%s"
+  name = %[1]q
 
   ip_set_descriptor {
     type  = "IPV4"
@@ -540,7 +635,7 @@ resource "aws_wafregional_ipset" "ipset" {
 }
 
 resource "aws_wafregional_byte_match_set" "set" {
-  name = "%s"
+  name = %[1]q
 
   byte_match_tuples {
     text_transformation   = "NONE"
@@ -555,8 +650,8 @@ resource "aws_wafregional_byte_match_set" "set" {
 }
 
 resource "aws_wafregional_rate_based_rule" "wafrule" {
-  name        = "%s"
-  metric_name = "%s"
+  name        = %[1]q
+  metric_name = %[1]q
   rate_key    = "IP"
   rate_limit  = 2000
 
@@ -566,18 +661,18 @@ resource "aws_wafregional_rate_based_rule" "wafrule" {
     type    = "ByteMatch"
   }
 }
-`, name, name, name, name)
+`, name)
 }
 
 func testAccAWSWafRegionalRateBasedRuleConfig_noPredicates(name string) string {
 	return fmt.Sprintf(`
 resource "aws_wafregional_rate_based_rule" "wafrule" {
-  name        = "%s"
-  metric_name = "%s"
+  name        = %[1]q
+  metric_name = %[1]q
   rate_key    = "IP"
   rate_limit  = 2000
 }
-`, name, name)
+`, name)
 }
 
 func testAccAWSWafRegionalRateBasedRuleWithRateLimitConfig(name string, limit string) string {

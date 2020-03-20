@@ -70,7 +70,7 @@ func TestAccAWSDataSourceRedshiftCluster_logging(t *testing.T) {
 				Config: testAccAWSDataSourceRedshiftClusterConfigWithLogging(rInt),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("data.aws_redshift_cluster.test", "enable_logging", "true"),
-					resource.TestCheckResourceAttr("data.aws_redshift_cluster.test", "bucket_name", fmt.Sprintf("tf-redshift-logging-%d", rInt)),
+					resource.TestCheckResourceAttr("data.aws_redshift_cluster.test", "bucket_name", fmt.Sprintf("tf-test-redshift-logging-%d", rInt)),
 					resource.TestCheckResourceAttr("data.aws_redshift_cluster.test", "s3_key_prefix", "cluster-logging/"),
 				),
 			},
@@ -151,7 +151,7 @@ func testAccAWSDataSourceRedshiftClusterConfigWithLogging(rInt int) string {
 data "aws_redshift_service_account" "test" {}
 
 resource "aws_s3_bucket" "test" {
-  bucket        = "tf-redshift-logging-%[1]d"
+  bucket        = "tf-test-redshift-logging-%[1]d"
   force_destroy = true
 }
 

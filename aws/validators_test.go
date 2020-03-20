@@ -321,13 +321,20 @@ func TestValidateArn(t *testing.T) {
 	validNames := []string{
 		"arn:aws:elasticbeanstalk:us-east-1:123456789012:environment/My App/MyEnvironment", // Beanstalk
 		"arn:aws:iam::123456789012:user/David",                                             // IAM User
+		"arn:aws:iam::aws:policy/CloudWatchReadOnlyAccess",                                 // Managed IAM policy
 		"arn:aws:rds:eu-west-1:123456789012:db:mysql-db",                                   // RDS
 		"arn:aws:s3:::my_corporate_bucket/exampleobject.png",                               // S3 object
 		"arn:aws:events:us-east-1:319201112229:rule/rule_name",                             // CloudWatch Rule
 		"arn:aws:lambda:eu-west-1:319201112229:function:myCustomFunction",                  // Lambda function
 		"arn:aws:lambda:eu-west-1:319201112229:function:myCustomFunction:Qualifier",        // Lambda func qualifier
-		"arn:aws-us-gov:s3:::corp_bucket/object.png",                                       // GovCloud ARN
-		"arn:aws-us-gov:kms:us-gov-west-1:123456789012:key/some-uuid-abc123",               // GovCloud KMS ARN
+		"arn:aws-cn:ec2:cn-north-1:123456789012:instance/i-12345678",                       // China EC2 ARN
+		"arn:aws-cn:s3:::bucket/object",                                                    // China S3 ARN
+		"arn:aws-iso:ec2:us-iso-east-1:123456789012:instance/i-12345678",                   // C2S EC2 ARN
+		"arn:aws-iso:s3:::bucket/object",                                                   // C2S S3 ARN
+		"arn:aws-iso-b:ec2:us-isob-east-1:123456789012:instance/i-12345678",                // SC2S EC2 ARN
+		"arn:aws-iso-b:s3:::bucket/object",                                                 // SC2S S3 ARN
+		"arn:aws-us-gov:ec2:us-gov-west-1:123456789012:instance/i-12345678",                // GovCloud EC2 ARN
+		"arn:aws-us-gov:s3:::bucket/object",                                                // GovCloud S3 ARN
 	}
 	for _, v := range validNames {
 		_, errors := validateArn(v, "arn")
@@ -1403,6 +1410,39 @@ func TestValidateApiGatewayUsagePlanQuotaSettings(t *testing.T) {
 	}
 }
 
+func TestValidateDocDBIdentifier(t *testing.T) {
+	validNames := []string{
+		"a",
+		"hello-world",
+		"hello-world-0123456789",
+		strings.Repeat("w", 63),
+	}
+	for _, v := range validNames {
+		_, errors := validateDocDBIdentifier(v, "name")
+		if len(errors) != 0 {
+			t.Fatalf("%q should be a valid DocDB Identifier: %q", v, errors)
+		}
+	}
+
+	invalidNames := []string{
+		"",
+		"special@character",
+		"slash/in-the-middle",
+		"dot.in-the-middle",
+		"two-hyphen--in-the-middle",
+		"0-first-numeric",
+		"-first-hyphen",
+		"end-hyphen-",
+		strings.Repeat("W", 64),
+	}
+	for _, v := range invalidNames {
+		_, errors := validateDocDBIdentifier(v, "name")
+		if len(errors) == 0 {
+			t.Fatalf("%q should be an invalid DocDB Identifier", v)
+		}
+	}
+}
+
 func TestValidateElbName(t *testing.T) {
 	validNames := []string{
 		"tf-test-elb",
@@ -2225,6 +2265,29 @@ func TestValidateBatchName(t *testing.T) {
 	}
 }
 
+func TestValidateBatchPrefix(t *testing.T) {
+	validPrefixes := []string{
+		strings.Repeat("W", 102), // <= 102
+	}
+	for _, v := range validPrefixes {
+		_, errors := validateBatchPrefix(v, "prefix")
+		if len(errors) != 0 {
+			t.Fatalf("%q should be a valid Batch prefix: %q", v, errors)
+		}
+	}
+
+	invalidPrefixes := []string{
+		"s@mple",
+		strings.Repeat("W", 103), // >= 103
+	}
+	for _, v := range invalidPrefixes {
+		_, errors := validateBatchPrefix(v, "prefix")
+		if len(errors) == 0 {
+			t.Fatalf("%q should be a invalid Batch prefix: %q", v, errors)
+		}
+	}
+}
+
 func TestValidateCognitoRoleMappingsAmbiguousRoleResolutionAgainstType(t *testing.T) {
 	cases := []struct {
 		AmbiguousRoleResolution interface{}
@@ -2330,7 +2393,7 @@ func TestValidateSecurityGroupRuleDescription(t *testing.T) {
 		"testrule",
 		"testRule",
 		"testRule 123",
-		`testRule 123 ._-:/()#,@[]+=;{}!$*`,
+		`testRule 123 ._-:/()#,@[]+=&;{}!$*`,
 	}
 	for _, v := range validDescriptions {
 		_, errors := validateSecurityGroupRuleDescription(v, "description")
@@ -2342,6 +2405,7 @@ func TestValidateSecurityGroupRuleDescription(t *testing.T) {
 	invalidDescriptions := []string{
 		"`",
 		"%%",
+		`\`,
 	}
 	for _, v := range invalidDescriptions {
 		_, errors := validateSecurityGroupRuleDescription(v, "description")

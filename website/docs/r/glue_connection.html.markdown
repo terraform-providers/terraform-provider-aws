@@ -1,4 +1,5 @@
 ---
+subcategory: "Glue"
 layout: "aws"
 page_title: "AWS: aws_glue_connection"
 description: |-

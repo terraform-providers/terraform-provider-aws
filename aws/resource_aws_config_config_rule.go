@@ -6,14 +6,14 @@ import (
 	"log"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/service/configservice"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/service/configservice"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsConfigConfigRule() *schema.Resource {
@@ -163,7 +163,7 @@ func resourceAwsConfigConfigRulePut(d *schema.ResourceData, meta interface{}) er
 
 	input := configservice.PutConfigRuleInput{
 		ConfigRule: &ruleInput,
-		Tags:       tagsFromMapConfigService(d.Get("tags").(map[string]interface{})),
+		Tags:       keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().ConfigserviceTags(),
 	}
 	log.Printf("[DEBUG] Creating AWSConfig config rule: %s", input)
 	err := resource.Retry(2*time.Minute, func() *resource.RetryError {
@@ -192,14 +192,11 @@ func resourceAwsConfigConfigRulePut(d *schema.ResourceData, meta interface{}) er
 
 	log.Printf("[DEBUG] AWSConfig config rule %q created", name)
 
-	if !d.IsNewResource() {
-		if err := setTagsConfigService(conn, d, d.Get("arn").(string)); err != nil {
-			if isAWSErr(err, configservice.ErrCodeResourceNotFoundException, "") {
-				log.Printf("[WARN] Config Rule not found: %s, removing from state", d.Id())
-				d.SetId("")
-				return nil
-			}
-			return fmt.Errorf("Error updating tags for %s: %s", d.Id(), err)
+	if !d.IsNewResource() && d.HasChange("tags") {
+		o, n := d.GetChange("tags")
+
+		if err := keyvaluetags.ConfigserviceUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
+			return fmt.Errorf("error updating Config Config Rule (%s) tags: %s", d.Get("arn").(string), err)
 		}
 	}
 
@@ -249,13 +246,14 @@ func resourceAwsConfigConfigRuleRead(d *schema.ResourceData, meta interface{}) e
 
 	d.Set("source", flattenConfigRuleSource(rule.Source))
 
-	if err := saveTagsConfigService(conn, d, aws.StringValue(rule.ConfigRuleArn)); err != nil {
-		if isAWSErr(err, configservice.ErrCodeResourceNotFoundException, "") {
-			log.Printf("[WARN] Config Rule not found: %s, removing from state", d.Id())
-			d.SetId("")
-			return nil
-		}
-		return fmt.Errorf("Error setting tags for %s: %s", d.Id(), err)
+	tags, err := keyvaluetags.ConfigserviceListTags(conn, d.Get("arn").(string))
+
+	if err != nil {
+		return fmt.Errorf("error listing tags for Config Config Rule (%s): %s", d.Get("arn").(string), err)
+	}
+
+	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+		return fmt.Errorf("error setting tags: %s", err)
 	}
 
 	return nil

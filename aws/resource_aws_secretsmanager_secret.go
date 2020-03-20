@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsSecretsManagerSecret() *schema.Resource {
@@ -118,8 +119,7 @@ func resourceAwsSecretsManagerSecretCreate(d *schema.ResourceData, meta interfac
 	}
 
 	if v, ok := d.GetOk("tags"); ok {
-		input.Tags = tagsFromMapSecretsManager(v.(map[string]interface{}))
-		log.Printf("[DEBUG] Tagging Secrets Manager Secret: %s", input.Tags)
+		input.Tags = keyvaluetags.New(v.(map[string]interface{})).IgnoreAws().SecretsmanagerTags()
 	}
 
 	if v, ok := d.GetOk("kms_key_id"); ok && v.(string) != "" {
@@ -248,7 +248,7 @@ func resourceAwsSecretsManagerSecretRead(d *schema.ResourceData, meta interface{
 		d.Set("rotation_rules", []interface{}{})
 	}
 
-	if err := d.Set("tags", tagsToMapSecretsManager(output.Tags)); err != nil {
+	if err := d.Set("tags", keyvaluetags.SecretsmanagerKeyValueTags(output.Tags).IgnoreAws().Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
@@ -344,35 +344,9 @@ func resourceAwsSecretsManagerSecretUpdate(d *schema.ResourceData, meta interfac
 	}
 
 	if d.HasChange("tags") {
-		oraw, nraw := d.GetChange("tags")
-		o := oraw.(map[string]interface{})
-		n := nraw.(map[string]interface{})
-		create, remove := diffTagsSecretsManager(tagsFromMapSecretsManager(o), tagsFromMapSecretsManager(n))
-
-		if len(remove) > 0 {
-			log.Printf("[DEBUG] Removing Secrets Manager Secret %q tags: %#v", d.Id(), remove)
-			k := make([]*string, len(remove))
-			for i, t := range remove {
-				k[i] = t.Key
-			}
-
-			_, err := conn.UntagResource(&secretsmanager.UntagResourceInput{
-				SecretId: aws.String(d.Id()),
-				TagKeys:  k,
-			})
-			if err != nil {
-				return fmt.Errorf("error updating Secrets Manager Secrets %q tags: %s", d.Id(), err)
-			}
-		}
-		if len(create) > 0 {
-			log.Printf("[DEBUG] Creating Secrets Manager Secret %q tags: %#v", d.Id(), create)
-			_, err := conn.TagResource(&secretsmanager.TagResourceInput{
-				SecretId: aws.String(d.Id()),
-				Tags:     create,
-			})
-			if err != nil {
-				return fmt.Errorf("error updating Secrets Manager Secrets %q tags: %s", d.Id(), err)
-			}
+		o, n := d.GetChange("tags")
+		if err := keyvaluetags.SecretsmanagerUpdateTags(conn, d.Id(), o, n); err != nil {
+			return fmt.Errorf("error updating tags: %s", err)
 		}
 	}
 

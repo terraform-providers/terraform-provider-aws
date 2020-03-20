@@ -44,6 +44,7 @@ func resourceAwsRDSGlobalCluster() *schema.Resource {
 				Default:  "aurora",
 				ValidateFunc: validation.StringInSlice([]string{
 					"aurora",
+					"aurora-mysql",
 				}, false),
 			},
 			"engine_version": {

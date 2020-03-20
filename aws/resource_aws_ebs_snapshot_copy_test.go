@@ -24,7 +24,46 @@ func TestAccAWSEbsSnapshotCopy_basic(t *testing.T) {
 				Config: testAccAwsEbsSnapshotCopyConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckEbsSnapshotCopyExists(resourceName, &snapshot),
-					testAccCheckTags(&snapshot.Tags, "Name", "testAccAwsEbsSnapshotCopyConfig"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.Name", "testAccAwsEbsSnapshotCopyConfig"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSEbsSnapshotCopy_tags(t *testing.T) {
+	var snapshot ec2.Snapshot
+	resourceName := "aws_ebs_snapshot_copy.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckEbsSnapshotCopyDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAwsEbsSnapshotCopyConfigTags1("key1", "value1"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckEbsSnapshotCopyExists(resourceName, &snapshot),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1"),
+				),
+			},
+			{
+				Config: testAccAwsEbsSnapshotCopyConfigTags2("key1", "value1updated", "key2", "value2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckEbsSnapshotCopyExists(resourceName, &snapshot),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "3"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1updated"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
+				),
+			},
+			{
+				Config: testAccAwsEbsSnapshotCopyConfigTags1("key2", "value2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckEbsSnapshotCopyExists(resourceName, &snapshot),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
 				),
 			},
 		},
@@ -222,6 +261,73 @@ resource "aws_ebs_snapshot_copy" "test" {
   }
 }
 `
+
+func testAccAwsEbsSnapshotCopyConfigTags1(tagKey1, tagValue1 string) string {
+	return fmt.Sprintf(`
+data "aws_availability_zones" "available" {
+  state = "available"
+}
+
+data "aws_region" "current" {}
+
+resource "aws_ebs_volume" "test" {
+  availability_zone = "${data.aws_availability_zones.available.names[0]}"
+  size              = 1
+}
+
+resource "aws_ebs_snapshot" "test" {
+  volume_id = "${aws_ebs_volume.test.id}"
+
+  tags = {
+    Name = "testAccAwsEbsSnapshotCopyConfig"
+  }
+}
+
+resource "aws_ebs_snapshot_copy" "test" {
+  source_snapshot_id = "${aws_ebs_snapshot.test.id}"
+  source_region      = "${data.aws_region.current.name}"
+
+  tags = {
+    Name = "testAccAwsEbsSnapshotCopyConfig"
+	"%s" = "%s"
+  }
+}
+`, tagKey1, tagValue1)
+}
+
+func testAccAwsEbsSnapshotCopyConfigTags2(tagKey1, tagValue1, tagKey2, tagValue2 string) string {
+	return fmt.Sprintf(`
+data "aws_availability_zones" "available" {
+  state = "available"
+}
+
+data "aws_region" "current" {}
+
+resource "aws_ebs_volume" "test" {
+  availability_zone = "${data.aws_availability_zones.available.names[0]}"
+  size              = 1
+}
+
+resource "aws_ebs_snapshot" "test" {
+  volume_id = "${aws_ebs_volume.test.id}"
+
+  tags = {
+    Name = "testAccAwsEbsSnapshotCopyConfig"
+  }
+}
+
+resource "aws_ebs_snapshot_copy" "test" {
+  source_snapshot_id = "${aws_ebs_snapshot.test.id}"
+  source_region      = "${data.aws_region.current.name}"
+
+  tags = {
+    Name = "testAccAwsEbsSnapshotCopyConfig"
+	"%s" = "%s"
+	"%s" = "%s"
+  }
+}
+`, tagKey1, tagValue1, tagKey2, tagValue2)
+}
 
 const testAccAwsEbsSnapshotCopyConfigWithDescription = `
 data "aws_availability_zones" "available" {

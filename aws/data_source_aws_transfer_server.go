@@ -60,7 +60,7 @@ func dataSourceAwsTransferServerRead(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("error describing Transfer Server (%s): %s", serverID, err)
 	}
 
-	endpoint := fmt.Sprintf("%s.server.transfer.%s.amazonaws.com", serverID, meta.(*AWSClient).region)
+	endpoint := meta.(*AWSClient).RegionalHostname(fmt.Sprintf("%s.server.transfer", serverID))
 
 	d.SetId(serverID)
 	d.Set("arn", resp.Server.Arn)

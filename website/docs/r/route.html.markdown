@@ -1,4 +1,5 @@
 ---
+subcategory: "VPC"
 layout: "aws"
 page_title: "AWS: aws_route"
 description: |-
@@ -15,7 +16,7 @@ defined in-line. At this time you cannot use a Route Table with in-line routes
 in conjunction with any Route resources. Doing so will cause
 a conflict of rule settings and will overwrite rules.
 
-## Example usage:
+## Example Usage
 
 ```hcl
 resource "aws_route" "r" {
@@ -26,7 +27,7 @@ resource "aws_route" "r" {
 }
 ```
 
-##Example IPv6 Usage:
+## Example IPv6 Usage
 
 ```hcl
 resource "aws_vpc" "vpc" {

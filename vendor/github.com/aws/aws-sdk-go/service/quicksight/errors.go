@@ -2,28 +2,46 @@
 
 package quicksight
 
+import (
+	"github.com/aws/aws-sdk-go/private/protocol"
+)
+
 const (
 
 	// ErrCodeAccessDeniedException for service response error code
 	// "AccessDeniedException".
 	//
-	// You don't have access to this. The provided credentials couldn't be validated.
-	// You might not be authorized to carry out the request. Ensure that your account
-	// is authorized to use the Amazon QuickSight service, that your policies have
-	// the correct permissions, and that you are using the correct access keys.
+	// You don't have access to this item. The provided credentials couldn't be
+	// validated. You might not be authorized to carry out the request. Make sure
+	// that your account is authorized to use the Amazon QuickSight service, that
+	// your policies have the correct permissions, and that you are using the correct
+	// access keys.
 	ErrCodeAccessDeniedException = "AccessDeniedException"
+
+	// ErrCodeConcurrentUpdatingException for service response error code
+	// "ConcurrentUpdatingException".
+	//
+	// A resource is already in a state that indicates an action is happening that
+	// must complete before a new update can be applied.
+	ErrCodeConcurrentUpdatingException = "ConcurrentUpdatingException"
+
+	// ErrCodeConflictException for service response error code
+	// "ConflictException".
+	//
+	// Updating or deleting a resource can cause an inconsistent state.
+	ErrCodeConflictException = "ConflictException"
 
 	// ErrCodeDomainNotWhitelistedException for service response error code
 	// "DomainNotWhitelistedException".
 	//
-	// The domain specified is not on the allowlist. All domains for embedded dashboards
+	// The domain specified isn't on the allow list. All domains for embedded dashboards
 	// must be added to the approved list by an Amazon QuickSight admin.
 	ErrCodeDomainNotWhitelistedException = "DomainNotWhitelistedException"
 
 	// ErrCodeIdentityTypeNotSupportedException for service response error code
 	// "IdentityTypeNotSupportedException".
 	//
-	// The identity type specified is not supported. Supported identity types include
+	// The identity type specified isn't supported. Supported identity types include
 	// IAM and QUICKSIGHT.
 	ErrCodeIdentityTypeNotSupportedException = "IdentityTypeNotSupportedException"
 
@@ -42,7 +60,7 @@ const (
 	// ErrCodeInvalidParameterValueException for service response error code
 	// "InvalidParameterValueException".
 	//
-	// One or more parameters don't have a valid value.
+	// One or more parameters has a value that isn't valid.
 	ErrCodeInvalidParameterValueException = "InvalidParameterValueException"
 
 	// ErrCodeLimitExceededException for service response error code
@@ -60,7 +78,7 @@ const (
 	// ErrCodeResourceExistsException for service response error code
 	// "ResourceExistsException".
 	//
-	// The resource specified doesn't exist.
+	// The resource specified already exists.
 	ErrCodeResourceExistsException = "ResourceExistsException"
 
 	// ErrCodeResourceNotFoundException for service response error code
@@ -78,8 +96,8 @@ const (
 	// ErrCodeSessionLifetimeInMinutesInvalidException for service response error code
 	// "SessionLifetimeInMinutesInvalidException".
 	//
-	// The number of minutes specified for the lifetime of a session is not valid.
-	// The session lifetime must be from 15 to 600 minutes.
+	// The number of minutes specified for the lifetime of a session isn't valid.
+	// The session lifetime must be 15-600 minutes.
 	ErrCodeSessionLifetimeInMinutesInvalidException = "SessionLifetimeInMinutesInvalidException"
 
 	// ErrCodeThrottlingException for service response error code
@@ -100,8 +118,28 @@ const (
 	// ErrCodeUserNotFoundException for service response error code
 	// "QuickSightUserNotFoundException".
 	//
-	// The user is not found. This error can happen in any operation that requires
-	// finding a user based on a provided user name, such as DeleteUser, DescribeUser,
-	// and so on.
+	// The user with the provided name isn't found. This error can happen in any
+	// operation that requires finding a user based on a provided user name, such
+	// as DeleteUser, DescribeUser, and so on.
 	ErrCodeUserNotFoundException = "QuickSightUserNotFoundException"
 )
+
+var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
+	"AccessDeniedException":                    newErrorAccessDeniedException,
+	"ConcurrentUpdatingException":              newErrorConcurrentUpdatingException,
+	"ConflictException":                        newErrorConflictException,
+	"DomainNotWhitelistedException":            newErrorDomainNotWhitelistedException,
+	"IdentityTypeNotSupportedException":        newErrorIdentityTypeNotSupportedException,
+	"InternalFailureException":                 newErrorInternalFailureException,
+	"InvalidNextTokenException":                newErrorInvalidNextTokenException,
+	"InvalidParameterValueException":           newErrorInvalidParameterValueException,
+	"LimitExceededException":                   newErrorLimitExceededException,
+	"PreconditionNotMetException":              newErrorPreconditionNotMetException,
+	"ResourceExistsException":                  newErrorResourceExistsException,
+	"ResourceNotFoundException":                newErrorResourceNotFoundException,
+	"ResourceUnavailableException":             newErrorResourceUnavailableException,
+	"SessionLifetimeInMinutesInvalidException": newErrorSessionLifetimeInMinutesInvalidException,
+	"ThrottlingException":                      newErrorThrottlingException,
+	"UnsupportedUserEditionException":          newErrorUnsupportedUserEditionException,
+	"QuickSightUserNotFoundException":          newErrorUserNotFoundException,
+}

@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/waf"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
@@ -15,12 +16,19 @@ func resourceAwsWafRegexPatternSet() *schema.Resource {
 		Read:   resourceAwsWafRegexPatternSetRead,
 		Update: resourceAwsWafRegexPatternSetUpdate,
 		Delete: resourceAwsWafRegexPatternSetDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+			},
+			"arn": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 			"regex_pattern_strings": {
 				Type:     schema.TypeSet,
@@ -63,9 +71,7 @@ func resourceAwsWafRegexPatternSetRead(d *schema.ResourceData, meta interface{})
 
 	resp, err := conn.GetRegexPatternSet(params)
 	if err != nil {
-		// TODO: Replace with a constant once available
-		// See https://github.com/aws/aws-sdk-go/issues/1856
-		if isAWSErr(err, "WAFNonexistentItemException", "") {
+		if isAWSErr(err, waf.ErrCodeNonexistentItemException, "") {
 			log.Printf("[WARN] WAF Regex Pattern Set (%s) not found, removing from state", d.Id())
 			d.SetId("")
 			return nil
@@ -76,6 +82,14 @@ func resourceAwsWafRegexPatternSetRead(d *schema.ResourceData, meta interface{})
 
 	d.Set("name", resp.RegexPatternSet.Name)
 	d.Set("regex_pattern_strings", aws.StringValueSlice(resp.RegexPatternSet.RegexPatternStrings))
+
+	arn := arn.ARN{
+		Partition: meta.(*AWSClient).partition,
+		Service:   "waf",
+		AccountID: meta.(*AWSClient).accountid,
+		Resource:  fmt.Sprintf("regexpatternset/%s", d.Id()),
+	}
+	d.Set("arn", arn.String())
 
 	return nil
 }

@@ -18,6 +18,9 @@ func resourceAwsBackupPlan() *schema.Resource {
 		Read:   resourceAwsBackupPlanRead,
 		Update: resourceAwsBackupPlanUpdate,
 		Delete: resourceAwsBackupPlanDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -217,7 +220,7 @@ func expandBackupPlanRules(vRules *schema.Set) []*backup.RuleInput {
 		}
 
 		if vRecoveryPointTags, ok := mRule["recovery_point_tags"].(map[string]interface{}); ok && len(vRecoveryPointTags) > 0 {
-			rule.RecoveryPointTags = tagsFromMapGeneric(vRecoveryPointTags)
+			rule.RecoveryPointTags = keyvaluetags.New(vRecoveryPointTags).IgnoreAws().BackupTags()
 		}
 
 		if vLifecycle, ok := mRule["lifecycle"].([]interface{}); ok && len(vLifecycle) > 0 && vLifecycle[0] != nil {
@@ -251,7 +254,7 @@ func flattenBackupPlanRules(rules []*backup.Rule) *schema.Set {
 			"schedule":            aws.StringValue(rule.ScheduleExpression),
 			"start_window":        int(aws.Int64Value(rule.StartWindowMinutes)),
 			"completion_window":   int(aws.Int64Value(rule.CompletionWindowMinutes)),
-			"recovery_point_tags": tagsToMapGeneric(rule.RecoveryPointTags),
+			"recovery_point_tags": keyvaluetags.BackupKeyValueTags(rule.RecoveryPointTags).IgnoreAws().Map(),
 		}
 
 		if lifecycle := rule.Lifecycle; lifecycle != nil {
@@ -291,7 +294,7 @@ func backupBackupPlanHash(vRule interface{}) int {
 	}
 
 	if vRecoveryPointTags, ok := mRule["recovery_point_tags"].(map[string]interface{}); ok && len(vRecoveryPointTags) > 0 {
-		buf.WriteString(fmt.Sprintf("%d-", tagsMapToHash(vRecoveryPointTags)))
+		buf.WriteString(fmt.Sprintf("%d-", keyvaluetags.New(vRecoveryPointTags).Hash()))
 	}
 
 	if vLifecycle, ok := mRule["lifecycle"].([]interface{}); ok && len(vLifecycle) > 0 && vLifecycle[0] != nil {

@@ -15,6 +15,7 @@ import (
 func TestAccAWSEBSSnapshot_basic(t *testing.T) {
 	var v ec2.Snapshot
 	rName := fmt.Sprintf("tf-acc-ebs-snapshot-basic-%s", acctest.RandString(7))
+	resourceName := "aws_ebs_snapshot.test"
 
 	deleteSnapshot := func() {
 		conn := testAccProvider.Meta().(*AWSClient).ec2conn
@@ -47,16 +48,57 @@ func TestAccAWSEBSSnapshot_basic(t *testing.T) {
 			{
 				Config: testAccAwsEbsSnapshotConfigBasic(rName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckSnapshotExists("aws_ebs_snapshot.test", &v),
-					testAccCheckTags(&v.Tags, "Name", rName),
+					testAccCheckSnapshotExists(resourceName, &v),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.Name", rName),
 				),
 			},
 			{
 				PreConfig: deleteSnapshot,
 				Config:    testAccAwsEbsSnapshotConfigBasic(rName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckSnapshotExists("aws_ebs_snapshot.test", &v),
-					testAccCheckTags(&v.Tags, "Name", rName),
+					testAccCheckSnapshotExists(resourceName, &v),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.Name", rName),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSEBSSnapshot_tags(t *testing.T) {
+	var v ec2.Snapshot
+	rName := fmt.Sprintf("tf-acc-ebs-snapshot-desc-%s", acctest.RandString(7))
+	resourceName := "aws_ebs_snapshot.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSEbsSnapshotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAwsEbsSnapshotConfigBasicTags1(rName, "key1", "value1"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckSnapshotExists(resourceName, &v),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1"),
+				),
+			},
+			{
+				Config: testAccAwsEbsSnapshotConfigBasicTags2(rName, "key1", "value1updated", "key2", "value2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckSnapshotExists(resourceName, &v),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "3"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1updated"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
+				),
+			},
+			{
+				Config: testAccAwsEbsSnapshotConfigBasicTags1(rName, "key2", "value2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckSnapshotExists(resourceName, &v),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
 				),
 			},
 		},
@@ -66,6 +108,7 @@ func TestAccAWSEBSSnapshot_basic(t *testing.T) {
 func TestAccAWSEBSSnapshot_withDescription(t *testing.T) {
 	var v ec2.Snapshot
 	rName := fmt.Sprintf("tf-acc-ebs-snapshot-desc-%s", acctest.RandString(7))
+	resourceName := "aws_ebs_snapshot.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -75,8 +118,8 @@ func TestAccAWSEBSSnapshot_withDescription(t *testing.T) {
 			{
 				Config: testAccAwsEbsSnapshotConfigWithDescription(rName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckSnapshotExists("aws_ebs_snapshot.test", &v),
-					resource.TestCheckResourceAttr("aws_ebs_snapshot.test", "description", rName),
+					testAccCheckSnapshotExists(resourceName, &v),
+					resource.TestCheckResourceAttr(resourceName, "description", rName),
 				),
 			},
 		},
@@ -86,6 +129,7 @@ func TestAccAWSEBSSnapshot_withDescription(t *testing.T) {
 func TestAccAWSEBSSnapshot_withKms(t *testing.T) {
 	var v ec2.Snapshot
 	rName := fmt.Sprintf("tf-acc-ebs-snapshot-kms-%s", acctest.RandString(7))
+	resourceName := "aws_ebs_snapshot.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -95,8 +139,8 @@ func TestAccAWSEBSSnapshot_withKms(t *testing.T) {
 			{
 				Config: testAccAwsEbsSnapshotConfigWithKms(rName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckSnapshotExists("aws_ebs_snapshot.test", &v),
-					resource.TestMatchResourceAttr("aws_ebs_snapshot.test", "kms_key_id",
+					testAccCheckSnapshotExists(resourceName, &v),
+					resource.TestMatchResourceAttr(resourceName, "kms_key_id",
 						regexp.MustCompile(`^arn:aws:kms:[a-z]{2}-[a-z]+-\d{1}:[0-9]{12}:key/[a-z0-9-]{36}$`)),
 				),
 			},
@@ -180,6 +224,57 @@ resource "aws_ebs_snapshot" "test" {
   }
 }
 `, rName)
+}
+
+func testAccAwsEbsSnapshotConfigBasicTags1(rName, tagKey1, tagValue1 string) string {
+	return fmt.Sprintf(`
+data "aws_region" "current" {}
+
+resource "aws_ebs_volume" "test" {
+  availability_zone = "${data.aws_region.current.name}a"
+  size              = 1
+}
+
+resource "aws_ebs_snapshot" "test" {
+  volume_id = "${aws_ebs_volume.test.id}"
+
+  tags = {
+    Name = "%s"
+    "%s" = "%s"
+  }
+
+  timeouts {
+	create = "10m"
+	delete = "10m"
+  }
+}
+`, rName, tagKey1, tagValue1)
+}
+
+func testAccAwsEbsSnapshotConfigBasicTags2(rName, tagKey1, tagValue1, tagKey2, tagValue2 string) string {
+	return fmt.Sprintf(`
+data "aws_region" "current" {}
+
+resource "aws_ebs_volume" "test" {
+  availability_zone = "${data.aws_region.current.name}a"
+  size              = 1
+}
+
+resource "aws_ebs_snapshot" "test" {
+  volume_id = "${aws_ebs_volume.test.id}"
+
+  tags = {
+    Name = "%s"
+    "%s" = "%s"
+    "%s" = "%s"
+  }
+
+  timeouts {
+	create = "10m"
+	delete = "10m"
+  }
+}
+`, rName, tagKey1, tagValue1, tagKey2, tagValue2)
 }
 
 func testAccAwsEbsSnapshotConfigWithDescription(rName string) string {

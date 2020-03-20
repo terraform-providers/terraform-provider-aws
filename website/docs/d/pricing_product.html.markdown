@@ -1,4 +1,5 @@
 ---
+subcategory: "Pricing"
 layout: "aws"
 page_title: "AWS: aws_pricing_product"
 description: |-
@@ -44,6 +45,11 @@ data "aws_pricing_product" "example" {
   filters {
     field = "tenancy"
     value = "Shared"
+  }
+
+  filters {
+    field = "capacitystatus"
+    value = "Used"
   }
 }
 ```

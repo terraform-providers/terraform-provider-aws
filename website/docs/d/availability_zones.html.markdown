@@ -1,4 +1,5 @@
 ---
+subcategory: ""
 layout: "aws"
 page_title: "AWS: aws_availability_zones"
 description: |-
@@ -25,13 +26,13 @@ data "aws_availability_zones" "available" {
 # e.g. Create subnets in the first two available availability zones
 
 resource "aws_subnet" "primary" {
-  availability_zone = "${data.aws_availability_zones.available.names[0]}"
+  availability_zone = data.aws_availability_zones.available.names[0]
 
   # ...
 }
 
 resource "aws_subnet" "secondary" {
-  availability_zone = "${data.aws_availability_zones.available.names[1]}"
+  availability_zone = data.aws_availability_zones.available.names[1]
 
   # ...
 }

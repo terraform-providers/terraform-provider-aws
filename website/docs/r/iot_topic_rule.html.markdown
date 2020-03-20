@@ -1,4 +1,5 @@
 ---
+subcategory: "IoT"
 layout: "aws"
 page_title: "AWS: aws_iot_topic_rule"
 description: |-

@@ -2,6 +2,10 @@
 
 package inspector
 
+import (
+	"github.com/aws/aws-sdk-go/private/protocol"
+)
+
 const (
 
 	// ErrCodeAccessDeniedException for service response error code
@@ -81,3 +85,17 @@ const (
 	// Inspector became available.
 	ErrCodeUnsupportedFeatureException = "UnsupportedFeatureException"
 )
+
+var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
+	"AccessDeniedException":                   newErrorAccessDeniedException,
+	"AgentsAlreadyRunningAssessmentException": newErrorAgentsAlreadyRunningAssessmentException,
+	"AssessmentRunInProgressException":        newErrorAssessmentRunInProgressException,
+	"InternalException":                       newErrorInternalException,
+	"InvalidCrossAccountRoleException":        newErrorInvalidCrossAccountRoleException,
+	"InvalidInputException":                   newErrorInvalidInputException,
+	"LimitExceededException":                  newErrorLimitExceededException,
+	"NoSuchEntityException":                   newErrorNoSuchEntityException,
+	"PreviewGenerationInProgressException":    newErrorPreviewGenerationInProgressException,
+	"ServiceTemporarilyUnavailableException":  newErrorServiceTemporarilyUnavailableException,
+	"UnsupportedFeatureException":             newErrorUnsupportedFeatureException,
+}

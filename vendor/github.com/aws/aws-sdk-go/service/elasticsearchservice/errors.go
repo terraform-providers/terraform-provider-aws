@@ -2,6 +2,10 @@
 
 package elasticsearchservice
 
+import (
+	"github.com/aws/aws-sdk-go/private/protocol"
+)
+
 const (
 
 	// ErrCodeBaseException for service response error code
@@ -60,3 +64,14 @@ const (
 	// 400.
 	ErrCodeValidationException = "ValidationException"
 )
+
+var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
+	"BaseException":                  newErrorBaseException,
+	"DisabledOperationException":     newErrorDisabledOperationException,
+	"InternalException":              newErrorInternalException,
+	"InvalidTypeException":           newErrorInvalidTypeException,
+	"LimitExceededException":         newErrorLimitExceededException,
+	"ResourceAlreadyExistsException": newErrorResourceAlreadyExistsException,
+	"ResourceNotFoundException":      newErrorResourceNotFoundException,
+	"ValidationException":            newErrorValidationException,
+}

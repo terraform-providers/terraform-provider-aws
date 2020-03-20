@@ -1,4 +1,5 @@
 ---
+subcategory: "Sagemaker"
 layout: "aws"
 page_title: "AWS: aws_sagemaker_model"
 description: |-

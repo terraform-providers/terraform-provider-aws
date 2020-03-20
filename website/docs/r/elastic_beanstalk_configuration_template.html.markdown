@@ -1,4 +1,5 @@
 ---
+subcategory: "Elastic Beanstalk"
 layout: "aws"
 page_title: "AWS: aws_elastic_beanstalk_configuration_template"
 description: |-

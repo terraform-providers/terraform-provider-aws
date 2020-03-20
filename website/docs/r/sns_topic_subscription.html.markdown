@@ -1,4 +1,5 @@
 ---
+subcategory: "SNS"
 layout: "aws"
 page_title: "AWS: aws_sns_topic_subscription"
 description: |-
@@ -44,9 +45,9 @@ resource "aws_sqs_queue" "user_updates_queue" {
 }
 
 resource "aws_sns_topic_subscription" "user_updates_sqs_target" {
-  topic_arn = "${aws_sns_topic.user_updates.arn}"
+  topic_arn = aws_sns_topic.user_updates.arn
   protocol  = "sqs"
-  endpoint  = "${aws_sqs_queue.user_updates_queue.arn}"
+  endpoint  = aws_sqs_queue.user_updates_queue.arn
 }
 ```
 
@@ -98,7 +99,7 @@ data "aws_iam_policy_document" "sns-topic-policy" {
       variable = "AWS:SourceOwner"
 
       values = [
-        "${var.sns["account-id"]}",
+        var.sns["account-id"],
       ]
     }
 
@@ -180,7 +181,7 @@ data "aws_iam_policy_document" "sqs-queue-policy" {
 # provider to manage SNS topics
 provider "aws" {
   alias  = "sns"
-  region = "${var.sns["region"]}"
+  region = var.sns["region"]
 
   assume_role {
     role_arn     = "arn:aws:iam::${var.sns["account-id"]}:role/${var.sns["role-name"]}"
@@ -191,7 +192,7 @@ provider "aws" {
 # provider to manage SQS queues
 provider "aws" {
   alias  = "sqs"
-  region = "${var.sqs["region"]}"
+  region = var.sqs["region"]
 
   assume_role {
     role_arn     = "arn:aws:iam::${var.sqs["account-id"]}:role/${var.sqs["role-name"]}"
@@ -202,7 +203,7 @@ provider "aws" {
 # provider to subscribe SQS to SNS (using the SQS account but the SNS region)
 provider "aws" {
   alias  = "sns2sqs"
-  region = "${var.sns["region"]}"
+  region = var.sns["region"]
 
   assume_role {
     role_arn     = "arn:aws:iam::${var.sqs["account-id"]}:role/${var.sqs["role-name"]}"
@@ -212,22 +213,22 @@ provider "aws" {
 
 resource "aws_sns_topic" "sns-topic" {
   provider     = "aws.sns"
-  name         = "${var.sns["name"]}"
-  display_name = "${var.sns["display_name"]}"
-  policy       = "${data.aws_iam_policy_document.sns-topic-policy.json}"
+  name         = var.sns["name"]
+  display_name = var.sns["display_name"]
+  policy       = data.aws_iam_policy_document.sns-topic-policy.json
 }
 
 resource "aws_sqs_queue" "sqs-queue" {
   provider = "aws.sqs"
-  name     = "${var.sqs["name"]}"
-  policy   = "${data.aws_iam_policy_document.sqs-queue-policy.json}"
+  name     = var.sqs["name"]
+  policy   = data.aws_iam_policy_document.sqs-queue-policy.json
 }
 
 resource "aws_sns_topic_subscription" "sns-topic" {
   provider  = "aws.sns2sqs"
-  topic_arn = "${aws_sns_topic.sns-topic.arn}"
+  topic_arn = aws_sns_topic.sns-topic.arn
   protocol  = "sqs"
-  endpoint  = "${aws_sqs_queue.sqs-queue.arn}"
+  endpoint  = aws_sqs_queue.sqs-queue.arn
 }
 ```
 
@@ -236,7 +237,7 @@ resource "aws_sns_topic_subscription" "sns-topic" {
 The following arguments are supported:
 
 * `topic_arn` - (Required) The ARN of the SNS topic to subscribe to
-* `protocol` - (Required) The protocol to use. The possible values for this are: `sqs`, `sms`, `lambda`, `application`. (`http` or `https` are partially supported, see below) (`email` is option but unsupported, see below).
+* `protocol` - (Required) The protocol to use. The possible values for this are: `sqs`, `sms`, `lambda`, `application`. (`http` or `https` are partially supported, see below) (`email` is an option but is unsupported, see below).
 * `endpoint` - (Required) The endpoint to send data to, the contents will vary with the protocol. (see below for more information)
 * `endpoint_auto_confirms` - (Optional) Boolean indicating whether the end point is capable of [auto confirming subscription](http://docs.aws.amazon.com/sns/latest/dg/SendMessageToHttp.html#SendMessageToHttp.prepare) e.g., PagerDuty (default is false)
 * `confirmation_timeout_in_minutes` - (Optional) Integer indicating number of minutes to wait in retying mode for fetching subscription arn before marking it as failure. Only applicable for http and https protocols (default is 1 minute).

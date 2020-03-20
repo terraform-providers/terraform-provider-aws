@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsAmiCopy() *schema.Resource {
@@ -219,10 +220,16 @@ func resourceAwsAmiCopyCreate(d *schema.ResourceData, meta interface{}) error {
 	d.SetPartial("manage_ebs_snapshots")
 	d.Partial(false)
 
+	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
+		if err := keyvaluetags.Ec2UpdateTags(client, id, nil, v); err != nil {
+			return fmt.Errorf("error adding tags: %s", err)
+		}
+	}
+
 	_, err = resourceAwsAmiWaitForAvailable(d.Timeout(schema.TimeoutCreate), id, client)
 	if err != nil {
 		return err
 	}
 
-	return resourceAwsAmiUpdate(d, meta)
+	return resourceAwsAmiRead(d, meta)
 }

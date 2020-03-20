@@ -1,4 +1,5 @@
 ---
+subcategory: "IAM"
 layout: "aws"
 page_title: "AWS: aws_iam_group"
 description: |-
@@ -30,3 +31,15 @@ data "aws_iam_group" "example" {
 * `path` - The path to the group.
 
 * `group_id` - The stable and unique string identifying the group.
+
+* `users` - List of objects containing group member information. See supported fields below.
+
+### `users`
+
+* `arn` - The Amazon Resource Name (ARN) specifying the iam user.
+
+* `user_id` - The stable and unique string identifying the iam user.
+
+* `user_name` - The name of the iam user.
+
+* `path` - The path to the iam user.

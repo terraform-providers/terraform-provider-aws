@@ -1,4 +1,5 @@
 ---
+subcategory: "Cognito"
 layout: "aws"
 page_title: "AWS: aws_cognito_user_pool_domain"
 description: |-
@@ -12,6 +13,7 @@ Provides a Cognito User Pool Domain resource.
 ## Example Usage
 
 ### Amazon Cognito domain
+
 ```hcl
 resource "aws_cognito_user_pool_domain" "main" {
   domain       = "example-domain"
@@ -22,7 +24,9 @@ resource "aws_cognito_user_pool" "example" {
   name = "example-pool"
 }
 ```
+
 ### Custom Cognito domain
+
 ```hcl
 resource "aws_cognito_user_pool_domain" "main" {
   domain          = "example-domain.example.com"

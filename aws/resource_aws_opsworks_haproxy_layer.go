@@ -1,43 +1,44 @@
 package aws
 
 import (
+	"github.com/aws/aws-sdk-go/service/opsworks"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 func resourceAwsOpsworksHaproxyLayer() *schema.Resource {
 	layerType := &opsworksLayerType{
-		TypeName:         "lb",
+		TypeName:         opsworks.LayerTypeLb,
 		DefaultLayerName: "HAProxy",
 
 		Attributes: map[string]*opsworksLayerTypeAttribute{
 			"stats_enabled": {
-				AttrName: "EnableHaproxyStats",
+				AttrName: opsworks.LayerAttributesKeysEnableHaproxyStats,
 				Type:     schema.TypeBool,
 				Default:  true,
 			},
 			"stats_url": {
-				AttrName: "HaproxyStatsUrl",
+				AttrName: opsworks.LayerAttributesKeysHaproxyStatsUrl,
 				Type:     schema.TypeString,
 				Default:  "/haproxy?stats",
 			},
 			"stats_user": {
-				AttrName: "HaproxyStatsUser",
+				AttrName: opsworks.LayerAttributesKeysHaproxyStatsUser,
 				Type:     schema.TypeString,
 				Default:  "opsworks",
 			},
 			"stats_password": {
-				AttrName:  "HaproxyStatsPassword",
+				AttrName:  opsworks.LayerAttributesKeysHaproxyStatsPassword,
 				Type:      schema.TypeString,
 				WriteOnly: true,
 				Required:  true,
 			},
 			"healthcheck_url": {
-				AttrName: "HaproxyHealthCheckUrl",
+				AttrName: opsworks.LayerAttributesKeysHaproxyHealthCheckUrl,
 				Type:     schema.TypeString,
 				Default:  "/",
 			},
 			"healthcheck_method": {
-				AttrName: "HaproxyHealthCheckMethod",
+				AttrName: opsworks.LayerAttributesKeysHaproxyHealthCheckMethod,
 				Type:     schema.TypeString,
 				Default:  "OPTIONS",
 			},

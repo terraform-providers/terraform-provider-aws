@@ -1,4 +1,5 @@
 ---
+subcategory: "Glue"
 layout: "aws"
 page_title: "AWS: aws_glue_trigger"
 description: |-
@@ -58,6 +59,50 @@ resource "aws_glue_trigger" "example" {
 }
 ```
 
+### Conditional Trigger with Crawler Action
+
+**Note:** Triggers can have both a crawler action and a crawler condition, just no example provided.
+
+```hcl
+resource "aws_glue_trigger" "example" {
+  name = "example"
+  type = "CONDITIONAL"
+
+  actions {
+    crawler_name = "${aws_glue_crawler.example1.name}"
+  }
+
+  predicate {
+    conditions {
+      job_name = "${aws_glue_job.example2.name}"
+      state    = "SUCCEEDED"
+    }
+  }
+}
+```
+
+### Conditional Trigger with Crawler Condition 
+
+**Note:** Triggers can have both a crawler action and a crawler condition, just no example provided.
+
+```hcl
+resource "aws_glue_trigger" "example" {
+  name = "example"
+  type = "CONDITIONAL"
+
+  actions {
+    job_name = "${aws_glue_job.example1.name}"
+  }
+
+  predicate {
+    conditions {
+      crawler_name = "${aws_glue_crawler.example2.name}"
+      crawl_state  = "SUCCEEDED"
+    }
+  }
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -68,12 +113,15 @@ The following arguments are supported:
 * `name` – (Required) The name of the trigger.
 * `predicate` – (Optional) A predicate to specify when the new trigger should fire. Required when trigger type is `CONDITIONAL`. Defined below.
 * `schedule` – (Optional) A cron expression used to specify the schedule. [Time-Based Schedules for Jobs and Crawlers](https://docs.aws.amazon.com/glue/latest/dg/monitor-data-warehouse-schedule.html)
+* `tags` - (Optional) Key-value mapping of resource tags
 * `type` – (Required) The type of trigger. Valid values are `CONDITIONAL`, `ON_DEMAND`, and `SCHEDULED`.
+* `workflow_name` - (Optional) A workflow to which the trigger should be associated to. Every workflow graph (DAG) needs a starting trigger (`ON_DEMAND` or `SCHEDULED` type) and can contain multiple additional `CONDITIONAL` triggers.
 
 ### actions Argument Reference
 
 * `arguments` - (Optional) Arguments to be passed to the job. You can specify arguments here that your own job-execution script consumes, as well as arguments that AWS Glue itself consumes.
-* `job_name` - (Required) The name of a job to be executed.
+* `crawler_name` - (Optional) The name of the crawler to be executed. Conflicts with `job_name`.
+* `job_name` - (Optional) The name of a job to be executed. Conflicts with `crawler_name`.
 * `timeout` - (Optional) The job run timeout in minutes. It overrides the timeout value of the job.
 
 ### predicate Argument Reference
@@ -83,14 +131,17 @@ The following arguments are supported:
 
 #### conditions Argument Reference
 
-* `job_name` - (Required) The name of the job to watch.
+* `job_name` - (Optional) The name of the job to watch. If this is specified, `state` must also be specified. Conflicts with `crawler_name`.
+* `state` - (Optional) The condition job state. Currently, the values supported are `SUCCEEDED`, `STOPPED`, `TIMEOUT` and `FAILED`. If this is specified, `job_name` must also be specified. Conflicts with `crawler_state`.
+* `crawler_name` - (Optional) The name of the crawler to watch. If this is specified, `crawl_state` must also be specified. Conflicts with `job_name`.
+* `crawl_state` - (Optional) The condition crawl state. Currently, the values supported are `RUNNING`, `SUCCEEDED`, `CANCELLED`, and `FAILED`. If this is specified, `crawler_name` must also be specified. Conflicts with `state`.
 * `logical_operator` - (Optional) A logical operator. Defaults to `EQUALS`.
-* `state` - (Required) The condition state. Currently, the values supported are `SUCCEEDED`, `STOPPED`, `TIMEOUT` and `FAILED`.
 
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
+* `arn` - Amazon Resource Name (ARN) of Glue Trigger
 * `id` - Trigger name
 
 ## Timeouts

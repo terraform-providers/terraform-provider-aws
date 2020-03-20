@@ -1,4 +1,5 @@
 ---
+subcategory: "CodeCommit"
 layout: "aws"
 page_title: "AWS: aws_codecommit_trigger"
 description: |-

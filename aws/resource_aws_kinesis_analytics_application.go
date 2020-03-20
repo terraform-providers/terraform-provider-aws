@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsKinesisAnalyticsApplication() *schema.Resource {
@@ -589,8 +590,8 @@ func resourceAwsKinesisAnalyticsApplicationCreate(d *schema.ResourceData, meta i
 		createOpts.Outputs = outputs
 	}
 
-	if v, ok := d.GetOk("tags"); ok {
-		createOpts.Tags = tagsFromMapKinesisAnalytics(v.(map[string]interface{}))
+	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
+		createOpts.Tags = keyvaluetags.New(v).IgnoreAws().KinesisanalyticsTags()
 	}
 
 	// Retry for IAM eventual consistency
@@ -645,8 +646,9 @@ func resourceAwsKinesisAnalyticsApplicationRead(d *schema.ResourceData, meta int
 		return fmt.Errorf("error reading Kinesis Analytics Application (%s): %s", d.Id(), err)
 	}
 
+	arn := aws.StringValue(resp.ApplicationDetail.ApplicationARN)
 	d.Set("name", aws.StringValue(resp.ApplicationDetail.ApplicationName))
-	d.Set("arn", aws.StringValue(resp.ApplicationDetail.ApplicationARN))
+	d.Set("arn", arn)
 	d.Set("code", aws.StringValue(resp.ApplicationDetail.ApplicationCode))
 	d.Set("create_timestamp", aws.TimeValue(resp.ApplicationDetail.CreateTimestamp).Format(time.RFC3339))
 	d.Set("description", aws.StringValue(resp.ApplicationDetail.ApplicationDescription))
@@ -670,7 +672,13 @@ func resourceAwsKinesisAnalyticsApplicationRead(d *schema.ResourceData, meta int
 		return fmt.Errorf("error setting reference_data_sources: %s", err)
 	}
 
-	if err := getTagsKinesisAnalytics(conn, d); err != nil {
+	tags, err := keyvaluetags.KinesisanalyticsListTags(conn, arn)
+
+	if err != nil {
+		return fmt.Errorf("error listing tags for Kinesis Analytics Application (%s): %s", arn, err)
+	}
+
+	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
@@ -811,10 +819,14 @@ func resourceAwsKinesisAnalyticsApplicationUpdate(d *schema.ResourceData, meta i
 			}
 		}
 
-		if err := setTagsKinesisAnalytics(conn, d); err != nil {
-			return fmt.Errorf("Error update resource tags for %s: %s", d.Id(), err)
-		}
+		arn := d.Get("arn").(string)
+		if d.HasChange("tags") {
+			o, n := d.GetChange("tags")
 
+			if err := keyvaluetags.KinesisanalyticsUpdateTags(conn, arn, o, n); err != nil {
+				return fmt.Errorf("error updating Kinesis Analytics Application (%s) tags: %s", arn, err)
+			}
+		}
 	}
 
 	oldReferenceData, newReferenceData := d.GetChange("reference_data_sources")

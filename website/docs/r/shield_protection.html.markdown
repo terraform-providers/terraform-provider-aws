@@ -1,4 +1,5 @@
 ---
+subcategory: "Shield"
 layout: "aws"
 page_title: "AWS: aws_shield_protection"
 description: |-

@@ -349,7 +349,7 @@ func resourceAwsElasticTranscoderPresetCreate(d *schema.ResourceData, meta inter
 	}
 
 	d.SetId(*resp.Preset.Id)
-	d.Set("arn", *resp.Preset.Arn)
+	d.Set("arn", resp.Preset.Arn)
 
 	return nil
 }
@@ -488,7 +488,7 @@ func resourceAwsElasticTranscoderPresetRead(d *schema.ResourceData, meta interfa
 	log.Printf("[DEBUG] Elastic Transcoder Preset Read response: %#v", resp)
 
 	preset := resp.Preset
-	d.Set("arn", *preset.Arn)
+	d.Set("arn", preset.Arn)
 
 	if preset.Audio != nil {
 		err := d.Set("audio", flattenETAudioParameters(preset.Audio))
@@ -501,9 +501,9 @@ func resourceAwsElasticTranscoderPresetRead(d *schema.ResourceData, meta interfa
 		}
 	}
 
-	d.Set("container", *preset.Container)
-	d.Set("name", *preset.Name)
-	d.Set("description", *preset.Description)
+	d.Set("container", preset.Container)
+	d.Set("name", preset.Name)
+	d.Set("description", preset.Description)
 
 	if preset.Thumbnails != nil {
 		err := d.Set("thumbnails", flattenETThumbnails(preset.Thumbnails))
@@ -512,7 +512,7 @@ func resourceAwsElasticTranscoderPresetRead(d *schema.ResourceData, meta interfa
 		}
 	}
 
-	d.Set("type", *preset.Type)
+	d.Set("type", preset.Type)
 
 	if preset.Video != nil {
 		err := d.Set("video", flattenETVideoParams(preset.Video))

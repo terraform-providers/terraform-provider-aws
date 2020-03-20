@@ -29,6 +29,7 @@ func TestAccDataSourceAWSELB_basic(t *testing.T) {
 					resource.TestCheckResourceAttr("data.aws_elb.elb_test", "tags.TestName", t.Name()),
 					resource.TestCheckResourceAttrSet("data.aws_elb.elb_test", "dns_name"),
 					resource.TestCheckResourceAttrSet("data.aws_elb.elb_test", "zone_id"),
+					resource.TestCheckResourceAttrPair("data.aws_elb.elb_test", "arn", "aws_elb.elb_test", "arn"),
 				),
 			},
 		},

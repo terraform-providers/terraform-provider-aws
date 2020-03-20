@@ -1,4 +1,5 @@
 ---
+subcategory: "Storage Gateway"
 layout: "aws"
 page_title: "AWS: aws_storagegateway_upload_buffer"
 description: |-

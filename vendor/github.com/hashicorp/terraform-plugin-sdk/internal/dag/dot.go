@@ -276,7 +276,3 @@ func (w *indentWriter) WriteByte(b byte) error {
 	w.indent()
 	return w.Buffer.WriteByte(b)
 }
-func (w *indentWriter) WriteRune(r rune) (int, error) {
-	w.indent()
-	return w.Buffer.WriteRune(r)
-}

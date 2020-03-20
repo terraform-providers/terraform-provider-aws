@@ -1,4 +1,5 @@
 ---
+subcategory: "S3"
 layout: "aws"
 page_title: "AWS: aws_s3_bucket_inventory"
 description: |-
@@ -80,22 +81,23 @@ resource "aws_s3_bucket_inventory" "test-prefix" {
 
 The following arguments are supported:
 
-* `bucket` - (Required) The name of the bucket to put inventory configuration.
+* `bucket` - (Required) The name of the bucket where the inventory configuration will be stored.
 * `name` - (Required) Unique identifier of the inventory configuration for the bucket.
-* `included_object_versions` - (Required) Object filtering that accepts a prefix (documented below). Can be `All` or `Current`.
-* `schedule` - (Required) Contains the frequency for generating inventory results (documented below).
-* `destination` - (Required) Destination bucket where inventory list files are written (documented below).
-* `enabled` - (Optional, Default: true) Specifies whether the inventory is enabled or disabled.
-* `filter` - (Optional) Object filtering that accepts a prefix (documented below).
-* `optional_fields` - (Optional) Contains the optional fields that are included in the inventory results.
+* `included_object_versions` - (Required) Object versions to include in the inventory list. Valid values: `All`, `Current`.
+* `schedule` - (Required) Specifies the schedule for generating inventory results (documented below).
+* `destination` - (Required) Contains information about where to publish the inventory results (documented below).
+* `enabled` - (Optional, Default: `true`) Specifies whether the inventory is enabled or disabled.
+* `filter` - (Optional) Specifies an inventory filter. The inventory only includes objects that meet the filter's criteria (documented below).
+* `optional_fields` - (Optional) List of optional fields that are included in the inventory results.
+Valid values: `Size`, `LastModifiedDate`, `StorageClass`, `ETag`, `IsMultipartUploaded`, `ReplicationStatus`, `EncryptionStatus`, `ObjectLockRetainUntilDate`, `ObjectLockMode`, `ObjectLockLegalHoldStatus`, `IntelligentTieringAccessTier`.
 
 The `filter` configuration supports the following:
 
-* `prefix` - (Optional) Object prefix for filtering (singular).
+* `prefix` - (Optional) The prefix that an object must have to be included in the inventory results.
 
 The `schedule` configuration supports the following:
 
-* `frequency` - (Required) Specifies how frequently inventory results are produced. Can be `Daily` or `Weekly`.
+* `frequency` - (Required) Specifies how frequently inventory results are produced. Valid values: `Daily`, `Weekly`.
 
 The `destination` configuration supports the following:
 

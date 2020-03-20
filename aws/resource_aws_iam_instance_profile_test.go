@@ -2,7 +2,6 @@ package aws
 
 import (
 	"fmt"
-	"regexp"
 	"strings"
 	"testing"
 
@@ -64,7 +63,9 @@ func TestAccAWSIAMInstanceProfile_withRoleNotRoles(t *testing.T) {
 	})
 }
 
-func TestAccAWSIAMInstanceProfile_missingRoleThrowsError(t *testing.T) {
+func TestAccAWSIAMInstanceProfile_withoutRole(t *testing.T) {
+	var conf iam.GetInstanceProfileOutput
+	resourceName := "aws_iam_instance_profile.test"
 	rName := acctest.RandString(5)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -72,8 +73,16 @@ func TestAccAWSIAMInstanceProfile_missingRoleThrowsError(t *testing.T) {
 		CheckDestroy: testAccCheckAWSInstanceProfileDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccAwsIamInstanceProfileConfigMissingRole(rName),
-				ExpectError: regexp.MustCompile(regexp.QuoteMeta("Either `role` or `roles` (deprecated) must be specified when creating an IAM Instance Profile")),
+				Config: testAccAwsIamInstanceProfileConfigWithoutRole(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSInstanceProfileExists(resourceName, &conf),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"name_prefix"},
 			},
 		},
 	})
@@ -192,7 +201,7 @@ resource "aws_iam_instance_profile" "test" {
 `, rName)
 }
 
-func testAccAwsIamInstanceProfileConfigMissingRole(rName string) string {
+func testAccAwsIamInstanceProfileConfigWithoutRole(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_iam_instance_profile" "test" {
   name = "test-%s"

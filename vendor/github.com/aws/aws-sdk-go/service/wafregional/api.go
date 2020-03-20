@@ -3,6 +3,8 @@
 package wafregional
 
 import (
+	"fmt"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awsutil"
 	"github.com/aws/aws-sdk-go/aws/request"
@@ -66,16 +68,16 @@ func (c *WAFRegional) AssociateWebACLRequest(input *AssociateWebACLInput) (req *
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation AssociateWebACL for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+// Returned Error Types:
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFInvalidAccountException "WAFInvalidAccountException"
+//   * WAFInvalidAccountException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using an invalid account identifier.
 //
-//   * ErrCodeWAFInvalidParameterException "WAFInvalidParameterException"
+//   * WAFInvalidParameterException
 //   The operation failed because AWS WAF didn't recognize a parameter in the
 //   request. For example:
 //
@@ -104,10 +106,10 @@ func (c *WAFRegional) AssociateWebACLRequest(input *AssociateWebACLInput) (req *
 //      * Your request references an ARN that is malformed, or corresponds to
 //      a resource with which a web ACL cannot be associated.
 //
-//   * ErrCodeWAFNonexistentItemException "WAFNonexistentItemException"
+//   * WAFNonexistentItemException
 //   The operation failed because the referenced object doesn't exist.
 //
-//   * ErrCodeWAFUnavailableEntityException "WAFUnavailableEntityException"
+//   * WAFUnavailableEntityException
 //   The operation failed because the entity referenced is temporarily unavailable.
 //   Retry your request.
 //
@@ -207,19 +209,19 @@ func (c *WAFRegional) CreateByteMatchSetRequest(input *waf.CreateByteMatchSetInp
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation CreateByteMatchSet for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFDisallowedNameException "WAFDisallowedNameException"
+// Returned Error Types:
+//   * WAFDisallowedNameException
 //   The name specified is invalid.
 //
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFInvalidAccountException "WAFInvalidAccountException"
+//   * WAFInvalidAccountException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using an invalid account identifier.
 //
-//   * ErrCodeWAFInvalidParameterException "WAFInvalidParameterException"
+//   * WAFInvalidParameterException
 //   The operation failed because AWS WAF didn't recognize a parameter in the
 //   request. For example:
 //
@@ -248,11 +250,11 @@ func (c *WAFRegional) CreateByteMatchSetRequest(input *waf.CreateByteMatchSetInp
 //      * Your request references an ARN that is malformed, or corresponds to
 //      a resource with which a web ACL cannot be associated.
 //
-//   * ErrCodeWAFStaleDataException "WAFStaleDataException"
+//   * WAFStaleDataException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using a change token that has already been used.
 //
-//   * ErrCodeWAFLimitsExceededException "WAFLimitsExceededException"
+//   * WAFLimitsExceededException
 //   The operation exceeds a resource limit, for example, the maximum number of
 //   WebACL objects that you can create for an AWS account. For more information,
 //   see Limits (https://docs.aws.amazon.com/waf/latest/developerguide/limits.html)
@@ -353,23 +355,23 @@ func (c *WAFRegional) CreateGeoMatchSetRequest(input *waf.CreateGeoMatchSetInput
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation CreateGeoMatchSet for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFStaleDataException "WAFStaleDataException"
+// Returned Error Types:
+//   * WAFStaleDataException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using a change token that has already been used.
 //
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFInvalidAccountException "WAFInvalidAccountException"
+//   * WAFInvalidAccountException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using an invalid account identifier.
 //
-//   * ErrCodeWAFDisallowedNameException "WAFDisallowedNameException"
+//   * WAFDisallowedNameException
 //   The name specified is invalid.
 //
-//   * ErrCodeWAFInvalidParameterException "WAFInvalidParameterException"
+//   * WAFInvalidParameterException
 //   The operation failed because AWS WAF didn't recognize a parameter in the
 //   request. For example:
 //
@@ -398,7 +400,7 @@ func (c *WAFRegional) CreateGeoMatchSetRequest(input *waf.CreateGeoMatchSetInput
 //      * Your request references an ARN that is malformed, or corresponds to
 //      a resource with which a web ACL cannot be associated.
 //
-//   * ErrCodeWAFLimitsExceededException "WAFLimitsExceededException"
+//   * WAFLimitsExceededException
 //   The operation exceeds a resource limit, for example, the maximum number of
 //   WebACL objects that you can create for an AWS account. For more information,
 //   see Limits (https://docs.aws.amazon.com/waf/latest/developerguide/limits.html)
@@ -500,23 +502,23 @@ func (c *WAFRegional) CreateIPSetRequest(input *waf.CreateIPSetInput) (req *requ
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation CreateIPSet for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFStaleDataException "WAFStaleDataException"
+// Returned Error Types:
+//   * WAFStaleDataException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using a change token that has already been used.
 //
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFInvalidAccountException "WAFInvalidAccountException"
+//   * WAFInvalidAccountException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using an invalid account identifier.
 //
-//   * ErrCodeWAFDisallowedNameException "WAFDisallowedNameException"
+//   * WAFDisallowedNameException
 //   The name specified is invalid.
 //
-//   * ErrCodeWAFInvalidParameterException "WAFInvalidParameterException"
+//   * WAFInvalidParameterException
 //   The operation failed because AWS WAF didn't recognize a parameter in the
 //   request. For example:
 //
@@ -545,7 +547,7 @@ func (c *WAFRegional) CreateIPSetRequest(input *waf.CreateIPSetInput) (req *requ
 //      * Your request references an ARN that is malformed, or corresponds to
 //      a resource with which a web ACL cannot be associated.
 //
-//   * ErrCodeWAFLimitsExceededException "WAFLimitsExceededException"
+//   * WAFLimitsExceededException
 //   The operation exceeds a resource limit, for example, the maximum number of
 //   WebACL objects that you can create for an AWS account. For more information,
 //   see Limits (https://docs.aws.amazon.com/waf/latest/developerguide/limits.html)
@@ -686,19 +688,19 @@ func (c *WAFRegional) CreateRateBasedRuleRequest(input *waf.CreateRateBasedRuleI
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation CreateRateBasedRule for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFStaleDataException "WAFStaleDataException"
+// Returned Error Types:
+//   * WAFStaleDataException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using a change token that has already been used.
 //
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFDisallowedNameException "WAFDisallowedNameException"
+//   * WAFDisallowedNameException
 //   The name specified is invalid.
 //
-//   * ErrCodeWAFInvalidParameterException "WAFInvalidParameterException"
+//   * WAFInvalidParameterException
 //   The operation failed because AWS WAF didn't recognize a parameter in the
 //   request. For example:
 //
@@ -727,17 +729,17 @@ func (c *WAFRegional) CreateRateBasedRuleRequest(input *waf.CreateRateBasedRuleI
 //      * Your request references an ARN that is malformed, or corresponds to
 //      a resource with which a web ACL cannot be associated.
 //
-//   * ErrCodeWAFLimitsExceededException "WAFLimitsExceededException"
+//   * WAFLimitsExceededException
 //   The operation exceeds a resource limit, for example, the maximum number of
 //   WebACL objects that you can create for an AWS account. For more information,
 //   see Limits (https://docs.aws.amazon.com/waf/latest/developerguide/limits.html)
 //   in the AWS WAF Developer Guide.
 //
-//   * ErrCodeWAFTagOperationException "WAFTagOperationException"
+//   * WAFTagOperationException
 //
-//   * ErrCodeWAFTagOperationInternalErrorException "WAFTagOperationInternalErrorException"
+//   * WAFTagOperationInternalErrorException
 //
-//   * ErrCodeWAFBadRequestException "WAFBadRequestException"
+//   * WAFBadRequestException
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/waf-regional-2016-11-28/CreateRateBasedRule
 func (c *WAFRegional) CreateRateBasedRule(input *waf.CreateRateBasedRuleInput) (*waf.CreateRateBasedRuleOutput, error) {
@@ -836,19 +838,19 @@ func (c *WAFRegional) CreateRegexMatchSetRequest(input *waf.CreateRegexMatchSetI
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation CreateRegexMatchSet for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFStaleDataException "WAFStaleDataException"
+// Returned Error Types:
+//   * WAFStaleDataException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using a change token that has already been used.
 //
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFDisallowedNameException "WAFDisallowedNameException"
+//   * WAFDisallowedNameException
 //   The name specified is invalid.
 //
-//   * ErrCodeWAFLimitsExceededException "WAFLimitsExceededException"
+//   * WAFLimitsExceededException
 //   The operation exceeds a resource limit, for example, the maximum number of
 //   WebACL objects that you can create for an AWS account. For more information,
 //   see Limits (https://docs.aws.amazon.com/waf/latest/developerguide/limits.html)
@@ -947,19 +949,19 @@ func (c *WAFRegional) CreateRegexPatternSetRequest(input *waf.CreateRegexPattern
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation CreateRegexPatternSet for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFStaleDataException "WAFStaleDataException"
+// Returned Error Types:
+//   * WAFStaleDataException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using a change token that has already been used.
 //
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFDisallowedNameException "WAFDisallowedNameException"
+//   * WAFDisallowedNameException
 //   The name specified is invalid.
 //
-//   * ErrCodeWAFLimitsExceededException "WAFLimitsExceededException"
+//   * WAFLimitsExceededException
 //   The operation exceeds a resource limit, for example, the maximum number of
 //   WebACL objects that you can create for an AWS account. For more information,
 //   see Limits (https://docs.aws.amazon.com/waf/latest/developerguide/limits.html)
@@ -1075,19 +1077,19 @@ func (c *WAFRegional) CreateRuleRequest(input *waf.CreateRuleInput) (req *reques
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation CreateRule for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFStaleDataException "WAFStaleDataException"
+// Returned Error Types:
+//   * WAFStaleDataException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using a change token that has already been used.
 //
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFDisallowedNameException "WAFDisallowedNameException"
+//   * WAFDisallowedNameException
 //   The name specified is invalid.
 //
-//   * ErrCodeWAFInvalidParameterException "WAFInvalidParameterException"
+//   * WAFInvalidParameterException
 //   The operation failed because AWS WAF didn't recognize a parameter in the
 //   request. For example:
 //
@@ -1116,17 +1118,17 @@ func (c *WAFRegional) CreateRuleRequest(input *waf.CreateRuleInput) (req *reques
 //      * Your request references an ARN that is malformed, or corresponds to
 //      a resource with which a web ACL cannot be associated.
 //
-//   * ErrCodeWAFLimitsExceededException "WAFLimitsExceededException"
+//   * WAFLimitsExceededException
 //   The operation exceeds a resource limit, for example, the maximum number of
 //   WebACL objects that you can create for an AWS account. For more information,
 //   see Limits (https://docs.aws.amazon.com/waf/latest/developerguide/limits.html)
 //   in the AWS WAF Developer Guide.
 //
-//   * ErrCodeWAFTagOperationException "WAFTagOperationException"
+//   * WAFTagOperationException
 //
-//   * ErrCodeWAFTagOperationInternalErrorException "WAFTagOperationInternalErrorException"
+//   * WAFTagOperationInternalErrorException
 //
-//   * ErrCodeWAFBadRequestException "WAFBadRequestException"
+//   * WAFBadRequestException
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/waf-regional-2016-11-28/CreateRule
 func (c *WAFRegional) CreateRule(input *waf.CreateRuleInput) (*waf.CreateRuleOutput, error) {
@@ -1216,29 +1218,29 @@ func (c *WAFRegional) CreateRuleGroupRequest(input *waf.CreateRuleGroupInput) (r
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation CreateRuleGroup for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFStaleDataException "WAFStaleDataException"
+// Returned Error Types:
+//   * WAFStaleDataException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using a change token that has already been used.
 //
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFDisallowedNameException "WAFDisallowedNameException"
+//   * WAFDisallowedNameException
 //   The name specified is invalid.
 //
-//   * ErrCodeWAFLimitsExceededException "WAFLimitsExceededException"
+//   * WAFLimitsExceededException
 //   The operation exceeds a resource limit, for example, the maximum number of
 //   WebACL objects that you can create for an AWS account. For more information,
 //   see Limits (https://docs.aws.amazon.com/waf/latest/developerguide/limits.html)
 //   in the AWS WAF Developer Guide.
 //
-//   * ErrCodeWAFTagOperationException "WAFTagOperationException"
+//   * WAFTagOperationException
 //
-//   * ErrCodeWAFTagOperationInternalErrorException "WAFTagOperationInternalErrorException"
+//   * WAFTagOperationInternalErrorException
 //
-//   * ErrCodeWAFBadRequestException "WAFBadRequestException"
+//   * WAFBadRequestException
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/waf-regional-2016-11-28/CreateRuleGroup
 func (c *WAFRegional) CreateRuleGroup(input *waf.CreateRuleGroupInput) (*waf.CreateRuleGroupOutput, error) {
@@ -1337,23 +1339,23 @@ func (c *WAFRegional) CreateSizeConstraintSetRequest(input *waf.CreateSizeConstr
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation CreateSizeConstraintSet for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFStaleDataException "WAFStaleDataException"
+// Returned Error Types:
+//   * WAFStaleDataException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using a change token that has already been used.
 //
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFInvalidAccountException "WAFInvalidAccountException"
+//   * WAFInvalidAccountException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using an invalid account identifier.
 //
-//   * ErrCodeWAFDisallowedNameException "WAFDisallowedNameException"
+//   * WAFDisallowedNameException
 //   The name specified is invalid.
 //
-//   * ErrCodeWAFInvalidParameterException "WAFInvalidParameterException"
+//   * WAFInvalidParameterException
 //   The operation failed because AWS WAF didn't recognize a parameter in the
 //   request. For example:
 //
@@ -1382,7 +1384,7 @@ func (c *WAFRegional) CreateSizeConstraintSetRequest(input *waf.CreateSizeConstr
 //      * Your request references an ARN that is malformed, or corresponds to
 //      a resource with which a web ACL cannot be associated.
 //
-//   * ErrCodeWAFLimitsExceededException "WAFLimitsExceededException"
+//   * WAFLimitsExceededException
 //   The operation exceeds a resource limit, for example, the maximum number of
 //   WebACL objects that you can create for an AWS account. For more information,
 //   see Limits (https://docs.aws.amazon.com/waf/latest/developerguide/limits.html)
@@ -1481,19 +1483,19 @@ func (c *WAFRegional) CreateSqlInjectionMatchSetRequest(input *waf.CreateSqlInje
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation CreateSqlInjectionMatchSet for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFDisallowedNameException "WAFDisallowedNameException"
+// Returned Error Types:
+//   * WAFDisallowedNameException
 //   The name specified is invalid.
 //
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFInvalidAccountException "WAFInvalidAccountException"
+//   * WAFInvalidAccountException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using an invalid account identifier.
 //
-//   * ErrCodeWAFInvalidParameterException "WAFInvalidParameterException"
+//   * WAFInvalidParameterException
 //   The operation failed because AWS WAF didn't recognize a parameter in the
 //   request. For example:
 //
@@ -1522,11 +1524,11 @@ func (c *WAFRegional) CreateSqlInjectionMatchSetRequest(input *waf.CreateSqlInje
 //      * Your request references an ARN that is malformed, or corresponds to
 //      a resource with which a web ACL cannot be associated.
 //
-//   * ErrCodeWAFStaleDataException "WAFStaleDataException"
+//   * WAFStaleDataException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using a change token that has already been used.
 //
-//   * ErrCodeWAFLimitsExceededException "WAFLimitsExceededException"
+//   * WAFLimitsExceededException
 //   The operation exceeds a resource limit, for example, the maximum number of
 //   WebACL objects that you can create for an AWS account. For more information,
 //   see Limits (https://docs.aws.amazon.com/waf/latest/developerguide/limits.html)
@@ -1637,23 +1639,23 @@ func (c *WAFRegional) CreateWebACLRequest(input *waf.CreateWebACLInput) (req *re
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation CreateWebACL for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFStaleDataException "WAFStaleDataException"
+// Returned Error Types:
+//   * WAFStaleDataException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using a change token that has already been used.
 //
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFInvalidAccountException "WAFInvalidAccountException"
+//   * WAFInvalidAccountException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using an invalid account identifier.
 //
-//   * ErrCodeWAFDisallowedNameException "WAFDisallowedNameException"
+//   * WAFDisallowedNameException
 //   The name specified is invalid.
 //
-//   * ErrCodeWAFInvalidParameterException "WAFInvalidParameterException"
+//   * WAFInvalidParameterException
 //   The operation failed because AWS WAF didn't recognize a parameter in the
 //   request. For example:
 //
@@ -1682,17 +1684,17 @@ func (c *WAFRegional) CreateWebACLRequest(input *waf.CreateWebACLInput) (req *re
 //      * Your request references an ARN that is malformed, or corresponds to
 //      a resource with which a web ACL cannot be associated.
 //
-//   * ErrCodeWAFLimitsExceededException "WAFLimitsExceededException"
+//   * WAFLimitsExceededException
 //   The operation exceeds a resource limit, for example, the maximum number of
 //   WebACL objects that you can create for an AWS account. For more information,
 //   see Limits (https://docs.aws.amazon.com/waf/latest/developerguide/limits.html)
 //   in the AWS WAF Developer Guide.
 //
-//   * ErrCodeWAFTagOperationException "WAFTagOperationException"
+//   * WAFTagOperationException
 //
-//   * ErrCodeWAFTagOperationInternalErrorException "WAFTagOperationInternalErrorException"
+//   * WAFTagOperationInternalErrorException
 //
-//   * ErrCodeWAFBadRequestException "WAFBadRequestException"
+//   * WAFBadRequestException
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/waf-regional-2016-11-28/CreateWebACL
 func (c *WAFRegional) CreateWebACL(input *waf.CreateWebACLInput) (*waf.CreateWebACLOutput, error) {
@@ -1788,19 +1790,19 @@ func (c *WAFRegional) CreateXssMatchSetRequest(input *waf.CreateXssMatchSetInput
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation CreateXssMatchSet for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFDisallowedNameException "WAFDisallowedNameException"
+// Returned Error Types:
+//   * WAFDisallowedNameException
 //   The name specified is invalid.
 //
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFInvalidAccountException "WAFInvalidAccountException"
+//   * WAFInvalidAccountException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using an invalid account identifier.
 //
-//   * ErrCodeWAFInvalidParameterException "WAFInvalidParameterException"
+//   * WAFInvalidParameterException
 //   The operation failed because AWS WAF didn't recognize a parameter in the
 //   request. For example:
 //
@@ -1829,11 +1831,11 @@ func (c *WAFRegional) CreateXssMatchSetRequest(input *waf.CreateXssMatchSetInput
 //      * Your request references an ARN that is malformed, or corresponds to
 //      a resource with which a web ACL cannot be associated.
 //
-//   * ErrCodeWAFStaleDataException "WAFStaleDataException"
+//   * WAFStaleDataException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using a change token that has already been used.
 //
-//   * ErrCodeWAFLimitsExceededException "WAFLimitsExceededException"
+//   * WAFLimitsExceededException
 //   The operation exceeds a resource limit, for example, the maximum number of
 //   WebACL objects that you can create for an AWS account. For more information,
 //   see Limits (https://docs.aws.amazon.com/waf/latest/developerguide/limits.html)
@@ -1928,19 +1930,19 @@ func (c *WAFRegional) DeleteByteMatchSetRequest(input *waf.DeleteByteMatchSetInp
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation DeleteByteMatchSet for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+// Returned Error Types:
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFInvalidAccountException "WAFInvalidAccountException"
+//   * WAFInvalidAccountException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using an invalid account identifier.
 //
-//   * ErrCodeWAFNonexistentItemException "WAFNonexistentItemException"
+//   * WAFNonexistentItemException
 //   The operation failed because the referenced object doesn't exist.
 //
-//   * ErrCodeWAFReferencedItemException "WAFReferencedItemException"
+//   * WAFReferencedItemException
 //   The operation failed because you tried to delete an object that is still
 //   in use. For example:
 //
@@ -1948,11 +1950,11 @@ func (c *WAFRegional) DeleteByteMatchSetRequest(input *waf.DeleteByteMatchSetInp
 //
 //      * You tried to delete a Rule that is still referenced by a WebACL.
 //
-//   * ErrCodeWAFStaleDataException "WAFStaleDataException"
+//   * WAFStaleDataException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using a change token that has already been used.
 //
-//   * ErrCodeWAFNonEmptyEntityException "WAFNonEmptyEntityException"
+//   * WAFNonEmptyEntityException
 //   The operation failed because you tried to delete an object that isn't empty.
 //   For example:
 //
@@ -2054,23 +2056,23 @@ func (c *WAFRegional) DeleteGeoMatchSetRequest(input *waf.DeleteGeoMatchSetInput
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation DeleteGeoMatchSet for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFStaleDataException "WAFStaleDataException"
+// Returned Error Types:
+//   * WAFStaleDataException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using a change token that has already been used.
 //
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFInvalidAccountException "WAFInvalidAccountException"
+//   * WAFInvalidAccountException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using an invalid account identifier.
 //
-//   * ErrCodeWAFNonexistentItemException "WAFNonexistentItemException"
+//   * WAFNonexistentItemException
 //   The operation failed because the referenced object doesn't exist.
 //
-//   * ErrCodeWAFReferencedItemException "WAFReferencedItemException"
+//   * WAFReferencedItemException
 //   The operation failed because you tried to delete an object that is still
 //   in use. For example:
 //
@@ -2078,7 +2080,7 @@ func (c *WAFRegional) DeleteGeoMatchSetRequest(input *waf.DeleteGeoMatchSetInput
 //
 //      * You tried to delete a Rule that is still referenced by a WebACL.
 //
-//   * ErrCodeWAFNonEmptyEntityException "WAFNonEmptyEntityException"
+//   * WAFNonEmptyEntityException
 //   The operation failed because you tried to delete an object that isn't empty.
 //   For example:
 //
@@ -2180,23 +2182,23 @@ func (c *WAFRegional) DeleteIPSetRequest(input *waf.DeleteIPSetInput) (req *requ
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation DeleteIPSet for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFStaleDataException "WAFStaleDataException"
+// Returned Error Types:
+//   * WAFStaleDataException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using a change token that has already been used.
 //
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFInvalidAccountException "WAFInvalidAccountException"
+//   * WAFInvalidAccountException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using an invalid account identifier.
 //
-//   * ErrCodeWAFNonexistentItemException "WAFNonexistentItemException"
+//   * WAFNonexistentItemException
 //   The operation failed because the referenced object doesn't exist.
 //
-//   * ErrCodeWAFReferencedItemException "WAFReferencedItemException"
+//   * WAFReferencedItemException
 //   The operation failed because you tried to delete an object that is still
 //   in use. For example:
 //
@@ -2204,7 +2206,7 @@ func (c *WAFRegional) DeleteIPSetRequest(input *waf.DeleteIPSetInput) (req *requ
 //
 //      * You tried to delete a Rule that is still referenced by a WebACL.
 //
-//   * ErrCodeWAFNonEmptyEntityException "WAFNonEmptyEntityException"
+//   * WAFNonEmptyEntityException
 //   The operation failed because you tried to delete an object that isn't empty.
 //   For example:
 //
@@ -2294,15 +2296,15 @@ func (c *WAFRegional) DeleteLoggingConfigurationRequest(input *waf.DeleteLogging
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation DeleteLoggingConfiguration for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+// Returned Error Types:
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFNonexistentItemException "WAFNonexistentItemException"
+//   * WAFNonexistentItemException
 //   The operation failed because the referenced object doesn't exist.
 //
-//   * ErrCodeWAFStaleDataException "WAFStaleDataException"
+//   * WAFStaleDataException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using a change token that has already been used.
 //
@@ -2384,16 +2386,16 @@ func (c *WAFRegional) DeletePermissionPolicyRequest(input *waf.DeletePermissionP
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation DeletePermissionPolicy for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+// Returned Error Types:
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFStaleDataException "WAFStaleDataException"
+//   * WAFStaleDataException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using a change token that has already been used.
 //
-//   * ErrCodeWAFNonexistentItemException "WAFNonexistentItemException"
+//   * WAFNonexistentItemException
 //   The operation failed because the referenced object doesn't exist.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/waf-regional-2016-11-28/DeletePermissionPolicy
@@ -2486,23 +2488,23 @@ func (c *WAFRegional) DeleteRateBasedRuleRequest(input *waf.DeleteRateBasedRuleI
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation DeleteRateBasedRule for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFStaleDataException "WAFStaleDataException"
+// Returned Error Types:
+//   * WAFStaleDataException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using a change token that has already been used.
 //
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFInvalidAccountException "WAFInvalidAccountException"
+//   * WAFInvalidAccountException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using an invalid account identifier.
 //
-//   * ErrCodeWAFNonexistentItemException "WAFNonexistentItemException"
+//   * WAFNonexistentItemException
 //   The operation failed because the referenced object doesn't exist.
 //
-//   * ErrCodeWAFReferencedItemException "WAFReferencedItemException"
+//   * WAFReferencedItemException
 //   The operation failed because you tried to delete an object that is still
 //   in use. For example:
 //
@@ -2510,7 +2512,7 @@ func (c *WAFRegional) DeleteRateBasedRuleRequest(input *waf.DeleteRateBasedRuleI
 //
 //      * You tried to delete a Rule that is still referenced by a WebACL.
 //
-//   * ErrCodeWAFNonEmptyEntityException "WAFNonEmptyEntityException"
+//   * WAFNonEmptyEntityException
 //   The operation failed because you tried to delete an object that isn't empty.
 //   For example:
 //
@@ -2524,9 +2526,9 @@ func (c *WAFRegional) DeleteRateBasedRuleRequest(input *waf.DeleteRateBasedRuleI
 //
 //      * You tried to delete an IPSet that references one or more IP addresses.
 //
-//   * ErrCodeWAFTagOperationException "WAFTagOperationException"
+//   * WAFTagOperationException
 //
-//   * ErrCodeWAFTagOperationInternalErrorException "WAFTagOperationInternalErrorException"
+//   * WAFTagOperationInternalErrorException
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/waf-regional-2016-11-28/DeleteRateBasedRule
 func (c *WAFRegional) DeleteRateBasedRule(input *waf.DeleteRateBasedRuleInput) (*waf.DeleteRateBasedRuleOutput, error) {
@@ -2617,19 +2619,19 @@ func (c *WAFRegional) DeleteRegexMatchSetRequest(input *waf.DeleteRegexMatchSetI
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation DeleteRegexMatchSet for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+// Returned Error Types:
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFInvalidAccountException "WAFInvalidAccountException"
+//   * WAFInvalidAccountException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using an invalid account identifier.
 //
-//   * ErrCodeWAFNonexistentItemException "WAFNonexistentItemException"
+//   * WAFNonexistentItemException
 //   The operation failed because the referenced object doesn't exist.
 //
-//   * ErrCodeWAFReferencedItemException "WAFReferencedItemException"
+//   * WAFReferencedItemException
 //   The operation failed because you tried to delete an object that is still
 //   in use. For example:
 //
@@ -2637,11 +2639,11 @@ func (c *WAFRegional) DeleteRegexMatchSetRequest(input *waf.DeleteRegexMatchSetI
 //
 //      * You tried to delete a Rule that is still referenced by a WebACL.
 //
-//   * ErrCodeWAFStaleDataException "WAFStaleDataException"
+//   * WAFStaleDataException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using a change token that has already been used.
 //
-//   * ErrCodeWAFNonEmptyEntityException "WAFNonEmptyEntityException"
+//   * WAFNonEmptyEntityException
 //   The operation failed because you tried to delete an object that isn't empty.
 //   For example:
 //
@@ -2732,19 +2734,19 @@ func (c *WAFRegional) DeleteRegexPatternSetRequest(input *waf.DeleteRegexPattern
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation DeleteRegexPatternSet for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+// Returned Error Types:
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFInvalidAccountException "WAFInvalidAccountException"
+//   * WAFInvalidAccountException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using an invalid account identifier.
 //
-//   * ErrCodeWAFNonexistentItemException "WAFNonexistentItemException"
+//   * WAFNonexistentItemException
 //   The operation failed because the referenced object doesn't exist.
 //
-//   * ErrCodeWAFReferencedItemException "WAFReferencedItemException"
+//   * WAFReferencedItemException
 //   The operation failed because you tried to delete an object that is still
 //   in use. For example:
 //
@@ -2752,11 +2754,11 @@ func (c *WAFRegional) DeleteRegexPatternSetRequest(input *waf.DeleteRegexPattern
 //
 //      * You tried to delete a Rule that is still referenced by a WebACL.
 //
-//   * ErrCodeWAFStaleDataException "WAFStaleDataException"
+//   * WAFStaleDataException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using a change token that has already been used.
 //
-//   * ErrCodeWAFNonEmptyEntityException "WAFNonEmptyEntityException"
+//   * WAFNonEmptyEntityException
 //   The operation failed because you tried to delete an object that isn't empty.
 //   For example:
 //
@@ -2858,23 +2860,23 @@ func (c *WAFRegional) DeleteRuleRequest(input *waf.DeleteRuleInput) (req *reques
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation DeleteRule for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFStaleDataException "WAFStaleDataException"
+// Returned Error Types:
+//   * WAFStaleDataException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using a change token that has already been used.
 //
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFInvalidAccountException "WAFInvalidAccountException"
+//   * WAFInvalidAccountException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using an invalid account identifier.
 //
-//   * ErrCodeWAFNonexistentItemException "WAFNonexistentItemException"
+//   * WAFNonexistentItemException
 //   The operation failed because the referenced object doesn't exist.
 //
-//   * ErrCodeWAFReferencedItemException "WAFReferencedItemException"
+//   * WAFReferencedItemException
 //   The operation failed because you tried to delete an object that is still
 //   in use. For example:
 //
@@ -2882,7 +2884,7 @@ func (c *WAFRegional) DeleteRuleRequest(input *waf.DeleteRuleInput) (req *reques
 //
 //      * You tried to delete a Rule that is still referenced by a WebACL.
 //
-//   * ErrCodeWAFNonEmptyEntityException "WAFNonEmptyEntityException"
+//   * WAFNonEmptyEntityException
 //   The operation failed because you tried to delete an object that isn't empty.
 //   For example:
 //
@@ -2896,9 +2898,9 @@ func (c *WAFRegional) DeleteRuleRequest(input *waf.DeleteRuleInput) (req *reques
 //
 //      * You tried to delete an IPSet that references one or more IP addresses.
 //
-//   * ErrCodeWAFTagOperationException "WAFTagOperationException"
+//   * WAFTagOperationException
 //
-//   * ErrCodeWAFTagOperationInternalErrorException "WAFTagOperationInternalErrorException"
+//   * WAFTagOperationInternalErrorException
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/waf-regional-2016-11-28/DeleteRule
 func (c *WAFRegional) DeleteRule(input *waf.DeleteRuleInput) (*waf.DeleteRuleOutput, error) {
@@ -2987,19 +2989,19 @@ func (c *WAFRegional) DeleteRuleGroupRequest(input *waf.DeleteRuleGroupInput) (r
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation DeleteRuleGroup for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFStaleDataException "WAFStaleDataException"
+// Returned Error Types:
+//   * WAFStaleDataException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using a change token that has already been used.
 //
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFNonexistentItemException "WAFNonexistentItemException"
+//   * WAFNonexistentItemException
 //   The operation failed because the referenced object doesn't exist.
 //
-//   * ErrCodeWAFReferencedItemException "WAFReferencedItemException"
+//   * WAFReferencedItemException
 //   The operation failed because you tried to delete an object that is still
 //   in use. For example:
 //
@@ -3007,7 +3009,7 @@ func (c *WAFRegional) DeleteRuleGroupRequest(input *waf.DeleteRuleGroupInput) (r
 //
 //      * You tried to delete a Rule that is still referenced by a WebACL.
 //
-//   * ErrCodeWAFNonEmptyEntityException "WAFNonEmptyEntityException"
+//   * WAFNonEmptyEntityException
 //   The operation failed because you tried to delete an object that isn't empty.
 //   For example:
 //
@@ -3021,7 +3023,7 @@ func (c *WAFRegional) DeleteRuleGroupRequest(input *waf.DeleteRuleGroupInput) (r
 //
 //      * You tried to delete an IPSet that references one or more IP addresses.
 //
-//   * ErrCodeWAFInvalidOperationException "WAFInvalidOperationException"
+//   * WAFInvalidOperationException
 //   The operation failed because there was nothing to do. For example:
 //
 //      * You tried to remove a Rule from a WebACL, but the Rule isn't in the
@@ -3039,9 +3041,9 @@ func (c *WAFRegional) DeleteRuleGroupRequest(input *waf.DeleteRuleGroupInput) (r
 //      * You tried to add a ByteMatchTuple to a ByteMatchSet, but the ByteMatchTuple
 //      already exists in the specified WebACL.
 //
-//   * ErrCodeWAFTagOperationException "WAFTagOperationException"
+//   * WAFTagOperationException
 //
-//   * ErrCodeWAFTagOperationInternalErrorException "WAFTagOperationInternalErrorException"
+//   * WAFTagOperationInternalErrorException
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/waf-regional-2016-11-28/DeleteRuleGroup
 func (c *WAFRegional) DeleteRuleGroup(input *waf.DeleteRuleGroupInput) (*waf.DeleteRuleGroupOutput, error) {
@@ -3132,23 +3134,23 @@ func (c *WAFRegional) DeleteSizeConstraintSetRequest(input *waf.DeleteSizeConstr
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation DeleteSizeConstraintSet for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFStaleDataException "WAFStaleDataException"
+// Returned Error Types:
+//   * WAFStaleDataException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using a change token that has already been used.
 //
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFInvalidAccountException "WAFInvalidAccountException"
+//   * WAFInvalidAccountException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using an invalid account identifier.
 //
-//   * ErrCodeWAFNonexistentItemException "WAFNonexistentItemException"
+//   * WAFNonexistentItemException
 //   The operation failed because the referenced object doesn't exist.
 //
-//   * ErrCodeWAFReferencedItemException "WAFReferencedItemException"
+//   * WAFReferencedItemException
 //   The operation failed because you tried to delete an object that is still
 //   in use. For example:
 //
@@ -3156,7 +3158,7 @@ func (c *WAFRegional) DeleteSizeConstraintSetRequest(input *waf.DeleteSizeConstr
 //
 //      * You tried to delete a Rule that is still referenced by a WebACL.
 //
-//   * ErrCodeWAFNonEmptyEntityException "WAFNonEmptyEntityException"
+//   * WAFNonEmptyEntityException
 //   The operation failed because you tried to delete an object that isn't empty.
 //   For example:
 //
@@ -3260,19 +3262,19 @@ func (c *WAFRegional) DeleteSqlInjectionMatchSetRequest(input *waf.DeleteSqlInje
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation DeleteSqlInjectionMatchSet for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+// Returned Error Types:
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFInvalidAccountException "WAFInvalidAccountException"
+//   * WAFInvalidAccountException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using an invalid account identifier.
 //
-//   * ErrCodeWAFNonexistentItemException "WAFNonexistentItemException"
+//   * WAFNonexistentItemException
 //   The operation failed because the referenced object doesn't exist.
 //
-//   * ErrCodeWAFReferencedItemException "WAFReferencedItemException"
+//   * WAFReferencedItemException
 //   The operation failed because you tried to delete an object that is still
 //   in use. For example:
 //
@@ -3280,11 +3282,11 @@ func (c *WAFRegional) DeleteSqlInjectionMatchSetRequest(input *waf.DeleteSqlInje
 //
 //      * You tried to delete a Rule that is still referenced by a WebACL.
 //
-//   * ErrCodeWAFStaleDataException "WAFStaleDataException"
+//   * WAFStaleDataException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using a change token that has already been used.
 //
-//   * ErrCodeWAFNonEmptyEntityException "WAFNonEmptyEntityException"
+//   * WAFNonEmptyEntityException
 //   The operation failed because you tried to delete an object that isn't empty.
 //   For example:
 //
@@ -3383,23 +3385,23 @@ func (c *WAFRegional) DeleteWebACLRequest(input *waf.DeleteWebACLInput) (req *re
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation DeleteWebACL for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFStaleDataException "WAFStaleDataException"
+// Returned Error Types:
+//   * WAFStaleDataException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using a change token that has already been used.
 //
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFInvalidAccountException "WAFInvalidAccountException"
+//   * WAFInvalidAccountException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using an invalid account identifier.
 //
-//   * ErrCodeWAFNonexistentItemException "WAFNonexistentItemException"
+//   * WAFNonexistentItemException
 //   The operation failed because the referenced object doesn't exist.
 //
-//   * ErrCodeWAFReferencedItemException "WAFReferencedItemException"
+//   * WAFReferencedItemException
 //   The operation failed because you tried to delete an object that is still
 //   in use. For example:
 //
@@ -3407,7 +3409,7 @@ func (c *WAFRegional) DeleteWebACLRequest(input *waf.DeleteWebACLInput) (req *re
 //
 //      * You tried to delete a Rule that is still referenced by a WebACL.
 //
-//   * ErrCodeWAFNonEmptyEntityException "WAFNonEmptyEntityException"
+//   * WAFNonEmptyEntityException
 //   The operation failed because you tried to delete an object that isn't empty.
 //   For example:
 //
@@ -3421,9 +3423,9 @@ func (c *WAFRegional) DeleteWebACLRequest(input *waf.DeleteWebACLInput) (req *re
 //
 //      * You tried to delete an IPSet that references one or more IP addresses.
 //
-//   * ErrCodeWAFTagOperationException "WAFTagOperationException"
+//   * WAFTagOperationException
 //
-//   * ErrCodeWAFTagOperationInternalErrorException "WAFTagOperationInternalErrorException"
+//   * WAFTagOperationInternalErrorException
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/waf-regional-2016-11-28/DeleteWebACL
 func (c *WAFRegional) DeleteWebACL(input *waf.DeleteWebACLInput) (*waf.DeleteWebACLOutput, error) {
@@ -3514,19 +3516,19 @@ func (c *WAFRegional) DeleteXssMatchSetRequest(input *waf.DeleteXssMatchSetInput
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation DeleteXssMatchSet for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+// Returned Error Types:
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFInvalidAccountException "WAFInvalidAccountException"
+//   * WAFInvalidAccountException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using an invalid account identifier.
 //
-//   * ErrCodeWAFNonexistentItemException "WAFNonexistentItemException"
+//   * WAFNonexistentItemException
 //   The operation failed because the referenced object doesn't exist.
 //
-//   * ErrCodeWAFReferencedItemException "WAFReferencedItemException"
+//   * WAFReferencedItemException
 //   The operation failed because you tried to delete an object that is still
 //   in use. For example:
 //
@@ -3534,11 +3536,11 @@ func (c *WAFRegional) DeleteXssMatchSetRequest(input *waf.DeleteXssMatchSetInput
 //
 //      * You tried to delete a Rule that is still referenced by a WebACL.
 //
-//   * ErrCodeWAFStaleDataException "WAFStaleDataException"
+//   * WAFStaleDataException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using a change token that has already been used.
 //
-//   * ErrCodeWAFNonEmptyEntityException "WAFNonEmptyEntityException"
+//   * WAFNonEmptyEntityException
 //   The operation failed because you tried to delete an object that isn't empty.
 //   For example:
 //
@@ -3629,16 +3631,16 @@ func (c *WAFRegional) DisassociateWebACLRequest(input *DisassociateWebACLInput) 
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation DisassociateWebACL for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+// Returned Error Types:
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFInvalidAccountException "WAFInvalidAccountException"
+//   * WAFInvalidAccountException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using an invalid account identifier.
 //
-//   * ErrCodeWAFInvalidParameterException "WAFInvalidParameterException"
+//   * WAFInvalidParameterException
 //   The operation failed because AWS WAF didn't recognize a parameter in the
 //   request. For example:
 //
@@ -3667,7 +3669,7 @@ func (c *WAFRegional) DisassociateWebACLRequest(input *DisassociateWebACLInput) 
 //      * Your request references an ARN that is malformed, or corresponds to
 //      a resource with which a web ACL cannot be associated.
 //
-//   * ErrCodeWAFNonexistentItemException "WAFNonexistentItemException"
+//   * WAFNonexistentItemException
 //   The operation failed because the referenced object doesn't exist.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/waf-regional-2016-11-28/DisassociateWebACL
@@ -3745,16 +3747,16 @@ func (c *WAFRegional) GetByteMatchSetRequest(input *waf.GetByteMatchSetInput) (r
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation GetByteMatchSet for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+// Returned Error Types:
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFInvalidAccountException "WAFInvalidAccountException"
+//   * WAFInvalidAccountException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using an invalid account identifier.
 //
-//   * ErrCodeWAFNonexistentItemException "WAFNonexistentItemException"
+//   * WAFNonexistentItemException
 //   The operation failed because the referenced object doesn't exist.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/waf-regional-2016-11-28/GetByteMatchSet
@@ -3846,8 +3848,8 @@ func (c *WAFRegional) GetChangeTokenRequest(input *waf.GetChangeTokenInput) (req
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation GetChangeToken for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+// Returned Error Types:
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
@@ -3936,11 +3938,11 @@ func (c *WAFRegional) GetChangeTokenStatusRequest(input *waf.GetChangeTokenStatu
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation GetChangeTokenStatus for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFNonexistentItemException "WAFNonexistentItemException"
+// Returned Error Types:
+//   * WAFNonexistentItemException
 //   The operation failed because the referenced object doesn't exist.
 //
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
@@ -4019,16 +4021,16 @@ func (c *WAFRegional) GetGeoMatchSetRequest(input *waf.GetGeoMatchSetInput) (req
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation GetGeoMatchSet for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+// Returned Error Types:
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFInvalidAccountException "WAFInvalidAccountException"
+//   * WAFInvalidAccountException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using an invalid account identifier.
 //
-//   * ErrCodeWAFNonexistentItemException "WAFNonexistentItemException"
+//   * WAFNonexistentItemException
 //   The operation failed because the referenced object doesn't exist.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/waf-regional-2016-11-28/GetGeoMatchSet
@@ -4106,16 +4108,16 @@ func (c *WAFRegional) GetIPSetRequest(input *waf.GetIPSetInput) (req *request.Re
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation GetIPSet for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+// Returned Error Types:
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFInvalidAccountException "WAFInvalidAccountException"
+//   * WAFInvalidAccountException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using an invalid account identifier.
 //
-//   * ErrCodeWAFNonexistentItemException "WAFNonexistentItemException"
+//   * WAFNonexistentItemException
 //   The operation failed because the referenced object doesn't exist.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/waf-regional-2016-11-28/GetIPSet
@@ -4193,12 +4195,12 @@ func (c *WAFRegional) GetLoggingConfigurationRequest(input *waf.GetLoggingConfig
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation GetLoggingConfiguration for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+// Returned Error Types:
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFNonexistentItemException "WAFNonexistentItemException"
+//   * WAFNonexistentItemException
 //   The operation failed because the referenced object doesn't exist.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/waf-regional-2016-11-28/GetLoggingConfiguration
@@ -4276,12 +4278,12 @@ func (c *WAFRegional) GetPermissionPolicyRequest(input *waf.GetPermissionPolicyI
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation GetPermissionPolicy for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+// Returned Error Types:
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFNonexistentItemException "WAFNonexistentItemException"
+//   * WAFNonexistentItemException
 //   The operation failed because the referenced object doesn't exist.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/waf-regional-2016-11-28/GetPermissionPolicy
@@ -4360,16 +4362,16 @@ func (c *WAFRegional) GetRateBasedRuleRequest(input *waf.GetRateBasedRuleInput) 
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation GetRateBasedRule for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+// Returned Error Types:
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFInvalidAccountException "WAFInvalidAccountException"
+//   * WAFInvalidAccountException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using an invalid account identifier.
 //
-//   * ErrCodeWAFNonexistentItemException "WAFNonexistentItemException"
+//   * WAFNonexistentItemException
 //   The operation failed because the referenced object doesn't exist.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/waf-regional-2016-11-28/GetRateBasedRule
@@ -4450,19 +4452,19 @@ func (c *WAFRegional) GetRateBasedRuleManagedKeysRequest(input *waf.GetRateBased
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation GetRateBasedRuleManagedKeys for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+// Returned Error Types:
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFInvalidAccountException "WAFInvalidAccountException"
+//   * WAFInvalidAccountException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using an invalid account identifier.
 //
-//   * ErrCodeWAFNonexistentItemException "WAFNonexistentItemException"
+//   * WAFNonexistentItemException
 //   The operation failed because the referenced object doesn't exist.
 //
-//   * ErrCodeWAFInvalidParameterException "WAFInvalidParameterException"
+//   * WAFInvalidParameterException
 //   The operation failed because AWS WAF didn't recognize a parameter in the
 //   request. For example:
 //
@@ -4566,16 +4568,16 @@ func (c *WAFRegional) GetRegexMatchSetRequest(input *waf.GetRegexMatchSetInput) 
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation GetRegexMatchSet for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+// Returned Error Types:
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFInvalidAccountException "WAFInvalidAccountException"
+//   * WAFInvalidAccountException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using an invalid account identifier.
 //
-//   * ErrCodeWAFNonexistentItemException "WAFNonexistentItemException"
+//   * WAFNonexistentItemException
 //   The operation failed because the referenced object doesn't exist.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/waf-regional-2016-11-28/GetRegexMatchSet
@@ -4653,16 +4655,16 @@ func (c *WAFRegional) GetRegexPatternSetRequest(input *waf.GetRegexPatternSetInp
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation GetRegexPatternSet for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+// Returned Error Types:
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFInvalidAccountException "WAFInvalidAccountException"
+//   * WAFInvalidAccountException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using an invalid account identifier.
 //
-//   * ErrCodeWAFNonexistentItemException "WAFNonexistentItemException"
+//   * WAFNonexistentItemException
 //   The operation failed because the referenced object doesn't exist.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/waf-regional-2016-11-28/GetRegexPatternSet
@@ -4741,16 +4743,16 @@ func (c *WAFRegional) GetRuleRequest(input *waf.GetRuleInput) (req *request.Requ
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation GetRule for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+// Returned Error Types:
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFInvalidAccountException "WAFInvalidAccountException"
+//   * WAFInvalidAccountException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using an invalid account identifier.
 //
-//   * ErrCodeWAFNonexistentItemException "WAFNonexistentItemException"
+//   * WAFNonexistentItemException
 //   The operation failed because the referenced object doesn't exist.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/waf-regional-2016-11-28/GetRule
@@ -4831,12 +4833,12 @@ func (c *WAFRegional) GetRuleGroupRequest(input *waf.GetRuleGroupInput) (req *re
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation GetRuleGroup for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+// Returned Error Types:
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFNonexistentItemException "WAFNonexistentItemException"
+//   * WAFNonexistentItemException
 //   The operation failed because the referenced object doesn't exist.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/waf-regional-2016-11-28/GetRuleGroup
@@ -4924,11 +4926,11 @@ func (c *WAFRegional) GetSampledRequestsRequest(input *waf.GetSampledRequestsInp
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation GetSampledRequests for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFNonexistentItemException "WAFNonexistentItemException"
+// Returned Error Types:
+//   * WAFNonexistentItemException
 //   The operation failed because the referenced object doesn't exist.
 //
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
@@ -5007,16 +5009,16 @@ func (c *WAFRegional) GetSizeConstraintSetRequest(input *waf.GetSizeConstraintSe
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation GetSizeConstraintSet for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+// Returned Error Types:
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFInvalidAccountException "WAFInvalidAccountException"
+//   * WAFInvalidAccountException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using an invalid account identifier.
 //
-//   * ErrCodeWAFNonexistentItemException "WAFNonexistentItemException"
+//   * WAFNonexistentItemException
 //   The operation failed because the referenced object doesn't exist.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/waf-regional-2016-11-28/GetSizeConstraintSet
@@ -5094,16 +5096,16 @@ func (c *WAFRegional) GetSqlInjectionMatchSetRequest(input *waf.GetSqlInjectionM
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation GetSqlInjectionMatchSet for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+// Returned Error Types:
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFInvalidAccountException "WAFInvalidAccountException"
+//   * WAFInvalidAccountException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using an invalid account identifier.
 //
-//   * ErrCodeWAFNonexistentItemException "WAFNonexistentItemException"
+//   * WAFNonexistentItemException
 //   The operation failed because the referenced object doesn't exist.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/waf-regional-2016-11-28/GetSqlInjectionMatchSet
@@ -5181,16 +5183,16 @@ func (c *WAFRegional) GetWebACLRequest(input *waf.GetWebACLInput) (req *request.
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation GetWebACL for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+// Returned Error Types:
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFInvalidAccountException "WAFInvalidAccountException"
+//   * WAFInvalidAccountException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using an invalid account identifier.
 //
-//   * ErrCodeWAFNonexistentItemException "WAFNonexistentItemException"
+//   * WAFNonexistentItemException
 //   The operation failed because the referenced object doesn't exist.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/waf-regional-2016-11-28/GetWebACL
@@ -5269,19 +5271,19 @@ func (c *WAFRegional) GetWebACLForResourceRequest(input *GetWebACLForResourceInp
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation GetWebACLForResource for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+// Returned Error Types:
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFInvalidAccountException "WAFInvalidAccountException"
+//   * WAFInvalidAccountException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using an invalid account identifier.
 //
-//   * ErrCodeWAFNonexistentItemException "WAFNonexistentItemException"
+//   * WAFNonexistentItemException
 //   The operation failed because the referenced object doesn't exist.
 //
-//   * ErrCodeWAFInvalidParameterException "WAFInvalidParameterException"
+//   * WAFInvalidParameterException
 //   The operation failed because AWS WAF didn't recognize a parameter in the
 //   request. For example:
 //
@@ -5310,7 +5312,7 @@ func (c *WAFRegional) GetWebACLForResourceRequest(input *GetWebACLForResourceInp
 //      * Your request references an ARN that is malformed, or corresponds to
 //      a resource with which a web ACL cannot be associated.
 //
-//   * ErrCodeWAFUnavailableEntityException "WAFUnavailableEntityException"
+//   * WAFUnavailableEntityException
 //   The operation failed because the entity referenced is temporarily unavailable.
 //   Retry your request.
 //
@@ -5389,16 +5391,16 @@ func (c *WAFRegional) GetXssMatchSetRequest(input *waf.GetXssMatchSetInput) (req
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation GetXssMatchSet for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+// Returned Error Types:
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFInvalidAccountException "WAFInvalidAccountException"
+//   * WAFInvalidAccountException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using an invalid account identifier.
 //
-//   * ErrCodeWAFNonexistentItemException "WAFNonexistentItemException"
+//   * WAFNonexistentItemException
 //   The operation failed because the referenced object doesn't exist.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/waf-regional-2016-11-28/GetXssMatchSet
@@ -5476,15 +5478,15 @@ func (c *WAFRegional) ListActivatedRulesInRuleGroupRequest(input *waf.ListActiva
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation ListActivatedRulesInRuleGroup for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+// Returned Error Types:
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFNonexistentItemException "WAFNonexistentItemException"
+//   * WAFNonexistentItemException
 //   The operation failed because the referenced object doesn't exist.
 //
-//   * ErrCodeWAFInvalidParameterException "WAFInvalidParameterException"
+//   * WAFInvalidParameterException
 //   The operation failed because AWS WAF didn't recognize a parameter in the
 //   request. For example:
 //
@@ -5588,12 +5590,12 @@ func (c *WAFRegional) ListByteMatchSetsRequest(input *waf.ListByteMatchSetsInput
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation ListByteMatchSets for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+// Returned Error Types:
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFInvalidAccountException "WAFInvalidAccountException"
+//   * WAFInvalidAccountException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using an invalid account identifier.
 //
@@ -5672,12 +5674,12 @@ func (c *WAFRegional) ListGeoMatchSetsRequest(input *waf.ListGeoMatchSetsInput) 
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation ListGeoMatchSets for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+// Returned Error Types:
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFInvalidAccountException "WAFInvalidAccountException"
+//   * WAFInvalidAccountException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using an invalid account identifier.
 //
@@ -5756,12 +5758,12 @@ func (c *WAFRegional) ListIPSetsRequest(input *waf.ListIPSetsInput) (req *reques
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation ListIPSets for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+// Returned Error Types:
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFInvalidAccountException "WAFInvalidAccountException"
+//   * WAFInvalidAccountException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using an invalid account identifier.
 //
@@ -5840,15 +5842,15 @@ func (c *WAFRegional) ListLoggingConfigurationsRequest(input *waf.ListLoggingCon
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation ListLoggingConfigurations for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+// Returned Error Types:
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFNonexistentItemException "WAFNonexistentItemException"
+//   * WAFNonexistentItemException
 //   The operation failed because the referenced object doesn't exist.
 //
-//   * ErrCodeWAFInvalidParameterException "WAFInvalidParameterException"
+//   * WAFInvalidParameterException
 //   The operation failed because AWS WAF didn't recognize a parameter in the
 //   request. For example:
 //
@@ -5952,12 +5954,12 @@ func (c *WAFRegional) ListRateBasedRulesRequest(input *waf.ListRateBasedRulesInp
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation ListRateBasedRules for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+// Returned Error Types:
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFInvalidAccountException "WAFInvalidAccountException"
+//   * WAFInvalidAccountException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using an invalid account identifier.
 //
@@ -6036,12 +6038,12 @@ func (c *WAFRegional) ListRegexMatchSetsRequest(input *waf.ListRegexMatchSetsInp
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation ListRegexMatchSets for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+// Returned Error Types:
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFInvalidAccountException "WAFInvalidAccountException"
+//   * WAFInvalidAccountException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using an invalid account identifier.
 //
@@ -6120,12 +6122,12 @@ func (c *WAFRegional) ListRegexPatternSetsRequest(input *waf.ListRegexPatternSet
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation ListRegexPatternSets for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+// Returned Error Types:
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFInvalidAccountException "WAFInvalidAccountException"
+//   * WAFInvalidAccountException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using an invalid account identifier.
 //
@@ -6204,19 +6206,19 @@ func (c *WAFRegional) ListResourcesForWebACLRequest(input *ListResourcesForWebAC
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation ListResourcesForWebACL for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+// Returned Error Types:
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFInvalidAccountException "WAFInvalidAccountException"
+//   * WAFInvalidAccountException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using an invalid account identifier.
 //
-//   * ErrCodeWAFNonexistentItemException "WAFNonexistentItemException"
+//   * WAFNonexistentItemException
 //   The operation failed because the referenced object doesn't exist.
 //
-//   * ErrCodeWAFInvalidParameterException "WAFInvalidParameterException"
+//   * WAFInvalidParameterException
 //   The operation failed because AWS WAF didn't recognize a parameter in the
 //   request. For example:
 //
@@ -6320,8 +6322,8 @@ func (c *WAFRegional) ListRuleGroupsRequest(input *waf.ListRuleGroupsInput) (req
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation ListRuleGroups for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+// Returned Error Types:
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
@@ -6400,12 +6402,12 @@ func (c *WAFRegional) ListRulesRequest(input *waf.ListRulesInput) (req *request.
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation ListRules for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+// Returned Error Types:
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFInvalidAccountException "WAFInvalidAccountException"
+//   * WAFInvalidAccountException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using an invalid account identifier.
 //
@@ -6484,12 +6486,12 @@ func (c *WAFRegional) ListSizeConstraintSetsRequest(input *waf.ListSizeConstrain
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation ListSizeConstraintSets for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+// Returned Error Types:
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFInvalidAccountException "WAFInvalidAccountException"
+//   * WAFInvalidAccountException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using an invalid account identifier.
 //
@@ -6568,12 +6570,12 @@ func (c *WAFRegional) ListSqlInjectionMatchSetsRequest(input *waf.ListSqlInjecti
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation ListSqlInjectionMatchSets for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+// Returned Error Types:
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFInvalidAccountException "WAFInvalidAccountException"
+//   * WAFInvalidAccountException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using an invalid account identifier.
 //
@@ -6652,11 +6654,11 @@ func (c *WAFRegional) ListSubscribedRuleGroupsRequest(input *waf.ListSubscribedR
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation ListSubscribedRuleGroups for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFNonexistentItemException "WAFNonexistentItemException"
+// Returned Error Types:
+//   * WAFNonexistentItemException
 //   The operation failed because the referenced object doesn't exist.
 //
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
@@ -6733,12 +6735,12 @@ func (c *WAFRegional) ListTagsForResourceRequest(input *waf.ListTagsForResourceI
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation ListTagsForResource for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+// Returned Error Types:
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFInvalidParameterException "WAFInvalidParameterException"
+//   * WAFInvalidParameterException
 //   The operation failed because AWS WAF didn't recognize a parameter in the
 //   request. For example:
 //
@@ -6767,14 +6769,14 @@ func (c *WAFRegional) ListTagsForResourceRequest(input *waf.ListTagsForResourceI
 //      * Your request references an ARN that is malformed, or corresponds to
 //      a resource with which a web ACL cannot be associated.
 //
-//   * ErrCodeWAFNonexistentItemException "WAFNonexistentItemException"
+//   * WAFNonexistentItemException
 //   The operation failed because the referenced object doesn't exist.
 //
-//   * ErrCodeWAFBadRequestException "WAFBadRequestException"
+//   * WAFBadRequestException
 //
-//   * ErrCodeWAFTagOperationException "WAFTagOperationException"
+//   * WAFTagOperationException
 //
-//   * ErrCodeWAFTagOperationInternalErrorException "WAFTagOperationInternalErrorException"
+//   * WAFTagOperationInternalErrorException
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/waf-regional-2016-11-28/ListTagsForResource
 func (c *WAFRegional) ListTagsForResource(input *waf.ListTagsForResourceInput) (*waf.ListTagsForResourceOutput, error) {
@@ -6851,12 +6853,12 @@ func (c *WAFRegional) ListWebACLsRequest(input *waf.ListWebACLsInput) (req *requ
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation ListWebACLs for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+// Returned Error Types:
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFInvalidAccountException "WAFInvalidAccountException"
+//   * WAFInvalidAccountException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using an invalid account identifier.
 //
@@ -6935,12 +6937,12 @@ func (c *WAFRegional) ListXssMatchSetsRequest(input *waf.ListXssMatchSetsInput) 
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation ListXssMatchSets for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+// Returned Error Types:
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFInvalidAccountException "WAFInvalidAccountException"
+//   * WAFInvalidAccountException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using an invalid account identifier.
 //
@@ -7038,19 +7040,19 @@ func (c *WAFRegional) PutLoggingConfigurationRequest(input *waf.PutLoggingConfig
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation PutLoggingConfiguration for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+// Returned Error Types:
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFNonexistentItemException "WAFNonexistentItemException"
+//   * WAFNonexistentItemException
 //   The operation failed because the referenced object doesn't exist.
 //
-//   * ErrCodeWAFStaleDataException "WAFStaleDataException"
+//   * WAFStaleDataException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using a change token that has already been used.
 //
-//   * ErrCodeWAFServiceLinkedRoleErrorException "WAFServiceLinkedRoleErrorException"
+//   * WAFServiceLinkedRoleErrorException
 //   AWS WAF is not able to access the service linked role. This can be caused
 //   by a previous PutLoggingConfiguration request, which can lock the service
 //   linked role for about 20 seconds. Please try your request again. The service
@@ -7162,19 +7164,19 @@ func (c *WAFRegional) PutPermissionPolicyRequest(input *waf.PutPermissionPolicyI
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation PutPermissionPolicy for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+// Returned Error Types:
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFStaleDataException "WAFStaleDataException"
+//   * WAFStaleDataException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using a change token that has already been used.
 //
-//   * ErrCodeWAFNonexistentItemException "WAFNonexistentItemException"
+//   * WAFNonexistentItemException
 //   The operation failed because the referenced object doesn't exist.
 //
-//   * ErrCodeWAFInvalidPermissionPolicyException "WAFInvalidPermissionPolicyException"
+//   * WAFInvalidPermissionPolicyException
 //   The operation failed because the specified policy is not in the proper format.
 //
 //   The policy is subject to the following restrictions:
@@ -7272,12 +7274,12 @@ func (c *WAFRegional) TagResourceRequest(input *waf.TagResourceInput) (req *requ
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation TagResource for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+// Returned Error Types:
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFInvalidParameterException "WAFInvalidParameterException"
+//   * WAFInvalidParameterException
 //   The operation failed because AWS WAF didn't recognize a parameter in the
 //   request. For example:
 //
@@ -7306,20 +7308,20 @@ func (c *WAFRegional) TagResourceRequest(input *waf.TagResourceInput) (req *requ
 //      * Your request references an ARN that is malformed, or corresponds to
 //      a resource with which a web ACL cannot be associated.
 //
-//   * ErrCodeWAFLimitsExceededException "WAFLimitsExceededException"
+//   * WAFLimitsExceededException
 //   The operation exceeds a resource limit, for example, the maximum number of
 //   WebACL objects that you can create for an AWS account. For more information,
 //   see Limits (https://docs.aws.amazon.com/waf/latest/developerguide/limits.html)
 //   in the AWS WAF Developer Guide.
 //
-//   * ErrCodeWAFNonexistentItemException "WAFNonexistentItemException"
+//   * WAFNonexistentItemException
 //   The operation failed because the referenced object doesn't exist.
 //
-//   * ErrCodeWAFBadRequestException "WAFBadRequestException"
+//   * WAFBadRequestException
 //
-//   * ErrCodeWAFTagOperationException "WAFTagOperationException"
+//   * WAFTagOperationException
 //
-//   * ErrCodeWAFTagOperationInternalErrorException "WAFTagOperationInternalErrorException"
+//   * WAFTagOperationInternalErrorException
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/waf-regional-2016-11-28/TagResource
 func (c *WAFRegional) TagResource(input *waf.TagResourceInput) (*waf.TagResourceOutput, error) {
@@ -7395,12 +7397,12 @@ func (c *WAFRegional) UntagResourceRequest(input *waf.UntagResourceInput) (req *
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation UntagResource for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+// Returned Error Types:
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFInvalidParameterException "WAFInvalidParameterException"
+//   * WAFInvalidParameterException
 //   The operation failed because AWS WAF didn't recognize a parameter in the
 //   request. For example:
 //
@@ -7429,14 +7431,14 @@ func (c *WAFRegional) UntagResourceRequest(input *waf.UntagResourceInput) (req *
 //      * Your request references an ARN that is malformed, or corresponds to
 //      a resource with which a web ACL cannot be associated.
 //
-//   * ErrCodeWAFNonexistentItemException "WAFNonexistentItemException"
+//   * WAFNonexistentItemException
 //   The operation failed because the referenced object doesn't exist.
 //
-//   * ErrCodeWAFBadRequestException "WAFBadRequestException"
+//   * WAFBadRequestException
 //
-//   * ErrCodeWAFTagOperationException "WAFTagOperationException"
+//   * WAFTagOperationException
 //
-//   * ErrCodeWAFTagOperationInternalErrorException "WAFTagOperationInternalErrorException"
+//   * WAFTagOperationInternalErrorException
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/waf-regional-2016-11-28/UntagResource
 func (c *WAFRegional) UntagResource(input *waf.UntagResourceInput) (*waf.UntagResourceOutput, error) {
@@ -7549,16 +7551,16 @@ func (c *WAFRegional) UpdateByteMatchSetRequest(input *waf.UpdateByteMatchSetInp
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation UpdateByteMatchSet for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+// Returned Error Types:
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFInvalidAccountException "WAFInvalidAccountException"
+//   * WAFInvalidAccountException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using an invalid account identifier.
 //
-//   * ErrCodeWAFInvalidOperationException "WAFInvalidOperationException"
+//   * WAFInvalidOperationException
 //   The operation failed because there was nothing to do. For example:
 //
 //      * You tried to remove a Rule from a WebACL, but the Rule isn't in the
@@ -7576,7 +7578,7 @@ func (c *WAFRegional) UpdateByteMatchSetRequest(input *waf.UpdateByteMatchSetInp
 //      * You tried to add a ByteMatchTuple to a ByteMatchSet, but the ByteMatchTuple
 //      already exists in the specified WebACL.
 //
-//   * ErrCodeWAFInvalidParameterException "WAFInvalidParameterException"
+//   * WAFInvalidParameterException
 //   The operation failed because AWS WAF didn't recognize a parameter in the
 //   request. For example:
 //
@@ -7605,7 +7607,7 @@ func (c *WAFRegional) UpdateByteMatchSetRequest(input *waf.UpdateByteMatchSetInp
 //      * Your request references an ARN that is malformed, or corresponds to
 //      a resource with which a web ACL cannot be associated.
 //
-//   * ErrCodeWAFNonexistentContainerException "WAFNonexistentContainerException"
+//   * WAFNonexistentContainerException
 //   The operation failed because you tried to add an object to or delete an object
 //   from another object that doesn't exist. For example:
 //
@@ -7621,14 +7623,14 @@ func (c *WAFRegional) UpdateByteMatchSetRequest(input *waf.UpdateByteMatchSetInp
 //      * You tried to add a ByteMatchTuple to or delete a ByteMatchTuple from
 //      a ByteMatchSet that doesn't exist.
 //
-//   * ErrCodeWAFNonexistentItemException "WAFNonexistentItemException"
+//   * WAFNonexistentItemException
 //   The operation failed because the referenced object doesn't exist.
 //
-//   * ErrCodeWAFStaleDataException "WAFStaleDataException"
+//   * WAFStaleDataException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using a change token that has already been used.
 //
-//   * ErrCodeWAFLimitsExceededException "WAFLimitsExceededException"
+//   * WAFLimitsExceededException
 //   The operation exceeds a resource limit, for example, the maximum number of
 //   WebACL objects that you can create for an AWS account. For more information,
 //   see Limits (https://docs.aws.amazon.com/waf/latest/developerguide/limits.html)
@@ -7736,20 +7738,20 @@ func (c *WAFRegional) UpdateGeoMatchSetRequest(input *waf.UpdateGeoMatchSetInput
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation UpdateGeoMatchSet for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFStaleDataException "WAFStaleDataException"
+// Returned Error Types:
+//   * WAFStaleDataException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using a change token that has already been used.
 //
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFInvalidAccountException "WAFInvalidAccountException"
+//   * WAFInvalidAccountException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using an invalid account identifier.
 //
-//   * ErrCodeWAFInvalidOperationException "WAFInvalidOperationException"
+//   * WAFInvalidOperationException
 //   The operation failed because there was nothing to do. For example:
 //
 //      * You tried to remove a Rule from a WebACL, but the Rule isn't in the
@@ -7767,7 +7769,7 @@ func (c *WAFRegional) UpdateGeoMatchSetRequest(input *waf.UpdateGeoMatchSetInput
 //      * You tried to add a ByteMatchTuple to a ByteMatchSet, but the ByteMatchTuple
 //      already exists in the specified WebACL.
 //
-//   * ErrCodeWAFInvalidParameterException "WAFInvalidParameterException"
+//   * WAFInvalidParameterException
 //   The operation failed because AWS WAF didn't recognize a parameter in the
 //   request. For example:
 //
@@ -7796,7 +7798,7 @@ func (c *WAFRegional) UpdateGeoMatchSetRequest(input *waf.UpdateGeoMatchSetInput
 //      * Your request references an ARN that is malformed, or corresponds to
 //      a resource with which a web ACL cannot be associated.
 //
-//   * ErrCodeWAFNonexistentContainerException "WAFNonexistentContainerException"
+//   * WAFNonexistentContainerException
 //   The operation failed because you tried to add an object to or delete an object
 //   from another object that doesn't exist. For example:
 //
@@ -7812,10 +7814,10 @@ func (c *WAFRegional) UpdateGeoMatchSetRequest(input *waf.UpdateGeoMatchSetInput
 //      * You tried to add a ByteMatchTuple to or delete a ByteMatchTuple from
 //      a ByteMatchSet that doesn't exist.
 //
-//   * ErrCodeWAFNonexistentItemException "WAFNonexistentItemException"
+//   * WAFNonexistentItemException
 //   The operation failed because the referenced object doesn't exist.
 //
-//   * ErrCodeWAFReferencedItemException "WAFReferencedItemException"
+//   * WAFReferencedItemException
 //   The operation failed because you tried to delete an object that is still
 //   in use. For example:
 //
@@ -7823,7 +7825,7 @@ func (c *WAFRegional) UpdateGeoMatchSetRequest(input *waf.UpdateGeoMatchSetInput
 //
 //      * You tried to delete a Rule that is still referenced by a WebACL.
 //
-//   * ErrCodeWAFLimitsExceededException "WAFLimitsExceededException"
+//   * WAFLimitsExceededException
 //   The operation exceeds a resource limit, for example, the maximum number of
 //   WebACL objects that you can create for an AWS account. For more information,
 //   see Limits (https://docs.aws.amazon.com/waf/latest/developerguide/limits.html)
@@ -7955,20 +7957,20 @@ func (c *WAFRegional) UpdateIPSetRequest(input *waf.UpdateIPSetInput) (req *requ
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation UpdateIPSet for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFStaleDataException "WAFStaleDataException"
+// Returned Error Types:
+//   * WAFStaleDataException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using a change token that has already been used.
 //
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFInvalidAccountException "WAFInvalidAccountException"
+//   * WAFInvalidAccountException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using an invalid account identifier.
 //
-//   * ErrCodeWAFInvalidOperationException "WAFInvalidOperationException"
+//   * WAFInvalidOperationException
 //   The operation failed because there was nothing to do. For example:
 //
 //      * You tried to remove a Rule from a WebACL, but the Rule isn't in the
@@ -7986,7 +7988,7 @@ func (c *WAFRegional) UpdateIPSetRequest(input *waf.UpdateIPSetInput) (req *requ
 //      * You tried to add a ByteMatchTuple to a ByteMatchSet, but the ByteMatchTuple
 //      already exists in the specified WebACL.
 //
-//   * ErrCodeWAFInvalidParameterException "WAFInvalidParameterException"
+//   * WAFInvalidParameterException
 //   The operation failed because AWS WAF didn't recognize a parameter in the
 //   request. For example:
 //
@@ -8015,7 +8017,7 @@ func (c *WAFRegional) UpdateIPSetRequest(input *waf.UpdateIPSetInput) (req *requ
 //      * Your request references an ARN that is malformed, or corresponds to
 //      a resource with which a web ACL cannot be associated.
 //
-//   * ErrCodeWAFNonexistentContainerException "WAFNonexistentContainerException"
+//   * WAFNonexistentContainerException
 //   The operation failed because you tried to add an object to or delete an object
 //   from another object that doesn't exist. For example:
 //
@@ -8031,10 +8033,10 @@ func (c *WAFRegional) UpdateIPSetRequest(input *waf.UpdateIPSetInput) (req *requ
 //      * You tried to add a ByteMatchTuple to or delete a ByteMatchTuple from
 //      a ByteMatchSet that doesn't exist.
 //
-//   * ErrCodeWAFNonexistentItemException "WAFNonexistentItemException"
+//   * WAFNonexistentItemException
 //   The operation failed because the referenced object doesn't exist.
 //
-//   * ErrCodeWAFReferencedItemException "WAFReferencedItemException"
+//   * WAFReferencedItemException
 //   The operation failed because you tried to delete an object that is still
 //   in use. For example:
 //
@@ -8042,7 +8044,7 @@ func (c *WAFRegional) UpdateIPSetRequest(input *waf.UpdateIPSetInput) (req *requ
 //
 //      * You tried to delete a Rule that is still referenced by a WebACL.
 //
-//   * ErrCodeWAFLimitsExceededException "WAFLimitsExceededException"
+//   * WAFLimitsExceededException
 //   The operation exceeds a resource limit, for example, the maximum number of
 //   WebACL objects that you can create for an AWS account. For more information,
 //   see Limits (https://docs.aws.amazon.com/waf/latest/developerguide/limits.html)
@@ -8160,20 +8162,20 @@ func (c *WAFRegional) UpdateRateBasedRuleRequest(input *waf.UpdateRateBasedRuleI
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation UpdateRateBasedRule for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFStaleDataException "WAFStaleDataException"
+// Returned Error Types:
+//   * WAFStaleDataException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using a change token that has already been used.
 //
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFInvalidAccountException "WAFInvalidAccountException"
+//   * WAFInvalidAccountException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using an invalid account identifier.
 //
-//   * ErrCodeWAFInvalidOperationException "WAFInvalidOperationException"
+//   * WAFInvalidOperationException
 //   The operation failed because there was nothing to do. For example:
 //
 //      * You tried to remove a Rule from a WebACL, but the Rule isn't in the
@@ -8191,7 +8193,7 @@ func (c *WAFRegional) UpdateRateBasedRuleRequest(input *waf.UpdateRateBasedRuleI
 //      * You tried to add a ByteMatchTuple to a ByteMatchSet, but the ByteMatchTuple
 //      already exists in the specified WebACL.
 //
-//   * ErrCodeWAFInvalidParameterException "WAFInvalidParameterException"
+//   * WAFInvalidParameterException
 //   The operation failed because AWS WAF didn't recognize a parameter in the
 //   request. For example:
 //
@@ -8220,7 +8222,7 @@ func (c *WAFRegional) UpdateRateBasedRuleRequest(input *waf.UpdateRateBasedRuleI
 //      * Your request references an ARN that is malformed, or corresponds to
 //      a resource with which a web ACL cannot be associated.
 //
-//   * ErrCodeWAFNonexistentContainerException "WAFNonexistentContainerException"
+//   * WAFNonexistentContainerException
 //   The operation failed because you tried to add an object to or delete an object
 //   from another object that doesn't exist. For example:
 //
@@ -8236,10 +8238,10 @@ func (c *WAFRegional) UpdateRateBasedRuleRequest(input *waf.UpdateRateBasedRuleI
 //      * You tried to add a ByteMatchTuple to or delete a ByteMatchTuple from
 //      a ByteMatchSet that doesn't exist.
 //
-//   * ErrCodeWAFNonexistentItemException "WAFNonexistentItemException"
+//   * WAFNonexistentItemException
 //   The operation failed because the referenced object doesn't exist.
 //
-//   * ErrCodeWAFReferencedItemException "WAFReferencedItemException"
+//   * WAFReferencedItemException
 //   The operation failed because you tried to delete an object that is still
 //   in use. For example:
 //
@@ -8247,7 +8249,7 @@ func (c *WAFRegional) UpdateRateBasedRuleRequest(input *waf.UpdateRateBasedRuleI
 //
 //      * You tried to delete a Rule that is still referenced by a WebACL.
 //
-//   * ErrCodeWAFLimitsExceededException "WAFLimitsExceededException"
+//   * WAFLimitsExceededException
 //   The operation exceeds a resource limit, for example, the maximum number of
 //   WebACL objects that you can create for an AWS account. For more information,
 //   see Limits (https://docs.aws.amazon.com/waf/latest/developerguide/limits.html)
@@ -8361,28 +8363,28 @@ func (c *WAFRegional) UpdateRegexMatchSetRequest(input *waf.UpdateRegexMatchSetI
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation UpdateRegexMatchSet for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFStaleDataException "WAFStaleDataException"
+// Returned Error Types:
+//   * WAFStaleDataException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using a change token that has already been used.
 //
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFDisallowedNameException "WAFDisallowedNameException"
+//   * WAFDisallowedNameException
 //   The name specified is invalid.
 //
-//   * ErrCodeWAFLimitsExceededException "WAFLimitsExceededException"
+//   * WAFLimitsExceededException
 //   The operation exceeds a resource limit, for example, the maximum number of
 //   WebACL objects that you can create for an AWS account. For more information,
 //   see Limits (https://docs.aws.amazon.com/waf/latest/developerguide/limits.html)
 //   in the AWS WAF Developer Guide.
 //
-//   * ErrCodeWAFNonexistentItemException "WAFNonexistentItemException"
+//   * WAFNonexistentItemException
 //   The operation failed because the referenced object doesn't exist.
 //
-//   * ErrCodeWAFNonexistentContainerException "WAFNonexistentContainerException"
+//   * WAFNonexistentContainerException
 //   The operation failed because you tried to add an object to or delete an object
 //   from another object that doesn't exist. For example:
 //
@@ -8398,7 +8400,7 @@ func (c *WAFRegional) UpdateRegexMatchSetRequest(input *waf.UpdateRegexMatchSetI
 //      * You tried to add a ByteMatchTuple to or delete a ByteMatchTuple from
 //      a ByteMatchSet that doesn't exist.
 //
-//   * ErrCodeWAFInvalidOperationException "WAFInvalidOperationException"
+//   * WAFInvalidOperationException
 //   The operation failed because there was nothing to do. For example:
 //
 //      * You tried to remove a Rule from a WebACL, but the Rule isn't in the
@@ -8416,7 +8418,7 @@ func (c *WAFRegional) UpdateRegexMatchSetRequest(input *waf.UpdateRegexMatchSetI
 //      * You tried to add a ByteMatchTuple to a ByteMatchSet, but the ByteMatchTuple
 //      already exists in the specified WebACL.
 //
-//   * ErrCodeWAFInvalidAccountException "WAFInvalidAccountException"
+//   * WAFInvalidAccountException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using an invalid account identifier.
 //
@@ -8525,25 +8527,25 @@ func (c *WAFRegional) UpdateRegexPatternSetRequest(input *waf.UpdateRegexPattern
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation UpdateRegexPatternSet for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFStaleDataException "WAFStaleDataException"
+// Returned Error Types:
+//   * WAFStaleDataException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using a change token that has already been used.
 //
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFLimitsExceededException "WAFLimitsExceededException"
+//   * WAFLimitsExceededException
 //   The operation exceeds a resource limit, for example, the maximum number of
 //   WebACL objects that you can create for an AWS account. For more information,
 //   see Limits (https://docs.aws.amazon.com/waf/latest/developerguide/limits.html)
 //   in the AWS WAF Developer Guide.
 //
-//   * ErrCodeWAFNonexistentItemException "WAFNonexistentItemException"
+//   * WAFNonexistentItemException
 //   The operation failed because the referenced object doesn't exist.
 //
-//   * ErrCodeWAFNonexistentContainerException "WAFNonexistentContainerException"
+//   * WAFNonexistentContainerException
 //   The operation failed because you tried to add an object to or delete an object
 //   from another object that doesn't exist. For example:
 //
@@ -8559,7 +8561,7 @@ func (c *WAFRegional) UpdateRegexPatternSetRequest(input *waf.UpdateRegexPattern
 //      * You tried to add a ByteMatchTuple to or delete a ByteMatchTuple from
 //      a ByteMatchSet that doesn't exist.
 //
-//   * ErrCodeWAFInvalidOperationException "WAFInvalidOperationException"
+//   * WAFInvalidOperationException
 //   The operation failed because there was nothing to do. For example:
 //
 //      * You tried to remove a Rule from a WebACL, but the Rule isn't in the
@@ -8577,11 +8579,11 @@ func (c *WAFRegional) UpdateRegexPatternSetRequest(input *waf.UpdateRegexPattern
 //      * You tried to add a ByteMatchTuple to a ByteMatchSet, but the ByteMatchTuple
 //      already exists in the specified WebACL.
 //
-//   * ErrCodeWAFInvalidAccountException "WAFInvalidAccountException"
+//   * WAFInvalidAccountException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using an invalid account identifier.
 //
-//   * ErrCodeWAFInvalidRegexPatternException "WAFInvalidRegexPatternException"
+//   * WAFInvalidRegexPatternException
 //   The regular expression (regex) you specified in RegexPatternString is invalid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/waf-regional-2016-11-28/UpdateRegexPatternSet
@@ -8692,20 +8694,20 @@ func (c *WAFRegional) UpdateRuleRequest(input *waf.UpdateRuleInput) (req *reques
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation UpdateRule for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFStaleDataException "WAFStaleDataException"
+// Returned Error Types:
+//   * WAFStaleDataException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using a change token that has already been used.
 //
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFInvalidAccountException "WAFInvalidAccountException"
+//   * WAFInvalidAccountException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using an invalid account identifier.
 //
-//   * ErrCodeWAFInvalidOperationException "WAFInvalidOperationException"
+//   * WAFInvalidOperationException
 //   The operation failed because there was nothing to do. For example:
 //
 //      * You tried to remove a Rule from a WebACL, but the Rule isn't in the
@@ -8723,7 +8725,7 @@ func (c *WAFRegional) UpdateRuleRequest(input *waf.UpdateRuleInput) (req *reques
 //      * You tried to add a ByteMatchTuple to a ByteMatchSet, but the ByteMatchTuple
 //      already exists in the specified WebACL.
 //
-//   * ErrCodeWAFInvalidParameterException "WAFInvalidParameterException"
+//   * WAFInvalidParameterException
 //   The operation failed because AWS WAF didn't recognize a parameter in the
 //   request. For example:
 //
@@ -8752,7 +8754,7 @@ func (c *WAFRegional) UpdateRuleRequest(input *waf.UpdateRuleInput) (req *reques
 //      * Your request references an ARN that is malformed, or corresponds to
 //      a resource with which a web ACL cannot be associated.
 //
-//   * ErrCodeWAFNonexistentContainerException "WAFNonexistentContainerException"
+//   * WAFNonexistentContainerException
 //   The operation failed because you tried to add an object to or delete an object
 //   from another object that doesn't exist. For example:
 //
@@ -8768,10 +8770,10 @@ func (c *WAFRegional) UpdateRuleRequest(input *waf.UpdateRuleInput) (req *reques
 //      * You tried to add a ByteMatchTuple to or delete a ByteMatchTuple from
 //      a ByteMatchSet that doesn't exist.
 //
-//   * ErrCodeWAFNonexistentItemException "WAFNonexistentItemException"
+//   * WAFNonexistentItemException
 //   The operation failed because the referenced object doesn't exist.
 //
-//   * ErrCodeWAFReferencedItemException "WAFReferencedItemException"
+//   * WAFReferencedItemException
 //   The operation failed because you tried to delete an object that is still
 //   in use. For example:
 //
@@ -8779,7 +8781,7 @@ func (c *WAFRegional) UpdateRuleRequest(input *waf.UpdateRuleInput) (req *reques
 //
 //      * You tried to delete a Rule that is still referenced by a WebACL.
 //
-//   * ErrCodeWAFLimitsExceededException "WAFLimitsExceededException"
+//   * WAFLimitsExceededException
 //   The operation exceeds a resource limit, for example, the maximum number of
 //   WebACL objects that you can create for an AWS account. For more information,
 //   see Limits (https://docs.aws.amazon.com/waf/latest/developerguide/limits.html)
@@ -8882,16 +8884,16 @@ func (c *WAFRegional) UpdateRuleGroupRequest(input *waf.UpdateRuleGroupInput) (r
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation UpdateRuleGroup for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFStaleDataException "WAFStaleDataException"
+// Returned Error Types:
+//   * WAFStaleDataException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using a change token that has already been used.
 //
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFNonexistentContainerException "WAFNonexistentContainerException"
+//   * WAFNonexistentContainerException
 //   The operation failed because you tried to add an object to or delete an object
 //   from another object that doesn't exist. For example:
 //
@@ -8907,10 +8909,10 @@ func (c *WAFRegional) UpdateRuleGroupRequest(input *waf.UpdateRuleGroupInput) (r
 //      * You tried to add a ByteMatchTuple to or delete a ByteMatchTuple from
 //      a ByteMatchSet that doesn't exist.
 //
-//   * ErrCodeWAFNonexistentItemException "WAFNonexistentItemException"
+//   * WAFNonexistentItemException
 //   The operation failed because the referenced object doesn't exist.
 //
-//   * ErrCodeWAFInvalidOperationException "WAFInvalidOperationException"
+//   * WAFInvalidOperationException
 //   The operation failed because there was nothing to do. For example:
 //
 //      * You tried to remove a Rule from a WebACL, but the Rule isn't in the
@@ -8928,13 +8930,13 @@ func (c *WAFRegional) UpdateRuleGroupRequest(input *waf.UpdateRuleGroupInput) (r
 //      * You tried to add a ByteMatchTuple to a ByteMatchSet, but the ByteMatchTuple
 //      already exists in the specified WebACL.
 //
-//   * ErrCodeWAFLimitsExceededException "WAFLimitsExceededException"
+//   * WAFLimitsExceededException
 //   The operation exceeds a resource limit, for example, the maximum number of
 //   WebACL objects that you can create for an AWS account. For more information,
 //   see Limits (https://docs.aws.amazon.com/waf/latest/developerguide/limits.html)
 //   in the AWS WAF Developer Guide.
 //
-//   * ErrCodeWAFInvalidParameterException "WAFInvalidParameterException"
+//   * WAFInvalidParameterException
 //   The operation failed because AWS WAF didn't recognize a parameter in the
 //   request. For example:
 //
@@ -9077,20 +9079,20 @@ func (c *WAFRegional) UpdateSizeConstraintSetRequest(input *waf.UpdateSizeConstr
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation UpdateSizeConstraintSet for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFStaleDataException "WAFStaleDataException"
+// Returned Error Types:
+//   * WAFStaleDataException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using a change token that has already been used.
 //
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFInvalidAccountException "WAFInvalidAccountException"
+//   * WAFInvalidAccountException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using an invalid account identifier.
 //
-//   * ErrCodeWAFInvalidOperationException "WAFInvalidOperationException"
+//   * WAFInvalidOperationException
 //   The operation failed because there was nothing to do. For example:
 //
 //      * You tried to remove a Rule from a WebACL, but the Rule isn't in the
@@ -9108,7 +9110,7 @@ func (c *WAFRegional) UpdateSizeConstraintSetRequest(input *waf.UpdateSizeConstr
 //      * You tried to add a ByteMatchTuple to a ByteMatchSet, but the ByteMatchTuple
 //      already exists in the specified WebACL.
 //
-//   * ErrCodeWAFInvalidParameterException "WAFInvalidParameterException"
+//   * WAFInvalidParameterException
 //   The operation failed because AWS WAF didn't recognize a parameter in the
 //   request. For example:
 //
@@ -9137,7 +9139,7 @@ func (c *WAFRegional) UpdateSizeConstraintSetRequest(input *waf.UpdateSizeConstr
 //      * Your request references an ARN that is malformed, or corresponds to
 //      a resource with which a web ACL cannot be associated.
 //
-//   * ErrCodeWAFNonexistentContainerException "WAFNonexistentContainerException"
+//   * WAFNonexistentContainerException
 //   The operation failed because you tried to add an object to or delete an object
 //   from another object that doesn't exist. For example:
 //
@@ -9153,10 +9155,10 @@ func (c *WAFRegional) UpdateSizeConstraintSetRequest(input *waf.UpdateSizeConstr
 //      * You tried to add a ByteMatchTuple to or delete a ByteMatchTuple from
 //      a ByteMatchSet that doesn't exist.
 //
-//   * ErrCodeWAFNonexistentItemException "WAFNonexistentItemException"
+//   * WAFNonexistentItemException
 //   The operation failed because the referenced object doesn't exist.
 //
-//   * ErrCodeWAFReferencedItemException "WAFReferencedItemException"
+//   * WAFReferencedItemException
 //   The operation failed because you tried to delete an object that is still
 //   in use. For example:
 //
@@ -9164,7 +9166,7 @@ func (c *WAFRegional) UpdateSizeConstraintSetRequest(input *waf.UpdateSizeConstr
 //
 //      * You tried to delete a Rule that is still referenced by a WebACL.
 //
-//   * ErrCodeWAFLimitsExceededException "WAFLimitsExceededException"
+//   * WAFLimitsExceededException
 //   The operation exceeds a resource limit, for example, the maximum number of
 //   WebACL objects that you can create for an AWS account. For more information,
 //   see Limits (https://docs.aws.amazon.com/waf/latest/developerguide/limits.html)
@@ -9277,16 +9279,16 @@ func (c *WAFRegional) UpdateSqlInjectionMatchSetRequest(input *waf.UpdateSqlInje
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation UpdateSqlInjectionMatchSet for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+// Returned Error Types:
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFInvalidAccountException "WAFInvalidAccountException"
+//   * WAFInvalidAccountException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using an invalid account identifier.
 //
-//   * ErrCodeWAFInvalidOperationException "WAFInvalidOperationException"
+//   * WAFInvalidOperationException
 //   The operation failed because there was nothing to do. For example:
 //
 //      * You tried to remove a Rule from a WebACL, but the Rule isn't in the
@@ -9304,7 +9306,7 @@ func (c *WAFRegional) UpdateSqlInjectionMatchSetRequest(input *waf.UpdateSqlInje
 //      * You tried to add a ByteMatchTuple to a ByteMatchSet, but the ByteMatchTuple
 //      already exists in the specified WebACL.
 //
-//   * ErrCodeWAFInvalidParameterException "WAFInvalidParameterException"
+//   * WAFInvalidParameterException
 //   The operation failed because AWS WAF didn't recognize a parameter in the
 //   request. For example:
 //
@@ -9333,7 +9335,7 @@ func (c *WAFRegional) UpdateSqlInjectionMatchSetRequest(input *waf.UpdateSqlInje
 //      * Your request references an ARN that is malformed, or corresponds to
 //      a resource with which a web ACL cannot be associated.
 //
-//   * ErrCodeWAFNonexistentContainerException "WAFNonexistentContainerException"
+//   * WAFNonexistentContainerException
 //   The operation failed because you tried to add an object to or delete an object
 //   from another object that doesn't exist. For example:
 //
@@ -9349,14 +9351,14 @@ func (c *WAFRegional) UpdateSqlInjectionMatchSetRequest(input *waf.UpdateSqlInje
 //      * You tried to add a ByteMatchTuple to or delete a ByteMatchTuple from
 //      a ByteMatchSet that doesn't exist.
 //
-//   * ErrCodeWAFNonexistentItemException "WAFNonexistentItemException"
+//   * WAFNonexistentItemException
 //   The operation failed because the referenced object doesn't exist.
 //
-//   * ErrCodeWAFStaleDataException "WAFStaleDataException"
+//   * WAFStaleDataException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using a change token that has already been used.
 //
-//   * ErrCodeWAFLimitsExceededException "WAFLimitsExceededException"
+//   * WAFLimitsExceededException
 //   The operation exceeds a resource limit, for example, the maximum number of
 //   WebACL objects that you can create for an AWS account. For more information,
 //   see Limits (https://docs.aws.amazon.com/waf/latest/developerguide/limits.html)
@@ -9492,20 +9494,20 @@ func (c *WAFRegional) UpdateWebACLRequest(input *waf.UpdateWebACLInput) (req *re
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation UpdateWebACL for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFStaleDataException "WAFStaleDataException"
+// Returned Error Types:
+//   * WAFStaleDataException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using a change token that has already been used.
 //
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFInvalidAccountException "WAFInvalidAccountException"
+//   * WAFInvalidAccountException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using an invalid account identifier.
 //
-//   * ErrCodeWAFInvalidOperationException "WAFInvalidOperationException"
+//   * WAFInvalidOperationException
 //   The operation failed because there was nothing to do. For example:
 //
 //      * You tried to remove a Rule from a WebACL, but the Rule isn't in the
@@ -9523,7 +9525,7 @@ func (c *WAFRegional) UpdateWebACLRequest(input *waf.UpdateWebACLInput) (req *re
 //      * You tried to add a ByteMatchTuple to a ByteMatchSet, but the ByteMatchTuple
 //      already exists in the specified WebACL.
 //
-//   * ErrCodeWAFInvalidParameterException "WAFInvalidParameterException"
+//   * WAFInvalidParameterException
 //   The operation failed because AWS WAF didn't recognize a parameter in the
 //   request. For example:
 //
@@ -9552,7 +9554,7 @@ func (c *WAFRegional) UpdateWebACLRequest(input *waf.UpdateWebACLInput) (req *re
 //      * Your request references an ARN that is malformed, or corresponds to
 //      a resource with which a web ACL cannot be associated.
 //
-//   * ErrCodeWAFNonexistentContainerException "WAFNonexistentContainerException"
+//   * WAFNonexistentContainerException
 //   The operation failed because you tried to add an object to or delete an object
 //   from another object that doesn't exist. For example:
 //
@@ -9568,10 +9570,10 @@ func (c *WAFRegional) UpdateWebACLRequest(input *waf.UpdateWebACLInput) (req *re
 //      * You tried to add a ByteMatchTuple to or delete a ByteMatchTuple from
 //      a ByteMatchSet that doesn't exist.
 //
-//   * ErrCodeWAFNonexistentItemException "WAFNonexistentItemException"
+//   * WAFNonexistentItemException
 //   The operation failed because the referenced object doesn't exist.
 //
-//   * ErrCodeWAFReferencedItemException "WAFReferencedItemException"
+//   * WAFReferencedItemException
 //   The operation failed because you tried to delete an object that is still
 //   in use. For example:
 //
@@ -9579,13 +9581,13 @@ func (c *WAFRegional) UpdateWebACLRequest(input *waf.UpdateWebACLInput) (req *re
 //
 //      * You tried to delete a Rule that is still referenced by a WebACL.
 //
-//   * ErrCodeWAFLimitsExceededException "WAFLimitsExceededException"
+//   * WAFLimitsExceededException
 //   The operation exceeds a resource limit, for example, the maximum number of
 //   WebACL objects that you can create for an AWS account. For more information,
 //   see Limits (https://docs.aws.amazon.com/waf/latest/developerguide/limits.html)
 //   in the AWS WAF Developer Guide.
 //
-//   * ErrCodeWAFSubscriptionNotFoundException "WAFSubscriptionNotFoundException"
+//   * WAFSubscriptionNotFoundException
 //   The specified subscription does not exist.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/waf-regional-2016-11-28/UpdateWebACL
@@ -9695,16 +9697,16 @@ func (c *WAFRegional) UpdateXssMatchSetRequest(input *waf.UpdateXssMatchSetInput
 // See the AWS API reference guide for AWS WAF Regional's
 // API operation UpdateXssMatchSet for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeWAFInternalErrorException "WAFInternalErrorException"
+// Returned Error Types:
+//   * WAFInternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
 //
-//   * ErrCodeWAFInvalidAccountException "WAFInvalidAccountException"
+//   * WAFInvalidAccountException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using an invalid account identifier.
 //
-//   * ErrCodeWAFInvalidOperationException "WAFInvalidOperationException"
+//   * WAFInvalidOperationException
 //   The operation failed because there was nothing to do. For example:
 //
 //      * You tried to remove a Rule from a WebACL, but the Rule isn't in the
@@ -9722,7 +9724,7 @@ func (c *WAFRegional) UpdateXssMatchSetRequest(input *waf.UpdateXssMatchSetInput
 //      * You tried to add a ByteMatchTuple to a ByteMatchSet, but the ByteMatchTuple
 //      already exists in the specified WebACL.
 //
-//   * ErrCodeWAFInvalidParameterException "WAFInvalidParameterException"
+//   * WAFInvalidParameterException
 //   The operation failed because AWS WAF didn't recognize a parameter in the
 //   request. For example:
 //
@@ -9751,7 +9753,7 @@ func (c *WAFRegional) UpdateXssMatchSetRequest(input *waf.UpdateXssMatchSetInput
 //      * Your request references an ARN that is malformed, or corresponds to
 //      a resource with which a web ACL cannot be associated.
 //
-//   * ErrCodeWAFNonexistentContainerException "WAFNonexistentContainerException"
+//   * WAFNonexistentContainerException
 //   The operation failed because you tried to add an object to or delete an object
 //   from another object that doesn't exist. For example:
 //
@@ -9767,14 +9769,14 @@ func (c *WAFRegional) UpdateXssMatchSetRequest(input *waf.UpdateXssMatchSetInput
 //      * You tried to add a ByteMatchTuple to or delete a ByteMatchTuple from
 //      a ByteMatchSet that doesn't exist.
 //
-//   * ErrCodeWAFNonexistentItemException "WAFNonexistentItemException"
+//   * WAFNonexistentItemException
 //   The operation failed because the referenced object doesn't exist.
 //
-//   * ErrCodeWAFStaleDataException "WAFStaleDataException"
+//   * WAFStaleDataException
 //   The operation failed because you tried to create, update, or delete an object
 //   by using a change token that has already been used.
 //
-//   * ErrCodeWAFLimitsExceededException "WAFLimitsExceededException"
+//   * WAFLimitsExceededException
 //   The operation exceeds a resource limit, for example, the maximum number of
 //   WebACL objects that you can create for an AWS account. For more information,
 //   see Limits (https://docs.aws.amazon.com/waf/latest/developerguide/limits.html)
@@ -10091,6 +10093,1178 @@ func (s ListResourcesForWebACLOutput) GoString() string {
 func (s *ListResourcesForWebACLOutput) SetResourceArns(v []*string) *ListResourcesForWebACLOutput {
 	s.ResourceArns = v
 	return s
+}
+
+type WAFBadRequestException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s WAFBadRequestException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s WAFBadRequestException) GoString() string {
+	return s.String()
+}
+
+func newErrorWAFBadRequestException(v protocol.ResponseMetadata) error {
+	return &WAFBadRequestException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s WAFBadRequestException) Code() string {
+	return "WAFBadRequestException"
+}
+
+// Message returns the exception's message.
+func (s WAFBadRequestException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s WAFBadRequestException) OrigErr() error {
+	return nil
+}
+
+func (s WAFBadRequestException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s WAFBadRequestException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s WAFBadRequestException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// The name specified is invalid.
+type WAFDisallowedNameException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s WAFDisallowedNameException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s WAFDisallowedNameException) GoString() string {
+	return s.String()
+}
+
+func newErrorWAFDisallowedNameException(v protocol.ResponseMetadata) error {
+	return &WAFDisallowedNameException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s WAFDisallowedNameException) Code() string {
+	return "WAFDisallowedNameException"
+}
+
+// Message returns the exception's message.
+func (s WAFDisallowedNameException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s WAFDisallowedNameException) OrigErr() error {
+	return nil
+}
+
+func (s WAFDisallowedNameException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s WAFDisallowedNameException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s WAFDisallowedNameException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// The operation failed because of a system problem, even though the request
+// was valid. Retry your request.
+type WAFInternalErrorException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s WAFInternalErrorException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s WAFInternalErrorException) GoString() string {
+	return s.String()
+}
+
+func newErrorWAFInternalErrorException(v protocol.ResponseMetadata) error {
+	return &WAFInternalErrorException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s WAFInternalErrorException) Code() string {
+	return "WAFInternalErrorException"
+}
+
+// Message returns the exception's message.
+func (s WAFInternalErrorException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s WAFInternalErrorException) OrigErr() error {
+	return nil
+}
+
+func (s WAFInternalErrorException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s WAFInternalErrorException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s WAFInternalErrorException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// The operation failed because you tried to create, update, or delete an object
+// by using an invalid account identifier.
+type WAFInvalidAccountException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s WAFInvalidAccountException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s WAFInvalidAccountException) GoString() string {
+	return s.String()
+}
+
+func newErrorWAFInvalidAccountException(v protocol.ResponseMetadata) error {
+	return &WAFInvalidAccountException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s WAFInvalidAccountException) Code() string {
+	return "WAFInvalidAccountException"
+}
+
+// Message returns the exception's message.
+func (s WAFInvalidAccountException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s WAFInvalidAccountException) OrigErr() error {
+	return nil
+}
+
+func (s WAFInvalidAccountException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s WAFInvalidAccountException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s WAFInvalidAccountException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// The operation failed because there was nothing to do. For example:
+//
+//    * You tried to remove a Rule from a WebACL, but the Rule isn't in the
+//    specified WebACL.
+//
+//    * You tried to remove an IP address from an IPSet, but the IP address
+//    isn't in the specified IPSet.
+//
+//    * You tried to remove a ByteMatchTuple from a ByteMatchSet, but the ByteMatchTuple
+//    isn't in the specified WebACL.
+//
+//    * You tried to add a Rule to a WebACL, but the Rule already exists in
+//    the specified WebACL.
+//
+//    * You tried to add a ByteMatchTuple to a ByteMatchSet, but the ByteMatchTuple
+//    already exists in the specified WebACL.
+type WAFInvalidOperationException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s WAFInvalidOperationException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s WAFInvalidOperationException) GoString() string {
+	return s.String()
+}
+
+func newErrorWAFInvalidOperationException(v protocol.ResponseMetadata) error {
+	return &WAFInvalidOperationException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s WAFInvalidOperationException) Code() string {
+	return "WAFInvalidOperationException"
+}
+
+// Message returns the exception's message.
+func (s WAFInvalidOperationException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s WAFInvalidOperationException) OrigErr() error {
+	return nil
+}
+
+func (s WAFInvalidOperationException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s WAFInvalidOperationException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s WAFInvalidOperationException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// The operation failed because AWS WAF didn't recognize a parameter in the
+// request. For example:
+//
+//    * You specified an invalid parameter name.
+//
+//    * You specified an invalid value.
+//
+//    * You tried to update an object (ByteMatchSet, IPSet, Rule, or WebACL)
+//    using an action other than INSERT or DELETE.
+//
+//    * You tried to create a WebACL with a DefaultAction Type other than ALLOW,
+//    BLOCK, or COUNT.
+//
+//    * You tried to create a RateBasedRule with a RateKey value other than
+//    IP.
+//
+//    * You tried to update a WebACL with a WafAction Type other than ALLOW,
+//    BLOCK, or COUNT.
+//
+//    * You tried to update a ByteMatchSet with a FieldToMatch Type other than
+//    HEADER, METHOD, QUERY_STRING, URI, or BODY.
+//
+//    * You tried to update a ByteMatchSet with a Field of HEADER but no value
+//    for Data.
+//
+//    * Your request references an ARN that is malformed, or corresponds to
+//    a resource with which a web ACL cannot be associated.
+type WAFInvalidParameterException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Field *string `locationName:"field" type:"string" enum:"ParameterExceptionField"`
+
+	Message_ *string `locationName:"message" type:"string"`
+
+	Parameter *string `locationName:"parameter" min:"1" type:"string"`
+
+	Reason *string `locationName:"reason" type:"string" enum:"ParameterExceptionReason"`
+}
+
+// String returns the string representation
+func (s WAFInvalidParameterException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s WAFInvalidParameterException) GoString() string {
+	return s.String()
+}
+
+func newErrorWAFInvalidParameterException(v protocol.ResponseMetadata) error {
+	return &WAFInvalidParameterException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s WAFInvalidParameterException) Code() string {
+	return "WAFInvalidParameterException"
+}
+
+// Message returns the exception's message.
+func (s WAFInvalidParameterException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s WAFInvalidParameterException) OrigErr() error {
+	return nil
+}
+
+func (s WAFInvalidParameterException) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s WAFInvalidParameterException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s WAFInvalidParameterException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// The operation failed because the specified policy is not in the proper format.
+//
+// The policy is subject to the following restrictions:
+//
+//    * You can attach only one policy with each PutPermissionPolicy request.
+//
+//    * The policy must include an Effect, Action and Principal.
+//
+//    * Effect must specify Allow.
+//
+//    * The Action in the policy must be waf:UpdateWebACL, waf-regional:UpdateWebACL,
+//    waf:GetRuleGroup and waf-regional:GetRuleGroup . Any extra or wildcard
+//    actions in the policy will be rejected.
+//
+//    * The policy cannot include a Resource parameter.
+//
+//    * The ARN in the request must be a valid WAF RuleGroup ARN and the RuleGroup
+//    must exist in the same region.
+//
+//    * The user making the request must be the owner of the RuleGroup.
+//
+//    * Your policy must be composed using IAM Policy version 2012-10-17.
+type WAFInvalidPermissionPolicyException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s WAFInvalidPermissionPolicyException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s WAFInvalidPermissionPolicyException) GoString() string {
+	return s.String()
+}
+
+func newErrorWAFInvalidPermissionPolicyException(v protocol.ResponseMetadata) error {
+	return &WAFInvalidPermissionPolicyException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s WAFInvalidPermissionPolicyException) Code() string {
+	return "WAFInvalidPermissionPolicyException"
+}
+
+// Message returns the exception's message.
+func (s WAFInvalidPermissionPolicyException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s WAFInvalidPermissionPolicyException) OrigErr() error {
+	return nil
+}
+
+func (s WAFInvalidPermissionPolicyException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s WAFInvalidPermissionPolicyException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s WAFInvalidPermissionPolicyException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// The regular expression (regex) you specified in RegexPatternString is invalid.
+type WAFInvalidRegexPatternException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s WAFInvalidRegexPatternException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s WAFInvalidRegexPatternException) GoString() string {
+	return s.String()
+}
+
+func newErrorWAFInvalidRegexPatternException(v protocol.ResponseMetadata) error {
+	return &WAFInvalidRegexPatternException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s WAFInvalidRegexPatternException) Code() string {
+	return "WAFInvalidRegexPatternException"
+}
+
+// Message returns the exception's message.
+func (s WAFInvalidRegexPatternException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s WAFInvalidRegexPatternException) OrigErr() error {
+	return nil
+}
+
+func (s WAFInvalidRegexPatternException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s WAFInvalidRegexPatternException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s WAFInvalidRegexPatternException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// The operation exceeds a resource limit, for example, the maximum number of
+// WebACL objects that you can create for an AWS account. For more information,
+// see Limits (https://docs.aws.amazon.com/waf/latest/developerguide/limits.html)
+// in the AWS WAF Developer Guide.
+type WAFLimitsExceededException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s WAFLimitsExceededException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s WAFLimitsExceededException) GoString() string {
+	return s.String()
+}
+
+func newErrorWAFLimitsExceededException(v protocol.ResponseMetadata) error {
+	return &WAFLimitsExceededException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s WAFLimitsExceededException) Code() string {
+	return "WAFLimitsExceededException"
+}
+
+// Message returns the exception's message.
+func (s WAFLimitsExceededException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s WAFLimitsExceededException) OrigErr() error {
+	return nil
+}
+
+func (s WAFLimitsExceededException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s WAFLimitsExceededException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s WAFLimitsExceededException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// The operation failed because you tried to delete an object that isn't empty.
+// For example:
+//
+//    * You tried to delete a WebACL that still contains one or more Rule objects.
+//
+//    * You tried to delete a Rule that still contains one or more ByteMatchSet
+//    objects or other predicates.
+//
+//    * You tried to delete a ByteMatchSet that contains one or more ByteMatchTuple
+//    objects.
+//
+//    * You tried to delete an IPSet that references one or more IP addresses.
+type WAFNonEmptyEntityException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s WAFNonEmptyEntityException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s WAFNonEmptyEntityException) GoString() string {
+	return s.String()
+}
+
+func newErrorWAFNonEmptyEntityException(v protocol.ResponseMetadata) error {
+	return &WAFNonEmptyEntityException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s WAFNonEmptyEntityException) Code() string {
+	return "WAFNonEmptyEntityException"
+}
+
+// Message returns the exception's message.
+func (s WAFNonEmptyEntityException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s WAFNonEmptyEntityException) OrigErr() error {
+	return nil
+}
+
+func (s WAFNonEmptyEntityException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s WAFNonEmptyEntityException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s WAFNonEmptyEntityException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// The operation failed because you tried to add an object to or delete an object
+// from another object that doesn't exist. For example:
+//
+//    * You tried to add a Rule to or delete a Rule from a WebACL that doesn't
+//    exist.
+//
+//    * You tried to add a ByteMatchSet to or delete a ByteMatchSet from a Rule
+//    that doesn't exist.
+//
+//    * You tried to add an IP address to or delete an IP address from an IPSet
+//    that doesn't exist.
+//
+//    * You tried to add a ByteMatchTuple to or delete a ByteMatchTuple from
+//    a ByteMatchSet that doesn't exist.
+type WAFNonexistentContainerException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s WAFNonexistentContainerException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s WAFNonexistentContainerException) GoString() string {
+	return s.String()
+}
+
+func newErrorWAFNonexistentContainerException(v protocol.ResponseMetadata) error {
+	return &WAFNonexistentContainerException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s WAFNonexistentContainerException) Code() string {
+	return "WAFNonexistentContainerException"
+}
+
+// Message returns the exception's message.
+func (s WAFNonexistentContainerException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s WAFNonexistentContainerException) OrigErr() error {
+	return nil
+}
+
+func (s WAFNonexistentContainerException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s WAFNonexistentContainerException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s WAFNonexistentContainerException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// The operation failed because the referenced object doesn't exist.
+type WAFNonexistentItemException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s WAFNonexistentItemException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s WAFNonexistentItemException) GoString() string {
+	return s.String()
+}
+
+func newErrorWAFNonexistentItemException(v protocol.ResponseMetadata) error {
+	return &WAFNonexistentItemException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s WAFNonexistentItemException) Code() string {
+	return "WAFNonexistentItemException"
+}
+
+// Message returns the exception's message.
+func (s WAFNonexistentItemException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s WAFNonexistentItemException) OrigErr() error {
+	return nil
+}
+
+func (s WAFNonexistentItemException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s WAFNonexistentItemException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s WAFNonexistentItemException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// The operation failed because you tried to delete an object that is still
+// in use. For example:
+//
+//    * You tried to delete a ByteMatchSet that is still referenced by a Rule.
+//
+//    * You tried to delete a Rule that is still referenced by a WebACL.
+type WAFReferencedItemException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s WAFReferencedItemException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s WAFReferencedItemException) GoString() string {
+	return s.String()
+}
+
+func newErrorWAFReferencedItemException(v protocol.ResponseMetadata) error {
+	return &WAFReferencedItemException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s WAFReferencedItemException) Code() string {
+	return "WAFReferencedItemException"
+}
+
+// Message returns the exception's message.
+func (s WAFReferencedItemException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s WAFReferencedItemException) OrigErr() error {
+	return nil
+}
+
+func (s WAFReferencedItemException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s WAFReferencedItemException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s WAFReferencedItemException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// AWS WAF is not able to access the service linked role. This can be caused
+// by a previous PutLoggingConfiguration request, which can lock the service
+// linked role for about 20 seconds. Please try your request again. The service
+// linked role can also be locked by a previous DeleteServiceLinkedRole request,
+// which can lock the role for 15 minutes or more. If you recently made a DeleteServiceLinkedRole,
+// wait at least 15 minutes and try the request again. If you receive this same
+// exception again, you will have to wait additional time until the role is
+// unlocked.
+type WAFServiceLinkedRoleErrorException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s WAFServiceLinkedRoleErrorException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s WAFServiceLinkedRoleErrorException) GoString() string {
+	return s.String()
+}
+
+func newErrorWAFServiceLinkedRoleErrorException(v protocol.ResponseMetadata) error {
+	return &WAFServiceLinkedRoleErrorException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s WAFServiceLinkedRoleErrorException) Code() string {
+	return "WAFServiceLinkedRoleErrorException"
+}
+
+// Message returns the exception's message.
+func (s WAFServiceLinkedRoleErrorException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s WAFServiceLinkedRoleErrorException) OrigErr() error {
+	return nil
+}
+
+func (s WAFServiceLinkedRoleErrorException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s WAFServiceLinkedRoleErrorException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s WAFServiceLinkedRoleErrorException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// The operation failed because you tried to create, update, or delete an object
+// by using a change token that has already been used.
+type WAFStaleDataException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s WAFStaleDataException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s WAFStaleDataException) GoString() string {
+	return s.String()
+}
+
+func newErrorWAFStaleDataException(v protocol.ResponseMetadata) error {
+	return &WAFStaleDataException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s WAFStaleDataException) Code() string {
+	return "WAFStaleDataException"
+}
+
+// Message returns the exception's message.
+func (s WAFStaleDataException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s WAFStaleDataException) OrigErr() error {
+	return nil
+}
+
+func (s WAFStaleDataException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s WAFStaleDataException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s WAFStaleDataException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// The specified subscription does not exist.
+type WAFSubscriptionNotFoundException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s WAFSubscriptionNotFoundException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s WAFSubscriptionNotFoundException) GoString() string {
+	return s.String()
+}
+
+func newErrorWAFSubscriptionNotFoundException(v protocol.ResponseMetadata) error {
+	return &WAFSubscriptionNotFoundException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s WAFSubscriptionNotFoundException) Code() string {
+	return "WAFSubscriptionNotFoundException"
+}
+
+// Message returns the exception's message.
+func (s WAFSubscriptionNotFoundException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s WAFSubscriptionNotFoundException) OrigErr() error {
+	return nil
+}
+
+func (s WAFSubscriptionNotFoundException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s WAFSubscriptionNotFoundException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s WAFSubscriptionNotFoundException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+type WAFTagOperationException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s WAFTagOperationException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s WAFTagOperationException) GoString() string {
+	return s.String()
+}
+
+func newErrorWAFTagOperationException(v protocol.ResponseMetadata) error {
+	return &WAFTagOperationException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s WAFTagOperationException) Code() string {
+	return "WAFTagOperationException"
+}
+
+// Message returns the exception's message.
+func (s WAFTagOperationException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s WAFTagOperationException) OrigErr() error {
+	return nil
+}
+
+func (s WAFTagOperationException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s WAFTagOperationException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s WAFTagOperationException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+type WAFTagOperationInternalErrorException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s WAFTagOperationInternalErrorException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s WAFTagOperationInternalErrorException) GoString() string {
+	return s.String()
+}
+
+func newErrorWAFTagOperationInternalErrorException(v protocol.ResponseMetadata) error {
+	return &WAFTagOperationInternalErrorException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s WAFTagOperationInternalErrorException) Code() string {
+	return "WAFTagOperationInternalErrorException"
+}
+
+// Message returns the exception's message.
+func (s WAFTagOperationInternalErrorException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s WAFTagOperationInternalErrorException) OrigErr() error {
+	return nil
+}
+
+func (s WAFTagOperationInternalErrorException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s WAFTagOperationInternalErrorException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s WAFTagOperationInternalErrorException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// The operation failed because the entity referenced is temporarily unavailable.
+// Retry your request.
+type WAFUnavailableEntityException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s WAFUnavailableEntityException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s WAFUnavailableEntityException) GoString() string {
+	return s.String()
+}
+
+func newErrorWAFUnavailableEntityException(v protocol.ResponseMetadata) error {
+	return &WAFUnavailableEntityException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s WAFUnavailableEntityException) Code() string {
+	return "WAFUnavailableEntityException"
+}
+
+// Message returns the exception's message.
+func (s WAFUnavailableEntityException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s WAFUnavailableEntityException) OrigErr() error {
+	return nil
+}
+
+func (s WAFUnavailableEntityException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s WAFUnavailableEntityException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s WAFUnavailableEntityException) RequestID() string {
+	return s.respMetadata.RequestID
 }
 
 const (

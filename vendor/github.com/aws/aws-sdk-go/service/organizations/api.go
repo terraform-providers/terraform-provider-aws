@@ -90,19 +90,19 @@ func (c *Organizations) AcceptHandshakeRequest(input *AcceptHandshakeInput) (req
 // See the AWS API reference guide for AWS Organizations's
 // API operation AcceptHandshake for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+// Returned Error Types:
+//   * AccessDeniedException
 //   You don't have permissions to perform the requested operation. The user or
 //   role that is making the request must have at least one IAM permissions policy
 //   attached that grants the required permissions. For more information, see
 //   Access Management (https://docs.aws.amazon.com/IAM/latest/UserGuide/access.html)
 //   in the IAM User Guide.
 //
-//   * ErrCodeAWSOrganizationsNotInUseException "AWSOrganizationsNotInUseException"
+//   * AWSOrganizationsNotInUseException
 //   Your account isn't a member of an organization. To make this request, you
 //   must use the credentials of an account that belongs to an organization.
 //
-//   * ErrCodeHandshakeConstraintViolationException "HandshakeConstraintViolationException"
+//   * HandshakeConstraintViolationException
 //   The requested operation would violate the constraint identified in the reason
 //   code.
 //
@@ -142,19 +142,19 @@ func (c *Organizations) AcceptHandshakeRequest(input *AcceptHandshakeInput) (req
 //      account that doesn't have a payment instrument, such as a credit card,
 //      associated with it.
 //
-//   * ErrCodeHandshakeNotFoundException "HandshakeNotFoundException"
+//   * HandshakeNotFoundException
 //   We can't find a handshake with the HandshakeId that you specified.
 //
-//   * ErrCodeInvalidHandshakeTransitionException "InvalidHandshakeTransitionException"
+//   * InvalidHandshakeTransitionException
 //   You can't perform the operation on the handshake in its current state. For
 //   example, you can't cancel a handshake that was already accepted or accept
 //   a handshake that was already declined.
 //
-//   * ErrCodeHandshakeAlreadyInStateException "HandshakeAlreadyInStateException"
+//   * HandshakeAlreadyInStateException
 //   The specified handshake is already in the requested state. For example, you
 //   can't accept a handshake that was already accepted.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   The requested operation failed because you provided invalid values for one
 //   or more of the request parameters. This exception includes a reason that
 //   contains additional information about the violated limit:
@@ -168,6 +168,8 @@ func (c *Organizations) AcceptHandshakeRequest(input *AcceptHandshakeInput) (req
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
+//
+//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -218,15 +220,15 @@ func (c *Organizations) AcceptHandshakeRequest(input *AcceptHandshakeInput) (req
 //      * MOVING_ACCOUNT_BETWEEN_DIFFERENT_ROOTS: You can move an account only
 //      between entities in the same root.
 //
-//   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
+//   * ConcurrentModificationException
 //   The target of the operation is currently being modified by a different request.
 //   Try again later.
 //
-//   * ErrCodeServiceException "ServiceException"
+//   * ServiceException
 //   AWS Organizations can't complete your request because of an internal service
 //   error. Try again later.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   You have sent too many requests in too short a period of time. The limit
 //   helps protect against denial-of-service attacks. Try again later.
 //
@@ -234,7 +236,7 @@ func (c *Organizations) AcceptHandshakeRequest(input *AcceptHandshakeInput) (req
 //   Organizations (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_reference_limits.html)
 //   in the AWS Organizations User Guide.
 //
-//   * ErrCodeAccessDeniedForDependencyException "AccessDeniedForDependencyException"
+//   * AccessDeniedForDependencyException
 //   The operation that you attempted requires you to have the iam:CreateServiceLinkedRole
 //   for organizations.amazonaws.com permission so that AWS Organizations can
 //   create the required service-linked role. You don't have that permission.
@@ -307,34 +309,15 @@ func (c *Organizations) AttachPolicyRequest(input *AttachPolicyInput) (req *requ
 // AttachPolicy API operation for AWS Organizations.
 //
 // Attaches a policy to a root, an organizational unit (OU), or an individual
-// account. How the policy affects accounts depends on the type of policy:
+// account.
 //
-//    * Service control policy (SCP) - An SCP specifies what permissions can
-//    be delegated to users in affected member accounts. The scope of influence
-//    for a policy depends on what you attach the policy to: If you attach an
-//    SCP to a root, it affects all accounts in the organization. If you attach
-//    an SCP to an OU, it affects all accounts in that OU and in any child OUs.
-//    If you attach the policy directly to an account, it affects only that
-//    account. SCPs are JSON policies that specify the maximum permissions for
-//    an organization or organizational unit (OU). You can attach one SCP to
-//    a higher level root or OU, and a different SCP to a child OU or to an
-//    account. The child policy can further restrict only the permissions that
-//    pass through the parent filter and are available to the child. An SCP
-//    that is attached to a child can't grant a permission that the parent hasn't
-//    already granted. For example, imagine that the parent SCP allows permissions
-//    A, B, C, D, and E. The child SCP allows C, D, E, F, and G. The result
-//    is that the accounts affected by the child SCP are allowed to use only
-//    C, D, and E. They can't use A or B because the child OU filtered them
-//    out. They also can't use F and G because the parent OU filtered them out.
-//    They can't be granted back by the child SCP; child SCPs can only filter
-//    the permissions they receive from the parent SCP. AWS Organizations attaches
-//    a default SCP named "FullAWSAccess to every root, OU, and account. This
-//    default SCP allows all services and actions, enabling any new child OU
-//    or account to inherit the permissions of the parent root or OU. If you
-//    detach the default policy, you must replace it with a policy that specifies
-//    the permissions that you want to allow in that OU or account. For more
-//    information about how AWS Organizations policies permissions work, see
-//    Using Service Control Policies (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_scp.html)
+// How the policy affects accounts depends on the type of policy:
+//
+//    * For more information about attaching SCPs, see How SCPs Work (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_about-scps.html)
+//    in the AWS Organizations User Guide.
+//
+//    * For information about attaching tag policies, see How Policy Inheritance
+//    Works (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies-inheritance.html)
 //    in the AWS Organizations User Guide.
 //
 // This operation can be called only from the organization's master account.
@@ -346,29 +329,28 @@ func (c *Organizations) AttachPolicyRequest(input *AttachPolicyInput) (req *requ
 // See the AWS API reference guide for AWS Organizations's
 // API operation AttachPolicy for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+// Returned Error Types:
+//   * AccessDeniedException
 //   You don't have permissions to perform the requested operation. The user or
 //   role that is making the request must have at least one IAM permissions policy
 //   attached that grants the required permissions. For more information, see
 //   Access Management (https://docs.aws.amazon.com/IAM/latest/UserGuide/access.html)
 //   in the IAM User Guide.
 //
-//   * ErrCodeAWSOrganizationsNotInUseException "AWSOrganizationsNotInUseException"
+//   * AWSOrganizationsNotInUseException
 //   Your account isn't a member of an organization. To make this request, you
 //   must use the credentials of an account that belongs to an organization.
 //
-//   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
+//   * ConcurrentModificationException
 //   The target of the operation is currently being modified by a different request.
 //   Try again later.
 //
-//   * ErrCodeConstraintViolationException "ConstraintViolationException"
-//   Performing this operation violates a minimum or maximum value limit. For
-//   example, attempting to remove the last service control policy (SCP) from
-//   an OU or root, inviting or creating too many accounts to the organization,
-//   or attaching too many policies to an account, OU, or root. This exception
-//   includes a reason that contains additional information about the violated
-//   limit.
+//   * ConstraintViolationException
+//   Performing this operation violates a minimum or maximum value limit. Examples
+//   include attempting to remove the last service control policy (SCP) from an
+//   OU or root, or attaching too many policies to an account, OU, or root. This
+//   exception includes a reason that contains additional information about the
+//   violated limit.
 //
 //   Some of the reasons in the following list might not be applicable to this
 //   specific API or operation:
@@ -443,8 +425,8 @@ func (c *Organizations) AttachPolicyRequest(input *AttachPolicyInput) (req *requ
 //      in the AWS Organizations User Guide.
 //
 //      * MIN_POLICY_TYPE_ATTACHMENT_LIMIT_EXCEEDED: You attempted to detach a
-//      policy from an entity that would cause the entity to have fewer than the
-//      minimum number of policies of a certain type required.
+//      policy from an entity, which would cause the entity to have fewer than
+//      the minimum number of policies of the required type.
 //
 //      * OU_DEPTH_LIMIT_EXCEEDED: You attempted to create an OU tree that is
 //      too many levels deep.
@@ -457,13 +439,18 @@ func (c *Organizations) AttachPolicyRequest(input *AttachPolicyInput) (req *requ
 //      * OU_NUMBER_LIMIT_EXCEEDED: You attempted to exceed the number of OUs
 //      that you can have in an organization.
 //
-//      * POLICY_NUMBER_LIMIT_EXCEEDED. You attempted to exceed the number of
+//      * POLICY_NUMBER_LIMIT_EXCEEDED: You attempted to exceed the number of
 //      policies that you can have in an organization.
 //
-//   * ErrCodeDuplicatePolicyAttachmentException "DuplicatePolicyAttachmentException"
+//      * TAG_POLICY_VIOLATION: Tags associated with the resource must be compliant
+//      with the tag policy that’s in effect for the account. For more information,
+//      see Tag Policies (http://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_tag-policies.html)
+//      in the AWS Organizations User Guide.
+//
+//   * DuplicatePolicyAttachmentException
 //   The selected policy is already attached to the specified target.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   The requested operation failed because you provided invalid values for one
 //   or more of the request parameters. This exception includes a reason that
 //   contains additional information about the violated limit:
@@ -477,6 +464,8 @@ func (c *Organizations) AttachPolicyRequest(input *AttachPolicyInput) (req *requ
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
+//
+//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -527,30 +516,37 @@ func (c *Organizations) AttachPolicyRequest(input *AttachPolicyInput) (req *requ
 //      * MOVING_ACCOUNT_BETWEEN_DIFFERENT_ROOTS: You can move an account only
 //      between entities in the same root.
 //
-//   * ErrCodePolicyNotFoundException "PolicyNotFoundException"
+//   * PolicyNotFoundException
 //   We can't find a policy with the PolicyId that you specified.
 //
-//   * ErrCodePolicyTypeNotEnabledException "PolicyTypeNotEnabledException"
+//   * PolicyTypeNotEnabledException
 //   The specified policy type isn't currently enabled in this root. You can't
 //   attach policies of the specified type to entities in a root until you enable
 //   that type in the root. For more information, see Enabling All Features in
 //   Your Organization (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_org_support-all-features.html)
 //   in the AWS Organizations User Guide.
 //
-//   * ErrCodeServiceException "ServiceException"
+//   * ServiceException
 //   AWS Organizations can't complete your request because of an internal service
 //   error. Try again later.
 //
-//   * ErrCodeTargetNotFoundException "TargetNotFoundException"
+//   * TargetNotFoundException
 //   We can't find a root, OU, or account with the TargetId that you specified.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   You have sent too many requests in too short a period of time. The limit
 //   helps protect against denial-of-service attacks. Try again later.
 //
 //   For information on limits that affect AWS Organizations, see Limits of AWS
 //   Organizations (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_reference_limits.html)
 //   in the AWS Organizations User Guide.
+//
+//   * UnsupportedAPIEndpointException
+//   This action isn't available in the current Region.
+//
+//   * PolicyChangesInProgressException
+//   Changes to the effective policy are in progress, and its contents can't be
+//   returned. Try the operation again later.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/organizations-2016-11-28/AttachPolicy
 func (c *Organizations) AttachPolicy(input *AttachPolicyInput) (*AttachPolicyOutput, error) {
@@ -635,31 +631,31 @@ func (c *Organizations) CancelHandshakeRequest(input *CancelHandshakeInput) (req
 // See the AWS API reference guide for AWS Organizations's
 // API operation CancelHandshake for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+// Returned Error Types:
+//   * AccessDeniedException
 //   You don't have permissions to perform the requested operation. The user or
 //   role that is making the request must have at least one IAM permissions policy
 //   attached that grants the required permissions. For more information, see
 //   Access Management (https://docs.aws.amazon.com/IAM/latest/UserGuide/access.html)
 //   in the IAM User Guide.
 //
-//   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
+//   * ConcurrentModificationException
 //   The target of the operation is currently being modified by a different request.
 //   Try again later.
 //
-//   * ErrCodeHandshakeNotFoundException "HandshakeNotFoundException"
+//   * HandshakeNotFoundException
 //   We can't find a handshake with the HandshakeId that you specified.
 //
-//   * ErrCodeInvalidHandshakeTransitionException "InvalidHandshakeTransitionException"
+//   * InvalidHandshakeTransitionException
 //   You can't perform the operation on the handshake in its current state. For
 //   example, you can't cancel a handshake that was already accepted or accept
 //   a handshake that was already declined.
 //
-//   * ErrCodeHandshakeAlreadyInStateException "HandshakeAlreadyInStateException"
+//   * HandshakeAlreadyInStateException
 //   The specified handshake is already in the requested state. For example, you
 //   can't accept a handshake that was already accepted.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   The requested operation failed because you provided invalid values for one
 //   or more of the request parameters. This exception includes a reason that
 //   contains additional information about the violated limit:
@@ -673,6 +669,8 @@ func (c *Organizations) CancelHandshakeRequest(input *CancelHandshakeInput) (req
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
+//
+//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -723,11 +721,11 @@ func (c *Organizations) CancelHandshakeRequest(input *CancelHandshakeInput) (req
 //      * MOVING_ACCOUNT_BETWEEN_DIFFERENT_ROOTS: You can move an account only
 //      between entities in the same root.
 //
-//   * ErrCodeServiceException "ServiceException"
+//   * ServiceException
 //   AWS Organizations can't complete your request because of an internal service
 //   error. Try again later.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   You have sent too many requests in too short a period of time. The limit
 //   helps protect against denial-of-service attacks. Try again later.
 //
@@ -836,13 +834,13 @@ func (c *Organizations) CreateAccountRequest(input *CreateAccountInput) (req *re
 // in Your Organization (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_accounts_create.html)
 // in the AWS Organizations User Guide.
 //
-//    * When you create an account in an organization using the AWS Organizations
-//    console, API, or CLI commands, the information required for the account
-//    to operate as a standalone account, such as a payment method and signing
-//    the end user license agreement (EULA) is not automatically collected.
-//    If you must remove an account from your organization later, you can do
-//    so only after you provide the missing information. Follow the steps at
-//    To leave an organization as a member account (http://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_accounts_remove.html#leave-without-all-info)
+//    * When you create an account in an organization, the information required
+//    for the account to operate as a standalone account is not automatically
+//    collected. For example, information about the payment method and signing
+//    the end user license agreement (EULA) is not collected. If you must remove
+//    an account from your organization later, you can do so only after you
+//    provide the missing information. Follow the steps at To leave an organization
+//    as a member account (http://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_accounts_remove.html#leave-without-all-info)
 //    in the AWS Organizations User Guide.
 //
 //    * If you get an exception that indicates that you exceeded your account
@@ -873,29 +871,28 @@ func (c *Organizations) CreateAccountRequest(input *CreateAccountInput) (req *re
 // See the AWS API reference guide for AWS Organizations's
 // API operation CreateAccount for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+// Returned Error Types:
+//   * AccessDeniedException
 //   You don't have permissions to perform the requested operation. The user or
 //   role that is making the request must have at least one IAM permissions policy
 //   attached that grants the required permissions. For more information, see
 //   Access Management (https://docs.aws.amazon.com/IAM/latest/UserGuide/access.html)
 //   in the IAM User Guide.
 //
-//   * ErrCodeAWSOrganizationsNotInUseException "AWSOrganizationsNotInUseException"
+//   * AWSOrganizationsNotInUseException
 //   Your account isn't a member of an organization. To make this request, you
 //   must use the credentials of an account that belongs to an organization.
 //
-//   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
+//   * ConcurrentModificationException
 //   The target of the operation is currently being modified by a different request.
 //   Try again later.
 //
-//   * ErrCodeConstraintViolationException "ConstraintViolationException"
-//   Performing this operation violates a minimum or maximum value limit. For
-//   example, attempting to remove the last service control policy (SCP) from
-//   an OU or root, inviting or creating too many accounts to the organization,
-//   or attaching too many policies to an account, OU, or root. This exception
-//   includes a reason that contains additional information about the violated
-//   limit.
+//   * ConstraintViolationException
+//   Performing this operation violates a minimum or maximum value limit. Examples
+//   include attempting to remove the last service control policy (SCP) from an
+//   OU or root, or attaching too many policies to an account, OU, or root. This
+//   exception includes a reason that contains additional information about the
+//   violated limit.
 //
 //   Some of the reasons in the following list might not be applicable to this
 //   specific API or operation:
@@ -970,8 +967,8 @@ func (c *Organizations) CreateAccountRequest(input *CreateAccountInput) (req *re
 //      in the AWS Organizations User Guide.
 //
 //      * MIN_POLICY_TYPE_ATTACHMENT_LIMIT_EXCEEDED: You attempted to detach a
-//      policy from an entity that would cause the entity to have fewer than the
-//      minimum number of policies of a certain type required.
+//      policy from an entity, which would cause the entity to have fewer than
+//      the minimum number of policies of the required type.
 //
 //      * OU_DEPTH_LIMIT_EXCEEDED: You attempted to create an OU tree that is
 //      too many levels deep.
@@ -984,10 +981,15 @@ func (c *Organizations) CreateAccountRequest(input *CreateAccountInput) (req *re
 //      * OU_NUMBER_LIMIT_EXCEEDED: You attempted to exceed the number of OUs
 //      that you can have in an organization.
 //
-//      * POLICY_NUMBER_LIMIT_EXCEEDED. You attempted to exceed the number of
+//      * POLICY_NUMBER_LIMIT_EXCEEDED: You attempted to exceed the number of
 //      policies that you can have in an organization.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//      * TAG_POLICY_VIOLATION: Tags associated with the resource must be compliant
+//      with the tag policy that’s in effect for the account. For more information,
+//      see Tag Policies (http://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_tag-policies.html)
+//      in the AWS Organizations User Guide.
+//
+//   * InvalidInputException
 //   The requested operation failed because you provided invalid values for one
 //   or more of the request parameters. This exception includes a reason that
 //   contains additional information about the violated limit:
@@ -1001,6 +1003,8 @@ func (c *Organizations) CreateAccountRequest(input *CreateAccountInput) (req *re
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
+//
+//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -1051,17 +1055,17 @@ func (c *Organizations) CreateAccountRequest(input *CreateAccountInput) (req *re
 //      * MOVING_ACCOUNT_BETWEEN_DIFFERENT_ROOTS: You can move an account only
 //      between entities in the same root.
 //
-//   * ErrCodeFinalizingOrganizationException "FinalizingOrganizationException"
+//   * FinalizingOrganizationException
 //   AWS Organizations couldn't perform the operation because your organization
 //   hasn't finished initializing. This can take up to an hour. Try again later.
 //   If after one hour you continue to receive this error, contact AWS Support
 //   (https://console.aws.amazon.com/support/home#/).
 //
-//   * ErrCodeServiceException "ServiceException"
+//   * ServiceException
 //   AWS Organizations can't complete your request because of an internal service
 //   error. Try again later.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   You have sent too many requests in too short a period of time. The limit
 //   helps protect against denial-of-service attacks. Try again later.
 //
@@ -1069,7 +1073,7 @@ func (c *Organizations) CreateAccountRequest(input *CreateAccountInput) (req *re
 //   Organizations (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_reference_limits.html)
 //   in the AWS Organizations User Guide.
 //
-//   * ErrCodeUnsupportedAPIEndpointException "UnsupportedAPIEndpointException"
+//   * UnsupportedAPIEndpointException
 //   This action isn't available in the current Region.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/organizations-2016-11-28/CreateAccount
@@ -1198,8 +1202,8 @@ func (c *Organizations) CreateGovCloudAccountRequest(input *CreateGovCloudAccoun
 // the master account in the organization in the commercial Region to assume
 // it. An AWS GovCloud (US) account is then created and associated with the
 // commercial account that you just created. A role is created in the new AWS
-// GovCloud (US) account that can be assumed by the AWS GovCloud (US) account
-// that is associated with the master account of the commercial organization.
+// GovCloud (US) account. This role can be assumed by the AWS GovCloud (US)
+// account that is associated with the master account of the commercial organization.
 // For more information and to view a diagram that explains how account access
 // works, see AWS Organizations (http://docs.aws.amazon.com/govcloud-us/latest/UserGuide/govcloud-organizations.html)
 // in the AWS GovCloud User Guide.
@@ -1208,13 +1212,12 @@ func (c *Organizations) CreateGovCloudAccountRequest(input *CreateGovCloudAccoun
 // in Your Organization (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_accounts_create.html)
 // in the AWS Organizations User Guide.
 //
-//    * When you create an account in an organization using the AWS Organizations
-//    console, API, or CLI commands, the information required for the account
-//    to operate as a standalone account, such as a payment method and signing
-//    the end user license agreement (EULA) is not automatically collected.
-//    If you must remove an account from your organization later, you can do
-//    so only after you provide the missing information. Follow the steps at
-//    To leave an organization as a member account (http://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_accounts_remove.html#leave-without-all-info)
+//    * You can create an account in an organization using the AWS Organizations
+//    console, API, or CLI commands. When you do, the information required for
+//    the account to operate as a standalone account, such as a payment method,
+//    is not automatically collected. If you must remove an account from your
+//    organization later, you can do so only after you provide the missing information.
+//    Follow the steps at To leave an organization as a member account (http://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_accounts_remove.html#leave-without-all-info)
 //    in the AWS Organizations User Guide.
 //
 //    * If you get an exception that indicates that you exceeded your account
@@ -1246,29 +1249,28 @@ func (c *Organizations) CreateGovCloudAccountRequest(input *CreateGovCloudAccoun
 // See the AWS API reference guide for AWS Organizations's
 // API operation CreateGovCloudAccount for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+// Returned Error Types:
+//   * AccessDeniedException
 //   You don't have permissions to perform the requested operation. The user or
 //   role that is making the request must have at least one IAM permissions policy
 //   attached that grants the required permissions. For more information, see
 //   Access Management (https://docs.aws.amazon.com/IAM/latest/UserGuide/access.html)
 //   in the IAM User Guide.
 //
-//   * ErrCodeAWSOrganizationsNotInUseException "AWSOrganizationsNotInUseException"
+//   * AWSOrganizationsNotInUseException
 //   Your account isn't a member of an organization. To make this request, you
 //   must use the credentials of an account that belongs to an organization.
 //
-//   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
+//   * ConcurrentModificationException
 //   The target of the operation is currently being modified by a different request.
 //   Try again later.
 //
-//   * ErrCodeConstraintViolationException "ConstraintViolationException"
-//   Performing this operation violates a minimum or maximum value limit. For
-//   example, attempting to remove the last service control policy (SCP) from
-//   an OU or root, inviting or creating too many accounts to the organization,
-//   or attaching too many policies to an account, OU, or root. This exception
-//   includes a reason that contains additional information about the violated
-//   limit.
+//   * ConstraintViolationException
+//   Performing this operation violates a minimum or maximum value limit. Examples
+//   include attempting to remove the last service control policy (SCP) from an
+//   OU or root, or attaching too many policies to an account, OU, or root. This
+//   exception includes a reason that contains additional information about the
+//   violated limit.
 //
 //   Some of the reasons in the following list might not be applicable to this
 //   specific API or operation:
@@ -1343,8 +1345,8 @@ func (c *Organizations) CreateGovCloudAccountRequest(input *CreateGovCloudAccoun
 //      in the AWS Organizations User Guide.
 //
 //      * MIN_POLICY_TYPE_ATTACHMENT_LIMIT_EXCEEDED: You attempted to detach a
-//      policy from an entity that would cause the entity to have fewer than the
-//      minimum number of policies of a certain type required.
+//      policy from an entity, which would cause the entity to have fewer than
+//      the minimum number of policies of the required type.
 //
 //      * OU_DEPTH_LIMIT_EXCEEDED: You attempted to create an OU tree that is
 //      too many levels deep.
@@ -1357,10 +1359,15 @@ func (c *Organizations) CreateGovCloudAccountRequest(input *CreateGovCloudAccoun
 //      * OU_NUMBER_LIMIT_EXCEEDED: You attempted to exceed the number of OUs
 //      that you can have in an organization.
 //
-//      * POLICY_NUMBER_LIMIT_EXCEEDED. You attempted to exceed the number of
+//      * POLICY_NUMBER_LIMIT_EXCEEDED: You attempted to exceed the number of
 //      policies that you can have in an organization.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//      * TAG_POLICY_VIOLATION: Tags associated with the resource must be compliant
+//      with the tag policy that’s in effect for the account. For more information,
+//      see Tag Policies (http://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_tag-policies.html)
+//      in the AWS Organizations User Guide.
+//
+//   * InvalidInputException
 //   The requested operation failed because you provided invalid values for one
 //   or more of the request parameters. This exception includes a reason that
 //   contains additional information about the violated limit:
@@ -1374,6 +1381,8 @@ func (c *Organizations) CreateGovCloudAccountRequest(input *CreateGovCloudAccoun
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
+//
+//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -1424,17 +1433,17 @@ func (c *Organizations) CreateGovCloudAccountRequest(input *CreateGovCloudAccoun
 //      * MOVING_ACCOUNT_BETWEEN_DIFFERENT_ROOTS: You can move an account only
 //      between entities in the same root.
 //
-//   * ErrCodeFinalizingOrganizationException "FinalizingOrganizationException"
+//   * FinalizingOrganizationException
 //   AWS Organizations couldn't perform the operation because your organization
 //   hasn't finished initializing. This can take up to an hour. Try again later.
 //   If after one hour you continue to receive this error, contact AWS Support
 //   (https://console.aws.amazon.com/support/home#/).
 //
-//   * ErrCodeServiceException "ServiceException"
+//   * ServiceException
 //   AWS Organizations can't complete your request because of an internal service
 //   error. Try again later.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   You have sent too many requests in too short a period of time. The limit
 //   helps protect against denial-of-service attacks. Try again later.
 //
@@ -1442,7 +1451,7 @@ func (c *Organizations) CreateGovCloudAccountRequest(input *CreateGovCloudAccoun
 //   Organizations (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_reference_limits.html)
 //   in the AWS Organizations User Guide.
 //
-//   * ErrCodeUnsupportedAPIEndpointException "UnsupportedAPIEndpointException"
+//   * UnsupportedAPIEndpointException
 //   This action isn't available in the current Region.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/organizations-2016-11-28/CreateGovCloudAccount
@@ -1520,11 +1529,10 @@ func (c *Organizations) CreateOrganizationRequest(input *CreateOrganizationInput
 // have the relevant IAM permissions.
 //
 // By default (or if you set the FeatureSet parameter to ALL), the new organization
-// is created with all features enabled and service control policies automatically
-// enabled in the root. If you instead choose to create the organization supporting
-// only the consolidated billing features by setting the FeatureSet parameter
-// to CONSOLIDATED_BILLING", no policy types are enabled by default, and you
-// can't use organization policies.
+// is created with all features enabled. In addition, service control policies
+// are automatically enabled in the root. If you instead create the organization
+// supporting only the consolidated billing features, no policy types are enabled
+// by default, and you can't use organization policies.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1533,29 +1541,28 @@ func (c *Organizations) CreateOrganizationRequest(input *CreateOrganizationInput
 // See the AWS API reference guide for AWS Organizations's
 // API operation CreateOrganization for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+// Returned Error Types:
+//   * AccessDeniedException
 //   You don't have permissions to perform the requested operation. The user or
 //   role that is making the request must have at least one IAM permissions policy
 //   attached that grants the required permissions. For more information, see
 //   Access Management (https://docs.aws.amazon.com/IAM/latest/UserGuide/access.html)
 //   in the IAM User Guide.
 //
-//   * ErrCodeAlreadyInOrganizationException "AlreadyInOrganizationException"
+//   * AlreadyInOrganizationException
 //   This account is already a member of an organization. An account can belong
 //   to only one organization at a time.
 //
-//   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
+//   * ConcurrentModificationException
 //   The target of the operation is currently being modified by a different request.
 //   Try again later.
 //
-//   * ErrCodeConstraintViolationException "ConstraintViolationException"
-//   Performing this operation violates a minimum or maximum value limit. For
-//   example, attempting to remove the last service control policy (SCP) from
-//   an OU or root, inviting or creating too many accounts to the organization,
-//   or attaching too many policies to an account, OU, or root. This exception
-//   includes a reason that contains additional information about the violated
-//   limit.
+//   * ConstraintViolationException
+//   Performing this operation violates a minimum or maximum value limit. Examples
+//   include attempting to remove the last service control policy (SCP) from an
+//   OU or root, or attaching too many policies to an account, OU, or root. This
+//   exception includes a reason that contains additional information about the
+//   violated limit.
 //
 //   Some of the reasons in the following list might not be applicable to this
 //   specific API or operation:
@@ -1630,8 +1637,8 @@ func (c *Organizations) CreateOrganizationRequest(input *CreateOrganizationInput
 //      in the AWS Organizations User Guide.
 //
 //      * MIN_POLICY_TYPE_ATTACHMENT_LIMIT_EXCEEDED: You attempted to detach a
-//      policy from an entity that would cause the entity to have fewer than the
-//      minimum number of policies of a certain type required.
+//      policy from an entity, which would cause the entity to have fewer than
+//      the minimum number of policies of the required type.
 //
 //      * OU_DEPTH_LIMIT_EXCEEDED: You attempted to create an OU tree that is
 //      too many levels deep.
@@ -1644,10 +1651,15 @@ func (c *Organizations) CreateOrganizationRequest(input *CreateOrganizationInput
 //      * OU_NUMBER_LIMIT_EXCEEDED: You attempted to exceed the number of OUs
 //      that you can have in an organization.
 //
-//      * POLICY_NUMBER_LIMIT_EXCEEDED. You attempted to exceed the number of
+//      * POLICY_NUMBER_LIMIT_EXCEEDED: You attempted to exceed the number of
 //      policies that you can have in an organization.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//      * TAG_POLICY_VIOLATION: Tags associated with the resource must be compliant
+//      with the tag policy that’s in effect for the account. For more information,
+//      see Tag Policies (http://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_tag-policies.html)
+//      in the AWS Organizations User Guide.
+//
+//   * InvalidInputException
 //   The requested operation failed because you provided invalid values for one
 //   or more of the request parameters. This exception includes a reason that
 //   contains additional information about the violated limit:
@@ -1661,6 +1673,8 @@ func (c *Organizations) CreateOrganizationRequest(input *CreateOrganizationInput
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
+//
+//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -1711,11 +1725,11 @@ func (c *Organizations) CreateOrganizationRequest(input *CreateOrganizationInput
 //      * MOVING_ACCOUNT_BETWEEN_DIFFERENT_ROOTS: You can move an account only
 //      between entities in the same root.
 //
-//   * ErrCodeServiceException "ServiceException"
+//   * ServiceException
 //   AWS Organizations can't complete your request because of an internal service
 //   error. Try again later.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   You have sent too many requests in too short a period of time. The limit
 //   helps protect against denial-of-service attacks. Try again later.
 //
@@ -1723,7 +1737,7 @@ func (c *Organizations) CreateOrganizationRequest(input *CreateOrganizationInput
 //   Organizations (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_reference_limits.html)
 //   in the AWS Organizations User Guide.
 //
-//   * ErrCodeAccessDeniedForDependencyException "AccessDeniedForDependencyException"
+//   * AccessDeniedForDependencyException
 //   The operation that you attempted requires you to have the iam:CreateServiceLinkedRole
 //   for organizations.amazonaws.com permission so that AWS Organizations can
 //   create the required service-linked role. You don't have that permission.
@@ -1812,29 +1826,28 @@ func (c *Organizations) CreateOrganizationalUnitRequest(input *CreateOrganizatio
 // See the AWS API reference guide for AWS Organizations's
 // API operation CreateOrganizationalUnit for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+// Returned Error Types:
+//   * AccessDeniedException
 //   You don't have permissions to perform the requested operation. The user or
 //   role that is making the request must have at least one IAM permissions policy
 //   attached that grants the required permissions. For more information, see
 //   Access Management (https://docs.aws.amazon.com/IAM/latest/UserGuide/access.html)
 //   in the IAM User Guide.
 //
-//   * ErrCodeAWSOrganizationsNotInUseException "AWSOrganizationsNotInUseException"
+//   * AWSOrganizationsNotInUseException
 //   Your account isn't a member of an organization. To make this request, you
 //   must use the credentials of an account that belongs to an organization.
 //
-//   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
+//   * ConcurrentModificationException
 //   The target of the operation is currently being modified by a different request.
 //   Try again later.
 //
-//   * ErrCodeConstraintViolationException "ConstraintViolationException"
-//   Performing this operation violates a minimum or maximum value limit. For
-//   example, attempting to remove the last service control policy (SCP) from
-//   an OU or root, inviting or creating too many accounts to the organization,
-//   or attaching too many policies to an account, OU, or root. This exception
-//   includes a reason that contains additional information about the violated
-//   limit.
+//   * ConstraintViolationException
+//   Performing this operation violates a minimum or maximum value limit. Examples
+//   include attempting to remove the last service control policy (SCP) from an
+//   OU or root, or attaching too many policies to an account, OU, or root. This
+//   exception includes a reason that contains additional information about the
+//   violated limit.
 //
 //   Some of the reasons in the following list might not be applicable to this
 //   specific API or operation:
@@ -1909,8 +1922,8 @@ func (c *Organizations) CreateOrganizationalUnitRequest(input *CreateOrganizatio
 //      in the AWS Organizations User Guide.
 //
 //      * MIN_POLICY_TYPE_ATTACHMENT_LIMIT_EXCEEDED: You attempted to detach a
-//      policy from an entity that would cause the entity to have fewer than the
-//      minimum number of policies of a certain type required.
+//      policy from an entity, which would cause the entity to have fewer than
+//      the minimum number of policies of the required type.
 //
 //      * OU_DEPTH_LIMIT_EXCEEDED: You attempted to create an OU tree that is
 //      too many levels deep.
@@ -1923,13 +1936,18 @@ func (c *Organizations) CreateOrganizationalUnitRequest(input *CreateOrganizatio
 //      * OU_NUMBER_LIMIT_EXCEEDED: You attempted to exceed the number of OUs
 //      that you can have in an organization.
 //
-//      * POLICY_NUMBER_LIMIT_EXCEEDED. You attempted to exceed the number of
+//      * POLICY_NUMBER_LIMIT_EXCEEDED: You attempted to exceed the number of
 //      policies that you can have in an organization.
 //
-//   * ErrCodeDuplicateOrganizationalUnitException "DuplicateOrganizationalUnitException"
+//      * TAG_POLICY_VIOLATION: Tags associated with the resource must be compliant
+//      with the tag policy that’s in effect for the account. For more information,
+//      see Tag Policies (http://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_tag-policies.html)
+//      in the AWS Organizations User Guide.
+//
+//   * DuplicateOrganizationalUnitException
 //   An OU with the same name already exists.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   The requested operation failed because you provided invalid values for one
 //   or more of the request parameters. This exception includes a reason that
 //   contains additional information about the violated limit:
@@ -1943,6 +1961,8 @@ func (c *Organizations) CreateOrganizationalUnitRequest(input *CreateOrganizatio
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
+//
+//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -1993,14 +2013,14 @@ func (c *Organizations) CreateOrganizationalUnitRequest(input *CreateOrganizatio
 //      * MOVING_ACCOUNT_BETWEEN_DIFFERENT_ROOTS: You can move an account only
 //      between entities in the same root.
 //
-//   * ErrCodeParentNotFoundException "ParentNotFoundException"
+//   * ParentNotFoundException
 //   We can't find a root or OU with the ParentId that you specified.
 //
-//   * ErrCodeServiceException "ServiceException"
+//   * ServiceException
 //   AWS Organizations can't complete your request because of an internal service
 //   error. Try again later.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   You have sent too many requests in too short a period of time. The limit
 //   helps protect against denial-of-service attacks. Try again later.
 //
@@ -2089,29 +2109,28 @@ func (c *Organizations) CreatePolicyRequest(input *CreatePolicyInput) (req *requ
 // See the AWS API reference guide for AWS Organizations's
 // API operation CreatePolicy for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+// Returned Error Types:
+//   * AccessDeniedException
 //   You don't have permissions to perform the requested operation. The user or
 //   role that is making the request must have at least one IAM permissions policy
 //   attached that grants the required permissions. For more information, see
 //   Access Management (https://docs.aws.amazon.com/IAM/latest/UserGuide/access.html)
 //   in the IAM User Guide.
 //
-//   * ErrCodeAWSOrganizationsNotInUseException "AWSOrganizationsNotInUseException"
+//   * AWSOrganizationsNotInUseException
 //   Your account isn't a member of an organization. To make this request, you
 //   must use the credentials of an account that belongs to an organization.
 //
-//   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
+//   * ConcurrentModificationException
 //   The target of the operation is currently being modified by a different request.
 //   Try again later.
 //
-//   * ErrCodeConstraintViolationException "ConstraintViolationException"
-//   Performing this operation violates a minimum or maximum value limit. For
-//   example, attempting to remove the last service control policy (SCP) from
-//   an OU or root, inviting or creating too many accounts to the organization,
-//   or attaching too many policies to an account, OU, or root. This exception
-//   includes a reason that contains additional information about the violated
-//   limit.
+//   * ConstraintViolationException
+//   Performing this operation violates a minimum or maximum value limit. Examples
+//   include attempting to remove the last service control policy (SCP) from an
+//   OU or root, or attaching too many policies to an account, OU, or root. This
+//   exception includes a reason that contains additional information about the
+//   violated limit.
 //
 //   Some of the reasons in the following list might not be applicable to this
 //   specific API or operation:
@@ -2186,8 +2205,8 @@ func (c *Organizations) CreatePolicyRequest(input *CreatePolicyInput) (req *requ
 //      in the AWS Organizations User Guide.
 //
 //      * MIN_POLICY_TYPE_ATTACHMENT_LIMIT_EXCEEDED: You attempted to detach a
-//      policy from an entity that would cause the entity to have fewer than the
-//      minimum number of policies of a certain type required.
+//      policy from an entity, which would cause the entity to have fewer than
+//      the minimum number of policies of the required type.
 //
 //      * OU_DEPTH_LIMIT_EXCEEDED: You attempted to create an OU tree that is
 //      too many levels deep.
@@ -2200,13 +2219,18 @@ func (c *Organizations) CreatePolicyRequest(input *CreatePolicyInput) (req *requ
 //      * OU_NUMBER_LIMIT_EXCEEDED: You attempted to exceed the number of OUs
 //      that you can have in an organization.
 //
-//      * POLICY_NUMBER_LIMIT_EXCEEDED. You attempted to exceed the number of
+//      * POLICY_NUMBER_LIMIT_EXCEEDED: You attempted to exceed the number of
 //      policies that you can have in an organization.
 //
-//   * ErrCodeDuplicatePolicyException "DuplicatePolicyException"
+//      * TAG_POLICY_VIOLATION: Tags associated with the resource must be compliant
+//      with the tag policy that’s in effect for the account. For more information,
+//      see Tag Policies (http://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_tag-policies.html)
+//      in the AWS Organizations User Guide.
+//
+//   * DuplicatePolicyException
 //   A policy with the same name already exists.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   The requested operation failed because you provided invalid values for one
 //   or more of the request parameters. This exception includes a reason that
 //   contains additional information about the violated limit:
@@ -2220,6 +2244,8 @@ func (c *Organizations) CreatePolicyRequest(input *CreatePolicyInput) (req *requ
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
+//
+//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -2270,30 +2296,33 @@ func (c *Organizations) CreatePolicyRequest(input *CreatePolicyInput) (req *requ
 //      * MOVING_ACCOUNT_BETWEEN_DIFFERENT_ROOTS: You can move an account only
 //      between entities in the same root.
 //
-//   * ErrCodeMalformedPolicyDocumentException "MalformedPolicyDocumentException"
+//   * MalformedPolicyDocumentException
 //   The provided policy document doesn't meet the requirements of the specified
 //   policy type. For example, the syntax might be incorrect. For details about
 //   service control policy syntax, see Service Control Policy Syntax (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_reference_scp-syntax.html)
 //   in the AWS Organizations User Guide.
 //
-//   * ErrCodePolicyTypeNotAvailableForOrganizationException "PolicyTypeNotAvailableForOrganizationException"
+//   * PolicyTypeNotAvailableForOrganizationException
 //   You can't use the specified policy type with the feature set currently enabled
 //   for this organization. For example, you can enable SCPs only after you enable
 //   all features in the organization. For more information, see Enabling and
 //   Disabling a Policy Type on a Root (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies.html#enable_policies_on_root)
 //   in the AWS Organizations User Guide.
 //
-//   * ErrCodeServiceException "ServiceException"
+//   * ServiceException
 //   AWS Organizations can't complete your request because of an internal service
 //   error. Try again later.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   You have sent too many requests in too short a period of time. The limit
 //   helps protect against denial-of-service attacks. Try again later.
 //
 //   For information on limits that affect AWS Organizations, see Limits of AWS
 //   Organizations (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_reference_limits.html)
 //   in the AWS Organizations User Guide.
+//
+//   * UnsupportedAPIEndpointException
+//   This action isn't available in the current Region.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/organizations-2016-11-28/CreatePolicy
 func (c *Organizations) CreatePolicy(input *CreatePolicyInput) (*CreatePolicyOutput, error) {
@@ -2370,7 +2399,7 @@ func (c *Organizations) DeclineHandshakeRequest(input *DeclineHandshakeInput) (r
 // a new handshake request.
 //
 // After you decline a handshake, it continues to appear in the results of relevant
-// APIs for only 30 days. After that, it's deleted.
+// API operations for only 30 days. After that, it's deleted.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -2379,31 +2408,31 @@ func (c *Organizations) DeclineHandshakeRequest(input *DeclineHandshakeInput) (r
 // See the AWS API reference guide for AWS Organizations's
 // API operation DeclineHandshake for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+// Returned Error Types:
+//   * AccessDeniedException
 //   You don't have permissions to perform the requested operation. The user or
 //   role that is making the request must have at least one IAM permissions policy
 //   attached that grants the required permissions. For more information, see
 //   Access Management (https://docs.aws.amazon.com/IAM/latest/UserGuide/access.html)
 //   in the IAM User Guide.
 //
-//   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
+//   * ConcurrentModificationException
 //   The target of the operation is currently being modified by a different request.
 //   Try again later.
 //
-//   * ErrCodeHandshakeNotFoundException "HandshakeNotFoundException"
+//   * HandshakeNotFoundException
 //   We can't find a handshake with the HandshakeId that you specified.
 //
-//   * ErrCodeInvalidHandshakeTransitionException "InvalidHandshakeTransitionException"
+//   * InvalidHandshakeTransitionException
 //   You can't perform the operation on the handshake in its current state. For
 //   example, you can't cancel a handshake that was already accepted or accept
 //   a handshake that was already declined.
 //
-//   * ErrCodeHandshakeAlreadyInStateException "HandshakeAlreadyInStateException"
+//   * HandshakeAlreadyInStateException
 //   The specified handshake is already in the requested state. For example, you
 //   can't accept a handshake that was already accepted.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   The requested operation failed because you provided invalid values for one
 //   or more of the request parameters. This exception includes a reason that
 //   contains additional information about the violated limit:
@@ -2417,6 +2446,8 @@ func (c *Organizations) DeclineHandshakeRequest(input *DeclineHandshakeInput) (r
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
+//
+//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -2467,11 +2498,11 @@ func (c *Organizations) DeclineHandshakeRequest(input *DeclineHandshakeInput) (r
 //      * MOVING_ACCOUNT_BETWEEN_DIFFERENT_ROOTS: You can move an account only
 //      between entities in the same root.
 //
-//   * ErrCodeServiceException "ServiceException"
+//   * ServiceException
 //   AWS Organizations can't complete your request because of an internal service
 //   error. Try again later.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   You have sent too many requests in too short a period of time. The limit
 //   helps protect against denial-of-service attacks. Try again later.
 //
@@ -2556,23 +2587,23 @@ func (c *Organizations) DeleteOrganizationRequest(input *DeleteOrganizationInput
 // See the AWS API reference guide for AWS Organizations's
 // API operation DeleteOrganization for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+// Returned Error Types:
+//   * AccessDeniedException
 //   You don't have permissions to perform the requested operation. The user or
 //   role that is making the request must have at least one IAM permissions policy
 //   attached that grants the required permissions. For more information, see
 //   Access Management (https://docs.aws.amazon.com/IAM/latest/UserGuide/access.html)
 //   in the IAM User Guide.
 //
-//   * ErrCodeAWSOrganizationsNotInUseException "AWSOrganizationsNotInUseException"
+//   * AWSOrganizationsNotInUseException
 //   Your account isn't a member of an organization. To make this request, you
 //   must use the credentials of an account that belongs to an organization.
 //
-//   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
+//   * ConcurrentModificationException
 //   The target of the operation is currently being modified by a different request.
 //   Try again later.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   The requested operation failed because you provided invalid values for one
 //   or more of the request parameters. This exception includes a reason that
 //   contains additional information about the violated limit:
@@ -2586,6 +2617,8 @@ func (c *Organizations) DeleteOrganizationRequest(input *DeleteOrganizationInput
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
+//
+//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -2636,15 +2669,15 @@ func (c *Organizations) DeleteOrganizationRequest(input *DeleteOrganizationInput
 //      * MOVING_ACCOUNT_BETWEEN_DIFFERENT_ROOTS: You can move an account only
 //      between entities in the same root.
 //
-//   * ErrCodeOrganizationNotEmptyException "OrganizationNotEmptyException"
+//   * OrganizationNotEmptyException
 //   The organization isn't empty. To delete an organization, you must first remove
 //   all accounts except the master account, delete all OUs, and delete all policies.
 //
-//   * ErrCodeServiceException "ServiceException"
+//   * ServiceException
 //   AWS Organizations can't complete your request because of an internal service
 //   error. Try again later.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   You have sent too many requests in too short a period of time. The limit
 //   helps protect against denial-of-service attacks. Try again later.
 //
@@ -2731,23 +2764,23 @@ func (c *Organizations) DeleteOrganizationalUnitRequest(input *DeleteOrganizatio
 // See the AWS API reference guide for AWS Organizations's
 // API operation DeleteOrganizationalUnit for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+// Returned Error Types:
+//   * AccessDeniedException
 //   You don't have permissions to perform the requested operation. The user or
 //   role that is making the request must have at least one IAM permissions policy
 //   attached that grants the required permissions. For more information, see
 //   Access Management (https://docs.aws.amazon.com/IAM/latest/UserGuide/access.html)
 //   in the IAM User Guide.
 //
-//   * ErrCodeAWSOrganizationsNotInUseException "AWSOrganizationsNotInUseException"
+//   * AWSOrganizationsNotInUseException
 //   Your account isn't a member of an organization. To make this request, you
 //   must use the credentials of an account that belongs to an organization.
 //
-//   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
+//   * ConcurrentModificationException
 //   The target of the operation is currently being modified by a different request.
 //   Try again later.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   The requested operation failed because you provided invalid values for one
 //   or more of the request parameters. This exception includes a reason that
 //   contains additional information about the violated limit:
@@ -2761,6 +2794,8 @@ func (c *Organizations) DeleteOrganizationalUnitRequest(input *DeleteOrganizatio
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
+//
+//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -2811,18 +2846,18 @@ func (c *Organizations) DeleteOrganizationalUnitRequest(input *DeleteOrganizatio
 //      * MOVING_ACCOUNT_BETWEEN_DIFFERENT_ROOTS: You can move an account only
 //      between entities in the same root.
 //
-//   * ErrCodeOrganizationalUnitNotEmptyException "OrganizationalUnitNotEmptyException"
+//   * OrganizationalUnitNotEmptyException
 //   The specified OU is not empty. Move all accounts to another root or to other
 //   OUs, remove all child OUs, and try the operation again.
 //
-//   * ErrCodeOrganizationalUnitNotFoundException "OrganizationalUnitNotFoundException"
+//   * OrganizationalUnitNotFoundException
 //   We can't find an OU with the OrganizationalUnitId that you specified.
 //
-//   * ErrCodeServiceException "ServiceException"
+//   * ServiceException
 //   AWS Organizations can't complete your request because of an internal service
 //   error. Try again later.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   You have sent too many requests in too short a period of time. The limit
 //   helps protect against denial-of-service attacks. Try again later.
 //
@@ -2910,23 +2945,23 @@ func (c *Organizations) DeletePolicyRequest(input *DeletePolicyInput) (req *requ
 // See the AWS API reference guide for AWS Organizations's
 // API operation DeletePolicy for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+// Returned Error Types:
+//   * AccessDeniedException
 //   You don't have permissions to perform the requested operation. The user or
 //   role that is making the request must have at least one IAM permissions policy
 //   attached that grants the required permissions. For more information, see
 //   Access Management (https://docs.aws.amazon.com/IAM/latest/UserGuide/access.html)
 //   in the IAM User Guide.
 //
-//   * ErrCodeAWSOrganizationsNotInUseException "AWSOrganizationsNotInUseException"
+//   * AWSOrganizationsNotInUseException
 //   Your account isn't a member of an organization. To make this request, you
 //   must use the credentials of an account that belongs to an organization.
 //
-//   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
+//   * ConcurrentModificationException
 //   The target of the operation is currently being modified by a different request.
 //   Try again later.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   The requested operation failed because you provided invalid values for one
 //   or more of the request parameters. This exception includes a reason that
 //   contains additional information about the violated limit:
@@ -2940,6 +2975,8 @@ func (c *Organizations) DeletePolicyRequest(input *DeletePolicyInput) (req *requ
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
+//
+//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -2990,24 +3027,27 @@ func (c *Organizations) DeletePolicyRequest(input *DeletePolicyInput) (req *requ
 //      * MOVING_ACCOUNT_BETWEEN_DIFFERENT_ROOTS: You can move an account only
 //      between entities in the same root.
 //
-//   * ErrCodePolicyInUseException "PolicyInUseException"
+//   * PolicyInUseException
 //   The policy is attached to one or more entities. You must detach it from all
 //   roots, OUs, and accounts before performing this operation.
 //
-//   * ErrCodePolicyNotFoundException "PolicyNotFoundException"
+//   * PolicyNotFoundException
 //   We can't find a policy with the PolicyId that you specified.
 //
-//   * ErrCodeServiceException "ServiceException"
+//   * ServiceException
 //   AWS Organizations can't complete your request because of an internal service
 //   error. Try again later.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   You have sent too many requests in too short a period of time. The limit
 //   helps protect against denial-of-service attacks. Try again later.
 //
 //   For information on limits that affect AWS Organizations, see Limits of AWS
 //   Organizations (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_reference_limits.html)
 //   in the AWS Organizations User Guide.
+//
+//   * UnsupportedAPIEndpointException
+//   This action isn't available in the current Region.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/organizations-2016-11-28/DeletePolicy
 func (c *Organizations) DeletePolicy(input *DeletePolicyInput) (*DeletePolicyOutput, error) {
@@ -3075,7 +3115,7 @@ func (c *Organizations) DescribeAccountRequest(input *DescribeAccountInput) (req
 
 // DescribeAccount API operation for AWS Organizations.
 //
-// Retrieves AWS Organizations-related information about the specified account.
+// Retrieves AWS Organizations related information about the specified account.
 //
 // This operation can be called only from the organization's master account.
 //
@@ -3086,24 +3126,24 @@ func (c *Organizations) DescribeAccountRequest(input *DescribeAccountInput) (req
 // See the AWS API reference guide for AWS Organizations's
 // API operation DescribeAccount for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+// Returned Error Types:
+//   * AccessDeniedException
 //   You don't have permissions to perform the requested operation. The user or
 //   role that is making the request must have at least one IAM permissions policy
 //   attached that grants the required permissions. For more information, see
 //   Access Management (https://docs.aws.amazon.com/IAM/latest/UserGuide/access.html)
 //   in the IAM User Guide.
 //
-//   * ErrCodeAccountNotFoundException "AccountNotFoundException"
-//   We can't find an AWS account with the AccountId that you specified, or the
+//   * AccountNotFoundException
+//   We can't find an AWS account with the AccountId that you specified. Or the
 //   account whose credentials you used to make this request isn't a member of
 //   an organization.
 //
-//   * ErrCodeAWSOrganizationsNotInUseException "AWSOrganizationsNotInUseException"
+//   * AWSOrganizationsNotInUseException
 //   Your account isn't a member of an organization. To make this request, you
 //   must use the credentials of an account that belongs to an organization.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   The requested operation failed because you provided invalid values for one
 //   or more of the request parameters. This exception includes a reason that
 //   contains additional information about the violated limit:
@@ -3117,6 +3157,8 @@ func (c *Organizations) DescribeAccountRequest(input *DescribeAccountInput) (req
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
+//
+//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -3167,11 +3209,11 @@ func (c *Organizations) DescribeAccountRequest(input *DescribeAccountInput) (req
 //      * MOVING_ACCOUNT_BETWEEN_DIFFERENT_ROOTS: You can move an account only
 //      between entities in the same root.
 //
-//   * ErrCodeServiceException "ServiceException"
+//   * ServiceException
 //   AWS Organizations can't complete your request because of an internal service
 //   error. Try again later.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   You have sent too many requests in too short a period of time. The limit
 //   helps protect against denial-of-service attacks. Try again later.
 //
@@ -3256,23 +3298,23 @@ func (c *Organizations) DescribeCreateAccountStatusRequest(input *DescribeCreate
 // See the AWS API reference guide for AWS Organizations's
 // API operation DescribeCreateAccountStatus for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+// Returned Error Types:
+//   * AccessDeniedException
 //   You don't have permissions to perform the requested operation. The user or
 //   role that is making the request must have at least one IAM permissions policy
 //   attached that grants the required permissions. For more information, see
 //   Access Management (https://docs.aws.amazon.com/IAM/latest/UserGuide/access.html)
 //   in the IAM User Guide.
 //
-//   * ErrCodeAWSOrganizationsNotInUseException "AWSOrganizationsNotInUseException"
+//   * AWSOrganizationsNotInUseException
 //   Your account isn't a member of an organization. To make this request, you
 //   must use the credentials of an account that belongs to an organization.
 //
-//   * ErrCodeCreateAccountStatusNotFoundException "CreateAccountStatusNotFoundException"
-//   We can't find an create account request with the CreateAccountRequestId that
+//   * CreateAccountStatusNotFoundException
+//   We can't find a create account request with the CreateAccountRequestId that
 //   you specified.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   The requested operation failed because you provided invalid values for one
 //   or more of the request parameters. This exception includes a reason that
 //   contains additional information about the violated limit:
@@ -3286,6 +3328,8 @@ func (c *Organizations) DescribeCreateAccountStatusRequest(input *DescribeCreate
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
+//
+//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -3336,11 +3380,11 @@ func (c *Organizations) DescribeCreateAccountStatusRequest(input *DescribeCreate
 //      * MOVING_ACCOUNT_BETWEEN_DIFFERENT_ROOTS: You can move an account only
 //      between entities in the same root.
 //
-//   * ErrCodeServiceException "ServiceException"
+//   * ServiceException
 //   AWS Organizations can't complete your request because of an internal service
 //   error. Try again later.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   You have sent too many requests in too short a period of time. The limit
 //   helps protect against denial-of-service attacks. Try again later.
 //
@@ -3348,7 +3392,7 @@ func (c *Organizations) DescribeCreateAccountStatusRequest(input *DescribeCreate
 //   Organizations (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_reference_limits.html)
 //   in the AWS Organizations User Guide.
 //
-//   * ErrCodeUnsupportedAPIEndpointException "UnsupportedAPIEndpointException"
+//   * UnsupportedAPIEndpointException
 //   This action isn't available in the current Region.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/organizations-2016-11-28/DescribeCreateAccountStatus
@@ -3368,6 +3412,295 @@ func (c *Organizations) DescribeCreateAccountStatus(input *DescribeCreateAccount
 // for more information on using Contexts.
 func (c *Organizations) DescribeCreateAccountStatusWithContext(ctx aws.Context, input *DescribeCreateAccountStatusInput, opts ...request.Option) (*DescribeCreateAccountStatusOutput, error) {
 	req, out := c.DescribeCreateAccountStatusRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opDescribeEffectivePolicy = "DescribeEffectivePolicy"
+
+// DescribeEffectivePolicyRequest generates a "aws/request.Request" representing the
+// client's request for the DescribeEffectivePolicy operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DescribeEffectivePolicy for more information on using the DescribeEffectivePolicy
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the DescribeEffectivePolicyRequest method.
+//    req, resp := client.DescribeEffectivePolicyRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/organizations-2016-11-28/DescribeEffectivePolicy
+func (c *Organizations) DescribeEffectivePolicyRequest(input *DescribeEffectivePolicyInput) (req *request.Request, output *DescribeEffectivePolicyOutput) {
+	op := &request.Operation{
+		Name:       opDescribeEffectivePolicy,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &DescribeEffectivePolicyInput{}
+	}
+
+	output = &DescribeEffectivePolicyOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// DescribeEffectivePolicy API operation for AWS Organizations.
+//
+// Returns the contents of the effective tag policy for the account. The effective
+// tag policy is the aggregation of any tag policies the account inherits, plus
+// any policy directly that is attached to the account.
+//
+// This action returns information on tag policies only.
+//
+// For more information on policy inheritance, see How Policy Inheritance Works
+// (http://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies-inheritance.html)
+// in the AWS Organizations User Guide.
+//
+// This operation can be called from any account in the organization.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Organizations's
+// API operation DescribeEffectivePolicy for usage and error information.
+//
+// Returned Error Types:
+//   * AccessDeniedException
+//   You don't have permissions to perform the requested operation. The user or
+//   role that is making the request must have at least one IAM permissions policy
+//   attached that grants the required permissions. For more information, see
+//   Access Management (https://docs.aws.amazon.com/IAM/latest/UserGuide/access.html)
+//   in the IAM User Guide.
+//
+//   * AWSOrganizationsNotInUseException
+//   Your account isn't a member of an organization. To make this request, you
+//   must use the credentials of an account that belongs to an organization.
+//
+//   * ConstraintViolationException
+//   Performing this operation violates a minimum or maximum value limit. Examples
+//   include attempting to remove the last service control policy (SCP) from an
+//   OU or root, or attaching too many policies to an account, OU, or root. This
+//   exception includes a reason that contains additional information about the
+//   violated limit.
+//
+//   Some of the reasons in the following list might not be applicable to this
+//   specific API or operation:
+//
+//      * ACCOUNT_CANNOT_LEAVE_WITHOUT_EULA: You attempted to remove an account
+//      from the organization that doesn't yet have enough information to exist
+//      as a standalone account. This account requires you to first agree to the
+//      AWS Customer Agreement. Follow the steps at To leave an organization when
+//      all required account information has not yet been provided (http://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_accounts_remove.html#leave-without-all-info)
+//      in the AWS Organizations User Guide.
+//
+//      * ACCOUNT_CANNOT_LEAVE_WITHOUT_PHONE_VERIFICATION: You attempted to remove
+//      an account from the organization that doesn't yet have enough information
+//      to exist as a standalone account. This account requires you to first complete
+//      phone verification. Follow the steps at To leave an organization when
+//      all required account information has not yet been provided (http://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_accounts_remove.html#leave-without-all-info)
+//      in the AWS Organizations User Guide.
+//
+//      * ACCOUNT_CREATION_RATE_LIMIT_EXCEEDED: You attempted to exceed the number
+//      of accounts that you can create in one day.
+//
+//      * ACCOUNT_NUMBER_LIMIT_EXCEEDED: You attempted to exceed the limit on
+//      the number of accounts in an organization. If you need more accounts,
+//      contact AWS Support (https://console.aws.amazon.com/support/home#/) to
+//      request an increase in your limit. Or the number of invitations that you
+//      tried to send would cause you to exceed the limit of accounts in your
+//      organization. Send fewer invitations or contact AWS Support to request
+//      an increase in the number of accounts. Deleted and closed accounts still
+//      count toward your limit. If you get receive this exception when running
+//      a command immediately after creating the organization, wait one hour and
+//      try again. If after an hour it continues to fail with this error, contact
+//      AWS Support (https://console.aws.amazon.com/support/home#/).
+//
+//      * HANDSHAKE_RATE_LIMIT_EXCEEDED: You attempted to exceed the number of
+//      handshakes that you can send in one day.
+//
+//      * MASTER_ACCOUNT_ADDRESS_DOES_NOT_MATCH_MARKETPLACE: To create an account
+//      in this organization, you first must migrate the organization's master
+//      account to the marketplace that corresponds to the master account's address.
+//      For example, accounts with India addresses must be associated with the
+//      AISPL marketplace. All accounts in an organization must be associated
+//      with the same marketplace.
+//
+//      * MASTER_ACCOUNT_MISSING_CONTACT_INFO: To complete this operation, you
+//      must first provide contact a valid address and phone number for the master
+//      account. Then try the operation again.
+//
+//      * MASTER_ACCOUNT_NOT_GOVCLOUD_ENABLED: To complete this operation, the
+//      master account must have an associated account in the AWS GovCloud (US-West)
+//      Region. For more information, see AWS Organizations (http://docs.aws.amazon.com/govcloud-us/latest/UserGuide/govcloud-organizations.html)
+//      in the AWS GovCloud User Guide.
+//
+//      * MASTER_ACCOUNT_PAYMENT_INSTRUMENT_REQUIRED: To create an organization
+//      with this master account, you first must associate a valid payment instrument,
+//      such as a credit card, with the account. Follow the steps at To leave
+//      an organization when all required account information has not yet been
+//      provided (http://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_accounts_remove.html#leave-without-all-info)
+//      in the AWS Organizations User Guide.
+//
+//      * MAX_POLICY_TYPE_ATTACHMENT_LIMIT_EXCEEDED: You attempted to exceed the
+//      number of policies of a certain type that can be attached to an entity
+//      at one time.
+//
+//      * MAX_TAG_LIMIT_EXCEEDED: You have exceeded the number of tags allowed
+//      on this resource.
+//
+//      * MEMBER_ACCOUNT_PAYMENT_INSTRUMENT_REQUIRED: To complete this operation
+//      with this member account, you first must associate a valid payment instrument,
+//      such as a credit card, with the account. Follow the steps at To leave
+//      an organization when all required account information has not yet been
+//      provided (http://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_accounts_remove.html#leave-without-all-info)
+//      in the AWS Organizations User Guide.
+//
+//      * MIN_POLICY_TYPE_ATTACHMENT_LIMIT_EXCEEDED: You attempted to detach a
+//      policy from an entity, which would cause the entity to have fewer than
+//      the minimum number of policies of the required type.
+//
+//      * OU_DEPTH_LIMIT_EXCEEDED: You attempted to create an OU tree that is
+//      too many levels deep.
+//
+//      * ORGANIZATION_NOT_IN_ALL_FEATURES_MODE: You attempted to perform an operation
+//      that requires the organization to be configured to support all features.
+//      An organization that supports only consolidated billing features can't
+//      perform this operation.
+//
+//      * OU_NUMBER_LIMIT_EXCEEDED: You attempted to exceed the number of OUs
+//      that you can have in an organization.
+//
+//      * POLICY_NUMBER_LIMIT_EXCEEDED: You attempted to exceed the number of
+//      policies that you can have in an organization.
+//
+//      * TAG_POLICY_VIOLATION: Tags associated with the resource must be compliant
+//      with the tag policy that’s in effect for the account. For more information,
+//      see Tag Policies (http://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_tag-policies.html)
+//      in the AWS Organizations User Guide.
+//
+//   * ServiceException
+//   AWS Organizations can't complete your request because of an internal service
+//   error. Try again later.
+//
+//   * TooManyRequestsException
+//   You have sent too many requests in too short a period of time. The limit
+//   helps protect against denial-of-service attacks. Try again later.
+//
+//   For information on limits that affect AWS Organizations, see Limits of AWS
+//   Organizations (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_reference_limits.html)
+//   in the AWS Organizations User Guide.
+//
+//   * TargetNotFoundException
+//   We can't find a root, OU, or account with the TargetId that you specified.
+//
+//   * EffectivePolicyNotFoundException
+//   If you ran this action on the master account, this policy type is not enabled.
+//   If you ran the action on a member account, the account doesn't have an effective
+//   policy of this type. Contact the administrator of your organization about
+//   attaching a policy of this type to the account.
+//
+//   * InvalidInputException
+//   The requested operation failed because you provided invalid values for one
+//   or more of the request parameters. This exception includes a reason that
+//   contains additional information about the violated limit:
+//
+//   Some of the reasons in the following list might not be applicable to this
+//   specific API or operation:
+//
+//      * IMMUTABLE_POLICY: You specified a policy that is managed by AWS and
+//      can't be modified.
+//
+//      * INPUT_REQUIRED: You must include a value for all required parameters.
+//
+//      * INVALID_ENUM: You specified an invalid value.
+//
+//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
+//
+//      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
+//      characters.
+//
+//      * INVALID_LIST_MEMBER: You provided a list to a parameter that contains
+//      at least one invalid value.
+//
+//      * INVALID_PAGINATION_TOKEN: Get the value for the NextToken parameter
+//      from the response to a previous call of the operation.
+//
+//      * INVALID_PARTY_TYPE_TARGET: You specified the wrong type of entity (account,
+//      organization, or email) as a party.
+//
+//      * INVALID_PATTERN: You provided a value that doesn't match the required
+//      pattern.
+//
+//      * INVALID_PATTERN_TARGET_ID: You specified a policy target ID that doesn't
+//      match the required pattern.
+//
+//      * INVALID_ROLE_NAME: You provided a role name that isn't valid. A role
+//      name can't begin with the reserved prefix AWSServiceRoleFor.
+//
+//      * INVALID_SYNTAX_ORGANIZATION_ARN: You specified an invalid Amazon Resource
+//      Name (ARN) for the organization.
+//
+//      * INVALID_SYNTAX_POLICY_ID: You specified an invalid policy ID.
+//
+//      * INVALID_SYSTEM_TAGS_PARAMETER: You specified a tag key that is a system
+//      tag. You can’t add, edit, or delete system tag keys because they're
+//      reserved for AWS use. System tags don’t count against your tags per
+//      resource limit.
+//
+//      * MAX_FILTER_LIMIT_EXCEEDED: You can specify only one filter parameter
+//      for the operation.
+//
+//      * MAX_LENGTH_EXCEEDED: You provided a string parameter that is longer
+//      than allowed.
+//
+//      * MAX_VALUE_EXCEEDED: You provided a numeric parameter that has a larger
+//      value than allowed.
+//
+//      * MIN_LENGTH_EXCEEDED: You provided a string parameter that is shorter
+//      than allowed.
+//
+//      * MIN_VALUE_EXCEEDED: You provided a numeric parameter that has a smaller
+//      value than allowed.
+//
+//      * MOVING_ACCOUNT_BETWEEN_DIFFERENT_ROOTS: You can move an account only
+//      between entities in the same root.
+//
+//   * UnsupportedAPIEndpointException
+//   This action isn't available in the current Region.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/organizations-2016-11-28/DescribeEffectivePolicy
+func (c *Organizations) DescribeEffectivePolicy(input *DescribeEffectivePolicyInput) (*DescribeEffectivePolicyOutput, error) {
+	req, out := c.DescribeEffectivePolicyRequest(input)
+	return out, req.Send()
+}
+
+// DescribeEffectivePolicyWithContext is the same as DescribeEffectivePolicy with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DescribeEffectivePolicy for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Organizations) DescribeEffectivePolicyWithContext(ctx aws.Context, input *DescribeEffectivePolicyInput, opts ...request.Option) (*DescribeEffectivePolicyOutput, error) {
+	req, out := c.DescribeEffectivePolicyRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -3434,22 +3767,22 @@ func (c *Organizations) DescribeHandshakeRequest(input *DescribeHandshakeInput) 
 // See the AWS API reference guide for AWS Organizations's
 // API operation DescribeHandshake for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+// Returned Error Types:
+//   * AccessDeniedException
 //   You don't have permissions to perform the requested operation. The user or
 //   role that is making the request must have at least one IAM permissions policy
 //   attached that grants the required permissions. For more information, see
 //   Access Management (https://docs.aws.amazon.com/IAM/latest/UserGuide/access.html)
 //   in the IAM User Guide.
 //
-//   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
+//   * ConcurrentModificationException
 //   The target of the operation is currently being modified by a different request.
 //   Try again later.
 //
-//   * ErrCodeHandshakeNotFoundException "HandshakeNotFoundException"
+//   * HandshakeNotFoundException
 //   We can't find a handshake with the HandshakeId that you specified.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   The requested operation failed because you provided invalid values for one
 //   or more of the request parameters. This exception includes a reason that
 //   contains additional information about the violated limit:
@@ -3463,6 +3796,8 @@ func (c *Organizations) DescribeHandshakeRequest(input *DescribeHandshakeInput) 
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
+//
+//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -3513,11 +3848,11 @@ func (c *Organizations) DescribeHandshakeRequest(input *DescribeHandshakeInput) 
 //      * MOVING_ACCOUNT_BETWEEN_DIFFERENT_ROOTS: You can move an account only
 //      between entities in the same root.
 //
-//   * ErrCodeServiceException "ServiceException"
+//   * ServiceException
 //   AWS Organizations can't complete your request because of an internal service
 //   error. Try again later.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   You have sent too many requests in too short a period of time. The limit
 //   helps protect against denial-of-service attacks. Try again later.
 //
@@ -3607,27 +3942,27 @@ func (c *Organizations) DescribeOrganizationRequest(input *DescribeOrganizationI
 // See the AWS API reference guide for AWS Organizations's
 // API operation DescribeOrganization for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+// Returned Error Types:
+//   * AccessDeniedException
 //   You don't have permissions to perform the requested operation. The user or
 //   role that is making the request must have at least one IAM permissions policy
 //   attached that grants the required permissions. For more information, see
 //   Access Management (https://docs.aws.amazon.com/IAM/latest/UserGuide/access.html)
 //   in the IAM User Guide.
 //
-//   * ErrCodeAWSOrganizationsNotInUseException "AWSOrganizationsNotInUseException"
+//   * AWSOrganizationsNotInUseException
 //   Your account isn't a member of an organization. To make this request, you
 //   must use the credentials of an account that belongs to an organization.
 //
-//   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
+//   * ConcurrentModificationException
 //   The target of the operation is currently being modified by a different request.
 //   Try again later.
 //
-//   * ErrCodeServiceException "ServiceException"
+//   * ServiceException
 //   AWS Organizations can't complete your request because of an internal service
 //   error. Try again later.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   You have sent too many requests in too short a period of time. The limit
 //   helps protect against denial-of-service attacks. Try again later.
 //
@@ -3712,19 +4047,19 @@ func (c *Organizations) DescribeOrganizationalUnitRequest(input *DescribeOrganiz
 // See the AWS API reference guide for AWS Organizations's
 // API operation DescribeOrganizationalUnit for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+// Returned Error Types:
+//   * AccessDeniedException
 //   You don't have permissions to perform the requested operation. The user or
 //   role that is making the request must have at least one IAM permissions policy
 //   attached that grants the required permissions. For more information, see
 //   Access Management (https://docs.aws.amazon.com/IAM/latest/UserGuide/access.html)
 //   in the IAM User Guide.
 //
-//   * ErrCodeAWSOrganizationsNotInUseException "AWSOrganizationsNotInUseException"
+//   * AWSOrganizationsNotInUseException
 //   Your account isn't a member of an organization. To make this request, you
 //   must use the credentials of an account that belongs to an organization.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   The requested operation failed because you provided invalid values for one
 //   or more of the request parameters. This exception includes a reason that
 //   contains additional information about the violated limit:
@@ -3738,6 +4073,8 @@ func (c *Organizations) DescribeOrganizationalUnitRequest(input *DescribeOrganiz
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
+//
+//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -3788,14 +4125,14 @@ func (c *Organizations) DescribeOrganizationalUnitRequest(input *DescribeOrganiz
 //      * MOVING_ACCOUNT_BETWEEN_DIFFERENT_ROOTS: You can move an account only
 //      between entities in the same root.
 //
-//   * ErrCodeOrganizationalUnitNotFoundException "OrganizationalUnitNotFoundException"
+//   * OrganizationalUnitNotFoundException
 //   We can't find an OU with the OrganizationalUnitId that you specified.
 //
-//   * ErrCodeServiceException "ServiceException"
+//   * ServiceException
 //   AWS Organizations can't complete your request because of an internal service
 //   error. Try again later.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   You have sent too many requests in too short a period of time. The limit
 //   helps protect against denial-of-service attacks. Try again later.
 //
@@ -3880,19 +4217,19 @@ func (c *Organizations) DescribePolicyRequest(input *DescribePolicyInput) (req *
 // See the AWS API reference guide for AWS Organizations's
 // API operation DescribePolicy for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+// Returned Error Types:
+//   * AccessDeniedException
 //   You don't have permissions to perform the requested operation. The user or
 //   role that is making the request must have at least one IAM permissions policy
 //   attached that grants the required permissions. For more information, see
 //   Access Management (https://docs.aws.amazon.com/IAM/latest/UserGuide/access.html)
 //   in the IAM User Guide.
 //
-//   * ErrCodeAWSOrganizationsNotInUseException "AWSOrganizationsNotInUseException"
+//   * AWSOrganizationsNotInUseException
 //   Your account isn't a member of an organization. To make this request, you
 //   must use the credentials of an account that belongs to an organization.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   The requested operation failed because you provided invalid values for one
 //   or more of the request parameters. This exception includes a reason that
 //   contains additional information about the violated limit:
@@ -3906,6 +4243,8 @@ func (c *Organizations) DescribePolicyRequest(input *DescribePolicyInput) (req *
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
+//
+//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -3956,20 +4295,23 @@ func (c *Organizations) DescribePolicyRequest(input *DescribePolicyInput) (req *
 //      * MOVING_ACCOUNT_BETWEEN_DIFFERENT_ROOTS: You can move an account only
 //      between entities in the same root.
 //
-//   * ErrCodePolicyNotFoundException "PolicyNotFoundException"
+//   * PolicyNotFoundException
 //   We can't find a policy with the PolicyId that you specified.
 //
-//   * ErrCodeServiceException "ServiceException"
+//   * ServiceException
 //   AWS Organizations can't complete your request because of an internal service
 //   error. Try again later.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   You have sent too many requests in too short a period of time. The limit
 //   helps protect against denial-of-service attacks. Try again later.
 //
 //   For information on limits that affect AWS Organizations, see Limits of AWS
 //   Organizations (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_reference_limits.html)
 //   in the AWS Organizations User Guide.
+//
+//   * UnsupportedAPIEndpointException
+//   This action isn't available in the current Region.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/organizations-2016-11-28/DescribePolicy
 func (c *Organizations) DescribePolicy(input *DescribePolicyInput) (*DescribePolicyOutput, error) {
@@ -4042,15 +4384,16 @@ func (c *Organizations) DetachPolicyRequest(input *DetachPolicyInput) (req *requ
 // If the policy being detached is a service control policy (SCP), the changes
 // to permissions for IAM users and roles in affected accounts are immediate.
 //
-// Note: Every root, OU, and account must have at least one SCP attached. If
-// you want to replace the default FullAWSAccess policy with one that limits
-// the permissions that can be delegated, you must attach the replacement policy
+// Note: Every root, OU, and account must have at least one SCP attached. You
+// can replace the default FullAWSAccess policy with one that limits the permissions
+// that can be delegated. To do that, you must attach the replacement policy
 // before you can remove the default one. This is the authorization strategy
-// of whitelisting (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_about-scps.html#orgs_policies_whitelist).
-// If you instead attach a second SCP and leave the FullAWSAccess SCP still
-// attached, and specify "Effect": "Deny" in the second SCP to override the
-// "Effect": "Allow" in the FullAWSAccess policy (or any other attached SCP),
-// you're using the authorization strategy of blacklisting (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_about-scps.html#orgs_policies_blacklist) .
+// of using an allow list (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_about-scps.html#orgs_policies_whitelist).
+// You could instead attach a second SCP and leave the FullAWSAccess SCP still
+// attached. You could then specify "Effect": "Deny" in the second SCP to override
+// the "Effect": "Allow" in the FullAWSAccess policy (or any other attached
+// SCP). If you take these steps, you're using the authorization strategy of
+// a deny list (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_about-scps.html#orgs_policies_blacklist).
 //
 // This operation can be called only from the organization's master account.
 //
@@ -4061,29 +4404,28 @@ func (c *Organizations) DetachPolicyRequest(input *DetachPolicyInput) (req *requ
 // See the AWS API reference guide for AWS Organizations's
 // API operation DetachPolicy for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+// Returned Error Types:
+//   * AccessDeniedException
 //   You don't have permissions to perform the requested operation. The user or
 //   role that is making the request must have at least one IAM permissions policy
 //   attached that grants the required permissions. For more information, see
 //   Access Management (https://docs.aws.amazon.com/IAM/latest/UserGuide/access.html)
 //   in the IAM User Guide.
 //
-//   * ErrCodeAWSOrganizationsNotInUseException "AWSOrganizationsNotInUseException"
+//   * AWSOrganizationsNotInUseException
 //   Your account isn't a member of an organization. To make this request, you
 //   must use the credentials of an account that belongs to an organization.
 //
-//   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
+//   * ConcurrentModificationException
 //   The target of the operation is currently being modified by a different request.
 //   Try again later.
 //
-//   * ErrCodeConstraintViolationException "ConstraintViolationException"
-//   Performing this operation violates a minimum or maximum value limit. For
-//   example, attempting to remove the last service control policy (SCP) from
-//   an OU or root, inviting or creating too many accounts to the organization,
-//   or attaching too many policies to an account, OU, or root. This exception
-//   includes a reason that contains additional information about the violated
-//   limit.
+//   * ConstraintViolationException
+//   Performing this operation violates a minimum or maximum value limit. Examples
+//   include attempting to remove the last service control policy (SCP) from an
+//   OU or root, or attaching too many policies to an account, OU, or root. This
+//   exception includes a reason that contains additional information about the
+//   violated limit.
 //
 //   Some of the reasons in the following list might not be applicable to this
 //   specific API or operation:
@@ -4158,8 +4500,8 @@ func (c *Organizations) DetachPolicyRequest(input *DetachPolicyInput) (req *requ
 //      in the AWS Organizations User Guide.
 //
 //      * MIN_POLICY_TYPE_ATTACHMENT_LIMIT_EXCEEDED: You attempted to detach a
-//      policy from an entity that would cause the entity to have fewer than the
-//      minimum number of policies of a certain type required.
+//      policy from an entity, which would cause the entity to have fewer than
+//      the minimum number of policies of the required type.
 //
 //      * OU_DEPTH_LIMIT_EXCEEDED: You attempted to create an OU tree that is
 //      too many levels deep.
@@ -4172,10 +4514,15 @@ func (c *Organizations) DetachPolicyRequest(input *DetachPolicyInput) (req *requ
 //      * OU_NUMBER_LIMIT_EXCEEDED: You attempted to exceed the number of OUs
 //      that you can have in an organization.
 //
-//      * POLICY_NUMBER_LIMIT_EXCEEDED. You attempted to exceed the number of
+//      * POLICY_NUMBER_LIMIT_EXCEEDED: You attempted to exceed the number of
 //      policies that you can have in an organization.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//      * TAG_POLICY_VIOLATION: Tags associated with the resource must be compliant
+//      with the tag policy that’s in effect for the account. For more information,
+//      see Tag Policies (http://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_tag-policies.html)
+//      in the AWS Organizations User Guide.
+//
+//   * InvalidInputException
 //   The requested operation failed because you provided invalid values for one
 //   or more of the request parameters. This exception includes a reason that
 //   contains additional information about the violated limit:
@@ -4189,6 +4536,8 @@ func (c *Organizations) DetachPolicyRequest(input *DetachPolicyInput) (req *requ
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
+//
+//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -4239,26 +4588,33 @@ func (c *Organizations) DetachPolicyRequest(input *DetachPolicyInput) (req *requ
 //      * MOVING_ACCOUNT_BETWEEN_DIFFERENT_ROOTS: You can move an account only
 //      between entities in the same root.
 //
-//   * ErrCodePolicyNotAttachedException "PolicyNotAttachedException"
+//   * PolicyNotAttachedException
 //   The policy isn't attached to the specified target in the specified root.
 //
-//   * ErrCodePolicyNotFoundException "PolicyNotFoundException"
+//   * PolicyNotFoundException
 //   We can't find a policy with the PolicyId that you specified.
 //
-//   * ErrCodeServiceException "ServiceException"
+//   * ServiceException
 //   AWS Organizations can't complete your request because of an internal service
 //   error. Try again later.
 //
-//   * ErrCodeTargetNotFoundException "TargetNotFoundException"
+//   * TargetNotFoundException
 //   We can't find a root, OU, or account with the TargetId that you specified.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   You have sent too many requests in too short a period of time. The limit
 //   helps protect against denial-of-service attacks. Try again later.
 //
 //   For information on limits that affect AWS Organizations, see Limits of AWS
 //   Organizations (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_reference_limits.html)
 //   in the AWS Organizations User Guide.
+//
+//   * UnsupportedAPIEndpointException
+//   This action isn't available in the current Region.
+//
+//   * PolicyChangesInProgressException
+//   Changes to the effective policy are in progress, and its contents can't be
+//   returned. Try the operation again later.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/organizations-2016-11-28/DetachPolicy
 func (c *Organizations) DetachPolicy(input *DetachPolicyInput) (*DetachPolicyOutput, error) {
@@ -4344,9 +4700,9 @@ func (c *Organizations) DisableAWSServiceAccessRequest(input *DisableAWSServiceA
 // AWS service.
 //
 // After you perform the DisableAWSServiceAccess operation, the specified service
-// can no longer perform operations in your organization's accounts unless the
-// operations are explicitly permitted by the IAM policies that are attached
-// to your roles.
+// can no longer perform operations in your organization's accounts. The only
+// exception is when the operations are explicitly permitted by IAM policies
+// that are attached to your roles.
 //
 // For more information about integrating other services with AWS Organizations,
 // including the list of services that work with Organizations, see Integrating
@@ -4362,29 +4718,28 @@ func (c *Organizations) DisableAWSServiceAccessRequest(input *DisableAWSServiceA
 // See the AWS API reference guide for AWS Organizations's
 // API operation DisableAWSServiceAccess for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+// Returned Error Types:
+//   * AccessDeniedException
 //   You don't have permissions to perform the requested operation. The user or
 //   role that is making the request must have at least one IAM permissions policy
 //   attached that grants the required permissions. For more information, see
 //   Access Management (https://docs.aws.amazon.com/IAM/latest/UserGuide/access.html)
 //   in the IAM User Guide.
 //
-//   * ErrCodeAWSOrganizationsNotInUseException "AWSOrganizationsNotInUseException"
+//   * AWSOrganizationsNotInUseException
 //   Your account isn't a member of an organization. To make this request, you
 //   must use the credentials of an account that belongs to an organization.
 //
-//   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
+//   * ConcurrentModificationException
 //   The target of the operation is currently being modified by a different request.
 //   Try again later.
 //
-//   * ErrCodeConstraintViolationException "ConstraintViolationException"
-//   Performing this operation violates a minimum or maximum value limit. For
-//   example, attempting to remove the last service control policy (SCP) from
-//   an OU or root, inviting or creating too many accounts to the organization,
-//   or attaching too many policies to an account, OU, or root. This exception
-//   includes a reason that contains additional information about the violated
-//   limit.
+//   * ConstraintViolationException
+//   Performing this operation violates a minimum or maximum value limit. Examples
+//   include attempting to remove the last service control policy (SCP) from an
+//   OU or root, or attaching too many policies to an account, OU, or root. This
+//   exception includes a reason that contains additional information about the
+//   violated limit.
 //
 //   Some of the reasons in the following list might not be applicable to this
 //   specific API or operation:
@@ -4459,8 +4814,8 @@ func (c *Organizations) DisableAWSServiceAccessRequest(input *DisableAWSServiceA
 //      in the AWS Organizations User Guide.
 //
 //      * MIN_POLICY_TYPE_ATTACHMENT_LIMIT_EXCEEDED: You attempted to detach a
-//      policy from an entity that would cause the entity to have fewer than the
-//      minimum number of policies of a certain type required.
+//      policy from an entity, which would cause the entity to have fewer than
+//      the minimum number of policies of the required type.
 //
 //      * OU_DEPTH_LIMIT_EXCEEDED: You attempted to create an OU tree that is
 //      too many levels deep.
@@ -4473,10 +4828,15 @@ func (c *Organizations) DisableAWSServiceAccessRequest(input *DisableAWSServiceA
 //      * OU_NUMBER_LIMIT_EXCEEDED: You attempted to exceed the number of OUs
 //      that you can have in an organization.
 //
-//      * POLICY_NUMBER_LIMIT_EXCEEDED. You attempted to exceed the number of
+//      * POLICY_NUMBER_LIMIT_EXCEEDED: You attempted to exceed the number of
 //      policies that you can have in an organization.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//      * TAG_POLICY_VIOLATION: Tags associated with the resource must be compliant
+//      with the tag policy that’s in effect for the account. For more information,
+//      see Tag Policies (http://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_tag-policies.html)
+//      in the AWS Organizations User Guide.
+//
+//   * InvalidInputException
 //   The requested operation failed because you provided invalid values for one
 //   or more of the request parameters. This exception includes a reason that
 //   contains additional information about the violated limit:
@@ -4490,6 +4850,8 @@ func (c *Organizations) DisableAWSServiceAccessRequest(input *DisableAWSServiceA
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
+//
+//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -4540,11 +4902,11 @@ func (c *Organizations) DisableAWSServiceAccessRequest(input *DisableAWSServiceA
 //      * MOVING_ACCOUNT_BETWEEN_DIFFERENT_ROOTS: You can move an account only
 //      between entities in the same root.
 //
-//   * ErrCodeServiceException "ServiceException"
+//   * ServiceException
 //   AWS Organizations can't complete your request because of an internal service
 //   error. Try again later.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   You have sent too many requests in too short a period of time. The limit
 //   helps protect against denial-of-service attacks. Try again later.
 //
@@ -4618,11 +4980,13 @@ func (c *Organizations) DisablePolicyTypeRequest(input *DisablePolicyTypeInput) 
 
 // DisablePolicyType API operation for AWS Organizations.
 //
-// Disables an organizational control policy type in a root. A policy of a certain
-// type can be attached to entities in a root only if that type is enabled in
-// the root. After you perform this operation, you no longer can attach policies
-// of the specified type to that root or to any organizational unit (OU) or
-// account in that root. You can undo this by using the EnablePolicyType operation.
+// Disables an organizational control policy type in a root and detaches all
+// policies of that type from the organization root, OUs, and accounts. A policy
+// of a certain type can be attached to entities in a root only if that type
+// is enabled in the root. After you perform this operation, you no longer can
+// attach policies of the specified type to that root or to any organizational
+// unit (OU) or account in that root. You can undo this by using the EnablePolicyType
+// operation.
 //
 // This is an asynchronous request that AWS performs in the background. If you
 // disable a policy for a root, it still appears enabled for the organization
@@ -4642,29 +5006,28 @@ func (c *Organizations) DisablePolicyTypeRequest(input *DisablePolicyTypeInput) 
 // See the AWS API reference guide for AWS Organizations's
 // API operation DisablePolicyType for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+// Returned Error Types:
+//   * AccessDeniedException
 //   You don't have permissions to perform the requested operation. The user or
 //   role that is making the request must have at least one IAM permissions policy
 //   attached that grants the required permissions. For more information, see
 //   Access Management (https://docs.aws.amazon.com/IAM/latest/UserGuide/access.html)
 //   in the IAM User Guide.
 //
-//   * ErrCodeAWSOrganizationsNotInUseException "AWSOrganizationsNotInUseException"
+//   * AWSOrganizationsNotInUseException
 //   Your account isn't a member of an organization. To make this request, you
 //   must use the credentials of an account that belongs to an organization.
 //
-//   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
+//   * ConcurrentModificationException
 //   The target of the operation is currently being modified by a different request.
 //   Try again later.
 //
-//   * ErrCodeConstraintViolationException "ConstraintViolationException"
-//   Performing this operation violates a minimum or maximum value limit. For
-//   example, attempting to remove the last service control policy (SCP) from
-//   an OU or root, inviting or creating too many accounts to the organization,
-//   or attaching too many policies to an account, OU, or root. This exception
-//   includes a reason that contains additional information about the violated
-//   limit.
+//   * ConstraintViolationException
+//   Performing this operation violates a minimum or maximum value limit. Examples
+//   include attempting to remove the last service control policy (SCP) from an
+//   OU or root, or attaching too many policies to an account, OU, or root. This
+//   exception includes a reason that contains additional information about the
+//   violated limit.
 //
 //   Some of the reasons in the following list might not be applicable to this
 //   specific API or operation:
@@ -4739,8 +5102,8 @@ func (c *Organizations) DisablePolicyTypeRequest(input *DisablePolicyTypeInput) 
 //      in the AWS Organizations User Guide.
 //
 //      * MIN_POLICY_TYPE_ATTACHMENT_LIMIT_EXCEEDED: You attempted to detach a
-//      policy from an entity that would cause the entity to have fewer than the
-//      minimum number of policies of a certain type required.
+//      policy from an entity, which would cause the entity to have fewer than
+//      the minimum number of policies of the required type.
 //
 //      * OU_DEPTH_LIMIT_EXCEEDED: You attempted to create an OU tree that is
 //      too many levels deep.
@@ -4753,10 +5116,15 @@ func (c *Organizations) DisablePolicyTypeRequest(input *DisablePolicyTypeInput) 
 //      * OU_NUMBER_LIMIT_EXCEEDED: You attempted to exceed the number of OUs
 //      that you can have in an organization.
 //
-//      * POLICY_NUMBER_LIMIT_EXCEEDED. You attempted to exceed the number of
+//      * POLICY_NUMBER_LIMIT_EXCEEDED: You attempted to exceed the number of
 //      policies that you can have in an organization.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//      * TAG_POLICY_VIOLATION: Tags associated with the resource must be compliant
+//      with the tag policy that’s in effect for the account. For more information,
+//      see Tag Policies (http://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_tag-policies.html)
+//      in the AWS Organizations User Guide.
+//
+//   * InvalidInputException
 //   The requested operation failed because you provided invalid values for one
 //   or more of the request parameters. This exception includes a reason that
 //   contains additional information about the violated limit:
@@ -4770,6 +5138,8 @@ func (c *Organizations) DisablePolicyTypeRequest(input *DisablePolicyTypeInput) 
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
+//
+//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -4820,27 +5190,34 @@ func (c *Organizations) DisablePolicyTypeRequest(input *DisablePolicyTypeInput) 
 //      * MOVING_ACCOUNT_BETWEEN_DIFFERENT_ROOTS: You can move an account only
 //      between entities in the same root.
 //
-//   * ErrCodePolicyTypeNotEnabledException "PolicyTypeNotEnabledException"
+//   * PolicyTypeNotEnabledException
 //   The specified policy type isn't currently enabled in this root. You can't
 //   attach policies of the specified type to entities in a root until you enable
 //   that type in the root. For more information, see Enabling All Features in
 //   Your Organization (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_org_support-all-features.html)
 //   in the AWS Organizations User Guide.
 //
-//   * ErrCodeRootNotFoundException "RootNotFoundException"
+//   * RootNotFoundException
 //   We can't find a root with the RootId that you specified.
 //
-//   * ErrCodeServiceException "ServiceException"
+//   * ServiceException
 //   AWS Organizations can't complete your request because of an internal service
 //   error. Try again later.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   You have sent too many requests in too short a period of time. The limit
 //   helps protect against denial-of-service attacks. Try again later.
 //
 //   For information on limits that affect AWS Organizations, see Limits of AWS
 //   Organizations (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_reference_limits.html)
 //   in the AWS Organizations User Guide.
+//
+//   * UnsupportedAPIEndpointException
+//   This action isn't available in the current Region.
+//
+//   * PolicyChangesInProgressException
+//   Changes to the effective policy are in progress, and its contents can't be
+//   returned. Try the operation again later.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/organizations-2016-11-28/DisablePolicyType
 func (c *Organizations) DisablePolicyType(input *DisablePolicyTypeInput) (*DisablePolicyTypeOutput, error) {
@@ -4937,29 +5314,28 @@ func (c *Organizations) EnableAWSServiceAccessRequest(input *EnableAWSServiceAcc
 // See the AWS API reference guide for AWS Organizations's
 // API operation EnableAWSServiceAccess for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+// Returned Error Types:
+//   * AccessDeniedException
 //   You don't have permissions to perform the requested operation. The user or
 //   role that is making the request must have at least one IAM permissions policy
 //   attached that grants the required permissions. For more information, see
 //   Access Management (https://docs.aws.amazon.com/IAM/latest/UserGuide/access.html)
 //   in the IAM User Guide.
 //
-//   * ErrCodeAWSOrganizationsNotInUseException "AWSOrganizationsNotInUseException"
+//   * AWSOrganizationsNotInUseException
 //   Your account isn't a member of an organization. To make this request, you
 //   must use the credentials of an account that belongs to an organization.
 //
-//   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
+//   * ConcurrentModificationException
 //   The target of the operation is currently being modified by a different request.
 //   Try again later.
 //
-//   * ErrCodeConstraintViolationException "ConstraintViolationException"
-//   Performing this operation violates a minimum or maximum value limit. For
-//   example, attempting to remove the last service control policy (SCP) from
-//   an OU or root, inviting or creating too many accounts to the organization,
-//   or attaching too many policies to an account, OU, or root. This exception
-//   includes a reason that contains additional information about the violated
-//   limit.
+//   * ConstraintViolationException
+//   Performing this operation violates a minimum or maximum value limit. Examples
+//   include attempting to remove the last service control policy (SCP) from an
+//   OU or root, or attaching too many policies to an account, OU, or root. This
+//   exception includes a reason that contains additional information about the
+//   violated limit.
 //
 //   Some of the reasons in the following list might not be applicable to this
 //   specific API or operation:
@@ -5034,8 +5410,8 @@ func (c *Organizations) EnableAWSServiceAccessRequest(input *EnableAWSServiceAcc
 //      in the AWS Organizations User Guide.
 //
 //      * MIN_POLICY_TYPE_ATTACHMENT_LIMIT_EXCEEDED: You attempted to detach a
-//      policy from an entity that would cause the entity to have fewer than the
-//      minimum number of policies of a certain type required.
+//      policy from an entity, which would cause the entity to have fewer than
+//      the minimum number of policies of the required type.
 //
 //      * OU_DEPTH_LIMIT_EXCEEDED: You attempted to create an OU tree that is
 //      too many levels deep.
@@ -5048,10 +5424,15 @@ func (c *Organizations) EnableAWSServiceAccessRequest(input *EnableAWSServiceAcc
 //      * OU_NUMBER_LIMIT_EXCEEDED: You attempted to exceed the number of OUs
 //      that you can have in an organization.
 //
-//      * POLICY_NUMBER_LIMIT_EXCEEDED. You attempted to exceed the number of
+//      * POLICY_NUMBER_LIMIT_EXCEEDED: You attempted to exceed the number of
 //      policies that you can have in an organization.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//      * TAG_POLICY_VIOLATION: Tags associated with the resource must be compliant
+//      with the tag policy that’s in effect for the account. For more information,
+//      see Tag Policies (http://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_tag-policies.html)
+//      in the AWS Organizations User Guide.
+//
+//   * InvalidInputException
 //   The requested operation failed because you provided invalid values for one
 //   or more of the request parameters. This exception includes a reason that
 //   contains additional information about the violated limit:
@@ -5065,6 +5446,8 @@ func (c *Organizations) EnableAWSServiceAccessRequest(input *EnableAWSServiceAcc
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
+//
+//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -5115,11 +5498,11 @@ func (c *Organizations) EnableAWSServiceAccessRequest(input *EnableAWSServiceAcc
 //      * MOVING_ACCOUNT_BETWEEN_DIFFERENT_ROOTS: You can move an account only
 //      between entities in the same root.
 //
-//   * ErrCodeServiceException "ServiceException"
+//   * ServiceException
 //   AWS Organizations can't complete your request because of an internal service
 //   error. Try again later.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   You have sent too many requests in too short a period of time. The limit
 //   helps protect against denial-of-service attacks. Try again later.
 //
@@ -5196,7 +5579,7 @@ func (c *Organizations) EnableAllFeaturesRequest(input *EnableAllFeaturesInput) 
 // Enables all features in an organization. This enables the use of organization
 // policies that can restrict the services and actions that can be called in
 // each account. Until you enable all features, you have access only to consolidated
-// billing, and you can't use any of the advanced account administration features
+// billing. You can't use any of the advanced account administration features
 // that AWS Organizations supports. For more information, see Enabling All Features
 // in Your Organization (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_org_support-all-features.html)
 // in the AWS Organizations User Guide.
@@ -5205,8 +5588,8 @@ func (c *Organizations) EnableAllFeaturesRequest(input *EnableAllFeaturesInput) 
 // with only the consolidated billing features enabled. Calling this operation
 // sends a handshake to every invited account in the organization. The feature
 // set change can be finalized and the additional features enabled only after
-// all administrators in the invited accounts approve the change by accepting
-// the handshake.
+// all administrators in the invited accounts approve the change. Accepting
+// the handshake approves the change.
 //
 // After you enable all features, you can separately enable or disable individual
 // policy types in a root using EnablePolicyType and DisablePolicyType. To see
@@ -5231,23 +5614,23 @@ func (c *Organizations) EnableAllFeaturesRequest(input *EnableAllFeaturesInput) 
 // See the AWS API reference guide for AWS Organizations's
 // API operation EnableAllFeatures for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+// Returned Error Types:
+//   * AccessDeniedException
 //   You don't have permissions to perform the requested operation. The user or
 //   role that is making the request must have at least one IAM permissions policy
 //   attached that grants the required permissions. For more information, see
 //   Access Management (https://docs.aws.amazon.com/IAM/latest/UserGuide/access.html)
 //   in the IAM User Guide.
 //
-//   * ErrCodeAWSOrganizationsNotInUseException "AWSOrganizationsNotInUseException"
+//   * AWSOrganizationsNotInUseException
 //   Your account isn't a member of an organization. To make this request, you
 //   must use the credentials of an account that belongs to an organization.
 //
-//   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
+//   * ConcurrentModificationException
 //   The target of the operation is currently being modified by a different request.
 //   Try again later.
 //
-//   * ErrCodeHandshakeConstraintViolationException "HandshakeConstraintViolationException"
+//   * HandshakeConstraintViolationException
 //   The requested operation would violate the constraint identified in the reason
 //   code.
 //
@@ -5287,7 +5670,7 @@ func (c *Organizations) EnableAllFeaturesRequest(input *EnableAllFeaturesInput) 
 //      account that doesn't have a payment instrument, such as a credit card,
 //      associated with it.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   The requested operation failed because you provided invalid values for one
 //   or more of the request parameters. This exception includes a reason that
 //   contains additional information about the violated limit:
@@ -5301,6 +5684,8 @@ func (c *Organizations) EnableAllFeaturesRequest(input *EnableAllFeaturesInput) 
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
+//
+//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -5351,11 +5736,11 @@ func (c *Organizations) EnableAllFeaturesRequest(input *EnableAllFeaturesInput) 
 //      * MOVING_ACCOUNT_BETWEEN_DIFFERENT_ROOTS: You can move an account only
 //      between entities in the same root.
 //
-//   * ErrCodeServiceException "ServiceException"
+//   * ServiceException
 //   AWS Organizations can't complete your request because of an internal service
 //   error. Try again later.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   You have sent too many requests in too short a period of time. The limit
 //   helps protect against denial-of-service attacks. Try again later.
 //
@@ -5451,29 +5836,28 @@ func (c *Organizations) EnablePolicyTypeRequest(input *EnablePolicyTypeInput) (r
 // See the AWS API reference guide for AWS Organizations's
 // API operation EnablePolicyType for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+// Returned Error Types:
+//   * AccessDeniedException
 //   You don't have permissions to perform the requested operation. The user or
 //   role that is making the request must have at least one IAM permissions policy
 //   attached that grants the required permissions. For more information, see
 //   Access Management (https://docs.aws.amazon.com/IAM/latest/UserGuide/access.html)
 //   in the IAM User Guide.
 //
-//   * ErrCodeAWSOrganizationsNotInUseException "AWSOrganizationsNotInUseException"
+//   * AWSOrganizationsNotInUseException
 //   Your account isn't a member of an organization. To make this request, you
 //   must use the credentials of an account that belongs to an organization.
 //
-//   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
+//   * ConcurrentModificationException
 //   The target of the operation is currently being modified by a different request.
 //   Try again later.
 //
-//   * ErrCodeConstraintViolationException "ConstraintViolationException"
-//   Performing this operation violates a minimum or maximum value limit. For
-//   example, attempting to remove the last service control policy (SCP) from
-//   an OU or root, inviting or creating too many accounts to the organization,
-//   or attaching too many policies to an account, OU, or root. This exception
-//   includes a reason that contains additional information about the violated
-//   limit.
+//   * ConstraintViolationException
+//   Performing this operation violates a minimum or maximum value limit. Examples
+//   include attempting to remove the last service control policy (SCP) from an
+//   OU or root, or attaching too many policies to an account, OU, or root. This
+//   exception includes a reason that contains additional information about the
+//   violated limit.
 //
 //   Some of the reasons in the following list might not be applicable to this
 //   specific API or operation:
@@ -5548,8 +5932,8 @@ func (c *Organizations) EnablePolicyTypeRequest(input *EnablePolicyTypeInput) (r
 //      in the AWS Organizations User Guide.
 //
 //      * MIN_POLICY_TYPE_ATTACHMENT_LIMIT_EXCEEDED: You attempted to detach a
-//      policy from an entity that would cause the entity to have fewer than the
-//      minimum number of policies of a certain type required.
+//      policy from an entity, which would cause the entity to have fewer than
+//      the minimum number of policies of the required type.
 //
 //      * OU_DEPTH_LIMIT_EXCEEDED: You attempted to create an OU tree that is
 //      too many levels deep.
@@ -5562,10 +5946,15 @@ func (c *Organizations) EnablePolicyTypeRequest(input *EnablePolicyTypeInput) (r
 //      * OU_NUMBER_LIMIT_EXCEEDED: You attempted to exceed the number of OUs
 //      that you can have in an organization.
 //
-//      * POLICY_NUMBER_LIMIT_EXCEEDED. You attempted to exceed the number of
+//      * POLICY_NUMBER_LIMIT_EXCEEDED: You attempted to exceed the number of
 //      policies that you can have in an organization.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//      * TAG_POLICY_VIOLATION: Tags associated with the resource must be compliant
+//      with the tag policy that’s in effect for the account. For more information,
+//      see Tag Policies (http://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_tag-policies.html)
+//      in the AWS Organizations User Guide.
+//
+//   * InvalidInputException
 //   The requested operation failed because you provided invalid values for one
 //   or more of the request parameters. This exception includes a reason that
 //   contains additional information about the violated limit:
@@ -5579,6 +5968,8 @@ func (c *Organizations) EnablePolicyTypeRequest(input *EnablePolicyTypeInput) (r
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
+//
+//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -5629,17 +6020,17 @@ func (c *Organizations) EnablePolicyTypeRequest(input *EnablePolicyTypeInput) (r
 //      * MOVING_ACCOUNT_BETWEEN_DIFFERENT_ROOTS: You can move an account only
 //      between entities in the same root.
 //
-//   * ErrCodePolicyTypeAlreadyEnabledException "PolicyTypeAlreadyEnabledException"
+//   * PolicyTypeAlreadyEnabledException
 //   The specified policy type is already enabled in the specified root.
 //
-//   * ErrCodeRootNotFoundException "RootNotFoundException"
+//   * RootNotFoundException
 //   We can't find a root with the RootId that you specified.
 //
-//   * ErrCodeServiceException "ServiceException"
+//   * ServiceException
 //   AWS Organizations can't complete your request because of an internal service
 //   error. Try again later.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   You have sent too many requests in too short a period of time. The limit
 //   helps protect against denial-of-service attacks. Try again later.
 //
@@ -5647,12 +6038,19 @@ func (c *Organizations) EnablePolicyTypeRequest(input *EnablePolicyTypeInput) (r
 //   Organizations (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_reference_limits.html)
 //   in the AWS Organizations User Guide.
 //
-//   * ErrCodePolicyTypeNotAvailableForOrganizationException "PolicyTypeNotAvailableForOrganizationException"
+//   * PolicyTypeNotAvailableForOrganizationException
 //   You can't use the specified policy type with the feature set currently enabled
 //   for this organization. For example, you can enable SCPs only after you enable
 //   all features in the organization. For more information, see Enabling and
 //   Disabling a Policy Type on a Root (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies.html#enable_policies_on_root)
 //   in the AWS Organizations User Guide.
+//
+//   * UnsupportedAPIEndpointException
+//   This action isn't available in the current Region.
+//
+//   * PolicyChangesInProgressException
+//   Changes to the effective policy are in progress, and its contents can't be
+//   returned. Try the operation again later.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/organizations-2016-11-28/EnablePolicyType
 func (c *Organizations) EnablePolicyType(input *EnablePolicyTypeInput) (*EnablePolicyTypeOutput, error) {
@@ -5726,16 +6124,16 @@ func (c *Organizations) InviteAccountToOrganizationRequest(input *InviteAccountT
 // as a Handshake whose details are in the response.
 //
 //    * You can invite AWS accounts only from the same seller as the master
-//    account. For example, if your organization's master account was created
-//    by Amazon Internet Services Pvt. Ltd (AISPL), an AWS seller in India,
-//    you can invite only other AISPL accounts to your organization. You can't
-//    combine accounts from AISPL and AWS or from any other AWS seller. For
-//    more information, see Consolidated Billing in India (http://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/useconsolidatedbilliing-India.html).
+//    account. For example, assume that your organization's master account was
+//    created by Amazon Internet Services Pvt. Ltd (AISPL), an AWS seller in
+//    India. You can invite only other AISPL accounts to your organization.
+//    You can't combine accounts from AISPL and AWS or from any other AWS seller.
+//    For more information, see Consolidated Billing in India (http://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/useconsolidatedbilliing-India.html).
 //
-//    * If you receive an exception that indicates that you exceeded your account
-//    limits for the organization or that the operation failed because your
-//    organization is still initializing, wait one hour and then try again.
-//    If the error persists after an hour, contact AWS Support (https://console.aws.amazon.com/support/home#/).
+//    * You might receive an exception that indicates that you exceeded your
+//    account limits for the organization or that the operation failed because
+//    your organization is still initializing. If so, wait one hour and then
+//    try again. If the error persists after an hour, contact AWS Support (https://console.aws.amazon.com/support/home#/).
 //
 // This operation can be called only from the organization's master account.
 //
@@ -5746,29 +6144,29 @@ func (c *Organizations) InviteAccountToOrganizationRequest(input *InviteAccountT
 // See the AWS API reference guide for AWS Organizations's
 // API operation InviteAccountToOrganization for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+// Returned Error Types:
+//   * AccessDeniedException
 //   You don't have permissions to perform the requested operation. The user or
 //   role that is making the request must have at least one IAM permissions policy
 //   attached that grants the required permissions. For more information, see
 //   Access Management (https://docs.aws.amazon.com/IAM/latest/UserGuide/access.html)
 //   in the IAM User Guide.
 //
-//   * ErrCodeAWSOrganizationsNotInUseException "AWSOrganizationsNotInUseException"
+//   * AWSOrganizationsNotInUseException
 //   Your account isn't a member of an organization. To make this request, you
 //   must use the credentials of an account that belongs to an organization.
 //
-//   * ErrCodeAccountOwnerNotVerifiedException "AccountOwnerNotVerifiedException"
+//   * AccountOwnerNotVerifiedException
 //   You can't invite an existing account to your organization until you verify
 //   that you own the email address associated with the master account. For more
 //   information, see Email Address Verification (http://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_create.html#about-email-verification)
 //   in the AWS Organizations User Guide.
 //
-//   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
+//   * ConcurrentModificationException
 //   The target of the operation is currently being modified by a different request.
 //   Try again later.
 //
-//   * ErrCodeHandshakeConstraintViolationException "HandshakeConstraintViolationException"
+//   * HandshakeConstraintViolationException
 //   The requested operation would violate the constraint identified in the reason
 //   code.
 //
@@ -5808,14 +6206,14 @@ func (c *Organizations) InviteAccountToOrganizationRequest(input *InviteAccountT
 //      account that doesn't have a payment instrument, such as a credit card,
 //      associated with it.
 //
-//   * ErrCodeDuplicateHandshakeException "DuplicateHandshakeException"
+//   * DuplicateHandshakeException
 //   A handshake with the same action and target already exists. For example,
 //   if you invited an account to join your organization, the invited account
 //   might already have a pending invitation from this organization. If you intend
 //   to resend an invitation to an account, ensure that existing handshakes that
 //   might be considered duplicates are canceled or declined.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   The requested operation failed because you provided invalid values for one
 //   or more of the request parameters. This exception includes a reason that
 //   contains additional information about the violated limit:
@@ -5829,6 +6227,8 @@ func (c *Organizations) InviteAccountToOrganizationRequest(input *InviteAccountT
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
+//
+//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -5879,17 +6279,17 @@ func (c *Organizations) InviteAccountToOrganizationRequest(input *InviteAccountT
 //      * MOVING_ACCOUNT_BETWEEN_DIFFERENT_ROOTS: You can move an account only
 //      between entities in the same root.
 //
-//   * ErrCodeFinalizingOrganizationException "FinalizingOrganizationException"
+//   * FinalizingOrganizationException
 //   AWS Organizations couldn't perform the operation because your organization
 //   hasn't finished initializing. This can take up to an hour. Try again later.
 //   If after one hour you continue to receive this error, contact AWS Support
 //   (https://console.aws.amazon.com/support/home#/).
 //
-//   * ErrCodeServiceException "ServiceException"
+//   * ServiceException
 //   AWS Organizations can't complete your request because of an internal service
 //   error. Try again later.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   You have sent too many requests in too short a period of time. The limit
 //   helps protect against denial-of-service attacks. Try again later.
 //
@@ -5973,20 +6373,21 @@ func (c *Organizations) LeaveOrganizationRequest(input *LeaveOrganizationInput) 
 //
 //    * The master account in an organization with all features enabled can
 //    set service control policies (SCPs) that can restrict what administrators
-//    of member accounts can do, including preventing them from successfully
-//    calling LeaveOrganization and leaving the organization.
+//    of member accounts can do. These restrictions can include preventing member
+//    accounts from successfully calling LeaveOrganization.
 //
 //    * You can leave an organization as a member account only if the account
 //    is configured with the information required to operate as a standalone
 //    account. When you create an account in an organization using the AWS Organizations
-//    console, API, or CLI commands, the information required of standalone
-//    accounts is not automatically collected. For each account that you want
-//    to make standalone, you must accept the end user license agreement (EULA),
-//    choose a support plan, provide and verify the required contact information,
-//    and provide a current payment method. AWS uses the payment method to charge
-//    for any billable (not free tier) AWS activity that occurs while the account
-//    isn't attached to an organization. Follow the steps at To leave an organization
-//    when all required account information has not yet been provided (http://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_accounts_remove.html#leave-without-all-info)
+//    console, API, or CLI, the information required of standalone accounts
+//    is not automatically collected. For each account that you want to make
+//    standalone, you must accept the end user license agreement (EULA). You
+//    must also choose a support plan, provide and verify the required contact
+//    information, and provide a current payment method. AWS uses the payment
+//    method to charge for any billable (not free tier) AWS activity that occurs
+//    while the account isn't attached to an organization. Follow the steps
+//    at To leave an organization when all required account information has
+//    not yet been provided (http://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_accounts_remove.html#leave-without-all-info)
 //    in the AWS Organizations User Guide.
 //
 //    * You can leave an organization only after you enable IAM user access
@@ -6001,34 +6402,33 @@ func (c *Organizations) LeaveOrganizationRequest(input *LeaveOrganizationInput) 
 // See the AWS API reference guide for AWS Organizations's
 // API operation LeaveOrganization for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+// Returned Error Types:
+//   * AccessDeniedException
 //   You don't have permissions to perform the requested operation. The user or
 //   role that is making the request must have at least one IAM permissions policy
 //   attached that grants the required permissions. For more information, see
 //   Access Management (https://docs.aws.amazon.com/IAM/latest/UserGuide/access.html)
 //   in the IAM User Guide.
 //
-//   * ErrCodeAccountNotFoundException "AccountNotFoundException"
-//   We can't find an AWS account with the AccountId that you specified, or the
+//   * AccountNotFoundException
+//   We can't find an AWS account with the AccountId that you specified. Or the
 //   account whose credentials you used to make this request isn't a member of
 //   an organization.
 //
-//   * ErrCodeAWSOrganizationsNotInUseException "AWSOrganizationsNotInUseException"
+//   * AWSOrganizationsNotInUseException
 //   Your account isn't a member of an organization. To make this request, you
 //   must use the credentials of an account that belongs to an organization.
 //
-//   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
+//   * ConcurrentModificationException
 //   The target of the operation is currently being modified by a different request.
 //   Try again later.
 //
-//   * ErrCodeConstraintViolationException "ConstraintViolationException"
-//   Performing this operation violates a minimum or maximum value limit. For
-//   example, attempting to remove the last service control policy (SCP) from
-//   an OU or root, inviting or creating too many accounts to the organization,
-//   or attaching too many policies to an account, OU, or root. This exception
-//   includes a reason that contains additional information about the violated
-//   limit.
+//   * ConstraintViolationException
+//   Performing this operation violates a minimum or maximum value limit. Examples
+//   include attempting to remove the last service control policy (SCP) from an
+//   OU or root, or attaching too many policies to an account, OU, or root. This
+//   exception includes a reason that contains additional information about the
+//   violated limit.
 //
 //   Some of the reasons in the following list might not be applicable to this
 //   specific API or operation:
@@ -6103,8 +6503,8 @@ func (c *Organizations) LeaveOrganizationRequest(input *LeaveOrganizationInput) 
 //      in the AWS Organizations User Guide.
 //
 //      * MIN_POLICY_TYPE_ATTACHMENT_LIMIT_EXCEEDED: You attempted to detach a
-//      policy from an entity that would cause the entity to have fewer than the
-//      minimum number of policies of a certain type required.
+//      policy from an entity, which would cause the entity to have fewer than
+//      the minimum number of policies of the required type.
 //
 //      * OU_DEPTH_LIMIT_EXCEEDED: You attempted to create an OU tree that is
 //      too many levels deep.
@@ -6117,10 +6517,15 @@ func (c *Organizations) LeaveOrganizationRequest(input *LeaveOrganizationInput) 
 //      * OU_NUMBER_LIMIT_EXCEEDED: You attempted to exceed the number of OUs
 //      that you can have in an organization.
 //
-//      * POLICY_NUMBER_LIMIT_EXCEEDED. You attempted to exceed the number of
+//      * POLICY_NUMBER_LIMIT_EXCEEDED: You attempted to exceed the number of
 //      policies that you can have in an organization.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//      * TAG_POLICY_VIOLATION: Tags associated with the resource must be compliant
+//      with the tag policy that’s in effect for the account. For more information,
+//      see Tag Policies (http://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_tag-policies.html)
+//      in the AWS Organizations User Guide.
+//
+//   * InvalidInputException
 //   The requested operation failed because you provided invalid values for one
 //   or more of the request parameters. This exception includes a reason that
 //   contains additional information about the violated limit:
@@ -6134,6 +6539,8 @@ func (c *Organizations) LeaveOrganizationRequest(input *LeaveOrganizationInput) 
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
+//
+//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -6184,16 +6591,16 @@ func (c *Organizations) LeaveOrganizationRequest(input *LeaveOrganizationInput) 
 //      * MOVING_ACCOUNT_BETWEEN_DIFFERENT_ROOTS: You can move an account only
 //      between entities in the same root.
 //
-//   * ErrCodeMasterCannotLeaveOrganizationException "MasterCannotLeaveOrganizationException"
+//   * MasterCannotLeaveOrganizationException
 //   You can't remove a master account from an organization. If you want the master
 //   account to become a member account in another organization, you must first
 //   delete the current organization of the master account.
 //
-//   * ErrCodeServiceException "ServiceException"
+//   * ServiceException
 //   AWS Organizations can't complete your request because of an internal service
 //   error. Try again later.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   You have sent too many requests in too short a period of time. The limit
 //   helps protect against denial-of-service attacks. Try again later.
 //
@@ -6292,25 +6699,24 @@ func (c *Organizations) ListAWSServiceAccessForOrganizationRequest(input *ListAW
 // See the AWS API reference guide for AWS Organizations's
 // API operation ListAWSServiceAccessForOrganization for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+// Returned Error Types:
+//   * AccessDeniedException
 //   You don't have permissions to perform the requested operation. The user or
 //   role that is making the request must have at least one IAM permissions policy
 //   attached that grants the required permissions. For more information, see
 //   Access Management (https://docs.aws.amazon.com/IAM/latest/UserGuide/access.html)
 //   in the IAM User Guide.
 //
-//   * ErrCodeAWSOrganizationsNotInUseException "AWSOrganizationsNotInUseException"
+//   * AWSOrganizationsNotInUseException
 //   Your account isn't a member of an organization. To make this request, you
 //   must use the credentials of an account that belongs to an organization.
 //
-//   * ErrCodeConstraintViolationException "ConstraintViolationException"
-//   Performing this operation violates a minimum or maximum value limit. For
-//   example, attempting to remove the last service control policy (SCP) from
-//   an OU or root, inviting or creating too many accounts to the organization,
-//   or attaching too many policies to an account, OU, or root. This exception
-//   includes a reason that contains additional information about the violated
-//   limit.
+//   * ConstraintViolationException
+//   Performing this operation violates a minimum or maximum value limit. Examples
+//   include attempting to remove the last service control policy (SCP) from an
+//   OU or root, or attaching too many policies to an account, OU, or root. This
+//   exception includes a reason that contains additional information about the
+//   violated limit.
 //
 //   Some of the reasons in the following list might not be applicable to this
 //   specific API or operation:
@@ -6385,8 +6791,8 @@ func (c *Organizations) ListAWSServiceAccessForOrganizationRequest(input *ListAW
 //      in the AWS Organizations User Guide.
 //
 //      * MIN_POLICY_TYPE_ATTACHMENT_LIMIT_EXCEEDED: You attempted to detach a
-//      policy from an entity that would cause the entity to have fewer than the
-//      minimum number of policies of a certain type required.
+//      policy from an entity, which would cause the entity to have fewer than
+//      the minimum number of policies of the required type.
 //
 //      * OU_DEPTH_LIMIT_EXCEEDED: You attempted to create an OU tree that is
 //      too many levels deep.
@@ -6399,10 +6805,15 @@ func (c *Organizations) ListAWSServiceAccessForOrganizationRequest(input *ListAW
 //      * OU_NUMBER_LIMIT_EXCEEDED: You attempted to exceed the number of OUs
 //      that you can have in an organization.
 //
-//      * POLICY_NUMBER_LIMIT_EXCEEDED. You attempted to exceed the number of
+//      * POLICY_NUMBER_LIMIT_EXCEEDED: You attempted to exceed the number of
 //      policies that you can have in an organization.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//      * TAG_POLICY_VIOLATION: Tags associated with the resource must be compliant
+//      with the tag policy that’s in effect for the account. For more information,
+//      see Tag Policies (http://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_tag-policies.html)
+//      in the AWS Organizations User Guide.
+//
+//   * InvalidInputException
 //   The requested operation failed because you provided invalid values for one
 //   or more of the request parameters. This exception includes a reason that
 //   contains additional information about the violated limit:
@@ -6416,6 +6827,8 @@ func (c *Organizations) ListAWSServiceAccessForOrganizationRequest(input *ListAW
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
+//
+//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -6466,11 +6879,11 @@ func (c *Organizations) ListAWSServiceAccessForOrganizationRequest(input *ListAW
 //      * MOVING_ACCOUNT_BETWEEN_DIFFERENT_ROOTS: You can move an account only
 //      between entities in the same root.
 //
-//   * ErrCodeServiceException "ServiceException"
+//   * ServiceException
 //   AWS Organizations can't complete your request because of an internal service
 //   error. Try again later.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   You have sent too many requests in too short a period of time. The limit
 //   helps protect against denial-of-service attacks. Try again later.
 //
@@ -6543,10 +6956,12 @@ func (c *Organizations) ListAWSServiceAccessForOrganizationPagesWithContext(ctx 
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListAWSServiceAccessForOrganizationOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListAWSServiceAccessForOrganizationOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -6618,19 +7033,19 @@ func (c *Organizations) ListAccountsRequest(input *ListAccountsInput) (req *requ
 // See the AWS API reference guide for AWS Organizations's
 // API operation ListAccounts for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+// Returned Error Types:
+//   * AccessDeniedException
 //   You don't have permissions to perform the requested operation. The user or
 //   role that is making the request must have at least one IAM permissions policy
 //   attached that grants the required permissions. For more information, see
 //   Access Management (https://docs.aws.amazon.com/IAM/latest/UserGuide/access.html)
 //   in the IAM User Guide.
 //
-//   * ErrCodeAWSOrganizationsNotInUseException "AWSOrganizationsNotInUseException"
+//   * AWSOrganizationsNotInUseException
 //   Your account isn't a member of an organization. To make this request, you
 //   must use the credentials of an account that belongs to an organization.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   The requested operation failed because you provided invalid values for one
 //   or more of the request parameters. This exception includes a reason that
 //   contains additional information about the violated limit:
@@ -6644,6 +7059,8 @@ func (c *Organizations) ListAccountsRequest(input *ListAccountsInput) (req *requ
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
+//
+//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -6694,11 +7111,11 @@ func (c *Organizations) ListAccountsRequest(input *ListAccountsInput) (req *requ
 //      * MOVING_ACCOUNT_BETWEEN_DIFFERENT_ROOTS: You can move an account only
 //      between entities in the same root.
 //
-//   * ErrCodeServiceException "ServiceException"
+//   * ServiceException
 //   AWS Organizations can't complete your request because of an internal service
 //   error. Try again later.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   You have sent too many requests in too short a period of time. The limit
 //   helps protect against denial-of-service attacks. Try again later.
 //
@@ -6771,10 +7188,12 @@ func (c *Organizations) ListAccountsPagesWithContext(ctx aws.Context, input *Lis
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListAccountsOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListAccountsOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -6848,19 +7267,19 @@ func (c *Organizations) ListAccountsForParentRequest(input *ListAccountsForParen
 // See the AWS API reference guide for AWS Organizations's
 // API operation ListAccountsForParent for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+// Returned Error Types:
+//   * AccessDeniedException
 //   You don't have permissions to perform the requested operation. The user or
 //   role that is making the request must have at least one IAM permissions policy
 //   attached that grants the required permissions. For more information, see
 //   Access Management (https://docs.aws.amazon.com/IAM/latest/UserGuide/access.html)
 //   in the IAM User Guide.
 //
-//   * ErrCodeAWSOrganizationsNotInUseException "AWSOrganizationsNotInUseException"
+//   * AWSOrganizationsNotInUseException
 //   Your account isn't a member of an organization. To make this request, you
 //   must use the credentials of an account that belongs to an organization.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   The requested operation failed because you provided invalid values for one
 //   or more of the request parameters. This exception includes a reason that
 //   contains additional information about the violated limit:
@@ -6874,6 +7293,8 @@ func (c *Organizations) ListAccountsForParentRequest(input *ListAccountsForParen
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
+//
+//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -6924,14 +7345,14 @@ func (c *Organizations) ListAccountsForParentRequest(input *ListAccountsForParen
 //      * MOVING_ACCOUNT_BETWEEN_DIFFERENT_ROOTS: You can move an account only
 //      between entities in the same root.
 //
-//   * ErrCodeParentNotFoundException "ParentNotFoundException"
+//   * ParentNotFoundException
 //   We can't find a root or OU with the ParentId that you specified.
 //
-//   * ErrCodeServiceException "ServiceException"
+//   * ServiceException
 //   AWS Organizations can't complete your request because of an internal service
 //   error. Try again later.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   You have sent too many requests in too short a period of time. The limit
 //   helps protect against denial-of-service attacks. Try again later.
 //
@@ -7004,10 +7425,12 @@ func (c *Organizations) ListAccountsForParentPagesWithContext(ctx aws.Context, i
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListAccountsForParentOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListAccountsForParentOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -7079,19 +7502,19 @@ func (c *Organizations) ListChildrenRequest(input *ListChildrenInput) (req *requ
 // See the AWS API reference guide for AWS Organizations's
 // API operation ListChildren for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+// Returned Error Types:
+//   * AccessDeniedException
 //   You don't have permissions to perform the requested operation. The user or
 //   role that is making the request must have at least one IAM permissions policy
 //   attached that grants the required permissions. For more information, see
 //   Access Management (https://docs.aws.amazon.com/IAM/latest/UserGuide/access.html)
 //   in the IAM User Guide.
 //
-//   * ErrCodeAWSOrganizationsNotInUseException "AWSOrganizationsNotInUseException"
+//   * AWSOrganizationsNotInUseException
 //   Your account isn't a member of an organization. To make this request, you
 //   must use the credentials of an account that belongs to an organization.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   The requested operation failed because you provided invalid values for one
 //   or more of the request parameters. This exception includes a reason that
 //   contains additional information about the violated limit:
@@ -7105,6 +7528,8 @@ func (c *Organizations) ListChildrenRequest(input *ListChildrenInput) (req *requ
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
+//
+//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -7155,14 +7580,14 @@ func (c *Organizations) ListChildrenRequest(input *ListChildrenInput) (req *requ
 //      * MOVING_ACCOUNT_BETWEEN_DIFFERENT_ROOTS: You can move an account only
 //      between entities in the same root.
 //
-//   * ErrCodeParentNotFoundException "ParentNotFoundException"
+//   * ParentNotFoundException
 //   We can't find a root or OU with the ParentId that you specified.
 //
-//   * ErrCodeServiceException "ServiceException"
+//   * ServiceException
 //   AWS Organizations can't complete your request because of an internal service
 //   error. Try again later.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   You have sent too many requests in too short a period of time. The limit
 //   helps protect against denial-of-service attacks. Try again later.
 //
@@ -7235,10 +7660,12 @@ func (c *Organizations) ListChildrenPagesWithContext(ctx aws.Context, input *Lis
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListChildrenOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListChildrenOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -7309,19 +7736,19 @@ func (c *Organizations) ListCreateAccountStatusRequest(input *ListCreateAccountS
 // See the AWS API reference guide for AWS Organizations's
 // API operation ListCreateAccountStatus for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+// Returned Error Types:
+//   * AccessDeniedException
 //   You don't have permissions to perform the requested operation. The user or
 //   role that is making the request must have at least one IAM permissions policy
 //   attached that grants the required permissions. For more information, see
 //   Access Management (https://docs.aws.amazon.com/IAM/latest/UserGuide/access.html)
 //   in the IAM User Guide.
 //
-//   * ErrCodeAWSOrganizationsNotInUseException "AWSOrganizationsNotInUseException"
+//   * AWSOrganizationsNotInUseException
 //   Your account isn't a member of an organization. To make this request, you
 //   must use the credentials of an account that belongs to an organization.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   The requested operation failed because you provided invalid values for one
 //   or more of the request parameters. This exception includes a reason that
 //   contains additional information about the violated limit:
@@ -7335,6 +7762,8 @@ func (c *Organizations) ListCreateAccountStatusRequest(input *ListCreateAccountS
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
+//
+//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -7385,11 +7814,11 @@ func (c *Organizations) ListCreateAccountStatusRequest(input *ListCreateAccountS
 //      * MOVING_ACCOUNT_BETWEEN_DIFFERENT_ROOTS: You can move an account only
 //      between entities in the same root.
 //
-//   * ErrCodeServiceException "ServiceException"
+//   * ServiceException
 //   AWS Organizations can't complete your request because of an internal service
 //   error. Try again later.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   You have sent too many requests in too short a period of time. The limit
 //   helps protect against denial-of-service attacks. Try again later.
 //
@@ -7397,7 +7826,7 @@ func (c *Organizations) ListCreateAccountStatusRequest(input *ListCreateAccountS
 //   Organizations (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_reference_limits.html)
 //   in the AWS Organizations User Guide.
 //
-//   * ErrCodeUnsupportedAPIEndpointException "UnsupportedAPIEndpointException"
+//   * UnsupportedAPIEndpointException
 //   This action isn't available in the current Region.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/organizations-2016-11-28/ListCreateAccountStatus
@@ -7465,10 +7894,12 @@ func (c *Organizations) ListCreateAccountStatusPagesWithContext(ctx aws.Context,
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListCreateAccountStatusOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListCreateAccountStatusOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -7543,19 +7974,19 @@ func (c *Organizations) ListHandshakesForAccountRequest(input *ListHandshakesFor
 // See the AWS API reference guide for AWS Organizations's
 // API operation ListHandshakesForAccount for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+// Returned Error Types:
+//   * AccessDeniedException
 //   You don't have permissions to perform the requested operation. The user or
 //   role that is making the request must have at least one IAM permissions policy
 //   attached that grants the required permissions. For more information, see
 //   Access Management (https://docs.aws.amazon.com/IAM/latest/UserGuide/access.html)
 //   in the IAM User Guide.
 //
-//   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
+//   * ConcurrentModificationException
 //   The target of the operation is currently being modified by a different request.
 //   Try again later.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   The requested operation failed because you provided invalid values for one
 //   or more of the request parameters. This exception includes a reason that
 //   contains additional information about the violated limit:
@@ -7569,6 +8000,8 @@ func (c *Organizations) ListHandshakesForAccountRequest(input *ListHandshakesFor
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
+//
+//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -7619,11 +8052,11 @@ func (c *Organizations) ListHandshakesForAccountRequest(input *ListHandshakesFor
 //      * MOVING_ACCOUNT_BETWEEN_DIFFERENT_ROOTS: You can move an account only
 //      between entities in the same root.
 //
-//   * ErrCodeServiceException "ServiceException"
+//   * ServiceException
 //   AWS Organizations can't complete your request because of an internal service
 //   error. Try again later.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   You have sent too many requests in too short a period of time. The limit
 //   helps protect against denial-of-service attacks. Try again later.
 //
@@ -7696,10 +8129,12 @@ func (c *Organizations) ListHandshakesForAccountPagesWithContext(ctx aws.Context
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListHandshakesForAccountOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListHandshakesForAccountOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -7776,23 +8211,23 @@ func (c *Organizations) ListHandshakesForOrganizationRequest(input *ListHandshak
 // See the AWS API reference guide for AWS Organizations's
 // API operation ListHandshakesForOrganization for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+// Returned Error Types:
+//   * AccessDeniedException
 //   You don't have permissions to perform the requested operation. The user or
 //   role that is making the request must have at least one IAM permissions policy
 //   attached that grants the required permissions. For more information, see
 //   Access Management (https://docs.aws.amazon.com/IAM/latest/UserGuide/access.html)
 //   in the IAM User Guide.
 //
-//   * ErrCodeAWSOrganizationsNotInUseException "AWSOrganizationsNotInUseException"
+//   * AWSOrganizationsNotInUseException
 //   Your account isn't a member of an organization. To make this request, you
 //   must use the credentials of an account that belongs to an organization.
 //
-//   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
+//   * ConcurrentModificationException
 //   The target of the operation is currently being modified by a different request.
 //   Try again later.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   The requested operation failed because you provided invalid values for one
 //   or more of the request parameters. This exception includes a reason that
 //   contains additional information about the violated limit:
@@ -7806,6 +8241,8 @@ func (c *Organizations) ListHandshakesForOrganizationRequest(input *ListHandshak
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
+//
+//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -7856,11 +8293,11 @@ func (c *Organizations) ListHandshakesForOrganizationRequest(input *ListHandshak
 //      * MOVING_ACCOUNT_BETWEEN_DIFFERENT_ROOTS: You can move an account only
 //      between entities in the same root.
 //
-//   * ErrCodeServiceException "ServiceException"
+//   * ServiceException
 //   AWS Organizations can't complete your request because of an internal service
 //   error. Try again later.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   You have sent too many requests in too short a period of time. The limit
 //   helps protect against denial-of-service attacks. Try again later.
 //
@@ -7933,10 +8370,12 @@ func (c *Organizations) ListHandshakesForOrganizationPagesWithContext(ctx aws.Co
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListHandshakesForOrganizationOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListHandshakesForOrganizationOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -8006,19 +8445,19 @@ func (c *Organizations) ListOrganizationalUnitsForParentRequest(input *ListOrgan
 // See the AWS API reference guide for AWS Organizations's
 // API operation ListOrganizationalUnitsForParent for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+// Returned Error Types:
+//   * AccessDeniedException
 //   You don't have permissions to perform the requested operation. The user or
 //   role that is making the request must have at least one IAM permissions policy
 //   attached that grants the required permissions. For more information, see
 //   Access Management (https://docs.aws.amazon.com/IAM/latest/UserGuide/access.html)
 //   in the IAM User Guide.
 //
-//   * ErrCodeAWSOrganizationsNotInUseException "AWSOrganizationsNotInUseException"
+//   * AWSOrganizationsNotInUseException
 //   Your account isn't a member of an organization. To make this request, you
 //   must use the credentials of an account that belongs to an organization.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   The requested operation failed because you provided invalid values for one
 //   or more of the request parameters. This exception includes a reason that
 //   contains additional information about the violated limit:
@@ -8032,6 +8471,8 @@ func (c *Organizations) ListOrganizationalUnitsForParentRequest(input *ListOrgan
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
+//
+//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -8082,14 +8523,14 @@ func (c *Organizations) ListOrganizationalUnitsForParentRequest(input *ListOrgan
 //      * MOVING_ACCOUNT_BETWEEN_DIFFERENT_ROOTS: You can move an account only
 //      between entities in the same root.
 //
-//   * ErrCodeParentNotFoundException "ParentNotFoundException"
+//   * ParentNotFoundException
 //   We can't find a root or OU with the ParentId that you specified.
 //
-//   * ErrCodeServiceException "ServiceException"
+//   * ServiceException
 //   AWS Organizations can't complete your request because of an internal service
 //   error. Try again later.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   You have sent too many requests in too short a period of time. The limit
 //   helps protect against denial-of-service attacks. Try again later.
 //
@@ -8162,10 +8603,12 @@ func (c *Organizations) ListOrganizationalUnitsForParentPagesWithContext(ctx aws
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListOrganizationalUnitsForParentOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListOrganizationalUnitsForParentOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -8239,23 +8682,23 @@ func (c *Organizations) ListParentsRequest(input *ListParentsInput) (req *reques
 // See the AWS API reference guide for AWS Organizations's
 // API operation ListParents for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+// Returned Error Types:
+//   * AccessDeniedException
 //   You don't have permissions to perform the requested operation. The user or
 //   role that is making the request must have at least one IAM permissions policy
 //   attached that grants the required permissions. For more information, see
 //   Access Management (https://docs.aws.amazon.com/IAM/latest/UserGuide/access.html)
 //   in the IAM User Guide.
 //
-//   * ErrCodeAWSOrganizationsNotInUseException "AWSOrganizationsNotInUseException"
+//   * AWSOrganizationsNotInUseException
 //   Your account isn't a member of an organization. To make this request, you
 //   must use the credentials of an account that belongs to an organization.
 //
-//   * ErrCodeChildNotFoundException "ChildNotFoundException"
+//   * ChildNotFoundException
 //   We can't find an organizational unit (OU) or AWS account with the ChildId
 //   that you specified.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   The requested operation failed because you provided invalid values for one
 //   or more of the request parameters. This exception includes a reason that
 //   contains additional information about the violated limit:
@@ -8269,6 +8712,8 @@ func (c *Organizations) ListParentsRequest(input *ListParentsInput) (req *reques
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
+//
+//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -8319,11 +8764,11 @@ func (c *Organizations) ListParentsRequest(input *ListParentsInput) (req *reques
 //      * MOVING_ACCOUNT_BETWEEN_DIFFERENT_ROOTS: You can move an account only
 //      between entities in the same root.
 //
-//   * ErrCodeServiceException "ServiceException"
+//   * ServiceException
 //   AWS Organizations can't complete your request because of an internal service
 //   error. Try again later.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   You have sent too many requests in too short a period of time. The limit
 //   helps protect against denial-of-service attacks. Try again later.
 //
@@ -8396,10 +8841,12 @@ func (c *Organizations) ListParentsPagesWithContext(ctx aws.Context, input *List
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListParentsOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListParentsOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -8469,19 +8916,19 @@ func (c *Organizations) ListPoliciesRequest(input *ListPoliciesInput) (req *requ
 // See the AWS API reference guide for AWS Organizations's
 // API operation ListPolicies for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+// Returned Error Types:
+//   * AccessDeniedException
 //   You don't have permissions to perform the requested operation. The user or
 //   role that is making the request must have at least one IAM permissions policy
 //   attached that grants the required permissions. For more information, see
 //   Access Management (https://docs.aws.amazon.com/IAM/latest/UserGuide/access.html)
 //   in the IAM User Guide.
 //
-//   * ErrCodeAWSOrganizationsNotInUseException "AWSOrganizationsNotInUseException"
+//   * AWSOrganizationsNotInUseException
 //   Your account isn't a member of an organization. To make this request, you
 //   must use the credentials of an account that belongs to an organization.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   The requested operation failed because you provided invalid values for one
 //   or more of the request parameters. This exception includes a reason that
 //   contains additional information about the violated limit:
@@ -8495,6 +8942,8 @@ func (c *Organizations) ListPoliciesRequest(input *ListPoliciesInput) (req *requ
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
+//
+//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -8545,17 +8994,20 @@ func (c *Organizations) ListPoliciesRequest(input *ListPoliciesInput) (req *requ
 //      * MOVING_ACCOUNT_BETWEEN_DIFFERENT_ROOTS: You can move an account only
 //      between entities in the same root.
 //
-//   * ErrCodeServiceException "ServiceException"
+//   * ServiceException
 //   AWS Organizations can't complete your request because of an internal service
 //   error. Try again later.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   You have sent too many requests in too short a period of time. The limit
 //   helps protect against denial-of-service attacks. Try again later.
 //
 //   For information on limits that affect AWS Organizations, see Limits of AWS
 //   Organizations (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_reference_limits.html)
 //   in the AWS Organizations User Guide.
+//
+//   * UnsupportedAPIEndpointException
+//   This action isn't available in the current Region.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/organizations-2016-11-28/ListPolicies
 func (c *Organizations) ListPolicies(input *ListPoliciesInput) (*ListPoliciesOutput, error) {
@@ -8622,10 +9074,12 @@ func (c *Organizations) ListPoliciesPagesWithContext(ctx aws.Context, input *Lis
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListPoliciesOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListPoliciesOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -8697,19 +9151,19 @@ func (c *Organizations) ListPoliciesForTargetRequest(input *ListPoliciesForTarge
 // See the AWS API reference guide for AWS Organizations's
 // API operation ListPoliciesForTarget for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+// Returned Error Types:
+//   * AccessDeniedException
 //   You don't have permissions to perform the requested operation. The user or
 //   role that is making the request must have at least one IAM permissions policy
 //   attached that grants the required permissions. For more information, see
 //   Access Management (https://docs.aws.amazon.com/IAM/latest/UserGuide/access.html)
 //   in the IAM User Guide.
 //
-//   * ErrCodeAWSOrganizationsNotInUseException "AWSOrganizationsNotInUseException"
+//   * AWSOrganizationsNotInUseException
 //   Your account isn't a member of an organization. To make this request, you
 //   must use the credentials of an account that belongs to an organization.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   The requested operation failed because you provided invalid values for one
 //   or more of the request parameters. This exception includes a reason that
 //   contains additional information about the violated limit:
@@ -8723,6 +9177,8 @@ func (c *Organizations) ListPoliciesForTargetRequest(input *ListPoliciesForTarge
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
+//
+//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -8773,20 +9229,23 @@ func (c *Organizations) ListPoliciesForTargetRequest(input *ListPoliciesForTarge
 //      * MOVING_ACCOUNT_BETWEEN_DIFFERENT_ROOTS: You can move an account only
 //      between entities in the same root.
 //
-//   * ErrCodeServiceException "ServiceException"
+//   * ServiceException
 //   AWS Organizations can't complete your request because of an internal service
 //   error. Try again later.
 //
-//   * ErrCodeTargetNotFoundException "TargetNotFoundException"
+//   * TargetNotFoundException
 //   We can't find a root, OU, or account with the TargetId that you specified.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   You have sent too many requests in too short a period of time. The limit
 //   helps protect against denial-of-service attacks. Try again later.
 //
 //   For information on limits that affect AWS Organizations, see Limits of AWS
 //   Organizations (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_reference_limits.html)
 //   in the AWS Organizations User Guide.
+//
+//   * UnsupportedAPIEndpointException
+//   This action isn't available in the current Region.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/organizations-2016-11-28/ListPoliciesForTarget
 func (c *Organizations) ListPoliciesForTarget(input *ListPoliciesForTargetInput) (*ListPoliciesForTargetOutput, error) {
@@ -8853,10 +9312,12 @@ func (c *Organizations) ListPoliciesForTargetPagesWithContext(ctx aws.Context, i
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListPoliciesForTargetOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListPoliciesForTargetOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -8932,19 +9393,19 @@ func (c *Organizations) ListRootsRequest(input *ListRootsInput) (req *request.Re
 // See the AWS API reference guide for AWS Organizations's
 // API operation ListRoots for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+// Returned Error Types:
+//   * AccessDeniedException
 //   You don't have permissions to perform the requested operation. The user or
 //   role that is making the request must have at least one IAM permissions policy
 //   attached that grants the required permissions. For more information, see
 //   Access Management (https://docs.aws.amazon.com/IAM/latest/UserGuide/access.html)
 //   in the IAM User Guide.
 //
-//   * ErrCodeAWSOrganizationsNotInUseException "AWSOrganizationsNotInUseException"
+//   * AWSOrganizationsNotInUseException
 //   Your account isn't a member of an organization. To make this request, you
 //   must use the credentials of an account that belongs to an organization.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   The requested operation failed because you provided invalid values for one
 //   or more of the request parameters. This exception includes a reason that
 //   contains additional information about the violated limit:
@@ -8958,6 +9419,8 @@ func (c *Organizations) ListRootsRequest(input *ListRootsInput) (req *request.Re
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
+//
+//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -9008,11 +9471,11 @@ func (c *Organizations) ListRootsRequest(input *ListRootsInput) (req *request.Re
 //      * MOVING_ACCOUNT_BETWEEN_DIFFERENT_ROOTS: You can move an account only
 //      between entities in the same root.
 //
-//   * ErrCodeServiceException "ServiceException"
+//   * ServiceException
 //   AWS Organizations can't complete your request because of an internal service
 //   error. Try again later.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   You have sent too many requests in too short a period of time. The limit
 //   helps protect against denial-of-service attacks. Try again later.
 //
@@ -9085,10 +9548,12 @@ func (c *Organizations) ListRootsPagesWithContext(ctx aws.Context, input *ListRo
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListRootsOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListRootsOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -9155,22 +9620,22 @@ func (c *Organizations) ListTagsForResourceRequest(input *ListTagsForResourceInp
 // See the AWS API reference guide for AWS Organizations's
 // API operation ListTagsForResource for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+// Returned Error Types:
+//   * AccessDeniedException
 //   You don't have permissions to perform the requested operation. The user or
 //   role that is making the request must have at least one IAM permissions policy
 //   attached that grants the required permissions. For more information, see
 //   Access Management (https://docs.aws.amazon.com/IAM/latest/UserGuide/access.html)
 //   in the IAM User Guide.
 //
-//   * ErrCodeAWSOrganizationsNotInUseException "AWSOrganizationsNotInUseException"
+//   * AWSOrganizationsNotInUseException
 //   Your account isn't a member of an organization. To make this request, you
 //   must use the credentials of an account that belongs to an organization.
 //
-//   * ErrCodeTargetNotFoundException "TargetNotFoundException"
+//   * TargetNotFoundException
 //   We can't find a root, OU, or account with the TargetId that you specified.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   The requested operation failed because you provided invalid values for one
 //   or more of the request parameters. This exception includes a reason that
 //   contains additional information about the violated limit:
@@ -9184,6 +9649,8 @@ func (c *Organizations) ListTagsForResourceRequest(input *ListTagsForResourceInp
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
+//
+//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -9234,11 +9701,11 @@ func (c *Organizations) ListTagsForResourceRequest(input *ListTagsForResourceInp
 //      * MOVING_ACCOUNT_BETWEEN_DIFFERENT_ROOTS: You can move an account only
 //      between entities in the same root.
 //
-//   * ErrCodeServiceException "ServiceException"
+//   * ServiceException
 //   AWS Organizations can't complete your request because of an internal service
 //   error. Try again later.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   You have sent too many requests in too short a period of time. The limit
 //   helps protect against denial-of-service attacks. Try again later.
 //
@@ -9311,10 +9778,12 @@ func (c *Organizations) ListTagsForResourcePagesWithContext(ctx aws.Context, inp
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListTagsForResourceOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListTagsForResourceOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -9385,19 +9854,19 @@ func (c *Organizations) ListTargetsForPolicyRequest(input *ListTargetsForPolicyI
 // See the AWS API reference guide for AWS Organizations's
 // API operation ListTargetsForPolicy for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+// Returned Error Types:
+//   * AccessDeniedException
 //   You don't have permissions to perform the requested operation. The user or
 //   role that is making the request must have at least one IAM permissions policy
 //   attached that grants the required permissions. For more information, see
 //   Access Management (https://docs.aws.amazon.com/IAM/latest/UserGuide/access.html)
 //   in the IAM User Guide.
 //
-//   * ErrCodeAWSOrganizationsNotInUseException "AWSOrganizationsNotInUseException"
+//   * AWSOrganizationsNotInUseException
 //   Your account isn't a member of an organization. To make this request, you
 //   must use the credentials of an account that belongs to an organization.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   The requested operation failed because you provided invalid values for one
 //   or more of the request parameters. This exception includes a reason that
 //   contains additional information about the violated limit:
@@ -9411,6 +9880,8 @@ func (c *Organizations) ListTargetsForPolicyRequest(input *ListTargetsForPolicyI
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
+//
+//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -9461,20 +9932,23 @@ func (c *Organizations) ListTargetsForPolicyRequest(input *ListTargetsForPolicyI
 //      * MOVING_ACCOUNT_BETWEEN_DIFFERENT_ROOTS: You can move an account only
 //      between entities in the same root.
 //
-//   * ErrCodePolicyNotFoundException "PolicyNotFoundException"
+//   * PolicyNotFoundException
 //   We can't find a policy with the PolicyId that you specified.
 //
-//   * ErrCodeServiceException "ServiceException"
+//   * ServiceException
 //   AWS Organizations can't complete your request because of an internal service
 //   error. Try again later.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   You have sent too many requests in too short a period of time. The limit
 //   helps protect against denial-of-service attacks. Try again later.
 //
 //   For information on limits that affect AWS Organizations, see Limits of AWS
 //   Organizations (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_reference_limits.html)
 //   in the AWS Organizations User Guide.
+//
+//   * UnsupportedAPIEndpointException
+//   This action isn't available in the current Region.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/organizations-2016-11-28/ListTargetsForPolicy
 func (c *Organizations) ListTargetsForPolicy(input *ListTargetsForPolicyInput) (*ListTargetsForPolicyOutput, error) {
@@ -9541,10 +10015,12 @@ func (c *Organizations) ListTargetsForPolicyPagesWithContext(ctx aws.Context, in
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListTargetsForPolicyOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListTargetsForPolicyOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -9605,15 +10081,15 @@ func (c *Organizations) MoveAccountRequest(input *MoveAccountInput) (req *reques
 // See the AWS API reference guide for AWS Organizations's
 // API operation MoveAccount for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+// Returned Error Types:
+//   * AccessDeniedException
 //   You don't have permissions to perform the requested operation. The user or
 //   role that is making the request must have at least one IAM permissions policy
 //   attached that grants the required permissions. For more information, see
 //   Access Management (https://docs.aws.amazon.com/IAM/latest/UserGuide/access.html)
 //   in the IAM User Guide.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   The requested operation failed because you provided invalid values for one
 //   or more of the request parameters. This exception includes a reason that
 //   contains additional information about the violated limit:
@@ -9627,6 +10103,8 @@ func (c *Organizations) MoveAccountRequest(input *MoveAccountInput) (req *reques
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
+//
+//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -9677,22 +10155,22 @@ func (c *Organizations) MoveAccountRequest(input *MoveAccountInput) (req *reques
 //      * MOVING_ACCOUNT_BETWEEN_DIFFERENT_ROOTS: You can move an account only
 //      between entities in the same root.
 //
-//   * ErrCodeSourceParentNotFoundException "SourceParentNotFoundException"
+//   * SourceParentNotFoundException
 //   We can't find a source root or OU with the ParentId that you specified.
 //
-//   * ErrCodeDestinationParentNotFoundException "DestinationParentNotFoundException"
+//   * DestinationParentNotFoundException
 //   We can't find the destination container (a root or OU) with the ParentId
 //   that you specified.
 //
-//   * ErrCodeDuplicateAccountException "DuplicateAccountException"
+//   * DuplicateAccountException
 //   That account is already present in the specified destination.
 //
-//   * ErrCodeAccountNotFoundException "AccountNotFoundException"
-//   We can't find an AWS account with the AccountId that you specified, or the
+//   * AccountNotFoundException
+//   We can't find an AWS account with the AccountId that you specified. Or the
 //   account whose credentials you used to make this request isn't a member of
 //   an organization.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   You have sent too many requests in too short a period of time. The limit
 //   helps protect against denial-of-service attacks. Try again later.
 //
@@ -9700,15 +10178,15 @@ func (c *Organizations) MoveAccountRequest(input *MoveAccountInput) (req *reques
 //   Organizations (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_reference_limits.html)
 //   in the AWS Organizations User Guide.
 //
-//   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
+//   * ConcurrentModificationException
 //   The target of the operation is currently being modified by a different request.
 //   Try again later.
 //
-//   * ErrCodeAWSOrganizationsNotInUseException "AWSOrganizationsNotInUseException"
+//   * AWSOrganizationsNotInUseException
 //   Your account isn't a member of an organization. To make this request, you
 //   must use the credentials of an account that belongs to an organization.
 //
-//   * ErrCodeServiceException "ServiceException"
+//   * ServiceException
 //   AWS Organizations can't complete your request because of an internal service
 //   error. Try again later.
 //
@@ -9793,15 +10271,15 @@ func (c *Organizations) RemoveAccountFromOrganizationRequest(input *RemoveAccoun
 // You can remove an account from your organization only if the account is configured
 // with the information required to operate as a standalone account. When you
 // create an account in an organization using the AWS Organizations console,
-// API, or CLI commands, the information required of standalone accounts is
-// not automatically collected. For an account that you want to make standalone,
-// you must accept the end user license agreement (EULA), choose a support plan,
+// API, or CLI, the information required of standalone accounts is not automatically
+// collected. For an account that you want to make standalone, you must accept
+// the end user license agreement (EULA). You must also choose a support plan,
 // provide and verify the required contact information, and provide a current
 // payment method. AWS uses the payment method to charge for any billable (not
 // free tier) AWS activity that occurs while the account isn't attached to an
 // organization. To remove an account that doesn't yet have this information,
-// you must sign in as the member account and follow the steps at To leave an
-// organization when all required account information has not yet been provided
+// you must sign in as the member account. Then follow the steps at To leave
+// an organization when all required account information has not yet been provided
 // (http://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_accounts_remove.html#leave-without-all-info)
 // in the AWS Organizations User Guide.
 //
@@ -9812,34 +10290,33 @@ func (c *Organizations) RemoveAccountFromOrganizationRequest(input *RemoveAccoun
 // See the AWS API reference guide for AWS Organizations's
 // API operation RemoveAccountFromOrganization for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+// Returned Error Types:
+//   * AccessDeniedException
 //   You don't have permissions to perform the requested operation. The user or
 //   role that is making the request must have at least one IAM permissions policy
 //   attached that grants the required permissions. For more information, see
 //   Access Management (https://docs.aws.amazon.com/IAM/latest/UserGuide/access.html)
 //   in the IAM User Guide.
 //
-//   * ErrCodeAccountNotFoundException "AccountNotFoundException"
-//   We can't find an AWS account with the AccountId that you specified, or the
+//   * AccountNotFoundException
+//   We can't find an AWS account with the AccountId that you specified. Or the
 //   account whose credentials you used to make this request isn't a member of
 //   an organization.
 //
-//   * ErrCodeAWSOrganizationsNotInUseException "AWSOrganizationsNotInUseException"
+//   * AWSOrganizationsNotInUseException
 //   Your account isn't a member of an organization. To make this request, you
 //   must use the credentials of an account that belongs to an organization.
 //
-//   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
+//   * ConcurrentModificationException
 //   The target of the operation is currently being modified by a different request.
 //   Try again later.
 //
-//   * ErrCodeConstraintViolationException "ConstraintViolationException"
-//   Performing this operation violates a minimum or maximum value limit. For
-//   example, attempting to remove the last service control policy (SCP) from
-//   an OU or root, inviting or creating too many accounts to the organization,
-//   or attaching too many policies to an account, OU, or root. This exception
-//   includes a reason that contains additional information about the violated
-//   limit.
+//   * ConstraintViolationException
+//   Performing this operation violates a minimum or maximum value limit. Examples
+//   include attempting to remove the last service control policy (SCP) from an
+//   OU or root, or attaching too many policies to an account, OU, or root. This
+//   exception includes a reason that contains additional information about the
+//   violated limit.
 //
 //   Some of the reasons in the following list might not be applicable to this
 //   specific API or operation:
@@ -9914,8 +10391,8 @@ func (c *Organizations) RemoveAccountFromOrganizationRequest(input *RemoveAccoun
 //      in the AWS Organizations User Guide.
 //
 //      * MIN_POLICY_TYPE_ATTACHMENT_LIMIT_EXCEEDED: You attempted to detach a
-//      policy from an entity that would cause the entity to have fewer than the
-//      minimum number of policies of a certain type required.
+//      policy from an entity, which would cause the entity to have fewer than
+//      the minimum number of policies of the required type.
 //
 //      * OU_DEPTH_LIMIT_EXCEEDED: You attempted to create an OU tree that is
 //      too many levels deep.
@@ -9928,10 +10405,15 @@ func (c *Organizations) RemoveAccountFromOrganizationRequest(input *RemoveAccoun
 //      * OU_NUMBER_LIMIT_EXCEEDED: You attempted to exceed the number of OUs
 //      that you can have in an organization.
 //
-//      * POLICY_NUMBER_LIMIT_EXCEEDED. You attempted to exceed the number of
+//      * POLICY_NUMBER_LIMIT_EXCEEDED: You attempted to exceed the number of
 //      policies that you can have in an organization.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//      * TAG_POLICY_VIOLATION: Tags associated with the resource must be compliant
+//      with the tag policy that’s in effect for the account. For more information,
+//      see Tag Policies (http://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_tag-policies.html)
+//      in the AWS Organizations User Guide.
+//
+//   * InvalidInputException
 //   The requested operation failed because you provided invalid values for one
 //   or more of the request parameters. This exception includes a reason that
 //   contains additional information about the violated limit:
@@ -9945,6 +10427,8 @@ func (c *Organizations) RemoveAccountFromOrganizationRequest(input *RemoveAccoun
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
+//
+//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -9995,16 +10479,16 @@ func (c *Organizations) RemoveAccountFromOrganizationRequest(input *RemoveAccoun
 //      * MOVING_ACCOUNT_BETWEEN_DIFFERENT_ROOTS: You can move an account only
 //      between entities in the same root.
 //
-//   * ErrCodeMasterCannotLeaveOrganizationException "MasterCannotLeaveOrganizationException"
+//   * MasterCannotLeaveOrganizationException
 //   You can't remove a master account from an organization. If you want the master
 //   account to become a member account in another organization, you must first
 //   delete the current organization of the master account.
 //
-//   * ErrCodeServiceException "ServiceException"
+//   * ServiceException
 //   AWS Organizations can't complete your request because of an internal service
 //   error. Try again later.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   You have sent too many requests in too short a period of time. The limit
 //   helps protect against denial-of-service attacks. Try again later.
 //
@@ -10092,32 +10576,31 @@ func (c *Organizations) TagResourceRequest(input *TagResourceInput) (req *reques
 // See the AWS API reference guide for AWS Organizations's
 // API operation TagResource for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+// Returned Error Types:
+//   * AccessDeniedException
 //   You don't have permissions to perform the requested operation. The user or
 //   role that is making the request must have at least one IAM permissions policy
 //   attached that grants the required permissions. For more information, see
 //   Access Management (https://docs.aws.amazon.com/IAM/latest/UserGuide/access.html)
 //   in the IAM User Guide.
 //
-//   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
+//   * ConcurrentModificationException
 //   The target of the operation is currently being modified by a different request.
 //   Try again later.
 //
-//   * ErrCodeAWSOrganizationsNotInUseException "AWSOrganizationsNotInUseException"
+//   * AWSOrganizationsNotInUseException
 //   Your account isn't a member of an organization. To make this request, you
 //   must use the credentials of an account that belongs to an organization.
 //
-//   * ErrCodeTargetNotFoundException "TargetNotFoundException"
+//   * TargetNotFoundException
 //   We can't find a root, OU, or account with the TargetId that you specified.
 //
-//   * ErrCodeConstraintViolationException "ConstraintViolationException"
-//   Performing this operation violates a minimum or maximum value limit. For
-//   example, attempting to remove the last service control policy (SCP) from
-//   an OU or root, inviting or creating too many accounts to the organization,
-//   or attaching too many policies to an account, OU, or root. This exception
-//   includes a reason that contains additional information about the violated
-//   limit.
+//   * ConstraintViolationException
+//   Performing this operation violates a minimum or maximum value limit. Examples
+//   include attempting to remove the last service control policy (SCP) from an
+//   OU or root, or attaching too many policies to an account, OU, or root. This
+//   exception includes a reason that contains additional information about the
+//   violated limit.
 //
 //   Some of the reasons in the following list might not be applicable to this
 //   specific API or operation:
@@ -10192,8 +10675,8 @@ func (c *Organizations) TagResourceRequest(input *TagResourceInput) (req *reques
 //      in the AWS Organizations User Guide.
 //
 //      * MIN_POLICY_TYPE_ATTACHMENT_LIMIT_EXCEEDED: You attempted to detach a
-//      policy from an entity that would cause the entity to have fewer than the
-//      minimum number of policies of a certain type required.
+//      policy from an entity, which would cause the entity to have fewer than
+//      the minimum number of policies of the required type.
 //
 //      * OU_DEPTH_LIMIT_EXCEEDED: You attempted to create an OU tree that is
 //      too many levels deep.
@@ -10206,10 +10689,15 @@ func (c *Organizations) TagResourceRequest(input *TagResourceInput) (req *reques
 //      * OU_NUMBER_LIMIT_EXCEEDED: You attempted to exceed the number of OUs
 //      that you can have in an organization.
 //
-//      * POLICY_NUMBER_LIMIT_EXCEEDED. You attempted to exceed the number of
+//      * POLICY_NUMBER_LIMIT_EXCEEDED: You attempted to exceed the number of
 //      policies that you can have in an organization.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//      * TAG_POLICY_VIOLATION: Tags associated with the resource must be compliant
+//      with the tag policy that’s in effect for the account. For more information,
+//      see Tag Policies (http://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_tag-policies.html)
+//      in the AWS Organizations User Guide.
+//
+//   * InvalidInputException
 //   The requested operation failed because you provided invalid values for one
 //   or more of the request parameters. This exception includes a reason that
 //   contains additional information about the violated limit:
@@ -10223,6 +10711,8 @@ func (c *Organizations) TagResourceRequest(input *TagResourceInput) (req *reques
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
+//
+//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -10273,11 +10763,11 @@ func (c *Organizations) TagResourceRequest(input *TagResourceInput) (req *reques
 //      * MOVING_ACCOUNT_BETWEEN_DIFFERENT_ROOTS: You can move an account only
 //      between entities in the same root.
 //
-//   * ErrCodeServiceException "ServiceException"
+//   * ServiceException
 //   AWS Organizations can't complete your request because of an internal service
 //   error. Try again later.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   You have sent too many requests in too short a period of time. The limit
 //   helps protect against denial-of-service attacks. Try again later.
 //
@@ -10365,32 +10855,31 @@ func (c *Organizations) UntagResourceRequest(input *UntagResourceInput) (req *re
 // See the AWS API reference guide for AWS Organizations's
 // API operation UntagResource for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+// Returned Error Types:
+//   * AccessDeniedException
 //   You don't have permissions to perform the requested operation. The user or
 //   role that is making the request must have at least one IAM permissions policy
 //   attached that grants the required permissions. For more information, see
 //   Access Management (https://docs.aws.amazon.com/IAM/latest/UserGuide/access.html)
 //   in the IAM User Guide.
 //
-//   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
+//   * ConcurrentModificationException
 //   The target of the operation is currently being modified by a different request.
 //   Try again later.
 //
-//   * ErrCodeAWSOrganizationsNotInUseException "AWSOrganizationsNotInUseException"
+//   * AWSOrganizationsNotInUseException
 //   Your account isn't a member of an organization. To make this request, you
 //   must use the credentials of an account that belongs to an organization.
 //
-//   * ErrCodeTargetNotFoundException "TargetNotFoundException"
+//   * TargetNotFoundException
 //   We can't find a root, OU, or account with the TargetId that you specified.
 //
-//   * ErrCodeConstraintViolationException "ConstraintViolationException"
-//   Performing this operation violates a minimum or maximum value limit. For
-//   example, attempting to remove the last service control policy (SCP) from
-//   an OU or root, inviting or creating too many accounts to the organization,
-//   or attaching too many policies to an account, OU, or root. This exception
-//   includes a reason that contains additional information about the violated
-//   limit.
+//   * ConstraintViolationException
+//   Performing this operation violates a minimum or maximum value limit. Examples
+//   include attempting to remove the last service control policy (SCP) from an
+//   OU or root, or attaching too many policies to an account, OU, or root. This
+//   exception includes a reason that contains additional information about the
+//   violated limit.
 //
 //   Some of the reasons in the following list might not be applicable to this
 //   specific API or operation:
@@ -10465,8 +10954,8 @@ func (c *Organizations) UntagResourceRequest(input *UntagResourceInput) (req *re
 //      in the AWS Organizations User Guide.
 //
 //      * MIN_POLICY_TYPE_ATTACHMENT_LIMIT_EXCEEDED: You attempted to detach a
-//      policy from an entity that would cause the entity to have fewer than the
-//      minimum number of policies of a certain type required.
+//      policy from an entity, which would cause the entity to have fewer than
+//      the minimum number of policies of the required type.
 //
 //      * OU_DEPTH_LIMIT_EXCEEDED: You attempted to create an OU tree that is
 //      too many levels deep.
@@ -10479,10 +10968,15 @@ func (c *Organizations) UntagResourceRequest(input *UntagResourceInput) (req *re
 //      * OU_NUMBER_LIMIT_EXCEEDED: You attempted to exceed the number of OUs
 //      that you can have in an organization.
 //
-//      * POLICY_NUMBER_LIMIT_EXCEEDED. You attempted to exceed the number of
+//      * POLICY_NUMBER_LIMIT_EXCEEDED: You attempted to exceed the number of
 //      policies that you can have in an organization.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//      * TAG_POLICY_VIOLATION: Tags associated with the resource must be compliant
+//      with the tag policy that’s in effect for the account. For more information,
+//      see Tag Policies (http://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_tag-policies.html)
+//      in the AWS Organizations User Guide.
+//
+//   * InvalidInputException
 //   The requested operation failed because you provided invalid values for one
 //   or more of the request parameters. This exception includes a reason that
 //   contains additional information about the violated limit:
@@ -10496,6 +10990,8 @@ func (c *Organizations) UntagResourceRequest(input *UntagResourceInput) (req *re
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
+//
+//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -10546,11 +11042,11 @@ func (c *Organizations) UntagResourceRequest(input *UntagResourceInput) (req *re
 //      * MOVING_ACCOUNT_BETWEEN_DIFFERENT_ROOTS: You can move an account only
 //      between entities in the same root.
 //
-//   * ErrCodeServiceException "ServiceException"
+//   * ServiceException
 //   AWS Organizations can't complete your request because of an internal service
 //   error. Try again later.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   You have sent too many requests in too short a period of time. The limit
 //   helps protect against denial-of-service attacks. Try again later.
 //
@@ -10637,26 +11133,26 @@ func (c *Organizations) UpdateOrganizationalUnitRequest(input *UpdateOrganizatio
 // See the AWS API reference guide for AWS Organizations's
 // API operation UpdateOrganizationalUnit for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+// Returned Error Types:
+//   * AccessDeniedException
 //   You don't have permissions to perform the requested operation. The user or
 //   role that is making the request must have at least one IAM permissions policy
 //   attached that grants the required permissions. For more information, see
 //   Access Management (https://docs.aws.amazon.com/IAM/latest/UserGuide/access.html)
 //   in the IAM User Guide.
 //
-//   * ErrCodeAWSOrganizationsNotInUseException "AWSOrganizationsNotInUseException"
+//   * AWSOrganizationsNotInUseException
 //   Your account isn't a member of an organization. To make this request, you
 //   must use the credentials of an account that belongs to an organization.
 //
-//   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
+//   * ConcurrentModificationException
 //   The target of the operation is currently being modified by a different request.
 //   Try again later.
 //
-//   * ErrCodeDuplicateOrganizationalUnitException "DuplicateOrganizationalUnitException"
+//   * DuplicateOrganizationalUnitException
 //   An OU with the same name already exists.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   The requested operation failed because you provided invalid values for one
 //   or more of the request parameters. This exception includes a reason that
 //   contains additional information about the violated limit:
@@ -10670,6 +11166,8 @@ func (c *Organizations) UpdateOrganizationalUnitRequest(input *UpdateOrganizatio
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
+//
+//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -10720,14 +11218,14 @@ func (c *Organizations) UpdateOrganizationalUnitRequest(input *UpdateOrganizatio
 //      * MOVING_ACCOUNT_BETWEEN_DIFFERENT_ROOTS: You can move an account only
 //      between entities in the same root.
 //
-//   * ErrCodeOrganizationalUnitNotFoundException "OrganizationalUnitNotFoundException"
+//   * OrganizationalUnitNotFoundException
 //   We can't find an OU with the OrganizationalUnitId that you specified.
 //
-//   * ErrCodeServiceException "ServiceException"
+//   * ServiceException
 //   AWS Organizations can't complete your request because of an internal service
 //   error. Try again later.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   You have sent too many requests in too short a period of time. The limit
 //   helps protect against denial-of-service attacks. Try again later.
 //
@@ -10814,29 +11312,28 @@ func (c *Organizations) UpdatePolicyRequest(input *UpdatePolicyInput) (req *requ
 // See the AWS API reference guide for AWS Organizations's
 // API operation UpdatePolicy for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+// Returned Error Types:
+//   * AccessDeniedException
 //   You don't have permissions to perform the requested operation. The user or
 //   role that is making the request must have at least one IAM permissions policy
 //   attached that grants the required permissions. For more information, see
 //   Access Management (https://docs.aws.amazon.com/IAM/latest/UserGuide/access.html)
 //   in the IAM User Guide.
 //
-//   * ErrCodeAWSOrganizationsNotInUseException "AWSOrganizationsNotInUseException"
+//   * AWSOrganizationsNotInUseException
 //   Your account isn't a member of an organization. To make this request, you
 //   must use the credentials of an account that belongs to an organization.
 //
-//   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
+//   * ConcurrentModificationException
 //   The target of the operation is currently being modified by a different request.
 //   Try again later.
 //
-//   * ErrCodeConstraintViolationException "ConstraintViolationException"
-//   Performing this operation violates a minimum or maximum value limit. For
-//   example, attempting to remove the last service control policy (SCP) from
-//   an OU or root, inviting or creating too many accounts to the organization,
-//   or attaching too many policies to an account, OU, or root. This exception
-//   includes a reason that contains additional information about the violated
-//   limit.
+//   * ConstraintViolationException
+//   Performing this operation violates a minimum or maximum value limit. Examples
+//   include attempting to remove the last service control policy (SCP) from an
+//   OU or root, or attaching too many policies to an account, OU, or root. This
+//   exception includes a reason that contains additional information about the
+//   violated limit.
 //
 //   Some of the reasons in the following list might not be applicable to this
 //   specific API or operation:
@@ -10911,8 +11408,8 @@ func (c *Organizations) UpdatePolicyRequest(input *UpdatePolicyInput) (req *requ
 //      in the AWS Organizations User Guide.
 //
 //      * MIN_POLICY_TYPE_ATTACHMENT_LIMIT_EXCEEDED: You attempted to detach a
-//      policy from an entity that would cause the entity to have fewer than the
-//      minimum number of policies of a certain type required.
+//      policy from an entity, which would cause the entity to have fewer than
+//      the minimum number of policies of the required type.
 //
 //      * OU_DEPTH_LIMIT_EXCEEDED: You attempted to create an OU tree that is
 //      too many levels deep.
@@ -10925,13 +11422,18 @@ func (c *Organizations) UpdatePolicyRequest(input *UpdatePolicyInput) (req *requ
 //      * OU_NUMBER_LIMIT_EXCEEDED: You attempted to exceed the number of OUs
 //      that you can have in an organization.
 //
-//      * POLICY_NUMBER_LIMIT_EXCEEDED. You attempted to exceed the number of
+//      * POLICY_NUMBER_LIMIT_EXCEEDED: You attempted to exceed the number of
 //      policies that you can have in an organization.
 //
-//   * ErrCodeDuplicatePolicyException "DuplicatePolicyException"
+//      * TAG_POLICY_VIOLATION: Tags associated with the resource must be compliant
+//      with the tag policy that’s in effect for the account. For more information,
+//      see Tag Policies (http://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_tag-policies.html)
+//      in the AWS Organizations User Guide.
+//
+//   * DuplicatePolicyException
 //   A policy with the same name already exists.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   The requested operation failed because you provided invalid values for one
 //   or more of the request parameters. This exception includes a reason that
 //   contains additional information about the violated limit:
@@ -10945,6 +11447,8 @@ func (c *Organizations) UpdatePolicyRequest(input *UpdatePolicyInput) (req *requ
 //      * INPUT_REQUIRED: You must include a value for all required parameters.
 //
 //      * INVALID_ENUM: You specified an invalid value.
+//
+//      * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
 //
 //      * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
 //      characters.
@@ -10995,26 +11499,33 @@ func (c *Organizations) UpdatePolicyRequest(input *UpdatePolicyInput) (req *requ
 //      * MOVING_ACCOUNT_BETWEEN_DIFFERENT_ROOTS: You can move an account only
 //      between entities in the same root.
 //
-//   * ErrCodeMalformedPolicyDocumentException "MalformedPolicyDocumentException"
+//   * MalformedPolicyDocumentException
 //   The provided policy document doesn't meet the requirements of the specified
 //   policy type. For example, the syntax might be incorrect. For details about
 //   service control policy syntax, see Service Control Policy Syntax (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_reference_scp-syntax.html)
 //   in the AWS Organizations User Guide.
 //
-//   * ErrCodePolicyNotFoundException "PolicyNotFoundException"
+//   * PolicyNotFoundException
 //   We can't find a policy with the PolicyId that you specified.
 //
-//   * ErrCodeServiceException "ServiceException"
+//   * ServiceException
 //   AWS Organizations can't complete your request because of an internal service
 //   error. Try again later.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   You have sent too many requests in too short a period of time. The limit
 //   helps protect against denial-of-service attacks. Try again later.
 //
 //   For information on limits that affect AWS Organizations, see Limits of AWS
 //   Organizations (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_reference_limits.html)
 //   in the AWS Organizations User Guide.
+//
+//   * UnsupportedAPIEndpointException
+//   This action isn't available in the current Region.
+//
+//   * PolicyChangesInProgressException
+//   Changes to the effective policy are in progress, and its contents can't be
+//   returned. Try the operation again later.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/organizations-2016-11-28/UpdatePolicy
 func (c *Organizations) UpdatePolicy(input *UpdatePolicyInput) (*UpdatePolicyOutput, error) {
@@ -11038,13 +11549,70 @@ func (c *Organizations) UpdatePolicyWithContext(ctx aws.Context, input *UpdatePo
 	return out, req.Send()
 }
 
+// Your account isn't a member of an organization. To make this request, you
+// must use the credentials of an account that belongs to an organization.
+type AWSOrganizationsNotInUseException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s AWSOrganizationsNotInUseException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AWSOrganizationsNotInUseException) GoString() string {
+	return s.String()
+}
+
+func newErrorAWSOrganizationsNotInUseException(v protocol.ResponseMetadata) error {
+	return &AWSOrganizationsNotInUseException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s AWSOrganizationsNotInUseException) Code() string {
+	return "AWSOrganizationsNotInUseException"
+}
+
+// Message returns the exception's message.
+func (s AWSOrganizationsNotInUseException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s AWSOrganizationsNotInUseException) OrigErr() error {
+	return nil
+}
+
+func (s AWSOrganizationsNotInUseException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s AWSOrganizationsNotInUseException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s AWSOrganizationsNotInUseException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
 type AcceptHandshakeInput struct {
 	_ struct{} `type:"structure"`
 
 	// The unique identifier (ID) of the handshake that you want to accept.
 	//
 	// The regex pattern (http://wikipedia.org/wiki/regex) for handshake ID string
-	// requires "h-" followed by from 8 to 32 lower-case letters or digits.
+	// requires "h-" followed by from 8 to 32 lowercase letters or digits.
 	//
 	// HandshakeId is a required field
 	HandshakeId *string `type:"string" required:"true"`
@@ -11102,6 +11670,126 @@ func (s *AcceptHandshakeOutput) SetHandshake(v *Handshake) *AcceptHandshakeOutpu
 	return s
 }
 
+// You don't have permissions to perform the requested operation. The user or
+// role that is making the request must have at least one IAM permissions policy
+// attached that grants the required permissions. For more information, see
+// Access Management (https://docs.aws.amazon.com/IAM/latest/UserGuide/access.html)
+// in the IAM User Guide.
+type AccessDeniedException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s AccessDeniedException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AccessDeniedException) GoString() string {
+	return s.String()
+}
+
+func newErrorAccessDeniedException(v protocol.ResponseMetadata) error {
+	return &AccessDeniedException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s AccessDeniedException) Code() string {
+	return "AccessDeniedException"
+}
+
+// Message returns the exception's message.
+func (s AccessDeniedException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s AccessDeniedException) OrigErr() error {
+	return nil
+}
+
+func (s AccessDeniedException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s AccessDeniedException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s AccessDeniedException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// The operation that you attempted requires you to have the iam:CreateServiceLinkedRole
+// for organizations.amazonaws.com permission so that AWS Organizations can
+// create the required service-linked role. You don't have that permission.
+type AccessDeniedForDependencyException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"Message" type:"string"`
+
+	Reason *string `type:"string" enum:"AccessDeniedForDependencyExceptionReason"`
+}
+
+// String returns the string representation
+func (s AccessDeniedForDependencyException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AccessDeniedForDependencyException) GoString() string {
+	return s.String()
+}
+
+func newErrorAccessDeniedForDependencyException(v protocol.ResponseMetadata) error {
+	return &AccessDeniedForDependencyException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s AccessDeniedForDependencyException) Code() string {
+	return "AccessDeniedForDependencyException"
+}
+
+// Message returns the exception's message.
+func (s AccessDeniedForDependencyException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s AccessDeniedForDependencyException) OrigErr() error {
+	return nil
+}
+
+func (s AccessDeniedForDependencyException) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s AccessDeniedForDependencyException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s AccessDeniedForDependencyException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
 // Contains information about an AWS account that is a member of an organization.
 type Account struct {
 	_ struct{} `type:"structure"`
@@ -11116,7 +11804,7 @@ type Account struct {
 	// The email address associated with the AWS account.
 	//
 	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
-	// a string of characters that represents a standard Internet email address.
+	// a string of characters that represents a standard internet email address.
 	Email *string `min:"6" type:"string" sensitive:"true"`
 
 	// The unique identifier (ID) of the account.
@@ -11194,6 +11882,180 @@ func (s *Account) SetStatus(v string) *Account {
 	return s
 }
 
+// We can't find an AWS account with the AccountId that you specified. Or the
+// account whose credentials you used to make this request isn't a member of
+// an organization.
+type AccountNotFoundException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s AccountNotFoundException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AccountNotFoundException) GoString() string {
+	return s.String()
+}
+
+func newErrorAccountNotFoundException(v protocol.ResponseMetadata) error {
+	return &AccountNotFoundException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s AccountNotFoundException) Code() string {
+	return "AccountNotFoundException"
+}
+
+// Message returns the exception's message.
+func (s AccountNotFoundException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s AccountNotFoundException) OrigErr() error {
+	return nil
+}
+
+func (s AccountNotFoundException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s AccountNotFoundException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s AccountNotFoundException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// You can't invite an existing account to your organization until you verify
+// that you own the email address associated with the master account. For more
+// information, see Email Address Verification (http://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_create.html#about-email-verification)
+// in the AWS Organizations User Guide.
+type AccountOwnerNotVerifiedException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s AccountOwnerNotVerifiedException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AccountOwnerNotVerifiedException) GoString() string {
+	return s.String()
+}
+
+func newErrorAccountOwnerNotVerifiedException(v protocol.ResponseMetadata) error {
+	return &AccountOwnerNotVerifiedException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s AccountOwnerNotVerifiedException) Code() string {
+	return "AccountOwnerNotVerifiedException"
+}
+
+// Message returns the exception's message.
+func (s AccountOwnerNotVerifiedException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s AccountOwnerNotVerifiedException) OrigErr() error {
+	return nil
+}
+
+func (s AccountOwnerNotVerifiedException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s AccountOwnerNotVerifiedException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s AccountOwnerNotVerifiedException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// This account is already a member of an organization. An account can belong
+// to only one organization at a time.
+type AlreadyInOrganizationException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s AlreadyInOrganizationException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AlreadyInOrganizationException) GoString() string {
+	return s.String()
+}
+
+func newErrorAlreadyInOrganizationException(v protocol.ResponseMetadata) error {
+	return &AlreadyInOrganizationException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s AlreadyInOrganizationException) Code() string {
+	return "AlreadyInOrganizationException"
+}
+
+// Message returns the exception's message.
+func (s AlreadyInOrganizationException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s AlreadyInOrganizationException) OrigErr() error {
+	return nil
+}
+
+func (s AlreadyInOrganizationException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s AlreadyInOrganizationException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s AlreadyInOrganizationException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
 type AttachPolicyInput struct {
 	_ struct{} `type:"structure"`
 
@@ -11201,7 +12063,8 @@ type AttachPolicyInput struct {
 	// You can get the ID for the policy by calling the ListPolicies operation.
 	//
 	// The regex pattern (http://wikipedia.org/wiki/regex) for a policy ID string
-	// requires "p-" followed by from 8 to 128 lower-case letters or digits.
+	// requires "p-" followed by from 8 to 128 lowercase or uppercase letters, digits,
+	// or the underscore character (_).
 	//
 	// PolicyId is a required field
 	PolicyId *string `type:"string" required:"true"`
@@ -11213,15 +12076,15 @@ type AttachPolicyInput struct {
 	// The regex pattern (http://wikipedia.org/wiki/regex) for a target ID string
 	// requires one of the following:
 	//
-	//    * Root - A string that begins with "r-" followed by from 4 to 32 lower-case
+	//    * Root - A string that begins with "r-" followed by from 4 to 32 lowercase
 	//    letters or digits.
 	//
 	//    * Account - A string that consists of exactly 12 digits.
 	//
 	//    * Organizational unit (OU) - A string that begins with "ou-" followed
-	//    by from 4 to 32 lower-case letters or digits (the ID of the root that
-	//    the OU is in) followed by a second "-" dash and from 8 to 32 additional
-	//    lower-case letters or digits.
+	//    by from 4 to 32 lowercase letters or digits (the ID of the root that the
+	//    OU is in). This string is followed by a second "-" dash and from 8 to
+	//    32 additional lowercase letters or digits.
 	//
 	// TargetId is a required field
 	TargetId *string `type:"string" required:"true"`
@@ -11286,7 +12149,7 @@ type CancelHandshakeInput struct {
 	// can get the ID from the ListHandshakesForOrganization operation.
 	//
 	// The regex pattern (http://wikipedia.org/wiki/regex) for handshake ID string
-	// requires "h-" followed by from 8 to 32 lower-case letters or digits.
+	// requires "h-" followed by from 8 to 32 lowercase letters or digits.
 	//
 	// HandshakeId is a required field
 	HandshakeId *string `type:"string" required:"true"`
@@ -11353,12 +12216,12 @@ type Child struct {
 	// The regex pattern (http://wikipedia.org/wiki/regex) for a child ID string
 	// requires one of the following:
 	//
-	//    * Account: a string that consists of exactly 12 digits.
+	//    * Account: A string that consists of exactly 12 digits.
 	//
-	//    * Organizational unit (OU): a string that begins with "ou-" followed by
+	//    * Organizational unit (OU): A string that begins with "ou-" followed by
 	//    from 4 to 32 lower-case letters or digits (the ID of the root that contains
-	//    the OU) followed by a second "-" dash and from 8 to 32 additional lower-case
-	//    letters or digits.
+	//    the OU). This string is followed by a second "-" dash and from 8 to 32
+	//    additional lower-case letters or digits.
 	Id *string `type:"string"`
 
 	// The type of this child entity.
@@ -11387,6 +12250,277 @@ func (s *Child) SetType(v string) *Child {
 	return s
 }
 
+// We can't find an organizational unit (OU) or AWS account with the ChildId
+// that you specified.
+type ChildNotFoundException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s ChildNotFoundException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ChildNotFoundException) GoString() string {
+	return s.String()
+}
+
+func newErrorChildNotFoundException(v protocol.ResponseMetadata) error {
+	return &ChildNotFoundException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s ChildNotFoundException) Code() string {
+	return "ChildNotFoundException"
+}
+
+// Message returns the exception's message.
+func (s ChildNotFoundException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s ChildNotFoundException) OrigErr() error {
+	return nil
+}
+
+func (s ChildNotFoundException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s ChildNotFoundException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s ChildNotFoundException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// The target of the operation is currently being modified by a different request.
+// Try again later.
+type ConcurrentModificationException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s ConcurrentModificationException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ConcurrentModificationException) GoString() string {
+	return s.String()
+}
+
+func newErrorConcurrentModificationException(v protocol.ResponseMetadata) error {
+	return &ConcurrentModificationException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s ConcurrentModificationException) Code() string {
+	return "ConcurrentModificationException"
+}
+
+// Message returns the exception's message.
+func (s ConcurrentModificationException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s ConcurrentModificationException) OrigErr() error {
+	return nil
+}
+
+func (s ConcurrentModificationException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s ConcurrentModificationException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s ConcurrentModificationException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// Performing this operation violates a minimum or maximum value limit. Examples
+// include attempting to remove the last service control policy (SCP) from an
+// OU or root, or attaching too many policies to an account, OU, or root. This
+// exception includes a reason that contains additional information about the
+// violated limit.
+//
+// Some of the reasons in the following list might not be applicable to this
+// specific API or operation:
+//
+//    * ACCOUNT_CANNOT_LEAVE_WITHOUT_EULA: You attempted to remove an account
+//    from the organization that doesn't yet have enough information to exist
+//    as a standalone account. This account requires you to first agree to the
+//    AWS Customer Agreement. Follow the steps at To leave an organization when
+//    all required account information has not yet been provided (http://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_accounts_remove.html#leave-without-all-info)
+//    in the AWS Organizations User Guide.
+//
+//    * ACCOUNT_CANNOT_LEAVE_WITHOUT_PHONE_VERIFICATION: You attempted to remove
+//    an account from the organization that doesn't yet have enough information
+//    to exist as a standalone account. This account requires you to first complete
+//    phone verification. Follow the steps at To leave an organization when
+//    all required account information has not yet been provided (http://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_accounts_remove.html#leave-without-all-info)
+//    in the AWS Organizations User Guide.
+//
+//    * ACCOUNT_CREATION_RATE_LIMIT_EXCEEDED: You attempted to exceed the number
+//    of accounts that you can create in one day.
+//
+//    * ACCOUNT_NUMBER_LIMIT_EXCEEDED: You attempted to exceed the limit on
+//    the number of accounts in an organization. If you need more accounts,
+//    contact AWS Support (https://console.aws.amazon.com/support/home#/) to
+//    request an increase in your limit. Or the number of invitations that you
+//    tried to send would cause you to exceed the limit of accounts in your
+//    organization. Send fewer invitations or contact AWS Support to request
+//    an increase in the number of accounts. Deleted and closed accounts still
+//    count toward your limit. If you get receive this exception when running
+//    a command immediately after creating the organization, wait one hour and
+//    try again. If after an hour it continues to fail with this error, contact
+//    AWS Support (https://console.aws.amazon.com/support/home#/).
+//
+//    * HANDSHAKE_RATE_LIMIT_EXCEEDED: You attempted to exceed the number of
+//    handshakes that you can send in one day.
+//
+//    * MASTER_ACCOUNT_ADDRESS_DOES_NOT_MATCH_MARKETPLACE: To create an account
+//    in this organization, you first must migrate the organization's master
+//    account to the marketplace that corresponds to the master account's address.
+//    For example, accounts with India addresses must be associated with the
+//    AISPL marketplace. All accounts in an organization must be associated
+//    with the same marketplace.
+//
+//    * MASTER_ACCOUNT_MISSING_CONTACT_INFO: To complete this operation, you
+//    must first provide contact a valid address and phone number for the master
+//    account. Then try the operation again.
+//
+//    * MASTER_ACCOUNT_NOT_GOVCLOUD_ENABLED: To complete this operation, the
+//    master account must have an associated account in the AWS GovCloud (US-West)
+//    Region. For more information, see AWS Organizations (http://docs.aws.amazon.com/govcloud-us/latest/UserGuide/govcloud-organizations.html)
+//    in the AWS GovCloud User Guide.
+//
+//    * MASTER_ACCOUNT_PAYMENT_INSTRUMENT_REQUIRED: To create an organization
+//    with this master account, you first must associate a valid payment instrument,
+//    such as a credit card, with the account. Follow the steps at To leave
+//    an organization when all required account information has not yet been
+//    provided (http://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_accounts_remove.html#leave-without-all-info)
+//    in the AWS Organizations User Guide.
+//
+//    * MAX_POLICY_TYPE_ATTACHMENT_LIMIT_EXCEEDED: You attempted to exceed the
+//    number of policies of a certain type that can be attached to an entity
+//    at one time.
+//
+//    * MAX_TAG_LIMIT_EXCEEDED: You have exceeded the number of tags allowed
+//    on this resource.
+//
+//    * MEMBER_ACCOUNT_PAYMENT_INSTRUMENT_REQUIRED: To complete this operation
+//    with this member account, you first must associate a valid payment instrument,
+//    such as a credit card, with the account. Follow the steps at To leave
+//    an organization when all required account information has not yet been
+//    provided (http://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_accounts_remove.html#leave-without-all-info)
+//    in the AWS Organizations User Guide.
+//
+//    * MIN_POLICY_TYPE_ATTACHMENT_LIMIT_EXCEEDED: You attempted to detach a
+//    policy from an entity, which would cause the entity to have fewer than
+//    the minimum number of policies of the required type.
+//
+//    * OU_DEPTH_LIMIT_EXCEEDED: You attempted to create an OU tree that is
+//    too many levels deep.
+//
+//    * ORGANIZATION_NOT_IN_ALL_FEATURES_MODE: You attempted to perform an operation
+//    that requires the organization to be configured to support all features.
+//    An organization that supports only consolidated billing features can't
+//    perform this operation.
+//
+//    * OU_NUMBER_LIMIT_EXCEEDED: You attempted to exceed the number of OUs
+//    that you can have in an organization.
+//
+//    * POLICY_NUMBER_LIMIT_EXCEEDED: You attempted to exceed the number of
+//    policies that you can have in an organization.
+//
+//    * TAG_POLICY_VIOLATION: Tags associated with the resource must be compliant
+//    with the tag policy that’s in effect for the account. For more information,
+//    see Tag Policies (http://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_tag-policies.html)
+//    in the AWS Organizations User Guide.
+type ConstraintViolationException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"Message" type:"string"`
+
+	Reason *string `type:"string" enum:"ConstraintViolationExceptionReason"`
+}
+
+// String returns the string representation
+func (s ConstraintViolationException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ConstraintViolationException) GoString() string {
+	return s.String()
+}
+
+func newErrorConstraintViolationException(v protocol.ResponseMetadata) error {
+	return &ConstraintViolationException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s ConstraintViolationException) Code() string {
+	return "ConstraintViolationException"
+}
+
+// Message returns the exception's message.
+func (s ConstraintViolationException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s ConstraintViolationException) OrigErr() error {
+	return nil
+}
+
+func (s ConstraintViolationException) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s ConstraintViolationException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s ConstraintViolationException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
 type CreateAccountInput struct {
 	_ struct{} `type:"structure"`
 
@@ -11411,9 +12545,9 @@ type CreateAccountInput struct {
 	// Console (https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/grantaccess.html#ControllingAccessWebsite-Activate)
 	// in the AWS Billing and Cost Management User Guide.
 	//
-	// If you don't specify this parameter, the value defaults to ALLOW, and IAM
-	// users and roles with the required permissions can access billing information
-	// for the new account.
+	// If you don't specify this parameter, the value defaults to ALLOW. This value
+	// allows IAM users and roles with the required permissions to access billing
+	// information for the new account.
 	IamUserAccessToBilling *string `type:"string" enum:"IAMUserAccessToBilling"`
 
 	// (Optional)
@@ -11429,14 +12563,13 @@ type CreateAccountInput struct {
 	// For more information about how to use this role to access the member account,
 	// see Accessing and Administering the Member Accounts in Your Organization
 	// (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_accounts_access.html#orgs_manage_accounts_create-cross-account-role)
-	// in the AWS Organizations User Guide, and steps 2 and 3 in Tutorial: Delegate
-	// Access Across AWS Accounts Using IAM Roles (https://docs.aws.amazon.com/IAM/latest/UserGuide/tutorial_cross-account-with-roles.html)
+	// in the AWS Organizations User Guide. Also see steps 2 and 3 in Tutorial:
+	// Delegate Access Across AWS Accounts Using IAM Roles (https://docs.aws.amazon.com/IAM/latest/UserGuide/tutorial_cross-account-with-roles.html)
 	// in the IAM User Guide.
 	//
 	// The regex pattern (http://wikipedia.org/wiki/regex) that is used to validate
-	// this parameter is a string of characters that can consist of uppercase letters,
-	// lowercase letters, digits with no spaces, and any of the following characters:
-	// =,.@-
+	// this parameter. The pattern can include uppercase letters, lowercase letters,
+	// digits with no spaces, and any of the following characters: =,.@-
 	RoleName *string `type:"string"`
 }
 
@@ -11563,7 +12696,7 @@ type CreateAccountStatus struct {
 	//    you provided is not valid.
 	//
 	//    * INTERNAL_FAILURE: The account could not be created because of an internal
-	//    failure. Try again later. If the problem persists, contact Customer Support.
+	//    failure. Try again later. If the problem persists, contact AWS Support.
 	FailureReason *string `type:"string" enum:"CreateAccountFailureReason"`
 
 	// If the account was created successfully, the unique identifier (ID) of the
@@ -11573,7 +12706,7 @@ type CreateAccountStatus struct {
 	// The unique identifier (ID) that references this request. You get this value
 	// from the response of the initial CreateAccount request to create the account.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for an create account
+	// The regex pattern (http://wikipedia.org/wiki/regex) for a create account
 	// request ID string requires "car-" followed by from 8 to 32 lower-case letters
 	// or digits.
 	Id *string `type:"string"`
@@ -11643,6 +12776,63 @@ func (s *CreateAccountStatus) SetState(v string) *CreateAccountStatus {
 	return s
 }
 
+// We can't find a create account request with the CreateAccountRequestId that
+// you specified.
+type CreateAccountStatusNotFoundException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s CreateAccountStatusNotFoundException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateAccountStatusNotFoundException) GoString() string {
+	return s.String()
+}
+
+func newErrorCreateAccountStatusNotFoundException(v protocol.ResponseMetadata) error {
+	return &CreateAccountStatusNotFoundException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s CreateAccountStatusNotFoundException) Code() string {
+	return "CreateAccountStatusNotFoundException"
+}
+
+// Message returns the exception's message.
+func (s CreateAccountStatusNotFoundException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s CreateAccountStatusNotFoundException) OrigErr() error {
+	return nil
+}
+
+func (s CreateAccountStatusNotFoundException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s CreateAccountStatusNotFoundException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s CreateAccountStatusNotFoundException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
 type CreateGovCloudAccountInput struct {
 	_ struct{} `type:"structure"`
 
@@ -11657,8 +12847,8 @@ type CreateGovCloudAccountInput struct {
 	// creation. You can't access the root user of the account or remove an account
 	// that was created with an invalid email address. Like all request parameters
 	// for CreateGovCloudAccount, the request for the email address for the AWS
-	// GovCloud (US) account originates from the commercial Region, not from the
-	// AWS GovCloud (US) Region.
+	// GovCloud (US) account originates from the commercial Region. It does not
+	// come from the AWS GovCloud (US) Region.
 	//
 	// Email is a required field
 	Email *string `min:"6" type:"string" required:"true" sensitive:"true"`
@@ -11688,14 +12878,13 @@ type CreateGovCloudAccountInput struct {
 	// For more information about how to use this role to access the member account,
 	// see Accessing and Administering the Member Accounts in Your Organization
 	// (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_accounts_access.html#orgs_manage_accounts_create-cross-account-role)
-	// in the AWS Organizations User Guide and steps 2 and 3 in Tutorial: Delegate
-	// Access Across AWS Accounts Using IAM Roles (https://docs.aws.amazon.com/IAM/latest/UserGuide/tutorial_cross-account-with-roles.html)
+	// in the AWS Organizations User Guide. See also steps 2 and 3 in Tutorial:
+	// Delegate Access Across AWS Accounts Using IAM Roles (https://docs.aws.amazon.com/IAM/latest/UserGuide/tutorial_cross-account-with-roles.html)
 	// in the IAM User Guide.
 	//
 	// The regex pattern (http://wikipedia.org/wiki/regex) that is used to validate
-	// this parameter is a string of characters that can consist of uppercase letters,
-	// lowercase letters, digits with no spaces, and any of the following characters:
-	// =,.@-
+	// this parameter. The pattern can include uppercase letters, lowercase letters,
+	// digits with no spaces, and any of the following characters: =,.@-
 	RoleName *string `type:"string"`
 }
 
@@ -11791,8 +12980,8 @@ type CreateOrganizationInput struct {
 	//    in the AWS Organizations User Guide. The consolidated billing feature
 	//    subset isn't available for organizations in the AWS GovCloud (US) Region.
 	//
-	//    * ALL: In addition to all the features supported by the consolidated billing
-	//    feature set, the master account can also apply any policy type to any
+	//    * ALL: In addition to all the features that consolidated billing feature
+	//    set supports, the master account can also apply any policy type to any
 	//    member account in the organization. For more information, see All features
 	//    (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_getting-started_concepts.html#feature-set-all)
 	//    in the AWS Organizations User Guide.
@@ -11852,13 +13041,13 @@ type CreateOrganizationalUnitInput struct {
 	// The regex pattern (http://wikipedia.org/wiki/regex) for a parent ID string
 	// requires one of the following:
 	//
-	//    * Root - A string that begins with "r-" followed by from 4 to 32 lower-case
+	//    * Root - A string that begins with "r-" followed by from 4 to 32 lowercase
 	//    letters or digits.
 	//
 	//    * Organizational unit (OU) - A string that begins with "ou-" followed
-	//    by from 4 to 32 lower-case letters or digits (the ID of the root that
-	//    the OU is in) followed by a second "-" dash and from 8 to 32 additional
-	//    lower-case letters or digits.
+	//    by from 4 to 32 lowercase letters or digits (the ID of the root that the
+	//    OU is in). This string is followed by a second "-" dash and from 8 to
+	//    32 additional lowercase letters or digits.
 	//
 	// ParentId is a required field
 	ParentId *string `type:"string" required:"true"`
@@ -11931,12 +13120,12 @@ func (s *CreateOrganizationalUnitOutput) SetOrganizationalUnit(v *Organizational
 type CreatePolicyInput struct {
 	_ struct{} `type:"structure"`
 
-	// The policy content to add to the new policy. For example, if you create a
-	// service control policy (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_scp.html)
-	// (SCP), this string must be JSON text that specifies the permissions that
-	// admins in attached accounts can delegate to their users, groups, and roles.
-	// For more information about the SCP syntax, see Service Control Policy Syntax
-	// (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_reference_scp-syntax.html)
+	// The policy content to add to the new policy. For example, you could create
+	// a service control policy (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_scp.html)
+	// (SCP) that specifies the permissions that administrators in attached accounts
+	// can delegate to their users, groups, and roles. The string for this SCP must
+	// be JSON text. For more information about the SCP syntax, see Service Control
+	// Policy Syntax (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_reference_scp-syntax.html)
 	// in the AWS Organizations User Guide.
 	//
 	// Content is a required field
@@ -11957,9 +13146,6 @@ type CreatePolicyInput struct {
 	Name *string `min:"1" type:"string" required:"true"`
 
 	// The type of policy to create.
-	//
-	// In the current release, the only type of policy that you can create is a
-	// service control policy (SCP).
 	//
 	// Type is a required field
 	Type *string `type:"string" required:"true" enum:"PolicyType"`
@@ -12057,7 +13243,7 @@ type DeclineHandshakeInput struct {
 	// can get the ID from the ListHandshakesForAccount operation.
 	//
 	// The regex pattern (http://wikipedia.org/wiki/regex) for handshake ID string
-	// requires "h-" followed by from 8 to 32 lower-case letters or digits.
+	// requires "h-" followed by from 8 to 32 lowercase letters or digits.
 	//
 	// HandshakeId is a required field
 	HandshakeId *string `type:"string" required:"true"`
@@ -12151,9 +13337,9 @@ type DeleteOrganizationalUnitInput struct {
 	// You can get the ID from the ListOrganizationalUnitsForParent operation.
 	//
 	// The regex pattern (http://wikipedia.org/wiki/regex) for an organizational
-	// unit ID string requires "ou-" followed by from 4 to 32 lower-case letters
-	// or digits (the ID of the root that contains the OU) followed by a second
-	// "-" dash and from 8 to 32 additional lower-case letters or digits.
+	// unit ID string requires "ou-" followed by from 4 to 32 lowercase letters
+	// or digits (the ID of the root that contains the OU). This string is followed
+	// by a second "-" dash and from 8 to 32 additional lowercase letters or digits.
 	//
 	// OrganizationalUnitId is a required field
 	OrganizationalUnitId *string `type:"string" required:"true"`
@@ -12209,7 +13395,8 @@ type DeletePolicyInput struct {
 	// get the ID from the ListPolicies or ListPoliciesForTarget operations.
 	//
 	// The regex pattern (http://wikipedia.org/wiki/regex) for a policy ID string
-	// requires "p-" followed by from 8 to 128 lower-case letters or digits.
+	// requires "p-" followed by from 8 to 128 lowercase or uppercase letters, digits,
+	// or the underscore character (_).
 	//
 	// PolicyId is a required field
 	PolicyId *string `type:"string" required:"true"`
@@ -12331,7 +13518,7 @@ type DescribeCreateAccountStatusInput struct {
 	// ListCreateAccountStatus operation.
 	//
 	// The regex pattern (http://wikipedia.org/wiki/regex) for a create account
-	// request ID string requires "car-" followed by from 8 to 32 lower-case letters
+	// request ID string requires "car-" followed by from 8 to 32 lowercase letters
 	// or digits.
 	//
 	// CreateAccountRequestId is a required field
@@ -12390,6 +13577,78 @@ func (s *DescribeCreateAccountStatusOutput) SetCreateAccountStatus(v *CreateAcco
 	return s
 }
 
+type DescribeEffectivePolicyInput struct {
+	_ struct{} `type:"structure"`
+
+	// The type of policy that you want information about.
+	//
+	// PolicyType is a required field
+	PolicyType *string `type:"string" required:"true" enum:"EffectivePolicyType"`
+
+	// When you're signed in as the master account, specify the ID of the account
+	// that you want details about. Specifying an organization root or OU as the
+	// target is not supported.
+	TargetId *string `type:"string"`
+}
+
+// String returns the string representation
+func (s DescribeEffectivePolicyInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeEffectivePolicyInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DescribeEffectivePolicyInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DescribeEffectivePolicyInput"}
+	if s.PolicyType == nil {
+		invalidParams.Add(request.NewErrParamRequired("PolicyType"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetPolicyType sets the PolicyType field's value.
+func (s *DescribeEffectivePolicyInput) SetPolicyType(v string) *DescribeEffectivePolicyInput {
+	s.PolicyType = &v
+	return s
+}
+
+// SetTargetId sets the TargetId field's value.
+func (s *DescribeEffectivePolicyInput) SetTargetId(v string) *DescribeEffectivePolicyInput {
+	s.TargetId = &v
+	return s
+}
+
+type DescribeEffectivePolicyOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The contents of the effective policy.
+	EffectivePolicy *EffectivePolicy `type:"structure"`
+}
+
+// String returns the string representation
+func (s DescribeEffectivePolicyOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeEffectivePolicyOutput) GoString() string {
+	return s.String()
+}
+
+// SetEffectivePolicy sets the EffectivePolicy field's value.
+func (s *DescribeEffectivePolicyOutput) SetEffectivePolicy(v *EffectivePolicy) *DescribeEffectivePolicyOutput {
+	s.EffectivePolicy = v
+	return s
+}
+
 type DescribeHandshakeInput struct {
 	_ struct{} `type:"structure"`
 
@@ -12398,7 +13657,7 @@ type DescribeHandshakeInput struct {
 	// or from a call to ListHandshakesForAccount or ListHandshakesForOrganization.
 	//
 	// The regex pattern (http://wikipedia.org/wiki/regex) for handshake ID string
-	// requires "h-" followed by from 8 to 32 lower-case letters or digits.
+	// requires "h-" followed by from 8 to 32 lowercase letters or digits.
 	//
 	// HandshakeId is a required field
 	HandshakeId *string `type:"string" required:"true"`
@@ -12500,9 +13759,9 @@ type DescribeOrganizationalUnitInput struct {
 	// about. You can get the ID from the ListOrganizationalUnitsForParent operation.
 	//
 	// The regex pattern (http://wikipedia.org/wiki/regex) for an organizational
-	// unit ID string requires "ou-" followed by from 4 to 32 lower-case letters
-	// or digits (the ID of the root that contains the OU) followed by a second
-	// "-" dash and from 8 to 32 additional lower-case letters or digits.
+	// unit ID string requires "ou-" followed by from 4 to 32 lowercase letters
+	// or digits (the ID of the root that contains the OU). This string is followed
+	// by a second "-" dash and from 8 to 32 additional lowercase letters or digits.
 	//
 	// OrganizationalUnitId is a required field
 	OrganizationalUnitId *string `type:"string" required:"true"`
@@ -12567,7 +13826,8 @@ type DescribePolicyInput struct {
 	// can get the ID from the ListPolicies or ListPoliciesForTarget operations.
 	//
 	// The regex pattern (http://wikipedia.org/wiki/regex) for a policy ID string
-	// requires "p-" followed by from 8 to 128 lower-case letters or digits.
+	// requires "p-" followed by from 8 to 128 lowercase or uppercase letters, digits,
+	// or the underscore character (_).
 	//
 	// PolicyId is a required field
 	PolicyId *string `type:"string" required:"true"`
@@ -12625,6 +13885,63 @@ func (s *DescribePolicyOutput) SetPolicy(v *Policy) *DescribePolicyOutput {
 	return s
 }
 
+// We can't find the destination container (a root or OU) with the ParentId
+// that you specified.
+type DestinationParentNotFoundException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s DestinationParentNotFoundException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DestinationParentNotFoundException) GoString() string {
+	return s.String()
+}
+
+func newErrorDestinationParentNotFoundException(v protocol.ResponseMetadata) error {
+	return &DestinationParentNotFoundException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s DestinationParentNotFoundException) Code() string {
+	return "DestinationParentNotFoundException"
+}
+
+// Message returns the exception's message.
+func (s DestinationParentNotFoundException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s DestinationParentNotFoundException) OrigErr() error {
+	return nil
+}
+
+func (s DestinationParentNotFoundException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s DestinationParentNotFoundException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s DestinationParentNotFoundException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
 type DetachPolicyInput struct {
 	_ struct{} `type:"structure"`
 
@@ -12632,7 +13949,8 @@ type DetachPolicyInput struct {
 	// the ID from the ListPolicies or ListPoliciesForTarget operations.
 	//
 	// The regex pattern (http://wikipedia.org/wiki/regex) for a policy ID string
-	// requires "p-" followed by from 8 to 128 lower-case letters or digits.
+	// requires "p-" followed by from 8 to 128 lowercase or uppercase letters, digits,
+	// or the underscore character (_).
 	//
 	// PolicyId is a required field
 	PolicyId *string `type:"string" required:"true"`
@@ -12644,15 +13962,15 @@ type DetachPolicyInput struct {
 	// The regex pattern (http://wikipedia.org/wiki/regex) for a target ID string
 	// requires one of the following:
 	//
-	//    * Root - A string that begins with "r-" followed by from 4 to 32 lower-case
+	//    * Root - A string that begins with "r-" followed by from 4 to 32 lowercase
 	//    letters or digits.
 	//
 	//    * Account - A string that consists of exactly 12 digits.
 	//
 	//    * Organizational unit (OU) - A string that begins with "ou-" followed
-	//    by from 4 to 32 lower-case letters or digits (the ID of the root that
-	//    the OU is in) followed by a second "-" dash and from 8 to 32 additional
-	//    lower-case letters or digits.
+	//    by from 4 to 32 lowercase letters or digits (the ID of the root that the
+	//    OU is in). This string is followed by a second "-" dash and from 8 to
+	//    32 additional lowercase letters or digits.
 	//
 	// TargetId is a required field
 	TargetId *string `type:"string" required:"true"`
@@ -12779,7 +14097,7 @@ type DisablePolicyTypeInput struct {
 	// type. You can get the ID from the ListRoots operation.
 	//
 	// The regex pattern (http://wikipedia.org/wiki/regex) for a root ID string
-	// requires "r-" followed by from 4 to 32 lower-case letters or digits.
+	// requires "r-" followed by from 4 to 32 lowercase letters or digits.
 	//
 	// RootId is a required field
 	RootId *string `type:"string" required:"true"`
@@ -12844,6 +14162,402 @@ func (s DisablePolicyTypeOutput) GoString() string {
 func (s *DisablePolicyTypeOutput) SetRoot(v *Root) *DisablePolicyTypeOutput {
 	s.Root = v
 	return s
+}
+
+// That account is already present in the specified destination.
+type DuplicateAccountException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s DuplicateAccountException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DuplicateAccountException) GoString() string {
+	return s.String()
+}
+
+func newErrorDuplicateAccountException(v protocol.ResponseMetadata) error {
+	return &DuplicateAccountException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s DuplicateAccountException) Code() string {
+	return "DuplicateAccountException"
+}
+
+// Message returns the exception's message.
+func (s DuplicateAccountException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s DuplicateAccountException) OrigErr() error {
+	return nil
+}
+
+func (s DuplicateAccountException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s DuplicateAccountException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s DuplicateAccountException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// A handshake with the same action and target already exists. For example,
+// if you invited an account to join your organization, the invited account
+// might already have a pending invitation from this organization. If you intend
+// to resend an invitation to an account, ensure that existing handshakes that
+// might be considered duplicates are canceled or declined.
+type DuplicateHandshakeException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s DuplicateHandshakeException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DuplicateHandshakeException) GoString() string {
+	return s.String()
+}
+
+func newErrorDuplicateHandshakeException(v protocol.ResponseMetadata) error {
+	return &DuplicateHandshakeException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s DuplicateHandshakeException) Code() string {
+	return "DuplicateHandshakeException"
+}
+
+// Message returns the exception's message.
+func (s DuplicateHandshakeException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s DuplicateHandshakeException) OrigErr() error {
+	return nil
+}
+
+func (s DuplicateHandshakeException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s DuplicateHandshakeException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s DuplicateHandshakeException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// An OU with the same name already exists.
+type DuplicateOrganizationalUnitException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s DuplicateOrganizationalUnitException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DuplicateOrganizationalUnitException) GoString() string {
+	return s.String()
+}
+
+func newErrorDuplicateOrganizationalUnitException(v protocol.ResponseMetadata) error {
+	return &DuplicateOrganizationalUnitException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s DuplicateOrganizationalUnitException) Code() string {
+	return "DuplicateOrganizationalUnitException"
+}
+
+// Message returns the exception's message.
+func (s DuplicateOrganizationalUnitException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s DuplicateOrganizationalUnitException) OrigErr() error {
+	return nil
+}
+
+func (s DuplicateOrganizationalUnitException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s DuplicateOrganizationalUnitException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s DuplicateOrganizationalUnitException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// The selected policy is already attached to the specified target.
+type DuplicatePolicyAttachmentException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s DuplicatePolicyAttachmentException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DuplicatePolicyAttachmentException) GoString() string {
+	return s.String()
+}
+
+func newErrorDuplicatePolicyAttachmentException(v protocol.ResponseMetadata) error {
+	return &DuplicatePolicyAttachmentException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s DuplicatePolicyAttachmentException) Code() string {
+	return "DuplicatePolicyAttachmentException"
+}
+
+// Message returns the exception's message.
+func (s DuplicatePolicyAttachmentException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s DuplicatePolicyAttachmentException) OrigErr() error {
+	return nil
+}
+
+func (s DuplicatePolicyAttachmentException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s DuplicatePolicyAttachmentException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s DuplicatePolicyAttachmentException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// A policy with the same name already exists.
+type DuplicatePolicyException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s DuplicatePolicyException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DuplicatePolicyException) GoString() string {
+	return s.String()
+}
+
+func newErrorDuplicatePolicyException(v protocol.ResponseMetadata) error {
+	return &DuplicatePolicyException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s DuplicatePolicyException) Code() string {
+	return "DuplicatePolicyException"
+}
+
+// Message returns the exception's message.
+func (s DuplicatePolicyException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s DuplicatePolicyException) OrigErr() error {
+	return nil
+}
+
+func (s DuplicatePolicyException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s DuplicatePolicyException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s DuplicatePolicyException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// Contains rules to be applied to the affected accounts. The effective policy
+// is the aggregation of any policies the account inherits, plus any policy
+// directly attached to the account.
+type EffectivePolicy struct {
+	_ struct{} `type:"structure"`
+
+	// The time of the last update to this policy.
+	LastUpdatedTimestamp *time.Time `type:"timestamp"`
+
+	// The text content of the policy.
+	PolicyContent *string `min:"1" type:"string"`
+
+	// The policy type.
+	PolicyType *string `type:"string" enum:"EffectivePolicyType"`
+
+	// The account ID of the policy target.
+	TargetId *string `type:"string"`
+}
+
+// String returns the string representation
+func (s EffectivePolicy) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s EffectivePolicy) GoString() string {
+	return s.String()
+}
+
+// SetLastUpdatedTimestamp sets the LastUpdatedTimestamp field's value.
+func (s *EffectivePolicy) SetLastUpdatedTimestamp(v time.Time) *EffectivePolicy {
+	s.LastUpdatedTimestamp = &v
+	return s
+}
+
+// SetPolicyContent sets the PolicyContent field's value.
+func (s *EffectivePolicy) SetPolicyContent(v string) *EffectivePolicy {
+	s.PolicyContent = &v
+	return s
+}
+
+// SetPolicyType sets the PolicyType field's value.
+func (s *EffectivePolicy) SetPolicyType(v string) *EffectivePolicy {
+	s.PolicyType = &v
+	return s
+}
+
+// SetTargetId sets the TargetId field's value.
+func (s *EffectivePolicy) SetTargetId(v string) *EffectivePolicy {
+	s.TargetId = &v
+	return s
+}
+
+// If you ran this action on the master account, this policy type is not enabled.
+// If you ran the action on a member account, the account doesn't have an effective
+// policy of this type. Contact the administrator of your organization about
+// attaching a policy of this type to the account.
+type EffectivePolicyNotFoundException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s EffectivePolicyNotFoundException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s EffectivePolicyNotFoundException) GoString() string {
+	return s.String()
+}
+
+func newErrorEffectivePolicyNotFoundException(v protocol.ResponseMetadata) error {
+	return &EffectivePolicyNotFoundException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s EffectivePolicyNotFoundException) Code() string {
+	return "EffectivePolicyNotFoundException"
+}
+
+// Message returns the exception's message.
+func (s EffectivePolicyNotFoundException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s EffectivePolicyNotFoundException) OrigErr() error {
+	return nil
+}
+
+func (s EffectivePolicyNotFoundException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s EffectivePolicyNotFoundException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s EffectivePolicyNotFoundException) RequestID() string {
+	return s.respMetadata.RequestID
 }
 
 type EnableAWSServiceAccessInput struct {
@@ -12953,7 +14667,7 @@ type EnablePolicyTypeInput struct {
 	// type. You can get the ID from the ListRoots operation.
 	//
 	// The regex pattern (http://wikipedia.org/wiki/regex) for a root ID string
-	// requires "r-" followed by from 4 to 32 lower-case letters or digits.
+	// requires "r-" followed by from 4 to 32 lowercase letters or digits.
 	//
 	// RootId is a required field
 	RootId *string `type:"string" required:"true"`
@@ -13056,14 +14770,73 @@ func (s *EnabledServicePrincipal) SetServicePrincipal(v string) *EnabledServiceP
 	return s
 }
 
+// AWS Organizations couldn't perform the operation because your organization
+// hasn't finished initializing. This can take up to an hour. Try again later.
+// If after one hour you continue to receive this error, contact AWS Support
+// (https://console.aws.amazon.com/support/home#/).
+type FinalizingOrganizationException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s FinalizingOrganizationException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s FinalizingOrganizationException) GoString() string {
+	return s.String()
+}
+
+func newErrorFinalizingOrganizationException(v protocol.ResponseMetadata) error {
+	return &FinalizingOrganizationException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s FinalizingOrganizationException) Code() string {
+	return "FinalizingOrganizationException"
+}
+
+// Message returns the exception's message.
+func (s FinalizingOrganizationException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s FinalizingOrganizationException) OrigErr() error {
+	return nil
+}
+
+func (s FinalizingOrganizationException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s FinalizingOrganizationException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s FinalizingOrganizationException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
 // Contains information that must be exchanged to securely establish a relationship
-// between two accounts (an originator and a recipient). For example, when a
-// master account (the originator) invites another account (the recipient) to
-// join its organization, the two accounts exchange information as a series
-// of handshake requests and responses.
+// between two accounts (an originator and a recipient). For example, assume
+// that a master account (the originator) invites another account (the recipient)
+// to join its organization. In that case, the two accounts exchange information
+// as a series of handshake requests and responses.
 //
 // Note: Handshakes that are CANCELED, ACCEPTED, or DECLINED show up in lists
-// for only 30 days after entering that state After that they are deleted.
+// for only 30 days after entering that state. After that, they are deleted.
 type Handshake struct {
 	_ struct{} `type:"structure"`
 
@@ -13198,6 +14971,158 @@ func (s *Handshake) SetState(v string) *Handshake {
 	return s
 }
 
+// The specified handshake is already in the requested state. For example, you
+// can't accept a handshake that was already accepted.
+type HandshakeAlreadyInStateException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s HandshakeAlreadyInStateException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s HandshakeAlreadyInStateException) GoString() string {
+	return s.String()
+}
+
+func newErrorHandshakeAlreadyInStateException(v protocol.ResponseMetadata) error {
+	return &HandshakeAlreadyInStateException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s HandshakeAlreadyInStateException) Code() string {
+	return "HandshakeAlreadyInStateException"
+}
+
+// Message returns the exception's message.
+func (s HandshakeAlreadyInStateException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s HandshakeAlreadyInStateException) OrigErr() error {
+	return nil
+}
+
+func (s HandshakeAlreadyInStateException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s HandshakeAlreadyInStateException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s HandshakeAlreadyInStateException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// The requested operation would violate the constraint identified in the reason
+// code.
+//
+// Some of the reasons in the following list might not be applicable to this
+// specific API or operation:
+//
+//    * ACCOUNT_NUMBER_LIMIT_EXCEEDED: You attempted to exceed the limit on
+//    the number of accounts in an organization. Note that deleted and closed
+//    accounts still count toward your limit. If you get this exception immediately
+//    after creating the organization, wait one hour and try again. If after
+//    an hour it continues to fail with this error, contact AWS Support (https://console.aws.amazon.com/support/home#/).
+//
+//    * ALREADY_IN_AN_ORGANIZATION: The handshake request is invalid because
+//    the invited account is already a member of an organization.
+//
+//    * HANDSHAKE_RATE_LIMIT_EXCEEDED: You attempted to exceed the number of
+//    handshakes that you can send in one day.
+//
+//    * INVITE_DISABLED_DURING_ENABLE_ALL_FEATURES: You can't issue new invitations
+//    to join an organization while it's in the process of enabling all features.
+//    You can resume inviting accounts after you finalize the process when all
+//    accounts have agreed to the change.
+//
+//    * ORGANIZATION_ALREADY_HAS_ALL_FEATURES: The handshake request is invalid
+//    because the organization has already enabled all features.
+//
+//    * ORGANIZATION_FROM_DIFFERENT_SELLER_OF_RECORD: The request failed because
+//    the account is from a different marketplace than the accounts in the organization.
+//    For example, accounts with India addresses must be associated with the
+//    AISPL marketplace. All accounts in an organization must be from the same
+//    marketplace.
+//
+//    * ORGANIZATION_MEMBERSHIP_CHANGE_RATE_LIMIT_EXCEEDED: You attempted to
+//    change the membership of an account too quickly after its previous change.
+//
+//    * PAYMENT_INSTRUMENT_REQUIRED: You can't complete the operation with an
+//    account that doesn't have a payment instrument, such as a credit card,
+//    associated with it.
+type HandshakeConstraintViolationException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"Message" type:"string"`
+
+	Reason *string `type:"string" enum:"HandshakeConstraintViolationExceptionReason"`
+}
+
+// String returns the string representation
+func (s HandshakeConstraintViolationException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s HandshakeConstraintViolationException) GoString() string {
+	return s.String()
+}
+
+func newErrorHandshakeConstraintViolationException(v protocol.ResponseMetadata) error {
+	return &HandshakeConstraintViolationException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s HandshakeConstraintViolationException) Code() string {
+	return "HandshakeConstraintViolationException"
+}
+
+// Message returns the exception's message.
+func (s HandshakeConstraintViolationException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s HandshakeConstraintViolationException) OrigErr() error {
+	return nil
+}
+
+func (s HandshakeConstraintViolationException) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s HandshakeConstraintViolationException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s HandshakeConstraintViolationException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
 // Specifies the criteria that are used to select the handshakes for the operation.
 type HandshakeFilter struct {
 	_ struct{} `type:"structure"`
@@ -13237,6 +15162,62 @@ func (s *HandshakeFilter) SetActionType(v string) *HandshakeFilter {
 func (s *HandshakeFilter) SetParentHandshakeId(v string) *HandshakeFilter {
 	s.ParentHandshakeId = &v
 	return s
+}
+
+// We can't find a handshake with the HandshakeId that you specified.
+type HandshakeNotFoundException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s HandshakeNotFoundException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s HandshakeNotFoundException) GoString() string {
+	return s.String()
+}
+
+func newErrorHandshakeNotFoundException(v protocol.ResponseMetadata) error {
+	return &HandshakeNotFoundException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s HandshakeNotFoundException) Code() string {
+	return "HandshakeNotFoundException"
+}
+
+// Message returns the exception's message.
+func (s HandshakeNotFoundException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s HandshakeNotFoundException) OrigErr() error {
+	return nil
+}
+
+func (s HandshakeNotFoundException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s HandshakeNotFoundException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s HandshakeNotFoundException) RequestID() string {
+	return s.respMetadata.RequestID
 }
 
 // Identifies a participant in a handshake.
@@ -13356,6 +15337,185 @@ func (s *HandshakeResource) SetType(v string) *HandshakeResource {
 func (s *HandshakeResource) SetValue(v string) *HandshakeResource {
 	s.Value = &v
 	return s
+}
+
+// You can't perform the operation on the handshake in its current state. For
+// example, you can't cancel a handshake that was already accepted or accept
+// a handshake that was already declined.
+type InvalidHandshakeTransitionException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidHandshakeTransitionException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidHandshakeTransitionException) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidHandshakeTransitionException(v protocol.ResponseMetadata) error {
+	return &InvalidHandshakeTransitionException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s InvalidHandshakeTransitionException) Code() string {
+	return "InvalidHandshakeTransitionException"
+}
+
+// Message returns the exception's message.
+func (s InvalidHandshakeTransitionException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s InvalidHandshakeTransitionException) OrigErr() error {
+	return nil
+}
+
+func (s InvalidHandshakeTransitionException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s InvalidHandshakeTransitionException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s InvalidHandshakeTransitionException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// The requested operation failed because you provided invalid values for one
+// or more of the request parameters. This exception includes a reason that
+// contains additional information about the violated limit:
+//
+// Some of the reasons in the following list might not be applicable to this
+// specific API or operation:
+//
+//    * IMMUTABLE_POLICY: You specified a policy that is managed by AWS and
+//    can't be modified.
+//
+//    * INPUT_REQUIRED: You must include a value for all required parameters.
+//
+//    * INVALID_ENUM: You specified an invalid value.
+//
+//    * INVALID_ENUM_POLICY_TYPE: You specified an invalid policy type.
+//
+//    * INVALID_FULL_NAME_TARGET: You specified a full name that contains invalid
+//    characters.
+//
+//    * INVALID_LIST_MEMBER: You provided a list to a parameter that contains
+//    at least one invalid value.
+//
+//    * INVALID_PAGINATION_TOKEN: Get the value for the NextToken parameter
+//    from the response to a previous call of the operation.
+//
+//    * INVALID_PARTY_TYPE_TARGET: You specified the wrong type of entity (account,
+//    organization, or email) as a party.
+//
+//    * INVALID_PATTERN: You provided a value that doesn't match the required
+//    pattern.
+//
+//    * INVALID_PATTERN_TARGET_ID: You specified a policy target ID that doesn't
+//    match the required pattern.
+//
+//    * INVALID_ROLE_NAME: You provided a role name that isn't valid. A role
+//    name can't begin with the reserved prefix AWSServiceRoleFor.
+//
+//    * INVALID_SYNTAX_ORGANIZATION_ARN: You specified an invalid Amazon Resource
+//    Name (ARN) for the organization.
+//
+//    * INVALID_SYNTAX_POLICY_ID: You specified an invalid policy ID.
+//
+//    * INVALID_SYSTEM_TAGS_PARAMETER: You specified a tag key that is a system
+//    tag. You can’t add, edit, or delete system tag keys because they're
+//    reserved for AWS use. System tags don’t count against your tags per
+//    resource limit.
+//
+//    * MAX_FILTER_LIMIT_EXCEEDED: You can specify only one filter parameter
+//    for the operation.
+//
+//    * MAX_LENGTH_EXCEEDED: You provided a string parameter that is longer
+//    than allowed.
+//
+//    * MAX_VALUE_EXCEEDED: You provided a numeric parameter that has a larger
+//    value than allowed.
+//
+//    * MIN_LENGTH_EXCEEDED: You provided a string parameter that is shorter
+//    than allowed.
+//
+//    * MIN_VALUE_EXCEEDED: You provided a numeric parameter that has a smaller
+//    value than allowed.
+//
+//    * MOVING_ACCOUNT_BETWEEN_DIFFERENT_ROOTS: You can move an account only
+//    between entities in the same root.
+type InvalidInputException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"Message" type:"string"`
+
+	Reason *string `type:"string" enum:"InvalidInputExceptionReason"`
+}
+
+// String returns the string representation
+func (s InvalidInputException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidInputException) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidInputException(v protocol.ResponseMetadata) error {
+	return &InvalidInputException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s InvalidInputException) Code() string {
+	return "InvalidInputException"
+}
+
+// Message returns the exception's message.
+func (s InvalidInputException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s InvalidInputException) OrigErr() error {
+	return nil
+}
+
+func (s InvalidInputException) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s InvalidInputException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s InvalidInputException) RequestID() string {
+	return s.respMetadata.RequestID
 }
 
 type InviteAccountToOrganizationInput struct {
@@ -13801,13 +15961,13 @@ type ListChildrenInput struct {
 	// The regex pattern (http://wikipedia.org/wiki/regex) for a parent ID string
 	// requires one of the following:
 	//
-	//    * Root - A string that begins with "r-" followed by from 4 to 32 lower-case
+	//    * Root - A string that begins with "r-" followed by from 4 to 32 lowercase
 	//    letters or digits.
 	//
 	//    * Organizational unit (OU) - A string that begins with "ou-" followed
-	//    by from 4 to 32 lower-case letters or digits (the ID of the root that
-	//    the OU is in) followed by a second "-" dash and from 8 to 32 additional
-	//    lower-case letters or digits.
+	//    by from 4 to 32 lowercase letters or digits (the ID of the root that the
+	//    OU is in). This string is followed by a second "-" dash and from 8 to
+	//    32 additional lowercase letters or digits.
 	//
 	// ParentId is a required field
 	ParentId *string `type:"string" required:"true"`
@@ -14012,9 +16172,9 @@ type ListHandshakesForAccountInput struct {
 	// Filters the handshakes that you want included in the response. The default
 	// is all types. Use the ActionType element to limit the output to only a specified
 	// type, such as INVITE, ENABLE_ALL_FEATURES, or APPROVE_ALL_FEATURES. Alternatively,
-	// for the ENABLE_ALL_FEATURES handshake that generates a separate child handshake
-	// for each member account, you can specify ParentHandshakeId to see only the
-	// handshakes that were generated by that parent request.
+	// you can specify the ENABLE_ALL_FEATURES handshake, which generates a separate
+	// child handshake for each member account. When you do specify ParentHandshakeId
+	// to see only the handshakes that were generated by that parent request.
 	Filter *HandshakeFilter `type:"structure"`
 
 	// (Optional) Use this to limit the number of results you want included per
@@ -14119,9 +16279,9 @@ type ListHandshakesForOrganizationInput struct {
 	// A filter of the handshakes that you want included in the response. The default
 	// is all types. Use the ActionType element to limit the output to only a specified
 	// type, such as INVITE, ENABLE-ALL-FEATURES, or APPROVE-ALL-FEATURES. Alternatively,
-	// for the ENABLE-ALL-FEATURES handshake that generates a separate child handshake
-	// for each member account, you can specify the ParentHandshakeId to see only
-	// the handshakes that were generated by that parent request.
+	// you can specify the ENABLE-ALL-FEATURES handshake, which generates a separate
+	// child handshake for each member account. When you do, specify the ParentHandshakeId
+	// to see only the handshakes that were generated by that parent request.
 	Filter *HandshakeFilter `type:"structure"`
 
 	// (Optional) Use this to limit the number of results you want included per
@@ -14246,13 +16406,13 @@ type ListOrganizationalUnitsForParentInput struct {
 	// The regex pattern (http://wikipedia.org/wiki/regex) for a parent ID string
 	// requires one of the following:
 	//
-	//    * Root - A string that begins with "r-" followed by from 4 to 32 lower-case
+	//    * Root - A string that begins with "r-" followed by from 4 to 32 lowercase
 	//    letters or digits.
 	//
 	//    * Organizational unit (OU) - A string that begins with "ou-" followed
-	//    by from 4 to 32 lower-case letters or digits (the ID of the root that
-	//    the OU is in) followed by a second "-" dash and from 8 to 32 additional
-	//    lower-case letters or digits.
+	//    by from 4 to 32 lowercase letters or digits (the ID of the root that the
+	//    OU is in). This string is followed by a second "-" dash and from 8 to
+	//    32 additional lowercase letters or digits.
 	//
 	// ParentId is a required field
 	ParentId *string `type:"string" required:"true"`
@@ -14350,9 +16510,9 @@ type ListParentsInput struct {
 	//    * Account - A string that consists of exactly 12 digits.
 	//
 	//    * Organizational unit (OU) - A string that begins with "ou-" followed
-	//    by from 4 to 32 lower-case letters or digits (the ID of the root that
-	//    contains the OU) followed by a second "-" dash and from 8 to 32 additional
-	//    lower-case letters or digits.
+	//    by from 4 to 32 lowercase letters or digits (the ID of the root that contains
+	//    the OU). This string is followed by a second "-" dash and from 8 to 32
+	//    additional lowercase letters or digits.
 	//
 	// ChildId is a required field
 	ChildId *string `type:"string" required:"true"`
@@ -14486,15 +16646,15 @@ type ListPoliciesForTargetInput struct {
 	// The regex pattern (http://wikipedia.org/wiki/regex) for a target ID string
 	// requires one of the following:
 	//
-	//    * Root - A string that begins with "r-" followed by from 4 to 32 lower-case
+	//    * Root - A string that begins with "r-" followed by from 4 to 32 lowercase
 	//    letters or digits.
 	//
 	//    * Account - A string that consists of exactly 12 digits.
 	//
 	//    * Organizational unit (OU) - A string that begins with "ou-" followed
-	//    by from 4 to 32 lower-case letters or digits (the ID of the root that
-	//    the OU is in) followed by a second "-" dash and from 8 to 32 additional
-	//    lower-case letters or digits.
+	//    by from 4 to 32 lowercase letters or digits (the ID of the root that the
+	//    OU is in). This string is followed by a second "-" dash and from 8 to
+	//    32 additional lowercase letters or digits.
 	//
 	// TargetId is a required field
 	TargetId *string `type:"string" required:"true"`
@@ -14898,7 +17058,8 @@ type ListTargetsForPolicyInput struct {
 	// The unique identifier (ID) of the policy whose attachments you want to know.
 	//
 	// The regex pattern (http://wikipedia.org/wiki/regex) for a policy ID string
-	// requires "p-" followed by from 8 to 128 lower-case letters or digits.
+	// requires "p-" followed by from 8 to 128 lowercase or uppercase letters, digits,
+	// or the underscore character (_).
 	//
 	// PolicyId is a required field
 	PolicyId *string `type:"string" required:"true"`
@@ -14985,6 +17146,123 @@ func (s *ListTargetsForPolicyOutput) SetTargets(v []*PolicyTargetSummary) *ListT
 	return s
 }
 
+// The provided policy document doesn't meet the requirements of the specified
+// policy type. For example, the syntax might be incorrect. For details about
+// service control policy syntax, see Service Control Policy Syntax (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_reference_scp-syntax.html)
+// in the AWS Organizations User Guide.
+type MalformedPolicyDocumentException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s MalformedPolicyDocumentException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s MalformedPolicyDocumentException) GoString() string {
+	return s.String()
+}
+
+func newErrorMalformedPolicyDocumentException(v protocol.ResponseMetadata) error {
+	return &MalformedPolicyDocumentException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s MalformedPolicyDocumentException) Code() string {
+	return "MalformedPolicyDocumentException"
+}
+
+// Message returns the exception's message.
+func (s MalformedPolicyDocumentException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s MalformedPolicyDocumentException) OrigErr() error {
+	return nil
+}
+
+func (s MalformedPolicyDocumentException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s MalformedPolicyDocumentException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s MalformedPolicyDocumentException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// You can't remove a master account from an organization. If you want the master
+// account to become a member account in another organization, you must first
+// delete the current organization of the master account.
+type MasterCannotLeaveOrganizationException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s MasterCannotLeaveOrganizationException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s MasterCannotLeaveOrganizationException) GoString() string {
+	return s.String()
+}
+
+func newErrorMasterCannotLeaveOrganizationException(v protocol.ResponseMetadata) error {
+	return &MasterCannotLeaveOrganizationException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s MasterCannotLeaveOrganizationException) Code() string {
+	return "MasterCannotLeaveOrganizationException"
+}
+
+// Message returns the exception's message.
+func (s MasterCannotLeaveOrganizationException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s MasterCannotLeaveOrganizationException) OrigErr() error {
+	return nil
+}
+
+func (s MasterCannotLeaveOrganizationException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s MasterCannotLeaveOrganizationException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s MasterCannotLeaveOrganizationException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
 type MoveAccountInput struct {
 	_ struct{} `type:"structure"`
 
@@ -15002,13 +17280,13 @@ type MoveAccountInput struct {
 	// The regex pattern (http://wikipedia.org/wiki/regex) for a parent ID string
 	// requires one of the following:
 	//
-	//    * Root - A string that begins with "r-" followed by from 4 to 32 lower-case
+	//    * Root - A string that begins with "r-" followed by from 4 to 32 lowercase
 	//    letters or digits.
 	//
 	//    * Organizational unit (OU) - A string that begins with "ou-" followed
-	//    by from 4 to 32 lower-case letters or digits (the ID of the root that
-	//    the OU is in) followed by a second "-" dash and from 8 to 32 additional
-	//    lower-case letters or digits.
+	//    by from 4 to 32 lowercase letters or digits (the ID of the root that the
+	//    OU is in). This string is followed by a second "-" dash and from 8 to
+	//    32 additional lowercase letters or digits.
 	//
 	// DestinationParentId is a required field
 	DestinationParentId *string `type:"string" required:"true"`
@@ -15019,13 +17297,13 @@ type MoveAccountInput struct {
 	// The regex pattern (http://wikipedia.org/wiki/regex) for a parent ID string
 	// requires one of the following:
 	//
-	//    * Root - A string that begins with "r-" followed by from 4 to 32 lower-case
+	//    * Root - A string that begins with "r-" followed by from 4 to 32 lowercase
 	//    letters or digits.
 	//
 	//    * Organizational unit (OU) - A string that begins with "ou-" followed
-	//    by from 4 to 32 lower-case letters or digits (the ID of the root that
-	//    the OU is in) followed by a second "-" dash and from 8 to 32 additional
-	//    lower-case letters or digits.
+	//    by from 4 to 32 lowercase letters or digits (the ID of the root that the
+	//    OU is in). This string is followed by a second "-" dash and from 8 to
+	//    32 additional lowercase letters or digits.
 	//
 	// SourceParentId is a required field
 	SourceParentId *string `type:"string" required:"true"`
@@ -15095,7 +17373,7 @@ func (s MoveAccountOutput) GoString() string {
 // Contains details about an organization. An organization is a collection of
 // accounts that are centrally managed together using consolidated billing,
 // organized hierarchically with organizational units (OUs), and controlled
-// with policies .
+// with policies.
 type Organization struct {
 	_ struct{} `type:"structure"`
 
@@ -15201,6 +17479,63 @@ func (s *Organization) SetMasterAccountId(v string) *Organization {
 	return s
 }
 
+// The organization isn't empty. To delete an organization, you must first remove
+// all accounts except the master account, delete all OUs, and delete all policies.
+type OrganizationNotEmptyException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s OrganizationNotEmptyException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s OrganizationNotEmptyException) GoString() string {
+	return s.String()
+}
+
+func newErrorOrganizationNotEmptyException(v protocol.ResponseMetadata) error {
+	return &OrganizationNotEmptyException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s OrganizationNotEmptyException) Code() string {
+	return "OrganizationNotEmptyException"
+}
+
+// Message returns the exception's message.
+func (s OrganizationNotEmptyException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s OrganizationNotEmptyException) OrigErr() error {
+	return nil
+}
+
+func (s OrganizationNotEmptyException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s OrganizationNotEmptyException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s OrganizationNotEmptyException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
 // Contains details about an organizational unit (OU). An OU is a container
 // of AWS accounts within a root of an organization. Policies that are attached
 // to an OU apply to all accounts contained in that OU and in any child OUs.
@@ -15218,8 +17553,8 @@ type OrganizationalUnit struct {
 	//
 	// The regex pattern (http://wikipedia.org/wiki/regex) for an organizational
 	// unit ID string requires "ou-" followed by from 4 to 32 lower-case letters
-	// or digits (the ID of the root that contains the OU) followed by a second
-	// "-" dash and from 8 to 32 additional lower-case letters or digits.
+	// or digits (the ID of the root that contains the OU). This string is followed
+	// by a second "-" dash and from 8 to 32 additional lower-case letters or digits.
 	Id *string `type:"string"`
 
 	// The friendly name of this OU.
@@ -15258,6 +17593,119 @@ func (s *OrganizationalUnit) SetName(v string) *OrganizationalUnit {
 	return s
 }
 
+// The specified OU is not empty. Move all accounts to another root or to other
+// OUs, remove all child OUs, and try the operation again.
+type OrganizationalUnitNotEmptyException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s OrganizationalUnitNotEmptyException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s OrganizationalUnitNotEmptyException) GoString() string {
+	return s.String()
+}
+
+func newErrorOrganizationalUnitNotEmptyException(v protocol.ResponseMetadata) error {
+	return &OrganizationalUnitNotEmptyException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s OrganizationalUnitNotEmptyException) Code() string {
+	return "OrganizationalUnitNotEmptyException"
+}
+
+// Message returns the exception's message.
+func (s OrganizationalUnitNotEmptyException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s OrganizationalUnitNotEmptyException) OrigErr() error {
+	return nil
+}
+
+func (s OrganizationalUnitNotEmptyException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s OrganizationalUnitNotEmptyException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s OrganizationalUnitNotEmptyException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// We can't find an OU with the OrganizationalUnitId that you specified.
+type OrganizationalUnitNotFoundException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s OrganizationalUnitNotFoundException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s OrganizationalUnitNotFoundException) GoString() string {
+	return s.String()
+}
+
+func newErrorOrganizationalUnitNotFoundException(v protocol.ResponseMetadata) error {
+	return &OrganizationalUnitNotFoundException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s OrganizationalUnitNotFoundException) Code() string {
+	return "OrganizationalUnitNotFoundException"
+}
+
+// Message returns the exception's message.
+func (s OrganizationalUnitNotFoundException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s OrganizationalUnitNotFoundException) OrigErr() error {
+	return nil
+}
+
+func (s OrganizationalUnitNotFoundException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s OrganizationalUnitNotFoundException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s OrganizationalUnitNotFoundException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
 // Contains information about either a root or an organizational unit (OU) that
 // can contain OUs or accounts in an organization.
 type Parent struct {
@@ -15268,13 +17716,13 @@ type Parent struct {
 	// The regex pattern (http://wikipedia.org/wiki/regex) for a parent ID string
 	// requires one of the following:
 	//
-	//    * Root: a string that begins with "r-" followed by from 4 to 32 lower-case
+	//    * Root: A string that begins with "r-" followed by from 4 to 32 lower-case
 	//    letters or digits.
 	//
-	//    * Organizational unit (OU): a string that begins with "ou-" followed by
+	//    * Organizational unit (OU): A string that begins with "ou-" followed by
 	//    from 4 to 32 lower-case letters or digits (the ID of the root that the
-	//    OU is in) followed by a second "-" dash and from 8 to 32 additional lower-case
-	//    letters or digits.
+	//    OU is in). This string is followed by a second "-" dash and from 8 to
+	//    32 additional lower-case letters or digits.
 	Id *string `type:"string"`
 
 	// The type of the parent entity.
@@ -15301,6 +17749,62 @@ func (s *Parent) SetId(v string) *Parent {
 func (s *Parent) SetType(v string) *Parent {
 	s.Type = &v
 	return s
+}
+
+// We can't find a root or OU with the ParentId that you specified.
+type ParentNotFoundException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s ParentNotFoundException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ParentNotFoundException) GoString() string {
+	return s.String()
+}
+
+func newErrorParentNotFoundException(v protocol.ResponseMetadata) error {
+	return &ParentNotFoundException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s ParentNotFoundException) Code() string {
+	return "ParentNotFoundException"
+}
+
+// Message returns the exception's message.
+func (s ParentNotFoundException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s ParentNotFoundException) OrigErr() error {
+	return nil
+}
+
+func (s ParentNotFoundException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s ParentNotFoundException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s ParentNotFoundException) RequestID() string {
+	return s.respMetadata.RequestID
 }
 
 // Contains rules to be applied to the affected accounts. Policies can be attached
@@ -15338,6 +17842,232 @@ func (s *Policy) SetPolicySummary(v *PolicySummary) *Policy {
 	return s
 }
 
+// Changes to the effective policy are in progress, and its contents can't be
+// returned. Try the operation again later.
+type PolicyChangesInProgressException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s PolicyChangesInProgressException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s PolicyChangesInProgressException) GoString() string {
+	return s.String()
+}
+
+func newErrorPolicyChangesInProgressException(v protocol.ResponseMetadata) error {
+	return &PolicyChangesInProgressException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s PolicyChangesInProgressException) Code() string {
+	return "PolicyChangesInProgressException"
+}
+
+// Message returns the exception's message.
+func (s PolicyChangesInProgressException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s PolicyChangesInProgressException) OrigErr() error {
+	return nil
+}
+
+func (s PolicyChangesInProgressException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s PolicyChangesInProgressException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s PolicyChangesInProgressException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// The policy is attached to one or more entities. You must detach it from all
+// roots, OUs, and accounts before performing this operation.
+type PolicyInUseException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s PolicyInUseException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s PolicyInUseException) GoString() string {
+	return s.String()
+}
+
+func newErrorPolicyInUseException(v protocol.ResponseMetadata) error {
+	return &PolicyInUseException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s PolicyInUseException) Code() string {
+	return "PolicyInUseException"
+}
+
+// Message returns the exception's message.
+func (s PolicyInUseException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s PolicyInUseException) OrigErr() error {
+	return nil
+}
+
+func (s PolicyInUseException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s PolicyInUseException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s PolicyInUseException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// The policy isn't attached to the specified target in the specified root.
+type PolicyNotAttachedException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s PolicyNotAttachedException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s PolicyNotAttachedException) GoString() string {
+	return s.String()
+}
+
+func newErrorPolicyNotAttachedException(v protocol.ResponseMetadata) error {
+	return &PolicyNotAttachedException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s PolicyNotAttachedException) Code() string {
+	return "PolicyNotAttachedException"
+}
+
+// Message returns the exception's message.
+func (s PolicyNotAttachedException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s PolicyNotAttachedException) OrigErr() error {
+	return nil
+}
+
+func (s PolicyNotAttachedException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s PolicyNotAttachedException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s PolicyNotAttachedException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// We can't find a policy with the PolicyId that you specified.
+type PolicyNotFoundException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s PolicyNotFoundException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s PolicyNotFoundException) GoString() string {
+	return s.String()
+}
+
+func newErrorPolicyNotFoundException(v protocol.ResponseMetadata) error {
+	return &PolicyNotFoundException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s PolicyNotFoundException) Code() string {
+	return "PolicyNotFoundException"
+}
+
+// Message returns the exception's message.
+func (s PolicyNotFoundException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s PolicyNotFoundException) OrigErr() error {
+	return nil
+}
+
+func (s PolicyNotFoundException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s PolicyNotFoundException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s PolicyNotFoundException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
 // Contains information about a policy, but does not include the content. To
 // see the content of a policy, see DescribePolicy.
 type PolicySummary struct {
@@ -15350,7 +18080,7 @@ type PolicySummary struct {
 	// in the AWS Organizations User Guide.
 	Arn *string `type:"string"`
 
-	// A boolean value that indicates whether the specified policy is an AWS managed
+	// A Boolean value that indicates whether the specified policy is an AWS managed
 	// policy. If true, then you can attach the policy to roots, OUs, or accounts,
 	// but you cannot edit it.
 	AwsManaged *bool `type:"boolean"`
@@ -15445,15 +18175,15 @@ type PolicyTargetSummary struct {
 	// The regex pattern (http://wikipedia.org/wiki/regex) for a target ID string
 	// requires one of the following:
 	//
-	//    * Root: a string that begins with "r-" followed by from 4 to 32 lower-case
+	//    * Root: A string that begins with "r-" followed by from 4 to 32 lower-case
 	//    letters or digits.
 	//
-	//    * Account: a string that consists of exactly 12 digits.
+	//    * Account: A string that consists of exactly 12 digits.
 	//
-	//    * Organizational unit (OU): a string that begins with "ou-" followed by
+	//    * Organizational unit (OU): A string that begins with "ou-" followed by
 	//    from 4 to 32 lower-case letters or digits (the ID of the root that the
-	//    OU is in) followed by a second "-" dash and from 8 to 32 additional lower-case
-	//    letters or digits.
+	//    OU is in). This string is followed by a second "-" dash and from 8 to
+	//    32 additional lower-case letters or digits.
 	TargetId *string `type:"string"`
 
 	// The type of the policy target.
@@ -15494,14 +18224,191 @@ func (s *PolicyTargetSummary) SetType(v string) *PolicyTargetSummary {
 	return s
 }
 
+// The specified policy type is already enabled in the specified root.
+type PolicyTypeAlreadyEnabledException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s PolicyTypeAlreadyEnabledException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s PolicyTypeAlreadyEnabledException) GoString() string {
+	return s.String()
+}
+
+func newErrorPolicyTypeAlreadyEnabledException(v protocol.ResponseMetadata) error {
+	return &PolicyTypeAlreadyEnabledException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s PolicyTypeAlreadyEnabledException) Code() string {
+	return "PolicyTypeAlreadyEnabledException"
+}
+
+// Message returns the exception's message.
+func (s PolicyTypeAlreadyEnabledException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s PolicyTypeAlreadyEnabledException) OrigErr() error {
+	return nil
+}
+
+func (s PolicyTypeAlreadyEnabledException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s PolicyTypeAlreadyEnabledException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s PolicyTypeAlreadyEnabledException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// You can't use the specified policy type with the feature set currently enabled
+// for this organization. For example, you can enable SCPs only after you enable
+// all features in the organization. For more information, see Enabling and
+// Disabling a Policy Type on a Root (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies.html#enable_policies_on_root)
+// in the AWS Organizations User Guide.
+type PolicyTypeNotAvailableForOrganizationException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s PolicyTypeNotAvailableForOrganizationException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s PolicyTypeNotAvailableForOrganizationException) GoString() string {
+	return s.String()
+}
+
+func newErrorPolicyTypeNotAvailableForOrganizationException(v protocol.ResponseMetadata) error {
+	return &PolicyTypeNotAvailableForOrganizationException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s PolicyTypeNotAvailableForOrganizationException) Code() string {
+	return "PolicyTypeNotAvailableForOrganizationException"
+}
+
+// Message returns the exception's message.
+func (s PolicyTypeNotAvailableForOrganizationException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s PolicyTypeNotAvailableForOrganizationException) OrigErr() error {
+	return nil
+}
+
+func (s PolicyTypeNotAvailableForOrganizationException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s PolicyTypeNotAvailableForOrganizationException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s PolicyTypeNotAvailableForOrganizationException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// The specified policy type isn't currently enabled in this root. You can't
+// attach policies of the specified type to entities in a root until you enable
+// that type in the root. For more information, see Enabling All Features in
+// Your Organization (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_org_support-all-features.html)
+// in the AWS Organizations User Guide.
+type PolicyTypeNotEnabledException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s PolicyTypeNotEnabledException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s PolicyTypeNotEnabledException) GoString() string {
+	return s.String()
+}
+
+func newErrorPolicyTypeNotEnabledException(v protocol.ResponseMetadata) error {
+	return &PolicyTypeNotEnabledException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s PolicyTypeNotEnabledException) Code() string {
+	return "PolicyTypeNotEnabledException"
+}
+
+// Message returns the exception's message.
+func (s PolicyTypeNotEnabledException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s PolicyTypeNotEnabledException) OrigErr() error {
+	return nil
+}
+
+func (s PolicyTypeNotEnabledException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s PolicyTypeNotEnabledException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s PolicyTypeNotEnabledException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
 // Contains information about a policy type and its status in the associated
 // root.
 type PolicyTypeSummary struct {
 	_ struct{} `type:"structure"`
 
-	// The status of the policy type as it relates to the associated root. To attach
-	// a policy of the specified type to a root or to an OU or account in that root,
-	// it must be available in the organization and enabled for that root.
+	// The status of the policy type as it relates to the associated root. You can
+	// attach a policy of the specified type to a root or to an OU or account in
+	// that root. To do so, the policy must be available in the organization and
+	// enabled for that root.
 	Status *string `type:"string" enum:"PolicyTypeStatus"`
 
 	// The name of the policy type.
@@ -15658,6 +18565,175 @@ func (s *Root) SetPolicyTypes(v []*PolicyTypeSummary) *Root {
 	return s
 }
 
+// We can't find a root with the RootId that you specified.
+type RootNotFoundException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s RootNotFoundException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s RootNotFoundException) GoString() string {
+	return s.String()
+}
+
+func newErrorRootNotFoundException(v protocol.ResponseMetadata) error {
+	return &RootNotFoundException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s RootNotFoundException) Code() string {
+	return "RootNotFoundException"
+}
+
+// Message returns the exception's message.
+func (s RootNotFoundException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s RootNotFoundException) OrigErr() error {
+	return nil
+}
+
+func (s RootNotFoundException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s RootNotFoundException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s RootNotFoundException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// AWS Organizations can't complete your request because of an internal service
+// error. Try again later.
+type ServiceException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s ServiceException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ServiceException) GoString() string {
+	return s.String()
+}
+
+func newErrorServiceException(v protocol.ResponseMetadata) error {
+	return &ServiceException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s ServiceException) Code() string {
+	return "ServiceException"
+}
+
+// Message returns the exception's message.
+func (s ServiceException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s ServiceException) OrigErr() error {
+	return nil
+}
+
+func (s ServiceException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s ServiceException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s ServiceException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// We can't find a source root or OU with the ParentId that you specified.
+type SourceParentNotFoundException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s SourceParentNotFoundException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s SourceParentNotFoundException) GoString() string {
+	return s.String()
+}
+
+func newErrorSourceParentNotFoundException(v protocol.ResponseMetadata) error {
+	return &SourceParentNotFoundException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s SourceParentNotFoundException) Code() string {
+	return "SourceParentNotFoundException"
+}
+
+// Message returns the exception's message.
+func (s SourceParentNotFoundException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s SourceParentNotFoundException) OrigErr() error {
+	return nil
+}
+
+func (s SourceParentNotFoundException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s SourceParentNotFoundException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s SourceParentNotFoundException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
 // A custom key-value pair associated with a resource such as an account within
 // your organization.
 type Tag struct {
@@ -15795,6 +18871,181 @@ func (s TagResourceOutput) GoString() string {
 	return s.String()
 }
 
+// We can't find a root, OU, or account with the TargetId that you specified.
+type TargetNotFoundException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s TargetNotFoundException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s TargetNotFoundException) GoString() string {
+	return s.String()
+}
+
+func newErrorTargetNotFoundException(v protocol.ResponseMetadata) error {
+	return &TargetNotFoundException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s TargetNotFoundException) Code() string {
+	return "TargetNotFoundException"
+}
+
+// Message returns the exception's message.
+func (s TargetNotFoundException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s TargetNotFoundException) OrigErr() error {
+	return nil
+}
+
+func (s TargetNotFoundException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s TargetNotFoundException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s TargetNotFoundException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// You have sent too many requests in too short a period of time. The limit
+// helps protect against denial-of-service attacks. Try again later.
+//
+// For information on limits that affect AWS Organizations, see Limits of AWS
+// Organizations (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_reference_limits.html)
+// in the AWS Organizations User Guide.
+type TooManyRequestsException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"Message" type:"string"`
+
+	Type *string `type:"string"`
+}
+
+// String returns the string representation
+func (s TooManyRequestsException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s TooManyRequestsException) GoString() string {
+	return s.String()
+}
+
+func newErrorTooManyRequestsException(v protocol.ResponseMetadata) error {
+	return &TooManyRequestsException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s TooManyRequestsException) Code() string {
+	return "TooManyRequestsException"
+}
+
+// Message returns the exception's message.
+func (s TooManyRequestsException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s TooManyRequestsException) OrigErr() error {
+	return nil
+}
+
+func (s TooManyRequestsException) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s TooManyRequestsException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s TooManyRequestsException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// This action isn't available in the current Region.
+type UnsupportedAPIEndpointException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s UnsupportedAPIEndpointException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UnsupportedAPIEndpointException) GoString() string {
+	return s.String()
+}
+
+func newErrorUnsupportedAPIEndpointException(v protocol.ResponseMetadata) error {
+	return &UnsupportedAPIEndpointException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s UnsupportedAPIEndpointException) Code() string {
+	return "UnsupportedAPIEndpointException"
+}
+
+// Message returns the exception's message.
+func (s UnsupportedAPIEndpointException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s UnsupportedAPIEndpointException) OrigErr() error {
+	return nil
+}
+
+func (s UnsupportedAPIEndpointException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s UnsupportedAPIEndpointException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s UnsupportedAPIEndpointException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
 type UntagResourceInput struct {
 	_ struct{} `type:"structure"`
 
@@ -15875,9 +19126,9 @@ type UpdateOrganizationalUnitInput struct {
 	// the ID from the ListOrganizationalUnitsForParent operation.
 	//
 	// The regex pattern (http://wikipedia.org/wiki/regex) for an organizational
-	// unit ID string requires "ou-" followed by from 4 to 32 lower-case letters
-	// or digits (the ID of the root that contains the OU) followed by a second
-	// "-" dash and from 8 to 32 additional lower-case letters or digits.
+	// unit ID string requires "ou-" followed by from 4 to 32 lowercase letters
+	// or digits (the ID of the root that contains the OU). This string is followed
+	// by a second "-" dash and from 8 to 32 additional lowercase letters or digits.
 	//
 	// OrganizationalUnitId is a required field
 	OrganizationalUnitId *string `type:"string" required:"true"`
@@ -15967,7 +19218,8 @@ type UpdatePolicyInput struct {
 	// The unique identifier (ID) of the policy that you want to update.
 	//
 	// The regex pattern (http://wikipedia.org/wiki/regex) for a policy ID string
-	// requires "p-" followed by from 8 to 128 lower-case letters or digits.
+	// requires "p-" followed by from 8 to 128 lowercase or uppercase letters, digits,
+	// or the underscore character (_).
 	//
 	// PolicyId is a required field
 	PolicyId *string `type:"string" required:"true"`
@@ -16109,6 +19361,9 @@ const (
 	// ConstraintViolationExceptionReasonPolicyNumberLimitExceeded is a ConstraintViolationExceptionReason enum value
 	ConstraintViolationExceptionReasonPolicyNumberLimitExceeded = "POLICY_NUMBER_LIMIT_EXCEEDED"
 
+	// ConstraintViolationExceptionReasonPolicyContentLimitExceeded is a ConstraintViolationExceptionReason enum value
+	ConstraintViolationExceptionReasonPolicyContentLimitExceeded = "POLICY_CONTENT_LIMIT_EXCEEDED"
+
 	// ConstraintViolationExceptionReasonMaxPolicyTypeAttachmentLimitExceeded is a ConstraintViolationExceptionReason enum value
 	ConstraintViolationExceptionReasonMaxPolicyTypeAttachmentLimitExceeded = "MAX_POLICY_TYPE_ATTACHMENT_LIMIT_EXCEEDED"
 
@@ -16179,6 +19434,9 @@ const (
 
 	// CreateAccountFailureReasonInternalFailure is a CreateAccountFailureReason enum value
 	CreateAccountFailureReasonInternalFailure = "INTERNAL_FAILURE"
+
+	// CreateAccountFailureReasonGovcloudAccountAlreadyExists is a CreateAccountFailureReason enum value
+	CreateAccountFailureReasonGovcloudAccountAlreadyExists = "GOVCLOUD_ACCOUNT_ALREADY_EXISTS"
 )
 
 const (
@@ -16190,6 +19448,11 @@ const (
 
 	// CreateAccountStateFailed is a CreateAccountState enum value
 	CreateAccountStateFailed = "FAILED"
+)
+
+const (
+	// EffectivePolicyTypeTagPolicy is a EffectivePolicyType enum value
+	EffectivePolicyTypeTagPolicy = "TAG_POLICY"
 )
 
 const (
@@ -16296,6 +19559,9 @@ const (
 	// InvalidInputExceptionReasonInvalidEnum is a InvalidInputExceptionReason enum value
 	InvalidInputExceptionReasonInvalidEnum = "INVALID_ENUM"
 
+	// InvalidInputExceptionReasonInvalidEnumPolicyType is a InvalidInputExceptionReason enum value
+	InvalidInputExceptionReasonInvalidEnumPolicyType = "INVALID_ENUM_POLICY_TYPE"
+
 	// InvalidInputExceptionReasonInvalidListMember is a InvalidInputExceptionReason enum value
 	InvalidInputExceptionReasonInvalidListMember = "INVALID_LIST_MEMBER"
 
@@ -16343,6 +19609,9 @@ const (
 
 	// InvalidInputExceptionReasonInvalidSystemTagsParameter is a InvalidInputExceptionReason enum value
 	InvalidInputExceptionReasonInvalidSystemTagsParameter = "INVALID_SYSTEM_TAGS_PARAMETER"
+
+	// InvalidInputExceptionReasonTargetNotSupported is a InvalidInputExceptionReason enum value
+	InvalidInputExceptionReasonTargetNotSupported = "TARGET_NOT_SUPPORTED"
 )
 
 const (
@@ -16364,6 +19633,9 @@ const (
 const (
 	// PolicyTypeServiceControlPolicy is a PolicyType enum value
 	PolicyTypeServiceControlPolicy = "SERVICE_CONTROL_POLICY"
+
+	// PolicyTypeTagPolicy is a PolicyType enum value
+	PolicyTypeTagPolicy = "TAG_POLICY"
 )
 
 const (

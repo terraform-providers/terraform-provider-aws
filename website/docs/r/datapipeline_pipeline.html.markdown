@@ -1,4 +1,5 @@
 ---
+subcategory: "DataPipeline"
 layout: "aws"
 page_title: "AWS: aws_datapipeline_pipeline"
 description: |-
@@ -13,7 +14,7 @@ Provides a Data Pipeline resource.
 
 ```hcl
 resource "aws_datapipeline_pipeline" "default" {
-	name      	= "tf-pipeline-default"
+  name = "tf-pipeline-default"
 }
 ```
 

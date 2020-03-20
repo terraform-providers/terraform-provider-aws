@@ -2,6 +2,10 @@
 
 package opsworks
 
+import (
+	"github.com/aws/aws-sdk-go/private/protocol"
+)
+
 const (
 
 	// ErrCodeResourceNotFoundException for service response error code
@@ -16,3 +20,8 @@ const (
 	// Indicates that a request was not valid.
 	ErrCodeValidationException = "ValidationException"
 )
+
+var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
+	"ResourceNotFoundException": newErrorResourceNotFoundException,
+	"ValidationException":       newErrorValidationException,
+}

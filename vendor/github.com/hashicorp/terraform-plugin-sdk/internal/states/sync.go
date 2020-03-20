@@ -48,17 +48,6 @@ func (s *SyncState) Module(addr addrs.ModuleInstance) *Module {
 	return ret
 }
 
-// RemoveModule removes the entire state for the given module, taking with
-// it any resources associated with the module. This should generally be
-// called only for modules whose resources have all been destroyed, but
-// that is not enforced by this method.
-func (s *SyncState) RemoveModule(addr addrs.ModuleInstance) {
-	s.lock.Lock()
-	defer s.lock.Unlock()
-
-	s.state.RemoveModule(addr)
-}
-
 // OutputValue returns a snapshot of the state of the output value with the
 // given address, or nil if no such output value is tracked.
 //
@@ -191,20 +180,6 @@ func (s *SyncState) SetResourceMeta(addr addrs.AbsResource, eachMode EachMode, p
 
 	ms := s.state.EnsureModule(addr.Module)
 	ms.SetResourceMeta(addr.Resource, eachMode, provider)
-}
-
-// RemoveResource removes the entire state for the given resource, taking with
-// it any instances associated with the resource. This should generally be
-// called only for resource objects whose instances have all been destroyed,
-// but that is not enforced by this method. (Use RemoveResourceIfEmpty instead
-// to safely check first.)
-func (s *SyncState) RemoveResource(addr addrs.AbsResource) {
-	s.lock.Lock()
-	defer s.lock.Unlock()
-
-	ms := s.state.EnsureModule(addr.Module)
-	ms.RemoveResource(addr.Resource)
-	s.maybePruneModule(addr.Module)
 }
 
 // RemoveResourceIfEmpty is similar to RemoveResource but first checks to
@@ -385,34 +360,6 @@ func (s *SyncState) DeposeResourceInstanceObjectForceKey(addr addrs.AbsResourceI
 	}
 
 	ms.deposeResourceInstanceObject(addr.Resource, forcedKey)
-}
-
-// ForgetResourceInstanceAll removes the record of all objects associated with
-// the specified resource instance, if present. If not present, this is a no-op.
-func (s *SyncState) ForgetResourceInstanceAll(addr addrs.AbsResourceInstance) {
-	s.lock.Lock()
-	defer s.lock.Unlock()
-
-	ms := s.state.Module(addr.Module)
-	if ms == nil {
-		return
-	}
-	ms.ForgetResourceInstanceAll(addr.Resource)
-	s.maybePruneModule(addr.Module)
-}
-
-// ForgetResourceInstanceDeposed removes the record of the deposed object with
-// the given address and key, if present. If not present, this is a no-op.
-func (s *SyncState) ForgetResourceInstanceDeposed(addr addrs.AbsResourceInstance, key DeposedKey) {
-	s.lock.Lock()
-	defer s.lock.Unlock()
-
-	ms := s.state.Module(addr.Module)
-	if ms == nil {
-		return
-	}
-	ms.ForgetResourceInstanceDeposed(addr.Resource, key)
-	s.maybePruneModule(addr.Module)
 }
 
 // MaybeRestoreResourceInstanceDeposed will restore the deposed object with the

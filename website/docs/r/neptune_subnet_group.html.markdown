@@ -1,4 +1,5 @@
 ---
+subcategory: "Neptune"
 layout: "aws"
 page_title: "AWS: aws_neptune_subnet_group"
 description: |-

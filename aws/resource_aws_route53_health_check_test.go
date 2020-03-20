@@ -10,35 +10,75 @@ import (
 )
 
 func TestAccAWSRoute53HealthCheck_basic(t *testing.T) {
+	resourceName := "aws_route53_health_check.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
-		IDRefreshName: "aws_route53_health_check.foo",
+		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckRoute53HealthCheckDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccRoute53HealthCheckConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckRoute53HealthCheckExists("aws_route53_health_check.foo"),
-					resource.TestCheckResourceAttr(
-						"aws_route53_health_check.foo", "measure_latency", "true"),
-					resource.TestCheckResourceAttr(
-						"aws_route53_health_check.foo", "invert_healthcheck", "true"),
+					testAccCheckRoute53HealthCheckExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "measure_latency", "true"),
+					resource.TestCheckResourceAttr(resourceName, "invert_healthcheck", "true"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 				),
 			},
 			{
-				ResourceName:      "aws_route53_health_check.foo",
+				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
 			{
 				Config: testAccRoute53HealthCheckConfigUpdate,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckRoute53HealthCheckExists("aws_route53_health_check.foo"),
-					resource.TestCheckResourceAttr(
-						"aws_route53_health_check.foo", "failure_threshold", "5"),
-					resource.TestCheckResourceAttr(
-						"aws_route53_health_check.foo", "invert_healthcheck", "false"),
+					testAccCheckRoute53HealthCheckExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "failure_threshold", "5"),
+					resource.TestCheckResourceAttr(resourceName, "invert_healthcheck", "false"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSRoute53HealthCheck_tags(t *testing.T) {
+	resourceName := "aws_route53_health_check.test"
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:      func() { testAccPreCheck(t) },
+		IDRefreshName: resourceName,
+		Providers:     testAccProviders,
+		CheckDestroy:  testAccCheckRoute53HealthCheckDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRoute53HealthCheckConfigTags1("key1", "value1"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckRoute53HealthCheckExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccRoute53HealthCheckConfigTags2("key1", "value1updated", "key2", "value2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckRoute53HealthCheckExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1updated"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
+				),
+			},
+			{
+				Config: testAccRoute53HealthCheckConfigTags1("key2", "value2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckRoute53HealthCheckExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
 				),
 			},
 		},
@@ -46,35 +86,32 @@ func TestAccAWSRoute53HealthCheck_basic(t *testing.T) {
 }
 
 func TestAccAWSRoute53HealthCheck_withSearchString(t *testing.T) {
+	resourceName := "aws_route53_health_check.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
-		IDRefreshName: "aws_route53_health_check.foo",
+		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckRoute53HealthCheckDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccRoute53HealthCheckConfigWithSearchString,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckRoute53HealthCheckExists("aws_route53_health_check.foo"),
-					resource.TestCheckResourceAttr(
-						"aws_route53_health_check.foo", "invert_healthcheck", "false"),
-					resource.TestCheckResourceAttr(
-						"aws_route53_health_check.foo", "search_string", "OK"),
+					testAccCheckRoute53HealthCheckExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "invert_healthcheck", "false"),
+					resource.TestCheckResourceAttr(resourceName, "search_string", "OK"),
 				),
 			},
 			{
-				ResourceName:      "aws_route53_health_check.foo",
+				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
 			{
 				Config: testAccRoute53HealthCheckConfigWithSearchStringUpdate,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckRoute53HealthCheckExists("aws_route53_health_check.foo"),
-					resource.TestCheckResourceAttr(
-						"aws_route53_health_check.foo", "invert_healthcheck", "true"),
-					resource.TestCheckResourceAttr(
-						"aws_route53_health_check.foo", "search_string", "FAILED"),
+					testAccCheckRoute53HealthCheckExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "invert_healthcheck", "true"),
+					resource.TestCheckResourceAttr(resourceName, "search_string", "FAILED"),
 				),
 			},
 		},
@@ -82,6 +119,7 @@ func TestAccAWSRoute53HealthCheck_withSearchString(t *testing.T) {
 }
 
 func TestAccAWSRoute53HealthCheck_withChildHealthChecks(t *testing.T) {
+	resourceName := "aws_route53_health_check.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -90,11 +128,11 @@ func TestAccAWSRoute53HealthCheck_withChildHealthChecks(t *testing.T) {
 			{
 				Config: testAccRoute53HealthCheckConfig_withChildHealthChecks,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckRoute53HealthCheckExists("aws_route53_health_check.foo"),
+					testAccCheckRoute53HealthCheckExists(resourceName),
 				),
 			},
 			{
-				ResourceName:      "aws_route53_health_check.foo",
+				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -103,6 +141,7 @@ func TestAccAWSRoute53HealthCheck_withChildHealthChecks(t *testing.T) {
 }
 
 func TestAccAWSRoute53HealthCheck_withHealthCheckRegions(t *testing.T) {
+	resourceName := "aws_route53_health_check.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -111,13 +150,12 @@ func TestAccAWSRoute53HealthCheck_withHealthCheckRegions(t *testing.T) {
 			{
 				Config: testAccRoute53HealthCheckConfig_withHealthCheckRegions,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckRoute53HealthCheckExists("aws_route53_health_check.foo"),
-					resource.TestCheckResourceAttr(
-						"aws_route53_health_check.foo", "regions.#", "3"),
+					testAccCheckRoute53HealthCheckExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "regions.#", "3"),
 				),
 			},
 			{
-				ResourceName:      "aws_route53_health_check.foo",
+				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -126,6 +164,7 @@ func TestAccAWSRoute53HealthCheck_withHealthCheckRegions(t *testing.T) {
 }
 
 func TestAccAWSRoute53HealthCheck_IpConfig(t *testing.T) {
+	resourceName := "aws_route53_health_check.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -134,11 +173,11 @@ func TestAccAWSRoute53HealthCheck_IpConfig(t *testing.T) {
 			{
 				Config: testAccRoute53HealthCheckIpConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckRoute53HealthCheckExists("aws_route53_health_check.bar"),
+					testAccCheckRoute53HealthCheckExists(resourceName),
 				),
 			},
 			{
-				ResourceName:      "aws_route53_health_check.bar",
+				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -147,6 +186,7 @@ func TestAccAWSRoute53HealthCheck_IpConfig(t *testing.T) {
 }
 
 func TestAccAWSRoute53HealthCheck_CloudWatchAlarmCheck(t *testing.T) {
+	resourceName := "aws_route53_health_check.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -155,13 +195,12 @@ func TestAccAWSRoute53HealthCheck_CloudWatchAlarmCheck(t *testing.T) {
 			{
 				Config: testAccRoute53HealthCheckCloudWatchAlarm,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckRoute53HealthCheckExists("aws_route53_health_check.foo"),
-					resource.TestCheckResourceAttr(
-						"aws_route53_health_check.foo", "cloudwatch_alarm_name", "cloudwatch-healthcheck-alarm"),
+					testAccCheckRoute53HealthCheckExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "cloudwatch_alarm_name", "cloudwatch-healthcheck-alarm"),
 				),
 			},
 			{
-				ResourceName:      "aws_route53_health_check.foo",
+				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -170,39 +209,37 @@ func TestAccAWSRoute53HealthCheck_CloudWatchAlarmCheck(t *testing.T) {
 }
 
 func TestAccAWSRoute53HealthCheck_withSNI(t *testing.T) {
+	resourceName := "aws_route53_health_check.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
-		IDRefreshName: "aws_route53_health_check.foo",
+		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckRoute53HealthCheckDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccRoute53HealthCheckConfigWithoutSNI,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckRoute53HealthCheckExists("aws_route53_health_check.foo"),
-					resource.TestCheckResourceAttr(
-						"aws_route53_health_check.foo", "enable_sni", "true"),
+					testAccCheckRoute53HealthCheckExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "enable_sni", "true"),
 				),
 			},
 			{
-				ResourceName:      "aws_route53_health_check.foo",
+				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
 			{
 				Config: testAccRoute53HealthCheckConfigWithSNIDisabled,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckRoute53HealthCheckExists("aws_route53_health_check.foo"),
-					resource.TestCheckResourceAttr(
-						"aws_route53_health_check.foo", "enable_sni", "false"),
+					testAccCheckRoute53HealthCheckExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "enable_sni", "false"),
 				),
 			},
 			{
 				Config: testAccRoute53HealthCheckConfigWithSNI,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckRoute53HealthCheckExists("aws_route53_health_check.foo"),
-					resource.TestCheckResourceAttr(
-						"aws_route53_health_check.foo", "enable_sni", "true"),
+					testAccCheckRoute53HealthCheckExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "enable_sni", "true"),
 				),
 			},
 		},
@@ -270,7 +307,21 @@ func testAccCheckRoute53HealthCheckExists(n string) resource.TestCheckFunc {
 }
 
 const testAccRoute53HealthCheckConfig = `
-resource "aws_route53_health_check" "foo" {
+resource "aws_route53_health_check" "test" {
+  fqdn = "dev.notexample.com"
+  port = 80
+  type = "HTTP"
+  resource_path = "/"
+  failure_threshold = "2"
+  request_interval = "30"
+  measure_latency = true
+  invert_healthcheck = true
+}
+`
+
+func testAccRoute53HealthCheckConfigTags1(tag1Key, tag1Value string) string {
+	return fmt.Sprintf(`
+resource "aws_route53_health_check" "test" {
   fqdn = "dev.notexample.com"
   port = 80
   type = "HTTP"
@@ -281,13 +332,34 @@ resource "aws_route53_health_check" "foo" {
   invert_healthcheck = true
 
   tags = {
-    Name = "tf-test-health-check"
-   }
+    %[1]q = %[2]q
+  }
 }
-`
+`, tag1Key, tag1Value)
+}
+
+func testAccRoute53HealthCheckConfigTags2(tag1Key, tag1Value, tagKey2, tagValue2 string) string {
+	return fmt.Sprintf(`
+resource "aws_route53_health_check" "test" {
+  fqdn = "dev.notexample.com"
+  port = 80
+  type = "HTTP"
+  resource_path = "/"
+  failure_threshold = "2"
+  request_interval = "30"
+  measure_latency = true
+  invert_healthcheck = true
+
+  tags = {
+    %[1]q = %[2]q
+    %[3]q = %[4]q
+  }
+}
+`, tag1Key, tag1Value, tagKey2, tagValue2)
+}
 
 const testAccRoute53HealthCheckConfigUpdate = `
-resource "aws_route53_health_check" "foo" {
+resource "aws_route53_health_check" "test" {
   fqdn = "dev.notexample.com"
   port = 80
   type = "HTTP"
@@ -296,15 +368,11 @@ resource "aws_route53_health_check" "foo" {
   request_interval = "30"
   measure_latency = true
   invert_healthcheck = false
-
-  tags = {
-    Name = "tf-test-health-check"
-   }
 }
 `
 
 const testAccRoute53HealthCheckIpConfig = `
-resource "aws_route53_health_check" "bar" {
+resource "aws_route53_health_check" "test" {
   ip_address = "1.2.3.4"
   port = 80
   type = "HTTP"
@@ -328,7 +396,7 @@ resource "aws_route53_health_check" "child1" {
   request_interval = "30"
 }
 
-resource "aws_route53_health_check" "foo" {
+resource "aws_route53_health_check" "test" {
   type = "CALCULATED"
   child_health_threshold = 1
   child_healthchecks = ["${aws_route53_health_check.child1.id}"]
@@ -340,7 +408,7 @@ resource "aws_route53_health_check" "foo" {
 `
 
 const testAccRoute53HealthCheckConfig_withHealthCheckRegions = `
-resource "aws_route53_health_check" "foo" {
+resource "aws_route53_health_check" "test" {
   ip_address = "1.2.3.4"
   port = 80
   type = "HTTP"
@@ -357,7 +425,7 @@ resource "aws_route53_health_check" "foo" {
 `
 
 const testAccRoute53HealthCheckCloudWatchAlarm = `
-resource "aws_cloudwatch_metric_alarm" "foobar" {
+resource "aws_cloudwatch_metric_alarm" "test" {
     alarm_name = "cloudwatch-healthcheck-alarm"
     comparison_operator = "GreaterThanOrEqualToThreshold"
     evaluation_periods = "2"
@@ -369,16 +437,16 @@ resource "aws_cloudwatch_metric_alarm" "foobar" {
     alarm_description = "This metric monitors ec2 cpu utilization"
 }
 
-resource "aws_route53_health_check" "foo" {
+resource "aws_route53_health_check" "test" {
   type = "CLOUDWATCH_METRIC"
-  cloudwatch_alarm_name = "${aws_cloudwatch_metric_alarm.foobar.alarm_name}"
+  cloudwatch_alarm_name = "${aws_cloudwatch_metric_alarm.test.alarm_name}"
   cloudwatch_alarm_region = "us-west-2"
   insufficient_data_health_status = "Healthy"
 }
 `
 
 const testAccRoute53HealthCheckConfigWithSearchString = `
-resource "aws_route53_health_check" "foo" {
+resource "aws_route53_health_check" "test" {
   fqdn = "dev.notexample.com"
   port = 80
   type = "HTTP_STR_MATCH"
@@ -396,7 +464,7 @@ resource "aws_route53_health_check" "foo" {
 `
 
 const testAccRoute53HealthCheckConfigWithSearchStringUpdate = `
-resource "aws_route53_health_check" "foo" {
+resource "aws_route53_health_check" "test" {
   fqdn = "dev.notexample.com"
   port = 80
   type = "HTTP_STR_MATCH"
@@ -414,7 +482,7 @@ resource "aws_route53_health_check" "foo" {
 `
 
 const testAccRoute53HealthCheckConfigWithoutSNI = `
-resource "aws_route53_health_check" "foo" {
+resource "aws_route53_health_check" "test" {
   fqdn = "dev.notexample.com"
   port = 443
   type = "HTTPS"
@@ -431,7 +499,7 @@ resource "aws_route53_health_check" "foo" {
 `
 
 const testAccRoute53HealthCheckConfigWithSNI = `
-resource "aws_route53_health_check" "foo" {
+resource "aws_route53_health_check" "test" {
 	fqdn = "dev.notexample.com"
   port = 443
   type = "HTTPS"
@@ -449,7 +517,7 @@ resource "aws_route53_health_check" "foo" {
 `
 
 const testAccRoute53HealthCheckConfigWithSNIDisabled = `
-resource "aws_route53_health_check" "foo" {
+resource "aws_route53_health_check" "test" {
 	fqdn = "dev.notexample.com"
   port = 443
   type = "HTTPS"

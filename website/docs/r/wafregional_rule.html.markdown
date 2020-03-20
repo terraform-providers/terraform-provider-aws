@@ -1,4 +1,5 @@
 ---
+subcategory: "WAF Regional"
 layout: "aws"
 page_title: "AWS: aws_wafregional_rule"
 description: |-
@@ -40,6 +41,7 @@ The following arguments are supported:
 * `name` - (Required) The name or description of the rule.
 * `metric_name` - (Required) The name or description for the Amazon CloudWatch metric of this rule.
 * `predicate` - (Optional) The objects to include in a rule (documented below).
+* `tags` - (Optional) Key-value mapping of resource tags
 
 ## Nested Fields
 
@@ -60,6 +62,7 @@ See the [WAF Documentation](https://docs.aws.amazon.com/waf/latest/APIReference/
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the WAF Regional Rule.
+* `arn` - The ARN of the WAF Regional Rule.
 
 ## Import
 

@@ -1,4 +1,5 @@
 ---
+subcategory: "GuardDuty"
 layout: "aws"
 page_title: "AWS: aws_guardduty_detector"
 description: |-

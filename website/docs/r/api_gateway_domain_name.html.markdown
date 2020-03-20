@@ -1,4 +1,5 @@
 ---
+subcategory: "API Gateway (REST APIs)"
 layout: "aws"
 page_title: "AWS: aws_api_gateway_domain_name"
 description: |-
@@ -27,6 +28,12 @@ given domain name which is an alias (either Route53 alias or traditional CNAME) 
 the `regional_domain_name` attribute.
 
 ~> **Note:** API Gateway requires the use of AWS Certificate Manager (ACM) certificates instead of Identity and Access Management (IAM) certificates in regions that support ACM. Regions that support ACM can be found in the [Regions and Endpoints Documentation](https://docs.aws.amazon.com/general/latest/gr/rande.html#acm_region). To import an existing private key and certificate into ACM or request an ACM certificate, see the [`aws_acm_certificate` resource](/docs/providers/aws/r/acm_certificate.html).
+
+~> **Note:** The `aws_api_gateway_domain_name` resource expects dependency on the `aws_acm_certificate_validation` as 
+only verified certificates can be used. This can be made either explicitly by adding the 
+`depends_on = [aws_acm_certificate_validation.cert]` attribute. Or implicitly by referring certificate ARN 
+from the validation resource where it will be available after the resource creation: 
+`regional_certificate_arn = aws_acm_certificate_validation.cert.certificate_arn`.
 
 ~> **Note:** All arguments including the private key will be stored in the raw state as plain-text.
 [Read more about sensitive data in state](/docs/state/sensitive-data.html).
@@ -148,6 +155,7 @@ The following arguments are supported:
 * `domain_name` - (Required) The fully-qualified domain name to register
 * `endpoint_configuration` - (Optional) Configuration block defining API endpoint information including type. Defined below.
 * `security_policy` - (Optional) The Transport Layer Security (TLS) version + cipher suite for this DomainName. The valid values are `TLS_1_0` and `TLS_1_2`. Must be configured to perform drift detection.
+* `tags` - (Optional) Key-value mapping of resource tags
 
 When referencing an AWS-managed certificate, the following arguments are supported:
 
@@ -187,6 +195,7 @@ In addition to the arguments, the following attributes are exported:
   that can be used to create a Route53 alias record for the distribution.
 * `regional_domain_name` - The hostname for the custom domain's regional endpoint.
 * `regional_zone_id` - The hosted zone ID that can be used to create a Route53 alias record for the regional endpoint.
+* `arn` - Amazon Resource Name (ARN)
 
 ## Import
 

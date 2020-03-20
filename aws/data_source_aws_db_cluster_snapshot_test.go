@@ -38,6 +38,7 @@ func TestAccAWSDbClusterSnapshotDataSource_DbClusterSnapshotIdentifier(t *testin
 					resource.TestCheckResourceAttrPair(dataSourceName, "status", resourceName, "status"),
 					resource.TestCheckResourceAttrPair(dataSourceName, "storage_encrypted", resourceName, "storage_encrypted"),
 					resource.TestCheckResourceAttrPair(dataSourceName, "vpc_id", resourceName, "vpc_id"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "tags", resourceName, "tags"),
 				),
 			},
 		},
@@ -73,6 +74,7 @@ func TestAccAWSDbClusterSnapshotDataSource_DbClusterIdentifier(t *testing.T) {
 					resource.TestCheckResourceAttrPair(dataSourceName, "status", resourceName, "status"),
 					resource.TestCheckResourceAttrPair(dataSourceName, "storage_encrypted", resourceName, "storage_encrypted"),
 					resource.TestCheckResourceAttrPair(dataSourceName, "vpc_id", resourceName, "vpc_id"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "tags", resourceName, "tags"),
 				),
 			},
 		},
@@ -154,12 +156,15 @@ resource "aws_rds_cluster" "test" {
 resource "aws_db_cluster_snapshot" "test" {
   db_cluster_identifier          = "${aws_rds_cluster.test.id}"
   db_cluster_snapshot_identifier = %q
+  tags = {
+    Name = %q
+  }
 }
 
 data "aws_db_cluster_snapshot" "test" {
   db_cluster_snapshot_identifier = "${aws_db_cluster_snapshot.test.id}"
 }
-`, rName, rName, rName, rName, rName)
+`, rName, rName, rName, rName, rName, rName)
 }
 
 func testAccCheckAwsDbClusterSnapshotDataSourceConfig_DbClusterIdentifier(rName string) string {
@@ -202,12 +207,15 @@ resource "aws_rds_cluster" "test" {
 resource "aws_db_cluster_snapshot" "test" {
   db_cluster_identifier          = "${aws_rds_cluster.test.id}"
   db_cluster_snapshot_identifier = %q
+  tags = {
+    Name = %q
+  }
 }
 
 data "aws_db_cluster_snapshot" "test" {
   db_cluster_identifier = "${aws_db_cluster_snapshot.test.db_cluster_identifier}"
 }
-`, rName, rName, rName, rName, rName)
+`, rName, rName, rName, rName, rName, rName)
 }
 
 func testAccCheckAwsDbClusterSnapshotDataSourceConfig_MostRecent(rName string) string {

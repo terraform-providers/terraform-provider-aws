@@ -1,4 +1,5 @@
 ---
+subcategory: "SNS"
 layout: "aws"
 page_title: "AWS: aws_sns_topic"
 description: |-

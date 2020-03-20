@@ -2,6 +2,7 @@ package aws
 
 import (
 	"log"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/emr"
@@ -93,7 +94,7 @@ func resourceAwsEmrSecurityConfigurationRead(d *schema.ResourceData, meta interf
 		return err
 	}
 
-	d.Set("creation_date", resp.CreationDateTime)
+	d.Set("creation_date", aws.TimeValue(resp.CreationDateTime).Format(time.RFC3339))
 	d.Set("name", resp.Name)
 	d.Set("configuration", resp.SecurityConfiguration)
 

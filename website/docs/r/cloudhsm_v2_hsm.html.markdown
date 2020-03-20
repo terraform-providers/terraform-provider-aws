@@ -1,4 +1,5 @@
 ---
+subcategory: "CloudHSM v2"
 layout: "aws"
 page_title: "AWS: aws_cloudhsm_v2_hsm"
 description: |-
@@ -23,6 +24,7 @@ resource "aws_cloudhsm_v2_hsm" "cloudhsm_v2_hsm" {
   cluster_id = "${data.aws_cloudhsm_v2_cluster.cluster.cluster_id}"
 }
 ```
+
 ## Argument Reference
 
 The following arguments are supported:

@@ -1,4 +1,5 @@
 ---
+subcategory: "Inspector"
 layout: "aws"
 page_title: "AWS: aws_inspector_rules_packages"
 description: |-

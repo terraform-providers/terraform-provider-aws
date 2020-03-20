@@ -22,7 +22,6 @@ func dataSourceAwsEksCluster() *schema.Resource {
 			},
 			"certificate_authority": {
 				Type:     schema.TypeList,
-				MaxItems: 1,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -88,10 +87,13 @@ func dataSourceAwsEksCluster() *schema.Resource {
 			"tags": tagsSchemaComputed(),
 			"vpc_config": {
 				Type:     schema.TypeList,
-				MaxItems: 1,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						"cluster_security_group_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 						"endpoint_private_access": {
 							Type:     schema.TypeBool,
 							Computed: true,
@@ -106,6 +108,11 @@ func dataSourceAwsEksCluster() *schema.Resource {
 							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
 						"subnet_ids": {
+							Type:     schema.TypeSet,
+							Computed: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
+						"public_access_cidrs": {
 							Type:     schema.TypeSet,
 							Computed: true,
 							Elem:     &schema.Schema{Type: schema.TypeString},

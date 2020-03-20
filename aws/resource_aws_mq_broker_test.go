@@ -644,7 +644,7 @@ func TestAccAWSMqBroker_updateTags(t *testing.T) {
 					resource.TestCheckResourceAttr("aws_mq_broker.test", "tags.env", "test"),
 				),
 			},
-			// Adding new user + modify existing
+			// Modify existing tags
 			{
 				Config: testAccMqBrokerConfig_updateTags2(sgName, brokerName),
 				Check: resource.ComposeTestCheckFunc(
@@ -654,13 +654,52 @@ func TestAccAWSMqBroker_updateTags(t *testing.T) {
 					resource.TestCheckResourceAttr("aws_mq_broker.test", "tags.role", "test-role"),
 				),
 			},
-			// Deleting user + modify existing
+			// Deleting tags
 			{
 				Config: testAccMqBrokerConfig_updateTags3(sgName, brokerName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsMqBrokerExists("aws_mq_broker.test"),
 					resource.TestCheckResourceAttr("aws_mq_broker.test", "tags.%", "1"),
 					resource.TestCheckResourceAttr("aws_mq_broker.test", "tags.role", "test-role"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSMqBroker_updateSecurityGroup(t *testing.T) {
+	sgName := fmt.Sprintf("tf-acc-test-%s", acctest.RandString(5))
+	brokerName := fmt.Sprintf("tf-acc-test-%s", acctest.RandString(5))
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSMq(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAwsMqBrokerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMqBrokerConfig(sgName, brokerName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsMqBrokerExists("aws_mq_broker.test"),
+					resource.TestCheckResourceAttr("aws_mq_broker.test", "security_groups.#", "1"),
+				),
+			},
+			{
+				Config: testAccMqBrokerConfig_updateSecurityGroups(sgName, brokerName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsMqBrokerExists("aws_mq_broker.test"),
+					resource.TestCheckResourceAttr("aws_mq_broker.test", "security_groups.#", "2"),
+				),
+			},
+			// Trigger a reboot and ensure the password change was applied
+			// User hashcode can be retrieved by calling resourceAwsMqUserHash
+			{
+				Config: testAccMqBrokerConfig_updateUsersSecurityGroups(sgName, brokerName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsMqBrokerExists("aws_mq_broker.test"),
+					resource.TestCheckResourceAttr("aws_mq_broker.test", "security_groups.#", "1"),
+					resource.TestCheckResourceAttr("aws_mq_broker.test", "user.#", "1"),
+					resource.TestCheckResourceAttr("aws_mq_broker.test", "user.2209734970.username", "Test"),
+					resource.TestCheckResourceAttr("aws_mq_broker.test", "user.2209734970.password", "TestTest9999"),
 				),
 			},
 		},
@@ -1127,4 +1166,64 @@ resource "aws_mq_broker" "test" {
   }
 }
 `, sgName, brokerName)
+}
+
+func testAccMqBrokerConfig_updateSecurityGroups(sgName, brokerName string) string {
+	return fmt.Sprintf(`
+resource "aws_security_group" "test" {
+  name = "%s"
+}
+
+resource "aws_security_group" "test2" {
+  name = "%s-2"
+}
+
+resource "aws_mq_broker" "test" {
+  apply_immediately  = true
+  broker_name        = "%s"
+  engine_type        = "ActiveMQ"
+  engine_version     = "5.15.0"
+  host_instance_type = "mq.t2.micro"
+  security_groups    = ["${aws_security_group.test.id}", "${aws_security_group.test2.id}"]
+
+  logs {
+    general = true
+  }
+
+  user {
+    username = "Test"
+    password = "TestTest1234"
+  }
+}
+`, sgName, sgName, brokerName)
+}
+
+func testAccMqBrokerConfig_updateUsersSecurityGroups(sgName, brokerName string) string {
+	return fmt.Sprintf(`
+resource "aws_security_group" "test" {
+  name = "%s"
+}
+
+resource "aws_security_group" "test2" {
+  name = "%s-2"
+}
+
+resource "aws_mq_broker" "test" {
+  apply_immediately  = true
+  broker_name        = "%s"
+  engine_type        = "ActiveMQ"
+  engine_version     = "5.15.0"
+  host_instance_type = "mq.t2.micro"
+  security_groups    = ["${aws_security_group.test2.id}"]
+
+  logs {
+    general = true
+  }
+
+  user {
+    username = "Test"
+    password = "TestTest9999"
+  }
+}
+`, sgName, sgName, brokerName)
 }

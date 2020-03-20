@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsMediaPackageChannel() *schema.Resource {
@@ -79,16 +80,17 @@ func resourceAwsMediaPackageChannelCreate(d *schema.ResourceData, meta interface
 		Description: aws.String(d.Get("description").(string)),
 	}
 
-	if attr, ok := d.GetOk("tags"); ok {
-		input.Tags = tagsFromMapGeneric(attr.(map[string]interface{}))
+	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
+		input.Tags = keyvaluetags.New(v).IgnoreAws().MediapackageTags()
 	}
 
-	_, err := conn.CreateChannel(input)
+	resp, err := conn.CreateChannel(input)
 	if err != nil {
 		return fmt.Errorf("error creating MediaPackage Channel: %s", err)
 	}
 
-	d.SetId(d.Get("channel_id").(string))
+	d.SetId(aws.StringValue(resp.Id))
+
 	return resourceAwsMediaPackageChannelRead(d, meta)
 }
 
@@ -110,7 +112,7 @@ func resourceAwsMediaPackageChannelRead(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("error setting hls_ingest: %s", err)
 	}
 
-	if err := d.Set("tags", tagsToMapGeneric(resp.Tags)); err != nil {
+	if err := d.Set("tags", keyvaluetags.MediapackageKeyValueTags(resp.Tags).IgnoreAws().Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
@@ -130,8 +132,13 @@ func resourceAwsMediaPackageChannelUpdate(d *schema.ResourceData, meta interface
 		return fmt.Errorf("error updating MediaPackage Channel: %s", err)
 	}
 
-	if err := setTagsMediaPackage(conn, d, d.Get("arn").(string)); err != nil {
-		return fmt.Errorf("error updating MediaPackage Channel (%s) tags: %s", d.Id(), err)
+	arn := d.Get("arn").(string)
+	if d.HasChange("tags") {
+		o, n := d.GetChange("tags")
+
+		if err := keyvaluetags.MediapackageUpdateTags(conn, arn, o, n); err != nil {
+			return fmt.Errorf("error updating MediaPackage Channel (%s) tags: %s", arn, err)
+		}
 	}
 
 	return resourceAwsMediaPackageChannelRead(d, meta)

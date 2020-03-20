@@ -1,4 +1,5 @@
 ---
+subcategory: "Managed Streaming for Kafka (MSK)"
 layout: "aws"
 page_title: "AWS: aws_msk_cluster"
 description: |-
@@ -53,18 +54,29 @@ resource "aws_msk_cluster" "example" {
   number_of_broker_nodes = 3
 
   broker_node_group_info {
-    instance_type  = "kafka.m5.large"
-    ebs_volume_size = "1000"
+    instance_type   = "kafka.m5.large"
+    ebs_volume_size = 1000
     client_subnets = [
       "${aws_subnet.subnet_az1.id}",
       "${aws_subnet.subnet_az2.id}",
       "${aws_subnet.subnet_az3.id}",
     ]
-    security_groups = [ "${aws_security_group.sg.id}" ]
+    security_groups = ["${aws_security_group.sg.id}"]
   }
 
   encryption_info {
     encryption_at_rest_kms_key_arn = "${aws_kms_key.kms.arn}"
+  }
+
+  open_monitoring {
+    prometheus {
+      jmx_exporter {
+        enabled_in_broker = true
+      }
+      node_exporter {
+        enabled_in_broker = true
+      }
+    }
   }
 
   tags = {
@@ -99,6 +111,7 @@ The following arguments are supported:
 * `configuration_info` - (Optional) Configuration block for specifying a MSK Configuration to attach to Kafka brokers. See below.
 * `encryption_info` - (Optional) Configuration block for specifying encryption. See below.
 * `enhanced_monitoring` - (Optional) Specify the desired enhanced MSK CloudWatch monitoring level.  See [Monitoring Amazon MSK with Amazon CloudWatch](https://docs.aws.amazon.com/msk/latest/developerguide/monitoring.html)
+* `open_monitoring` - (Optional) Configuration block for JMX and Node monitoring for the MSK cluster. See below.
 * `tags` - (Optional) A mapping of tags to assign to the resource
 
 ### broker_node_group_info Argument Reference
@@ -129,8 +142,25 @@ The following arguments are supported:
 
 #### encryption_info encryption_in_transit Argument Reference
 
-* `client_broker` - (Optional) Encryption setting for data in transit between clients and brokers. Valid values: `TLS`, `TLS_PLAINTEXT`, and `PLAINTEXT`. Default value: `TLS_PLAINTEXT`.
+* `client_broker` - (Optional) Encryption setting for data in transit between clients and brokers. Valid values: `TLS`, `TLS_PLAINTEXT`, and `PLAINTEXT`. Default value is `TLS_PLAINTEXT` when `encryption_in_transit` block defined, but `TLS` when `encryption_in_transit` block omitted.
 * `in_cluster` - (Optional) Whether data communication among broker nodes is encrypted. Default value: `true`.
+
+#### open_monitoring Argument Reference
+
+* `prometheus` - (Required) Configuration block for Prometheus settings for open monitoring. See below.
+
+#### open_monitoring prometheus Argument Reference
+
+* `jmx_exporter` - (Optional) Configuration block for JMX Exporter. See below.
+* `node_exporter` - (Optional) Configuration block for Node Exporter. See below.
+
+#### open_monitoring prometheus jmx_exporter Argument Reference
+
+* `enabled_in_broker` - (Required) Indicates whether you want to enable or disable the JMX Exporter. 
+
+#### open_monitoring prometheus node_exporter Argument Reference
+
+* `enabled_in_broker` - (Required) Indicates whether you want to enable or disable the Node Exporter.
 
 ## Attributes Reference
 
@@ -141,7 +171,7 @@ In addition to all arguments above, the following attributes are exported:
 * `bootstrap_brokers_tls` - A comma separated list of one or more DNS names (or IPs) and TLS port pairs kafka brokers suitable to boostrap connectivity to the kafka cluster. Only contains value if `client_broker` encryption in transit is set to `TLS_PLAINTEXT` or `TLS`.
 * `current_version` - Current version of the MSK Cluster used for updates, e.g. `K13V1IB3VIYZZH`
 * `encryption_info.0.encryption_at_rest_kms_key_arn` - The ARN of the KMS key used for encryption at rest of the broker data volumes.
-* `zookeeper_connect_string` - A comma separated list of one or more IP:port pairs to use to connect to the Apache Zookeeper cluster.
+* `zookeeper_connect_string` - A comma separated list of one or more hostname:port pairs to use to connect to the Apache Zookeeper cluster.
 
 ## Import
 

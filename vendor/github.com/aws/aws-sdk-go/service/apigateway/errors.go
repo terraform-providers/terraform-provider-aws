@@ -2,6 +2,10 @@
 
 package apigateway
 
+import (
+	"github.com/aws/aws-sdk-go/private/protocol"
+)
+
 const (
 
 	// ErrCodeBadRequestException for service response error code
@@ -50,3 +54,13 @@ const (
 	// The request is denied because the caller has insufficient permissions.
 	ErrCodeUnauthorizedException = "UnauthorizedException"
 )
+
+var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
+	"BadRequestException":         newErrorBadRequestException,
+	"ConflictException":           newErrorConflictException,
+	"LimitExceededException":      newErrorLimitExceededException,
+	"NotFoundException":           newErrorNotFoundException,
+	"ServiceUnavailableException": newErrorServiceUnavailableException,
+	"TooManyRequestsException":    newErrorTooManyRequestsException,
+	"UnauthorizedException":       newErrorUnauthorizedException,
+}

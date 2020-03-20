@@ -672,89 +672,101 @@ func testAccAWSSpotInstanceRequestConfig_withBlockDuration(rInt int) string {
 
 func testAccAWSSpotInstanceRequestConfigVPC(rInt int) string {
 	return fmt.Sprintf(`
-	resource "aws_vpc" "foo_VPC" {
-		cidr_block = "10.1.0.0/16"
+data "aws_availability_zones" "available" {
+	blacklisted_zone_ids = ["usw2-az4"]
+	state                = "available"
+}
+
+resource "aws_vpc" "foo_VPC" {
+	cidr_block = "10.1.0.0/16"
 	tags = {
-			Name = "terraform-testacc-spot-instance-request-vpc"
-		}
+		Name = "terraform-testacc-spot-instance-request-vpc"
 	}
+}
 
-	resource "aws_subnet" "foo_VPC" {
-		cidr_block = "10.1.1.0/24"
-		vpc_id = "${aws_vpc.foo_VPC.id}"
+resource "aws_subnet" "foo_VPC" {
+	availability_zone = "${data.aws_availability_zones.available.names[0]}"
+	cidr_block = "10.1.1.0/24"
+	vpc_id = "${aws_vpc.foo_VPC.id}"
 	tags = {
-			Name = "tf-acc-spot-instance-request-vpc"
-		}
+		Name = "tf-acc-spot-instance-request-vpc"
 	}
+}
 
-	resource "aws_key_pair" "debugging" {
-		key_name = "tmp-key-%d"
-		public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD3F6tyPEFEzV0LX3X8BsXdMsQz1x2cEikKDEY0aIj41qgxMCP/iteneqXSIFZBp5vizPvaoIR3Um9xK7PGoW8giupGn+EPuxIA4cDM4vzOqOkiMPhz5XK0whEjkVzTo4+S0puvDZuwIsdiW9mxhJc7tgBNL0cYlWSYVkz4G/fslNfRPW5mYAM49f4fhtxPb5ok4Q2Lg9dPKVHO/Bgeu5woMc7RY0p1ej6D4CKFE6lymSDJpW0YHX/wqE9+cfEauh7xZcG0q9t2ta6F6fmX0agvpFyZo8aFbXeUBr7osSCJNgvavWbM/06niWrOvYX2xwWdhXmXSrbX8ZbabVohBK41 phodgson@thoughtworks.com"
+resource "aws_key_pair" "debugging" {
+	key_name = "tmp-key-%d"
+	public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD3F6tyPEFEzV0LX3X8BsXdMsQz1x2cEikKDEY0aIj41qgxMCP/iteneqXSIFZBp5vizPvaoIR3Um9xK7PGoW8giupGn+EPuxIA4cDM4vzOqOkiMPhz5XK0whEjkVzTo4+S0puvDZuwIsdiW9mxhJc7tgBNL0cYlWSYVkz4G/fslNfRPW5mYAM49f4fhtxPb5ok4Q2Lg9dPKVHO/Bgeu5woMc7RY0p1ej6D4CKFE6lymSDJpW0YHX/wqE9+cfEauh7xZcG0q9t2ta6F6fmX0agvpFyZo8aFbXeUBr7osSCJNgvavWbM/06niWrOvYX2xwWdhXmXSrbX8ZbabVohBK41 phodgson@thoughtworks.com"
+}
+
+resource "aws_spot_instance_request" "foo_VPC" {
+	ami = "ami-4fccb37f"
+	instance_type = "m1.small"
+	key_name = "${aws_key_pair.debugging.key_name}"
+
+	// base price is $0.044 hourly, so bidding above that should theoretically
+	// always fulfill
+	spot_price = "0.05"
+
+	// VPC settings
+	subnet_id = "${aws_subnet.foo_VPC.id}"
+
+	// we wait for fulfillment because we want to inspect the launched instance
+	// and verify termination behavior
+	wait_for_fulfillment = true
+
+tags = {
+		Name = "terraform-test-VPC"
 	}
-
-	resource "aws_spot_instance_request" "foo_VPC" {
-		ami = "ami-4fccb37f"
-		instance_type = "m1.small"
-		key_name = "${aws_key_pair.debugging.key_name}"
-
-		// base price is $0.044 hourly, so bidding above that should theoretically
-		// always fulfill
-		spot_price = "0.05"
-
-		// VPC settings
-		subnet_id = "${aws_subnet.foo_VPC.id}"
-
-		// we wait for fulfillment because we want to inspect the launched instance
-		// and verify termination behavior
-		wait_for_fulfillment = true
-
-	tags = {
-			Name = "terraform-test-VPC"
-		}
-	}
+}
 `, rInt)
 }
 
 func testAccAWSSpotInstanceRequestConfig_SubnetAndSGAndPublicIpAddress(rInt int) string {
 	return fmt.Sprintf(`
-	resource "aws_spot_instance_request" "foo" {
-		ami                         = "ami-4fccb37f"
-		instance_type               = "m1.small"
-		spot_price                  = "0.05"
-		wait_for_fulfillment        = true
-		subnet_id                   = "${aws_subnet.tf_test_subnet.id}"
-		vpc_security_group_ids      = ["${aws_security_group.tf_test_sg_ssh.id}"]
-	  associate_public_ip_address = true
+data "aws_availability_zones" "available" {
+	blacklisted_zone_ids = ["usw2-az4"]
+	state                = "available"
+}
+
+resource "aws_spot_instance_request" "foo" {
+	ami                         = "ami-4fccb37f"
+	instance_type               = "m1.small"
+	spot_price                  = "0.05"
+	wait_for_fulfillment        = true
+	subnet_id                   = "${aws_subnet.tf_test_subnet.id}"
+	vpc_security_group_ids      = ["${aws_security_group.tf_test_sg_ssh.id}"]
+  associate_public_ip_address = true
+}
+
+resource "aws_vpc" "default" {
+	cidr_block           = "10.0.0.0/16"
+	enable_dns_hostnames = true
+
+tags = {
+		Name = "terraform-testacc-spot-instance-request-subnet-and-sg-public-ip"
 	}
+}
 
-	resource "aws_vpc" "default" {
-		cidr_block           = "10.0.0.0/16"
-		enable_dns_hostnames = true
+resource "aws_subnet" "tf_test_subnet" {
+	availability_zone = "${data.aws_availability_zones.available.names[0]}"
+	vpc_id                  = "${aws_vpc.default.id}"
+	cidr_block              = "10.0.0.0/24"
+	map_public_ip_on_launch = true
 
-	tags = {
-			Name = "terraform-testacc-spot-instance-request-subnet-and-sg-public-ip"
-		}
+tags = {
+		Name = "tf-acc-spot-instance-request-subnet-and-sg-public-ip"
 	}
+}
 
-	resource "aws_subnet" "tf_test_subnet" {
-		vpc_id                  = "${aws_vpc.default.id}"
-		cidr_block              = "10.0.0.0/24"
-		map_public_ip_on_launch = true
+resource "aws_security_group" "tf_test_sg_ssh" {
+	name        = "tf_test_sg_ssh-%d"
+	description = "tf_test_sg_ssh"
+	vpc_id      = "${aws_vpc.default.id}"
 
-	tags = {
-			Name = "tf-acc-spot-instance-request-subnet-and-sg-public-ip"
-		}
+tags = {
+		Name = "tf_test_sg_ssh-%d"
 	}
-
-	resource "aws_security_group" "tf_test_sg_ssh" {
-		name        = "tf_test_sg_ssh-%d"
-		description = "tf_test_sg_ssh"
-		vpc_id      = "${aws_vpc.default.id}"
-
-	tags = {
-			Name = "tf_test_sg_ssh-%d"
-		}
-	}
+}
 `, rInt, rInt)
 }
 

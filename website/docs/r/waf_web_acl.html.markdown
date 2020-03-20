@@ -1,4 +1,5 @@
 ---
+subcategory: "WAF"
 layout: "aws"
 page_title: "AWS: aws_waf_web_acl"
 description: |-
@@ -128,6 +129,7 @@ See [docs](http://docs.aws.amazon.com/waf/latest/APIReference/API_ActivatedRule.
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the WAF WebACL.
+* `arn` - The ARN of the WAF WebACL.
 
 ## Import
 

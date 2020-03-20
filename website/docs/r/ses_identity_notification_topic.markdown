@@ -1,4 +1,5 @@
 ---
+subcategory: "SES"
 layout: "aws"
 page_title: "AWS: aws_ses_identity_notification_topic"
 description: |-

@@ -1,4 +1,5 @@
 ---
+subcategory: "Redshift"
 layout: "aws"
 page_title: "AWS: aws_redshift_snapshot_schedule"
 description: |-
@@ -11,10 +12,10 @@ description: |-
 
 ```hcl
 resource "aws_redshift_snapshot_schedule" "default" {
-	identifier = "tf-redshift-snapshot-schedule"
-	definitions = [
-		"rate(12 hours)",
-	]
+  identifier = "tf-redshift-snapshot-schedule"
+  definitions = [
+    "rate(12 hours)",
+  ]
 }
 ```
 

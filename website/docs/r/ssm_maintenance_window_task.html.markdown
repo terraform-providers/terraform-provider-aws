@@ -1,4 +1,5 @@
 ---
+subcategory: "SSM"
 layout: "aws"
 page_title: "AWS: aws_ssm_maintenance_window_task"
 description: |-

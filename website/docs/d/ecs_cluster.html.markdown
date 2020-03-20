@@ -1,4 +1,5 @@
 ---
+subcategory: "ECS"
 layout: "aws"
 page_title: "AWS: aws_ecs_cluster"
 description: |-

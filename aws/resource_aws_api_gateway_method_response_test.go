@@ -7,12 +7,15 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/apigateway"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
 func TestAccAWSAPIGatewayMethodResponse_basic(t *testing.T) {
 	var conf apigateway.MethodResponse
+	rName := fmt.Sprintf("tf-acc-test-%s", acctest.RandString(10))
+	resourceName := "aws_api_gateway_method_response.error"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -20,32 +23,32 @@ func TestAccAWSAPIGatewayMethodResponse_basic(t *testing.T) {
 		CheckDestroy: testAccCheckAWSAPIGatewayMethodResponseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSAPIGatewayMethodResponseConfig,
+				Config: testAccAWSAPIGatewayMethodResponseConfig(rName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSAPIGatewayMethodResponseExists("aws_api_gateway_method_response.error", &conf),
+					testAccCheckAWSAPIGatewayMethodResponseExists(resourceName, &conf),
 					testAccCheckAWSAPIGatewayMethodResponseAttributes(&conf),
 					resource.TestCheckResourceAttr(
-						"aws_api_gateway_method_response.error", "status_code", "400"),
+						resourceName, "status_code", "400"),
 					resource.TestCheckResourceAttr(
-						"aws_api_gateway_method_response.error", "response_models.application/json", "Error"),
+						resourceName, "response_models.application/json", "Error"),
 				),
 			},
 
 			{
-				Config: testAccAWSAPIGatewayMethodResponseConfigUpdate,
+				Config: testAccAWSAPIGatewayMethodResponseConfigUpdate(rName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSAPIGatewayMethodResponseExists("aws_api_gateway_method_response.error", &conf),
+					testAccCheckAWSAPIGatewayMethodResponseExists(resourceName, &conf),
 					testAccCheckAWSAPIGatewayMethodResponseAttributesUpdate(&conf),
 					resource.TestCheckResourceAttr(
-						"aws_api_gateway_method_response.error", "status_code", "400"),
+						resourceName, "status_code", "400"),
 					resource.TestCheckResourceAttr(
-						"aws_api_gateway_method_response.error", "response_models.application/json", "Empty"),
+						resourceName, "response_models.application/json", "Empty"),
 				),
 			},
 			{
-				ResourceName:      "aws_api_gateway_method_response.error",
+				ResourceName:      resourceName,
 				ImportState:       true,
-				ImportStateIdFunc: testAccAWSAPIGatewayMethodResponseImportStateIdFunc("aws_api_gateway_method_response.error"),
+				ImportStateIdFunc: testAccAWSAPIGatewayMethodResponseImportStateIdFunc(resourceName),
 				ImportStateVerify: true,
 			},
 		},
@@ -105,7 +108,7 @@ func testAccCheckAWSAPIGatewayMethodResponseExists(n string, res *apigateway.Met
 			return fmt.Errorf("No API Gateway Method ID is set")
 		}
 
-		conn := testAccProvider.Meta().(*AWSClient).apigateway
+		conn := testAccProvider.Meta().(*AWSClient).apigatewayconn
 
 		req := &apigateway.GetMethodResponseInput{
 			HttpMethod: aws.String("GET"),
@@ -125,7 +128,7 @@ func testAccCheckAWSAPIGatewayMethodResponseExists(n string, res *apigateway.Met
 }
 
 func testAccCheckAWSAPIGatewayMethodResponseDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*AWSClient).apigateway
+	conn := testAccProvider.Meta().(*AWSClient).apigatewayconn
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "aws_api_gateway_method_response" {
@@ -169,9 +172,10 @@ func testAccAWSAPIGatewayMethodResponseImportStateIdFunc(resourceName string) re
 	}
 }
 
-const testAccAWSAPIGatewayMethodResponseConfig = `
+func testAccAWSAPIGatewayMethodResponseConfig(rName string) string {
+	return fmt.Sprintf(`
 resource "aws_api_gateway_rest_api" "test" {
-  name = "test"
+  name = "%s"
 }
 
 resource "aws_api_gateway_resource" "test" {
@@ -205,11 +209,13 @@ resource "aws_api_gateway_method_response" "error" {
     "method.response.header.Content-Type" = true
   }
 }
-`
+`, rName)
+}
 
-const testAccAWSAPIGatewayMethodResponseConfigUpdate = `
+func testAccAWSAPIGatewayMethodResponseConfigUpdate(rName string) string {
+	return fmt.Sprintf(`
 resource "aws_api_gateway_rest_api" "test" {
-  name = "test"
+  name = "%s"
 }
 
 resource "aws_api_gateway_resource" "test" {
@@ -243,4 +249,5 @@ resource "aws_api_gateway_method_response" "error" {
     "method.response.header.Host" = true
   }
 }
-`
+`, rName)
+}

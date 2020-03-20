@@ -23,6 +23,7 @@ func resourceAwsIotTopicRule() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: validateIoTTopicRuleName,
 			},
 			"description": {

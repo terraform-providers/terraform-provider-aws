@@ -1,4 +1,5 @@
 ---
+subcategory: "MQ"
 layout: "aws"
 page_title: "AWS: aws_mq_configuration"
 description: |-

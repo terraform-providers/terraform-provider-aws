@@ -1,15 +1,9 @@
 package earlyconfig
 
 import (
-	"fmt"
-	"sort"
-
 	version "github.com/hashicorp/go-version"
 	"github.com/hashicorp/terraform-config-inspect/tfconfig"
 	"github.com/hashicorp/terraform-plugin-sdk/internal/addrs"
-	"github.com/hashicorp/terraform-plugin-sdk/internal/moduledeps"
-	"github.com/hashicorp/terraform-plugin-sdk/internal/plugin/discovery"
-	"github.com/hashicorp/terraform-plugin-sdk/internal/tfdiags"
 )
 
 // A Config is a node in the tree of modules within a configuration.
@@ -66,58 +60,4 @@ type Config struct {
 	// This field is meaningless for the root module, where it will always
 	// be nil.
 	Version *version.Version
-}
-
-// ProviderDependencies returns the provider dependencies for the recieving
-// config, including all of its descendent modules.
-func (c *Config) ProviderDependencies() (*moduledeps.Module, tfdiags.Diagnostics) {
-	var diags tfdiags.Diagnostics
-
-	var name string
-	if len(c.Path) > 0 {
-		name = c.Path[len(c.Path)-1]
-	}
-
-	ret := &moduledeps.Module{
-		Name: name,
-	}
-
-	providers := make(moduledeps.Providers)
-	for name, reqs := range c.Module.RequiredProviders {
-		inst := moduledeps.ProviderInstance(name)
-		var constraints version.Constraints
-		for _, reqStr := range reqs {
-			if reqStr != "" {
-				constraint, err := version.NewConstraint(reqStr)
-				if err != nil {
-					diags = diags.Append(wrapDiagnostic(tfconfig.Diagnostic{
-						Severity: tfconfig.DiagError,
-						Summary:  "Invalid provider version constraint",
-						Detail:   fmt.Sprintf("Invalid version constraint %q for provider %s.", reqStr, name),
-					}))
-					continue
-				}
-				constraints = append(constraints, constraint...)
-			}
-		}
-		providers[inst] = moduledeps.ProviderDependency{
-			Constraints: discovery.NewConstraints(constraints),
-			Reason:      moduledeps.ProviderDependencyExplicit,
-		}
-	}
-	ret.Providers = providers
-
-	childNames := make([]string, 0, len(c.Children))
-	for name := range c.Children {
-		childNames = append(childNames, name)
-	}
-	sort.Strings(childNames)
-
-	for _, name := range childNames {
-		child, childDiags := c.Children[name].ProviderDependencies()
-		ret.Children = append(ret.Children, child)
-		diags = diags.Append(childDiags)
-	}
-
-	return ret, diags
 }

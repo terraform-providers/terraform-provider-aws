@@ -2,6 +2,10 @@
 
 package appstream
 
+import (
+	"github.com/aws/aws-sdk-go/private/protocol"
+)
+
 const (
 
 	// ErrCodeConcurrentModificationException for service response error code
@@ -71,3 +75,17 @@ const (
 	// The specified resource was not found.
 	ErrCodeResourceNotFoundException = "ResourceNotFoundException"
 )
+
+var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
+	"ConcurrentModificationException":      newErrorConcurrentModificationException,
+	"IncompatibleImageException":           newErrorIncompatibleImageException,
+	"InvalidAccountStatusException":        newErrorInvalidAccountStatusException,
+	"InvalidParameterCombinationException": newErrorInvalidParameterCombinationException,
+	"InvalidRoleException":                 newErrorInvalidRoleException,
+	"LimitExceededException":               newErrorLimitExceededException,
+	"OperationNotPermittedException":       newErrorOperationNotPermittedException,
+	"ResourceAlreadyExistsException":       newErrorResourceAlreadyExistsException,
+	"ResourceInUseException":               newErrorResourceInUseException,
+	"ResourceNotAvailableException":        newErrorResourceNotAvailableException,
+	"ResourceNotFoundException":            newErrorResourceNotFoundException,
+}

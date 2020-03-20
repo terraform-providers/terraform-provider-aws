@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsDaxCluster() *schema.Resource {
@@ -47,8 +48,8 @@ func resourceAwsDaxCluster() *schema.Resource {
 					validation.StringLenBetween(1, 20),
 					validation.StringMatch(regexp.MustCompile(`^[0-9a-z-]+$`), "must contain only lowercase alphanumeric characters and hyphens"),
 					validation.StringMatch(regexp.MustCompile(`^[a-z]`), "must begin with a lowercase letter"),
-					validateStringNotMatch(regexp.MustCompile(`--`), "cannot contain two consecutive hyphens"),
-					validateStringNotMatch(regexp.MustCompile(`-$`), "cannot end with a hyphen"),
+					validation.StringDoesNotMatch(regexp.MustCompile(`--`), "cannot contain two consecutive hyphens"),
+					validation.StringDoesNotMatch(regexp.MustCompile(`-$`), "cannot end with a hyphen"),
 				),
 			},
 			"iam_role_arn": {
@@ -181,7 +182,7 @@ func resourceAwsDaxClusterCreate(d *schema.ResourceData, meta interface{}) error
 	securityIdSet := d.Get("security_group_ids").(*schema.Set)
 
 	securityIds := expandStringList(securityIdSet.List())
-	tags := tagsFromMapDax(d.Get("tags").(map[string]interface{}))
+	tags := keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().DaxTags()
 
 	req := &dax.CreateClusterInput{
 		ClusterName:       aws.String(clusterName),
@@ -328,20 +329,15 @@ func resourceAwsDaxClusterRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("error setting server_side_encryption: %s", err)
 	}
 
-	// list tags for resource
-	resp, err := conn.ListTags(&dax.ListTagsInput{
-		ResourceName: aws.String(aws.StringValue(c.ClusterArn)),
-	})
+	tags, err := keyvaluetags.DaxListTags(conn, aws.StringValue(c.ClusterArn))
 
 	if err != nil {
-		log.Printf("[DEBUG] Error retrieving tags for ARN: %s", aws.StringValue(c.ClusterArn))
+		return fmt.Errorf("error listing tags for DAX Cluster (%s): %s", aws.StringValue(c.ClusterArn), err)
 	}
 
-	var dt []*dax.Tag
-	if len(resp.Tags) > 0 {
-		dt = resp.Tags
+	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+		return fmt.Errorf("error setting tags: %s", err)
 	}
-	d.Set("tags", tagsToMapDax(dt))
 
 	return nil
 }
@@ -349,8 +345,12 @@ func resourceAwsDaxClusterRead(d *schema.ResourceData, meta interface{}) error {
 func resourceAwsDaxClusterUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).daxconn
 
-	if err := setTagsDax(conn, d, d.Get("arn").(string)); err != nil {
-		return err
+	if d.HasChange("tags") {
+		o, n := d.GetChange("tags")
+
+		if err := keyvaluetags.DaxUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
+			return fmt.Errorf("error updating DAX Cluster (%s) tags: %s", d.Get("arn").(string), err)
+		}
 	}
 
 	req := &dax.UpdateClusterInput{

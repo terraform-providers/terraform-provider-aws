@@ -1,4 +1,5 @@
 ---
+subcategory: "VPC"
 layout: "aws"
 page_title: "AWS: aws_subnet"
 description: |-
@@ -78,7 +79,7 @@ which take the following arguments:
 data "aws_subnet" "selected" {
   filter {
     name   = "tag:Name"
-    values = [""]       # insert value here
+    values = [""] # insert value here
   }
 }
 ```

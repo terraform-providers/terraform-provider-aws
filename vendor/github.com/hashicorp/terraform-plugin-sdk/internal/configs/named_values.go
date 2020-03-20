@@ -3,14 +3,12 @@ package configs
 import (
 	"fmt"
 
-	"github.com/hashicorp/hcl2/ext/typeexpr"
-	"github.com/hashicorp/hcl2/gohcl"
-	"github.com/hashicorp/hcl2/hcl"
-	"github.com/hashicorp/hcl2/hcl/hclsyntax"
+	"github.com/hashicorp/hcl/v2"
+	"github.com/hashicorp/hcl/v2/ext/typeexpr"
+	"github.com/hashicorp/hcl/v2/gohcl"
+	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/zclconf/go-cty/cty"
 	"github.com/zclconf/go-cty/cty/convert"
-
-	"github.com/hashicorp/terraform-plugin-sdk/internal/addrs"
 )
 
 // A consistent detail message for all "not a valid identifier" diagnostics.
@@ -321,14 +319,6 @@ func decodeLocalsBlock(block *hcl.Block) ([]*Local, hcl.Diagnostics) {
 		})
 	}
 	return locals, diags
-}
-
-// Addr returns the address of the local value declared by the receiver,
-// relative to its containing module.
-func (l *Local) Addr() addrs.LocalValue {
-	return addrs.LocalValue{
-		Name: l.Name,
-	}
 }
 
 var variableBlockSchema = &hcl.BodySchema{

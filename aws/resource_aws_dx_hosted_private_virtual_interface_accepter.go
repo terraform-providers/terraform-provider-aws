@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/directconnect"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsDxHostedPrivateVirtualInterfaceAccepter() *schema.Resource {
@@ -26,6 +27,13 @@ func resourceAwsDxHostedPrivateVirtualInterfaceAccepter() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"dx_gateway_id": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				ForceNew:      true,
+				ConflictsWith: []string{"vpn_gateway_id"},
+			},
+			"tags": tagsSchema(),
 			"virtual_interface_id": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -37,13 +45,6 @@ func resourceAwsDxHostedPrivateVirtualInterfaceAccepter() *schema.Resource {
 				ForceNew:      true,
 				ConflictsWith: []string{"dx_gateway_id"},
 			},
-			"dx_gateway_id": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				ForceNew:      true,
-				ConflictsWith: []string{"vpn_gateway_id"},
-			},
-			"tags": tagsSchema(),
 		},
 
 		Timeouts: &schema.ResourceTimeout{
@@ -67,17 +68,17 @@ func resourceAwsDxHostedPrivateVirtualInterfaceAccepterCreate(d *schema.Resource
 	req := &directconnect.ConfirmPrivateVirtualInterfaceInput{
 		VirtualInterfaceId: aws.String(vifId),
 	}
-	if vgwOk && vgwIdRaw.(string) != "" {
-		req.VirtualGatewayId = aws.String(vgwIdRaw.(string))
-	}
 	if dxgwOk && dxgwIdRaw.(string) != "" {
 		req.DirectConnectGatewayId = aws.String(dxgwIdRaw.(string))
 	}
+	if vgwOk && vgwIdRaw.(string) != "" {
+		req.VirtualGatewayId = aws.String(vgwIdRaw.(string))
+	}
 
-	log.Printf("[DEBUG] Accepting Direct Connect hosted private virtual interface: %#v", req)
+	log.Printf("[DEBUG] Accepting Direct Connect hosted private virtual interface: %s", req)
 	_, err := conn.ConfirmPrivateVirtualInterface(req)
 	if err != nil {
-		return fmt.Errorf("Error accepting Direct Connect hosted private virtual interface: %s", err.Error())
+		return fmt.Errorf("error accepting Direct Connect hosted private virtual interface: %s", err)
 	}
 
 	d.SetId(vifId)
@@ -105,23 +106,34 @@ func resourceAwsDxHostedPrivateVirtualInterfaceAccepterRead(d *schema.ResourceDa
 		return err
 	}
 	if vif == nil {
-		log.Printf("[WARN] Direct Connect virtual interface (%s) not found, removing from state", d.Id())
+		log.Printf("[WARN] Direct Connect hosted private virtual interface (%s) not found, removing from state", d.Id())
 		d.SetId("")
 		return nil
 	}
 	vifState := aws.StringValue(vif.VirtualInterfaceState)
 	if vifState != directconnect.VirtualInterfaceStateAvailable &&
 		vifState != directconnect.VirtualInterfaceStateDown {
-		log.Printf("[WARN] Direct Connect virtual interface (%s) is '%s', removing from state", vifState, d.Id())
+		log.Printf("[WARN] Direct Connect hosted private virtual interface (%s) is '%s', removing from state", vifState, d.Id())
 		d.SetId("")
 		return nil
 	}
 
+	d.Set("dx_gateway_id", vif.DirectConnectGatewayId)
 	d.Set("virtual_interface_id", vif.VirtualInterfaceId)
 	d.Set("vpn_gateway_id", vif.VirtualGatewayId)
-	d.Set("dx_gateway_id", vif.DirectConnectGatewayId)
-	err1 := getTagsDX(conn, d, d.Get("arn").(string))
-	return err1
+
+	arn := d.Get("arn").(string)
+	tags, err := keyvaluetags.DirectconnectListTags(conn, arn)
+
+	if err != nil {
+		return fmt.Errorf("error listing tags for Direct Connect hosted private virtual interface (%s): %s", arn, err)
+	}
+
+	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+		return fmt.Errorf("error setting tags: %s", err)
+	}
+
+	return nil
 }
 
 func resourceAwsDxHostedPrivateVirtualInterfaceAccepterUpdate(d *schema.ResourceData, meta interface{}) error {
@@ -138,6 +150,20 @@ func resourceAwsDxHostedPrivateVirtualInterfaceAccepterDelete(d *schema.Resource
 }
 
 func resourceAwsDxHostedPrivateVirtualInterfaceAccepterImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	conn := meta.(*AWSClient).dxconn
+
+	vif, err := dxVirtualInterfaceRead(d.Id(), conn)
+	if err != nil {
+		return nil, err
+	}
+	if vif == nil {
+		return nil, fmt.Errorf("virtual interface (%s) not found", d.Id())
+	}
+
+	if vifType := aws.StringValue(vif.VirtualInterfaceType); vifType != "private" {
+		return nil, fmt.Errorf("virtual interface (%s) has incorrect type: %s", d.Id(), vifType)
+	}
+
 	arn := arn.ARN{
 		Partition: meta.(*AWSClient).partition,
 		Region:    meta.(*AWSClient).region,

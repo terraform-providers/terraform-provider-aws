@@ -26,3 +26,15 @@ and configures `ConflictsWith`, which will fail provider schema validation.
     ConflictsWith: /* ... */,
 }
 ```
+
+## Ignoring Reports
+
+Singular reports can be ignored by adding the a `//lintignore:S007` Go code comment at the end of the offending line or on the line immediately proceding, e.g.
+
+```go
+//lintignore:S007
+&schema.Schema{
+    Required:      true,
+    ConflictsWith: /* ... */,
+}
+```

@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsDmsReplicationInstance() *schema.Resource {
@@ -112,10 +113,7 @@ func resourceAwsDmsReplicationInstance() *schema.Resource {
 				Optional: true,
 				ForceNew: true,
 			},
-			"tags": {
-				Type:     schema.TypeMap,
-				Optional: true,
-			},
+			"tags": tagsSchema(),
 			"vpc_security_group_ids": {
 				Type:     schema.TypeSet,
 				Elem:     &schema.Schema{Type: schema.TypeString},
@@ -136,7 +134,7 @@ func resourceAwsDmsReplicationInstanceCreate(d *schema.ResourceData, meta interf
 		MultiAZ:                       aws.Bool(d.Get("multi_az").(bool)),
 		ReplicationInstanceClass:      aws.String(d.Get("replication_instance_class").(string)),
 		ReplicationInstanceIdentifier: aws.String(d.Get("replication_instance_id").(string)),
-		Tags:                          dmsTagsFromMap(d.Get("tags").(map[string]interface{})),
+		Tags:                          keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().DatabasemigrationserviceTags(),
 	}
 
 	// WARNING: GetOk returns the zero value for the type if the key is omitted in config. This means for optional
@@ -253,14 +251,13 @@ func resourceAwsDmsReplicationInstanceRead(d *schema.ResourceData, meta interfac
 		return fmt.Errorf("error setting vpc_security_group_ids: %s", err)
 	}
 
-	tagsResp, err := conn.ListTagsForResource(&dms.ListTagsForResourceInput{
-		ResourceArn: aws.String(d.Get("replication_instance_arn").(string)),
-	})
+	tags, err := keyvaluetags.DatabasemigrationserviceListTags(conn, d.Get("replication_instance_arn").(string))
+
 	if err != nil {
-		return fmt.Errorf("error listing tags for DMS Replication Instance (%s): %s", d.Id(), err)
+		return fmt.Errorf("error listing tags for DMS Replication Instance (%s): %s", d.Get("replication_instance_arn").(string), err)
 	}
 
-	if err := d.Set("tags", dmsTagsToMap(tagsResp.TagList)); err != nil {
+	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
@@ -320,9 +317,11 @@ func resourceAwsDmsReplicationInstanceUpdate(d *schema.ResourceData, meta interf
 	}
 
 	if d.HasChange("tags") {
-		err := dmsSetTags(d.Get("replication_instance_arn").(string), d, meta)
-		if err != nil {
-			return err
+		arn := d.Get("replication_instance_arn").(string)
+		o, n := d.GetChange("tags")
+
+		if err := keyvaluetags.DatabasemigrationserviceUpdateTags(conn, arn, o, n); err != nil {
+			return fmt.Errorf("error updating DMS Replication Instance (%s) tags: %s", arn, err)
 		}
 	}
 

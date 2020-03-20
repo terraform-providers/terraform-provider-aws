@@ -1,4 +1,5 @@
 ---
+subcategory: "Application Autoscaling"
 layout: "aws"
 page_title: "AWS: aws_appautoscaling_policy"
 description: |-

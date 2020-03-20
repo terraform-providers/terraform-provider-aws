@@ -1,4 +1,5 @@
 ---
+subcategory: "AppSync"
 layout: "aws"
 page_title: "AWS: aws_appsync_function"
 description: |-
@@ -37,9 +38,9 @@ EOF
 }
 
 resource "aws_appsync_datasource" "test" {
-  api_id      = "${aws_appsync_graphql_api.test.id}"
-  name        = "tf-example"
-  type        = "HTTP"
+  api_id = "${aws_appsync_graphql_api.test.id}"
+  name   = "tf-example"
+  type   = "HTTP"
 
   http_config {
     endpoint = "http://example.com"
@@ -47,10 +48,10 @@ resource "aws_appsync_datasource" "test" {
 }
 
 resource "aws_appsync_function" "test" {
-  api_id      = "${aws_appsync_graphql_api.test.id}"
-  data_source = "${aws_appsync_datasource.test.name}"
-  name        = "tf_example"
-  request_mapping_template = <<EOF
+  api_id                    = "${aws_appsync_graphql_api.test.id}"
+  data_source               = "${aws_appsync_datasource.test.name}"
+  name                      = "tf_example"
+  request_mapping_template  = <<EOF
 {
     "version": "2018-05-29",
     "method": "GET",

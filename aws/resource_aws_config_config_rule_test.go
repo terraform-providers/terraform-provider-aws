@@ -461,7 +461,7 @@ resource "aws_lambda_function" "f" {
   function_name = "tf_acc_lambda_awsconfig_%d"
   role          = "${aws_iam_role.iam_for_lambda.arn}"
   handler       = "exports.example"
-  runtime       = "nodejs8.10"
+  runtime       = "nodejs12.x"
 }
 
 resource "aws_lambda_permission" "p" {

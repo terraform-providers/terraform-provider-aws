@@ -1,4 +1,5 @@
 ---
+subcategory: "CloudTrail"
 layout: "aws"
 page_title: "AWS: aws_cloudtrail_service_account"
 description: |-

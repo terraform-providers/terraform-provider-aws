@@ -7,6 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsDefaultSecurityGroup() *schema.Resource {
@@ -15,8 +16,11 @@ func resourceAwsDefaultSecurityGroup() *schema.Resource {
 	dsg.Create = resourceAwsDefaultSecurityGroupCreate
 	dsg.Delete = resourceAwsDefaultSecurityGroupDelete
 
-	// Descriptions cannot be updated
-	delete(dsg.Schema, "description")
+	// description is a computed value for Default Security Groups and cannot be changed
+	dsg.Schema["description"] = &schema.Schema{
+		Type:     schema.TypeString,
+		Computed: true,
+	}
 
 	// name is a computed value for Default Security Groups and cannot be changed
 	delete(dsg.Schema, "name_prefix")
@@ -87,8 +91,10 @@ func resourceAwsDefaultSecurityGroupCreate(d *schema.ResourceData, meta interfac
 
 	log.Printf("[INFO] Default Security Group ID: %s", d.Id())
 
-	if err := setTags(conn, d); err != nil {
-		return err
+	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
+		if err := keyvaluetags.Ec2UpdateTags(conn, d.Id(), nil, v); err != nil {
+			return fmt.Errorf("error adding EC2 Default Security Group (%s) tags: %s", d.Id(), err)
+		}
 	}
 
 	if err := revokeDefaultSecurityGroupRules(meta, g); err != nil {

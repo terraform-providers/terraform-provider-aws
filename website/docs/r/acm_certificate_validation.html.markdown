@@ -1,4 +1,5 @@
 ---
+subcategory: "ACM"
 layout: "aws"
 page_title: "AWS: aws_acm_certificate_validation"
 description: |-

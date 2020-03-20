@@ -2,6 +2,10 @@
 
 package athena
 
+import (
+	"github.com/aws/aws-sdk-go/private/protocol"
+)
+
 const (
 
 	// ErrCodeInternalServerException for service response error code
@@ -30,3 +34,10 @@ const (
 	// Indicates that the request was throttled.
 	ErrCodeTooManyRequestsException = "TooManyRequestsException"
 )
+
+var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
+	"InternalServerException":   newErrorInternalServerException,
+	"InvalidRequestException":   newErrorInvalidRequestException,
+	"ResourceNotFoundException": newErrorResourceNotFoundException,
+	"TooManyRequestsException":  newErrorTooManyRequestsException,
+}

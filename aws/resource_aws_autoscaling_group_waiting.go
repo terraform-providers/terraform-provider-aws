@@ -3,6 +3,7 @@ package aws
 import (
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 	"time"
 
@@ -121,7 +122,15 @@ func isELBCapacitySatisfied(d *schema.ResourceData, meta interface{}, g *autosca
 			continue
 		}
 
-		haveASG++
+		capacity := 1
+		if i.WeightedCapacity != nil {
+			capacity, err = strconv.Atoi(*i.WeightedCapacity)
+			if err != nil {
+				capacity = 1
+			}
+		}
+
+		haveASG += capacity
 
 		inAllLbs := true
 		for _, states := range elbis {

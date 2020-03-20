@@ -48,6 +48,7 @@ func resourceAwsOrganizationsPolicy() *schema.Resource {
 				Default:  organizations.PolicyTypeServiceControlPolicy,
 				ValidateFunc: validation.StringInSlice([]string{
 					organizations.PolicyTypeServiceControlPolicy,
+					organizations.PolicyTypeTagPolicy,
 				}, false),
 			},
 		},

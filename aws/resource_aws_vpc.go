@@ -34,7 +34,7 @@ func resourceAwsVpc() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.CIDRNetwork(16, 28),
+				ValidateFunc: validation.IsCIDRNetwork(16, 28),
 			},
 
 			"instance_tenancy": {

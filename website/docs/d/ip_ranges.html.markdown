@@ -1,4 +1,5 @@
 ---
+subcategory: ""
 layout: "aws"
 page_title: "AWS: aws_ip_ranges"
 description: |-
@@ -24,8 +25,8 @@ resource "aws_security_group" "from_europe" {
     from_port        = "443"
     to_port          = "443"
     protocol         = "tcp"
-    cidr_blocks      = ["${data.aws_ip_ranges.european_ec2.cidr_blocks}"]
-    ipv6_cidr_blocks = ["${data.aws_ip_ranges.european_ec2.ipv6_cidr_blocks}"]
+    cidr_blocks      = data.aws_ip_ranges.european_ec2.cidr_blocks
+    ipv6_cidr_blocks = data.aws_ip_ranges.european_ec2.ipv6_cidr_blocks
   }
 
   tags = {
@@ -42,7 +43,10 @@ omitted). Valid items are `global` (for `cloudfront`) as well as all AWS regions
 (e.g. `eu-central-1`)
 
 * `services` - (Required) Filter IP ranges by services. Valid items are `amazon`
-(for amazon.com), `cloudfront`, `codebuild`, `ec2`, `route53`, `route53_healthchecks` and `S3`.
+(for amazon.com), `amazon_connect`, `api_gateway`, `cloud9`, `cloudfront`,
+`codebuild`, `dynamodb`, `ec2`, `ec2_instance_connect`, `globalaccelerator`,
+`route53`, `route53_healthchecks`, `s3` and `workspaces_gateways`. See the
+[`service` attribute][2] documentation for other possible values.
 
 ~> **NOTE:** If the specified combination of regions and services does not yield any
 CIDR blocks, Terraform will fail.
@@ -58,3 +62,4 @@ CIDR blocks, Terraform will fail.
   (e.g. `1470267965`).
 
 [1]: https://docs.aws.amazon.com/general/latest/gr/aws-ip-ranges.html
+[2]: https://docs.aws.amazon.com/general/latest/gr/aws-ip-ranges.html#aws-ip-syntax

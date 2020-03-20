@@ -66,11 +66,11 @@ func (c *GuardDuty) AcceptInvitationRequest(input *AcceptInvitationInput) (req *
 // See the AWS API reference guide for Amazon GuardDuty's
 // API operation AcceptInvitation for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //   Bad request exception object.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   Internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/AcceptInvitation
@@ -152,11 +152,11 @@ func (c *GuardDuty) ArchiveFindingsRequest(input *ArchiveFindingsInput) (req *re
 // See the AWS API reference guide for Amazon GuardDuty's
 // API operation ArchiveFindings for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //   Bad request exception object.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   Internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/ArchiveFindings
@@ -237,11 +237,11 @@ func (c *GuardDuty) CreateDetectorRequest(input *CreateDetectorInput) (req *requ
 // See the AWS API reference guide for Amazon GuardDuty's
 // API operation CreateDetector for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //   Bad request exception object.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   Internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/CreateDetector
@@ -319,11 +319,11 @@ func (c *GuardDuty) CreateFilterRequest(input *CreateFilterInput) (req *request.
 // See the AWS API reference guide for Amazon GuardDuty's
 // API operation CreateFilter for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //   Bad request exception object.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   Internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/CreateFilter
@@ -392,8 +392,11 @@ func (c *GuardDuty) CreateIPSetRequest(input *CreateIPSetInput) (req *request.Re
 
 // CreateIPSet API operation for Amazon GuardDuty.
 //
-// Creates a new IPSet - a list of trusted IP addresses that have been whitelisted
-// for secure communication with AWS infrastructure and applications.
+// Creates a new IPSet, called Trusted IP list in the consoler user interface.
+// An IPSet is a list IP addresses trusted for secure communication with AWS
+// infrastructure and applications. GuardDuty does not generate findings for
+// IP addresses included in IPSets. Only users from the master account can use
+// this operation.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -402,11 +405,11 @@ func (c *GuardDuty) CreateIPSetRequest(input *CreateIPSetInput) (req *request.Re
 // See the AWS API reference guide for Amazon GuardDuty's
 // API operation CreateIPSet for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //   Bad request exception object.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   Internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/CreateIPSet
@@ -486,11 +489,11 @@ func (c *GuardDuty) CreateMembersRequest(input *CreateMembersInput) (req *reques
 // See the AWS API reference guide for Amazon GuardDuty's
 // API operation CreateMembers for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //   Bad request exception object.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   Internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/CreateMembers
@@ -510,6 +513,89 @@ func (c *GuardDuty) CreateMembers(input *CreateMembersInput) (*CreateMembersOutp
 // for more information on using Contexts.
 func (c *GuardDuty) CreateMembersWithContext(ctx aws.Context, input *CreateMembersInput, opts ...request.Option) (*CreateMembersOutput, error) {
 	req, out := c.CreateMembersRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opCreatePublishingDestination = "CreatePublishingDestination"
+
+// CreatePublishingDestinationRequest generates a "aws/request.Request" representing the
+// client's request for the CreatePublishingDestination operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See CreatePublishingDestination for more information on using the CreatePublishingDestination
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the CreatePublishingDestinationRequest method.
+//    req, resp := client.CreatePublishingDestinationRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/CreatePublishingDestination
+func (c *GuardDuty) CreatePublishingDestinationRequest(input *CreatePublishingDestinationInput) (req *request.Request, output *CreatePublishingDestinationOutput) {
+	op := &request.Operation{
+		Name:       opCreatePublishingDestination,
+		HTTPMethod: "POST",
+		HTTPPath:   "/detector/{detectorId}/publishingDestination",
+	}
+
+	if input == nil {
+		input = &CreatePublishingDestinationInput{}
+	}
+
+	output = &CreatePublishingDestinationOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// CreatePublishingDestination API operation for Amazon GuardDuty.
+//
+// Creates a publishing destination to send findings to. The resource to send
+// findings to must exist before you use this operation.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon GuardDuty's
+// API operation CreatePublishingDestination for usage and error information.
+//
+// Returned Error Types:
+//   * BadRequestException
+//   Bad request exception object.
+//
+//   * InternalServerErrorException
+//   Internal server error exception object.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/CreatePublishingDestination
+func (c *GuardDuty) CreatePublishingDestination(input *CreatePublishingDestinationInput) (*CreatePublishingDestinationOutput, error) {
+	req, out := c.CreatePublishingDestinationRequest(input)
+	return out, req.Send()
+}
+
+// CreatePublishingDestinationWithContext is the same as CreatePublishingDestination with the addition of
+// the ability to pass a context and additional request options.
+//
+// See CreatePublishingDestination for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *GuardDuty) CreatePublishingDestinationWithContext(ctx aws.Context, input *CreatePublishingDestinationInput, opts ...request.Option) (*CreatePublishingDestinationOutput, error) {
+	req, out := c.CreatePublishingDestinationRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -571,11 +657,11 @@ func (c *GuardDuty) CreateSampleFindingsRequest(input *CreateSampleFindingsInput
 // See the AWS API reference guide for Amazon GuardDuty's
 // API operation CreateSampleFindings for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //   Bad request exception object.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   Internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/CreateSampleFindings
@@ -645,7 +731,8 @@ func (c *GuardDuty) CreateThreatIntelSetRequest(input *CreateThreatIntelSetInput
 // CreateThreatIntelSet API operation for Amazon GuardDuty.
 //
 // Create a new ThreatIntelSet. ThreatIntelSets consist of known malicious IP
-// addresses. GuardDuty generates findings based on ThreatIntelSets.
+// addresses. GuardDuty generates findings based on ThreatIntelSets. Only users
+// of the master account can use this operation.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -654,11 +741,11 @@ func (c *GuardDuty) CreateThreatIntelSetRequest(input *CreateThreatIntelSetInput
 // See the AWS API reference guide for Amazon GuardDuty's
 // API operation CreateThreatIntelSet for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //   Bad request exception object.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   Internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/CreateThreatIntelSet
@@ -737,11 +824,11 @@ func (c *GuardDuty) DeclineInvitationsRequest(input *DeclineInvitationsInput) (r
 // See the AWS API reference guide for Amazon GuardDuty's
 // API operation DeclineInvitations for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //   Bad request exception object.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   Internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/DeclineInvitations
@@ -820,11 +907,11 @@ func (c *GuardDuty) DeleteDetectorRequest(input *DeleteDetectorInput) (req *requ
 // See the AWS API reference guide for Amazon GuardDuty's
 // API operation DeleteDetector for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //   Bad request exception object.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   Internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/DeleteDetector
@@ -903,11 +990,11 @@ func (c *GuardDuty) DeleteFilterRequest(input *DeleteFilterInput) (req *request.
 // See the AWS API reference guide for Amazon GuardDuty's
 // API operation DeleteFilter for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //   Bad request exception object.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   Internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/DeleteFilter
@@ -977,7 +1064,8 @@ func (c *GuardDuty) DeleteIPSetRequest(input *DeleteIPSetInput) (req *request.Re
 
 // DeleteIPSet API operation for Amazon GuardDuty.
 //
-// Deletes the IPSet specified by the IPSet ID.
+// Deletes the IPSet specified by the ipSetId. IPSets are called Trusted IP
+// lists in the console user interface.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -986,11 +1074,11 @@ func (c *GuardDuty) DeleteIPSetRequest(input *DeleteIPSetInput) (req *request.Re
 // See the AWS API reference guide for Amazon GuardDuty's
 // API operation DeleteIPSet for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //   Bad request exception object.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   Internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/DeleteIPSet
@@ -1069,11 +1157,11 @@ func (c *GuardDuty) DeleteInvitationsRequest(input *DeleteInvitationsInput) (req
 // See the AWS API reference guide for Amazon GuardDuty's
 // API operation DeleteInvitations for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //   Bad request exception object.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   Internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/DeleteInvitations
@@ -1152,11 +1240,11 @@ func (c *GuardDuty) DeleteMembersRequest(input *DeleteMembersInput) (req *reques
 // See the AWS API reference guide for Amazon GuardDuty's
 // API operation DeleteMembers for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //   Bad request exception object.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   Internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/DeleteMembers
@@ -1176,6 +1264,89 @@ func (c *GuardDuty) DeleteMembers(input *DeleteMembersInput) (*DeleteMembersOutp
 // for more information on using Contexts.
 func (c *GuardDuty) DeleteMembersWithContext(ctx aws.Context, input *DeleteMembersInput, opts ...request.Option) (*DeleteMembersOutput, error) {
 	req, out := c.DeleteMembersRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opDeletePublishingDestination = "DeletePublishingDestination"
+
+// DeletePublishingDestinationRequest generates a "aws/request.Request" representing the
+// client's request for the DeletePublishingDestination operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DeletePublishingDestination for more information on using the DeletePublishingDestination
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the DeletePublishingDestinationRequest method.
+//    req, resp := client.DeletePublishingDestinationRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/DeletePublishingDestination
+func (c *GuardDuty) DeletePublishingDestinationRequest(input *DeletePublishingDestinationInput) (req *request.Request, output *DeletePublishingDestinationOutput) {
+	op := &request.Operation{
+		Name:       opDeletePublishingDestination,
+		HTTPMethod: "DELETE",
+		HTTPPath:   "/detector/{detectorId}/publishingDestination/{destinationId}",
+	}
+
+	if input == nil {
+		input = &DeletePublishingDestinationInput{}
+	}
+
+	output = &DeletePublishingDestinationOutput{}
+	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(restjson.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
+	return
+}
+
+// DeletePublishingDestination API operation for Amazon GuardDuty.
+//
+// Deletes the publishing definition with the specified destinationId.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon GuardDuty's
+// API operation DeletePublishingDestination for usage and error information.
+//
+// Returned Error Types:
+//   * BadRequestException
+//   Bad request exception object.
+//
+//   * InternalServerErrorException
+//   Internal server error exception object.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/DeletePublishingDestination
+func (c *GuardDuty) DeletePublishingDestination(input *DeletePublishingDestinationInput) (*DeletePublishingDestinationOutput, error) {
+	req, out := c.DeletePublishingDestinationRequest(input)
+	return out, req.Send()
+}
+
+// DeletePublishingDestinationWithContext is the same as DeletePublishingDestination with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DeletePublishingDestination for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *GuardDuty) DeletePublishingDestinationWithContext(ctx aws.Context, input *DeletePublishingDestinationInput, opts ...request.Option) (*DeletePublishingDestinationOutput, error) {
+	req, out := c.DeletePublishingDestinationRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -1235,11 +1406,11 @@ func (c *GuardDuty) DeleteThreatIntelSetRequest(input *DeleteThreatIntelSetInput
 // See the AWS API reference guide for Amazon GuardDuty's
 // API operation DeleteThreatIntelSet for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //   Bad request exception object.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   Internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/DeleteThreatIntelSet
@@ -1259,6 +1430,89 @@ func (c *GuardDuty) DeleteThreatIntelSet(input *DeleteThreatIntelSetInput) (*Del
 // for more information on using Contexts.
 func (c *GuardDuty) DeleteThreatIntelSetWithContext(ctx aws.Context, input *DeleteThreatIntelSetInput, opts ...request.Option) (*DeleteThreatIntelSetOutput, error) {
 	req, out := c.DeleteThreatIntelSetRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opDescribePublishingDestination = "DescribePublishingDestination"
+
+// DescribePublishingDestinationRequest generates a "aws/request.Request" representing the
+// client's request for the DescribePublishingDestination operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DescribePublishingDestination for more information on using the DescribePublishingDestination
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the DescribePublishingDestinationRequest method.
+//    req, resp := client.DescribePublishingDestinationRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/DescribePublishingDestination
+func (c *GuardDuty) DescribePublishingDestinationRequest(input *DescribePublishingDestinationInput) (req *request.Request, output *DescribePublishingDestinationOutput) {
+	op := &request.Operation{
+		Name:       opDescribePublishingDestination,
+		HTTPMethod: "GET",
+		HTTPPath:   "/detector/{detectorId}/publishingDestination/{destinationId}",
+	}
+
+	if input == nil {
+		input = &DescribePublishingDestinationInput{}
+	}
+
+	output = &DescribePublishingDestinationOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// DescribePublishingDestination API operation for Amazon GuardDuty.
+//
+// Returns information about the publishing destination specified by the provided
+// destinationId.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon GuardDuty's
+// API operation DescribePublishingDestination for usage and error information.
+//
+// Returned Error Types:
+//   * BadRequestException
+//   Bad request exception object.
+//
+//   * InternalServerErrorException
+//   Internal server error exception object.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/DescribePublishingDestination
+func (c *GuardDuty) DescribePublishingDestination(input *DescribePublishingDestinationInput) (*DescribePublishingDestinationOutput, error) {
+	req, out := c.DescribePublishingDestinationRequest(input)
+	return out, req.Send()
+}
+
+// DescribePublishingDestinationWithContext is the same as DescribePublishingDestination with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DescribePublishingDestination for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *GuardDuty) DescribePublishingDestinationWithContext(ctx aws.Context, input *DescribePublishingDestinationInput, opts ...request.Option) (*DescribePublishingDestinationOutput, error) {
+	req, out := c.DescribePublishingDestinationRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -1318,11 +1572,11 @@ func (c *GuardDuty) DisassociateFromMasterAccountRequest(input *DisassociateFrom
 // See the AWS API reference guide for Amazon GuardDuty's
 // API operation DisassociateFromMasterAccount for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //   Bad request exception object.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   Internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/DisassociateFromMasterAccount
@@ -1401,11 +1655,11 @@ func (c *GuardDuty) DisassociateMembersRequest(input *DisassociateMembersInput) 
 // See the AWS API reference guide for Amazon GuardDuty's
 // API operation DisassociateMembers for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //   Bad request exception object.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   Internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/DisassociateMembers
@@ -1483,11 +1737,11 @@ func (c *GuardDuty) GetDetectorRequest(input *GetDetectorInput) (req *request.Re
 // See the AWS API reference guide for Amazon GuardDuty's
 // API operation GetDetector for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //   Bad request exception object.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   Internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/GetDetector
@@ -1565,11 +1819,11 @@ func (c *GuardDuty) GetFilterRequest(input *GetFilterInput) (req *request.Reques
 // See the AWS API reference guide for Amazon GuardDuty's
 // API operation GetFilter for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //   Bad request exception object.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   Internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/GetFilter
@@ -1647,11 +1901,11 @@ func (c *GuardDuty) GetFindingsRequest(input *GetFindingsInput) (req *request.Re
 // See the AWS API reference guide for Amazon GuardDuty's
 // API operation GetFindings for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //   Bad request exception object.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   Internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/GetFindings
@@ -1729,11 +1983,11 @@ func (c *GuardDuty) GetFindingsStatisticsRequest(input *GetFindingsStatisticsInp
 // See the AWS API reference guide for Amazon GuardDuty's
 // API operation GetFindingsStatistics for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //   Bad request exception object.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   Internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/GetFindingsStatistics
@@ -1802,7 +2056,7 @@ func (c *GuardDuty) GetIPSetRequest(input *GetIPSetInput) (req *request.Request,
 
 // GetIPSet API operation for Amazon GuardDuty.
 //
-// Retrieves the IPSet specified by the IPSet ID.
+// Retrieves the IPSet specified by the ipSetId.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1811,11 +2065,11 @@ func (c *GuardDuty) GetIPSetRequest(input *GetIPSetInput) (req *request.Request,
 // See the AWS API reference guide for Amazon GuardDuty's
 // API operation GetIPSet for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //   Bad request exception object.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   Internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/GetIPSet
@@ -1894,11 +2148,11 @@ func (c *GuardDuty) GetInvitationsCountRequest(input *GetInvitationsCountInput) 
 // See the AWS API reference guide for Amazon GuardDuty's
 // API operation GetInvitationsCount for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //   Bad request exception object.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   Internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/GetInvitationsCount
@@ -1977,11 +2231,11 @@ func (c *GuardDuty) GetMasterAccountRequest(input *GetMasterAccountInput) (req *
 // See the AWS API reference guide for Amazon GuardDuty's
 // API operation GetMasterAccount for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //   Bad request exception object.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   Internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/GetMasterAccount
@@ -2060,11 +2314,11 @@ func (c *GuardDuty) GetMembersRequest(input *GetMembersInput) (req *request.Requ
 // See the AWS API reference guide for Amazon GuardDuty's
 // API operation GetMembers for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //   Bad request exception object.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   Internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/GetMembers
@@ -2142,11 +2396,11 @@ func (c *GuardDuty) GetThreatIntelSetRequest(input *GetThreatIntelSetInput) (req
 // See the AWS API reference guide for Amazon GuardDuty's
 // API operation GetThreatIntelSet for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //   Bad request exception object.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   Internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/GetThreatIntelSet
@@ -2227,11 +2481,11 @@ func (c *GuardDuty) InviteMembersRequest(input *InviteMembersInput) (req *reques
 // See the AWS API reference guide for Amazon GuardDuty's
 // API operation InviteMembers for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //   Bad request exception object.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   Internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/InviteMembers
@@ -2315,11 +2569,11 @@ func (c *GuardDuty) ListDetectorsRequest(input *ListDetectorsInput) (req *reques
 // See the AWS API reference guide for Amazon GuardDuty's
 // API operation ListDetectors for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //   Bad request exception object.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   Internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/ListDetectors
@@ -2387,10 +2641,12 @@ func (c *GuardDuty) ListDetectorsPagesWithContext(ctx aws.Context, input *ListDe
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListDetectorsOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListDetectorsOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -2453,11 +2709,11 @@ func (c *GuardDuty) ListFiltersRequest(input *ListFiltersInput) (req *request.Re
 // See the AWS API reference guide for Amazon GuardDuty's
 // API operation ListFilters for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //   Bad request exception object.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   Internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/ListFilters
@@ -2525,10 +2781,12 @@ func (c *GuardDuty) ListFiltersPagesWithContext(ctx aws.Context, input *ListFilt
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListFiltersOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListFiltersOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -2591,11 +2849,11 @@ func (c *GuardDuty) ListFindingsRequest(input *ListFindingsInput) (req *request.
 // See the AWS API reference guide for Amazon GuardDuty's
 // API operation ListFindings for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //   Bad request exception object.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   Internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/ListFindings
@@ -2663,10 +2921,12 @@ func (c *GuardDuty) ListFindingsPagesWithContext(ctx aws.Context, input *ListFin
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListFindingsOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListFindingsOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -2720,7 +2980,9 @@ func (c *GuardDuty) ListIPSetsRequest(input *ListIPSetsInput) (req *request.Requ
 
 // ListIPSets API operation for Amazon GuardDuty.
 //
-// Lists the IPSets of the GuardDuty service specified by the detector ID.
+// Lists the IPSets of the GuardDuty service specified by the detector ID. If
+// you use this operation from a member account, the IPSets returned are the
+// IPSets from the associated master account.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -2729,11 +2991,11 @@ func (c *GuardDuty) ListIPSetsRequest(input *ListIPSetsInput) (req *request.Requ
 // See the AWS API reference guide for Amazon GuardDuty's
 // API operation ListIPSets for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //   Bad request exception object.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   Internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/ListIPSets
@@ -2801,10 +3063,12 @@ func (c *GuardDuty) ListIPSetsPagesWithContext(ctx aws.Context, input *ListIPSet
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListIPSetsOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListIPSetsOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -2868,11 +3132,11 @@ func (c *GuardDuty) ListInvitationsRequest(input *ListInvitationsInput) (req *re
 // See the AWS API reference guide for Amazon GuardDuty's
 // API operation ListInvitations for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //   Bad request exception object.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   Internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/ListInvitations
@@ -2940,10 +3204,12 @@ func (c *GuardDuty) ListInvitationsPagesWithContext(ctx aws.Context, input *List
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListInvitationsOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListInvitationsOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -3007,11 +3273,11 @@ func (c *GuardDuty) ListMembersRequest(input *ListMembersInput) (req *request.Re
 // See the AWS API reference guide for Amazon GuardDuty's
 // API operation ListMembers for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //   Bad request exception object.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   Internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/ListMembers
@@ -3079,10 +3345,152 @@ func (c *GuardDuty) ListMembersPagesWithContext(ctx aws.Context, input *ListMemb
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListMembersOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListMembersOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
+	return p.Err()
+}
+
+const opListPublishingDestinations = "ListPublishingDestinations"
+
+// ListPublishingDestinationsRequest generates a "aws/request.Request" representing the
+// client's request for the ListPublishingDestinations operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See ListPublishingDestinations for more information on using the ListPublishingDestinations
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the ListPublishingDestinationsRequest method.
+//    req, resp := client.ListPublishingDestinationsRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/ListPublishingDestinations
+func (c *GuardDuty) ListPublishingDestinationsRequest(input *ListPublishingDestinationsInput) (req *request.Request, output *ListPublishingDestinationsOutput) {
+	op := &request.Operation{
+		Name:       opListPublishingDestinations,
+		HTTPMethod: "GET",
+		HTTPPath:   "/detector/{detectorId}/publishingDestination",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"NextToken"},
+			OutputTokens:    []string{"NextToken"},
+			LimitToken:      "MaxResults",
+			TruncationToken: "",
+		},
+	}
+
+	if input == nil {
+		input = &ListPublishingDestinationsInput{}
+	}
+
+	output = &ListPublishingDestinationsOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// ListPublishingDestinations API operation for Amazon GuardDuty.
+//
+// Returns a list of publishing destinations associated with the specified dectectorId.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon GuardDuty's
+// API operation ListPublishingDestinations for usage and error information.
+//
+// Returned Error Types:
+//   * BadRequestException
+//   Bad request exception object.
+//
+//   * InternalServerErrorException
+//   Internal server error exception object.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/ListPublishingDestinations
+func (c *GuardDuty) ListPublishingDestinations(input *ListPublishingDestinationsInput) (*ListPublishingDestinationsOutput, error) {
+	req, out := c.ListPublishingDestinationsRequest(input)
+	return out, req.Send()
+}
+
+// ListPublishingDestinationsWithContext is the same as ListPublishingDestinations with the addition of
+// the ability to pass a context and additional request options.
+//
+// See ListPublishingDestinations for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *GuardDuty) ListPublishingDestinationsWithContext(ctx aws.Context, input *ListPublishingDestinationsInput, opts ...request.Option) (*ListPublishingDestinationsOutput, error) {
+	req, out := c.ListPublishingDestinationsRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+// ListPublishingDestinationsPages iterates over the pages of a ListPublishingDestinations operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListPublishingDestinations method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListPublishingDestinations operation.
+//    pageNum := 0
+//    err := client.ListPublishingDestinationsPages(params,
+//        func(page *guardduty.ListPublishingDestinationsOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *GuardDuty) ListPublishingDestinationsPages(input *ListPublishingDestinationsInput, fn func(*ListPublishingDestinationsOutput, bool) bool) error {
+	return c.ListPublishingDestinationsPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListPublishingDestinationsPagesWithContext same as ListPublishingDestinationsPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *GuardDuty) ListPublishingDestinationsPagesWithContext(ctx aws.Context, input *ListPublishingDestinationsInput, fn func(*ListPublishingDestinationsOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListPublishingDestinationsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListPublishingDestinationsRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*ListPublishingDestinationsOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
 	return p.Err()
 }
 
@@ -3142,11 +3550,11 @@ func (c *GuardDuty) ListTagsForResourceRequest(input *ListTagsForResourceInput) 
 // See the AWS API reference guide for Amazon GuardDuty's
 // API operation ListTagsForResource for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //   Bad request exception object.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   Internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/ListTagsForResource
@@ -3222,7 +3630,8 @@ func (c *GuardDuty) ListThreatIntelSetsRequest(input *ListThreatIntelSetsInput) 
 // ListThreatIntelSets API operation for Amazon GuardDuty.
 //
 // Lists the ThreatIntelSets of the GuardDuty service specified by the detector
-// ID.
+// ID. If you use this operation from a member account, the ThreatIntelSets
+// associated with the master account are returned.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -3231,11 +3640,11 @@ func (c *GuardDuty) ListThreatIntelSetsRequest(input *ListThreatIntelSetsInput) 
 // See the AWS API reference guide for Amazon GuardDuty's
 // API operation ListThreatIntelSets for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //   Bad request exception object.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   Internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/ListThreatIntelSets
@@ -3303,10 +3712,12 @@ func (c *GuardDuty) ListThreatIntelSetsPagesWithContext(ctx aws.Context, input *
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListThreatIntelSetsOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListThreatIntelSetsOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -3354,9 +3765,9 @@ func (c *GuardDuty) StartMonitoringMembersRequest(input *StartMonitoringMembersI
 
 // StartMonitoringMembers API operation for Amazon GuardDuty.
 //
-// Re-enables GuardDuty to monitor findings of the member accounts specified
-// by the account IDs. A master GuardDuty account can run this command after
-// disabling GuardDuty from monitoring these members' findings by running StopMonitoringMembers.
+// Turns on GuardDuty monitoring of the specified member accounts. Use this
+// operation to restart monitoring of accounts that you stopped monitoring with
+// the StopMonitoringMembers operation.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -3365,11 +3776,11 @@ func (c *GuardDuty) StartMonitoringMembersRequest(input *StartMonitoringMembersI
 // See the AWS API reference guide for Amazon GuardDuty's
 // API operation StartMonitoringMembers for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //   Bad request exception object.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   Internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/StartMonitoringMembers
@@ -3438,10 +3849,8 @@ func (c *GuardDuty) StopMonitoringMembersRequest(input *StopMonitoringMembersInp
 
 // StopMonitoringMembers API operation for Amazon GuardDuty.
 //
-// Disables GuardDuty from monitoring findings of the member accounts specified
-// by the account IDs. After running this command, a master GuardDuty account
-// can run StartMonitoringMembers to re-enable GuardDuty to monitor these members’
-// findings.
+// Stops GuardDuty monitoring for the specified member accounnts. Use the StartMonitoringMembers
+// to restart monitoring for those accounts.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -3450,11 +3859,11 @@ func (c *GuardDuty) StopMonitoringMembersRequest(input *StopMonitoringMembersInp
 // See the AWS API reference guide for Amazon GuardDuty's
 // API operation StopMonitoringMembers for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //   Bad request exception object.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   Internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/StopMonitoringMembers
@@ -3533,11 +3942,11 @@ func (c *GuardDuty) TagResourceRequest(input *TagResourceInput) (req *request.Re
 // See the AWS API reference guide for Amazon GuardDuty's
 // API operation TagResource for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //   Bad request exception object.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   Internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/TagResource
@@ -3607,7 +4016,7 @@ func (c *GuardDuty) UnarchiveFindingsRequest(input *UnarchiveFindingsInput) (req
 
 // UnarchiveFindings API operation for Amazon GuardDuty.
 //
-// Unarchives Amazon GuardDuty findings specified by the list of finding IDs.
+// Unarchives GuardDuty findings specified by the findingIds.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -3616,11 +4025,11 @@ func (c *GuardDuty) UnarchiveFindingsRequest(input *UnarchiveFindingsInput) (req
 // See the AWS API reference guide for Amazon GuardDuty's
 // API operation UnarchiveFindings for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //   Bad request exception object.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   Internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/UnarchiveFindings
@@ -3699,11 +4108,11 @@ func (c *GuardDuty) UntagResourceRequest(input *UntagResourceInput) (req *reques
 // See the AWS API reference guide for Amazon GuardDuty's
 // API operation UntagResource for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //   Bad request exception object.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   Internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/UntagResource
@@ -3773,7 +4182,7 @@ func (c *GuardDuty) UpdateDetectorRequest(input *UpdateDetectorInput) (req *requ
 
 // UpdateDetector API operation for Amazon GuardDuty.
 //
-// Updates an Amazon GuardDuty detector specified by the detectorId.
+// Updates the Amazon GuardDuty detector specified by the detectorId.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -3782,11 +4191,11 @@ func (c *GuardDuty) UpdateDetectorRequest(input *UpdateDetectorInput) (req *requ
 // See the AWS API reference guide for Amazon GuardDuty's
 // API operation UpdateDetector for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //   Bad request exception object.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   Internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/UpdateDetector
@@ -3864,11 +4273,11 @@ func (c *GuardDuty) UpdateFilterRequest(input *UpdateFilterInput) (req *request.
 // See the AWS API reference guide for Amazon GuardDuty's
 // API operation UpdateFilter for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //   Bad request exception object.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   Internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/UpdateFilter
@@ -3938,7 +4347,7 @@ func (c *GuardDuty) UpdateFindingsFeedbackRequest(input *UpdateFindingsFeedbackI
 
 // UpdateFindingsFeedback API operation for Amazon GuardDuty.
 //
-// Marks specified Amazon GuardDuty findings as useful or not useful.
+// Marks the specified GuardDuty findings as useful or not useful.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -3947,11 +4356,11 @@ func (c *GuardDuty) UpdateFindingsFeedbackRequest(input *UpdateFindingsFeedbackI
 // See the AWS API reference guide for Amazon GuardDuty's
 // API operation UpdateFindingsFeedback for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //   Bad request exception object.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   Internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/UpdateFindingsFeedback
@@ -4030,11 +4439,11 @@ func (c *GuardDuty) UpdateIPSetRequest(input *UpdateIPSetInput) (req *request.Re
 // See the AWS API reference guide for Amazon GuardDuty's
 // API operation UpdateIPSet for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //   Bad request exception object.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   Internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/UpdateIPSet
@@ -4054,6 +4463,89 @@ func (c *GuardDuty) UpdateIPSet(input *UpdateIPSetInput) (*UpdateIPSetOutput, er
 // for more information on using Contexts.
 func (c *GuardDuty) UpdateIPSetWithContext(ctx aws.Context, input *UpdateIPSetInput, opts ...request.Option) (*UpdateIPSetOutput, error) {
 	req, out := c.UpdateIPSetRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opUpdatePublishingDestination = "UpdatePublishingDestination"
+
+// UpdatePublishingDestinationRequest generates a "aws/request.Request" representing the
+// client's request for the UpdatePublishingDestination operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See UpdatePublishingDestination for more information on using the UpdatePublishingDestination
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the UpdatePublishingDestinationRequest method.
+//    req, resp := client.UpdatePublishingDestinationRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/UpdatePublishingDestination
+func (c *GuardDuty) UpdatePublishingDestinationRequest(input *UpdatePublishingDestinationInput) (req *request.Request, output *UpdatePublishingDestinationOutput) {
+	op := &request.Operation{
+		Name:       opUpdatePublishingDestination,
+		HTTPMethod: "POST",
+		HTTPPath:   "/detector/{detectorId}/publishingDestination/{destinationId}",
+	}
+
+	if input == nil {
+		input = &UpdatePublishingDestinationInput{}
+	}
+
+	output = &UpdatePublishingDestinationOutput{}
+	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(restjson.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
+	return
+}
+
+// UpdatePublishingDestination API operation for Amazon GuardDuty.
+//
+// Updates information about the publishing destination specified by the destinationId.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon GuardDuty's
+// API operation UpdatePublishingDestination for usage and error information.
+//
+// Returned Error Types:
+//   * BadRequestException
+//   Bad request exception object.
+//
+//   * InternalServerErrorException
+//   Internal server error exception object.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/UpdatePublishingDestination
+func (c *GuardDuty) UpdatePublishingDestination(input *UpdatePublishingDestinationInput) (*UpdatePublishingDestinationOutput, error) {
+	req, out := c.UpdatePublishingDestinationRequest(input)
+	return out, req.Send()
+}
+
+// UpdatePublishingDestinationWithContext is the same as UpdatePublishingDestination with the addition of
+// the ability to pass a context and additional request options.
+//
+// See UpdatePublishingDestination for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *GuardDuty) UpdatePublishingDestinationWithContext(ctx aws.Context, input *UpdatePublishingDestinationInput, opts ...request.Option) (*UpdatePublishingDestinationOutput, error) {
+	req, out := c.UpdatePublishingDestinationRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -4113,11 +4605,11 @@ func (c *GuardDuty) UpdateThreatIntelSetRequest(input *UpdateThreatIntelSetInput
 // See the AWS API reference guide for Amazon GuardDuty's
 // API operation UpdateThreatIntelSet for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //   Bad request exception object.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   Internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/UpdateThreatIntelSet
@@ -4525,6 +5017,66 @@ func (s *AwsApiCallAction) SetServiceName(v string) *AwsApiCallAction {
 	return s
 }
 
+// Bad request exception object.
+type BadRequestException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	// The error message.
+	Message_ *string `locationName:"message" type:"string"`
+
+	// The error type.
+	Type *string `locationName:"__type" type:"string"`
+}
+
+// String returns the string representation
+func (s BadRequestException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s BadRequestException) GoString() string {
+	return s.String()
+}
+
+func newErrorBadRequestException(v protocol.ResponseMetadata) error {
+	return &BadRequestException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s BadRequestException) Code() string {
+	return "BadRequestException"
+}
+
+// Message returns the exception's message.
+func (s BadRequestException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s BadRequestException) OrigErr() error {
+	return nil
+}
+
+func (s BadRequestException) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s BadRequestException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s BadRequestException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
 // Contains information about the city associated with the IP address.
 type City struct {
 	_ struct{} `type:"structure"`
@@ -4553,8 +5105,8 @@ func (s *City) SetCityName(v string) *City {
 type Condition struct {
 	_ struct{} `type:"structure"`
 
-	// Deprecated. Represents the equal condition to be applied to a single field
-	// when querying for findings.
+	// Represents the equal condition to be applied to a single field when querying
+	// for findings.
 	//
 	// Deprecated: Eq has been deprecated
 	Eq []*string `locationName:"eq" deprecated:"true" type:"list"`
@@ -4571,14 +5123,14 @@ type Condition struct {
 	// when querying for findings.
 	GreaterThanOrEqual *int64 `locationName:"greaterThanOrEqual" type:"long"`
 
-	// Deprecated. Represents a greater than condition to be applied to a single
-	// field when querying for findings.
+	// Represents a greater than condition to be applied to a single field when
+	// querying for findings.
 	//
 	// Deprecated: Gt has been deprecated
 	Gt *int64 `locationName:"gt" deprecated:"true" type:"integer"`
 
-	// Deprecated. Represents a greater than equal condition to be applied to a
-	// single field when querying for findings.
+	// Represents a greater than equal condition to be applied to a single field
+	// when querying for findings.
 	//
 	// Deprecated: Gte has been deprecated
 	Gte *int64 `locationName:"gte" deprecated:"true" type:"integer"`
@@ -4591,20 +5143,20 @@ type Condition struct {
 	// querying for findings.
 	LessThanOrEqual *int64 `locationName:"lessThanOrEqual" type:"long"`
 
-	// Deprecated. Represents a less than condition to be applied to a single field
-	// when querying for findings.
+	// Represents a less than condition to be applied to a single field when querying
+	// for findings.
 	//
 	// Deprecated: Lt has been deprecated
 	Lt *int64 `locationName:"lt" deprecated:"true" type:"integer"`
 
-	// Deprecated. Represents a less than equal condition to be applied to a single
-	// field when querying for findings.
+	// Represents a less than equal condition to be applied to a single field when
+	// querying for findings.
 	//
 	// Deprecated: Lte has been deprecated
 	Lte *int64 `locationName:"lte" deprecated:"true" type:"integer"`
 
-	// Deprecated. Represents the not equal condition to be applied to a single
-	// field when querying for findings.
+	// Represents the not equal condition to be applied to a single field when querying
+	// for findings.
 	//
 	// Deprecated: Neq has been deprecated
 	Neq []*string `locationName:"neq" deprecated:"true" type:"list"`
@@ -4696,7 +5248,8 @@ func (s *Condition) SetNotEquals(v []*string) *Condition {
 	return s
 }
 
-// Contains information about the country.
+// Contains information about the country in which the remote IP address is
+// located.
 type Country struct {
 	_ struct{} `type:"structure"`
 
@@ -5226,6 +5779,114 @@ func (s *CreateMembersOutput) SetUnprocessedAccounts(v []*UnprocessedAccount) *C
 	return s
 }
 
+type CreatePublishingDestinationInput struct {
+	_ struct{} `type:"structure"`
+
+	// The idempotency token for the request.
+	ClientToken *string `locationName:"clientToken" type:"string" idempotencyToken:"true"`
+
+	// Properties of the publishing destination, including the ARNs for the destination
+	// and the KMS key used for encryption.
+	//
+	// DestinationProperties is a required field
+	DestinationProperties *DestinationProperties `locationName:"destinationProperties" type:"structure" required:"true"`
+
+	// The type of resource for the publishing destination. Currently only S3 is
+	// supported.
+	//
+	// DestinationType is a required field
+	DestinationType *string `locationName:"destinationType" min:"1" type:"string" required:"true" enum:"DestinationType"`
+
+	// The ID of the GuardDuty detector associated with the publishing destination.
+	//
+	// DetectorId is a required field
+	DetectorId *string `location:"uri" locationName:"detectorId" min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s CreatePublishingDestinationInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreatePublishingDestinationInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *CreatePublishingDestinationInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "CreatePublishingDestinationInput"}
+	if s.DestinationProperties == nil {
+		invalidParams.Add(request.NewErrParamRequired("DestinationProperties"))
+	}
+	if s.DestinationType == nil {
+		invalidParams.Add(request.NewErrParamRequired("DestinationType"))
+	}
+	if s.DestinationType != nil && len(*s.DestinationType) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("DestinationType", 1))
+	}
+	if s.DetectorId == nil {
+		invalidParams.Add(request.NewErrParamRequired("DetectorId"))
+	}
+	if s.DetectorId != nil && len(*s.DetectorId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("DetectorId", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetClientToken sets the ClientToken field's value.
+func (s *CreatePublishingDestinationInput) SetClientToken(v string) *CreatePublishingDestinationInput {
+	s.ClientToken = &v
+	return s
+}
+
+// SetDestinationProperties sets the DestinationProperties field's value.
+func (s *CreatePublishingDestinationInput) SetDestinationProperties(v *DestinationProperties) *CreatePublishingDestinationInput {
+	s.DestinationProperties = v
+	return s
+}
+
+// SetDestinationType sets the DestinationType field's value.
+func (s *CreatePublishingDestinationInput) SetDestinationType(v string) *CreatePublishingDestinationInput {
+	s.DestinationType = &v
+	return s
+}
+
+// SetDetectorId sets the DetectorId field's value.
+func (s *CreatePublishingDestinationInput) SetDetectorId(v string) *CreatePublishingDestinationInput {
+	s.DetectorId = &v
+	return s
+}
+
+type CreatePublishingDestinationOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The ID of the publishing destination created.
+	//
+	// DestinationId is a required field
+	DestinationId *string `locationName:"destinationId" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s CreatePublishingDestinationOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreatePublishingDestinationOutput) GoString() string {
+	return s.String()
+}
+
+// SetDestinationId sets the DestinationId field's value.
+func (s *CreatePublishingDestinationOutput) SetDestinationId(v string) *CreatePublishingDestinationOutput {
+	s.DestinationId = &v
+	return s
+}
+
 type CreateSampleFindingsInput struct {
 	_ struct{} `type:"structure"`
 
@@ -5234,7 +5895,7 @@ type CreateSampleFindingsInput struct {
 	// DetectorId is a required field
 	DetectorId *string `location:"uri" locationName:"detectorId" min:"1" type:"string" required:"true"`
 
-	// Types of sample findings that you want to generate.
+	// Types of sample findings to generate.
 	FindingTypes []*string `locationName:"findingTypes" type:"list"`
 }
 
@@ -5643,12 +6304,12 @@ func (s DeleteFilterOutput) GoString() string {
 type DeleteIPSetInput struct {
 	_ struct{} `type:"structure"`
 
-	// The unique ID of the detector the ipSet is associated with.
+	// The unique ID of the detector associated with the IPSet.
 	//
 	// DetectorId is a required field
 	DetectorId *string `location:"uri" locationName:"detectorId" min:"1" type:"string" required:"true"`
 
-	// The unique ID of the ipSet you want to delete.
+	// The unique ID of the IPSet to delete.
 	//
 	// IpSetId is a required field
 	IpSetId *string `location:"uri" locationName:"ipSetId" type:"string" required:"true"`
@@ -5864,6 +6525,79 @@ func (s *DeleteMembersOutput) SetUnprocessedAccounts(v []*UnprocessedAccount) *D
 	return s
 }
 
+type DeletePublishingDestinationInput struct {
+	_ struct{} `type:"structure"`
+
+	// The ID of the publishing destination to delete.
+	//
+	// DestinationId is a required field
+	DestinationId *string `location:"uri" locationName:"destinationId" type:"string" required:"true"`
+
+	// The unique ID of the detector associated with the publishing destination
+	// to delete.
+	//
+	// DetectorId is a required field
+	DetectorId *string `location:"uri" locationName:"detectorId" min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s DeletePublishingDestinationInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeletePublishingDestinationInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DeletePublishingDestinationInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DeletePublishingDestinationInput"}
+	if s.DestinationId == nil {
+		invalidParams.Add(request.NewErrParamRequired("DestinationId"))
+	}
+	if s.DestinationId != nil && len(*s.DestinationId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("DestinationId", 1))
+	}
+	if s.DetectorId == nil {
+		invalidParams.Add(request.NewErrParamRequired("DetectorId"))
+	}
+	if s.DetectorId != nil && len(*s.DetectorId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("DetectorId", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetDestinationId sets the DestinationId field's value.
+func (s *DeletePublishingDestinationInput) SetDestinationId(v string) *DeletePublishingDestinationInput {
+	s.DestinationId = &v
+	return s
+}
+
+// SetDetectorId sets the DetectorId field's value.
+func (s *DeletePublishingDestinationInput) SetDetectorId(v string) *DeletePublishingDestinationInput {
+	s.DetectorId = &v
+	return s
+}
+
+type DeletePublishingDestinationOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s DeletePublishingDestinationOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeletePublishingDestinationOutput) GoString() string {
+	return s.String()
+}
+
 type DeleteThreatIntelSetInput struct {
 	_ struct{} `type:"structure"`
 
@@ -5934,6 +6668,220 @@ func (s DeleteThreatIntelSetOutput) String() string {
 // GoString returns the string representation
 func (s DeleteThreatIntelSetOutput) GoString() string {
 	return s.String()
+}
+
+type DescribePublishingDestinationInput struct {
+	_ struct{} `type:"structure"`
+
+	// The ID of the publishing destination to retrieve.
+	//
+	// DestinationId is a required field
+	DestinationId *string `location:"uri" locationName:"destinationId" type:"string" required:"true"`
+
+	// The unique ID of the detector associated with the publishing destination
+	// to retrieve.
+	//
+	// DetectorId is a required field
+	DetectorId *string `location:"uri" locationName:"detectorId" min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s DescribePublishingDestinationInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribePublishingDestinationInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DescribePublishingDestinationInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DescribePublishingDestinationInput"}
+	if s.DestinationId == nil {
+		invalidParams.Add(request.NewErrParamRequired("DestinationId"))
+	}
+	if s.DestinationId != nil && len(*s.DestinationId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("DestinationId", 1))
+	}
+	if s.DetectorId == nil {
+		invalidParams.Add(request.NewErrParamRequired("DetectorId"))
+	}
+	if s.DetectorId != nil && len(*s.DetectorId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("DetectorId", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetDestinationId sets the DestinationId field's value.
+func (s *DescribePublishingDestinationInput) SetDestinationId(v string) *DescribePublishingDestinationInput {
+	s.DestinationId = &v
+	return s
+}
+
+// SetDetectorId sets the DetectorId field's value.
+func (s *DescribePublishingDestinationInput) SetDetectorId(v string) *DescribePublishingDestinationInput {
+	s.DetectorId = &v
+	return s
+}
+
+type DescribePublishingDestinationOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The ID of the publishing destination.
+	//
+	// DestinationId is a required field
+	DestinationId *string `locationName:"destinationId" type:"string" required:"true"`
+
+	// A DestinationProperties object that includes the DestinationArn and KmsKeyArn
+	// of the publishing destination.
+	//
+	// DestinationProperties is a required field
+	DestinationProperties *DestinationProperties `locationName:"destinationProperties" type:"structure" required:"true"`
+
+	// The type of the publishing destination. Currently, only S3 is supported.
+	//
+	// DestinationType is a required field
+	DestinationType *string `locationName:"destinationType" min:"1" type:"string" required:"true" enum:"DestinationType"`
+
+	// The time, in epoch millisecond format, at which GuardDuty was first unable
+	// to publish findings to the destination.
+	//
+	// PublishingFailureStartTimestamp is a required field
+	PublishingFailureStartTimestamp *int64 `locationName:"publishingFailureStartTimestamp" type:"long" required:"true"`
+
+	// The status of the publishing destination.
+	//
+	// Status is a required field
+	Status *string `locationName:"status" min:"1" type:"string" required:"true" enum:"PublishingStatus"`
+}
+
+// String returns the string representation
+func (s DescribePublishingDestinationOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribePublishingDestinationOutput) GoString() string {
+	return s.String()
+}
+
+// SetDestinationId sets the DestinationId field's value.
+func (s *DescribePublishingDestinationOutput) SetDestinationId(v string) *DescribePublishingDestinationOutput {
+	s.DestinationId = &v
+	return s
+}
+
+// SetDestinationProperties sets the DestinationProperties field's value.
+func (s *DescribePublishingDestinationOutput) SetDestinationProperties(v *DestinationProperties) *DescribePublishingDestinationOutput {
+	s.DestinationProperties = v
+	return s
+}
+
+// SetDestinationType sets the DestinationType field's value.
+func (s *DescribePublishingDestinationOutput) SetDestinationType(v string) *DescribePublishingDestinationOutput {
+	s.DestinationType = &v
+	return s
+}
+
+// SetPublishingFailureStartTimestamp sets the PublishingFailureStartTimestamp field's value.
+func (s *DescribePublishingDestinationOutput) SetPublishingFailureStartTimestamp(v int64) *DescribePublishingDestinationOutput {
+	s.PublishingFailureStartTimestamp = &v
+	return s
+}
+
+// SetStatus sets the Status field's value.
+func (s *DescribePublishingDestinationOutput) SetStatus(v string) *DescribePublishingDestinationOutput {
+	s.Status = &v
+	return s
+}
+
+// Contains information about a publishing destination, including the ID, type,
+// and status.
+type Destination struct {
+	_ struct{} `type:"structure"`
+
+	// The unique ID of the publishing destination.
+	//
+	// DestinationId is a required field
+	DestinationId *string `locationName:"destinationId" type:"string" required:"true"`
+
+	// The type of resource used for the publishing destination. Currently, only
+	// S3 is supported.
+	//
+	// DestinationType is a required field
+	DestinationType *string `locationName:"destinationType" min:"1" type:"string" required:"true" enum:"DestinationType"`
+
+	// The status of the publishing destination.
+	//
+	// Status is a required field
+	Status *string `locationName:"status" min:"1" type:"string" required:"true" enum:"PublishingStatus"`
+}
+
+// String returns the string representation
+func (s Destination) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s Destination) GoString() string {
+	return s.String()
+}
+
+// SetDestinationId sets the DestinationId field's value.
+func (s *Destination) SetDestinationId(v string) *Destination {
+	s.DestinationId = &v
+	return s
+}
+
+// SetDestinationType sets the DestinationType field's value.
+func (s *Destination) SetDestinationType(v string) *Destination {
+	s.DestinationType = &v
+	return s
+}
+
+// SetStatus sets the Status field's value.
+func (s *Destination) SetStatus(v string) *Destination {
+	s.Status = &v
+	return s
+}
+
+// Contains the ARN of the resource to publish to, such as an S3 bucket, and
+// the ARN of the KMS key to use to encrypt published findings.
+type DestinationProperties struct {
+	_ struct{} `type:"structure"`
+
+	// The ARN of the resource to publish to.
+	DestinationArn *string `locationName:"destinationArn" type:"string"`
+
+	// The ARN of the KMS key to use for encryption.
+	KmsKeyArn *string `locationName:"kmsKeyArn" type:"string"`
+}
+
+// String returns the string representation
+func (s DestinationProperties) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DestinationProperties) GoString() string {
+	return s.String()
+}
+
+// SetDestinationArn sets the DestinationArn field's value.
+func (s *DestinationProperties) SetDestinationArn(v string) *DestinationProperties {
+	s.DestinationArn = &v
+	return s
+}
+
+// SetKmsKeyArn sets the KmsKeyArn field's value.
+func (s *DestinationProperties) SetKmsKeyArn(v string) *DestinationProperties {
+	s.KmsKeyArn = &v
+	return s
 }
 
 type DisassociateFromMasterAccountInput struct {
@@ -6077,11 +7025,11 @@ func (s *DisassociateMembersOutput) SetUnprocessedAccounts(v []*UnprocessedAccou
 	return s
 }
 
-// Contains information about the DNS request.
+// Contains information about the DNS_REQUEST action described in this finding.
 type DnsRequestAction struct {
 	_ struct{} `type:"structure"`
 
-	// Domain information for the DNS request.
+	// Domain information for the API request.
 	Domain *string `locationName:"domain" type:"string"`
 }
 
@@ -6149,7 +7097,8 @@ func (s *Evidence) SetThreatIntelligenceDetails(v []*ThreatIntelligenceDetail) *
 	return s
 }
 
-// Contains information about the finding.
+// Contains information about the finding, which is generated when abnormal
+// or suspicious activity is detected.
 type Finding struct {
 	_ struct{} `type:"structure"`
 
@@ -6187,7 +7136,8 @@ type Finding struct {
 	// Region is a required field
 	Region *string `locationName:"region" type:"string" required:"true"`
 
-	// Contains information about the resource.
+	// Contains information about the AWS resource associated with the activity
+	// that prompted GuardDuty to generate a finding.
 	//
 	// Resource is a required field
 	Resource *Resource `locationName:"resource" type:"structure" required:"true"`
@@ -6197,7 +7147,7 @@ type Finding struct {
 	// SchemaVersion is a required field
 	SchemaVersion *string `locationName:"schemaVersion" type:"string" required:"true"`
 
-	// Contains information about the service.
+	// Contains additional information about the generated finding.
 	Service *Service `locationName:"service" type:"structure"`
 
 	// The severity of the finding.
@@ -6319,7 +7269,7 @@ func (s *Finding) SetUpdatedAt(v string) *Finding {
 	return s
 }
 
-// Contains finding criteria information.
+// Contains information about the criteria used for querying findings.
 type FindingCriteria struct {
 	_ struct{} `type:"structure"`
 
@@ -6368,7 +7318,7 @@ func (s *FindingStatistics) SetCountBySeverity(v map[string]*int64) *FindingStat
 	return s
 }
 
-// Contains information about the
+// Contains information about the location of the remote IP address.
 type GeoLocation struct {
 	_ struct{} `type:"structure"`
 
@@ -6836,7 +7786,7 @@ type GetIPSetInput struct {
 	// DetectorId is a required field
 	DetectorId *string `location:"uri" locationName:"detectorId" min:"1" type:"string" required:"true"`
 
-	// The unique ID of the ipSet you want to get.
+	// The unique ID of the IPSet to retrieve.
 	//
 	// IpSetId is a required field
 	IpSetId *string `location:"uri" locationName:"ipSetId" type:"string" required:"true"`
@@ -6899,9 +7849,7 @@ type GetIPSetOutput struct {
 	// Location is a required field
 	Location *string `locationName:"location" min:"1" type:"string" required:"true"`
 
-	// The user friendly name to identify the IPSet. This name is displayed in all
-	// findings that are triggered by activity that involves IP addresses included
-	// in this IPSet.
+	// The user friendly name for the IPSet.
 	//
 	// Name is a required field
 	Name *string `locationName:"name" min:"1" type:"string" required:"true"`
@@ -7280,7 +8228,7 @@ func (s *GetThreatIntelSetOutput) SetTags(v map[string]*string) *GetThreatIntelS
 	return s
 }
 
-// Contains information about the instance profile.
+// Contains information about the EC2 instance profile.
 type IamInstanceProfile struct {
 	_ struct{} `type:"structure"`
 
@@ -7343,6 +8291,10 @@ type InstanceDetails struct {
 
 	// The network interface information of the EC2 instance.
 	NetworkInterfaces []*NetworkInterface `locationName:"networkInterfaces" type:"list"`
+
+	// The Amazon Resource Name (ARN) of the AWS Outpost. Only applicable to AWS
+	// Outposts instances.
+	OutpostArn *string `locationName:"outpostArn" type:"string"`
 
 	// The platform of the EC2 instance.
 	Platform *string `locationName:"platform" type:"string"`
@@ -7418,6 +8370,12 @@ func (s *InstanceDetails) SetNetworkInterfaces(v []*NetworkInterface) *InstanceD
 	return s
 }
 
+// SetOutpostArn sets the OutpostArn field's value.
+func (s *InstanceDetails) SetOutpostArn(v string) *InstanceDetails {
+	s.OutpostArn = &v
+	return s
+}
+
 // SetPlatform sets the Platform field's value.
 func (s *InstanceDetails) SetPlatform(v string) *InstanceDetails {
 	s.Platform = &v
@@ -7436,17 +8394,78 @@ func (s *InstanceDetails) SetTags(v []*Tag) *InstanceDetails {
 	return s
 }
 
-// Contains information about the invitation.
+// Internal server error exception object.
+type InternalServerErrorException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	// The error message.
+	Message_ *string `locationName:"message" type:"string"`
+
+	// The error type.
+	Type *string `locationName:"__type" type:"string"`
+}
+
+// String returns the string representation
+func (s InternalServerErrorException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InternalServerErrorException) GoString() string {
+	return s.String()
+}
+
+func newErrorInternalServerErrorException(v protocol.ResponseMetadata) error {
+	return &InternalServerErrorException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s InternalServerErrorException) Code() string {
+	return "InternalServerErrorException"
+}
+
+// Message returns the exception's message.
+func (s InternalServerErrorException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s InternalServerErrorException) OrigErr() error {
+	return nil
+}
+
+func (s InternalServerErrorException) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s InternalServerErrorException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s InternalServerErrorException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// Contains information about the invitation to become a member account.
 type Invitation struct {
 	_ struct{} `type:"structure"`
 
-	// Inviter account ID
+	// The ID of the account from which the invitations was sent.
 	AccountId *string `locationName:"accountId" min:"12" type:"string"`
 
-	// This value is used to validate the inviter account to the member account.
+	// The ID of the invitation. This value is used to validate the inviter account
+	// to the member account.
 	InvitationId *string `locationName:"invitationId" type:"string"`
 
-	// Timestamp at which the invitation was sent
+	// Timestamp at which the invitation was sent.
 	InvitedAt *string `locationName:"invitedAt" type:"string"`
 
 	// The status of the relationship between the inviter and invitee accounts.
@@ -7787,7 +8806,112 @@ type ListFindingsInput struct {
 	// DetectorId is a required field
 	DetectorId *string `location:"uri" locationName:"detectorId" min:"1" type:"string" required:"true"`
 
-	// Represents the criteria used for querying findings.
+	// Represents the criteria used for querying findings. Valid values include:
+	//
+	//    * JSON field name
+	//
+	//    * accountId
+	//
+	//    * region
+	//
+	//    * confidence
+	//
+	//    * id
+	//
+	//    * resource.accessKeyDetails.accessKeyId
+	//
+	//    * resource.accessKeyDetails.principalId
+	//
+	//    * resource.accessKeyDetails.userName
+	//
+	//    * resource.accessKeyDetails.userType
+	//
+	//    * resource.instanceDetails.iamInstanceProfile.id
+	//
+	//    * resource.instanceDetails.imageId
+	//
+	//    * resource.instanceDetails.instanceId
+	//
+	//    * resource.instanceDetails.outpostArn
+	//
+	//    * resource.instanceDetails.networkInterfaces.ipv6Addresses
+	//
+	//    * resource.instanceDetails.networkInterfaces.privateIpAddresses.privateIpAddress
+	//
+	//    * resource.instanceDetails.networkInterfaces.publicDnsName
+	//
+	//    * resource.instanceDetails.networkInterfaces.publicIp
+	//
+	//    * resource.instanceDetails.networkInterfaces.securityGroups.groupId
+	//
+	//    * resource.instanceDetails.networkInterfaces.securityGroups.groupName
+	//
+	//    * resource.instanceDetails.networkInterfaces.subnetId
+	//
+	//    * resource.instanceDetails.networkInterfaces.vpcId
+	//
+	//    * resource.instanceDetails.tags.key
+	//
+	//    * resource.instanceDetails.tags.value
+	//
+	//    * resource.resourceType
+	//
+	//    * service.action.actionType
+	//
+	//    * service.action.awsApiCallAction.api
+	//
+	//    * service.action.awsApiCallAction.callerType
+	//
+	//    * service.action.awsApiCallAction.remoteIpDetails.city.cityName
+	//
+	//    * service.action.awsApiCallAction.remoteIpDetails.country.countryName
+	//
+	//    * service.action.awsApiCallAction.remoteIpDetails.ipAddressV4
+	//
+	//    * service.action.awsApiCallAction.remoteIpDetails.organization.asn
+	//
+	//    * service.action.awsApiCallAction.remoteIpDetails.organization.asnOrg
+	//
+	//    * service.action.awsApiCallAction.serviceName
+	//
+	//    * service.action.dnsRequestAction.domain
+	//
+	//    * service.action.networkConnectionAction.blocked
+	//
+	//    * service.action.networkConnectionAction.connectionDirection
+	//
+	//    * service.action.networkConnectionAction.localPortDetails.port
+	//
+	//    * service.action.networkConnectionAction.protocol
+	//
+	//    * service.action.networkConnectionAction.localIpDetails.ipAddressV4
+	//
+	//    * service.action.networkConnectionAction.remoteIpDetails.city.cityName
+	//
+	//    * service.action.networkConnectionAction.remoteIpDetails.country.countryName
+	//
+	//    * service.action.networkConnectionAction.remoteIpDetails.ipAddressV4
+	//
+	//    * service.action.networkConnectionAction.remoteIpDetails.organization.asn
+	//
+	//    * service.action.networkConnectionAction.remoteIpDetails.organization.asnOrg
+	//
+	//    * service.action.networkConnectionAction.remotePortDetails.port
+	//
+	//    * service.additionalInfo.threatListName
+	//
+	//    * service.archived When this attribute is set to 'true', only archived
+	//    findings are listed. When it's set to 'false', only unarchived findings
+	//    are listed. When this attribute is not set, all existing findings are
+	//    listed.
+	//
+	//    * service.resourceRole
+	//
+	//    * severity
+	//
+	//    * type
+	//
+	//    * updatedAt Type: Timestamp in Unix Epoch millisecond format: 1486685375000
 	FindingCriteria *FindingCriteria `locationName:"findingCriteria" type:"structure"`
 
 	// You can use this parameter to indicate the maximum number of items you want
@@ -8190,6 +9314,109 @@ func (s *ListMembersOutput) SetNextToken(v string) *ListMembersOutput {
 	return s
 }
 
+type ListPublishingDestinationsInput struct {
+	_ struct{} `type:"structure"`
+
+	// The ID of the detector to retrieve publishing destinations for.
+	//
+	// DetectorId is a required field
+	DetectorId *string `location:"uri" locationName:"detectorId" min:"1" type:"string" required:"true"`
+
+	// The maximum number of results to return in the response.
+	MaxResults *int64 `location:"querystring" locationName:"maxResults" min:"1" type:"integer"`
+
+	// A token to use for paginating results returned in the repsonse. Set the value
+	// of this parameter to null for the first request to a list action. For subsequent
+	// calls, use the NextToken value returned from the previous request to continue
+	// listing results after the first page.
+	NextToken *string `location:"querystring" locationName:"nextToken" type:"string"`
+}
+
+// String returns the string representation
+func (s ListPublishingDestinationsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListPublishingDestinationsInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ListPublishingDestinationsInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ListPublishingDestinationsInput"}
+	if s.DetectorId == nil {
+		invalidParams.Add(request.NewErrParamRequired("DetectorId"))
+	}
+	if s.DetectorId != nil && len(*s.DetectorId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("DetectorId", 1))
+	}
+	if s.MaxResults != nil && *s.MaxResults < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("MaxResults", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetDetectorId sets the DetectorId field's value.
+func (s *ListPublishingDestinationsInput) SetDetectorId(v string) *ListPublishingDestinationsInput {
+	s.DetectorId = &v
+	return s
+}
+
+// SetMaxResults sets the MaxResults field's value.
+func (s *ListPublishingDestinationsInput) SetMaxResults(v int64) *ListPublishingDestinationsInput {
+	s.MaxResults = &v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListPublishingDestinationsInput) SetNextToken(v string) *ListPublishingDestinationsInput {
+	s.NextToken = &v
+	return s
+}
+
+type ListPublishingDestinationsOutput struct {
+	_ struct{} `type:"structure"`
+
+	// A Destinations obect that includes information about each publishing destination
+	// returned.
+	//
+	// Destinations is a required field
+	Destinations []*Destination `locationName:"destinations" type:"list" required:"true"`
+
+	// A token to use for paginating results returned in the repsonse. Set the value
+	// of this parameter to null for the first request to a list action. For subsequent
+	// calls, use the NextToken value returned from the previous request to continue
+	// listing results after the first page.
+	NextToken *string `locationName:"nextToken" type:"string"`
+}
+
+// String returns the string representation
+func (s ListPublishingDestinationsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListPublishingDestinationsOutput) GoString() string {
+	return s.String()
+}
+
+// SetDestinations sets the Destinations field's value.
+func (s *ListPublishingDestinationsOutput) SetDestinations(v []*Destination) *ListPublishingDestinationsOutput {
+	s.Destinations = v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListPublishingDestinationsOutput) SetNextToken(v string) *ListPublishingDestinationsOutput {
+	s.NextToken = &v
+	return s
+}
+
 type ListTagsForResourceInput struct {
 	_ struct{} `type:"structure"`
 
@@ -8266,10 +9493,10 @@ type ListThreatIntelSetsInput struct {
 	// in the response. The default value is 50. The maximum value is 50.
 	MaxResults *int64 `location:"querystring" locationName:"maxResults" min:"1" type:"integer"`
 
-	// You can use this parameter when paginating results. Set the value of this
-	// parameter to null on your first call to the list action. For subsequent calls
-	// to the action fill nextToken in the request with the value of NextToken from
-	// the previous response to continue listing data.
+	// You can use this parameter to paginate results in the response. Set the value
+	// of this parameter to null on your first call to the list action. For subsequent
+	// calls to the action fill nextToken in the request with the value of NextToken
+	// from the previous response to continue listing data.
 	NextToken *string `location:"querystring" locationName:"nextToken" type:"string"`
 }
 
@@ -8352,6 +9579,30 @@ func (s *ListThreatIntelSetsOutput) SetNextToken(v string) *ListThreatIntelSetsO
 // SetThreatIntelSetIds sets the ThreatIntelSetIds field's value.
 func (s *ListThreatIntelSetsOutput) SetThreatIntelSetIds(v []*string) *ListThreatIntelSetsOutput {
 	s.ThreatIntelSetIds = v
+	return s
+}
+
+// Contains information about the local IP address of the connection.
+type LocalIpDetails struct {
+	_ struct{} `type:"structure"`
+
+	// IPV4 remote address of the connection.
+	IpAddressV4 *string `locationName:"ipAddressV4" type:"string"`
+}
+
+// String returns the string representation
+func (s LocalIpDetails) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s LocalIpDetails) GoString() string {
+	return s.String()
+}
+
+// SetIpAddressV4 sets the IpAddressV4 field's value.
+func (s *LocalIpDetails) SetIpAddressV4(v string) *LocalIpDetails {
+	s.IpAddressV4 = &v
 	return s
 }
 
@@ -8527,7 +9778,8 @@ func (s *Member) SetUpdatedAt(v string) *Member {
 	return s
 }
 
-// Contains information about the network connection.
+// Contains information about the NETWORK_CONNECTION action described in the
+// finding.
 type NetworkConnectionAction struct {
 	_ struct{} `type:"structure"`
 
@@ -8536,6 +9788,9 @@ type NetworkConnectionAction struct {
 
 	// Network connection direction.
 	ConnectionDirection *string `locationName:"connectionDirection" type:"string"`
+
+	// Local IP information of the connection.
+	LocalIpDetails *LocalIpDetails `locationName:"localIpDetails" type:"structure"`
 
 	// Local port information of the connection.
 	LocalPortDetails *LocalPortDetails `locationName:"localPortDetails" type:"structure"`
@@ -8572,6 +9827,12 @@ func (s *NetworkConnectionAction) SetConnectionDirection(v string) *NetworkConne
 	return s
 }
 
+// SetLocalIpDetails sets the LocalIpDetails field's value.
+func (s *NetworkConnectionAction) SetLocalIpDetails(v *LocalIpDetails) *NetworkConnectionAction {
+	s.LocalIpDetails = v
+	return s
+}
+
 // SetLocalPortDetails sets the LocalPortDetails field's value.
 func (s *NetworkConnectionAction) SetLocalPortDetails(v *LocalPortDetails) *NetworkConnectionAction {
 	s.LocalPortDetails = v
@@ -8596,7 +9857,7 @@ func (s *NetworkConnectionAction) SetRemotePortDetails(v *RemotePortDetails) *Ne
 	return s
 }
 
-// Contains information about the network interface.
+// Contains information about the network interface of the Ec2 instance.
 type NetworkInterface struct {
 	_ struct{} `type:"structure"`
 
@@ -8701,7 +9962,7 @@ func (s *NetworkInterface) SetVpcId(v string) *NetworkInterface {
 	return s
 }
 
-// Continas information about the organization.
+// Continas information about the ISP organization of the remote IP address.
 type Organization struct {
 	_ struct{} `type:"structure"`
 
@@ -8752,7 +10013,7 @@ func (s *Organization) SetOrg(v string) *Organization {
 	return s
 }
 
-// Contains information about the port probe.
+// Contains information about the PORT_PROBE action described in the finding.
 type PortProbeAction struct {
 	_ struct{} `type:"structure"`
 
@@ -8789,6 +10050,9 @@ func (s *PortProbeAction) SetPortProbeDetails(v []*PortProbeDetail) *PortProbeAc
 type PortProbeDetail struct {
 	_ struct{} `type:"structure"`
 
+	// Local IP information of the connection.
+	LocalIpDetails *LocalIpDetails `locationName:"localIpDetails" type:"structure"`
+
 	// Local port information of the connection.
 	LocalPortDetails *LocalPortDetails `locationName:"localPortDetails" type:"structure"`
 
@@ -8806,6 +10070,12 @@ func (s PortProbeDetail) GoString() string {
 	return s.String()
 }
 
+// SetLocalIpDetails sets the LocalIpDetails field's value.
+func (s *PortProbeDetail) SetLocalIpDetails(v *LocalIpDetails) *PortProbeDetail {
+	s.LocalIpDetails = v
+	return s
+}
+
 // SetLocalPortDetails sets the LocalPortDetails field's value.
 func (s *PortProbeDetail) SetLocalPortDetails(v *LocalPortDetails) *PortProbeDetail {
 	s.LocalPortDetails = v
@@ -8818,7 +10088,7 @@ func (s *PortProbeDetail) SetRemoteIpDetails(v *RemoteIpDetails) *PortProbeDetai
 	return s
 }
 
-// Contains information about the private IP address.
+// Contains other private IP address information of the EC2 instance.
 type PrivateIpAddressDetails struct {
 	_ struct{} `type:"structure"`
 
@@ -8851,7 +10121,7 @@ func (s *PrivateIpAddressDetails) SetPrivateIpAddress(v string) *PrivateIpAddres
 	return s
 }
 
-// Contains information about the product code.
+// Contains information about the product code for the Ec2 instance.
 type ProductCode struct {
 	_ struct{} `type:"structure"`
 
@@ -8884,7 +10154,7 @@ func (s *ProductCode) SetProductType(v string) *ProductCode {
 	return s
 }
 
-// Continas information about the remote IP address.
+// Continas information about the remote IP address of the connection.
 type RemoteIpDetails struct {
 	_ struct{} `type:"structure"`
 
@@ -8977,7 +10247,8 @@ func (s *RemotePortDetails) SetPortName(v string) *RemotePortDetails {
 	return s
 }
 
-// Contains information about the resource.
+// Contains information about the AWS resource associated with the activity
+// that prompted GuardDuty to generate a finding.
 type Resource struct {
 	_ struct{} `type:"structure"`
 
@@ -9021,7 +10292,7 @@ func (s *Resource) SetResourceType(v string) *Resource {
 	return s
 }
 
-// Contains information about the security group.
+// Contains information about the security groups associated with the EC2 instance.
 type SecurityGroup struct {
 	_ struct{} `type:"structure"`
 
@@ -9054,7 +10325,7 @@ func (s *SecurityGroup) SetGroupName(v string) *SecurityGroup {
 	return s
 }
 
-// Contains information about the service.
+// Contains additional information about the generated finding.
 type Service struct {
 	_ struct{} `type:"structure"`
 
@@ -9161,7 +10432,7 @@ func (s *Service) SetUserFeedback(v string) *Service {
 	return s
 }
 
-// Contains information about the criteria for sorting.
+// Contains information about the criteria used for sorting findings.
 type SortCriteria struct {
 	_ struct{} `type:"structure"`
 
@@ -9198,14 +10469,13 @@ func (s *SortCriteria) SetOrderBy(v string) *SortCriteria {
 type StartMonitoringMembersInput struct {
 	_ struct{} `type:"structure"`
 
-	// A list of account IDs of the GuardDuty member accounts whose findings you
-	// want the master account to monitor.
+	// A list of account IDs of the GuardDuty member accounts to start monitoring.
 	//
 	// AccountIds is a required field
 	AccountIds []*string `locationName:"accountIds" min:"1" type:"list" required:"true"`
 
-	// The unique ID of the detector of the GuardDuty account whom you want to re-enable
-	// to monitor members' findings.
+	// The unique ID of the detector of the GuardDuty master account associated
+	// with the member accounts to monitor.
 	//
 	// DetectorId is a required field
 	DetectorId *string `location:"uri" locationName:"detectorId" min:"1" type:"string" required:"true"`
@@ -9367,7 +10637,7 @@ func (s *StopMonitoringMembersOutput) SetUnprocessedAccounts(v []*UnprocessedAcc
 	return s
 }
 
-// Contains information about the tag associated with the resource.
+// Contains information about a tag associated with the Ec2 instance.
 type Tag struct {
 	_ struct{} `type:"structure"`
 
@@ -9403,7 +10673,8 @@ func (s *Tag) SetValue(v string) *Tag {
 type TagResourceInput struct {
 	_ struct{} `type:"structure"`
 
-	// The Amazon Resource Name (ARN) for the given GuardDuty resource
+	// The Amazon Resource Name (ARN) for the GuardDuty resource to apply a tag
+	// to.
 	//
 	// ResourceArn is a required field
 	ResourceArn *string `location:"uri" locationName:"resourceArn" type:"string" required:"true"`
@@ -9510,13 +10781,12 @@ func (s *ThreatIntelligenceDetail) SetThreatNames(v []*string) *ThreatIntelligen
 type UnarchiveFindingsInput struct {
 	_ struct{} `type:"structure"`
 
-	// The ID of the detector that specifies the GuardDuty service whose findings
-	// you want to unarchive.
+	// The ID of the detector associated with the findings to unarchive.
 	//
 	// DetectorId is a required field
 	DetectorId *string `location:"uri" locationName:"detectorId" min:"1" type:"string" required:"true"`
 
-	// IDs of the findings that you want to unarchive.
+	// IDs of the findings to unarchive.
 	//
 	// FindingIds is a required field
 	FindingIds []*string `locationName:"findingIds" type:"list" required:"true"`
@@ -9617,12 +10887,12 @@ func (s *UnprocessedAccount) SetResult(v string) *UnprocessedAccount {
 type UntagResourceInput struct {
 	_ struct{} `type:"structure"`
 
-	// The Amazon Resource Name (ARN) for the given GuardDuty resource
+	// The Amazon Resource Name (ARN) for the resource to remove tags from.
 	//
 	// ResourceArn is a required field
 	ResourceArn *string `location:"uri" locationName:"resourceArn" type:"string" required:"true"`
 
-	// The tag keys to remove from a resource.
+	// The tag keys to remove from the resource.
 	//
 	// TagKeys is a required field
 	TagKeys []*string `location:"querystring" locationName:"tagKeys" min:"1" type:"list" required:"true"`
@@ -9689,16 +10959,16 @@ func (s UntagResourceOutput) GoString() string {
 type UpdateDetectorInput struct {
 	_ struct{} `type:"structure"`
 
-	// The unique ID of the detector that you want to update.
+	// The unique ID of the detector to update.
 	//
 	// DetectorId is a required field
 	DetectorId *string `location:"uri" locationName:"detectorId" min:"1" type:"string" required:"true"`
 
-	// Updated boolean value for the detector that specifies whether the detector
-	// is enabled.
+	// Specifies whether the detector is enabled or not enabled.
 	Enable *bool `locationName:"enable" type:"boolean"`
 
-	// A enum value that specifies how frequently customer got Finding updates published.
+	// A enum value that specifies how frequently findings are exported, such as
+	// to CloudWatch Events.
 	FindingPublishingFrequency *string `locationName:"findingPublishingFrequency" type:"string" enum:"FindingPublishingFrequency"`
 }
 
@@ -9894,13 +11164,12 @@ type UpdateFindingsFeedbackInput struct {
 	// Additional feedback about the GuardDuty findings.
 	Comments *string `locationName:"comments" type:"string"`
 
-	// The ID of the detector that specifies the GuardDuty service whose findings
-	// you want to mark as useful or not useful.
+	// The ID of the detector associated with the findings to update feedback for.
 	//
 	// DetectorId is a required field
 	DetectorId *string `location:"uri" locationName:"detectorId" min:"1" type:"string" required:"true"`
 
-	// Valid values: USEFUL | NOT_USEFUL
+	// The feedback for the finding.
 	//
 	// Feedback is a required field
 	Feedback *string `locationName:"feedback" type:"string" required:"true" enum:"Feedback"`
@@ -10087,6 +11356,88 @@ func (s UpdateIPSetOutput) GoString() string {
 	return s.String()
 }
 
+type UpdatePublishingDestinationInput struct {
+	_ struct{} `type:"structure"`
+
+	// The ID of the detector associated with the publishing destinations to update.
+	//
+	// DestinationId is a required field
+	DestinationId *string `location:"uri" locationName:"destinationId" type:"string" required:"true"`
+
+	// A DestinationProperties object that includes the DestinationArn and KmsKeyArn
+	// of the publishing destination.
+	DestinationProperties *DestinationProperties `locationName:"destinationProperties" type:"structure"`
+
+	// The ID of the
+	//
+	// DetectorId is a required field
+	DetectorId *string `location:"uri" locationName:"detectorId" min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s UpdatePublishingDestinationInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdatePublishingDestinationInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *UpdatePublishingDestinationInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "UpdatePublishingDestinationInput"}
+	if s.DestinationId == nil {
+		invalidParams.Add(request.NewErrParamRequired("DestinationId"))
+	}
+	if s.DestinationId != nil && len(*s.DestinationId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("DestinationId", 1))
+	}
+	if s.DetectorId == nil {
+		invalidParams.Add(request.NewErrParamRequired("DetectorId"))
+	}
+	if s.DetectorId != nil && len(*s.DetectorId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("DetectorId", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetDestinationId sets the DestinationId field's value.
+func (s *UpdatePublishingDestinationInput) SetDestinationId(v string) *UpdatePublishingDestinationInput {
+	s.DestinationId = &v
+	return s
+}
+
+// SetDestinationProperties sets the DestinationProperties field's value.
+func (s *UpdatePublishingDestinationInput) SetDestinationProperties(v *DestinationProperties) *UpdatePublishingDestinationInput {
+	s.DestinationProperties = v
+	return s
+}
+
+// SetDetectorId sets the DetectorId field's value.
+func (s *UpdatePublishingDestinationInput) SetDetectorId(v string) *UpdatePublishingDestinationInput {
+	s.DetectorId = &v
+	return s
+}
+
+type UpdatePublishingDestinationOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s UpdatePublishingDestinationOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdatePublishingDestinationOutput) GoString() string {
+	return s.String()
+}
+
 type UpdateThreatIntelSetInput struct {
 	_ struct{} `type:"structure"`
 
@@ -10196,6 +11547,11 @@ func (s UpdateThreatIntelSetOutput) GoString() string {
 }
 
 const (
+	// DestinationTypeS3 is a DestinationType enum value
+	DestinationTypeS3 = "S3"
+)
+
+const (
 	// DetectorStatusEnabled is a DetectorStatus enum value
 	DetectorStatusEnabled = "ENABLED"
 
@@ -10284,6 +11640,20 @@ const (
 
 	// OrderByDesc is a OrderBy enum value
 	OrderByDesc = "DESC"
+)
+
+const (
+	// PublishingStatusPendingVerification is a PublishingStatus enum value
+	PublishingStatusPendingVerification = "PENDING_VERIFICATION"
+
+	// PublishingStatusPublishing is a PublishingStatus enum value
+	PublishingStatusPublishing = "PUBLISHING"
+
+	// PublishingStatusUnableToPublishFixDestinationProperty is a PublishingStatus enum value
+	PublishingStatusUnableToPublishFixDestinationProperty = "UNABLE_TO_PUBLISH_FIX_DESTINATION_PROPERTY"
+
+	// PublishingStatusStopped is a PublishingStatus enum value
+	PublishingStatusStopped = "STOPPED"
 )
 
 const (

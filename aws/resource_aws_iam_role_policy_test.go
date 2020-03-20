@@ -196,6 +196,22 @@ func TestAccAWSIAMRolePolicy_invalidJSON(t *testing.T) {
 	})
 }
 
+func TestAccAWSIAMRolePolicy_Policy_InvalidResource(t *testing.T) {
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckIAMRolePolicyDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccIAMRolePolicyConfig_Policy_InvalidResource(rName),
+				ExpectError: regexp.MustCompile("MalformedPolicyDocument"),
+			},
+		},
+	})
+}
+
 func testAccCheckIAMRolePolicyDestroy(s *terraform.State) error {
 	iamconn := testAccProvider.Meta().(*AWSClient).iamconn
 
@@ -548,4 +564,42 @@ resource "aws_iam_role_policy" "test" {
   EOF
 }
 `, role, role)
+}
+
+func testAccIAMRolePolicyConfig_Policy_InvalidResource(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_iam_role" "test" {
+  name = %[1]q
+
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "ec2.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy" "test" {
+  name = %[1]q
+  role = aws_iam_role.test.name
+
+  policy = jsonencode({
+    Statement = [{
+      Effect   = "Allow"
+      Action   = "*"
+      Resource = [["*"]]
+    }]
+    Version = "2012-10-17"
+  })
+}
+`, rName)
 }

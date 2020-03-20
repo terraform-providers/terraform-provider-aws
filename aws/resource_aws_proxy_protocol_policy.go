@@ -70,11 +70,11 @@ func resourceAwsProxyProtocolPolicyCreate(d *schema.ResourceData, meta interface
 
 func resourceAwsProxyProtocolPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	elbconn := meta.(*AWSClient).elbconn
-	elbname := aws.String(d.Get("load_balancer").(string))
+	elbname := d.Get("load_balancer").(string)
 
 	// Retrieve the current ELB policies for updating the state
 	req := &elb.DescribeLoadBalancersInput{
-		LoadBalancerNames: []*string{elbname},
+		LoadBalancerNames: []*string{aws.String(elbname)},
 	}
 	resp, err := elbconn.DescribeLoadBalancers(req)
 	if err != nil {
@@ -94,7 +94,7 @@ func resourceAwsProxyProtocolPolicyRead(d *schema.ResourceData, meta interface{}
 		ports = append(ports, &ipstr)
 	}
 	d.Set("instance_ports", ports)
-	d.Set("load_balancer", *elbname)
+	d.Set("load_balancer", elbname)
 	return nil
 }
 

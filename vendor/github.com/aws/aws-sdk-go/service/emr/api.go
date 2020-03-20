@@ -69,11 +69,11 @@ func (c *EMR) AddInstanceFleetRequest(input *AddInstanceFleetInput) (req *reques
 // See the AWS API reference guide for Amazon Elastic MapReduce's
 // API operation AddInstanceFleet for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInternalServerException "InternalServerException"
+// Returned Error Types:
+//   * InternalServerException
 //   This exception occurs when there is an internal failure in the EMR service.
 //
-//   * ErrCodeInvalidRequestException "InvalidRequestException"
+//   * InvalidRequestException
 //   This exception occurs when there is something wrong with user input.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/elasticmapreduce-2009-03-31/AddInstanceFleet
@@ -151,8 +151,8 @@ func (c *EMR) AddInstanceGroupsRequest(input *AddInstanceGroupsInput) (req *requ
 // See the AWS API reference guide for Amazon Elastic MapReduce's
 // API operation AddInstanceGroups for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInternalServerError "InternalServerError"
+// Returned Error Types:
+//   * InternalServerError
 //   Indicates that an error occurred while processing the request and that the
 //   request was not completed.
 //
@@ -253,8 +253,8 @@ func (c *EMR) AddJobFlowStepsRequest(input *AddJobFlowStepsInput) (req *request.
 // See the AWS API reference guide for Amazon Elastic MapReduce's
 // API operation AddJobFlowSteps for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInternalServerError "InternalServerError"
+// Returned Error Types:
+//   * InternalServerError
 //   Indicates that an error occurred while processing the request and that the
 //   request was not completed.
 //
@@ -336,11 +336,11 @@ func (c *EMR) AddTagsRequest(input *AddTagsInput) (req *request.Request, output 
 // See the AWS API reference guide for Amazon Elastic MapReduce's
 // API operation AddTags for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInternalServerException "InternalServerException"
+// Returned Error Types:
+//   * InternalServerException
 //   This exception occurs when there is an internal failure in the EMR service.
 //
-//   * ErrCodeInvalidRequestException "InvalidRequestException"
+//   * InvalidRequestException
 //   This exception occurs when there is something wrong with user input.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/elasticmapreduce-2009-03-31/AddTags
@@ -422,12 +422,12 @@ func (c *EMR) CancelStepsRequest(input *CancelStepsInput) (req *request.Request,
 // See the AWS API reference guide for Amazon Elastic MapReduce's
 // API operation CancelSteps for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInternalServerError "InternalServerError"
+// Returned Error Types:
+//   * InternalServerError
 //   Indicates that an error occurred while processing the request and that the
 //   request was not completed.
 //
-//   * ErrCodeInvalidRequestException "InvalidRequestException"
+//   * InvalidRequestException
 //   This exception occurs when there is something wrong with user input.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/elasticmapreduce-2009-03-31/CancelSteps
@@ -506,11 +506,11 @@ func (c *EMR) CreateSecurityConfigurationRequest(input *CreateSecurityConfigurat
 // See the AWS API reference guide for Amazon Elastic MapReduce's
 // API operation CreateSecurityConfiguration for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInternalServerException "InternalServerException"
+// Returned Error Types:
+//   * InternalServerException
 //   This exception occurs when there is an internal failure in the EMR service.
 //
-//   * ErrCodeInvalidRequestException "InvalidRequestException"
+//   * InvalidRequestException
 //   This exception occurs when there is something wrong with user input.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/elasticmapreduce-2009-03-31/CreateSecurityConfiguration
@@ -589,11 +589,11 @@ func (c *EMR) DeleteSecurityConfigurationRequest(input *DeleteSecurityConfigurat
 // See the AWS API reference guide for Amazon Elastic MapReduce's
 // API operation DeleteSecurityConfiguration for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInternalServerException "InternalServerException"
+// Returned Error Types:
+//   * InternalServerException
 //   This exception occurs when there is an internal failure in the EMR service.
 //
-//   * ErrCodeInvalidRequestException "InvalidRequestException"
+//   * InvalidRequestException
 //   This exception occurs when there is something wrong with user input.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/elasticmapreduce-2009-03-31/DeleteSecurityConfiguration
@@ -672,11 +672,11 @@ func (c *EMR) DescribeClusterRequest(input *DescribeClusterInput) (req *request.
 // See the AWS API reference guide for Amazon Elastic MapReduce's
 // API operation DescribeCluster for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInternalServerException "InternalServerException"
+// Returned Error Types:
+//   * InternalServerException
 //   This exception occurs when there is an internal failure in the EMR service.
 //
-//   * ErrCodeInvalidRequestException "InvalidRequestException"
+//   * InvalidRequestException
 //   This exception occurs when there is something wrong with user input.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/elasticmapreduce-2009-03-31/DescribeCluster
@@ -778,8 +778,8 @@ func (c *EMR) DescribeJobFlowsRequest(input *DescribeJobFlowsInput) (req *reques
 // See the AWS API reference guide for Amazon Elastic MapReduce's
 // API operation DescribeJobFlows for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInternalServerError "InternalServerError"
+// Returned Error Types:
+//   * InternalServerError
 //   Indicates that an error occurred while processing the request and that the
 //   request was not completed.
 //
@@ -863,11 +863,11 @@ func (c *EMR) DescribeSecurityConfigurationRequest(input *DescribeSecurityConfig
 // See the AWS API reference guide for Amazon Elastic MapReduce's
 // API operation DescribeSecurityConfiguration for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInternalServerException "InternalServerException"
+// Returned Error Types:
+//   * InternalServerException
 //   This exception occurs when there is an internal failure in the EMR service.
 //
-//   * ErrCodeInvalidRequestException "InvalidRequestException"
+//   * InvalidRequestException
 //   This exception occurs when there is something wrong with user input.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/elasticmapreduce-2009-03-31/DescribeSecurityConfiguration
@@ -945,11 +945,11 @@ func (c *EMR) DescribeStepRequest(input *DescribeStepInput) (req *request.Reques
 // See the AWS API reference guide for Amazon Elastic MapReduce's
 // API operation DescribeStep for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInternalServerException "InternalServerException"
+// Returned Error Types:
+//   * InternalServerException
 //   This exception occurs when there is an internal failure in the EMR service.
 //
-//   * ErrCodeInvalidRequestException "InvalidRequestException"
+//   * InvalidRequestException
 //   This exception occurs when there is something wrong with user input.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/elasticmapreduce-2009-03-31/DescribeStep
@@ -1030,11 +1030,11 @@ func (c *EMR) GetBlockPublicAccessConfigurationRequest(input *GetBlockPublicAcce
 // See the AWS API reference guide for Amazon Elastic MapReduce's
 // API operation GetBlockPublicAccessConfiguration for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInternalServerException "InternalServerException"
+// Returned Error Types:
+//   * InternalServerException
 //   This exception occurs when there is an internal failure in the EMR service.
 //
-//   * ErrCodeInvalidRequestException "InvalidRequestException"
+//   * InvalidRequestException
 //   This exception occurs when there is something wrong with user input.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/elasticmapreduce-2009-03-31/GetBlockPublicAccessConfiguration
@@ -1118,11 +1118,11 @@ func (c *EMR) ListBootstrapActionsRequest(input *ListBootstrapActionsInput) (req
 // See the AWS API reference guide for Amazon Elastic MapReduce's
 // API operation ListBootstrapActions for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInternalServerException "InternalServerException"
+// Returned Error Types:
+//   * InternalServerException
 //   This exception occurs when there is an internal failure in the EMR service.
 //
-//   * ErrCodeInvalidRequestException "InvalidRequestException"
+//   * InvalidRequestException
 //   This exception occurs when there is something wrong with user input.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/elasticmapreduce-2009-03-31/ListBootstrapActions
@@ -1190,10 +1190,12 @@ func (c *EMR) ListBootstrapActionsPagesWithContext(ctx aws.Context, input *ListB
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListBootstrapActionsOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListBootstrapActionsOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -1260,11 +1262,11 @@ func (c *EMR) ListClustersRequest(input *ListClustersInput) (req *request.Reques
 // See the AWS API reference guide for Amazon Elastic MapReduce's
 // API operation ListClusters for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInternalServerException "InternalServerException"
+// Returned Error Types:
+//   * InternalServerException
 //   This exception occurs when there is an internal failure in the EMR service.
 //
-//   * ErrCodeInvalidRequestException "InvalidRequestException"
+//   * InvalidRequestException
 //   This exception occurs when there is something wrong with user input.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/elasticmapreduce-2009-03-31/ListClusters
@@ -1332,10 +1334,12 @@ func (c *EMR) ListClustersPagesWithContext(ctx aws.Context, input *ListClustersI
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListClustersOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListClustersOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -1401,11 +1405,11 @@ func (c *EMR) ListInstanceFleetsRequest(input *ListInstanceFleetsInput) (req *re
 // See the AWS API reference guide for Amazon Elastic MapReduce's
 // API operation ListInstanceFleets for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInternalServerException "InternalServerException"
+// Returned Error Types:
+//   * InternalServerException
 //   This exception occurs when there is an internal failure in the EMR service.
 //
-//   * ErrCodeInvalidRequestException "InvalidRequestException"
+//   * InvalidRequestException
 //   This exception occurs when there is something wrong with user input.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/elasticmapreduce-2009-03-31/ListInstanceFleets
@@ -1473,10 +1477,12 @@ func (c *EMR) ListInstanceFleetsPagesWithContext(ctx aws.Context, input *ListIns
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListInstanceFleetsOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListInstanceFleetsOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -1539,11 +1545,11 @@ func (c *EMR) ListInstanceGroupsRequest(input *ListInstanceGroupsInput) (req *re
 // See the AWS API reference guide for Amazon Elastic MapReduce's
 // API operation ListInstanceGroups for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInternalServerException "InternalServerException"
+// Returned Error Types:
+//   * InternalServerException
 //   This exception occurs when there is an internal failure in the EMR service.
 //
-//   * ErrCodeInvalidRequestException "InvalidRequestException"
+//   * InvalidRequestException
 //   This exception occurs when there is something wrong with user input.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/elasticmapreduce-2009-03-31/ListInstanceGroups
@@ -1611,10 +1617,12 @@ func (c *EMR) ListInstanceGroupsPagesWithContext(ctx aws.Context, input *ListIns
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListInstanceGroupsOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListInstanceGroupsOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -1680,11 +1688,11 @@ func (c *EMR) ListInstancesRequest(input *ListInstancesInput) (req *request.Requ
 // See the AWS API reference guide for Amazon Elastic MapReduce's
 // API operation ListInstances for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInternalServerException "InternalServerException"
+// Returned Error Types:
+//   * InternalServerException
 //   This exception occurs when there is an internal failure in the EMR service.
 //
-//   * ErrCodeInvalidRequestException "InvalidRequestException"
+//   * InvalidRequestException
 //   This exception occurs when there is something wrong with user input.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/elasticmapreduce-2009-03-31/ListInstances
@@ -1752,10 +1760,12 @@ func (c *EMR) ListInstancesPagesWithContext(ctx aws.Context, input *ListInstance
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListInstancesOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListInstancesOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -1821,11 +1831,11 @@ func (c *EMR) ListSecurityConfigurationsRequest(input *ListSecurityConfiguration
 // See the AWS API reference guide for Amazon Elastic MapReduce's
 // API operation ListSecurityConfigurations for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInternalServerException "InternalServerException"
+// Returned Error Types:
+//   * InternalServerException
 //   This exception occurs when there is an internal failure in the EMR service.
 //
-//   * ErrCodeInvalidRequestException "InvalidRequestException"
+//   * InvalidRequestException
 //   This exception occurs when there is something wrong with user input.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/elasticmapreduce-2009-03-31/ListSecurityConfigurations
@@ -1893,10 +1903,12 @@ func (c *EMR) ListSecurityConfigurationsPagesWithContext(ctx aws.Context, input 
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListSecurityConfigurationsOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListSecurityConfigurationsOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -1951,7 +1963,8 @@ func (c *EMR) ListStepsRequest(input *ListStepsInput) (req *request.Request, out
 // ListSteps API operation for Amazon Elastic MapReduce.
 //
 // Provides a list of steps for the cluster in reverse order unless you specify
-// stepIds with the request.
+// stepIds with the request of filter by StepStates. You can specify a maximum
+// of ten stepIDs.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1960,11 +1973,11 @@ func (c *EMR) ListStepsRequest(input *ListStepsInput) (req *request.Request, out
 // See the AWS API reference guide for Amazon Elastic MapReduce's
 // API operation ListSteps for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInternalServerException "InternalServerException"
+// Returned Error Types:
+//   * InternalServerException
 //   This exception occurs when there is an internal failure in the EMR service.
 //
-//   * ErrCodeInvalidRequestException "InvalidRequestException"
+//   * InvalidRequestException
 //   This exception occurs when there is something wrong with user input.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/elasticmapreduce-2009-03-31/ListSteps
@@ -2032,11 +2045,97 @@ func (c *EMR) ListStepsPagesWithContext(ctx aws.Context, input *ListStepsInput, 
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListStepsOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListStepsOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
+}
+
+const opModifyCluster = "ModifyCluster"
+
+// ModifyClusterRequest generates a "aws/request.Request" representing the
+// client's request for the ModifyCluster operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See ModifyCluster for more information on using the ModifyCluster
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the ModifyClusterRequest method.
+//    req, resp := client.ModifyClusterRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/elasticmapreduce-2009-03-31/ModifyCluster
+func (c *EMR) ModifyClusterRequest(input *ModifyClusterInput) (req *request.Request, output *ModifyClusterOutput) {
+	op := &request.Operation{
+		Name:       opModifyCluster,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &ModifyClusterInput{}
+	}
+
+	output = &ModifyClusterOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// ModifyCluster API operation for Amazon Elastic MapReduce.
+//
+// Modifies the number of steps that can be executed concurrently for the cluster
+// specified using ClusterID.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Elastic MapReduce's
+// API operation ModifyCluster for usage and error information.
+//
+// Returned Error Types:
+//   * InternalServerError
+//   Indicates that an error occurred while processing the request and that the
+//   request was not completed.
+//
+//   * InvalidRequestException
+//   This exception occurs when there is something wrong with user input.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/elasticmapreduce-2009-03-31/ModifyCluster
+func (c *EMR) ModifyCluster(input *ModifyClusterInput) (*ModifyClusterOutput, error) {
+	req, out := c.ModifyClusterRequest(input)
+	return out, req.Send()
+}
+
+// ModifyClusterWithContext is the same as ModifyCluster with the addition of
+// the ability to pass a context and additional request options.
+//
+// See ModifyCluster for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *EMR) ModifyClusterWithContext(ctx aws.Context, input *ModifyClusterInput, opts ...request.Option) (*ModifyClusterOutput, error) {
+	req, out := c.ModifyClusterRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
 }
 
 const opModifyInstanceFleet = "ModifyInstanceFleet"
@@ -2098,11 +2197,11 @@ func (c *EMR) ModifyInstanceFleetRequest(input *ModifyInstanceFleetInput) (req *
 // See the AWS API reference guide for Amazon Elastic MapReduce's
 // API operation ModifyInstanceFleet for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInternalServerException "InternalServerException"
+// Returned Error Types:
+//   * InternalServerException
 //   This exception occurs when there is an internal failure in the EMR service.
 //
-//   * ErrCodeInvalidRequestException "InvalidRequestException"
+//   * InvalidRequestException
 //   This exception occurs when there is something wrong with user input.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/elasticmapreduce-2009-03-31/ModifyInstanceFleet
@@ -2184,8 +2283,8 @@ func (c *EMR) ModifyInstanceGroupsRequest(input *ModifyInstanceGroupsInput) (req
 // See the AWS API reference guide for Amazon Elastic MapReduce's
 // API operation ModifyInstanceGroups for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInternalServerError "InternalServerError"
+// Returned Error Types:
+//   * InternalServerError
 //   Indicates that an error occurred while processing the request and that the
 //   request was not completed.
 //
@@ -2345,11 +2444,11 @@ func (c *EMR) PutBlockPublicAccessConfigurationRequest(input *PutBlockPublicAcce
 // See the AWS API reference guide for Amazon Elastic MapReduce's
 // API operation PutBlockPublicAccessConfiguration for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInternalServerException "InternalServerException"
+// Returned Error Types:
+//   * InternalServerException
 //   This exception occurs when there is an internal failure in the EMR service.
 //
-//   * ErrCodeInvalidRequestException "InvalidRequestException"
+//   * InvalidRequestException
 //   This exception occurs when there is something wrong with user input.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/elasticmapreduce-2009-03-31/PutBlockPublicAccessConfiguration
@@ -2508,11 +2607,11 @@ func (c *EMR) RemoveTagsRequest(input *RemoveTagsInput) (req *request.Request, o
 // See the AWS API reference guide for Amazon Elastic MapReduce's
 // API operation RemoveTags for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInternalServerException "InternalServerException"
+// Returned Error Types:
+//   * InternalServerException
 //   This exception occurs when there is an internal failure in the EMR service.
 //
-//   * ErrCodeInvalidRequestException "InvalidRequestException"
+//   * InvalidRequestException
 //   This exception occurs when there is something wrong with user input.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/elasticmapreduce-2009-03-31/RemoveTags
@@ -2616,8 +2715,8 @@ func (c *EMR) RunJobFlowRequest(input *RunJobFlowInput) (req *request.Request, o
 // See the AWS API reference guide for Amazon Elastic MapReduce's
 // API operation RunJobFlow for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInternalServerError "InternalServerError"
+// Returned Error Types:
+//   * InternalServerError
 //   Indicates that an error occurred while processing the request and that the
 //   request was not completed.
 //
@@ -2713,8 +2812,8 @@ func (c *EMR) SetTerminationProtectionRequest(input *SetTerminationProtectionInp
 // See the AWS API reference guide for Amazon Elastic MapReduce's
 // API operation SetTerminationProtection for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInternalServerError "InternalServerError"
+// Returned Error Types:
+//   * InternalServerError
 //   Indicates that an error occurred while processing the request and that the
 //   request was not completed.
 //
@@ -2785,14 +2884,15 @@ func (c *EMR) SetVisibleToAllUsersRequest(input *SetVisibleToAllUsersInput) (req
 
 // SetVisibleToAllUsers API operation for Amazon Elastic MapReduce.
 //
-// This member will be deprecated.
-//
-// Sets whether all AWS Identity and Access Management (IAM) users under your
-// account can access the specified clusters (job flows). This action works
-// on running clusters. You can also set the visibility of a cluster when you
-// launch it using the VisibleToAllUsers parameter of RunJobFlow. The SetVisibleToAllUsers
-// action can be called only by an IAM user who created the cluster or the AWS
-// account that owns the cluster.
+// Sets the Cluster$VisibleToAllUsers value, which determines whether the cluster
+// is visible to all IAM users of the AWS account associated with the cluster.
+// Only the IAM user who created the cluster or the AWS account root user can
+// call this action. The default value, true, indicates that all IAM users in
+// the AWS account can perform cluster actions if they have the proper IAM policy
+// permissions. If set to false, only the IAM user that created the cluster
+// can perform actions. This action works on running clusters. You can override
+// the default true setting when you create a cluster by using the VisibleToAllUsers
+// parameter with RunJobFlow.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -2801,8 +2901,8 @@ func (c *EMR) SetVisibleToAllUsersRequest(input *SetVisibleToAllUsersInput) (req
 // See the AWS API reference guide for Amazon Elastic MapReduce's
 // API operation SetVisibleToAllUsers for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInternalServerError "InternalServerError"
+// Returned Error Types:
+//   * InternalServerError
 //   Indicates that an error occurred while processing the request and that the
 //   request was not completed.
 //
@@ -2891,8 +2991,8 @@ func (c *EMR) TerminateJobFlowsRequest(input *TerminateJobFlowsInput) (req *requ
 // See the AWS API reference guide for Amazon Elastic MapReduce's
 // API operation TerminateJobFlows for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInternalServerError "InternalServerError"
+// Returned Error Types:
+//   * InternalServerError
 //   Indicates that an error occurred while processing the request and that the
 //   request was not completed.
 //
@@ -2978,6 +3078,9 @@ func (s *AddInstanceFleetInput) SetInstanceFleet(v *InstanceFleetConfig) *AddIns
 type AddInstanceFleetOutput struct {
 	_ struct{} `type:"structure"`
 
+	// The Amazon Resource Name of the cluster.
+	ClusterArn *string `min:"20" type:"string"`
+
 	// The unique identifier of the cluster.
 	ClusterId *string `type:"string"`
 
@@ -2993,6 +3096,12 @@ func (s AddInstanceFleetOutput) String() string {
 // GoString returns the string representation
 func (s AddInstanceFleetOutput) GoString() string {
 	return s.String()
+}
+
+// SetClusterArn sets the ClusterArn field's value.
+func (s *AddInstanceFleetOutput) SetClusterArn(v string) *AddInstanceFleetOutput {
+	s.ClusterArn = &v
+	return s
 }
 
 // SetClusterId sets the ClusterId field's value.
@@ -3074,6 +3183,9 @@ func (s *AddInstanceGroupsInput) SetJobFlowId(v string) *AddInstanceGroupsInput 
 type AddInstanceGroupsOutput struct {
 	_ struct{} `type:"structure"`
 
+	// The Amazon Resource Name of the cluster.
+	ClusterArn *string `min:"20" type:"string"`
+
 	// Instance group IDs of the newly created instance groups.
 	InstanceGroupIds []*string `type:"list"`
 
@@ -3089,6 +3201,12 @@ func (s AddInstanceGroupsOutput) String() string {
 // GoString returns the string representation
 func (s AddInstanceGroupsOutput) GoString() string {
 	return s.String()
+}
+
+// SetClusterArn sets the ClusterArn field's value.
+func (s *AddInstanceGroupsOutput) SetClusterArn(v string) *AddInstanceGroupsOutput {
+	s.ClusterArn = &v
+	return s
 }
 
 // SetInstanceGroupIds sets the InstanceGroupIds field's value.
@@ -3756,11 +3874,19 @@ type CancelStepsInput struct {
 
 	// The ClusterID for which specified steps will be canceled. Use RunJobFlow
 	// and ListClusters to get ClusterIDs.
-	ClusterId *string `type:"string"`
+	//
+	// ClusterId is a required field
+	ClusterId *string `type:"string" required:"true"`
+
+	// The option to choose for cancelling RUNNING steps. By default, the value
+	// is SEND_INTERRUPT.
+	StepCancellationOption *string `type:"string" enum:"StepCancellationOption"`
 
 	// The list of StepIDs to cancel. Use ListSteps to get steps and their states
 	// for the specified cluster.
-	StepIds []*string `type:"list"`
+	//
+	// StepIds is a required field
+	StepIds []*string `type:"list" required:"true"`
 }
 
 // String returns the string representation
@@ -3773,9 +3899,31 @@ func (s CancelStepsInput) GoString() string {
 	return s.String()
 }
 
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *CancelStepsInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "CancelStepsInput"}
+	if s.ClusterId == nil {
+		invalidParams.Add(request.NewErrParamRequired("ClusterId"))
+	}
+	if s.StepIds == nil {
+		invalidParams.Add(request.NewErrParamRequired("StepIds"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
 // SetClusterId sets the ClusterId field's value.
 func (s *CancelStepsInput) SetClusterId(v string) *CancelStepsInput {
 	s.ClusterId = &v
+	return s
+}
+
+// SetStepCancellationOption sets the StepCancellationOption field's value.
+func (s *CancelStepsInput) SetStepCancellationOption(v string) *CancelStepsInput {
+	s.StepCancellationOption = &v
 	return s
 }
 
@@ -3825,8 +3973,8 @@ type CloudWatchAlarmDefinition struct {
 	// A CloudWatch metric dimension.
 	Dimensions []*MetricDimension `type:"list"`
 
-	// The number of periods, expressed in seconds using Period, during which the
-	// alarm condition must exist before the alarm triggers automatic scaling activity.
+	// The number of periods, in five-minute increments, during which the alarm
+	// condition must exist before the alarm triggers automatic scaling activity.
 	// The default value is 1.
 	EvaluationPeriods *int64 `type:"integer"`
 
@@ -3961,6 +4109,9 @@ type Cluster struct {
 	// Specifies whether the cluster should terminate after completing all steps.
 	AutoTerminate *bool `type:"boolean"`
 
+	// The Amazon Resource Name of the cluster.
+	ClusterArn *string `min:"20" type:"string"`
+
 	// Applies only to Amazon EMR releases 4.x and later. The list of Configurations
 	// supplied to the EMR cluster.
 	Configurations []*Configuration `type:"list"`
@@ -4013,6 +4164,9 @@ type Cluster struct {
 	// the actual billing rate.
 	NormalizedInstanceHours *int64 `type:"integer"`
 
+	// The Amazon Resource Name (ARN) of the Outpost where the cluster is launched.
+	OutpostArn *string `type:"string"`
+
 	// The Amazon EMR release label, which determines the version of open-source
 	// application packages installed on the cluster. Release labels are in the
 	// form emr-x.x.x, where x.x.x is an Amazon EMR release version such as emr-5.14.0.
@@ -4058,6 +4212,9 @@ type Cluster struct {
 	// The current status details about the cluster.
 	Status *ClusterStatus `type:"structure"`
 
+	// Specifies the number of steps that can be executed concurrently.
+	StepConcurrencyLevel *int64 `type:"integer"`
+
 	// A list of tags associated with a cluster.
 	Tags []*Tag `type:"list"`
 
@@ -4066,14 +4223,14 @@ type Cluster struct {
 	// of a cluster error.
 	TerminationProtected *bool `type:"boolean"`
 
-	// This member will be deprecated.
-	//
 	// Indicates whether the cluster is visible to all IAM users of the AWS account
-	// associated with the cluster. If this value is set to true, all IAM users
-	// of that AWS account can view and manage the cluster if they have the proper
-	// policy permissions set. If this value is false, only the IAM user that created
-	// the cluster can view and manage it. This value can be changed using the SetVisibleToAllUsers
-	// action.
+	// associated with the cluster. The default value, true, indicates that all
+	// IAM users in the AWS account can perform cluster actions if they have the
+	// proper IAM policy permissions. If this value is false, only the IAM user
+	// that created the cluster can perform actions. This value can be changed on
+	// a running cluster by using the SetVisibleToAllUsers action. You can override
+	// the default value of true when you create a cluster by using the VisibleToAllUsers
+	// parameter of the RunJobFlow action.
 	VisibleToAllUsers *bool `type:"boolean"`
 }
 
@@ -4102,6 +4259,12 @@ func (s *Cluster) SetAutoScalingRole(v string) *Cluster {
 // SetAutoTerminate sets the AutoTerminate field's value.
 func (s *Cluster) SetAutoTerminate(v bool) *Cluster {
 	s.AutoTerminate = &v
+	return s
+}
+
+// SetClusterArn sets the ClusterArn field's value.
+func (s *Cluster) SetClusterArn(v string) *Cluster {
+	s.ClusterArn = &v
 	return s
 }
 
@@ -4171,6 +4334,12 @@ func (s *Cluster) SetNormalizedInstanceHours(v int64) *Cluster {
 	return s
 }
 
+// SetOutpostArn sets the OutpostArn field's value.
+func (s *Cluster) SetOutpostArn(v string) *Cluster {
+	s.OutpostArn = &v
+	return s
+}
+
 // SetReleaseLabel sets the ReleaseLabel field's value.
 func (s *Cluster) SetReleaseLabel(v string) *Cluster {
 	s.ReleaseLabel = &v
@@ -4216,6 +4385,12 @@ func (s *Cluster) SetServiceRole(v string) *Cluster {
 // SetStatus sets the Status field's value.
 func (s *Cluster) SetStatus(v *ClusterStatus) *Cluster {
 	s.Status = v
+	return s
+}
+
+// SetStepConcurrencyLevel sets the StepConcurrencyLevel field's value.
+func (s *Cluster) SetStepConcurrencyLevel(v int64) *Cluster {
+	s.StepConcurrencyLevel = &v
 	return s
 }
 
@@ -4317,6 +4492,9 @@ func (s *ClusterStatus) SetTimeline(v *ClusterTimeline) *ClusterStatus {
 type ClusterSummary struct {
 	_ struct{} `type:"structure"`
 
+	// The Amazon Resource Name of the cluster.
+	ClusterArn *string `min:"20" type:"string"`
+
 	// The unique identifier for the cluster.
 	Id *string `type:"string"`
 
@@ -4331,6 +4509,9 @@ type ClusterSummary struct {
 	// the actual billing rate.
 	NormalizedInstanceHours *int64 `type:"integer"`
 
+	// The Amazon Resource Name (ARN) of the Outpost where the cluster is launched.
+	OutpostArn *string `type:"string"`
+
 	// The details about the current status of the cluster.
 	Status *ClusterStatus `type:"structure"`
 }
@@ -4343,6 +4524,12 @@ func (s ClusterSummary) String() string {
 // GoString returns the string representation
 func (s ClusterSummary) GoString() string {
 	return s.String()
+}
+
+// SetClusterArn sets the ClusterArn field's value.
+func (s *ClusterSummary) SetClusterArn(v string) *ClusterSummary {
+	s.ClusterArn = &v
+	return s
 }
 
 // SetId sets the Id field's value.
@@ -4360,6 +4547,12 @@ func (s *ClusterSummary) SetName(v string) *ClusterSummary {
 // SetNormalizedInstanceHours sets the NormalizedInstanceHours field's value.
 func (s *ClusterSummary) SetNormalizedInstanceHours(v int64) *ClusterSummary {
 	s.NormalizedInstanceHours = &v
+	return s
+}
+
+// SetOutpostArn sets the OutpostArn field's value.
+func (s *ClusterSummary) SetOutpostArn(v string) *ClusterSummary {
+	s.OutpostArn = &v
 	return s
 }
 
@@ -6166,12 +6359,9 @@ type InstanceGroup struct {
 	// of a CloudWatch metric. See PutAutoScalingPolicy.
 	AutoScalingPolicy *AutoScalingPolicyDescription `type:"structure"`
 
-	// The maximum Spot price your are willing to pay for EC2 instances.
-	//
-	// An optional, nullable field that applies if the MarketType for the instance
-	// group is specified as SPOT. Specify the maximum spot price in USD. If the
-	// value is NULL and SPOT is specified, the maximum Spot price is set equal
-	// to the On-Demand price.
+	// The bid price for each EC2 Spot instance type as defined by InstanceType.
+	// Expressed in USD. If neither BidPrice nor BidPriceAsPercentageOfOnDemandPrice
+	// is provided, BidPriceAsPercentageOfOnDemandPrice defaults to 100%.
 	BidPrice *string `type:"string"`
 
 	//
@@ -6353,12 +6543,9 @@ type InstanceGroupConfig struct {
 	// of a CloudWatch metric. See PutAutoScalingPolicy.
 	AutoScalingPolicy *AutoScalingPolicy `type:"structure"`
 
-	// The maximum Spot price your are willing to pay for EC2 instances.
-	//
-	// An optional, nullable field that applies if the MarketType for the instance
-	// group is specified as SPOT. Specify the maximum spot price in USD. If the
-	// value is NULL and SPOT is specified, the maximum Spot price is set equal
-	// to the On-Demand price.
+	// The bid price for each EC2 Spot instance type as defined by InstanceType.
+	// Expressed in USD. If neither BidPrice nor BidPriceAsPercentageOfOnDemandPrice
+	// is provided, BidPriceAsPercentageOfOnDemandPrice defaults to 100%.
 	BidPrice *string `type:"string"`
 
 	//
@@ -6495,11 +6682,9 @@ func (s *InstanceGroupConfig) SetName(v string) *InstanceGroupConfig {
 type InstanceGroupDetail struct {
 	_ struct{} `type:"structure"`
 
-	// The maximum Spot price your are willing to pay for EC2 instances.
-	//
-	// An optional, nullable field that applies if the MarketType for the instance
-	// group is specified as SPOT. Specified in USD. If the value is NULL and SPOT
-	// is specified, the maximum Spot price is set equal to the On-Demand price.
+	// The bid price for each EC2 Spot instance type as defined by InstanceType.
+	// Expressed in USD. If neither BidPrice nor BidPriceAsPercentageOfOnDemandPrice
+	// is provided, BidPriceAsPercentageOfOnDemandPrice defaults to 100%.
 	BidPrice *string `type:"string"`
 
 	// The date/time the instance group was created.
@@ -7204,6 +7389,180 @@ func (s *InstanceTypeSpecification) SetWeightedCapacity(v int64) *InstanceTypeSp
 	return s
 }
 
+// Indicates that an error occurred while processing the request and that the
+// request was not completed.
+type InternalServerError struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s InternalServerError) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InternalServerError) GoString() string {
+	return s.String()
+}
+
+func newErrorInternalServerError(v protocol.ResponseMetadata) error {
+	return &InternalServerError{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s InternalServerError) Code() string {
+	return "InternalServerError"
+}
+
+// Message returns the exception's message.
+func (s InternalServerError) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s InternalServerError) OrigErr() error {
+	return nil
+}
+
+func (s InternalServerError) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s InternalServerError) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s InternalServerError) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// This exception occurs when there is an internal failure in the EMR service.
+type InternalServerException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	// The message associated with the exception.
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s InternalServerException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InternalServerException) GoString() string {
+	return s.String()
+}
+
+func newErrorInternalServerException(v protocol.ResponseMetadata) error {
+	return &InternalServerException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s InternalServerException) Code() string {
+	return "InternalServerException"
+}
+
+// Message returns the exception's message.
+func (s InternalServerException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s InternalServerException) OrigErr() error {
+	return nil
+}
+
+func (s InternalServerException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s InternalServerException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s InternalServerException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// This exception occurs when there is something wrong with user input.
+type InvalidRequestException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	// The error code associated with the exception.
+	ErrorCode *string `min:"1" type:"string"`
+
+	// The message associated with the exception.
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidRequestException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidRequestException) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidRequestException(v protocol.ResponseMetadata) error {
+	return &InvalidRequestException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s InvalidRequestException) Code() string {
+	return "InvalidRequestException"
+}
+
+// Message returns the exception's message.
+func (s InvalidRequestException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s InvalidRequestException) OrigErr() error {
+	return nil
+}
+
+func (s InvalidRequestException) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s InvalidRequestException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s InvalidRequestException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
 // A description of a cluster (job flow).
 type JobFlowDetail struct {
 	_ struct{} `type:"structure"`
@@ -7274,14 +7633,14 @@ type JobFlowDetail struct {
 	// is empty.
 	SupportedProducts []*string `type:"list"`
 
-	// This member will be deprecated.
-	//
-	// Specifies whether the cluster is visible to all IAM users of the AWS account
-	// associated with the cluster. If this value is set to true, all IAM users
-	// of that AWS account can view and (if they have the proper policy permissions
-	// set) manage the cluster. If it is set to false, only the IAM user that created
-	// the cluster can view and manage it. This value can be changed using the SetVisibleToAllUsers
-	// action.
+	// Indicates whether the cluster is visible to all IAM users of the AWS account
+	// associated with the cluster. The default value, true, indicates that all
+	// IAM users in the AWS account can perform cluster actions if they have the
+	// proper IAM policy permissions. If this value is false, only the IAM user
+	// that created the cluster can perform actions. This value can be changed on
+	// a running cluster by using the SetVisibleToAllUsers action. You can override
+	// the default value of true when you create a cluster by using the VisibleToAllUsers
+	// parameter of the RunJobFlow action.
 	VisibleToAllUsers *bool `type:"boolean"`
 }
 
@@ -8484,7 +8843,9 @@ type ListStepsInput struct {
 	// The pagination token that indicates the next set of results to retrieve.
 	Marker *string `type:"string"`
 
-	// The filter to limit the step list based on the identifier of the steps.
+	// The filter to limit the step list based on the identifier of the steps. You
+	// can specify a maximum of ten Step IDs. The character constraint applies to
+	// the overall length of the array.
 	StepIds []*string `type:"list"`
 
 	// The filter to limit the step list based on certain states.
@@ -8606,6 +8967,77 @@ func (s *MetricDimension) SetKey(v string) *MetricDimension {
 // SetValue sets the Value field's value.
 func (s *MetricDimension) SetValue(v string) *MetricDimension {
 	s.Value = &v
+	return s
+}
+
+type ModifyClusterInput struct {
+	_ struct{} `type:"structure"`
+
+	// The unique identifier of the cluster.
+	//
+	// ClusterId is a required field
+	ClusterId *string `type:"string" required:"true"`
+
+	// The number of steps that can be executed concurrently. You can specify a
+	// maximum of 256 steps.
+	StepConcurrencyLevel *int64 `type:"integer"`
+}
+
+// String returns the string representation
+func (s ModifyClusterInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ModifyClusterInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ModifyClusterInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ModifyClusterInput"}
+	if s.ClusterId == nil {
+		invalidParams.Add(request.NewErrParamRequired("ClusterId"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetClusterId sets the ClusterId field's value.
+func (s *ModifyClusterInput) SetClusterId(v string) *ModifyClusterInput {
+	s.ClusterId = &v
+	return s
+}
+
+// SetStepConcurrencyLevel sets the StepConcurrencyLevel field's value.
+func (s *ModifyClusterInput) SetStepConcurrencyLevel(v int64) *ModifyClusterInput {
+	s.StepConcurrencyLevel = &v
+	return s
+}
+
+type ModifyClusterOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The number of steps that can be executed concurrently.
+	StepConcurrencyLevel *int64 `type:"integer"`
+}
+
+// String returns the string representation
+func (s ModifyClusterOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ModifyClusterOutput) GoString() string {
+	return s.String()
+}
+
+// SetStepConcurrencyLevel sets the StepConcurrencyLevel field's value.
+func (s *ModifyClusterOutput) SetStepConcurrencyLevel(v int64) *ModifyClusterOutput {
+	s.StepConcurrencyLevel = &v
 	return s
 }
 
@@ -8917,6 +9349,9 @@ type PutAutoScalingPolicyOutput struct {
 	// The automatic scaling policy definition.
 	AutoScalingPolicy *AutoScalingPolicyDescription `type:"structure"`
 
+	// The Amazon Resource Name of the cluster.
+	ClusterArn *string `min:"20" type:"string"`
+
 	// Specifies the ID of a cluster. The instance group to which the automatic
 	// scaling policy is applied is within this cluster.
 	ClusterId *string `type:"string"`
@@ -8938,6 +9373,12 @@ func (s PutAutoScalingPolicyOutput) GoString() string {
 // SetAutoScalingPolicy sets the AutoScalingPolicy field's value.
 func (s *PutAutoScalingPolicyOutput) SetAutoScalingPolicy(v *AutoScalingPolicyDescription) *PutAutoScalingPolicyOutput {
 	s.AutoScalingPolicy = v
+	return s
+}
+
+// SetClusterArn sets the ClusterArn field's value.
+func (s *PutAutoScalingPolicyOutput) SetClusterArn(v string) *PutAutoScalingPolicyOutput {
+	s.ClusterArn = &v
 	return s
 }
 
@@ -9294,6 +9735,10 @@ type RunJobFlowInput struct {
 	// resources on your behalf.
 	ServiceRole *string `type:"string"`
 
+	// Specifies the number of steps that can be executed concurrently. The default
+	// value is 1. The maximum value is 256.
+	StepConcurrencyLevel *int64 `type:"integer"`
+
 	// A list of steps to run.
 	Steps []*StepConfig `type:"list"`
 
@@ -9313,13 +9758,10 @@ type RunJobFlowInput struct {
 	// A list of tags to associate with a cluster and propagate to Amazon EC2 instances.
 	Tags []*Tag `type:"list"`
 
-	// This member will be deprecated.
-	//
-	// Whether the cluster is visible to all IAM users of the AWS account associated
-	// with the cluster. If this value is set to true, all IAM users of that AWS
-	// account can view and (if they have the proper policy permissions set) manage
-	// the cluster. If it is set to false, only the IAM user that created the cluster
-	// can view and manage it.
+	// A value of true indicates that all IAM users in the AWS account can perform
+	// cluster actions if they have the proper IAM policy permissions. This is the
+	// default. A value of false indicates that only the IAM user who created the
+	// cluster can perform actions.
 	VisibleToAllUsers *bool `type:"boolean"`
 }
 
@@ -9493,6 +9935,12 @@ func (s *RunJobFlowInput) SetServiceRole(v string) *RunJobFlowInput {
 	return s
 }
 
+// SetStepConcurrencyLevel sets the StepConcurrencyLevel field's value.
+func (s *RunJobFlowInput) SetStepConcurrencyLevel(v int64) *RunJobFlowInput {
+	s.StepConcurrencyLevel = &v
+	return s
+}
+
 // SetSteps sets the Steps field's value.
 func (s *RunJobFlowInput) SetSteps(v []*StepConfig) *RunJobFlowInput {
 	s.Steps = v
@@ -9521,6 +9969,9 @@ func (s *RunJobFlowInput) SetVisibleToAllUsers(v bool) *RunJobFlowInput {
 type RunJobFlowOutput struct {
 	_ struct{} `type:"structure"`
 
+	// The Amazon Resource Name of the cluster.
+	ClusterArn *string `min:"20" type:"string"`
+
 	// An unique identifier for the job flow.
 	JobFlowId *string `type:"string"`
 }
@@ -9533,6 +9984,12 @@ func (s RunJobFlowOutput) String() string {
 // GoString returns the string representation
 func (s RunJobFlowOutput) GoString() string {
 	return s.String()
+}
+
+// SetClusterArn sets the ClusterArn field's value.
+func (s *RunJobFlowOutput) SetClusterArn(v string) *RunJobFlowOutput {
+	s.ClusterArn = &v
+	return s
 }
 
 // SetJobFlowId sets the JobFlowId field's value.
@@ -9944,24 +10401,19 @@ func (s SetTerminationProtectionOutput) GoString() string {
 	return s.String()
 }
 
-// This member will be deprecated.
-//
 // The input to the SetVisibleToAllUsers action.
 type SetVisibleToAllUsersInput struct {
 	_ struct{} `type:"structure"`
 
-	// Identifiers of the job flows to receive the new visibility setting.
+	// The unique identifier of the job flow (cluster).
 	//
 	// JobFlowIds is a required field
 	JobFlowIds []*string `type:"list" required:"true"`
 
-	// This member will be deprecated.
-	//
-	// Whether the specified clusters are visible to all IAM users of the AWS account
-	// associated with the cluster. If this value is set to True, all IAM users
-	// of that AWS account can view and, if they have the proper IAM policy permissions
-	// set, manage the clusters. If it is set to False, only the IAM user that created
-	// a cluster can view and manage it.
+	// A value of true indicates that all IAM users in the AWS account can perform
+	// cluster actions if they have the proper IAM policy permissions. This is the
+	// default. A value of false indicates that only the IAM user who created the
+	// cluster can perform actions.
 	//
 	// VisibleToAllUsers is a required field
 	VisibleToAllUsers *bool `type:"boolean" required:"true"`
@@ -11187,6 +11639,14 @@ const (
 
 	// StatisticMaximum is a Statistic enum value
 	StatisticMaximum = "MAXIMUM"
+)
+
+const (
+	// StepCancellationOptionSendInterrupt is a StepCancellationOption enum value
+	StepCancellationOptionSendInterrupt = "SEND_INTERRUPT"
+
+	// StepCancellationOptionTerminateProcess is a StepCancellationOption enum value
+	StepCancellationOptionTerminateProcess = "TERMINATE_PROCESS"
 )
 
 const (

@@ -83,20 +83,26 @@ func (c *ACM) AddTagsToCertificateRequest(input *AddTagsToCertificateInput) (req
 // See the AWS API reference guide for AWS Certificate Manager's
 // API operation AddTagsToCertificate for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   The specified certificate cannot be found in the caller's account or the
 //   caller's account cannot be found.
 //
-//   * ErrCodeInvalidArnException "InvalidArnException"
+//   * InvalidArnException
 //   The requested Amazon Resource Name (ARN) does not refer to an existing resource.
 //
-//   * ErrCodeInvalidTagException "InvalidTagException"
+//   * InvalidTagException
 //   One or both of the values that make up the key-value pair is not valid. For
 //   example, you cannot specify a tag value that begins with aws:.
 //
-//   * ErrCodeTooManyTagsException "TooManyTagsException"
+//   * TooManyTagsException
 //   The request contains too many tags. Try the request again with fewer tags.
+//
+//   * TagPolicyException
+//   A specified tag did not comply with an existing tag policy and was rejected.
+//
+//   * InvalidParameterException
+//   An input parameter was invalid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/acm-2015-12-08/AddTagsToCertificate
 func (c *ACM) AddTagsToCertificate(input *AddTagsToCertificateInput) (*AddTagsToCertificateOutput, error) {
@@ -182,16 +188,16 @@ func (c *ACM) DeleteCertificateRequest(input *DeleteCertificateInput) (req *requ
 // See the AWS API reference guide for AWS Certificate Manager's
 // API operation DeleteCertificate for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   The specified certificate cannot be found in the caller's account or the
 //   caller's account cannot be found.
 //
-//   * ErrCodeResourceInUseException "ResourceInUseException"
+//   * ResourceInUseException
 //   The certificate is in use by another AWS service in the caller's account.
 //   Remove the association and try again.
 //
-//   * ErrCodeInvalidArnException "InvalidArnException"
+//   * InvalidArnException
 //   The requested Amazon Resource Name (ARN) does not refer to an existing resource.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/acm-2015-12-08/DeleteCertificate
@@ -269,12 +275,12 @@ func (c *ACM) DescribeCertificateRequest(input *DescribeCertificateInput) (req *
 // See the AWS API reference guide for AWS Certificate Manager's
 // API operation DescribeCertificate for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   The specified certificate cannot be found in the caller's account or the
 //   caller's account cannot be found.
 //
-//   * ErrCodeInvalidArnException "InvalidArnException"
+//   * InvalidArnException
 //   The requested Amazon Resource Name (ARN) does not refer to an existing resource.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/acm-2015-12-08/DescribeCertificate
@@ -344,14 +350,13 @@ func (c *ACM) ExportCertificateRequest(input *ExportCertificateInput) (req *requ
 // ExportCertificate API operation for AWS Certificate Manager.
 //
 // Exports a private certificate issued by a private certificate authority (CA)
-// for use anywhere. You can export the certificate, the certificate chain,
-// and the encrypted private key associated with the public key embedded in
-// the certificate. You must store the private key securely. The private key
-// is a 2048 bit RSA key. You must provide a passphrase for the private key
-// when exporting it. You can use the following OpenSSL command to decrypt it
-// later. Provide the passphrase when prompted.
+// for use anywhere. The exported file contains the certificate, the certificate
+// chain, and the encrypted private 2048-bit RSA key associated with the public
+// key that is embedded in the certificate. For security, you must assign a
+// passphrase for the private key when exporting it.
 //
-// openssl rsa -in encrypted_key.pem -out decrypted_key.pem
+// For information about exporting and formatting a certificate using the ACM
+// console or CLI, see Export a Private Certificate (https://docs.aws.amazon.com/acm/latest/userguide/gs-acm-export-private.html).
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -360,16 +365,16 @@ func (c *ACM) ExportCertificateRequest(input *ExportCertificateInput) (req *requ
 // See the AWS API reference guide for AWS Certificate Manager's
 // API operation ExportCertificate for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   The specified certificate cannot be found in the caller's account or the
 //   caller's account cannot be found.
 //
-//   * ErrCodeRequestInProgressException "RequestInProgressException"
+//   * RequestInProgressException
 //   The certificate request is in process and the certificate in your account
 //   has not yet been issued.
 //
-//   * ErrCodeInvalidArnException "InvalidArnException"
+//   * InvalidArnException
 //   The requested Amazon Resource Name (ARN) does not refer to an existing resource.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/acm-2015-12-08/ExportCertificate
@@ -452,16 +457,16 @@ func (c *ACM) GetCertificateRequest(input *GetCertificateInput) (req *request.Re
 // See the AWS API reference guide for AWS Certificate Manager's
 // API operation GetCertificate for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   The specified certificate cannot be found in the caller's account or the
 //   caller's account cannot be found.
 //
-//   * ErrCodeRequestInProgressException "RequestInProgressException"
+//   * RequestInProgressException
 //   The certificate request is in process and the certificate in your account
 //   has not yet been issued.
 //
-//   * ErrCodeInvalidArnException "InvalidArnException"
+//   * InvalidArnException
 //   The requested Amazon Resource Name (ARN) does not refer to an existing resource.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/acm-2015-12-08/GetCertificate
@@ -566,7 +571,7 @@ func (c *ACM) ImportCertificateRequest(input *ImportCertificateInput) (req *requ
 //    * The OCSP authority URL, if present, must not exceed 1000 characters.
 //
 //    * To import a new certificate, omit the CertificateArn argument. Include
-//    this argument only when you want to replace a previously imported certificate.
+//    this argument only when you want to replace a previously imported certifica
 //
 //    * When you import a certificate by using the CLI, you must specify the
 //    certificate, the certificate chain, and the private key by their file
@@ -579,6 +584,10 @@ func (c *ACM) ImportCertificateRequest(input *ImportCertificateInput) (req *requ
 //    certificate, the certificate chain, and the private key files in the manner
 //    required by the programming language you're using.
 //
+//    * The cryptographic algorithm of an imported certificate must match the
+//    algorithm of the signing CA. For example, if the signing CA key type is
+//    RSA, then the certificate key type must also be RSA.
+//
 // This operation returns the Amazon Resource Name (ARN) (https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html)
 // of the imported certificate.
 //
@@ -589,13 +598,26 @@ func (c *ACM) ImportCertificateRequest(input *ImportCertificateInput) (req *requ
 // See the AWS API reference guide for AWS Certificate Manager's
 // API operation ImportCertificate for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   The specified certificate cannot be found in the caller's account or the
 //   caller's account cannot be found.
 //
-//   * ErrCodeLimitExceededException "LimitExceededException"
+//   * LimitExceededException
 //   An ACM limit has been exceeded.
+//
+//   * InvalidTagException
+//   One or both of the values that make up the key-value pair is not valid. For
+//   example, you cannot specify a tag value that begins with aws:.
+//
+//   * TooManyTagsException
+//   The request contains too many tags. Try the request again with fewer tags.
+//
+//   * TagPolicyException
+//   A specified tag did not comply with an existing tag policy and was rejected.
+//
+//   * InvalidParameterException
+//   An input parameter was invalid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/acm-2015-12-08/ImportCertificate
 func (c *ACM) ImportCertificate(input *ImportCertificateInput) (*ImportCertificateOutput, error) {
@@ -671,7 +693,8 @@ func (c *ACM) ListCertificatesRequest(input *ListCertificatesInput) (req *reques
 //
 // Retrieves a list of certificate ARNs and domain names. You can request that
 // only certificates that match a specific status be listed. You can also filter
-// by specific attributes of the certificate.
+// by specific attributes of the certificate. Default filtering returns only
+// RSA_2048 certificates. For more information, see Filters.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -680,8 +703,8 @@ func (c *ACM) ListCertificatesRequest(input *ListCertificatesInput) (req *reques
 // See the AWS API reference guide for AWS Certificate Manager's
 // API operation ListCertificates for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidArgsException "InvalidArgsException"
+// Returned Error Types:
+//   * InvalidArgsException
 //   One or more of of request parameters specified is not valid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/acm-2015-12-08/ListCertificates
@@ -749,10 +772,12 @@ func (c *ACM) ListCertificatesPagesWithContext(ctx aws.Context, input *ListCerti
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListCertificatesOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListCertificatesOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -812,12 +837,12 @@ func (c *ACM) ListTagsForCertificateRequest(input *ListTagsForCertificateInput) 
 // See the AWS API reference guide for AWS Certificate Manager's
 // API operation ListTagsForCertificate for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   The specified certificate cannot be found in the caller's account or the
 //   caller's account cannot be found.
 //
-//   * ErrCodeInvalidArnException "InvalidArnException"
+//   * InvalidArnException
 //   The requested Amazon Resource Name (ARN) does not refer to an existing resource.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/acm-2015-12-08/ListTagsForCertificate
@@ -903,17 +928,23 @@ func (c *ACM) RemoveTagsFromCertificateRequest(input *RemoveTagsFromCertificateI
 // See the AWS API reference guide for AWS Certificate Manager's
 // API operation RemoveTagsFromCertificate for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   The specified certificate cannot be found in the caller's account or the
 //   caller's account cannot be found.
 //
-//   * ErrCodeInvalidArnException "InvalidArnException"
+//   * InvalidArnException
 //   The requested Amazon Resource Name (ARN) does not refer to an existing resource.
 //
-//   * ErrCodeInvalidTagException "InvalidTagException"
+//   * InvalidTagException
 //   One or both of the values that make up the key-value pair is not valid. For
 //   example, you cannot specify a tag value that begins with aws:.
+//
+//   * TagPolicyException
+//   A specified tag did not comply with an existing tag policy and was rejected.
+//
+//   * InvalidParameterException
+//   An input parameter was invalid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/acm-2015-12-08/RemoveTagsFromCertificate
 func (c *ACM) RemoveTagsFromCertificate(input *RemoveTagsFromCertificateInput) (*RemoveTagsFromCertificateOutput, error) {
@@ -996,12 +1027,12 @@ func (c *ACM) RenewCertificateRequest(input *RenewCertificateInput) (req *reques
 // See the AWS API reference guide for AWS Certificate Manager's
 // API operation RenewCertificate for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   The specified certificate cannot be found in the caller's account or the
 //   caller's account cannot be found.
 //
-//   * ErrCodeInvalidArnException "InvalidArnException"
+//   * InvalidArnException
 //   The requested Amazon Resource Name (ARN) does not refer to an existing resource.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/acm-2015-12-08/RenewCertificate
@@ -1090,15 +1121,28 @@ func (c *ACM) RequestCertificateRequest(input *RequestCertificateInput) (req *re
 // See the AWS API reference guide for AWS Certificate Manager's
 // API operation RequestCertificate for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeLimitExceededException "LimitExceededException"
+// Returned Error Types:
+//   * LimitExceededException
 //   An ACM limit has been exceeded.
 //
-//   * ErrCodeInvalidDomainValidationOptionsException "InvalidDomainValidationOptionsException"
+//   * InvalidDomainValidationOptionsException
 //   One or more values in the DomainValidationOption structure is incorrect.
 //
-//   * ErrCodeInvalidArnException "InvalidArnException"
+//   * InvalidArnException
 //   The requested Amazon Resource Name (ARN) does not refer to an existing resource.
+//
+//   * InvalidTagException
+//   One or both of the values that make up the key-value pair is not valid. For
+//   example, you cannot specify a tag value that begins with aws:.
+//
+//   * TooManyTagsException
+//   The request contains too many tags. Try the request again with fewer tags.
+//
+//   * TagPolicyException
+//   A specified tag did not comply with an existing tag policy and was rejected.
+//
+//   * InvalidParameterException
+//   An input parameter was invalid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/acm-2015-12-08/RequestCertificate
 func (c *ACM) RequestCertificate(input *RequestCertificateInput) (*RequestCertificateOutput, error) {
@@ -1186,18 +1230,18 @@ func (c *ACM) ResendValidationEmailRequest(input *ResendValidationEmailInput) (r
 // See the AWS API reference guide for AWS Certificate Manager's
 // API operation ResendValidationEmail for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   The specified certificate cannot be found in the caller's account or the
 //   caller's account cannot be found.
 //
-//   * ErrCodeInvalidStateException "InvalidStateException"
+//   * InvalidStateException
 //   Processing has reached an invalid state.
 //
-//   * ErrCodeInvalidArnException "InvalidArnException"
+//   * InvalidArnException
 //   The requested Amazon Resource Name (ARN) does not refer to an existing resource.
 //
-//   * ErrCodeInvalidDomainValidationOptionsException "InvalidDomainValidationOptionsException"
+//   * InvalidDomainValidationOptionsException
 //   One or more values in the DomainValidationOption structure is incorrect.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/acm-2015-12-08/ResendValidationEmail
@@ -1279,18 +1323,18 @@ func (c *ACM) UpdateCertificateOptionsRequest(input *UpdateCertificateOptionsInp
 // See the AWS API reference guide for AWS Certificate Manager's
 // API operation UpdateCertificateOptions for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   The specified certificate cannot be found in the caller's account or the
 //   caller's account cannot be found.
 //
-//   * ErrCodeLimitExceededException "LimitExceededException"
+//   * LimitExceededException
 //   An ACM limit has been exceeded.
 //
-//   * ErrCodeInvalidStateException "InvalidStateException"
+//   * InvalidStateException
 //   Processing has reached an invalid state.
 //
-//   * ErrCodeInvalidArnException "InvalidArnException"
+//   * InvalidArnException
 //   The requested Amazon Resource Name (ARN) does not refer to an existing resource.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/acm-2015-12-08/UpdateCertificateOptions
@@ -2224,6 +2268,11 @@ type Filters struct {
 	ExtendedKeyUsage []*string `locationName:"extendedKeyUsage" type:"list"`
 
 	// Specify one or more algorithms that can be used to generate key pairs.
+	//
+	// Default filtering returns only RSA_2048 certificates. To return other certificate
+	// types, provide the desired type signatures in a comma-separated list. For
+	// example, "keyTypes": ["RSA_2048,RSA_4096"] returns both RSA_2048 and RSA_4096
+	// certificates.
 	KeyTypes []*string `locationName:"keyTypes" type:"list"`
 
 	// Specify one or more KeyUsage extension values.
@@ -2364,6 +2413,11 @@ type ImportCertificateInput struct {
 	//
 	// PrivateKey is a required field
 	PrivateKey []byte `min:"1" type:"blob" required:"true" sensitive:"true"`
+
+	// One or more resource tags to associate with the imported certificate.
+	//
+	// Note: You cannot apply tags when reimporting a certificate.
+	Tags []*Tag `min:"1" type:"list"`
 }
 
 // String returns the string representation
@@ -2397,6 +2451,19 @@ func (s *ImportCertificateInput) Validate() error {
 	if s.PrivateKey != nil && len(s.PrivateKey) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("PrivateKey", 1))
 	}
+	if s.Tags != nil && len(s.Tags) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Tags", 1))
+	}
+	if s.Tags != nil {
+		for i, v := range s.Tags {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Tags", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -2428,6 +2495,12 @@ func (s *ImportCertificateInput) SetPrivateKey(v []byte) *ImportCertificateInput
 	return s
 }
 
+// SetTags sets the Tags field's value.
+func (s *ImportCertificateInput) SetTags(v []*Tag) *ImportCertificateInput {
+	s.Tags = v
+	return s
+}
+
 type ImportCertificateOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -2450,6 +2523,343 @@ func (s ImportCertificateOutput) GoString() string {
 func (s *ImportCertificateOutput) SetCertificateArn(v string) *ImportCertificateOutput {
 	s.CertificateArn = &v
 	return s
+}
+
+// One or more of of request parameters specified is not valid.
+type InvalidArgsException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidArgsException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidArgsException) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidArgsException(v protocol.ResponseMetadata) error {
+	return &InvalidArgsException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s InvalidArgsException) Code() string {
+	return "InvalidArgsException"
+}
+
+// Message returns the exception's message.
+func (s InvalidArgsException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s InvalidArgsException) OrigErr() error {
+	return nil
+}
+
+func (s InvalidArgsException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s InvalidArgsException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s InvalidArgsException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// The requested Amazon Resource Name (ARN) does not refer to an existing resource.
+type InvalidArnException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidArnException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidArnException) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidArnException(v protocol.ResponseMetadata) error {
+	return &InvalidArnException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s InvalidArnException) Code() string {
+	return "InvalidArnException"
+}
+
+// Message returns the exception's message.
+func (s InvalidArnException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s InvalidArnException) OrigErr() error {
+	return nil
+}
+
+func (s InvalidArnException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s InvalidArnException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s InvalidArnException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// One or more values in the DomainValidationOption structure is incorrect.
+type InvalidDomainValidationOptionsException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidDomainValidationOptionsException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidDomainValidationOptionsException) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidDomainValidationOptionsException(v protocol.ResponseMetadata) error {
+	return &InvalidDomainValidationOptionsException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s InvalidDomainValidationOptionsException) Code() string {
+	return "InvalidDomainValidationOptionsException"
+}
+
+// Message returns the exception's message.
+func (s InvalidDomainValidationOptionsException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s InvalidDomainValidationOptionsException) OrigErr() error {
+	return nil
+}
+
+func (s InvalidDomainValidationOptionsException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s InvalidDomainValidationOptionsException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s InvalidDomainValidationOptionsException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// An input parameter was invalid.
+type InvalidParameterException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidParameterException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidParameterException) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidParameterException(v protocol.ResponseMetadata) error {
+	return &InvalidParameterException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s InvalidParameterException) Code() string {
+	return "InvalidParameterException"
+}
+
+// Message returns the exception's message.
+func (s InvalidParameterException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s InvalidParameterException) OrigErr() error {
+	return nil
+}
+
+func (s InvalidParameterException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s InvalidParameterException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s InvalidParameterException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// Processing has reached an invalid state.
+type InvalidStateException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidStateException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidStateException) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidStateException(v protocol.ResponseMetadata) error {
+	return &InvalidStateException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s InvalidStateException) Code() string {
+	return "InvalidStateException"
+}
+
+// Message returns the exception's message.
+func (s InvalidStateException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s InvalidStateException) OrigErr() error {
+	return nil
+}
+
+func (s InvalidStateException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s InvalidStateException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s InvalidStateException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// One or both of the values that make up the key-value pair is not valid. For
+// example, you cannot specify a tag value that begins with aws:.
+type InvalidTagException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidTagException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidTagException) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidTagException(v protocol.ResponseMetadata) error {
+	return &InvalidTagException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s InvalidTagException) Code() string {
+	return "InvalidTagException"
+}
+
+// Message returns the exception's message.
+func (s InvalidTagException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s InvalidTagException) OrigErr() error {
+	return nil
+}
+
+func (s InvalidTagException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s InvalidTagException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s InvalidTagException) RequestID() string {
+	return s.respMetadata.RequestID
 }
 
 // The Key Usage X.509 v3 extension defines the purpose of the public key contained
@@ -2475,6 +2885,62 @@ func (s KeyUsage) GoString() string {
 func (s *KeyUsage) SetName(v string) *KeyUsage {
 	s.Name = &v
 	return s
+}
+
+// An ACM limit has been exceeded.
+type LimitExceededException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s LimitExceededException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s LimitExceededException) GoString() string {
+	return s.String()
+}
+
+func newErrorLimitExceededException(v protocol.ResponseMetadata) error {
+	return &LimitExceededException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s LimitExceededException) Code() string {
+	return "LimitExceededException"
+}
+
+// Message returns the exception's message.
+func (s LimitExceededException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s LimitExceededException) OrigErr() error {
+	return nil
+}
+
+func (s LimitExceededException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s LimitExceededException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s LimitExceededException) RequestID() string {
+	return s.respMetadata.RequestID
 }
 
 type ListCertificatesInput struct {
@@ -2882,7 +3348,7 @@ type RequestCertificateInput struct {
 	// certificate that protects several sites in the same domain. For example,
 	// *.example.com protects www.example.com, site.example.com, and images.example.com.
 	//
-	// The first domain name you enter cannot exceed 63 octets, including periods.
+	// The first domain name you enter cannot exceed 64 octets, including periods.
 	// Each subsequent Subject Alternative Name (SAN), however, can be up to 253
 	// octets in length.
 	//
@@ -2933,6 +3399,9 @@ type RequestCertificateInput struct {
 	//    the total length of the DNS name (63+1+63+1+63+1+62) exceeds 253 octets.
 	SubjectAlternativeNames []*string `min:"1" type:"list"`
 
+	// One or more resource tags to associate with the certificate.
+	Tags []*Tag `min:"1" type:"list"`
+
 	// The method you want to use if you are requesting a public certificate to
 	// validate that you own or control domain. You can validate with DNS (https://docs.aws.amazon.com/acm/latest/userguide/gs-acm-validate-dns.html)
 	// or validate with email (https://docs.aws.amazon.com/acm/latest/userguide/gs-acm-validate-email.html).
@@ -2971,6 +3440,9 @@ func (s *RequestCertificateInput) Validate() error {
 	if s.SubjectAlternativeNames != nil && len(s.SubjectAlternativeNames) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("SubjectAlternativeNames", 1))
 	}
+	if s.Tags != nil && len(s.Tags) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Tags", 1))
+	}
 	if s.DomainValidationOptions != nil {
 		for i, v := range s.DomainValidationOptions {
 			if v == nil {
@@ -2978,6 +3450,16 @@ func (s *RequestCertificateInput) Validate() error {
 			}
 			if err := v.Validate(); err != nil {
 				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "DomainValidationOptions", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+	if s.Tags != nil {
+		for i, v := range s.Tags {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Tags", i), err.(request.ErrInvalidParams))
 			}
 		}
 	}
@@ -3024,6 +3506,12 @@ func (s *RequestCertificateInput) SetSubjectAlternativeNames(v []*string) *Reque
 	return s
 }
 
+// SetTags sets the Tags field's value.
+func (s *RequestCertificateInput) SetTags(v []*Tag) *RequestCertificateInput {
+	s.Tags = v
+	return s
+}
+
 // SetValidationMethod sets the ValidationMethod field's value.
 func (s *RequestCertificateInput) SetValidationMethod(v string) *RequestCertificateInput {
 	s.ValidationMethod = &v
@@ -3054,6 +3542,63 @@ func (s RequestCertificateOutput) GoString() string {
 func (s *RequestCertificateOutput) SetCertificateArn(v string) *RequestCertificateOutput {
 	s.CertificateArn = &v
 	return s
+}
+
+// The certificate request is in process and the certificate in your account
+// has not yet been issued.
+type RequestInProgressException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s RequestInProgressException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s RequestInProgressException) GoString() string {
+	return s.String()
+}
+
+func newErrorRequestInProgressException(v protocol.ResponseMetadata) error {
+	return &RequestInProgressException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s RequestInProgressException) Code() string {
+	return "RequestInProgressException"
+}
+
+// Message returns the exception's message.
+func (s RequestInProgressException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s RequestInProgressException) OrigErr() error {
+	return nil
+}
+
+func (s RequestInProgressException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s RequestInProgressException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s RequestInProgressException) RequestID() string {
+	return s.respMetadata.RequestID
 }
 
 type ResendValidationEmailInput struct {
@@ -3167,6 +3712,120 @@ func (s ResendValidationEmailOutput) GoString() string {
 	return s.String()
 }
 
+// The certificate is in use by another AWS service in the caller's account.
+// Remove the association and try again.
+type ResourceInUseException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s ResourceInUseException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResourceInUseException) GoString() string {
+	return s.String()
+}
+
+func newErrorResourceInUseException(v protocol.ResponseMetadata) error {
+	return &ResourceInUseException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s ResourceInUseException) Code() string {
+	return "ResourceInUseException"
+}
+
+// Message returns the exception's message.
+func (s ResourceInUseException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s ResourceInUseException) OrigErr() error {
+	return nil
+}
+
+func (s ResourceInUseException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s ResourceInUseException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s ResourceInUseException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// The specified certificate cannot be found in the caller's account or the
+// caller's account cannot be found.
+type ResourceNotFoundException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s ResourceNotFoundException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResourceNotFoundException) GoString() string {
+	return s.String()
+}
+
+func newErrorResourceNotFoundException(v protocol.ResponseMetadata) error {
+	return &ResourceNotFoundException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s ResourceNotFoundException) Code() string {
+	return "ResourceNotFoundException"
+}
+
+// Message returns the exception's message.
+func (s ResourceNotFoundException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s ResourceNotFoundException) OrigErr() error {
+	return nil
+}
+
+func (s ResourceNotFoundException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s ResourceNotFoundException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s ResourceNotFoundException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
 // Contains a DNS record value that you can use to can use to validate ownership
 // or control of a domain. This is used by the DescribeCertificate action.
 type ResourceRecord struct {
@@ -3267,6 +3926,118 @@ func (s *Tag) SetKey(v string) *Tag {
 func (s *Tag) SetValue(v string) *Tag {
 	s.Value = &v
 	return s
+}
+
+// A specified tag did not comply with an existing tag policy and was rejected.
+type TagPolicyException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s TagPolicyException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s TagPolicyException) GoString() string {
+	return s.String()
+}
+
+func newErrorTagPolicyException(v protocol.ResponseMetadata) error {
+	return &TagPolicyException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s TagPolicyException) Code() string {
+	return "TagPolicyException"
+}
+
+// Message returns the exception's message.
+func (s TagPolicyException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s TagPolicyException) OrigErr() error {
+	return nil
+}
+
+func (s TagPolicyException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s TagPolicyException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s TagPolicyException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// The request contains too many tags. Try the request again with fewer tags.
+type TooManyTagsException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s TooManyTagsException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s TooManyTagsException) GoString() string {
+	return s.String()
+}
+
+func newErrorTooManyTagsException(v protocol.ResponseMetadata) error {
+	return &TooManyTagsException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s TooManyTagsException) Code() string {
+	return "TooManyTagsException"
+}
+
+// Message returns the exception's message.
+func (s TooManyTagsException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s TooManyTagsException) OrigErr() error {
+	return nil
+}
+
+func (s TooManyTagsException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s TooManyTagsException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s TooManyTagsException) RequestID() string {
+	return s.respMetadata.RequestID
 }
 
 type UpdateCertificateOptionsInput struct {
@@ -3465,6 +4236,9 @@ const (
 
 	// FailureReasonPcaRequestFailed is a FailureReason enum value
 	FailureReasonPcaRequestFailed = "PCA_REQUEST_FAILED"
+
+	// FailureReasonPcaNameConstraintsValidation is a FailureReason enum value
+	FailureReasonPcaNameConstraintsValidation = "PCA_NAME_CONSTRAINTS_VALIDATION"
 
 	// FailureReasonPcaResourceNotFound is a FailureReason enum value
 	FailureReasonPcaResourceNotFound = "PCA_RESOURCE_NOT_FOUND"

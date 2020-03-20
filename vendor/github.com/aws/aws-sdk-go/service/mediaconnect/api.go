@@ -65,38 +65,38 @@ func (c *MediaConnect) AddFlowOutputsRequest(input *AddFlowOutputsInput) (req *r
 // See the AWS API reference guide for AWS MediaConnect's
 // API operation AddFlowOutputs for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeAddFlowOutputs420Exception "AddFlowOutputs420Exception"
+// Returned Error Types:
+//   * AddFlowOutputs420Exception
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeBadRequestException "BadRequestException"
+//   * BadRequestException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeForbiddenException "ForbiddenException"
+//   * ForbiddenException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeNotFoundException "NotFoundException"
+//   * NotFoundException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
@@ -177,33 +177,33 @@ func (c *MediaConnect) CreateFlowRequest(input *CreateFlowInput) (req *request.R
 // See the AWS API reference guide for AWS MediaConnect's
 // API operation CreateFlow for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeCreateFlow420Exception "CreateFlow420Exception"
+// Returned Error Types:
+//   * CreateFlow420Exception
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeBadRequestException "BadRequestException"
+//   * BadRequestException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeForbiddenException "ForbiddenException"
+//   * ForbiddenException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
@@ -283,33 +283,33 @@ func (c *MediaConnect) DeleteFlowRequest(input *DeleteFlowInput) (req *request.R
 // See the AWS API reference guide for AWS MediaConnect's
 // API operation DeleteFlow for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeForbiddenException "ForbiddenException"
+//   * ForbiddenException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeNotFoundException "NotFoundException"
+//   * NotFoundException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
@@ -391,33 +391,33 @@ func (c *MediaConnect) DescribeFlowRequest(input *DescribeFlowInput) (req *reque
 // See the AWS API reference guide for AWS MediaConnect's
 // API operation DescribeFlow for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeForbiddenException "ForbiddenException"
+//   * ForbiddenException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeNotFoundException "NotFoundException"
+//   * NotFoundException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
@@ -497,38 +497,38 @@ func (c *MediaConnect) GrantFlowEntitlementsRequest(input *GrantFlowEntitlements
 // See the AWS API reference guide for AWS MediaConnect's
 // API operation GrantFlowEntitlements for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeGrantFlowEntitlements420Exception "GrantFlowEntitlements420Exception"
+// Returned Error Types:
+//   * GrantFlowEntitlements420Exception
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeBadRequestException "BadRequestException"
+//   * BadRequestException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeForbiddenException "ForbiddenException"
+//   * ForbiddenException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeNotFoundException "NotFoundException"
+//   * NotFoundException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
@@ -615,23 +615,23 @@ func (c *MediaConnect) ListEntitlementsRequest(input *ListEntitlementsInput) (re
 // See the AWS API reference guide for AWS MediaConnect's
 // API operation ListEntitlements for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+// Returned Error Types:
+//   * ServiceUnavailableException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeBadRequestException "BadRequestException"
+//   * BadRequestException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
@@ -701,10 +701,12 @@ func (c *MediaConnect) ListEntitlementsPagesWithContext(ctx aws.Context, input *
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListEntitlementsOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListEntitlementsOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -768,23 +770,23 @@ func (c *MediaConnect) ListFlowsRequest(input *ListFlowsInput) (req *request.Req
 // See the AWS API reference guide for AWS MediaConnect's
 // API operation ListFlows for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+// Returned Error Types:
+//   * ServiceUnavailableException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeBadRequestException "BadRequestException"
+//   * BadRequestException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
@@ -854,10 +856,12 @@ func (c *MediaConnect) ListFlowsPagesWithContext(ctx aws.Context, input *ListFlo
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListFlowsOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListFlowsOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -914,18 +918,18 @@ func (c *MediaConnect) ListTagsForResourceRequest(input *ListTagsForResourceInpu
 // See the AWS API reference guide for AWS MediaConnect's
 // API operation ListTagsForResource for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeNotFoundException "NotFoundException"
+// Returned Error Types:
+//   * NotFoundException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeBadRequestException "BadRequestException"
+//   * BadRequestException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
@@ -1009,33 +1013,33 @@ func (c *MediaConnect) RemoveFlowOutputRequest(input *RemoveFlowOutputInput) (re
 // See the AWS API reference guide for AWS MediaConnect's
 // API operation RemoveFlowOutput for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeForbiddenException "ForbiddenException"
+//   * ForbiddenException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeNotFoundException "NotFoundException"
+//   * NotFoundException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
@@ -1116,33 +1120,33 @@ func (c *MediaConnect) RevokeFlowEntitlementRequest(input *RevokeFlowEntitlement
 // See the AWS API reference guide for AWS MediaConnect's
 // API operation RevokeFlowEntitlement for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeForbiddenException "ForbiddenException"
+//   * ForbiddenException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeNotFoundException "NotFoundException"
+//   * NotFoundException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
@@ -1222,33 +1226,33 @@ func (c *MediaConnect) StartFlowRequest(input *StartFlowInput) (req *request.Req
 // See the AWS API reference guide for AWS MediaConnect's
 // API operation StartFlow for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeForbiddenException "ForbiddenException"
+//   * ForbiddenException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeNotFoundException "NotFoundException"
+//   * NotFoundException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
@@ -1328,33 +1332,33 @@ func (c *MediaConnect) StopFlowRequest(input *StopFlowInput) (req *request.Reque
 // See the AWS API reference guide for AWS MediaConnect's
 // API operation StopFlow for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeForbiddenException "ForbiddenException"
+//   * ForbiddenException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeNotFoundException "NotFoundException"
+//   * NotFoundException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
@@ -1438,18 +1442,18 @@ func (c *MediaConnect) TagResourceRequest(input *TagResourceInput) (req *request
 // See the AWS API reference guide for AWS MediaConnect's
 // API operation TagResource for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeNotFoundException "NotFoundException"
+// Returned Error Types:
+//   * NotFoundException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeBadRequestException "BadRequestException"
+//   * BadRequestException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
@@ -1530,18 +1534,18 @@ func (c *MediaConnect) UntagResourceRequest(input *UntagResourceInput) (req *req
 // See the AWS API reference guide for AWS MediaConnect's
 // API operation UntagResource for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeNotFoundException "NotFoundException"
+// Returned Error Types:
+//   * NotFoundException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeBadRequestException "BadRequestException"
+//   * BadRequestException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
@@ -1623,33 +1627,33 @@ func (c *MediaConnect) UpdateFlowEntitlementRequest(input *UpdateFlowEntitlement
 // See the AWS API reference guide for AWS MediaConnect's
 // API operation UpdateFlowEntitlement for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeForbiddenException "ForbiddenException"
+//   * ForbiddenException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeNotFoundException "NotFoundException"
+//   * NotFoundException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
@@ -1729,33 +1733,33 @@ func (c *MediaConnect) UpdateFlowOutputRequest(input *UpdateFlowOutputInput) (re
 // See the AWS API reference guide for AWS MediaConnect's
 // API operation UpdateFlowOutput for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeForbiddenException "ForbiddenException"
+//   * ForbiddenException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeNotFoundException "NotFoundException"
+//   * NotFoundException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
@@ -1835,33 +1839,33 @@ func (c *MediaConnect) UpdateFlowSourceRequest(input *UpdateFlowSourceInput) (re
 // See the AWS API reference guide for AWS MediaConnect's
 // API operation UpdateFlowSource for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeForbiddenException "ForbiddenException"
+//   * ForbiddenException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeNotFoundException "NotFoundException"
+//   * NotFoundException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   Exception raised by AWS Elemental MediaConnect. See the error message and
 //   documentation for the operation for more information on the cause of this
 //   exception.
@@ -1886,6 +1890,64 @@ func (c *MediaConnect) UpdateFlowSourceWithContext(ctx aws.Context, input *Updat
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
+}
+
+// Exception raised by AWS Elemental MediaConnect. See the error message and
+// documentation for the operation for more information on the cause of this
+// exception.
+type AddFlowOutputs420Exception struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s AddFlowOutputs420Exception) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AddFlowOutputs420Exception) GoString() string {
+	return s.String()
+}
+
+func newErrorAddFlowOutputs420Exception(v protocol.ResponseMetadata) error {
+	return &AddFlowOutputs420Exception{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s AddFlowOutputs420Exception) Code() string {
+	return "AddFlowOutputs420Exception"
+}
+
+// Message returns the exception's message.
+func (s AddFlowOutputs420Exception) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s AddFlowOutputs420Exception) OrigErr() error {
+	return nil
+}
+
+func (s AddFlowOutputs420Exception) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s AddFlowOutputs420Exception) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s AddFlowOutputs420Exception) RequestID() string {
+	return s.respMetadata.RequestID
 }
 
 // Adds outputs to an existing flow. You can create up to 20 outputs per flow.
@@ -2123,6 +2185,122 @@ func (s *AddOutputRequest) SetSmoothingLatency(v int64) *AddOutputRequest {
 func (s *AddOutputRequest) SetStreamId(v string) *AddOutputRequest {
 	s.StreamId = &v
 	return s
+}
+
+// Exception raised by AWS Elemental MediaConnect. See the error message and
+// documentation for the operation for more information on the cause of this
+// exception.
+type BadRequestException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s BadRequestException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s BadRequestException) GoString() string {
+	return s.String()
+}
+
+func newErrorBadRequestException(v protocol.ResponseMetadata) error {
+	return &BadRequestException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s BadRequestException) Code() string {
+	return "BadRequestException"
+}
+
+// Message returns the exception's message.
+func (s BadRequestException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s BadRequestException) OrigErr() error {
+	return nil
+}
+
+func (s BadRequestException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s BadRequestException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s BadRequestException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// Exception raised by AWS Elemental MediaConnect. See the error message and
+// documentation for the operation for more information on the cause of this
+// exception.
+type CreateFlow420Exception struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s CreateFlow420Exception) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateFlow420Exception) GoString() string {
+	return s.String()
+}
+
+func newErrorCreateFlow420Exception(v protocol.ResponseMetadata) error {
+	return &CreateFlow420Exception{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s CreateFlow420Exception) Code() string {
+	return "CreateFlow420Exception"
+}
+
+// Message returns the exception's message.
+func (s CreateFlow420Exception) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s CreateFlow420Exception) OrigErr() error {
+	return nil
+}
+
+func (s CreateFlow420Exception) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s CreateFlow420Exception) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s CreateFlow420Exception) RequestID() string {
+	return s.respMetadata.RequestID
 }
 
 // Creates a new flow. The request must include one source. The request optionally
@@ -2722,6 +2900,64 @@ func (s *Flow) SetStatus(v string) *Flow {
 	return s
 }
 
+// Exception raised by AWS Elemental MediaConnect. See the error message and
+// documentation for the operation for more information on the cause of this
+// exception.
+type ForbiddenException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s ForbiddenException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ForbiddenException) GoString() string {
+	return s.String()
+}
+
+func newErrorForbiddenException(v protocol.ResponseMetadata) error {
+	return &ForbiddenException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s ForbiddenException) Code() string {
+	return "ForbiddenException"
+}
+
+// Message returns the exception's message.
+func (s ForbiddenException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s ForbiddenException) OrigErr() error {
+	return nil
+}
+
+func (s ForbiddenException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s ForbiddenException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s ForbiddenException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
 // The entitlements that you want to grant on a flow.
 type GrantEntitlementRequest struct {
 	_ struct{} `type:"structure"`
@@ -2806,6 +3042,64 @@ func (s *GrantEntitlementRequest) SetName(v string) *GrantEntitlementRequest {
 func (s *GrantEntitlementRequest) SetSubscribers(v []*string) *GrantEntitlementRequest {
 	s.Subscribers = v
 	return s
+}
+
+// Exception raised by AWS Elemental MediaConnect. See the error message and
+// documentation for the operation for more information on the cause of this
+// exception.
+type GrantFlowEntitlements420Exception struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s GrantFlowEntitlements420Exception) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GrantFlowEntitlements420Exception) GoString() string {
+	return s.String()
+}
+
+func newErrorGrantFlowEntitlements420Exception(v protocol.ResponseMetadata) error {
+	return &GrantFlowEntitlements420Exception{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s GrantFlowEntitlements420Exception) Code() string {
+	return "GrantFlowEntitlements420Exception"
+}
+
+// Message returns the exception's message.
+func (s GrantFlowEntitlements420Exception) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s GrantFlowEntitlements420Exception) OrigErr() error {
+	return nil
+}
+
+func (s GrantFlowEntitlements420Exception) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s GrantFlowEntitlements420Exception) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s GrantFlowEntitlements420Exception) RequestID() string {
+	return s.respMetadata.RequestID
 }
 
 // Grants an entitlement on a flow.
@@ -2903,6 +3197,64 @@ func (s *GrantFlowEntitlementsOutput) SetEntitlements(v []*Entitlement) *GrantFl
 func (s *GrantFlowEntitlementsOutput) SetFlowArn(v string) *GrantFlowEntitlementsOutput {
 	s.FlowArn = &v
 	return s
+}
+
+// Exception raised by AWS Elemental MediaConnect. See the error message and
+// documentation for the operation for more information on the cause of this
+// exception.
+type InternalServerErrorException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s InternalServerErrorException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InternalServerErrorException) GoString() string {
+	return s.String()
+}
+
+func newErrorInternalServerErrorException(v protocol.ResponseMetadata) error {
+	return &InternalServerErrorException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s InternalServerErrorException) Code() string {
+	return "InternalServerErrorException"
+}
+
+// Message returns the exception's message.
+func (s InternalServerErrorException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s InternalServerErrorException) OrigErr() error {
+	return nil
+}
+
+func (s InternalServerErrorException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s InternalServerErrorException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s InternalServerErrorException) RequestID() string {
+	return s.respMetadata.RequestID
 }
 
 type ListEntitlementsInput struct {
@@ -3289,6 +3641,64 @@ func (s *Messages) SetErrors(v []*string) *Messages {
 	return s
 }
 
+// Exception raised by AWS Elemental MediaConnect. See the error message and
+// documentation for the operation for more information on the cause of this
+// exception.
+type NotFoundException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s NotFoundException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s NotFoundException) GoString() string {
+	return s.String()
+}
+
+func newErrorNotFoundException(v protocol.ResponseMetadata) error {
+	return &NotFoundException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s NotFoundException) Code() string {
+	return "NotFoundException"
+}
+
+// Message returns the exception's message.
+func (s NotFoundException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s NotFoundException) OrigErr() error {
+	return nil
+}
+
+func (s NotFoundException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s NotFoundException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s NotFoundException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
 // The settings for an output.
 type Output struct {
 	_ struct{} `type:"structure"`
@@ -3576,6 +3986,64 @@ func (s *RevokeFlowEntitlementOutput) SetEntitlementArn(v string) *RevokeFlowEnt
 func (s *RevokeFlowEntitlementOutput) SetFlowArn(v string) *RevokeFlowEntitlementOutput {
 	s.FlowArn = &v
 	return s
+}
+
+// Exception raised by AWS Elemental MediaConnect. See the error message and
+// documentation for the operation for more information on the cause of this
+// exception.
+type ServiceUnavailableException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s ServiceUnavailableException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ServiceUnavailableException) GoString() string {
+	return s.String()
+}
+
+func newErrorServiceUnavailableException(v protocol.ResponseMetadata) error {
+	return &ServiceUnavailableException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s ServiceUnavailableException) Code() string {
+	return "ServiceUnavailableException"
+}
+
+// Message returns the exception's message.
+func (s ServiceUnavailableException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s ServiceUnavailableException) OrigErr() error {
+	return nil
+}
+
+func (s ServiceUnavailableException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s ServiceUnavailableException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s ServiceUnavailableException) RequestID() string {
+	return s.respMetadata.RequestID
 }
 
 // The settings for the source of the flow.
@@ -4031,6 +4499,64 @@ func (s TagResourceOutput) String() string {
 // GoString returns the string representation
 func (s TagResourceOutput) GoString() string {
 	return s.String()
+}
+
+// Exception raised by AWS Elemental MediaConnect. See the error message and
+// documentation for the operation for more information on the cause of this
+// exception.
+type TooManyRequestsException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s TooManyRequestsException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s TooManyRequestsException) GoString() string {
+	return s.String()
+}
+
+func newErrorTooManyRequestsException(v protocol.ResponseMetadata) error {
+	return &TooManyRequestsException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s TooManyRequestsException) Code() string {
+	return "TooManyRequestsException"
+}
+
+// Message returns the exception's message.
+func (s TooManyRequestsException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s TooManyRequestsException) OrigErr() error {
+	return nil
+}
+
+func (s TooManyRequestsException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s TooManyRequestsException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s TooManyRequestsException) RequestID() string {
+	return s.respMetadata.RequestID
 }
 
 // Attributes related to the transport stream that are used in a source or output.

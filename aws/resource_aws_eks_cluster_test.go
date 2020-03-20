@@ -11,6 +11,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/eks"
+	multierror "github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
@@ -20,6 +21,10 @@ func init() {
 	resource.AddTestSweepers("aws_eks_cluster", &resource.Sweeper{
 		Name: "aws_eks_cluster",
 		F:    testSweepEksClusters,
+		Dependencies: []string{
+			"aws_eks_fargate_profile",
+			"aws_eks_fargate_node_group",
+		},
 	})
 }
 
@@ -30,45 +35,35 @@ func testSweepEksClusters(region string) error {
 	}
 	conn := client.(*AWSClient).eksconn
 
+	var errors error
 	input := &eks.ListClustersInput{}
-	for {
-		out, err := conn.ListClusters(input)
-		if err != nil {
-			if testSweepSkipSweepError(err) {
-				log.Printf("[WARN] Skipping EKS Clusters sweep for %s: %s", region, err)
-				return nil
-			}
-			return fmt.Errorf("Error retrieving EKS Clusters: %s", err)
-		}
-
-		if out == nil || len(out.Clusters) == 0 {
-			log.Printf("[INFO] No EKS Clusters to sweep")
-			return nil
-		}
-
-		for _, cluster := range out.Clusters {
+	err = conn.ListClustersPages(input, func(page *eks.ListClustersOutput, lastPage bool) bool {
+		for _, cluster := range page.Clusters {
 			name := aws.StringValue(cluster)
 
 			log.Printf("[INFO] Deleting EKS Cluster: %s", name)
 			err := deleteEksCluster(conn, name)
 			if err != nil {
-				log.Printf("[ERROR] Failed to delete EKS Cluster %s: %s", name, err)
+				errors = multierror.Append(errors, fmt.Errorf("error deleting EKS Cluster %q: %w", name, err))
 				continue
 			}
 			err = waitForDeleteEksCluster(conn, name, 15*time.Minute)
 			if err != nil {
-				log.Printf("[ERROR] Failed to wait for EKS Cluster %s deletion: %s", name, err)
+				errors = multierror.Append(errors, fmt.Errorf("error waiting for EKS Cluster %q deletion: %w", name, err))
+				continue
 			}
 		}
-
-		if out.NextToken == nil {
-			break
-		}
-
-		input.NextToken = out.NextToken
+		return true
+	})
+	if testSweepSkipSweepError(err) {
+		log.Printf("[WARN] Skipping EKS Clusters sweep for %s: %s", region, err)
+		return errors // In case we have completed some pages, but had errors
+	}
+	if err != nil {
+		errors = multierror.Append(errors, fmt.Errorf("error retrieving EKS Clusters: %w", err))
 	}
 
-	return nil
+	return errors
 }
 
 func TestAccAWSEksCluster_basic(t *testing.T) {
@@ -105,6 +100,36 @@ func TestAccAWSEksCluster_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "vpc_config.0.security_group_ids.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "vpc_config.0.subnet_ids.#", "2"),
 					resource.TestMatchResourceAttr(resourceName, "vpc_config.0.vpc_id", regexp.MustCompile(`^vpc-.+`)),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSEksCluster_EncryptionConfig(t *testing.T) {
+	var cluster eks.Cluster
+	kmsKeyResourceName := "aws_kms_key.test"
+	resourceName := "aws_eks_cluster.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEks(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSEksClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSEksClusterConfig_EncryptionConfig(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSEksClusterExists(resourceName, &cluster),
+					resource.TestCheckResourceAttr(resourceName, "encryption_config.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "encryption_config.0.provider.#", "1"),
+					resource.TestCheckResourceAttrPair(resourceName, "encryption_config.0.provider.0.key_arn", kmsKeyResourceName, "arn"),
+					resource.TestCheckResourceAttr(resourceName, "encryption_config.0.resources.#", "1"),
 				),
 			},
 			{
@@ -362,6 +387,42 @@ func TestAccAWSEksCluster_VpcConfig_EndpointPublicAccess(t *testing.T) {
 	})
 }
 
+func TestAccAWSEksCluster_VpcConfig_PublicAccessCidrs(t *testing.T) {
+	var cluster1 eks.Cluster
+
+	rName := fmt.Sprintf("tf-acc-test-%s", acctest.RandString(5))
+	resourceName := "aws_eks_cluster.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEks(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSEksClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSEksClusterConfig_VpcConfig_PublicAccessCidrs(rName, `["1.2.3.4/32", "5.6.7.8/32"]`),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSEksClusterExists(resourceName, &cluster1),
+					resource.TestCheckResourceAttr(resourceName, "vpc_config.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "vpc_config.0.public_access_cidrs.#", "2"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAWSEksClusterConfig_VpcConfig_PublicAccessCidrs(rName, `["4.3.2.1/32", "8.7.6.5/32"]`),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSEksClusterExists(resourceName, &cluster1),
+					resource.TestCheckResourceAttr(resourceName, "vpc_config.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "vpc_config.0.public_access_cidrs.#", "2"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckAWSEksClusterExists(resourceName string, cluster *eks.Cluster) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -604,6 +665,34 @@ resource "aws_eks_cluster" "test" {
 `, rName, tagKey1, tagValue1, tagKey2, tagValue2)
 }
 
+func testAccAWSEksClusterConfig_EncryptionConfig(rName string) string {
+	return testAccAWSEksClusterConfig_Base(rName) + fmt.Sprintf(`
+resource "aws_kms_key" "test" {
+  description             = %[1]q
+  deletion_window_in_days = 7
+}
+
+resource "aws_eks_cluster" "test" {
+  name     = %[1]q
+  role_arn = aws_iam_role.test.arn
+
+  encryption_config {
+    resources = ["secrets"]
+
+    provider {
+      key_arn = aws_kms_key.test.arn
+    }
+  }
+
+  vpc_config {
+    subnet_ids = aws_subnet.test[*].id
+  }
+
+  depends_on = ["aws_iam_role_policy_attachment.test-AmazonEKSClusterPolicy", "aws_iam_role_policy_attachment.test-AmazonEKSServicePolicy"]
+}
+`, rName)
+}
+
 func testAccAWSEksClusterConfig_VpcConfig_SecurityGroupIds(rName string) string {
 	return fmt.Sprintf(`
 %s
@@ -666,4 +755,24 @@ resource "aws_eks_cluster" "test" {
   depends_on = ["aws_iam_role_policy_attachment.test-AmazonEKSClusterPolicy", "aws_iam_role_policy_attachment.test-AmazonEKSServicePolicy"]
 }
 `, testAccAWSEksClusterConfig_Base(rName), rName, endpointPublicAccess)
+}
+
+func testAccAWSEksClusterConfig_VpcConfig_PublicAccessCidrs(rName string, publicAccessCidr string) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "aws_eks_cluster" "test" {
+  name     = %[2]q
+  role_arn = "${aws_iam_role.test.arn}"
+
+  vpc_config {
+    endpoint_private_access = true
+	endpoint_public_access  = true
+	public_access_cidrs     = %s
+    subnet_ids              = ["${aws_subnet.test.*.id[0]}", "${aws_subnet.test.*.id[1]}"]
+  }
+
+  depends_on = ["aws_iam_role_policy_attachment.test-AmazonEKSClusterPolicy", "aws_iam_role_policy_attachment.test-AmazonEKSServicePolicy"]
+}
+`, testAccAWSEksClusterConfig_Base(rName), rName, publicAccessCidr)
 }

@@ -2,6 +2,10 @@
 
 package wafregional
 
+import (
+	"github.com/aws/aws-sdk-go/private/protocol"
+)
+
 const (
 
 	// ErrCodeWAFBadRequestException for service response error code
@@ -217,3 +221,25 @@ const (
 	// Retry your request.
 	ErrCodeWAFUnavailableEntityException = "WAFUnavailableEntityException"
 )
+
+var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
+	"WAFBadRequestException":                newErrorWAFBadRequestException,
+	"WAFDisallowedNameException":            newErrorWAFDisallowedNameException,
+	"WAFInternalErrorException":             newErrorWAFInternalErrorException,
+	"WAFInvalidAccountException":            newErrorWAFInvalidAccountException,
+	"WAFInvalidOperationException":          newErrorWAFInvalidOperationException,
+	"WAFInvalidParameterException":          newErrorWAFInvalidParameterException,
+	"WAFInvalidPermissionPolicyException":   newErrorWAFInvalidPermissionPolicyException,
+	"WAFInvalidRegexPatternException":       newErrorWAFInvalidRegexPatternException,
+	"WAFLimitsExceededException":            newErrorWAFLimitsExceededException,
+	"WAFNonEmptyEntityException":            newErrorWAFNonEmptyEntityException,
+	"WAFNonexistentContainerException":      newErrorWAFNonexistentContainerException,
+	"WAFNonexistentItemException":           newErrorWAFNonexistentItemException,
+	"WAFReferencedItemException":            newErrorWAFReferencedItemException,
+	"WAFServiceLinkedRoleErrorException":    newErrorWAFServiceLinkedRoleErrorException,
+	"WAFStaleDataException":                 newErrorWAFStaleDataException,
+	"WAFSubscriptionNotFoundException":      newErrorWAFSubscriptionNotFoundException,
+	"WAFTagOperationException":              newErrorWAFTagOperationException,
+	"WAFTagOperationInternalErrorException": newErrorWAFTagOperationInternalErrorException,
+	"WAFUnavailableEntityException":         newErrorWAFUnavailableEntityException,
+}

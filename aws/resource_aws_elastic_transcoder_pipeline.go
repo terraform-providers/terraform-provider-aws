@@ -424,10 +424,10 @@ func resourceAwsElasticTranscoderPipelineRead(d *schema.ResourceData, meta inter
 
 	pipeline := resp.Pipeline
 
-	d.Set("arn", *pipeline.Arn)
+	d.Set("arn", pipeline.Arn)
 
 	if arn := pipeline.AwsKmsKeyArn; arn != nil {
-		d.Set("aws_kms_key_arn", *arn)
+		d.Set("aws_kms_key_arn", arn)
 	}
 
 	if pipeline.ContentConfig != nil {
@@ -444,8 +444,8 @@ func resourceAwsElasticTranscoderPipelineRead(d *schema.ResourceData, meta inter
 		}
 	}
 
-	d.Set("input_bucket", *pipeline.InputBucket)
-	d.Set("name", *pipeline.Name)
+	d.Set("input_bucket", pipeline.InputBucket)
+	d.Set("name", pipeline.Name)
 
 	notifications := flattenETNotifications(pipeline.Notifications)
 	if notifications != nil {
@@ -454,7 +454,7 @@ func resourceAwsElasticTranscoderPipelineRead(d *schema.ResourceData, meta inter
 		}
 	}
 
-	d.Set("role", *pipeline.Role)
+	d.Set("role", pipeline.Role)
 
 	if pipeline.ThumbnailConfig != nil {
 		err := d.Set("thumbnail_config", flattenETPipelineOutputConfig(pipeline.ThumbnailConfig))
@@ -471,7 +471,7 @@ func resourceAwsElasticTranscoderPipelineRead(d *schema.ResourceData, meta inter
 	}
 
 	if pipeline.OutputBucket != nil {
-		d.Set("output_bucket", *pipeline.OutputBucket)
+		d.Set("output_bucket", pipeline.OutputBucket)
 	}
 
 	return nil

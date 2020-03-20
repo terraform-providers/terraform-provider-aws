@@ -1,4 +1,5 @@
 ---
+subcategory: "AppSync"
 layout: "aws"
 page_title: "AWS: aws_appsync_resolver"
 description: |-
@@ -76,12 +77,12 @@ EOF
 
 # PIPELINE type resolver
 resource "aws_appsync_resolver" "Mutation_pipelineTest" {
-  type = "Mutation"
-  api_id = "${aws_appsync_graphql_api.test.id}"
-  field = "pipelineTest"
-  request_template = "{}"
+  type              = "Mutation"
+  api_id            = "${aws_appsync_graphql_api.test.id}"
+  field             = "pipelineTest"
+  request_template  = "{}"
   response_template = "$util.toJson($ctx.result)"
-  kind = "PIPELINE"
+  kind              = "PIPELINE"
   pipeline_config {
     functions = [
       "${aws_appsync_function.test1.function_id}",

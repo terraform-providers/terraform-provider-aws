@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsSpotInstanceRequest() *schema.Resource {
@@ -94,14 +95,14 @@ func resourceAwsSpotInstanceRequest() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.ValidateRFC3339TimeString,
+				ValidateFunc: validation.IsRFC3339Time,
 				Computed:     true,
 			}
 			s["valid_until"] = &schema.Schema{
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.ValidateRFC3339TimeString,
+				ValidateFunc: validation.IsRFC3339Time,
 				Computed:     true,
 			}
 			return s
@@ -226,7 +227,13 @@ func resourceAwsSpotInstanceRequestCreate(d *schema.ResourceData, meta interface
 		}
 	}
 
-	return resourceAwsSpotInstanceRequestUpdate(d, meta)
+	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
+		if err := keyvaluetags.Ec2UpdateTags(conn, d.Id(), nil, v); err != nil {
+			return fmt.Errorf("error adding EC2 Spot Instance Request (%s) tags: %s", d.Id(), err)
+		}
+	}
+
+	return resourceAwsSpotInstanceRequestRead(d, meta)
 }
 
 // Update spot state, etc
@@ -264,10 +271,10 @@ func resourceAwsSpotInstanceRequestRead(d *schema.ResourceData, meta interface{}
 		return nil
 	}
 
-	d.Set("spot_bid_status", *request.Status.Code)
+	d.Set("spot_bid_status", request.Status.Code)
 	// Instance ID is not set if the request is still pending
 	if request.InstanceId != nil {
-		d.Set("spot_instance_id", *request.InstanceId)
+		d.Set("spot_instance_id", request.InstanceId)
 		// Read the instance data, setting up connection information
 		if err := readInstance(d, meta); err != nil {
 			return fmt.Errorf("Error reading Spot Instance Data: %s", err)
@@ -277,7 +284,11 @@ func resourceAwsSpotInstanceRequestRead(d *schema.ResourceData, meta interface{}
 	d.Set("spot_request_state", request.State)
 	d.Set("launch_group", request.LaunchGroup)
 	d.Set("block_duration_minutes", request.BlockDurationMinutes)
-	d.Set("tags", tagsToMap(request.Tags))
+
+	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(request.Tags).IgnoreAws().Map()); err != nil {
+		return fmt.Errorf("error setting tags: %s", err)
+	}
+
 	d.Set("instance_interruption_behaviour", request.InstanceInterruptionBehavior)
 	d.Set("valid_from", aws.TimeValue(request.ValidFrom).Format(time.RFC3339))
 	d.Set("valid_until", aws.TimeValue(request.ValidUntil).Format(time.RFC3339))
@@ -373,14 +384,13 @@ func readInstance(d *schema.ResourceData, meta interface{}) error {
 func resourceAwsSpotInstanceRequestUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
 
-	d.Partial(true)
-	if err := setTags(conn, d); err != nil {
-		return err
-	} else {
-		d.SetPartial("tags")
-	}
+	if d.HasChange("tags") {
+		o, n := d.GetChange("tags")
 
-	d.Partial(false)
+		if err := keyvaluetags.Ec2UpdateTags(conn, d.Id(), o, n); err != nil {
+			return fmt.Errorf("error updating EC2 Spot Instance Request (%s) tags: %s", d.Id(), err)
+		}
+	}
 
 	return resourceAwsSpotInstanceRequestRead(d, meta)
 }

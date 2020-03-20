@@ -5,12 +5,12 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/directoryservice"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsDirectoryServiceDirectory() *schema.Resource {
@@ -215,7 +215,7 @@ func createDirectoryConnector(dsconn *directoryservice.DirectoryService, d *sche
 	input := directoryservice.ConnectDirectoryInput{
 		Name:     aws.String(d.Get("name").(string)),
 		Password: aws.String(d.Get("password").(string)),
-		Tags:     tagsFromMapDS(d.Get("tags").(map[string]interface{})),
+		Tags:     keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().DirectoryserviceTags(),
 	}
 
 	if v, ok := d.GetOk("description"); ok {
@@ -250,7 +250,7 @@ func createSimpleDirectoryService(dsconn *directoryservice.DirectoryService, d *
 	input := directoryservice.CreateDirectoryInput{
 		Name:     aws.String(d.Get("name").(string)),
 		Password: aws.String(d.Get("password").(string)),
-		Tags:     tagsFromMapDS(d.Get("tags").(map[string]interface{})),
+		Tags:     keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().DirectoryserviceTags(),
 	}
 
 	if v, ok := d.GetOk("description"); ok {
@@ -285,7 +285,7 @@ func createActiveDirectoryService(dsconn *directoryservice.DirectoryService, d *
 	input := directoryservice.CreateMicrosoftADInput{
 		Name:     aws.String(d.Get("name").(string)),
 		Password: aws.String(d.Get("password").(string)),
-		Tags:     tagsFromMapDS(d.Get("tags").(map[string]interface{})),
+		Tags:     keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().DirectoryserviceTags(),
 	}
 
 	if v, ok := d.GetOk("description"); ok {
@@ -423,8 +423,12 @@ func resourceAwsDirectoryServiceDirectoryUpdate(d *schema.ResourceData, meta int
 		}
 	}
 
-	if err := setTagsDS(dsconn, d, d.Id()); err != nil {
-		return err
+	if d.HasChange("tags") {
+		o, n := d.GetChange("tags")
+
+		if err := keyvaluetags.DirectoryserviceUpdateTags(dsconn, d.Id(), o, n); err != nil {
+			return fmt.Errorf("error updating Directory Service Directory (%s) tags: %s", d.Id(), err)
+		}
 	}
 
 	return resourceAwsDirectoryServiceDirectoryRead(d, meta)
@@ -475,13 +479,15 @@ func resourceAwsDirectoryServiceDirectoryRead(d *schema.ResourceData, meta inter
 		d.Set("security_group_id", aws.StringValue(dir.VpcSettings.SecurityGroupId))
 	}
 
-	tagList, err := dsconn.ListTagsForResource(&directoryservice.ListTagsForResourceInput{
-		ResourceId: aws.String(d.Id()),
-	})
+	tags, err := keyvaluetags.DirectoryserviceListTags(dsconn, d.Id())
+
 	if err != nil {
-		return fmt.Errorf("Failed to get Directory service tags (id: %s): %s", d.Id(), err)
+		return fmt.Errorf("error listing tags for Directory Service Directory (%s): %s", d.Id(), err)
 	}
-	d.Set("tags", tagsToMapDS(tagList.Tags))
+
+	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+		return fmt.Errorf("error setting tags: %s", err)
+	}
 
 	return nil
 }

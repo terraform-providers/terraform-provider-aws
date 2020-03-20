@@ -5,6 +5,8 @@ import (
 	"os"
 	"testing"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/codepipeline"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
@@ -15,8 +17,10 @@ func TestAccAWSCodePipelineWebhook_basic(t *testing.T) {
 		t.Skip("Environment variable GITHUB_TOKEN is not set")
 	}
 
-	resourceName := "aws_codepipeline_webhook.bar"
-	name := acctest.RandString(10)
+	var v codepipeline.ListWebhookItem
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_codepipeline_webhook.test"
+	pipelineResourceName := "aws_codepipeline.test"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCodePipeline(t) },
@@ -24,10 +28,10 @@ func TestAccAWSCodePipelineWebhook_basic(t *testing.T) {
 		CheckDestroy: testAccCheckAWSCodePipelineDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSCodePipelineWebhookConfig_basic(name),
+				Config: testAccAWSCodePipelineWebhookConfig_basic(rName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSCodePipelineExists("aws_codepipeline.bar"),
-					testAccCheckAWSCodePipelineWebhookExists(resourceName),
+					testAccCheckAWSCodePipelineExists(pipelineResourceName),
+					testAccCheckAWSCodePipelineWebhookExists(resourceName, &v),
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
 					resource.TestCheckResourceAttrSet(resourceName, "url"),
 					resource.TestCheckResourceAttr(resourceName, "authentication_configuration.#", "1"),
@@ -48,8 +52,10 @@ func TestAccAWSCodePipelineWebhook_ipAuth(t *testing.T) {
 		t.Skip("Environment variable GITHUB_TOKEN is not set")
 	}
 
-	resourceName := "aws_codepipeline_webhook.bar"
-	name := acctest.RandString(10)
+	var v codepipeline.ListWebhookItem
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_codepipeline_webhook.test"
+	pipelineResourceName := "aws_codepipeline.test"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCodePipeline(t) },
@@ -57,10 +63,10 @@ func TestAccAWSCodePipelineWebhook_ipAuth(t *testing.T) {
 		CheckDestroy: testAccCheckAWSCodePipelineDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSCodePipelineWebhookConfig_ipAuth(name),
+				Config: testAccAWSCodePipelineWebhookConfig_ipAuth(rName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSCodePipelineExists("aws_codepipeline.bar"),
-					testAccCheckAWSCodePipelineWebhookExists(resourceName),
+					testAccCheckAWSCodePipelineExists(pipelineResourceName),
+					testAccCheckAWSCodePipelineWebhookExists(resourceName, &v),
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
 					resource.TestCheckResourceAttrSet(resourceName, "url"),
 					resource.TestCheckResourceAttr(resourceName, "authentication_configuration.#", "1"),
@@ -81,8 +87,10 @@ func TestAccAWSCodePipelineWebhook_unauthenticated(t *testing.T) {
 		t.Skip("Environment variable GITHUB_TOKEN is not set")
 	}
 
-	resourceName := "aws_codepipeline_webhook.bar"
-	name := acctest.RandString(10)
+	var v codepipeline.ListWebhookItem
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_codepipeline_webhook.test"
+	pipelineResourceName := "aws_codepipeline.test"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCodePipeline(t) },
@@ -90,10 +98,10 @@ func TestAccAWSCodePipelineWebhook_unauthenticated(t *testing.T) {
 		CheckDestroy: testAccCheckAWSCodePipelineDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSCodePipelineWebhookConfig_unauthenticated(name),
+				Config: testAccAWSCodePipelineWebhookConfig_unauthenticated(rName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSCodePipelineExists("aws_codepipeline.bar"),
-					testAccCheckAWSCodePipelineWebhookExists(resourceName),
+					testAccCheckAWSCodePipelineExists(pipelineResourceName),
+					testAccCheckAWSCodePipelineWebhookExists(resourceName, &v),
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
 					resource.TestCheckResourceAttrSet(resourceName, "url"),
 				),
@@ -112,8 +120,10 @@ func TestAccAWSCodePipelineWebhook_tags(t *testing.T) {
 		t.Skip("Environment variable GITHUB_TOKEN is not set")
 	}
 
-	resourceName := "aws_codepipeline_webhook.bar"
-	name := acctest.RandString(10)
+	var v1, v2, v3 codepipeline.ListWebhookItem
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_codepipeline_webhook.test"
+	pipelineResourceName := "aws_codepipeline.test"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCodePipeline(t) },
@@ -121,25 +131,31 @@ func TestAccAWSCodePipelineWebhook_tags(t *testing.T) {
 		CheckDestroy: testAccCheckAWSCodePipelineDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSCodePipelineWebhookConfigWithTags(name, "tag1value", "tag2value"),
+				Config: testAccAWSCodePipelineWebhookConfigWithTags(rName, "tag1value", "tag2value"),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSCodePipelineExists("aws_codepipeline.bar"),
-					testAccCheckAWSCodePipelineWebhookExists(resourceName),
+					testAccCheckAWSCodePipelineExists(pipelineResourceName),
+					testAccCheckAWSCodePipelineWebhookExists(resourceName, &v1),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "3"),
-					resource.TestCheckResourceAttr(resourceName, "tags.Name", fmt.Sprintf("test-webhook-%s", name)),
+					resource.TestCheckResourceAttr(resourceName, "tags.Name", rName),
 					resource.TestCheckResourceAttr(resourceName, "tags.tag1", "tag1value"),
 					resource.TestCheckResourceAttr(resourceName, "tags.tag2", "tag2value"),
 				),
 			},
 			{
-				Config: testAccAWSCodePipelineWebhookConfigWithTags(name, "tag1valueUpdate", "tag2valueUpdate"),
+				Config: testAccAWSCodePipelineWebhookConfigWithTags(rName, "tag1valueUpdate", "tag2valueUpdate"),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSCodePipelineExists("aws_codepipeline.bar"),
-					testAccCheckAWSCodePipelineWebhookExists(resourceName),
+					testAccCheckAWSCodePipelineExists(pipelineResourceName),
+					testAccCheckAWSCodePipelineWebhookExists(resourceName, &v2),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "3"),
-					resource.TestCheckResourceAttr(resourceName, "tags.Name", fmt.Sprintf("test-webhook-%s", name)),
+					resource.TestCheckResourceAttr(resourceName, "tags.Name", rName),
 					resource.TestCheckResourceAttr(resourceName, "tags.tag1", "tag1valueUpdate"),
 					resource.TestCheckResourceAttr(resourceName, "tags.tag2", "tag2valueUpdate"),
+					func(s *terraform.State) error {
+						if aws.StringValue(v2.Url) != aws.StringValue(v1.Url) {
+							return fmt.Errorf("Codepipeline webhook recreated when changing tags")
+						}
+						return nil
+					},
 				),
 			},
 			{
@@ -148,18 +164,71 @@ func TestAccAWSCodePipelineWebhook_tags(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAWSCodePipelineWebhookConfig_basic(name),
+				Config: testAccAWSCodePipelineWebhookConfig_basic(rName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSCodePipelineExists("aws_codepipeline.bar"),
-					testAccCheckAWSCodePipelineWebhookExists(resourceName),
+					testAccCheckAWSCodePipelineExists(pipelineResourceName),
+					testAccCheckAWSCodePipelineWebhookExists(resourceName, &v3),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+					func(s *terraform.State) error {
+						if aws.StringValue(v3.Url) != aws.StringValue(v2.Url) {
+							return fmt.Errorf("Codepipeline webhook recreated when deleting tags")
+						}
+						return nil
+					},
 				),
 			},
 		},
 	})
 }
 
-func testAccCheckAWSCodePipelineWebhookExists(n string) resource.TestCheckFunc {
+func TestAccAWSCodePipelineWebhook_UpdateAuthenticationConfiguration_SecretToken(t *testing.T) {
+	if os.Getenv("GITHUB_TOKEN") == "" {
+		t.Skip("Environment variable GITHUB_TOKEN is not set")
+	}
+
+	var v1, v2 codepipeline.ListWebhookItem
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_codepipeline_webhook.test"
+	pipelineResourceName := "aws_codepipeline.test"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCodePipeline(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSCodePipelineDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSCodePipelineWebhookConfig_basic(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSCodePipelineExists(pipelineResourceName),
+					testAccCheckAWSCodePipelineWebhookExists(resourceName, &v1),
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
+					resource.TestCheckResourceAttrSet(resourceName, "url"),
+					resource.TestCheckResourceAttr(resourceName, "authentication_configuration.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "authentication_configuration.0.secret_token", "super-secret"),
+				),
+			},
+			{
+				Config: testAccAWSCodePipelineWebhookConfig_secretTokenUpdated(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSCodePipelineExists(pipelineResourceName),
+					testAccCheckAWSCodePipelineWebhookExists(resourceName, &v2),
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
+					resource.TestCheckResourceAttrSet(resourceName, "url"),
+					resource.TestCheckResourceAttr(resourceName, "authentication_configuration.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "authentication_configuration.0.secret_token", "even-more-secret"),
+					func(s *terraform.State) error {
+						if aws.StringValue(v2.Url) == aws.StringValue(v1.Url) {
+							return fmt.Errorf("Codepipeline webhook not recreated when updating authentication_configuration.secret_token")
+						}
+						return nil
+					},
+				),
+			},
+		},
+	})
+}
+
+func testAccCheckAWSCodePipelineWebhookExists(n string, webhook *codepipeline.ListWebhookItem) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -172,102 +241,129 @@ func testAccCheckAWSCodePipelineWebhookExists(n string) resource.TestCheckFunc {
 
 		conn := testAccProvider.Meta().(*AWSClient).codepipelineconn
 
-		_, err := getCodePipelineWebhook(conn, rs.Primary.ID)
-		return err
+		resp, err := getCodePipelineWebhook(conn, rs.Primary.ID)
+
+		if err != nil {
+			return err
+		}
+
+		*webhook = *resp
+
+		return nil
 	}
 }
 
 func testAccAWSCodePipelineWebhookConfig_basic(rName string) string {
-	return testAccAWSCodePipelineWebhookConfig_codePipeline(rName, fmt.Sprintf(`
-resource "aws_codepipeline_webhook" "bar" {
-    name            = "test-webhook-%s" 
-    authentication  = "GITHUB_HMAC" 
-    target_action   = "Source"
-    target_pipeline = "${aws_codepipeline.bar.name}"
+	return testAccAWSCodePipelineWebhookConfig_codePipeline(rName) + fmt.Sprintf(`
+resource "aws_codepipeline_webhook" "test" {
+  name            = %[1]q
+  authentication  = "GITHUB_HMAC"
+  target_action   = "Source"
+  target_pipeline = "${aws_codepipeline.test.name}"
 
-    authentication_configuration {
-      secret_token = "super-secret"
-    }
+  authentication_configuration {
+    secret_token = "super-secret"
+  }
 
-    filter {
-      json_path    = "$.ref"
-      match_equals = "refs/head/{Branch}"
-    }
+  filter {
+    json_path    = "$.ref"
+    match_equals = "refs/head/{Branch}"
+  }
 }
-`, rName))
+`, rName)
 }
 
 func testAccAWSCodePipelineWebhookConfig_ipAuth(rName string) string {
-	return testAccAWSCodePipelineWebhookConfig_codePipeline(rName, fmt.Sprintf(`
-resource "aws_codepipeline_webhook" "bar" {
-    name            = "test-webhook-%s" 
-    authentication  = "IP" 
-    target_action   = "Source"
-    target_pipeline = "${aws_codepipeline.bar.name}"
+	return testAccAWSCodePipelineWebhookConfig_codePipeline(rName) + fmt.Sprintf(`
+resource "aws_codepipeline_webhook" "test" {
+  name            = %[1]q
+  authentication  = "IP"
+  target_action   = "Source"
+  target_pipeline = "${aws_codepipeline.test.name}"
 
-    authentication_configuration {
-      allowed_ip_range = "0.0.0.0/0"
-    }
+  authentication_configuration {
+    allowed_ip_range = "0.0.0.0/0"
+  }
 
-    filter {
-      json_path    = "$.ref"
-      match_equals = "refs/head/{Branch}"
-    }
+  filter {
+    json_path    = "$.ref"
+    match_equals = "refs/head/{Branch}"
+  }
 }
-`, rName))
+`, rName)
 }
 
 func testAccAWSCodePipelineWebhookConfig_unauthenticated(rName string) string {
-	return testAccAWSCodePipelineWebhookConfig_codePipeline(rName, fmt.Sprintf(`
-resource "aws_codepipeline_webhook" "bar" {
-    name            = "test-webhook-%s" 
-    authentication  = "UNAUTHENTICATED" 
-    target_action   = "Source"
-    target_pipeline = "${aws_codepipeline.bar.name}"
+	return testAccAWSCodePipelineWebhookConfig_codePipeline(rName) + fmt.Sprintf(`
+resource "aws_codepipeline_webhook" "test" {
+  name            = %[1]q
+  authentication  = "UNAUTHENTICATED"
+  target_action   = "Source"
+  target_pipeline = "${aws_codepipeline.test.name}"
 
-    filter {
-      json_path    = "$.ref"
-      match_equals = "refs/head/{Branch}"
-    }
+  filter {
+    json_path    = "$.ref"
+    match_equals = "refs/head/{Branch}"
+  }
 }
-`, rName))
+`, rName)
 }
 
 func testAccAWSCodePipelineWebhookConfigWithTags(rName, tag1, tag2 string) string {
-	return testAccAWSCodePipelineWebhookConfig_codePipeline(rName, fmt.Sprintf(`
-resource "aws_codepipeline_webhook" "bar" {
-    name            = "test-webhook-%[1]s" 
-    authentication  = "GITHUB_HMAC" 
-    target_action   = "Source"
-    target_pipeline = "${aws_codepipeline.bar.name}"
+	return testAccAWSCodePipelineWebhookConfig_codePipeline(rName) + fmt.Sprintf(`
+resource "aws_codepipeline_webhook" "test" {
+  name            = %[1]q
+  authentication  = "GITHUB_HMAC"
+  target_action   = "Source"
+  target_pipeline = "${aws_codepipeline.test.name}"
 
-    authentication_configuration {
-      secret_token = "super-secret"
-    }
+  authentication_configuration {
+    secret_token = "super-secret"
+  }
 
-    filter {
-      json_path    = "$.ref"
-      match_equals = "refs/head/{Branch}"
-    }
+  filter {
+    json_path    = "$.ref"
+    match_equals = "refs/head/{Branch}"
+  }
 
-    tags = {
-      Name = "test-webhook-%[1]s"
-      tag1 = %[2]q
-      tag2 = %[3]q
-    }
+  tags = {
+    Name = %[1]q
+    tag1 = %[2]q
+    tag2 = %[3]q
+  }
 }
-`, rName, tag1, tag2))
+`, rName, tag1, tag2)
 }
 
-func testAccAWSCodePipelineWebhookConfig_codePipeline(rName string, webhook string) string {
+func testAccAWSCodePipelineWebhookConfig_secretTokenUpdated(rName string) string {
+	return testAccAWSCodePipelineWebhookConfig_codePipeline(rName) + fmt.Sprintf(`
+resource "aws_codepipeline_webhook" "test" {
+  name            = %[1]q
+  authentication  = "GITHUB_HMAC"
+  target_action   = "Source"
+  target_pipeline = "${aws_codepipeline.test.name}"
+
+  authentication_configuration {
+    secret_token = "even-more-secret"
+  }
+
+  filter {
+    json_path    = "$.ref"
+    match_equals = "refs/head/{Branch}"
+  }
+}
+`, rName)
+}
+
+func testAccAWSCodePipelineWebhookConfig_codePipeline(rName string) string {
 	return fmt.Sprintf(`
-resource "aws_s3_bucket" "foo" {
-  bucket = "tf-test-pipeline-%s"
+resource "aws_s3_bucket" "test" {
+  bucket = %[1]q
   acl    = "private"
 }
 
-resource "aws_iam_role" "codepipeline_role" {
-  name = "codepipeline-role-%s"
+resource "aws_iam_role" "test" {
+  name = %[1]q
 
   assume_role_policy = <<EOF
 {
@@ -285,9 +381,9 @@ resource "aws_iam_role" "codepipeline_role" {
 EOF
 }
 
-resource "aws_iam_role_policy" "codepipeline_policy" {
-  name = "codepipeline_policy"
-  role = "${aws_iam_role.codepipeline_role.id}"
+resource "aws_iam_role_policy" "test" {
+  name = %[1]q
+  role = "${aws_iam_role.test.id}"
 
   policy = <<EOF
 {
@@ -301,8 +397,8 @@ resource "aws_iam_role_policy" "codepipeline_policy" {
         "s3:GetBucketVersioning"
       ],
       "Resource": [
-        "${aws_s3_bucket.foo.arn}",
-        "${aws_s3_bucket.foo.arn}/*"
+        "${aws_s3_bucket.test.arn}",
+        "${aws_s3_bucket.test.arn}/*"
       ]
     },
     {
@@ -318,12 +414,12 @@ resource "aws_iam_role_policy" "codepipeline_policy" {
 EOF
 }
 
-resource "aws_codepipeline" "bar" {
-  name     = "test-pipeline-%s"
-  role_arn = "${aws_iam_role.codepipeline_role.arn}"
+resource "aws_codepipeline" "test" {
+  name     = %[1]q
+  role_arn = "${aws_iam_role.test.arn}"
 
   artifact_store {
-    location = "${aws_s3_bucket.foo.bucket}"
+    location = "${aws_s3_bucket.test.bucket}"
     type     = "S3"
 
     encryption_key {
@@ -368,8 +464,5 @@ resource "aws_codepipeline" "bar" {
     }
   }
 }
-
-%s
-
-`, rName, rName, rName, webhook)
+`, rName)
 }

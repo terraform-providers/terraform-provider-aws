@@ -11,6 +11,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 const rdsClusterParameterGroupMaxParamsBulkEdit = 20
@@ -88,7 +89,6 @@ func resourceAwsRDSClusterParameterGroup() *schema.Resource {
 
 func resourceAwsRDSClusterParameterGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	rdsconn := meta.(*AWSClient).rdsconn
-	tags := tagsFromMapRDS(d.Get("tags").(map[string]interface{}))
 
 	var groupName string
 	if v, ok := d.GetOk("name"); ok {
@@ -103,7 +103,7 @@ func resourceAwsRDSClusterParameterGroupCreate(d *schema.ResourceData, meta inte
 		DBClusterParameterGroupName: aws.String(groupName),
 		DBParameterGroupFamily:      aws.String(d.Get("family").(string)),
 		Description:                 aws.String(d.Get("description").(string)),
-		Tags:                        tags,
+		Tags:                        keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().RdsTags(),
 	}
 
 	log.Printf("[DEBUG] Create DB Cluster Parameter Group: %#v", createOpts)
@@ -161,7 +161,9 @@ func resourceAwsRDSClusterParameterGroupRead(d *schema.ResourceData, meta interf
 		return err
 	}
 
-	d.Set("parameter", flattenParameters(describeParametersResp.Parameters))
+	if err := d.Set("parameter", flattenParameters(describeParametersResp.Parameters)); err != nil {
+		return fmt.Errorf("error setting parameters: %s", err)
+	}
 
 	resp, err := rdsconn.ListTagsForResource(&rds.ListTagsForResourceInput{
 		ResourceName: aws.String(arn),
@@ -170,11 +172,9 @@ func resourceAwsRDSClusterParameterGroupRead(d *schema.ResourceData, meta interf
 		log.Printf("[DEBUG] Error retrieving tags for ARN: %s", arn)
 	}
 
-	var dt []*rds.Tag
-	if len(resp.TagList) > 0 {
-		dt = resp.TagList
+	if err := d.Set("tags", keyvaluetags.RdsKeyValueTags(resp.TagList).IgnoreAws().Map()); err != nil {
+		return fmt.Errorf("error setting tags: %s", err)
 	}
-	d.Set("tags", tagsToMapRDS(dt))
 
 	return nil
 }
@@ -221,16 +221,56 @@ func resourceAwsRDSClusterParameterGroupUpdate(d *schema.ResourceData, meta inte
 				log.Printf("[DEBUG] Modify DB Cluster Parameter Group: %s", modifyOpts)
 				_, err = rdsconn.ModifyDBClusterParameterGroup(&modifyOpts)
 				if err != nil {
-					return fmt.Errorf("Error modifying DB Cluster Parameter Group: %s", err)
+					return fmt.Errorf("error modifying DB Cluster Parameter Group: %s", err)
 				}
 			}
-			d.SetPartial("parameter")
+		}
+
+		// Reset parameters that have been removed
+		parameters, err = expandParameters(os.Difference(ns).List())
+		if err != nil {
+			return err
+		}
+		if len(parameters) > 0 {
+			for parameters != nil {
+				parameterGroupName := d.Get("name").(string)
+				var paramsToReset []*rds.Parameter
+				if len(parameters) <= rdsClusterParameterGroupMaxParamsBulkEdit {
+					paramsToReset, parameters = parameters[:], nil
+				} else {
+					paramsToReset, parameters = parameters[:rdsClusterParameterGroupMaxParamsBulkEdit], parameters[rdsClusterParameterGroupMaxParamsBulkEdit:]
+				}
+
+				resetOpts := rds.ResetDBClusterParameterGroupInput{
+					DBClusterParameterGroupName: aws.String(parameterGroupName),
+					Parameters:                  paramsToReset,
+					ResetAllParameters:          aws.Bool(false),
+				}
+
+				log.Printf("[DEBUG] Reset DB Cluster Parameter Group: %s", resetOpts)
+				err := resource.Retry(3*time.Minute, func() *resource.RetryError {
+					_, err := rdsconn.ResetDBClusterParameterGroup(&resetOpts)
+					if err != nil {
+						if isAWSErr(err, "InvalidDBParameterGroupState", "has pending changes") {
+							return resource.RetryableError(err)
+						}
+						return resource.NonRetryableError(err)
+					}
+					return nil
+				})
+				if err != nil {
+					return fmt.Errorf("error resetting DB Cluster Parameter Group: %s", err)
+				}
+			}
 		}
 	}
 
-	if err := setTagsRDS(rdsconn, d, d.Get("arn").(string)); err != nil {
-		return err
-	} else {
+	if d.HasChange("tags") {
+		o, n := d.GetChange("tags")
+
+		if err := keyvaluetags.RdsUpdateTags(rdsconn, d.Get("arn").(string), o, n); err != nil {
+			return fmt.Errorf("error updating RDS Cluster Parameter Group (%s) tags: %s", d.Id(), err)
+		}
 		d.SetPartial("tags")
 	}
 

@@ -1,4 +1,5 @@
 ---
+subcategory: "Glue"
 layout: "aws"
 page_title: "AWS: aws_glue_crawler"
 description: |-
@@ -65,7 +66,7 @@ resource "aws_glue_crawler" "example" {
 
   catalog_target {
     database_name = "${aws_glue_catalog_database.example.name}"
-    tables = ["${aws_glue_catalog_table.example.name}"]
+    tables        = ["${aws_glue_catalog_table.example.name}"]
   }
 
   schema_change_policy {
@@ -100,8 +101,9 @@ The following arguments are supported:
 * `s3_target` (Optional) List nested Amazon S3 target arguments. See below.
 * `schedule` (Optional) A cron expression used to specify the schedule. For more information, see [Time-Based Schedules for Jobs and Crawlers](https://docs.aws.amazon.com/glue/latest/dg/monitor-data-warehouse-schedule.html). For example, to run something every day at 12:15 UTC, you would specify: `cron(15 12 * * ? *)`.
 * `schema_change_policy` (Optional) Policy for the crawler's update and deletion behavior.
-* `table_prefix` (Optional) The table prefix used for catalog tables that are created.
 * `security_configuration` (Optional) The name of Security Configuration to be used by the crawler
+* `table_prefix` (Optional) The table prefix used for catalog tables that are created.
+* `tags` - (Optional) Key-value mapping of resource tags
 
 ### dynamodb_target Argument Reference
 

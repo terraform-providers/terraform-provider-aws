@@ -342,6 +342,14 @@ func testAccAWSEMRInstanceGroupRecreated(t *testing.T, before, after *emr.Instan
 }
 
 const testAccAWSEmrInstanceGroupBase = `
+data "aws_availability_zones" "available" {
+  # Many instance types are not available in this availability zone
+  blacklisted_zone_ids = ["usw2-az4"]
+  state                = "available"
+}
+
+data "aws_partition" "current" {}
+
 resource "aws_security_group" "allow_all" {
   name        = "allow_all"
   description = "Allow all inbound traffic"
@@ -374,8 +382,9 @@ resource "aws_vpc" "main" {
 }
 
 resource "aws_subnet" "main" {
-  vpc_id     = "${aws_vpc.main.id}"
-  cidr_block = "168.31.0.0/20"
+  availability_zone = data.aws_availability_zones.available.names[0]
+  cidr_block        = "168.31.0.0/20"
+  vpc_id            = aws_vpc.main.id
 }
 
 resource "aws_internet_gateway" "gw" {
@@ -398,37 +407,31 @@ resource "aws_main_route_table_association" "a" {
 
 ## EMR Cluster Configuration
 resource "aws_emr_cluster" "tf-test-cluster" {
-  name          = "tf-test-emr-%[1]d"
-  release_label = "emr-5.26.0"
-  applications  = ["Spark"]
+  applications                      = ["Spark"]
+  autoscaling_role                  = aws_iam_role.emr-autoscaling-role.arn
+  configurations                    = "test-fixtures/emr_configurations.json"
+  keep_job_flow_alive_when_no_steps = true
+  name                              = "tf-test-emr-%[1]d"
+  release_label                     = "emr-5.26.0"
+  service_role                      = aws_iam_role.iam_emr_default_role.arn
 
   ec2_attributes {
-    subnet_id                         = "${aws_subnet.main.id}"
-    emr_managed_master_security_group = "${aws_security_group.allow_all.id}"
-    emr_managed_slave_security_group  = "${aws_security_group.allow_all.id}"
-    instance_profile                  = "${aws_iam_instance_profile.emr_profile.arn}"
+    subnet_id                         = aws_subnet.main.id
+    emr_managed_master_security_group = aws_security_group.allow_all.id
+    emr_managed_slave_security_group  = aws_security_group.allow_all.id
+    instance_profile                  = aws_iam_instance_profile.emr_profile.arn
   }
 
   master_instance_group {
-		instance_type = "c4.large"
-	}
-
-  core_instance_group {
-		instance_type = "c4.large"
-		instance_count = 2
-	}
-
-  bootstrap_action {
-    path = "s3://elasticmapreduce/bootstrap-actions/run-if"
-    name = "runif"
-    args = ["instance.isMaster=true", "echo running on master node"]
+    instance_type = "c4.large"
   }
 
-  configurations = "test-fixtures/emr_configurations.json"
-  service_role = "${aws_iam_role.iam_emr_default_role.arn}"
-  autoscaling_role = "${aws_iam_role.emr-autoscaling-role.arn}"
+  core_instance_group {
+    instance_type = "c4.large"
+    instance_count = 2
+  }
 
-  depends_on = ["aws_internet_gateway.gw"]
+  depends_on = [aws_internet_gateway.gw]
 }
 
 
@@ -446,7 +449,7 @@ resource "aws_iam_role" "iam_emr_default_role" {
       "Sid": "",
       "Effect": "Allow",
       "Principal": {
-        "Service": "elasticmapreduce.amazonaws.com"
+        "Service": "elasticmapreduce.${data.aws_partition.current.dns_suffix}"
       },
       "Action": "sts:AssumeRole"
     }
@@ -541,7 +544,7 @@ resource "aws_iam_role" "iam_emr_profile_role" {
       "Sid": "",
       "Effect": "Allow",
       "Principal": {
-        "Service": "ec2.amazonaws.com"
+        "Service": "ec2.${data.aws_partition.current.dns_suffix}"
       },
       "Action": "sts:AssumeRole"
     }
@@ -610,14 +613,14 @@ data "aws_iam_policy_document" "emr-autoscaling-role-policy" {
     actions = ["sts:AssumeRole"]
     principals {
       type        = "Service"
-      identifiers = ["elasticmapreduce.amazonaws.com","application-autoscaling.amazonaws.com"]
+      identifiers = ["elasticmapreduce.${data.aws_partition.current.dns_suffix}","application-autoscaling.${data.aws_partition.current.dns_suffix}"]
     }
   }
 }
 
 resource "aws_iam_role_policy_attachment" "emr-autoscaling-role" {
   role       = "${aws_iam_role.emr-autoscaling-role.name}"
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonElasticMapReduceforAutoScalingRole"
+  policy_arn = "arn:${data.aws_partition.current.partition}:iam::aws:policy/service-role/AmazonElasticMapReduceforAutoScalingRole"
 }
 `
 

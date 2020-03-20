@@ -1,4 +1,5 @@
 ---
+subcategory: "Route53"
 layout: "aws"
 page_title: "AWS: aws_route53_query_log"
 description: |-

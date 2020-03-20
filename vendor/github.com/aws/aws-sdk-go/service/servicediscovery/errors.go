@@ -2,6 +2,10 @@
 
 package servicediscovery
 
+import (
+	"github.com/aws/aws-sdk-go/private/protocol"
+)
+
 const (
 
 	// ErrCodeCustomHealthNotFound for service response error code
@@ -77,3 +81,17 @@ const (
 	// No service exists with the specified ID.
 	ErrCodeServiceNotFound = "ServiceNotFound"
 )
+
+var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
+	"CustomHealthNotFound":   newErrorCustomHealthNotFound,
+	"DuplicateRequest":       newErrorDuplicateRequest,
+	"InstanceNotFound":       newErrorInstanceNotFound,
+	"InvalidInput":           newErrorInvalidInput,
+	"NamespaceAlreadyExists": newErrorNamespaceAlreadyExists,
+	"NamespaceNotFound":      newErrorNamespaceNotFound,
+	"OperationNotFound":      newErrorOperationNotFound,
+	"ResourceInUse":          newErrorResourceInUse,
+	"ResourceLimitExceeded":  newErrorResourceLimitExceeded,
+	"ServiceAlreadyExists":   newErrorServiceAlreadyExists,
+	"ServiceNotFound":        newErrorServiceNotFound,
+}

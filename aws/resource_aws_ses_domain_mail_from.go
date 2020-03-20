@@ -39,7 +39,7 @@ func resourceAwsSesDomainMailFrom() *schema.Resource {
 }
 
 func resourceAwsSesDomainMailFromSet(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).sesConn
+	conn := meta.(*AWSClient).sesconn
 
 	behaviorOnMxFailure := d.Get("behavior_on_mx_failure").(string)
 	domainName := d.Get("domain").(string)
@@ -62,7 +62,7 @@ func resourceAwsSesDomainMailFromSet(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceAwsSesDomainMailFromRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).sesConn
+	conn := meta.(*AWSClient).sesconn
 
 	domainName := d.Id()
 
@@ -98,7 +98,7 @@ func resourceAwsSesDomainMailFromRead(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceAwsSesDomainMailFromDelete(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).sesConn
+	conn := meta.(*AWSClient).sesconn
 
 	domainName := d.Id()
 

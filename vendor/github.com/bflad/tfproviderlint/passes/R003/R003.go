@@ -3,12 +3,11 @@
 package R003
 
 import (
-	"go/ast"
-
 	"golang.org/x/tools/go/analysis"
 
+	"github.com/bflad/tfproviderlint/helper/terraformtype/helper/schema"
 	"github.com/bflad/tfproviderlint/passes/commentignore"
-	"github.com/bflad/tfproviderlint/passes/schemaresource"
+	"github.com/bflad/tfproviderlint/passes/helper/schema/resourceinfo"
 )
 
 const Doc = `check for Resource having Exists functions
@@ -23,7 +22,7 @@ var Analyzer = &analysis.Analyzer{
 	Name: analyzerName,
 	Doc:  Doc,
 	Requires: []*analysis.Analyzer{
-		schemaresource.Analyzer,
+		resourceinfo.Analyzer,
 		commentignore.Analyzer,
 	},
 	Run: run,
@@ -31,23 +30,19 @@ var Analyzer = &analysis.Analyzer{
 
 func run(pass *analysis.Pass) (interface{}, error) {
 	ignorer := pass.ResultOf[commentignore.Analyzer].(*commentignore.Ignorer)
-	resources := pass.ResultOf[schemaresource.Analyzer].([]*ast.CompositeLit)
+	resources := pass.ResultOf[resourceinfo.Analyzer].([]*schema.ResourceInfo)
 	for _, resource := range resources {
-		if ignorer.ShouldIgnore(analyzerName, resource) {
+		if ignorer.ShouldIgnore(analyzerName, resource.AstCompositeLit) {
 			continue
 		}
 
-		for _, elt := range resource.Elts {
-			switch v := elt.(type) {
-			default:
-				continue
-			case *ast.KeyValueExpr:
-				if v.Key.(*ast.Ident).Name == "Exists" {
-					pass.Reportf(v.Key.Pos(), "%s: resource should not include Exists function", analyzerName)
-					break
-				}
-			}
+		kvExpr := resource.Fields[schema.ResourceFieldExists]
+
+		if kvExpr == nil {
+			continue
 		}
+
+		pass.Reportf(kvExpr.Key.Pos(), "%s: resource should not include Exists function", analyzerName)
 	}
 
 	return nil, nil

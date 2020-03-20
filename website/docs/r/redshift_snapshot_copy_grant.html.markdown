@@ -1,4 +1,5 @@
 ---
+subcategory: "Redshift"
 layout: "aws"
 page_title: "AWS: aws_redshift_snapshot_copy_grant"
 description: |-

@@ -134,14 +134,6 @@ func TestAccAWSWafSqlInjectionMatchSet_changeTuples(t *testing.T) {
 						"aws_waf_sql_injection_match_set.sql_injection_match_set", "name", setName),
 					resource.TestCheckResourceAttr(
 						"aws_waf_sql_injection_match_set.sql_injection_match_set", "sql_injection_match_tuples.#", "1"),
-					resource.TestCheckResourceAttr(
-						"aws_waf_sql_injection_match_set.sql_injection_match_set", "sql_injection_match_tuples.3333510133.field_to_match.#", "1"),
-					resource.TestCheckResourceAttr(
-						"aws_waf_sql_injection_match_set.sql_injection_match_set", "sql_injection_match_tuples.3333510133.field_to_match.4253810390.data", "GET"),
-					resource.TestCheckResourceAttr(
-						"aws_waf_sql_injection_match_set.sql_injection_match_set", "sql_injection_match_tuples.3333510133.field_to_match.4253810390.type", "METHOD"),
-					resource.TestCheckResourceAttr(
-						"aws_waf_sql_injection_match_set.sql_injection_match_set", "sql_injection_match_tuples.3333510133.text_transformation", "NONE"),
 				),
 			},
 		},
@@ -314,7 +306,6 @@ resource "aws_waf_sql_injection_match_set" "sql_injection_match_set" {
 
     field_to_match {
       type = "METHOD"
-      data = "GET"
     }
   }
 }

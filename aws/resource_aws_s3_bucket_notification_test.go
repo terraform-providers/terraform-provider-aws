@@ -612,7 +612,7 @@ resource "aws_lambda_function" "func" {
   function_name = %[1]q
   role          = "${aws_iam_role.iam_for_lambda.arn}"
   handler       = "exports.example"
-  runtime       = "nodejs8.10"
+  runtime       = "nodejs12.x"
 }
 
 resource "aws_s3_bucket" "bucket" {
@@ -651,7 +651,7 @@ resource "aws_lambda_function" "test" {
   function_name = %[1]q
   handler       = "exports.example"
   role          = "${aws_iam_role.test.arn}"
-  runtime       = "nodejs8.10"
+  runtime       = "nodejs12.x"
 }
 
 resource "aws_lambda_alias" "test" {

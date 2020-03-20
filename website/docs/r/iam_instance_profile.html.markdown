@@ -1,4 +1,5 @@
 ---
+subcategory: "IAM"
 layout: "aws"
 page_title: "AWS: aws_iam_instance_profile"
 description: |-
@@ -8,8 +9,6 @@ description: |-
 # Resource: aws_iam_instance_profile
 
 Provides an IAM instance profile.
-
-~> **NOTE:** Either `role` or `roles` (**deprecated**) must be specified.
 
 ## Example Usage
 

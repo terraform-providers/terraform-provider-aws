@@ -1,4 +1,5 @@
 ---
+subcategory: "AppMesh"
 layout: "aws"
 page_title: "AWS: aws_appmesh_virtual_node"
 description: |-

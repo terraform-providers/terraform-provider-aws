@@ -1,4 +1,5 @@
 ---
+subcategory: "OpsWorks"
 layout: "aws"
 page_title: "AWS: aws_opsworks_application"
 description: |-
@@ -76,8 +77,8 @@ An `app_source` block supports the following arguments (can only be defined once
 * `type` - (Required) The type of source to use. For example, "archive".
 * `url` - (Required) The URL where the app resource can be found.
 * `username` - (Optional) Username to use when authenticating to the source.
-* `password` - (Optional) Password to use when authenticating to the source.
-* `ssh_key` - (Optional) SSH key to use when authenticating to the source.
+* `password` - (Optional) Password to use when authenticating to the source. Terraform cannot perform drift detection of this configuration.
+* `ssh_key` - (Optional) SSH key to use when authenticating to the source. Terraform cannot perform drift detection of this configuration.
 * `revision` - (Optional) For sources that are version-aware, the revision to use.
 
 An `environment` block supports the following arguments:
@@ -97,3 +98,11 @@ A `ssl_configuration` block supports the following arguments (can only be define
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - The id of the application.
+
+## Import
+
+Opsworks Application can be imported using the `id`, e.g.
+
+```
+$ terraform import aws_opsworks_application.test <id>
+```

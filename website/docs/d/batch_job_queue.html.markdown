@@ -1,4 +1,5 @@
 ---
+subcategory: "Batch"
 layout: "aws"
 page_title: "AWS: aws_batch_job_queue"
 description: |-

@@ -65,13 +65,15 @@ func TestAccAWSAppautoscalingScheduledAction_EMR(t *testing.T) {
 
 func TestAccAWSAppautoscalingScheduledAction_SpotFleet(t *testing.T) {
 	ts := time.Now().AddDate(0, 0, 1).Format("2006-01-02T15:04:05")
+	validUntil := time.Now().UTC().Add(24 * time.Hour).Format(time.RFC3339)
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsAppautoscalingScheduledActionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAppautoscalingScheduledActionConfig_SpotFleet(acctest.RandString(5), ts),
+				Config: testAccAppautoscalingScheduledActionConfig_SpotFleet(acctest.RandString(5), ts, validUntil),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsAppautoscalingScheduledActionExists("aws_appautoscaling_scheduled_action.hoge"),
 				),
@@ -524,7 +526,7 @@ resource "aws_appautoscaling_scheduled_action" "hoge" {
 `, rName, rName, rName, rName, ts)
 }
 
-func testAccAppautoscalingScheduledActionConfig_SpotFleet(rName, ts string) string {
+func testAccAppautoscalingScheduledActionConfig_SpotFleet(rName, ts, validUntil string) string {
 	return fmt.Sprintf(`
 data "aws_ami" "amzn-ami-minimal-hvm-ebs" {
   most_recent = true
@@ -572,7 +574,7 @@ resource "aws_spot_fleet_request" "hoge" {
   iam_fleet_role                      = "${aws_iam_role.fleet_role.arn}"
   spot_price                          = "0.005"
   target_capacity                     = 2
-  valid_until                         = "2019-11-04T20:44:20Z"
+  valid_until                         = %[3]q
   terminate_instances_with_expiration = true
 
   launch_specification {
@@ -590,16 +592,16 @@ resource "aws_appautoscaling_target" "hoge" {
 }
 
 resource "aws_appautoscaling_scheduled_action" "hoge" {
-  name               = "tf-appauto-%s"
+  name               = "tf-appauto-%[1]s"
   service_namespace  = "${aws_appautoscaling_target.hoge.service_namespace}"
   resource_id        = "${aws_appautoscaling_target.hoge.resource_id}"
   scalable_dimension = "${aws_appautoscaling_target.hoge.scalable_dimension}"
-  schedule           = "at(%s)"
+  schedule           = "at(%[2]s)"
 
   scalable_target_action {
     min_capacity = 1
     max_capacity = 3
   }
 }
-`, rName, ts)
+`, rName, ts, validUntil)
 }

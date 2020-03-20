@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/redshift"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsRedshiftSubnetGroup() *schema.Resource {
@@ -60,7 +61,7 @@ func resourceAwsRedshiftSubnetGroupCreate(d *schema.ResourceData, meta interface
 	for i, subnetId := range subnetIdsSet.List() {
 		subnetIds[i] = aws.String(subnetId.(string))
 	}
-	tags := tagsFromMapRedshift(d.Get("tags").(map[string]interface{}))
+	tags := keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().RedshiftTags()
 
 	createOpts := redshift.CreateClusterSubnetGroupInput{
 		ClusterSubnetGroupName: aws.String(d.Get("name").(string)),
@@ -104,8 +105,8 @@ func resourceAwsRedshiftSubnetGroupRead(d *schema.ResourceData, meta interface{}
 	d.Set("name", d.Id())
 	d.Set("description", describeResp.ClusterSubnetGroups[0].Description)
 	d.Set("subnet_ids", subnetIdsToSlice(describeResp.ClusterSubnetGroups[0].Subnets))
-	if err := d.Set("tags", tagsToMapRedshift(describeResp.ClusterSubnetGroups[0].Tags)); err != nil {
-		return fmt.Errorf("Error setting Redshift Subnet Group Tags: %#v", err)
+	if err := d.Set("tags", keyvaluetags.RedshiftKeyValueTags(describeResp.ClusterSubnetGroups[0].Tags).IgnoreAws().Map()); err != nil {
+		return fmt.Errorf("error setting tags: %s", err)
 	}
 
 	arn := arn.ARN{
@@ -125,9 +126,13 @@ func resourceAwsRedshiftSubnetGroupUpdate(d *schema.ResourceData, meta interface
 	conn := meta.(*AWSClient).redshiftconn
 	d.Partial(true)
 
-	if tagErr := setTagsRedshift(conn, d); tagErr != nil {
-		return tagErr
-	} else {
+	if d.HasChange("tags") {
+		o, n := d.GetChange("tags")
+
+		if err := keyvaluetags.RedshiftUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
+			return fmt.Errorf("error updating Redshift Subnet Group (%s) tags: %s", d.Get("arn").(string), err)
+		}
+
 		d.SetPartial("tags")
 	}
 

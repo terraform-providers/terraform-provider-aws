@@ -1,4 +1,5 @@
 ---
+subcategory: "Neptune"
 layout: "aws"
 page_title: "AWS: aws_neptune_cluster"
 description: |-
@@ -43,6 +44,7 @@ The following arguments are supported:
 * `backup_retention_period` - (Optional) The days to retain backups for. Default `1`
 * `cluster_identifier` - (Optional, Forces new resources) The cluster identifier. If omitted, Terraform will assign a random, unique identifier.
 * `cluster_identifier_prefix` - (Optional, Forces new resource) Creates a unique cluster identifier beginning with the specified prefix. Conflicts with `cluster_identifier`.
+* `enable_cloudwatch_logs_exports` - (Optional) A list of the log types this DB cluster is configured to export to Cloudwatch Logs. Currently only supports `audit`.
 * `engine` - (Optional) The name of the database engine to be used for this Neptune cluster. Defaults to `neptune`.
 * `engine_version` - (Optional) The database engine version.
 * `final_snapshot_identifier` - (Optional) The name of your final Neptune snapshot when this Neptune cluster is deleted. If omitted, no final snapshot will be made.
@@ -60,6 +62,7 @@ The following arguments are supported:
 * `storage_encrypted` - (Optional) Specifies whether the Neptune cluster is encrypted. The default is `false` if not specified.
 * `tags` - (Optional) A mapping of tags to assign to the Neptune cluster.
 * `vpc_security_group_ids` - (Optional) List of VPC security groups to associate with the Cluster
+* `delete_protection` - (Optional) A value that indicates whether the DB cluster has deletion protection enabled.The database can't be deleted when deletion protection is enabled. By default, deletion protection is disabled.
 
 ## Attributes Reference
 

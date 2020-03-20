@@ -12,6 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/redshift"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsRedshiftParameterGroup() *schema.Resource {
@@ -81,7 +82,7 @@ func resourceAwsRedshiftParameterGroupCreate(d *schema.ResourceData, meta interf
 		ParameterGroupName:   aws.String(d.Get("name").(string)),
 		ParameterGroupFamily: aws.String(d.Get("family").(string)),
 		Description:          aws.String(d.Get("description").(string)),
-		Tags:                 tagsFromMapRedshift(d.Get("tags").(map[string]interface{})),
+		Tags:                 keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().RedshiftTags(),
 	}
 
 	log.Printf("[DEBUG] Create Redshift Parameter Group: %#v", createOpts)
@@ -143,8 +144,8 @@ func resourceAwsRedshiftParameterGroupRead(d *schema.ResourceData, meta interfac
 	d.Set("name", describeResp.ParameterGroups[0].ParameterGroupName)
 	d.Set("family", describeResp.ParameterGroups[0].ParameterGroupFamily)
 	d.Set("description", describeResp.ParameterGroups[0].Description)
-	if err := d.Set("tags", tagsToMapRedshift(describeResp.ParameterGroups[0].Tags)); err != nil {
-		return fmt.Errorf("Error setting Redshift Parameter Group Tags: %#v", err)
+	if err := d.Set("tags", keyvaluetags.RedshiftKeyValueTags(describeResp.ParameterGroups[0].Tags).IgnoreAws().Map()); err != nil {
+		return fmt.Errorf("error setting tags: %s", err)
 	}
 
 	describeParametersOpts := redshift.DescribeClusterParametersInput{
@@ -199,9 +200,13 @@ func resourceAwsRedshiftParameterGroupUpdate(d *schema.ResourceData, meta interf
 		d.SetPartial("parameter")
 	}
 
-	if tagErr := setTagsRedshift(conn, d); tagErr != nil {
-		return tagErr
-	} else {
+	if d.HasChange("tags") {
+		o, n := d.GetChange("tags")
+
+		if err := keyvaluetags.RedshiftUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
+			return fmt.Errorf("error updating Redshift Parameter Group (%s) tags: %s", d.Get("arn").(string), err)
+		}
+
 		d.SetPartial("tags")
 	}
 

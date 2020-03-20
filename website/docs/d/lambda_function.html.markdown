@@ -1,4 +1,5 @@
 ---
+subcategory: "Lambda"
 layout: "aws"
 page_title: "AWS: aws_lambda_function"
 description: |-

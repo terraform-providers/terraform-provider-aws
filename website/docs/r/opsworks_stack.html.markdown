@@ -1,4 +1,5 @@
 ---
+subcategory: "OpsWorks"
 layout: "aws"
 page_title: "AWS: aws_opsworks_stack"
 description: |-
@@ -72,8 +73,8 @@ The `custom_cookbooks_source` block supports the following arguments:
 * `type` - (Required) The type of source to use. For example, "archive".
 * `url` - (Required) The URL where the cookbooks resource can be found.
 * `username` - (Optional) Username to use when authenticating to the source.
-* `password` - (Optional) Password to use when authenticating to the source.
-* `ssh_key` - (Optional) SSH key to use when authenticating to the source.
+* `password` - (Optional) Password to use when authenticating to the source. Terraform cannot perform drift detection of this configuration.
+* `ssh_key` - (Optional) SSH key to use when authenticating to the source. Terraform cannot perform drift detection of this configuration.
 * `revision` - (Optional) For sources that are version-aware, the revision to use.
 
 ## Attributes Reference

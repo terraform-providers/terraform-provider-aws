@@ -1,4 +1,5 @@
 ---
+subcategory: "VPC"
 layout: "aws"
 page_title: "AWS: aws_vpc_endpoint"
 description: |-
@@ -30,14 +31,25 @@ resource "aws_vpc_endpoint_route_table_association" "private_s3" {
 The arguments of this data source act as filters for querying the available VPC endpoints.
 The given filters must match exactly one VPC endpoint whose data will be exported as attributes.
 
+* `filter` - (Optional) Custom filter block as described below.
 * `id` - (Optional) The ID of the specific VPC Endpoint to retrieve.
-* `service_name` - (Optional) The AWS service name of the specific VPC Endpoint to retrieve.
+* `service_name` - (Optional) The service name of the specific VPC Endpoint to retrieve. For AWS services the service name is usually in the form `com.amazonaws.<region>.<service>` (the SageMaker Notebook service is an exception to this rule, the service name is in the form `aws.sagemaker.<region>.notebook`).
 * `state` - (Optional) The state of the specific VPC Endpoint to retrieve.
+* `tags` - (Optional) A mapping of tags, each pair of which must exactly match
+  a pair on the specific VPC Endpoint to retrieve.
 * `vpc_id` - (Optional) The ID of the VPC in which the specific VPC Endpoint is used.
+
+More complex filters can be expressed using one or more `filter` sub-blocks,
+which take the following arguments:
+
+* `name` - (Required) The name of the field to filter by, as defined by
+  [the underlying AWS API](https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeVpcEndpoints.html).
+* `values` - (Required) Set of values that are accepted for the given field.
+  A VPC Endpoint will be selected if any one of the given values matches.
 
 ## Attributes Reference
 
-In addition to all arguments above, the following attributes are exported:
+In addition to all arguments above except `filter`, the following attributes are exported:
 
 * `cidr_blocks` - The list of CIDR blocks for the exposed AWS service. Applicable for endpoints of type `Gateway`.
 * `dns_entry` - The DNS entries for the VPC Endpoint. Applicable for endpoints of type `Interface`. DNS blocks are documented below.
@@ -50,7 +62,6 @@ In addition to all arguments above, the following attributes are exported:
 * `route_table_ids` - One or more route tables associated with the VPC Endpoint. Applicable for endpoints of type `Gateway`.
 * `security_group_ids` - One or more security groups associated with the network interfaces. Applicable for endpoints of type `Interface`.
 * `subnet_ids` - One or more subnets in which the VPC Endpoint is located. Applicable for endpoints of type `Interface`.
-* `tags` - A mapping of tags assigned to the resource.
 * `vpc_endpoint_type` - The VPC Endpoint type, `Gateway` or `Interface`.
 
 DNS blocks (for `dns_entry`) support the following attributes:

@@ -1,4 +1,5 @@
 ---
+subcategory: "Macie"
 layout: "aws"
 page_title: "AWS: aws_macie_member_account_association"
 description: |-

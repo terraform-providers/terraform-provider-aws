@@ -148,6 +148,12 @@ resource "aws_acm_certificate" "test" {
 
 func testAccEc2ClientVpnNetworkAssociationConfig(rName string) string {
 	return testAccEc2ClientVpnNetworkAssociationConfigAcmCertificateBase() + fmt.Sprintf(`
+data "aws_availability_zones" "available" {
+  # InvalidParameterValue: AZ us-west-2d is not currently supported. Please choose another az in this region
+  blacklisted_zone_ids = ["usw2-az4"]
+  state                = "available"
+}
+
 resource "aws_vpc" "test" {
   cidr_block = "10.1.0.0/16"
 
@@ -157,6 +163,7 @@ resource "aws_vpc" "test" {
 }
 
 resource "aws_subnet" "test" {
+  availability_zone       = data.aws_availability_zones.available.names[0]
   cidr_block              = "10.1.1.0/24"
   vpc_id                  = "${aws_vpc.test.id}"
   map_public_ip_on_launch = true

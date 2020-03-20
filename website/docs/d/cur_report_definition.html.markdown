@@ -1,4 +1,5 @@
 ---
+subcategory: "Cost and Usage Report"
 layout: "aws"
 page_title: "AWS: aws_cur_report_definition"
 description: |-

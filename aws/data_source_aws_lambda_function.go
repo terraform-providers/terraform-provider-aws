@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/lambda"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func dataSourceAwsLambdaFunction() *schema.Resource {
@@ -30,8 +31,6 @@ func dataSourceAwsLambdaFunction() *schema.Resource {
 			"dead_letter_config": {
 				Type:     schema.TypeList,
 				Computed: true,
-				MinItems: 0,
-				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"target_arn": {
@@ -48,7 +47,6 @@ func dataSourceAwsLambdaFunction() *schema.Resource {
 			"layers": {
 				Type:     schema.TypeList,
 				Computed: true,
-				MaxItems: 5,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
@@ -80,7 +78,6 @@ func dataSourceAwsLambdaFunction() *schema.Resource {
 			"vpc_config": {
 				Type:     schema.TypeList,
 				Computed: true,
-				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"subnet_ids": {
@@ -129,7 +126,6 @@ func dataSourceAwsLambdaFunction() *schema.Resource {
 			"environment": {
 				Type:     schema.TypeList,
 				Computed: true,
-				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"variables": {
@@ -142,7 +138,6 @@ func dataSourceAwsLambdaFunction() *schema.Resource {
 			},
 			"tracing_config": {
 				Type:     schema.TypeList,
-				MaxItems: 1,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -241,7 +236,7 @@ func dataSourceAwsLambdaFunctionRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("source_code_hash", function.CodeSha256)
 	d.Set("source_code_size", function.CodeSize)
 
-	if err := d.Set("tags", tagsToMapGeneric(output.Tags)); err != nil {
+	if err := d.Set("tags", keyvaluetags.LambdaKeyValueTags(output.Tags).IgnoreAws().Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 

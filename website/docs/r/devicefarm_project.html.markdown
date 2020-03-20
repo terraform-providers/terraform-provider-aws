@@ -1,4 +1,5 @@
 ---
+subcategory: "Device Farm"
 layout: "aws"
 page_title: "AWS: aws_devicefarm_project"
 description: |-

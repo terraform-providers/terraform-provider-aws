@@ -1,4 +1,5 @@
 ---
+subcategory: "Backup"
 layout: "aws"
 page_title: "AWS: aws_backup_vault"
 description: |-

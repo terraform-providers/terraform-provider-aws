@@ -1,4 +1,5 @@
 ---
+subcategory: "Service Quotas"
 layout: "aws"
 page_title: "AWS: aws_servicequotas_service_quota"
 description: |-

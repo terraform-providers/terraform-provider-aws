@@ -1,4 +1,5 @@
 ---
+subcategory: "KMS"
 layout: "aws"
 page_title: "AWS: aws_kms_secret"
 description: |-

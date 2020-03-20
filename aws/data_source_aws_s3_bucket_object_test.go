@@ -50,6 +50,30 @@ func TestAccDataSourceAWSS3BucketObject_basic(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceAWSS3BucketObject_basicViaAccessPoint(t *testing.T) {
+	var dsObj, rObj s3.GetObjectOutput
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	datasourceName := "data.aws_s3_bucket_object.test"
+	resourceName := "aws_s3_bucket_object.test"
+	accessPointResourceName := "aws_s3_access_point.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSDataSourceS3ObjectConfig_basicViaAccessPoint(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsS3ObjectDataSourceExists(datasourceName, &dsObj),
+					testAccCheckAWSS3BucketObjectExists(resourceName, &rObj),
+					resource.TestCheckResourceAttrPair(datasourceName, "bucket", accessPointResourceName, "arn"),
+					resource.TestCheckResourceAttrPair(datasourceName, "key", resourceName, "key"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccDataSourceAWSS3BucketObject_readableBody(t *testing.T) {
 	rInt := acctest.RandInt()
 	resourceOnlyConf, conf := testAccAWSDataSourceS3ObjectConfig_readableBody(rInt)
@@ -398,6 +422,30 @@ data "aws_s3_bucket_object" "obj" {
 `, resources, randInt, randInt)
 
 	return resources, both
+}
+
+func testAccAWSDataSourceS3ObjectConfig_basicViaAccessPoint(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_s3_bucket" "test" {
+  bucket = %[1]q
+}
+
+resource "aws_s3_access_point" "test" {
+  bucket = "${aws_s3_bucket.test.bucket}"
+  name   = %[1]q
+}
+
+resource "aws_s3_bucket_object" "test" {
+  bucket  = "${aws_s3_bucket.test.bucket}"
+  key     = %[1]q
+  content = "Hello World"
+}
+
+data "aws_s3_bucket_object" "test" {
+  bucket = "${aws_s3_access_point.test.arn}"
+  key    = "${aws_s3_bucket_object.test.key}"
+}
+`, rName)
 }
 
 func testAccAWSDataSourceS3ObjectConfig_readableBody(randInt int) (string, string) {

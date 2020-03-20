@@ -71,15 +71,6 @@ func (m *Module) SortChildren() {
 	sort.Sort(sortModules{m.Children})
 }
 
-// SortDescendents is a convenience wrapper for calling SortChildren on
-// the receiver and all of its descendent modules.
-func (m *Module) SortDescendents() {
-	m.WalkTree(func(path []string, parent *Module, current *Module) error {
-		current.SortChildren()
-		return nil
-	})
-}
-
 type sortModules struct {
 	modules []*Module
 }
@@ -140,65 +131,4 @@ func (m *Module) AllPluginRequirements() discovery.PluginRequirements {
 		return nil
 	})
 	return ret
-}
-
-// Equal returns true if the receiver is the root of an identical tree
-// to the other given Module. This is a deep comparison that considers
-// the equality of all downstream modules too.
-//
-// The children are considered to be ordered, so callers may wish to use
-// SortDescendents first to normalize the order of the slices of child nodes.
-//
-// The implementation of this function is not optimized since it is provided
-// primarily for use in tests.
-func (m *Module) Equal(other *Module) bool {
-	// take care of nils first
-	if m == nil && other == nil {
-		return true
-	} else if (m == nil && other != nil) || (m != nil && other == nil) {
-		return false
-	}
-
-	if m.Name != other.Name {
-		return false
-	}
-
-	if len(m.Providers) != len(other.Providers) {
-		return false
-	}
-	if len(m.Children) != len(other.Children) {
-		return false
-	}
-
-	// Can't use reflect.DeepEqual on this provider structure because
-	// the nested Constraints objects contain function pointers that
-	// never compare as equal. So we'll need to walk it the long way.
-	for inst, dep := range m.Providers {
-		if _, exists := other.Providers[inst]; !exists {
-			return false
-		}
-
-		if dep.Reason != other.Providers[inst].Reason {
-			return false
-		}
-
-		// Constraints are not too easy to compare robustly, so
-		// we'll just use their string representations as a proxy
-		// for now.
-		if dep.Constraints.String() != other.Providers[inst].Constraints.String() {
-			return false
-		}
-	}
-
-	// Above we already checked that we have the same number of children
-	// in each module, so now we just need to check that they are
-	// recursively equal.
-	for i := range m.Children {
-		if !m.Children[i].Equal(other.Children[i]) {
-			return false
-		}
-	}
-
-	// If we fall out here then they are equal
-	return true
 }

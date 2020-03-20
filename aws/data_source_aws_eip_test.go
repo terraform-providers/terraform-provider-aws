@@ -256,11 +256,18 @@ data "aws_eip" "test" {
 `
 
 const testAccDataSourceAwsEipConfigInstance = `
+data "aws_availability_zones" "available" {
+  # Error launching source instance: Unsupported: Your requested instance type (t2.micro) is not supported in your requested Availability Zone (us-west-2d).
+  blacklisted_zone_ids = ["usw2-az4"]
+  state                = "available"
+}
+
 resource "aws_vpc" "test" {
   cidr_block = "10.2.0.0/16"
 }
 
 resource "aws_subnet" "test" {
+  availability_zone = "${data.aws_availability_zones.available.names[0]}"
   vpc_id = "${aws_vpc.test.id}"
   cidr_block = "10.2.0.0/24"
 }

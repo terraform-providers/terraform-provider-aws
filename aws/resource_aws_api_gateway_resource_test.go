@@ -7,12 +7,15 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/apigateway"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
 func TestAccAWSAPIGatewayResource_basic(t *testing.T) {
 	var conf apigateway.Resource
+	rName := fmt.Sprintf("tf-test-acc-%s", acctest.RandString(8))
+	resourceName := "aws_api_gateway_resource.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -20,20 +23,20 @@ func TestAccAWSAPIGatewayResource_basic(t *testing.T) {
 		CheckDestroy: testAccCheckAWSAPIGatewayResourceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSAPIGatewayResourceConfig,
+				Config: testAccAWSAPIGatewayResourceConfig(rName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSAPIGatewayResourceExists("aws_api_gateway_resource.test", &conf),
+					testAccCheckAWSAPIGatewayResourceExists(resourceName, &conf),
 					testAccCheckAWSAPIGatewayResourceAttributes(&conf, "/test"),
 					resource.TestCheckResourceAttr(
-						"aws_api_gateway_resource.test", "path_part", "test"),
+						resourceName, "path_part", "test"),
 					resource.TestCheckResourceAttr(
-						"aws_api_gateway_resource.test", "path", "/test"),
+						resourceName, "path", "/test"),
 				),
 			},
 			{
-				ResourceName:      "aws_api_gateway_resource.test",
+				ResourceName:      resourceName,
 				ImportState:       true,
-				ImportStateIdFunc: testAccAWSAPIGatewayResourceImportStateIdFunc("aws_api_gateway_resource.test"),
+				ImportStateIdFunc: testAccAWSAPIGatewayResourceImportStateIdFunc(resourceName),
 				ImportStateVerify: true,
 			},
 		},
@@ -42,6 +45,8 @@ func TestAccAWSAPIGatewayResource_basic(t *testing.T) {
 
 func TestAccAWSAPIGatewayResource_update(t *testing.T) {
 	var conf apigateway.Resource
+	rName := fmt.Sprintf("tf-test-acc-%s", acctest.RandString(8))
+	resourceName := "aws_api_gateway_resource.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -49,32 +54,32 @@ func TestAccAWSAPIGatewayResource_update(t *testing.T) {
 		CheckDestroy: testAccCheckAWSAPIGatewayResourceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSAPIGatewayResourceConfig,
+				Config: testAccAWSAPIGatewayResourceConfig(rName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSAPIGatewayResourceExists("aws_api_gateway_resource.test", &conf),
+					testAccCheckAWSAPIGatewayResourceExists(resourceName, &conf),
 					testAccCheckAWSAPIGatewayResourceAttributes(&conf, "/test"),
 					resource.TestCheckResourceAttr(
-						"aws_api_gateway_resource.test", "path_part", "test"),
+						resourceName, "path_part", "test"),
 					resource.TestCheckResourceAttr(
-						"aws_api_gateway_resource.test", "path", "/test"),
+						resourceName, "path", "/test"),
 				),
 			},
 
 			{
-				Config: testAccAWSAPIGatewayResourceConfig_updatePathPart,
+				Config: testAccAWSAPIGatewayResourceConfig_updatePathPart(rName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSAPIGatewayResourceExists("aws_api_gateway_resource.test", &conf),
+					testAccCheckAWSAPIGatewayResourceExists(resourceName, &conf),
 					testAccCheckAWSAPIGatewayResourceAttributes(&conf, "/test_changed"),
 					resource.TestCheckResourceAttr(
-						"aws_api_gateway_resource.test", "path_part", "test_changed"),
+						resourceName, "path_part", "test_changed"),
 					resource.TestCheckResourceAttr(
-						"aws_api_gateway_resource.test", "path", "/test_changed"),
+						resourceName, "path", "/test_changed"),
 				),
 			},
 			{
-				ResourceName:      "aws_api_gateway_resource.test",
+				ResourceName:      resourceName,
 				ImportState:       true,
-				ImportStateIdFunc: testAccAWSAPIGatewayResourceImportStateIdFunc("aws_api_gateway_resource.test"),
+				ImportStateIdFunc: testAccAWSAPIGatewayResourceImportStateIdFunc(resourceName),
 				ImportStateVerify: true,
 			},
 		},
@@ -102,7 +107,7 @@ func testAccCheckAWSAPIGatewayResourceExists(n string, res *apigateway.Resource)
 			return fmt.Errorf("No API Gateway Resource ID is set")
 		}
 
-		conn := testAccProvider.Meta().(*AWSClient).apigateway
+		conn := testAccProvider.Meta().(*AWSClient).apigatewayconn
 
 		req := &apigateway.GetResourceInput{
 			ResourceId: aws.String(rs.Primary.ID),
@@ -124,7 +129,7 @@ func testAccCheckAWSAPIGatewayResourceExists(n string, res *apigateway.Resource)
 }
 
 func testAccCheckAWSAPIGatewayResourceDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*AWSClient).apigateway
+	conn := testAccProvider.Meta().(*AWSClient).apigatewayconn
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "aws_api_gateway_resource" {
@@ -168,9 +173,10 @@ func testAccAWSAPIGatewayResourceImportStateIdFunc(resourceName string) resource
 	}
 }
 
-const testAccAWSAPIGatewayResourceConfig = `
+func testAccAWSAPIGatewayResourceConfig(rName string) string {
+	return fmt.Sprintf(`
 resource "aws_api_gateway_rest_api" "test" {
-  name = "test"
+  name = "%s"
 }
 
 resource "aws_api_gateway_resource" "test" {
@@ -178,11 +184,13 @@ resource "aws_api_gateway_resource" "test" {
   parent_id = "${aws_api_gateway_rest_api.test.root_resource_id}"
   path_part = "test"
 }
-`
+`, rName)
+}
 
-const testAccAWSAPIGatewayResourceConfig_updatePathPart = `
+func testAccAWSAPIGatewayResourceConfig_updatePathPart(rName string) string {
+	return fmt.Sprintf(`
 resource "aws_api_gateway_rest_api" "test" {
-  name = "test"
+  name = "%s"
 }
 
 resource "aws_api_gateway_resource" "test" {
@@ -190,4 +198,5 @@ resource "aws_api_gateway_resource" "test" {
   parent_id = "${aws_api_gateway_rest_api.test.root_resource_id}"
   path_part = "test_changed"
 }
-`
+`, rName)
+}

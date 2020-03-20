@@ -81,6 +81,48 @@ func TestAccAWSAMICopy_EnaSupport(t *testing.T) {
 	})
 }
 
+func TestAccAWSAMICopy_tags(t *testing.T) {
+	var ami ec2.Image
+	resourceName := "aws_ami_copy.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAMICopyDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSAMICopyConfigTags1(rName, "key1", "value1"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAMICopyExists(resourceName, &ami),
+					testAccCheckAWSAMICopyAttributes(&ami, rName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1"),
+				),
+			},
+			{
+				Config: testAccAWSAMICopyConfigTags2(rName, "key1", "value1updated", "key2", "value2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAMICopyExists(resourceName, &ami),
+					testAccCheckAWSAMICopyAttributes(&ami, rName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1updated"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
+				),
+			},
+			{
+				Config: testAccAWSAMICopyConfigTags1(rName, "key2", "value2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAMICopyExists(resourceName, &ami),
+					testAccCheckAWSAMICopyAttributes(&ami, rName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckAWSAMICopyExists(resourceName string, image *ec2.Image) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -189,6 +231,57 @@ resource "aws_ebs_snapshot" "test" {
   }
 }
 `)
+}
+
+func testAccAWSAMICopyConfigTags1(rName, tagKey1, tagValue1 string) string {
+	return testAccAWSAMICopyConfigBase() + fmt.Sprintf(`
+resource "aws_ami" "test" {
+  name                = %[1]q
+  virtualization_type = "hvm"
+  root_device_name    = "/dev/sda1"
+
+  ebs_block_device {
+    device_name = "/dev/sda1"
+    snapshot_id = "${aws_ebs_snapshot.test.id}"
+  }
+}
+
+resource "aws_ami_copy" "test" {
+  name              = %[1]q
+  source_ami_id     = "${aws_ami.test.id}"
+  source_ami_region = "${data.aws_region.current.name}"
+
+  tags = {
+    %[2]q = %[3]q
+  }
+}
+`, rName, tagKey1, tagValue1)
+}
+
+func testAccAWSAMICopyConfigTags2(rName, tagKey1, tagValue1, tagKey2, tagValue2 string) string {
+	return testAccAWSAMICopyConfigBase() + fmt.Sprintf(`
+resource "aws_ami" "test" {
+  name                = %[1]q
+  virtualization_type = "hvm"
+  root_device_name    = "/dev/sda1"
+
+  ebs_block_device {
+    device_name = "/dev/sda1"
+    snapshot_id = "${aws_ebs_snapshot.test.id}"
+  }
+}
+
+resource "aws_ami_copy" "test" {
+  name              = %[1]q
+  source_ami_id     = "${aws_ami.test.id}"
+  source_ami_region = "${data.aws_region.current.name}"
+
+  tags = {
+    %[2]q = %[3]q
+    %[4]q = %[5]q
+  }
+}
+`, rName, tagKey1, tagValue1, tagKey2, tagValue2)
 }
 
 func testAccAWSAMICopyConfig(rName string) string {

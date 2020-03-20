@@ -1,4 +1,5 @@
 ---
+subcategory: "Database Migration Service (DMS)"
 layout: "aws"
 page_title: "AWS: aws_dms_replication_subnet_group"
 description: |-

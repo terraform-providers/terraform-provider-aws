@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsMediaStoreContainer() *schema.Resource {
@@ -47,17 +48,23 @@ func resourceAwsMediaStoreContainerCreate(d *schema.ResourceData, meta interface
 
 	input := &mediastore.CreateContainerInput{
 		ContainerName: aws.String(d.Get("name").(string)),
-		Tags:          tagsFromMapMediaStore(d.Get("tags").(map[string]interface{})),
 	}
 
-	_, err := conn.CreateContainer(input)
+	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
+		input.Tags = keyvaluetags.New(v).IgnoreAws().MediastoreTags()
+	}
+
+	resp, err := conn.CreateContainer(input)
 	if err != nil {
 		return err
 	}
+
+	d.SetId(aws.StringValue(resp.Container.Name))
+
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{mediastore.ContainerStatusCreating},
 		Target:     []string{mediastore.ContainerStatusActive},
-		Refresh:    mediaStoreContainerRefreshStatusFunc(conn, d.Get("name").(string)),
+		Refresh:    mediaStoreContainerRefreshStatusFunc(conn, d.Id()),
 		Timeout:    10 * time.Minute,
 		Delay:      10 * time.Second,
 		MinTimeout: 3 * time.Second,
@@ -68,7 +75,6 @@ func resourceAwsMediaStoreContainerCreate(d *schema.ResourceData, meta interface
 		return err
 	}
 
-	d.SetId(d.Get("name").(string))
 	return resourceAwsMediaStoreContainerRead(d, meta)
 }
 
@@ -87,17 +93,20 @@ func resourceAwsMediaStoreContainerRead(d *schema.ResourceData, meta interface{}
 	if err != nil {
 		return fmt.Errorf("Error describing media store container %s: %s", d.Id(), err)
 	}
-	d.Set("arn", resp.Container.ARN)
+
+	arn := aws.StringValue(resp.Container.ARN)
+	d.Set("arn", arn)
 	d.Set("name", resp.Container.Name)
 	d.Set("endpoint", resp.Container.Endpoint)
 
-	if err := saveTagsMediaStore(conn, d, aws.StringValue(resp.Container.ARN)); err != nil {
-		if isAWSErr(err, mediastore.ErrCodeContainerNotFoundException, "") {
-			log.Printf("[WARN] No Container found: %s, removing from state", d.Id())
-			d.SetId("")
-			return nil
-		}
-		return fmt.Errorf("Error setting tags for %s: %s", d.Id(), err)
+	tags, err := keyvaluetags.MediastoreListTags(conn, arn)
+
+	if err != nil {
+		return fmt.Errorf("error listing tags for media store container (%s): %s", arn, err)
+	}
+
+	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+		return fmt.Errorf("error setting tags: %s", err)
 	}
 
 	return nil
@@ -106,13 +115,13 @@ func resourceAwsMediaStoreContainerRead(d *schema.ResourceData, meta interface{}
 func resourceAwsMediaStoreContainerUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).mediastoreconn
 
-	if err := setTagsMediaStore(conn, d, d.Get("arn").(string)); err != nil {
-		if isAWSErr(err, mediastore.ErrCodeContainerNotFoundException, "") {
-			log.Printf("[WARN] No Container found: %s, removing from state", d.Id())
-			d.SetId("")
-			return nil
+	arn := d.Get("arn").(string)
+	if d.HasChange("tags") {
+		o, n := d.GetChange("tags")
+
+		if err := keyvaluetags.MediastoreUpdateTags(conn, arn, o, n); err != nil {
+			return fmt.Errorf("error updating media store container (%s) tags: %s", arn, err)
 		}
-		return fmt.Errorf("Error updating tags for %s: %s", d.Id(), err)
 	}
 
 	return resourceAwsMediaStoreContainerRead(d, meta)

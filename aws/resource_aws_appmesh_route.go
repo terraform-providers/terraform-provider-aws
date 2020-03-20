@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsAppmeshRoute() *schema.Resource {
@@ -89,7 +90,7 @@ func resourceAwsAppmeshRoute() *schema.Resource {
 															},
 														},
 													},
-													Set: appmeshRouteWeightedTargetHash,
+													Set: appmeshWeightedTargetHash,
 												},
 											},
 										},
@@ -102,16 +103,124 @@ func resourceAwsAppmeshRoute() *schema.Resource {
 										MaxItems: 1,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
+												"header": {
+													Type:     schema.TypeSet,
+													Optional: true,
+													MinItems: 0,
+													MaxItems: 10,
+													Elem: &schema.Resource{
+														Schema: map[string]*schema.Schema{
+															"invert": {
+																Type:     schema.TypeBool,
+																Optional: true,
+																Default:  false,
+															},
+
+															"match": {
+																Type:     schema.TypeList,
+																Optional: true,
+																MinItems: 0,
+																MaxItems: 1,
+																Elem: &schema.Resource{
+																	Schema: map[string]*schema.Schema{
+																		"exact": {
+																			Type:         schema.TypeString,
+																			Optional:     true,
+																			ValidateFunc: validation.StringLenBetween(1, 255),
+																		},
+
+																		"prefix": {
+																			Type:         schema.TypeString,
+																			Optional:     true,
+																			ValidateFunc: validation.StringLenBetween(1, 255),
+																		},
+
+																		"range": {
+																			Type:     schema.TypeList,
+																			Optional: true,
+																			MinItems: 0,
+																			MaxItems: 1,
+																			Elem: &schema.Resource{
+																				Schema: map[string]*schema.Schema{
+																					"end": {
+																						Type:     schema.TypeInt,
+																						Required: true,
+																					},
+
+																					"start": {
+																						Type:     schema.TypeInt,
+																						Required: true,
+																					},
+																				},
+																			},
+																		},
+
+																		"regex": {
+																			Type:         schema.TypeString,
+																			Optional:     true,
+																			ValidateFunc: validation.StringLenBetween(1, 255),
+																		},
+
+																		"suffix": {
+																			Type:         schema.TypeString,
+																			Optional:     true,
+																			ValidateFunc: validation.StringLenBetween(1, 255),
+																		},
+																	},
+																},
+															},
+
+															"name": {
+																Type:         schema.TypeString,
+																Required:     true,
+																ValidateFunc: validation.StringLenBetween(1, 50),
+															},
+														},
+													},
+													Set: appmeshHttpRouteHeaderHash,
+												},
+
+												"method": {
+													Type:     schema.TypeString,
+													Optional: true,
+													ValidateFunc: validation.StringInSlice([]string{
+														appmesh.HttpMethodConnect,
+														appmesh.HttpMethodDelete,
+														appmesh.HttpMethodGet,
+														appmesh.HttpMethodHead,
+														appmesh.HttpMethodOptions,
+														appmesh.HttpMethodPatch,
+														appmesh.HttpMethodPost,
+														appmesh.HttpMethodPut,
+														appmesh.HttpMethodTrace,
+													}, false),
+												},
+
 												"prefix": {
 													Type:         schema.TypeString,
 													Required:     true,
 													ValidateFunc: validation.StringMatch(regexp.MustCompile(`^/`), "must start with /"),
+												},
+
+												"scheme": {
+													Type:     schema.TypeString,
+													Optional: true,
+													ValidateFunc: validation.StringInSlice([]string{
+														appmesh.HttpSchemeHttp,
+														appmesh.HttpSchemeHttps,
+													}, false),
 												},
 											},
 										},
 									},
 								},
 							},
+						},
+
+						"priority": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(0, 1000),
 						},
 
 						"tcp_route": {
@@ -149,7 +258,7 @@ func resourceAwsAppmeshRoute() *schema.Resource {
 															},
 														},
 													},
-													Set: appmeshRouteWeightedTargetHash,
+													Set: appmeshWeightedTargetHash,
 												},
 											},
 										},
@@ -189,7 +298,7 @@ func resourceAwsAppmeshRouteCreate(d *schema.ResourceData, meta interface{}) err
 		RouteName:         aws.String(d.Get("name").(string)),
 		VirtualRouterName: aws.String(d.Get("virtual_router_name").(string)),
 		Spec:              expandAppmeshRouteSpec(d.Get("spec").([]interface{})),
-		Tags:              tagsFromMapAppmesh(d.Get("tags").(map[string]interface{})),
+		Tags:              keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().AppmeshTags(),
 	}
 
 	log.Printf("[DEBUG] Creating App Mesh route: %#v", req)
@@ -225,10 +334,11 @@ func resourceAwsAppmeshRouteRead(d *schema.ResourceData, meta interface{}) error
 		return nil
 	}
 
+	arn := aws.StringValue(resp.Route.Metadata.Arn)
 	d.Set("name", resp.Route.RouteName)
 	d.Set("mesh_name", resp.Route.MeshName)
 	d.Set("virtual_router_name", resp.Route.VirtualRouterName)
-	d.Set("arn", resp.Route.Metadata.Arn)
+	d.Set("arn", arn)
 	d.Set("created_date", resp.Route.Metadata.CreatedAt.Format(time.RFC3339))
 	d.Set("last_updated_date", resp.Route.Metadata.LastUpdatedAt.Format(time.RFC3339))
 	err = d.Set("spec", flattenAppmeshRouteSpec(resp.Route.Spec))
@@ -236,14 +346,14 @@ func resourceAwsAppmeshRouteRead(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("error setting spec: %s", err)
 	}
 
-	err = saveTagsAppmesh(conn, d, aws.StringValue(resp.Route.Metadata.Arn))
-	if isAWSErr(err, appmesh.ErrCodeNotFoundException, "") {
-		log.Printf("[WARN] App Mesh route (%s) not found, removing from state", d.Id())
-		d.SetId("")
-		return nil
-	}
+	tags, err := keyvaluetags.AppmeshListTags(conn, arn)
+
 	if err != nil {
-		return fmt.Errorf("error saving tags: %s", err)
+		return fmt.Errorf("error listing tags for App Mesh route (%s): %s", arn, err)
+	}
+
+	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+		return fmt.Errorf("error setting tags: %s", err)
 	}
 
 	return nil
@@ -268,14 +378,13 @@ func resourceAwsAppmeshRouteUpdate(d *schema.ResourceData, meta interface{}) err
 		}
 	}
 
-	err := setTagsAppmesh(conn, d, d.Get("arn").(string))
-	if isAWSErr(err, appmesh.ErrCodeNotFoundException, "") {
-		log.Printf("[WARN] App Mesh route (%s) not found, removing from state", d.Id())
-		d.SetId("")
-		return nil
-	}
-	if err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	arn := d.Get("arn").(string)
+	if d.HasChange("tags") {
+		o, n := d.GetChange("tags")
+
+		if err := keyvaluetags.AppmeshUpdateTags(conn, arn, o, n); err != nil {
+			return fmt.Errorf("error updating App Mesh route (%s) tags: %s", arn, err)
+		}
 	}
 
 	return resourceAwsAppmeshRouteRead(d, meta)
@@ -330,7 +439,43 @@ func resourceAwsAppmeshRouteImport(d *schema.ResourceData, meta interface{}) ([]
 	return []*schema.ResourceData{d}, nil
 }
 
-func appmeshRouteWeightedTargetHash(v interface{}) int {
+func appmeshHttpRouteHeaderHash(vHttpRouteHeader interface{}) int {
+	var buf bytes.Buffer
+	mHttpRouteHeader := vHttpRouteHeader.(map[string]interface{})
+	if v, ok := mHttpRouteHeader["invert"].(bool); ok {
+		buf.WriteString(fmt.Sprintf("%t-", v))
+	}
+	if vMatch, ok := mHttpRouteHeader["match"].([]interface{}); ok && len(vMatch) > 0 && vMatch[0] != nil {
+		mMatch := vMatch[0].(map[string]interface{})
+		if v, ok := mMatch["exact"].(string); ok {
+			buf.WriteString(fmt.Sprintf("%s-", v))
+		}
+		if v, ok := mMatch["prefix"].(string); ok {
+			buf.WriteString(fmt.Sprintf("%s-", v))
+		}
+		if vRange, ok := mMatch["range"].([]interface{}); ok && len(vRange) > 0 && vRange[0] != nil {
+			mRange := vRange[0].(map[string]interface{})
+			if v, ok := mRange["end"].(int); ok {
+				buf.WriteString(fmt.Sprintf("%d-", v))
+			}
+			if v, ok := mRange["start"].(int); ok {
+				buf.WriteString(fmt.Sprintf("%d-", v))
+			}
+		}
+		if v, ok := mMatch["regex"].(string); ok {
+			buf.WriteString(fmt.Sprintf("%s-", v))
+		}
+		if v, ok := mMatch["suffix"].(string); ok {
+			buf.WriteString(fmt.Sprintf("%s-", v))
+		}
+	}
+	if v, ok := mHttpRouteHeader["name"].(string); ok {
+		buf.WriteString(fmt.Sprintf("%s-", v))
+	}
+	return hashcode.String(buf.String())
+}
+
+func appmeshWeightedTargetHash(v interface{}) int {
 	var buf bytes.Buffer
 	m := v.(map[string]interface{})
 	if v, ok := m["virtual_node"].(string); ok {

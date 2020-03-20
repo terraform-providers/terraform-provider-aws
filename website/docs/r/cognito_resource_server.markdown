@@ -1,4 +1,5 @@
 ---
+subcategory: "Cognito"
 layout: "aws"
 page_title: "AWS: aws_cognito_resource_server"
 side_bar_current: "docs-aws-resource-cognito-resource-server"

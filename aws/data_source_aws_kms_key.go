@@ -63,6 +63,10 @@ func dataSourceAwsKmsKey() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"customer_master_key_spec": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"origin": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -103,6 +107,7 @@ func dataSourceAwsKmsKeyRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("key_manager", output.KeyMetadata.KeyManager)
 	d.Set("key_state", output.KeyMetadata.KeyState)
 	d.Set("key_usage", output.KeyMetadata.KeyUsage)
+	d.Set("customer_master_key_spec", output.KeyMetadata.CustomerMasterKeySpec)
 	d.Set("origin", output.KeyMetadata.Origin)
 	if output.KeyMetadata.ValidTo != nil {
 		d.Set("valid_to", aws.TimeValue(output.KeyMetadata.ValidTo).Format(time.RFC3339))

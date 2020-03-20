@@ -1,4 +1,5 @@
 ---
+subcategory: "DocumentDB"
 layout: "aws"
 page_title: "AWS: aws_docdb_cluster_parameter_group"
 description: |-

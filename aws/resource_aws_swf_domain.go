@@ -9,12 +9,14 @@ import (
 	"github.com/aws/aws-sdk-go/service/swf"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsSwfDomain() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceAwsSwfDomainCreate,
 		Read:   resourceAwsSwfDomainRead,
+		Update: resourceAwsSwfDomainUpdate,
 		Delete: resourceAwsSwfDomainDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -52,6 +54,11 @@ func resourceAwsSwfDomain() *schema.Resource {
 					return
 				},
 			},
+			"arn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"tags": tagsSchema(),
 		},
 	}
 }
@@ -72,6 +79,7 @@ func resourceAwsSwfDomainCreate(d *schema.ResourceData, meta interface{}) error 
 	input := &swf.RegisterDomainInput{
 		Name:                                   aws.String(name),
 		WorkflowExecutionRetentionPeriodInDays: aws.String(d.Get("workflow_execution_retention_period_in_days").(string)),
+		Tags:                                   keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().SwfTags(),
 	}
 
 	if v, ok := d.GetOk("description"); ok {
@@ -111,11 +119,37 @@ func resourceAwsSwfDomainRead(d *schema.ResourceData, meta interface{}) error {
 		return nil
 	}
 
+	arn := *resp.DomainInfo.Arn
+	tags, err := keyvaluetags.SwfListTags(conn, arn)
+
+	if err != nil {
+		return fmt.Errorf("error listing tags for SWF Domain (%s): %s", arn, err)
+	}
+
+	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+		return fmt.Errorf("error setting tags: %s", err)
+	}
+
+	d.Set("arn", resp.DomainInfo.Arn)
 	d.Set("name", resp.DomainInfo.Name)
 	d.Set("description", resp.DomainInfo.Description)
 	d.Set("workflow_execution_retention_period_in_days", resp.Configuration.WorkflowExecutionRetentionPeriodInDays)
 
 	return nil
+}
+
+func resourceAwsSwfDomainUpdate(d *schema.ResourceData, meta interface{}) error {
+	conn := meta.(*AWSClient).swfconn
+
+	if d.HasChange("tags") {
+		o, n := d.GetChange("tags")
+
+		if err := keyvaluetags.SwfUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
+			return fmt.Errorf("error updating SWF Domain (%s) tags: %s", d.Id(), err)
+		}
+	}
+
+	return resourceAwsSwfDomainRead(d, meta)
 }
 
 func resourceAwsSwfDomainDelete(d *schema.ResourceData, meta interface{}) error {

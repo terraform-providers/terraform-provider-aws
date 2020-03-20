@@ -7,9 +7,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/docdb"
-
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsDocDBSubnetGroup() *schema.Resource {
@@ -66,7 +66,7 @@ func resourceAwsDocDBSubnetGroup() *schema.Resource {
 
 func resourceAwsDocDBSubnetGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).docdbconn
-	tags := tagsFromMapDocDB(d.Get("tags").(map[string]interface{}))
+	tags := keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().DocdbTags()
 
 	subnetIds := expandStringSet(d.Get("subnet_ids").(*schema.Set))
 
@@ -135,17 +135,16 @@ func resourceAwsDocDBSubnetGroupRead(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("error setting subnet_ids: %s", err)
 	}
 
-	resp, err := conn.ListTagsForResource(&docdb.ListTagsForResourceInput{
-		ResourceName: subnetGroup.DBSubnetGroupArn,
-	})
+	tags, err := keyvaluetags.DocdbListTags(conn, d.Get("arn").(string))
 
 	if err != nil {
-		return fmt.Errorf("error retrieving tags for ARN (%s): %s", aws.StringValue(subnetGroup.DBSubnetGroupArn), err)
+		return fmt.Errorf("error listing tags for DocumentDB Subnet Group (%s): %s", d.Get("arn").(string), err)
 	}
 
-	if err := d.Set("tags", tagsToMapDocDB(resp.TagList)); err != nil {
-		return fmt.Errorf("error setting DocDB Subnet Group tags: %s", err)
+	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+		return fmt.Errorf("error setting tags: %s", err)
 	}
+
 	return nil
 }
 
@@ -170,10 +169,15 @@ func resourceAwsDocDBSubnetGroupUpdate(d *schema.ResourceData, meta interface{})
 		}
 	}
 
-	if err := setTagsDocDB(conn, d); err != nil {
-		return fmt.Errorf("error setting DocDB Subnet Group (%s) tags: %s", d.Id(), err)
+	if d.HasChange("tags") {
+		o, n := d.GetChange("tags")
+
+		if err := keyvaluetags.DocdbUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
+			return fmt.Errorf("error updating DocumentDB Subnet Group (%s) tags: %s", d.Get("arn").(string), err)
+		}
+
+		d.SetPartial("tags")
 	}
-	d.SetPartial("tags")
 
 	return resourceAwsDocDBSubnetGroupRead(d, meta)
 }

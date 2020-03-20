@@ -2,6 +2,7 @@ package aws
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -26,12 +27,57 @@ func TestAccAWSAPIGatewayApiKey_basic(t *testing.T) {
 				Config: testAccAWSAPIGatewayApiKeyConfig(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSAPIGatewayApiKeyExists(resourceName, &apiKey1),
+					testAccMatchResourceAttrRegionalARNNoAccount(resourceName, "arn", "apigateway", regexp.MustCompile(`/apikeys/+.`)),
 					resource.TestCheckResourceAttrSet(resourceName, "created_date"),
 					resource.TestCheckResourceAttr(resourceName, "description", "Managed by Terraform"),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttrSet(resourceName, "last_updated_date"),
 					resource.TestCheckResourceAttrSet(resourceName, "value"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSAPIGatewayApiKey_Tags(t *testing.T) {
+	var apiKey1 apigateway.ApiKey
+	resourceName := "aws_api_gateway_api_key.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAPIGatewayApiKeyDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSAPIGatewayApiKeyConfigTags1(rName, "key1", "value1"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAPIGatewayApiKeyExists(resourceName, &apiKey1),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1"),
+				),
+			},
+			{
+				Config: testAccAWSAPIGatewayApiKeyConfigTags2(rName, "key1", "value1updated", "key2", "value2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAPIGatewayApiKeyExists(resourceName, &apiKey1),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1updated"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
+				),
+			},
+			{
+				Config: testAccAWSAPIGatewayApiKeyConfigTags1(rName, "key2", "value2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAPIGatewayApiKeyExists(resourceName, &apiKey1),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
 				),
 			},
 			{
@@ -148,7 +194,7 @@ func testAccCheckAWSAPIGatewayApiKeyExists(n string, res *apigateway.ApiKey) res
 			return fmt.Errorf("No API Gateway ApiKey ID is set")
 		}
 
-		conn := testAccProvider.Meta().(*AWSClient).apigateway
+		conn := testAccProvider.Meta().(*AWSClient).apigatewayconn
 
 		req := &apigateway.GetApiKeyInput{
 			ApiKey: aws.String(rs.Primary.ID),
@@ -169,7 +215,7 @@ func testAccCheckAWSAPIGatewayApiKeyExists(n string, res *apigateway.ApiKey) res
 }
 
 func testAccCheckAWSAPIGatewayApiKeyDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*AWSClient).apigateway
+	conn := testAccProvider.Meta().(*AWSClient).apigatewayconn
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "aws_api_gateway_api_key" {
@@ -215,6 +261,31 @@ resource "aws_api_gateway_api_key" "test" {
   name = %[1]q
 }
 `, rName)
+}
+
+func testAccAWSAPIGatewayApiKeyConfigTags1(rName, tagKey1, tagValue1 string) string {
+	return fmt.Sprintf(`
+resource "aws_api_gateway_api_key" "test" {
+  name = %[1]q
+
+  tags = {
+	%[2]q = %[3]q
+  }
+}
+`, rName, tagKey1, tagValue1)
+}
+
+func testAccAWSAPIGatewayApiKeyConfigTags2(rName, tagKey1, tagValue1, tagKey2, tagValue2 string) string {
+	return fmt.Sprintf(`
+resource "aws_api_gateway_api_key" "test" {
+  name = %[1]q
+
+  tags = {
+	%[2]q = %[3]q
+	%[4]q = %[5]q
+  }
+}
+`, rName, tagKey1, tagValue1, tagKey2, tagValue2)
 }
 
 func testAccAWSAPIGatewayApiKeyConfigDescription(rName, description string) string {

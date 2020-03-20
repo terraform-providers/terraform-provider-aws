@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/applicationautoscaling"
@@ -203,6 +204,7 @@ func TestAccAWSAppautoScalingPolicy_spotFleetRequest(t *testing.T) {
 	var policy applicationautoscaling.ScalingPolicy
 
 	randPolicyName := fmt.Sprintf("test-appautoscaling-policy-%s", acctest.RandString(5))
+	validUntil := time.Now().UTC().Add(24 * time.Hour).Format(time.RFC3339)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -210,7 +212,7 @@ func TestAccAWSAppautoScalingPolicy_spotFleetRequest(t *testing.T) {
 		CheckDestroy: testAccCheckAWSAppautoscalingPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSAppautoscalingPolicySpotFleetRequestConfig(randPolicyName),
+				Config: testAccAWSAppautoscalingPolicySpotFleetRequestConfig(randPolicyName, validUntil),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSAppautoscalingPolicyExists("aws_appautoscaling_policy.test", &policy),
 					resource.TestCheckResourceAttr("aws_appautoscaling_policy.test", "name", randPolicyName),
@@ -497,8 +499,7 @@ resource "aws_appautoscaling_policy" "test" {
 `, rName)
 }
 
-func testAccAWSAppautoscalingPolicySpotFleetRequestConfig(
-	randPolicyName string) string {
+func testAccAWSAppautoscalingPolicySpotFleetRequestConfig(randPolicyName, validUntil string) string {
 	return fmt.Sprintf(`
 data "aws_ami" "amzn-ami-minimal-hvm-ebs" {
   most_recent = true
@@ -546,7 +547,7 @@ resource "aws_spot_fleet_request" "test" {
   iam_fleet_role                      = "${aws_iam_role.fleet_role.arn}"
   spot_price                          = "0.005"
   target_capacity                     = 2
-  valid_until                         = "2019-11-04T20:44:20Z"
+  valid_until                         = %[2]q
   terminate_instances_with_expiration = true
 
   launch_specification {
@@ -580,7 +581,7 @@ resource "aws_appautoscaling_policy" "test" {
     }
   }
 }
-`, randPolicyName)
+`, randPolicyName, validUntil)
 }
 
 func testAccAWSAppautoscalingPolicyDynamoDB(

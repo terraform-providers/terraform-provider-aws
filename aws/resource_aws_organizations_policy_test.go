@@ -113,6 +113,49 @@ func testAccAwsOrganizationsPolicy_description(t *testing.T) {
 	})
 }
 
+func testAccAwsOrganizationsPolicy_type(t *testing.T) {
+	var policy organizations.Policy
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_organizations_policy.test"
+
+	serviceControlPolicyContent := `{"Version": "2012-10-17", "Statement": { "Effect": "Allow", "Action": "*", "Resource": "*"}}`
+	tagPolicyContent := `{ "tags": { "Product": { "tag_key": { "@@assign": "Product" }, "enforced_for": { "@@assign": [ "ec2:instance" ] } } } }`
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccOrganizationsAccountPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAwsOrganizationsPolicyDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAwsOrganizationsPolicyConfig_Type(rName, serviceControlPolicyContent, organizations.PolicyTypeServiceControlPolicy),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsOrganizationsPolicyExists(resourceName, &policy),
+					resource.TestCheckResourceAttr(resourceName, "type", organizations.PolicyTypeServiceControlPolicy),
+				),
+			},
+			{
+				Config: testAccAwsOrganizationsPolicyConfig_Type(rName, tagPolicyContent, organizations.PolicyTypeTagPolicy),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsOrganizationsPolicyExists(resourceName, &policy),
+					resource.TestCheckResourceAttr(resourceName, "type", organizations.PolicyTypeTagPolicy),
+				),
+			},
+			{
+				Config: testAccAwsOrganizationsPolicyConfig_Required(rName, serviceControlPolicyContent),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsOrganizationsPolicyExists(resourceName, &policy),
+					resource.TestCheckResourceAttr(resourceName, "type", organizations.PolicyTypeServiceControlPolicy),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func testAccCheckAwsOrganizationsPolicyDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*AWSClient).organizationsconn
 
@@ -242,4 +285,18 @@ resource "aws_organizations_policy" "test5" {
   depends_on = ["aws_organizations_organization.test"]
 }
 `, rName)
+}
+
+func testAccAwsOrganizationsPolicyConfig_Type(rName, content, policyType string) string {
+	return fmt.Sprintf(`
+resource "aws_organizations_organization" "test" {}
+
+resource "aws_organizations_policy" "test" {
+  content     = %s
+  name        = "%s"
+  type        = "%s"
+
+  depends_on = ["aws_organizations_organization.test"]
+}
+`, strconv.Quote(content), rName, policyType)
 }

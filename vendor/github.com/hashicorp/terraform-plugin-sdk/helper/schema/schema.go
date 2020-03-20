@@ -216,7 +216,16 @@ type Schema struct {
 	// This will only check that they're set in the _config_. This will not
 	// raise an error for a malfunctioning resource that sets a conflicting
 	// key.
+	//
+	// ExactlyOneOf is a set of schema keys that, when set, only one of the
+	// keys in that list can be specified. It will error if none are
+	// specified as well.
+	//
+	// AtLeastOneOf is a set of schema keys that, when set, at least one of
+	// the keys in that list must be specified.
 	ConflictsWith []string
+	ExactlyOneOf  []string
+	AtLeastOneOf  []string
 
 	// When Deprecated is set, this attribute is deprecated.
 	//
@@ -749,36 +758,32 @@ func (m schemaMap) internalValidate(topSchemaMap schemaMap, attrsOnly bool) erro
 			return fmt.Errorf("%s: ConflictsWith cannot be set with Required", k)
 		}
 
+		if len(v.ExactlyOneOf) > 0 && v.Required {
+			return fmt.Errorf("%s: ExactlyOneOf cannot be set with Required", k)
+		}
+
+		if len(v.AtLeastOneOf) > 0 && v.Required {
+			return fmt.Errorf("%s: AtLeastOneOf cannot be set with Required", k)
+		}
+
 		if len(v.ConflictsWith) > 0 {
-			for _, key := range v.ConflictsWith {
-				parts := strings.Split(key, ".")
-				sm := topSchemaMap
-				var target *Schema
-				for _, part := range parts {
-					// Skip index fields
-					if _, err := strconv.Atoi(part); err == nil {
-						continue
-					}
+			err := checkKeysAgainstSchemaFlags(k, v.ConflictsWith, topSchemaMap)
+			if err != nil {
+				return fmt.Errorf("ConflictsWith: %+v", err)
+			}
+		}
 
-					var ok bool
-					if target, ok = sm[part]; !ok {
-						return fmt.Errorf("%s: ConflictsWith references unknown attribute (%s) at part (%s)", k, key, part)
-					}
+		if len(v.ExactlyOneOf) > 0 {
+			err := checkKeysAgainstSchemaFlags(k, v.ExactlyOneOf, topSchemaMap)
+			if err != nil {
+				return fmt.Errorf("ExactlyOneOf: %+v", err)
+			}
+		}
 
-					if subResource, ok := target.Elem.(*Resource); ok {
-						sm = schemaMap(subResource.Schema)
-					}
-				}
-				if target == nil {
-					return fmt.Errorf("%s: ConflictsWith cannot find target attribute (%s), sm: %#v", k, key, sm)
-				}
-				if target.Required {
-					return fmt.Errorf("%s: ConflictsWith cannot contain Required attribute (%s)", k, key)
-				}
-
-				if len(target.ComputedWhen) > 0 {
-					return fmt.Errorf("%s: ConflictsWith cannot contain Computed(When) attribute (%s)", k, key)
-				}
+		if len(v.AtLeastOneOf) > 0 {
+			err := checkKeysAgainstSchemaFlags(k, v.AtLeastOneOf, topSchemaMap)
+			if err != nil {
+				return fmt.Errorf("AtLeastOneOf: %+v", err)
 			}
 		}
 
@@ -842,6 +847,40 @@ func (m schemaMap) internalValidate(topSchemaMap schemaMap, attrsOnly bool) erro
 		}
 	}
 
+	return nil
+}
+
+func checkKeysAgainstSchemaFlags(k string, keys []string, topSchemaMap schemaMap) error {
+	for _, key := range keys {
+		parts := strings.Split(key, ".")
+		sm := topSchemaMap
+		var target *Schema
+		for _, part := range parts {
+			// Skip index fields
+			if _, err := strconv.Atoi(part); err == nil {
+				continue
+			}
+
+			var ok bool
+			if target, ok = sm[part]; !ok {
+				return fmt.Errorf("%s references unknown attribute (%s) at part (%s)", k, key, part)
+			}
+
+			if subResource, ok := target.Elem.(*Resource); ok {
+				sm = schemaMap(subResource.Schema)
+			}
+		}
+		if target == nil {
+			return fmt.Errorf("%s cannot find target attribute (%s), sm: %#v", k, key, sm)
+		}
+		if target.Required {
+			return fmt.Errorf("%s cannot contain Required attribute (%s)", k, key)
+		}
+
+		if len(target.ComputedWhen) > 0 {
+			return fmt.Errorf("%s cannot contain Computed(When) attribute (%s)", k, key)
+		}
+	}
 	return nil
 }
 
@@ -1350,12 +1389,22 @@ func (m schemaMap) validate(
 		// We're okay as long as we had a value set
 		ok = raw != nil
 	}
+
+	err := validateExactlyOneAttribute(k, schema, c)
+	if err != nil {
+		return nil, []error{err}
+	}
+
+	err = validateAtLeastOneAttribute(k, schema, c)
+	if err != nil {
+		return nil, []error{err}
+	}
+
 	if !ok {
 		if schema.Required {
 			return nil, []error{fmt.Errorf(
 				"%q: required field is not set", k)}
 		}
-
 		return nil, nil
 	}
 
@@ -1377,7 +1426,7 @@ func (m schemaMap) validate(
 		return nil, nil
 	}
 
-	err := m.validateConflictingAttributes(k, schema, c)
+	err = validateConflictingAttributes(k, schema, c)
 	if err != nil {
 		return nil, []error{err}
 	}
@@ -1407,7 +1456,7 @@ func isWhollyKnown(raw interface{}) bool {
 	}
 	return true
 }
-func (m schemaMap) validateConflictingAttributes(
+func validateConflictingAttributes(
 	k string,
 	schema *Schema,
 	c *terraform.ResourceConfig) error {
@@ -1429,6 +1478,79 @@ func (m schemaMap) validateConflictingAttributes(
 	}
 
 	return nil
+}
+
+func removeDuplicates(elements []string) []string {
+	encountered := make(map[string]struct{}, 0)
+	result := []string{}
+
+	for v := range elements {
+		if _, ok := encountered[elements[v]]; !ok {
+			encountered[elements[v]] = struct{}{}
+			result = append(result, elements[v])
+		}
+	}
+
+	return result
+}
+
+func validateExactlyOneAttribute(
+	k string,
+	schema *Schema,
+	c *terraform.ResourceConfig) error {
+
+	if len(schema.ExactlyOneOf) == 0 {
+		return nil
+	}
+
+	allKeys := removeDuplicates(append(schema.ExactlyOneOf, k))
+	sort.Strings(allKeys)
+	specified := make([]string, 0)
+	unknownVariableValueCount := 0
+	for _, exactlyOneOfKey := range allKeys {
+		if c.IsComputed(exactlyOneOfKey) {
+			unknownVariableValueCount++
+			continue
+		}
+
+		_, ok := c.Get(exactlyOneOfKey)
+		if ok {
+			specified = append(specified, exactlyOneOfKey)
+		}
+	}
+
+	if len(specified) == 0 && unknownVariableValueCount == 0 {
+		return fmt.Errorf("%q: one of `%s` must be specified", k, strings.Join(allKeys, ","))
+	}
+
+	if len(specified) > 1 {
+		return fmt.Errorf("%q: only one of `%s` can be specified, but `%s` were specified.", k, strings.Join(allKeys, ","), strings.Join(specified, ","))
+	}
+
+	return nil
+}
+
+func validateAtLeastOneAttribute(
+	k string,
+	schema *Schema,
+	c *terraform.ResourceConfig) error {
+
+	if len(schema.AtLeastOneOf) == 0 {
+		return nil
+	}
+
+	allKeys := removeDuplicates(append(schema.AtLeastOneOf, k))
+	sort.Strings(allKeys)
+
+	for _, atLeastOneOfKey := range allKeys {
+		if _, ok := c.Get(atLeastOneOfKey); ok {
+			// We can ignore hcl2shim.UnknownVariable by assuming it's been set and additional validation elsewhere
+			// will uncover this if it is in fact null.
+			return nil
+		}
+	}
+
+	return fmt.Errorf("%q: one of `%s` must be specified", k, strings.Join(allKeys, ","))
 }
 
 func (m schemaMap) validateList(

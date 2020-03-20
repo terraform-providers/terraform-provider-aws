@@ -63,9 +63,14 @@ func (c *Firehose) CreateDeliveryStreamRequest(input *CreateDeliveryStreamInput)
 //
 // This is an asynchronous operation that immediately returns. The initial status
 // of the delivery stream is CREATING. After the delivery stream is created,
-// its status is ACTIVE and it now accepts data. Attempts to send data to a
-// delivery stream that is not in the ACTIVE state cause an exception. To check
-// the state of a delivery stream, use DescribeDeliveryStream.
+// its status is ACTIVE and it now accepts data. If the delivery stream creation
+// fails, the status transitions to CREATING_FAILED. Attempts to send data to
+// a delivery stream that is not in the ACTIVE state cause an exception. To
+// check the state of a delivery stream, use DescribeDeliveryStream.
+//
+// If the status of a delivery stream is CREATING_FAILED, this status doesn't
+// change, and you can't invoke CreateDeliveryStream again on it. However, you
+// can invoke the DeleteDeliveryStream operation to delete it.
 //
 // A Kinesis Data Firehose delivery stream can be configured to receive records
 // directly from providers using PutRecord or PutRecordBatch, or it can be configured
@@ -73,6 +78,11 @@ func (c *Firehose) CreateDeliveryStreamRequest(input *CreateDeliveryStreamInput)
 // stream as input, set the DeliveryStreamType parameter to KinesisStreamAsSource,
 // and provide the Kinesis stream Amazon Resource Name (ARN) and role ARN in
 // the KinesisStreamSourceConfiguration parameter.
+//
+// To create a delivery stream with server-side encryption (SSE) enabled, include
+// DeliveryStreamEncryptionConfigurationInput in your request. This is optional.
+// You can also invoke StartDeliveryStreamEncryption to turn on SSE for an existing
+// delivery stream that doesn't have SSE enabled.
 //
 // A delivery stream is configured with a single destination: Amazon S3, Amazon
 // ES, Amazon Redshift, or Splunk. You must specify only one of the following
@@ -119,15 +129,21 @@ func (c *Firehose) CreateDeliveryStreamRequest(input *CreateDeliveryStreamInput)
 // See the AWS API reference guide for Amazon Kinesis Firehose's
 // API operation CreateDeliveryStream for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidArgumentException "InvalidArgumentException"
+// Returned Error Types:
+//   * InvalidArgumentException
 //   The specified input parameter has a value that is not valid.
 //
-//   * ErrCodeLimitExceededException "LimitExceededException"
+//   * LimitExceededException
 //   You have already reached the limit for a requested resource.
 //
-//   * ErrCodeResourceInUseException "ResourceInUseException"
+//   * ResourceInUseException
 //   The resource is already in use and not available for this operation.
+//
+//   * InvalidKMSResourceException
+//   Kinesis Data Firehose throws this exception when an attempt to put records
+//   or to start or stop delivery stream encryption fails. This happens when the
+//   KMS service throws one of the following exception types: AccessDeniedException,
+//   InvalidStateException, DisabledException, or NotFoundException.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/firehose-2015-08-04/CreateDeliveryStream
 func (c *Firehose) CreateDeliveryStream(input *CreateDeliveryStreamInput) (*CreateDeliveryStreamOutput, error) {
@@ -198,16 +214,16 @@ func (c *Firehose) DeleteDeliveryStreamRequest(input *DeleteDeliveryStreamInput)
 //
 // Deletes a delivery stream and its data.
 //
-// You can delete a delivery stream only if it is in ACTIVE or DELETING state,
-// and not in the CREATING state. While the deletion request is in process,
-// the delivery stream is in the DELETING state.
+// To check the state of a delivery stream, use DescribeDeliveryStream. You
+// can delete a delivery stream only if it is in one of the following states:
+// ACTIVE, DELETING, CREATING_FAILED, or DELETING_FAILED. You can't delete a
+// delivery stream that is in the CREATING state. While the deletion request
+// is in process, the delivery stream is in the DELETING state.
 //
-// To check the state of a delivery stream, use DescribeDeliveryStream.
-//
-// While the delivery stream is DELETING state, the service might continue to
-// accept the records, but it doesn't make any guarantees with respect to delivering
-// the data. Therefore, as a best practice, you should first stop any applications
-// that are sending records before deleting a delivery stream.
+// While the delivery stream is in the DELETING state, the service might continue
+// to accept records, but it doesn't make any guarantees with respect to delivering
+// the data. Therefore, as a best practice, first stop any applications that
+// are sending records before you delete a delivery stream.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -216,11 +232,11 @@ func (c *Firehose) DeleteDeliveryStreamRequest(input *DeleteDeliveryStreamInput)
 // See the AWS API reference guide for Amazon Kinesis Firehose's
 // API operation DeleteDeliveryStream for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceInUseException "ResourceInUseException"
+// Returned Error Types:
+//   * ResourceInUseException
 //   The resource is already in use and not available for this operation.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The specified resource could not be found.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/firehose-2015-08-04/DeleteDeliveryStream
@@ -289,10 +305,16 @@ func (c *Firehose) DescribeDeliveryStreamRequest(input *DescribeDeliveryStreamIn
 
 // DescribeDeliveryStream API operation for Amazon Kinesis Firehose.
 //
-// Describes the specified delivery stream and gets the status. For example,
-// after your delivery stream is created, call DescribeDeliveryStream to see
-// whether the delivery stream is ACTIVE and therefore ready for data to be
-// sent to it.
+// Describes the specified delivery stream and its status. For example, after
+// your delivery stream is created, call DescribeDeliveryStream to see whether
+// the delivery stream is ACTIVE and therefore ready for data to be sent to
+// it.
+//
+// If the status of a delivery stream is CREATING_FAILED, this status doesn't
+// change, and you can't invoke CreateDeliveryStream again on it. However, you
+// can invoke the DeleteDeliveryStream operation to delete it. If the status
+// is DELETING_FAILED, you can force deletion by invoking DeleteDeliveryStream
+// again but with DeleteDeliveryStreamInput$AllowForceDelete set to true.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -301,8 +323,8 @@ func (c *Firehose) DescribeDeliveryStreamRequest(input *DescribeDeliveryStreamIn
 // See the AWS API reference guide for Amazon Kinesis Firehose's
 // API operation DescribeDeliveryStream for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   The specified resource could not be found.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/firehose-2015-08-04/DescribeDeliveryStream
@@ -463,14 +485,14 @@ func (c *Firehose) ListTagsForDeliveryStreamRequest(input *ListTagsForDeliverySt
 // See the AWS API reference guide for Amazon Kinesis Firehose's
 // API operation ListTagsForDeliveryStream for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   The specified resource could not be found.
 //
-//   * ErrCodeInvalidArgumentException "InvalidArgumentException"
+//   * InvalidArgumentException
 //   The specified input parameter has a value that is not valid.
 //
-//   * ErrCodeLimitExceededException "LimitExceededException"
+//   * LimitExceededException
 //   You have already reached the limit for a requested resource.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/firehose-2015-08-04/ListTagsForDeliveryStream
@@ -584,14 +606,20 @@ func (c *Firehose) PutRecordRequest(input *PutRecordInput) (req *request.Request
 // See the AWS API reference guide for Amazon Kinesis Firehose's
 // API operation PutRecord for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   The specified resource could not be found.
 //
-//   * ErrCodeInvalidArgumentException "InvalidArgumentException"
+//   * InvalidArgumentException
 //   The specified input parameter has a value that is not valid.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * InvalidKMSResourceException
+//   Kinesis Data Firehose throws this exception when an attempt to put records
+//   or to start or stop delivery stream encryption fails. This happens when the
+//   KMS service throws one of the following exception types: AccessDeniedException,
+//   InvalidStateException, DisabledException, or NotFoundException.
+//
+//   * ServiceUnavailableException
 //   The service is unavailable. Back off and retry the operation. If you continue
 //   to see the exception, throughput limits for the delivery stream may have
 //   been exceeded. For more information about limits and how to request an increase,
@@ -734,14 +762,20 @@ func (c *Firehose) PutRecordBatchRequest(input *PutRecordBatchInput) (req *reque
 // See the AWS API reference guide for Amazon Kinesis Firehose's
 // API operation PutRecordBatch for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   The specified resource could not be found.
 //
-//   * ErrCodeInvalidArgumentException "InvalidArgumentException"
+//   * InvalidArgumentException
 //   The specified input parameter has a value that is not valid.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * InvalidKMSResourceException
+//   Kinesis Data Firehose throws this exception when an attempt to put records
+//   or to start or stop delivery stream encryption fails. This happens when the
+//   KMS service throws one of the following exception types: AccessDeniedException,
+//   InvalidStateException, DisabledException, or NotFoundException.
+//
+//   * ServiceUnavailableException
 //   The service is unavailable. Back off and retry the operation. If you continue
 //   to see the exception, throughput limits for the delivery stream may have
 //   been exceeded. For more information about limits and how to request an increase,
@@ -817,15 +851,32 @@ func (c *Firehose) StartDeliveryStreamEncryptionRequest(input *StartDeliveryStre
 // Enables server-side encryption (SSE) for the delivery stream.
 //
 // This operation is asynchronous. It returns immediately. When you invoke it,
-// Kinesis Data Firehose first sets the status of the stream to ENABLING, and
-// then to ENABLED. You can continue to read and write data to your stream while
-// its status is ENABLING, but the data is not encrypted. It can take up to
-// 5 seconds after the encryption status changes to ENABLED before all records
-// written to the delivery stream are encrypted. To find out whether a record
-// or a batch of records was encrypted, check the response elements PutRecordOutput$Encrypted
-// and PutRecordBatchOutput$Encrypted, respectively.
+// Kinesis Data Firehose first sets the encryption status of the stream to ENABLING,
+// and then to ENABLED. The encryption status of a delivery stream is the Status
+// property in DeliveryStreamEncryptionConfiguration. If the operation fails,
+// the encryption status changes to ENABLING_FAILED. You can continue to read
+// and write data to your delivery stream while the encryption status is ENABLING,
+// but the data is not encrypted. It can take up to 5 seconds after the encryption
+// status changes to ENABLED before all records written to the delivery stream
+// are encrypted. To find out whether a record or a batch of records was encrypted,
+// check the response elements PutRecordOutput$Encrypted and PutRecordBatchOutput$Encrypted,
+// respectively.
 //
-// To check the encryption state of a delivery stream, use DescribeDeliveryStream.
+// To check the encryption status of a delivery stream, use DescribeDeliveryStream.
+//
+// Even if encryption is currently enabled for a delivery stream, you can still
+// invoke this operation on it to change the ARN of the CMK or both its type
+// and ARN. In this case, Kinesis Data Firehose schedules the grant it had on
+// the old CMK for retirement and creates a grant that enables it to use the
+// new CMK to encrypt and decrypt data and to manage the grant.
+//
+// If a delivery stream already has encryption enabled and then you invoke this
+// operation to change the ARN of the CMK or both its type and ARN and you get
+// ENABLING_FAILED, this only means that the attempt to change the CMK failed.
+// In this case, encryption remains enabled with the old CMK.
+//
+// If the encryption status of your delivery stream is ENABLING_FAILED, you
+// can invoke this operation again.
 //
 // You can only enable SSE for a delivery stream that uses DirectPut as its
 // source.
@@ -843,18 +894,24 @@ func (c *Firehose) StartDeliveryStreamEncryptionRequest(input *StartDeliveryStre
 // See the AWS API reference guide for Amazon Kinesis Firehose's
 // API operation StartDeliveryStreamEncryption for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   The specified resource could not be found.
 //
-//   * ErrCodeResourceInUseException "ResourceInUseException"
+//   * ResourceInUseException
 //   The resource is already in use and not available for this operation.
 //
-//   * ErrCodeInvalidArgumentException "InvalidArgumentException"
+//   * InvalidArgumentException
 //   The specified input parameter has a value that is not valid.
 //
-//   * ErrCodeLimitExceededException "LimitExceededException"
+//   * LimitExceededException
 //   You have already reached the limit for a requested resource.
+//
+//   * InvalidKMSResourceException
+//   Kinesis Data Firehose throws this exception when an attempt to put records
+//   or to start or stop delivery stream encryption fails. This happens when the
+//   KMS service throws one of the following exception types: AccessDeniedException,
+//   InvalidStateException, DisabledException, or NotFoundException.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/firehose-2015-08-04/StartDeliveryStreamEncryption
 func (c *Firehose) StartDeliveryStreamEncryption(input *StartDeliveryStreamEncryptionInput) (*StartDeliveryStreamEncryptionOutput, error) {
@@ -926,8 +983,8 @@ func (c *Firehose) StopDeliveryStreamEncryptionRequest(input *StopDeliveryStream
 // Disables server-side encryption (SSE) for the delivery stream.
 //
 // This operation is asynchronous. It returns immediately. When you invoke it,
-// Kinesis Data Firehose first sets the status of the stream to DISABLING, and
-// then to DISABLED. You can continue to read and write data to your stream
+// Kinesis Data Firehose first sets the encryption status of the stream to DISABLING,
+// and then to DISABLED. You can continue to read and write data to your stream
 // while its status is DISABLING. It can take up to 5 seconds after the encryption
 // status changes to DISABLED before all records written to the delivery stream
 // are no longer subject to encryption. To find out whether a record or a batch
@@ -935,6 +992,11 @@ func (c *Firehose) StopDeliveryStreamEncryptionRequest(input *StopDeliveryStream
 // and PutRecordBatchOutput$Encrypted, respectively.
 //
 // To check the encryption state of a delivery stream, use DescribeDeliveryStream.
+//
+// If SSE is enabled using a customer managed CMK and then you invoke StopDeliveryStreamEncryption,
+// Kinesis Data Firehose schedules the related KMS grant for retirement and
+// then retires it after it ensures that it is finished delivering records to
+// the destination.
 //
 // The StartDeliveryStreamEncryption and StopDeliveryStreamEncryption operations
 // have a combined limit of 25 calls per delivery stream per 24 hours. For example,
@@ -949,17 +1011,17 @@ func (c *Firehose) StopDeliveryStreamEncryptionRequest(input *StopDeliveryStream
 // See the AWS API reference guide for Amazon Kinesis Firehose's
 // API operation StopDeliveryStreamEncryption for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   The specified resource could not be found.
 //
-//   * ErrCodeResourceInUseException "ResourceInUseException"
+//   * ResourceInUseException
 //   The resource is already in use and not available for this operation.
 //
-//   * ErrCodeInvalidArgumentException "InvalidArgumentException"
+//   * InvalidArgumentException
 //   The specified input parameter has a value that is not valid.
 //
-//   * ErrCodeLimitExceededException "LimitExceededException"
+//   * LimitExceededException
 //   You have already reached the limit for a requested resource.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/firehose-2015-08-04/StopDeliveryStreamEncryption
@@ -1049,17 +1111,17 @@ func (c *Firehose) TagDeliveryStreamRequest(input *TagDeliveryStreamInput) (req 
 // See the AWS API reference guide for Amazon Kinesis Firehose's
 // API operation TagDeliveryStream for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   The specified resource could not be found.
 //
-//   * ErrCodeResourceInUseException "ResourceInUseException"
+//   * ResourceInUseException
 //   The resource is already in use and not available for this operation.
 //
-//   * ErrCodeInvalidArgumentException "InvalidArgumentException"
+//   * InvalidArgumentException
 //   The specified input parameter has a value that is not valid.
 //
-//   * ErrCodeLimitExceededException "LimitExceededException"
+//   * LimitExceededException
 //   You have already reached the limit for a requested resource.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/firehose-2015-08-04/TagDeliveryStream
@@ -1143,17 +1205,17 @@ func (c *Firehose) UntagDeliveryStreamRequest(input *UntagDeliveryStreamInput) (
 // See the AWS API reference guide for Amazon Kinesis Firehose's
 // API operation UntagDeliveryStream for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   The specified resource could not be found.
 //
-//   * ErrCodeResourceInUseException "ResourceInUseException"
+//   * ResourceInUseException
 //   The resource is already in use and not available for this operation.
 //
-//   * ErrCodeInvalidArgumentException "InvalidArgumentException"
+//   * InvalidArgumentException
 //   The specified input parameter has a value that is not valid.
 //
-//   * ErrCodeLimitExceededException "LimitExceededException"
+//   * LimitExceededException
 //   You have already reached the limit for a requested resource.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/firehose-2015-08-04/UntagDeliveryStream
@@ -1261,17 +1323,17 @@ func (c *Firehose) UpdateDestinationRequest(input *UpdateDestinationInput) (req 
 // See the AWS API reference guide for Amazon Kinesis Firehose's
 // API operation UpdateDestination for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidArgumentException "InvalidArgumentException"
+// Returned Error Types:
+//   * InvalidArgumentException
 //   The specified input parameter has a value that is not valid.
 //
-//   * ErrCodeResourceInUseException "ResourceInUseException"
+//   * ResourceInUseException
 //   The resource is already in use and not available for this operation.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The specified resource could not be found.
 //
-//   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
+//   * ConcurrentModificationException
 //   Another modification has already happened. Fetch VersionId again and use
 //   it to update the destination.
 //
@@ -1405,6 +1467,64 @@ func (s *CloudWatchLoggingOptions) SetLogStreamName(v string) *CloudWatchLogging
 	return s
 }
 
+// Another modification has already happened. Fetch VersionId again and use
+// it to update the destination.
+type ConcurrentModificationException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	// A message that provides information about the error.
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s ConcurrentModificationException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ConcurrentModificationException) GoString() string {
+	return s.String()
+}
+
+func newErrorConcurrentModificationException(v protocol.ResponseMetadata) error {
+	return &ConcurrentModificationException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s ConcurrentModificationException) Code() string {
+	return "ConcurrentModificationException"
+}
+
+// Message returns the exception's message.
+func (s ConcurrentModificationException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s ConcurrentModificationException) OrigErr() error {
+	return nil
+}
+
+func (s ConcurrentModificationException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s ConcurrentModificationException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s ConcurrentModificationException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
 // Describes a COPY command for Amazon Redshift.
 type CopyCommand struct {
 	_ struct{} `type:"structure"`
@@ -1487,6 +1607,10 @@ func (s *CopyCommand) SetDataTableName(v string) *CopyCommand {
 type CreateDeliveryStreamInput struct {
 	_ struct{} `type:"structure"`
 
+	// Used to specify the type and Amazon Resource Name (ARN) of the KMS key needed
+	// for Server-Side Encryption (SSE).
+	DeliveryStreamEncryptionConfigurationInput *DeliveryStreamEncryptionConfigurationInput `type:"structure"`
+
 	// The name of the delivery stream. This name must be unique per AWS account
 	// in the same AWS Region. If the delivery streams are in different accounts
 	// or different Regions, you can have multiple delivery streams with the same
@@ -1558,6 +1682,11 @@ func (s *CreateDeliveryStreamInput) Validate() error {
 	if s.Tags != nil && len(s.Tags) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("Tags", 1))
 	}
+	if s.DeliveryStreamEncryptionConfigurationInput != nil {
+		if err := s.DeliveryStreamEncryptionConfigurationInput.Validate(); err != nil {
+			invalidParams.AddNested("DeliveryStreamEncryptionConfigurationInput", err.(request.ErrInvalidParams))
+		}
+	}
 	if s.ElasticsearchDestinationConfiguration != nil {
 		if err := s.ElasticsearchDestinationConfiguration.Validate(); err != nil {
 			invalidParams.AddNested("ElasticsearchDestinationConfiguration", err.(request.ErrInvalidParams))
@@ -1603,6 +1732,12 @@ func (s *CreateDeliveryStreamInput) Validate() error {
 		return invalidParams
 	}
 	return nil
+}
+
+// SetDeliveryStreamEncryptionConfigurationInput sets the DeliveryStreamEncryptionConfigurationInput field's value.
+func (s *CreateDeliveryStreamInput) SetDeliveryStreamEncryptionConfigurationInput(v *DeliveryStreamEncryptionConfigurationInput) *CreateDeliveryStreamInput {
+	s.DeliveryStreamEncryptionConfigurationInput = v
+	return s
 }
 
 // SetDeliveryStreamName sets the DeliveryStreamName field's value.
@@ -1759,6 +1894,18 @@ func (s *DataFormatConversionConfiguration) SetSchemaConfiguration(v *SchemaConf
 type DeleteDeliveryStreamInput struct {
 	_ struct{} `type:"structure"`
 
+	// Set this to true if you want to delete the delivery stream even if Kinesis
+	// Data Firehose is unable to retire the grant for the CMK. Kinesis Data Firehose
+	// might be unable to retire the grant due to a customer error, such as when
+	// the CMK or the grant are in an invalid state. If you force deletion, you
+	// can then use the RevokeGrant (https://docs.aws.amazon.com/kms/latest/APIReference/API_RevokeGrant.html)
+	// operation to revoke the grant you gave to Kinesis Data Firehose. If a failure
+	// to retire the grant happens due to an AWS KMS issue, Kinesis Data Firehose
+	// keeps retrying the delete operation.
+	//
+	// The default value is false.
+	AllowForceDelete *bool `type:"boolean"`
+
 	// The name of the delivery stream.
 	//
 	// DeliveryStreamName is a required field
@@ -1789,6 +1936,12 @@ func (s *DeleteDeliveryStreamInput) Validate() error {
 		return invalidParams
 	}
 	return nil
+}
+
+// SetAllowForceDelete sets the AllowForceDelete field's value.
+func (s *DeleteDeliveryStreamInput) SetAllowForceDelete(v bool) *DeleteDeliveryStreamInput {
+	s.AllowForceDelete = &v
+	return s
 }
 
 // SetDeliveryStreamName sets the DeliveryStreamName field's value.
@@ -1832,7 +1985,10 @@ type DeliveryStreamDescription struct {
 	// DeliveryStreamName is a required field
 	DeliveryStreamName *string `min:"1" type:"string" required:"true"`
 
-	// The status of the delivery stream.
+	// The status of the delivery stream. If the status of a delivery stream is
+	// CREATING_FAILED, this status doesn't change, and you can't invoke CreateDeliveryStream
+	// again on it. However, you can invoke the DeleteDeliveryStream operation to
+	// delete it.
 	//
 	// DeliveryStreamStatus is a required field
 	DeliveryStreamStatus *string `type:"string" required:"true" enum:"DeliveryStreamStatus"`
@@ -1851,6 +2007,11 @@ type DeliveryStreamDescription struct {
 	//
 	// Destinations is a required field
 	Destinations []*DestinationDescription `type:"list" required:"true"`
+
+	// Provides details in case one of the following operations fails due to an
+	// error related to KMS: CreateDeliveryStream, DeleteDeliveryStream, StartDeliveryStreamEncryption,
+	// StopDeliveryStreamEncryption.
+	FailureDescription *FailureDescription `type:"structure"`
 
 	// Indicates whether there are more destinations available to list.
 	//
@@ -1925,6 +2086,12 @@ func (s *DeliveryStreamDescription) SetDestinations(v []*DestinationDescription)
 	return s
 }
 
+// SetFailureDescription sets the FailureDescription field's value.
+func (s *DeliveryStreamDescription) SetFailureDescription(v *FailureDescription) *DeliveryStreamDescription {
+	s.FailureDescription = v
+	return s
+}
+
 // SetHasMoreDestinations sets the HasMoreDestinations field's value.
 func (s *DeliveryStreamDescription) SetHasMoreDestinations(v bool) *DeliveryStreamDescription {
 	s.HasMoreDestinations = &v
@@ -1949,12 +2116,32 @@ func (s *DeliveryStreamDescription) SetVersionId(v string) *DeliveryStreamDescri
 	return s
 }
 
-// Indicates the server-side encryption (SSE) status for the delivery stream.
+// Contains information about the server-side encryption (SSE) status for the
+// delivery stream, the type customer master key (CMK) in use, if any, and the
+// ARN of the CMK. You can get DeliveryStreamEncryptionConfiguration by invoking
+// the DescribeDeliveryStream operation.
 type DeliveryStreamEncryptionConfiguration struct {
 	_ struct{} `type:"structure"`
 
+	// Provides details in case one of the following operations fails due to an
+	// error related to KMS: CreateDeliveryStream, DeleteDeliveryStream, StartDeliveryStreamEncryption,
+	// StopDeliveryStreamEncryption.
+	FailureDescription *FailureDescription `type:"structure"`
+
+	// If KeyType is CUSTOMER_MANAGED_CMK, this field contains the ARN of the customer
+	// managed CMK. If KeyType is AWS_OWNED_CMK, DeliveryStreamEncryptionConfiguration
+	// doesn't contain a value for KeyARN.
+	KeyARN *string `min:"1" type:"string"`
+
+	// Indicates the type of customer master key (CMK) that is used for encryption.
+	// The default setting is AWS_OWNED_CMK. For more information about CMKs, see
+	// Customer Master Keys (CMKs) (https://docs.aws.amazon.com/kms/latest/developerguide/concepts.html#master_keys).
+	KeyType *string `type:"string" enum:"KeyType"`
+
+	// This is the server-side encryption (SSE) status for the delivery stream.
 	// For a full description of the different values of this status, see StartDeliveryStreamEncryption
-	// and StopDeliveryStreamEncryption.
+	// and StopDeliveryStreamEncryption. If this status is ENABLING_FAILED or DISABLING_FAILED,
+	// it is the status of the most recent attempt to enable or disable SSE, respectively.
 	Status *string `type:"string" enum:"DeliveryStreamEncryptionStatus"`
 }
 
@@ -1968,9 +2155,93 @@ func (s DeliveryStreamEncryptionConfiguration) GoString() string {
 	return s.String()
 }
 
+// SetFailureDescription sets the FailureDescription field's value.
+func (s *DeliveryStreamEncryptionConfiguration) SetFailureDescription(v *FailureDescription) *DeliveryStreamEncryptionConfiguration {
+	s.FailureDescription = v
+	return s
+}
+
+// SetKeyARN sets the KeyARN field's value.
+func (s *DeliveryStreamEncryptionConfiguration) SetKeyARN(v string) *DeliveryStreamEncryptionConfiguration {
+	s.KeyARN = &v
+	return s
+}
+
+// SetKeyType sets the KeyType field's value.
+func (s *DeliveryStreamEncryptionConfiguration) SetKeyType(v string) *DeliveryStreamEncryptionConfiguration {
+	s.KeyType = &v
+	return s
+}
+
 // SetStatus sets the Status field's value.
 func (s *DeliveryStreamEncryptionConfiguration) SetStatus(v string) *DeliveryStreamEncryptionConfiguration {
 	s.Status = &v
+	return s
+}
+
+// Used to specify the type and Amazon Resource Name (ARN) of the CMK needed
+// for Server-Side Encryption (SSE).
+type DeliveryStreamEncryptionConfigurationInput struct {
+	_ struct{} `type:"structure"`
+
+	// If you set KeyType to CUSTOMER_MANAGED_CMK, you must specify the Amazon Resource
+	// Name (ARN) of the CMK. If you set KeyType to AWS_OWNED_CMK, Kinesis Data
+	// Firehose uses a service-account CMK.
+	KeyARN *string `min:"1" type:"string"`
+
+	// Indicates the type of customer master key (CMK) to use for encryption. The
+	// default setting is AWS_OWNED_CMK. For more information about CMKs, see Customer
+	// Master Keys (CMKs) (https://docs.aws.amazon.com/kms/latest/developerguide/concepts.html#master_keys).
+	// When you invoke CreateDeliveryStream or StartDeliveryStreamEncryption with
+	// KeyType set to CUSTOMER_MANAGED_CMK, Kinesis Data Firehose invokes the Amazon
+	// KMS operation CreateGrant (https://docs.aws.amazon.com/kms/latest/APIReference/API_CreateGrant.html)
+	// to create a grant that allows the Kinesis Data Firehose service to use the
+	// customer managed CMK to perform encryption and decryption. Kinesis Data Firehose
+	// manages that grant.
+	//
+	// When you invoke StartDeliveryStreamEncryption to change the CMK for a delivery
+	// stream that is already encrypted with a customer managed CMK, Kinesis Data
+	// Firehose schedules the grant it had on the old CMK for retirement.
+	//
+	// KeyType is a required field
+	KeyType *string `type:"string" required:"true" enum:"KeyType"`
+}
+
+// String returns the string representation
+func (s DeliveryStreamEncryptionConfigurationInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeliveryStreamEncryptionConfigurationInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DeliveryStreamEncryptionConfigurationInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DeliveryStreamEncryptionConfigurationInput"}
+	if s.KeyARN != nil && len(*s.KeyARN) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("KeyARN", 1))
+	}
+	if s.KeyType == nil {
+		invalidParams.Add(request.NewErrParamRequired("KeyType"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetKeyARN sets the KeyARN field's value.
+func (s *DeliveryStreamEncryptionConfigurationInput) SetKeyARN(v string) *DeliveryStreamEncryptionConfigurationInput {
+	s.KeyARN = &v
+	return s
+}
+
+// SetKeyType sets the KeyType field's value.
+func (s *DeliveryStreamEncryptionConfigurationInput) SetKeyType(v string) *DeliveryStreamEncryptionConfigurationInput {
+	s.KeyType = &v
 	return s
 }
 
@@ -3320,6 +3591,45 @@ func (s *ExtendedS3DestinationUpdate) SetS3BackupUpdate(v *S3DestinationUpdate) 
 	return s
 }
 
+// Provides details in case one of the following operations fails due to an
+// error related to KMS: CreateDeliveryStream, DeleteDeliveryStream, StartDeliveryStreamEncryption,
+// StopDeliveryStreamEncryption.
+type FailureDescription struct {
+	_ struct{} `type:"structure"`
+
+	// A message providing details about the error that caused the failure.
+	//
+	// Details is a required field
+	Details *string `type:"string" required:"true"`
+
+	// The type of error that caused the failure.
+	//
+	// Type is a required field
+	Type *string `type:"string" required:"true" enum:"DeliveryStreamFailureType"`
+}
+
+// String returns the string representation
+func (s FailureDescription) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s FailureDescription) GoString() string {
+	return s.String()
+}
+
+// SetDetails sets the Details field's value.
+func (s *FailureDescription) SetDetails(v string) *FailureDescription {
+	s.Details = &v
+	return s
+}
+
+// SetType sets the Type field's value.
+func (s *FailureDescription) SetType(v string) *FailureDescription {
+	s.Type = &v
+	return s
+}
+
 // The native Hive / HCatalog JsonSerDe. Used by Kinesis Data Firehose for deserializing
 // data, which means converting it from the JSON format in preparation for serializing
 // it to the Parquet or ORC format. This is one of two deserializers you can
@@ -3379,6 +3689,124 @@ func (s InputFormatConfiguration) GoString() string {
 func (s *InputFormatConfiguration) SetDeserializer(v *Deserializer) *InputFormatConfiguration {
 	s.Deserializer = v
 	return s
+}
+
+// The specified input parameter has a value that is not valid.
+type InvalidArgumentException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	// A message that provides information about the error.
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidArgumentException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidArgumentException) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidArgumentException(v protocol.ResponseMetadata) error {
+	return &InvalidArgumentException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s InvalidArgumentException) Code() string {
+	return "InvalidArgumentException"
+}
+
+// Message returns the exception's message.
+func (s InvalidArgumentException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s InvalidArgumentException) OrigErr() error {
+	return nil
+}
+
+func (s InvalidArgumentException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s InvalidArgumentException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s InvalidArgumentException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// Kinesis Data Firehose throws this exception when an attempt to put records
+// or to start or stop delivery stream encryption fails. This happens when the
+// KMS service throws one of the following exception types: AccessDeniedException,
+// InvalidStateException, DisabledException, or NotFoundException.
+type InvalidKMSResourceException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	Code_ *string `locationName:"code" type:"string"`
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidKMSResourceException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidKMSResourceException) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidKMSResourceException(v protocol.ResponseMetadata) error {
+	return &InvalidKMSResourceException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s InvalidKMSResourceException) Code() string {
+	return "InvalidKMSResourceException"
+}
+
+// Message returns the exception's message.
+func (s InvalidKMSResourceException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s InvalidKMSResourceException) OrigErr() error {
+	return nil
+}
+
+func (s InvalidKMSResourceException) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s InvalidKMSResourceException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s InvalidKMSResourceException) RequestID() string {
+	return s.respMetadata.RequestID
 }
 
 // Describes an encryption key for a destination in Amazon S3.
@@ -3532,6 +3960,63 @@ func (s *KinesisStreamSourceDescription) SetKinesisStreamARN(v string) *KinesisS
 func (s *KinesisStreamSourceDescription) SetRoleARN(v string) *KinesisStreamSourceDescription {
 	s.RoleARN = &v
 	return s
+}
+
+// You have already reached the limit for a requested resource.
+type LimitExceededException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	// A message that provides information about the error.
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s LimitExceededException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s LimitExceededException) GoString() string {
+	return s.String()
+}
+
+func newErrorLimitExceededException(v protocol.ResponseMetadata) error {
+	return &LimitExceededException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s LimitExceededException) Code() string {
+	return "LimitExceededException"
+}
+
+// Message returns the exception's message.
+func (s LimitExceededException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s LimitExceededException) OrigErr() error {
+	return nil
+}
+
+func (s LimitExceededException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s LimitExceededException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s LimitExceededException) RequestID() string {
+	return s.respMetadata.RequestID
 }
 
 type ListDeliveryStreamsInput struct {
@@ -4006,7 +4491,7 @@ type ParquetSerDe struct {
 
 	// The compression code to use over data blocks. The possible values are UNCOMPRESSED,
 	// SNAPPY, and GZIP, with the default being SNAPPY. Use SNAPPY for higher decompression
-	// speed. Use GZIP if the compression ration is more important than speed.
+	// speed. Use GZIP if the compression ratio is more important than speed.
 	Compression *string `type:"string" enum:"ParquetCompression"`
 
 	// Indicates whether to enable dictionary compression.
@@ -5053,6 +5538,120 @@ func (s *RedshiftRetryOptions) SetDurationInSeconds(v int64) *RedshiftRetryOptio
 	return s
 }
 
+// The resource is already in use and not available for this operation.
+type ResourceInUseException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	// A message that provides information about the error.
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s ResourceInUseException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResourceInUseException) GoString() string {
+	return s.String()
+}
+
+func newErrorResourceInUseException(v protocol.ResponseMetadata) error {
+	return &ResourceInUseException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s ResourceInUseException) Code() string {
+	return "ResourceInUseException"
+}
+
+// Message returns the exception's message.
+func (s ResourceInUseException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s ResourceInUseException) OrigErr() error {
+	return nil
+}
+
+func (s ResourceInUseException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s ResourceInUseException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s ResourceInUseException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
+// The specified resource could not be found.
+type ResourceNotFoundException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	// A message that provides information about the error.
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s ResourceNotFoundException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResourceNotFoundException) GoString() string {
+	return s.String()
+}
+
+func newErrorResourceNotFoundException(v protocol.ResponseMetadata) error {
+	return &ResourceNotFoundException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s ResourceNotFoundException) Code() string {
+	return "ResourceNotFoundException"
+}
+
+// Message returns the exception's message.
+func (s ResourceNotFoundException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s ResourceNotFoundException) OrigErr() error {
+	return nil
+}
+
+func (s ResourceNotFoundException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s ResourceNotFoundException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s ResourceNotFoundException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
 // Describes the configuration of a destination in Amazon S3.
 type S3DestinationConfiguration struct {
 	_ struct{} `type:"structure"`
@@ -5557,6 +6156,66 @@ func (s *Serializer) SetParquetSerDe(v *ParquetSerDe) *Serializer {
 	return s
 }
 
+// The service is unavailable. Back off and retry the operation. If you continue
+// to see the exception, throughput limits for the delivery stream may have
+// been exceeded. For more information about limits and how to request an increase,
+// see Amazon Kinesis Data Firehose Limits (https://docs.aws.amazon.com/firehose/latest/dev/limits.html).
+type ServiceUnavailableException struct {
+	_            struct{} `type:"structure"`
+	respMetadata protocol.ResponseMetadata
+
+	// A message that provides information about the error.
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s ServiceUnavailableException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ServiceUnavailableException) GoString() string {
+	return s.String()
+}
+
+func newErrorServiceUnavailableException(v protocol.ResponseMetadata) error {
+	return &ServiceUnavailableException{
+		respMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s ServiceUnavailableException) Code() string {
+	return "ServiceUnavailableException"
+}
+
+// Message returns the exception's message.
+func (s ServiceUnavailableException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s ServiceUnavailableException) OrigErr() error {
+	return nil
+}
+
+func (s ServiceUnavailableException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s ServiceUnavailableException) StatusCode() int {
+	return s.respMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s ServiceUnavailableException) RequestID() string {
+	return s.respMetadata.RequestID
+}
+
 // Details about a Kinesis data stream used as the source for a Kinesis Data
 // Firehose delivery stream.
 type SourceDescription struct {
@@ -5996,6 +6655,10 @@ func (s *SplunkRetryOptions) SetDurationInSeconds(v int64) *SplunkRetryOptions {
 type StartDeliveryStreamEncryptionInput struct {
 	_ struct{} `type:"structure"`
 
+	// Used to specify the type and Amazon Resource Name (ARN) of the KMS key needed
+	// for Server-Side Encryption (SSE).
+	DeliveryStreamEncryptionConfigurationInput *DeliveryStreamEncryptionConfigurationInput `type:"structure"`
+
 	// The name of the delivery stream for which you want to enable server-side
 	// encryption (SSE).
 	//
@@ -6022,11 +6685,22 @@ func (s *StartDeliveryStreamEncryptionInput) Validate() error {
 	if s.DeliveryStreamName != nil && len(*s.DeliveryStreamName) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("DeliveryStreamName", 1))
 	}
+	if s.DeliveryStreamEncryptionConfigurationInput != nil {
+		if err := s.DeliveryStreamEncryptionConfigurationInput.Validate(); err != nil {
+			invalidParams.AddNested("DeliveryStreamEncryptionConfigurationInput", err.(request.ErrInvalidParams))
+		}
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
 	}
 	return nil
+}
+
+// SetDeliveryStreamEncryptionConfigurationInput sets the DeliveryStreamEncryptionConfigurationInput field's value.
+func (s *StartDeliveryStreamEncryptionInput) SetDeliveryStreamEncryptionConfigurationInput(v *DeliveryStreamEncryptionConfigurationInput) *StartDeliveryStreamEncryptionInput {
+	s.DeliveryStreamEncryptionConfigurationInput = v
+	return s
 }
 
 // SetDeliveryStreamName sets the DeliveryStreamName field's value.
@@ -6501,19 +7175,57 @@ const (
 	// DeliveryStreamEncryptionStatusEnabling is a DeliveryStreamEncryptionStatus enum value
 	DeliveryStreamEncryptionStatusEnabling = "ENABLING"
 
+	// DeliveryStreamEncryptionStatusEnablingFailed is a DeliveryStreamEncryptionStatus enum value
+	DeliveryStreamEncryptionStatusEnablingFailed = "ENABLING_FAILED"
+
 	// DeliveryStreamEncryptionStatusDisabled is a DeliveryStreamEncryptionStatus enum value
 	DeliveryStreamEncryptionStatusDisabled = "DISABLED"
 
 	// DeliveryStreamEncryptionStatusDisabling is a DeliveryStreamEncryptionStatus enum value
 	DeliveryStreamEncryptionStatusDisabling = "DISABLING"
+
+	// DeliveryStreamEncryptionStatusDisablingFailed is a DeliveryStreamEncryptionStatus enum value
+	DeliveryStreamEncryptionStatusDisablingFailed = "DISABLING_FAILED"
+)
+
+const (
+	// DeliveryStreamFailureTypeRetireKmsGrantFailed is a DeliveryStreamFailureType enum value
+	DeliveryStreamFailureTypeRetireKmsGrantFailed = "RETIRE_KMS_GRANT_FAILED"
+
+	// DeliveryStreamFailureTypeCreateKmsGrantFailed is a DeliveryStreamFailureType enum value
+	DeliveryStreamFailureTypeCreateKmsGrantFailed = "CREATE_KMS_GRANT_FAILED"
+
+	// DeliveryStreamFailureTypeKmsAccessDenied is a DeliveryStreamFailureType enum value
+	DeliveryStreamFailureTypeKmsAccessDenied = "KMS_ACCESS_DENIED"
+
+	// DeliveryStreamFailureTypeDisabledKmsKey is a DeliveryStreamFailureType enum value
+	DeliveryStreamFailureTypeDisabledKmsKey = "DISABLED_KMS_KEY"
+
+	// DeliveryStreamFailureTypeInvalidKmsKey is a DeliveryStreamFailureType enum value
+	DeliveryStreamFailureTypeInvalidKmsKey = "INVALID_KMS_KEY"
+
+	// DeliveryStreamFailureTypeKmsKeyNotFound is a DeliveryStreamFailureType enum value
+	DeliveryStreamFailureTypeKmsKeyNotFound = "KMS_KEY_NOT_FOUND"
+
+	// DeliveryStreamFailureTypeKmsOptInRequired is a DeliveryStreamFailureType enum value
+	DeliveryStreamFailureTypeKmsOptInRequired = "KMS_OPT_IN_REQUIRED"
+
+	// DeliveryStreamFailureTypeUnknownError is a DeliveryStreamFailureType enum value
+	DeliveryStreamFailureTypeUnknownError = "UNKNOWN_ERROR"
 )
 
 const (
 	// DeliveryStreamStatusCreating is a DeliveryStreamStatus enum value
 	DeliveryStreamStatusCreating = "CREATING"
 
+	// DeliveryStreamStatusCreatingFailed is a DeliveryStreamStatus enum value
+	DeliveryStreamStatusCreatingFailed = "CREATING_FAILED"
+
 	// DeliveryStreamStatusDeleting is a DeliveryStreamStatus enum value
 	DeliveryStreamStatusDeleting = "DELETING"
+
+	// DeliveryStreamStatusDeletingFailed is a DeliveryStreamStatus enum value
+	DeliveryStreamStatusDeletingFailed = "DELETING_FAILED"
 
 	// DeliveryStreamStatusActive is a DeliveryStreamStatus enum value
 	DeliveryStreamStatusActive = "ACTIVE"
@@ -6558,6 +7270,14 @@ const (
 
 	// HECEndpointTypeEvent is a HECEndpointType enum value
 	HECEndpointTypeEvent = "Event"
+)
+
+const (
+	// KeyTypeAwsOwnedCmk is a KeyType enum value
+	KeyTypeAwsOwnedCmk = "AWS_OWNED_CMK"
+
+	// KeyTypeCustomerManagedCmk is a KeyType enum value
+	KeyTypeCustomerManagedCmk = "CUSTOMER_MANAGED_CMK"
 )
 
 const (

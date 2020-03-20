@@ -15,14 +15,14 @@ import (
 
 // initialize sweeper
 func init() {
-	resource.AddTestSweepers("aws_beanstalk_application", &resource.Sweeper{
-		Name:         "aws_beanstalk_application",
-		Dependencies: []string{"aws_beanstalk_environment"},
-		F:            testSweepBeanstalkApplications,
+	resource.AddTestSweepers("aws_elastic_beanstalk_application", &resource.Sweeper{
+		Name:         "aws_elastic_beanstalk_application",
+		Dependencies: []string{"aws_elastic_beanstalk_environment"},
+		F:            testSweepElasticBeanstalkApplications,
 	})
 }
 
-func testSweepBeanstalkApplications(region string) error {
+func testSweepElasticBeanstalkApplications(region string) error {
 	client, err := sharedClientForRegion(region)
 	if err != nil {
 		return fmt.Errorf("error getting client: %s", err)
@@ -62,7 +62,7 @@ func testSweepBeanstalkApplications(region string) error {
 	return nil
 }
 
-func TestAWSElasticBeanstalkApplication_importBasic(t *testing.T) {
+func TestAccAWSElasticBeanstalkApplication_basic(t *testing.T) {
 	resourceName := "aws_elastic_beanstalk_application.tftest"
 	config := fmt.Sprintf("tf-test-name-%d", acctest.RandInt())
 
