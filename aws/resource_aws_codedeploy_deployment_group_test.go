@@ -188,79 +188,79 @@ func TestAccAWSCodeDeployDeploymentGroup_basic_tagSet(t *testing.T) {
 			}, {
 				Config: testAccAWSCodeDeployDeploymentGroup(rName, false, true),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSCodeDeployDeploymentGroupExists("aws_codedeploy_deployment_group.foo", &group),
+					testAccCheckAWSCodeDeployDeploymentGroupExists("aws_codedeploy_deployment_group.test", &group),
 					resource.TestCheckResourceAttr(
-						"aws_codedeploy_deployment_group.foo", "app_name", "foo_app_"+rName),
+						"aws_codedeploy_deployment_group.test", "app_name", "tf-acc-test-"+rName),
 					resource.TestCheckResourceAttr(
-						"aws_codedeploy_deployment_group.foo", "deployment_group_name", "foo_"+rName),
+						"aws_codedeploy_deployment_group.test", "deployment_group_name", "tf-acc-test-"+rName),
 					resource.TestCheckResourceAttr(
-						"aws_codedeploy_deployment_group.foo", "deployment_config_name", "CodeDeployDefault.OneAtATime"),
+						"aws_codedeploy_deployment_group.test", "deployment_config_name", "CodeDeployDefault.OneAtATime"),
 					resource.TestMatchResourceAttr(
-						"aws_codedeploy_deployment_group.foo", "service_role_arn",
-						regexp.MustCompile("arn:aws:iam::[0-9]{12}:role/foo_role_.*")),
+						"aws_codedeploy_deployment_group.test", "service_role_arn",
+						regexp.MustCompile("arn:aws:iam::[0-9]{12}:role/tf-acc-test-.*")),
 
 					resource.TestCheckResourceAttr(
-						"aws_codedeploy_deployment_group.foo", "on_premises_tag_set.#", "1"),
+						"aws_codedeploy_deployment_group.test", "on_premises_tag_set.#", "1"),
 					resource.TestCheckResourceAttr(
-						"aws_codedeploy_deployment_group.foo", "on_premises_tag_set.2916377593.on_premises_instance_tag_filter.#", "1"),
+						"aws_codedeploy_deployment_group.test", "on_premises_tag_set.2916377593.on_premises_instance_tag_filter.#", "1"),
 					resource.TestCheckResourceAttr(
-						"aws_codedeploy_deployment_group.foo", "on_premises_tag_set.2916377593.on_premises_instance_tag_filter.2916377465.key", "filterkey"),
+						"aws_codedeploy_deployment_group.test", "on_premises_tag_set.2916377593.on_premises_instance_tag_filter.2916377465.key", "filterkey"),
 					resource.TestCheckResourceAttr(
-						"aws_codedeploy_deployment_group.foo", "on_premises_tag_set.2916377593.on_premises_instance_tag_filter.2916377465.type", "KEY_AND_VALUE"),
+						"aws_codedeploy_deployment_group.test", "on_premises_tag_set.2916377593.on_premises_instance_tag_filter.2916377465.type", "KEY_AND_VALUE"),
 					resource.TestCheckResourceAttr(
-						"aws_codedeploy_deployment_group.foo", "on_premises_tag_set.2916377593.on_premises_instance_tag_filter.2916377465.value", "filtervalue"),
+						"aws_codedeploy_deployment_group.test", "on_premises_tag_set.2916377593.on_premises_instance_tag_filter.2916377465.value", "filtervalue"),
 					resource.TestCheckResourceAttr(
-						"aws_codedeploy_deployment_group.foo", "on_premises_instance_tag_filter.#", "0"),
+						"aws_codedeploy_deployment_group.test", "on_premises_instance_tag_filter.#", "0"),
 					resource.TestCheckResourceAttr(
-						"aws_codedeploy_deployment_group.foo", "ec2_tag_filter.#", "0"),
+						"aws_codedeploy_deployment_group.test", "ec2_tag_filter.#", "0"),
 					resource.TestCheckResourceAttr(
-						"aws_codedeploy_deployment_group.foo", "ec2_tag_set.#", "0"),
+						"aws_codedeploy_deployment_group.test", "ec2_tag_set.#", "0"),
 
 					resource.TestCheckResourceAttr(
-						"aws_codedeploy_deployment_group.foo", "alarm_configuration.#", "0"),
+						"aws_codedeploy_deployment_group.test", "alarm_configuration.#", "0"),
 					resource.TestCheckResourceAttr(
-						"aws_codedeploy_deployment_group.foo", "auto_rollback_configuration.#", "0"),
+						"aws_codedeploy_deployment_group.test", "auto_rollback_configuration.#", "0"),
 					resource.TestCheckResourceAttr(
-						"aws_codedeploy_deployment_group.foo", "trigger_configuration.#", "0"),
+						"aws_codedeploy_deployment_group.test", "trigger_configuration.#", "0"),
 				),
 			},
 			{
 				Config: testAccAWSCodeDeployDeploymentGroupModified(rName, false, true),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSCodeDeployDeploymentGroupExists("aws_codedeploy_deployment_group.foo", &group),
+					testAccCheckAWSCodeDeployDeploymentGroupExists("aws_codedeploy_deployment_group.test", &group),
 					resource.TestCheckResourceAttr(
-						"aws_codedeploy_deployment_group.foo", "app_name", "foo_app_"+rName),
+						"aws_codedeploy_deployment_group.test", "app_name", "tf-acc-test-"+rName),
 					resource.TestCheckResourceAttr(
-						"aws_codedeploy_deployment_group.foo", "deployment_group_name", "bar_"+rName),
+						"aws_codedeploy_deployment_group.test", "deployment_group_name", "tf-acc-test-updated-"+rName),
 					resource.TestCheckResourceAttr(
-						"aws_codedeploy_deployment_group.foo", "deployment_config_name", "CodeDeployDefault.OneAtATime"),
+						"aws_codedeploy_deployment_group.test", "deployment_config_name", "CodeDeployDefault.OneAtATime"),
 					resource.TestMatchResourceAttr(
-						"aws_codedeploy_deployment_group.foo", "service_role_arn",
-						regexp.MustCompile("arn:aws:iam::[0-9]{12}:role/bar_role_.*")),
+						"aws_codedeploy_deployment_group.test", "service_role_arn",
+						regexp.MustCompile("arn:aws:iam::[0-9]{12}:role/tf-acc-test-.*")),
 
 					resource.TestCheckResourceAttr(
-						"aws_codedeploy_deployment_group.foo", "on_premises_tag_set.#", "1"),
+						"aws_codedeploy_deployment_group.test", "on_premises_tag_set.#", "1"),
 					resource.TestCheckResourceAttr(
-						"aws_codedeploy_deployment_group.foo", "on_premises_tag_set.2369538847.on_premises_instance_tag_filter.#", "1"),
+						"aws_codedeploy_deployment_group.test", "on_premises_tag_set.2369538847.on_premises_instance_tag_filter.#", "1"),
 					resource.TestCheckResourceAttr(
-						"aws_codedeploy_deployment_group.foo", "on_premises_tag_set.2369538847.on_premises_instance_tag_filter.2369538975.key", "filterkey"),
+						"aws_codedeploy_deployment_group.test", "on_premises_tag_set.2369538847.on_premises_instance_tag_filter.2369538975.key", "filterkey"),
 					resource.TestCheckResourceAttr(
-						"aws_codedeploy_deployment_group.foo", "on_premises_tag_set.2369538847.on_premises_instance_tag_filter.2369538975.type", "KEY_AND_VALUE"),
+						"aws_codedeploy_deployment_group.test", "on_premises_tag_set.2369538847.on_premises_instance_tag_filter.2369538975.type", "KEY_AND_VALUE"),
 					resource.TestCheckResourceAttr(
-						"aws_codedeploy_deployment_group.foo", "on_premises_tag_set.2369538847.on_premises_instance_tag_filter.2369538975.value", "anotherfiltervalue"),
+						"aws_codedeploy_deployment_group.test", "on_premises_tag_set.2369538847.on_premises_instance_tag_filter.2369538975.value", "anotherfiltervalue"),
 					resource.TestCheckResourceAttr(
-						"aws_codedeploy_deployment_group.foo", "on_premises_instance_tag_filter.#", "0"),
+						"aws_codedeploy_deployment_group.test", "on_premises_instance_tag_filter.#", "0"),
 					resource.TestCheckResourceAttr(
-						"aws_codedeploy_deployment_group.foo", "ec2_tag_filter.#", "0"),
+						"aws_codedeploy_deployment_group.test", "ec2_tag_filter.#", "0"),
 					resource.TestCheckResourceAttr(
-						"aws_codedeploy_deployment_group.foo", "ec2_tag_set.#", "0"),
+						"aws_codedeploy_deployment_group.test", "ec2_tag_set.#", "0"),
 
 					resource.TestCheckResourceAttr(
-						"aws_codedeploy_deployment_group.foo", "alarm_configuration.#", "0"),
+						"aws_codedeploy_deployment_group.test", "alarm_configuration.#", "0"),
 					resource.TestCheckResourceAttr(
-						"aws_codedeploy_deployment_group.foo", "auto_rollback_configuration.#", "0"),
+						"aws_codedeploy_deployment_group.test", "auto_rollback_configuration.#", "0"),
 					resource.TestCheckResourceAttr(
-						"aws_codedeploy_deployment_group.foo", "trigger_configuration.#", "0"),
+						"aws_codedeploy_deployment_group.test", "trigger_configuration.#", "0"),
 				),
 			},
 			{
