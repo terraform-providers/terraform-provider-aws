@@ -1,17 +1,18 @@
 package aws
 
 import (
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/aws/aws-sdk-go/service/opsworks"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 func resourceAwsOpsworksECSClusterLayer() *schema.Resource {
 	layerType := &opsworksLayerType{
-		TypeName:         "ecs-cluster",
+		TypeName:         opsworks.LayerTypeEcsCluster,
 		DefaultLayerName: "Ecs Cluster",
 
 		Attributes: map[string]*opsworksLayerTypeAttribute{
 			"ecs_cluster_arn": {
-				AttrName: "EcsClusterArn",
+				AttrName: opsworks.LayerAttributesKeysEcsClusterArn,
 				Type:     schema.TypeString,
 				Required: true,
 			},
