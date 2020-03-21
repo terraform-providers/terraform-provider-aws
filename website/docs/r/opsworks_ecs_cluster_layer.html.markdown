@@ -25,15 +25,12 @@ The following arguments are supported:
 
 * `stack_id` - (Required) The id of the stack the layer will belong to.
 * `ecs_cluster_arn` - (Required) The ECS Cluster ARN of the layer.
-* `stats_password` - (Required) The password to use for HAProxy stats.
 * `name` - (Optional) A human-readable name for the layer.
 * `auto_assign_elastic_ips` - (Optional) Whether to automatically assign an elastic IP address to the layer's instances.
 * `auto_assign_public_ips` - (Optional) For stacks belonging to a VPC, whether to automatically assign a public IP address to each of the layer's instances.
 * `custom_instance_profile_arn` - (Optional) The ARN of an IAM profile that will be used for the layer's instances.
 * `custom_security_group_ids` - (Optional) Ids for a set of security groups to apply to the layer's instances.
 * `auto_healing` - (Optional) Whether to enable auto-healing for the layer.
-* `healthcheck_method` - (Optional) HTTP method to use for instance healthchecks. Defaults to "OPTIONS".
-* `healthcheck_url` - (Optional) URL path to use for instance healthchecks. Defaults to "/".
 * `install_updates_on_boot` - (Optional) Whether to install OS and package updates on each instance when it boots.
 * `instance_shutdown_timeout` - (Optional) The time, in seconds, that OpsWorks will wait for Chef to complete after triggering the Shutdown event.
 * `elastic_load_balancer` - (Optional) Name of an Elastic Load Balancer to attach to this layer
