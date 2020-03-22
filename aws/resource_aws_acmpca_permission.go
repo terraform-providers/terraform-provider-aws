@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/acmpca"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func resourceAwsAcmpcaPermission() *schema.Resource {
@@ -25,12 +26,20 @@ func resourceAwsAcmpcaPermission() *schema.Resource {
 				Type:     schema.TypeSet,
 				Required: true,
 				ForceNew: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+					ValidateFunc: validation.StringInSlice([]string{
+						acmpca.ActionTypeIssueCertificate,
+						acmpca.ActionTypeGetCertificate,
+						acmpca.ActionTypeListPermissions,
+					}, false),
+				},
 			},
 			"certificate_authority_arn": {
-				Type:     schema.TypeString,
-				ForceNew: true,
-				Required: true,
+				Type:         schema.TypeString,
+				ForceNew:     true,
+				Required:     true,
+				ValidateFunc: validateArn,
 			},
 			"policy": {
 				Type:     schema.TypeString,
@@ -41,6 +50,9 @@ func resourceAwsAcmpcaPermission() *schema.Resource {
 				Type:     schema.TypeString,
 				ForceNew: true,
 				Required: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"acm.amazonaws.com",
+				}, false),
 			},
 			"source_account": {
 				Type:     schema.TypeString,
