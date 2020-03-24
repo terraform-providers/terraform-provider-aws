@@ -189,7 +189,7 @@ resource "aws_acmpca_certificate_authority" "test" {
 }
 
 resource "aws_acmpca_permission" "test" {
-	certificate_authority_arn = "${aws_acmpca_authority.test.arn}"
+	certificate_authority_arn = "${aws_acmpca_certificate_authority.test.arn}"
 	principal                 = "acm.amazonaws.com"
 	actions                   = ["IssueCertificate", "GetCertificate", "ListPermissions"]
 }
@@ -207,7 +207,7 @@ resource "aws_acmpca_certificate_authority" "test" {
 }
 
 resource "aws_acmpca_permission" "test" {
-	certificate_authority_arn = "${aws_acmpca_authority.test.arn}"
+	certificate_authority_arn = "${aws_acmpca_certificate_authority.test.arn}"
 	principal                 = "notacm.amazonaws.com"
 	actions                   = ["IssueCertificate", "GetCertificate", "ListPermissions"]
 }
@@ -226,7 +226,7 @@ resource "aws_acmpca_certificate_authority" "test" {
 }
 
 resource "aws_acmpca_permission" "test" {
-	certificate_authority_arn = "${aws_acmpca_authority.test.arn}"
+	certificate_authority_arn = "${aws_acmpca_certificate_authority.test.arn}"
 	principal                 = "acm.amazonaws.com"
 	actions                   = ["GetCertificate", "ListPermissions"]
 }
@@ -245,7 +245,7 @@ resource "aws_acmpca_certificate_authority" "test" {
 }
 
 resource "aws_acmpca_permission" "test" {
-	certificate_authority_arn = "${aws_acmpca_authority.test.arn}"
+	certificate_authority_arn = "${aws_acmpca_certificate_authority.test.arn}"
 	principal                 = "acm.amazonaws.com"
 	actions                   = ["IssueCert", "GetCertificate", "ListPermissions"]
 }
