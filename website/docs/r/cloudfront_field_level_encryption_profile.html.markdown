@@ -35,8 +35,8 @@ resource "aws_cloudfront_field_level_encryption_profile" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the CloudFront Field Level Encryption Profile.
-* `comment` - (Optional) An optional comment about the public key.
+* `name` - (Required) The name of the Field Level Encryption Profile.
+* `comment` - (Optional) An optional comment about the Field Level Encryption Profile.
 * `encryption_entities` - (Required) The [encryption entities](#encryption-entities) config block for field-level encryption profiles that includes the encryption key and field pattern specifications.
 
 ### Encryption Entities
