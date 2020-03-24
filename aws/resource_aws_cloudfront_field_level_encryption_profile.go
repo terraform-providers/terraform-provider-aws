@@ -28,6 +28,7 @@ func resourceAwsCloudfrontFieldLevelEncryptionProfile() *schema.Resource {
 			"encryption_entities": {
 				Type:     schema.TypeSet,
 				Required: true,
+				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"public_key_id": {
