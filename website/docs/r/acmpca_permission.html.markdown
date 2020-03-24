@@ -40,3 +40,9 @@ The following arguments are supported:
 * `actions` - (Required) The actions that the specified AWS service principal can use. These include `IssueCertificate`, `GetCertificate`, and `ListPermissions`. Note that in order for ACM to automatically rotate certificates issued by a PCA, it must be granted permission on all 3 actions, as per the example above.
 * `principal` - (Required) The AWS service or identity that receives the permission. At this time, the only valid principal is `acm.amazonaws.com`.
 * `source_account` - (Optional) The ID of the calling account
+
+## Attribute Reference
+
+In addition to all arguments above, the following attributes are exported:
+
+* `policy` - The IAM policy that is associated with the permission.

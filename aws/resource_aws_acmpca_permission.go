@@ -44,7 +44,7 @@ func resourceAwsAcmpcaPermission() *schema.Resource {
 			"policy": {
 				Type:     schema.TypeString,
 				ForceNew: true,
-				Required: true,
+				Computed: true,
 			},
 			"principal": {
 				Type:     schema.TypeString,
@@ -58,6 +58,7 @@ func resourceAwsAcmpcaPermission() *schema.Resource {
 				Type:     schema.TypeString,
 				ForceNew: true,
 				Optional: true,
+				Computed: true,
 			},
 		},
 	}
@@ -73,7 +74,11 @@ func resourceAwsAcmpcaPermissionCreate(d *schema.ResourceData, meta interface{})
 		Actions:                 expandStringSet(d.Get("actions").(*schema.Set)),
 		CertificateAuthorityArn: aws.String(ca_arn),
 		Principal:               aws.String(principal),
-		SourceAccount:           aws.String(d.Get("source_account").(string)),
+	}
+
+	source_account := d.Get("source_account").(string)
+	if source_account != "" {
+		input.SetSourceAccount(source_account)
 	}
 
 	log.Printf("[DEBUG] Creating ACMPCA Permission: %s", input)
@@ -104,7 +109,7 @@ func describePermissions(conn *acmpca.ACMPCA, certificateAuthorityArn string, pr
 	var permission *acmpca.Permission
 
 	for _, p := range out.Permissions {
-		if aws.StringValue(p.CertificateAuthorityArn) == certificateAuthorityArn && aws.StringValue(p.Principal) == principal && aws.StringValue(p.SourceAccount) == sourceAccount {
+		if aws.StringValue(p.CertificateAuthorityArn) == certificateAuthorityArn && aws.StringValue(p.Principal) == principal && (sourceAccount == "" || aws.StringValue(p.SourceAccount) == sourceAccount) {
 			permission = p
 			break
 		}
@@ -122,6 +127,9 @@ func resourceAwsAcmpcaPermissionRead(d *schema.ResourceData, meta interface{}) e
 		d.SetId("")
 		return err
 	}
+
+	d.Set("source_account", permission.SourceAccount)
+	d.Set("policy", permission.Policy)
 
 	return nil
 }
