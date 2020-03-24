@@ -795,6 +795,21 @@ data "aws_ami" "amzn-ami-minimal-hvm-ebs" {
   }
 }
 
+data "aws_ec2_instance_type_offering" "available" {
+  filter {
+    name   = "instance-type"
+    values = ["t3.micro", "t2.micro"]
+  }
+
+  filter {
+    name   = "location"
+    values = [aws_subnet.test.availability_zone]
+  }
+
+  location_type            = "availability-zone"
+  preferred_instance_types = ["t3.micro", "t2.micro"]
+}
+
 data "aws_partition" "current" {}
 
 data "aws_region" "current" {}
@@ -803,33 +818,33 @@ resource "aws_vpc" "test" {
   cidr_block = "172.16.0.0/16"
 
   tags = {
-    Name = %q
+    Name = %[1]q
   }
 }
 
 resource "aws_subnet" "test" {
-  vpc_id     = "${aws_vpc.test.id}"
   cidr_block = "172.16.0.0/24"
+  vpc_id     = aws_vpc.test.id
 
   tags = {
-    Name = %q
+    Name = %[1]q
   }
 }
 
 resource "aws_instance" "test" {
-  ami           = "${data.aws_ami.amzn-ami-minimal-hvm-ebs.id}"
-  instance_type = "t2.micro"
-  subnet_id     = "${aws_subnet.test.id}"
+  ami           = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
+  instance_type = data.aws_ec2_instance_type_offering.available.instance_type
+  subnet_id     = aws_subnet.test.id
 
   tags = {
-    Name = %q
+    Name = %[1]q
   }
 }
 
 resource "aws_cloudwatch_metric_alarm" "test" {
-  alarm_actions       = ["arn:${data.aws_partition.current.partition}:automate:${data.aws_region.current.name}:ec2:%s"]
+  alarm_actions       = ["arn:${data.aws_partition.current.partition}:automate:${data.aws_region.current.name}:ec2:%[2]s"]
   alarm_description   = "Status checks have failed for system"
-  alarm_name          = %q
+  alarm_name          = %[1]q
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = "2"
   metric_name         = "StatusCheckFailed_System"
@@ -840,10 +855,10 @@ resource "aws_cloudwatch_metric_alarm" "test" {
   unit                = "Count"
 
   dimensions = {
-    InstanceId = "${aws_instance.test.id}"
+    InstanceId = aws_instance.test.id
   }
 }
-`, rName, rName, rName, action, rName)
+`, rName, action)
 }
 
 func testAccAWSCloudWatchMetricAlarmConfigAlarmActionsSNSTopic(rName string) string {

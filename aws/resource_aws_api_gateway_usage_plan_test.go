@@ -412,7 +412,7 @@ func testAccCheckAWSAPIGatewayUsagePlanExists(n string, res *apigateway.UsagePla
 			return fmt.Errorf("No API Gateway Usage Plan ID is set")
 		}
 
-		conn := testAccProvider.Meta().(*AWSClient).apigateway
+		conn := testAccProvider.Meta().(*AWSClient).apigatewayconn
 
 		req := &apigateway.GetUsagePlanInput{
 			UsagePlanId: aws.String(rs.Primary.ID),
@@ -433,7 +433,7 @@ func testAccCheckAWSAPIGatewayUsagePlanExists(n string, res *apigateway.UsagePla
 }
 
 func testAccCheckAWSAPIGatewayUsagePlanDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*AWSClient).apigateway
+	conn := testAccProvider.Meta().(*AWSClient).apigatewayconn
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "aws_api_gateway_usage_plan" {

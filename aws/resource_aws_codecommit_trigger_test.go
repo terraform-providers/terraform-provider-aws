@@ -7,22 +7,25 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/codecommit"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
 func TestAccAWSCodeCommitTrigger_basic(t *testing.T) {
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_codecommit_trigger.test"
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckCodeCommitTriggerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCodeCommitTrigger_basic,
+				Config: testAccCodeCommitTrigger_basic(rName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckCodeCommitTriggerExists("aws_codecommit_trigger.test"),
-					resource.TestCheckResourceAttr(
-						"aws_codecommit_trigger.test", "trigger.#", "1"),
+					testAccCheckCodeCommitTriggerExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "trigger.#", "1"),
 				),
 			},
 		},
@@ -81,24 +84,24 @@ func testAccCheckCodeCommitTriggerExists(name string) resource.TestCheckFunc {
 	}
 }
 
-const testAccCodeCommitTrigger_basic = `
-provider "aws" {
-  region = "us-east-1"
-}
+func testAccCodeCommitTrigger_basic(rName string) string {
+	return fmt.Sprintf(`
 resource "aws_sns_topic" "test" {
-  name = "tf-test-topic"
+  name = %[1]q
 }
+
 resource "aws_codecommit_repository" "test" {
-  repository_name = "tf_test_repository"
-  description = "This is a test description"
+  repository_name = %[1]q
 }
+
 resource "aws_codecommit_trigger" "test" {
-   depends_on = ["aws_codecommit_repository.test"]
-   repository_name = "tf_test_repository"
-    trigger {
-    name = "tf-test-trigger"
-    events = ["all"]
-    destination_arn = "${aws_sns_topic.test.arn}"
+  repository_name = aws_codecommit_repository.test.id
+
+  trigger {
+    name            = %[1]q
+    events          = ["all"]
+    destination_arn = aws_sns_topic.test.arn
   }
  }
-`
+`, rName)
+}

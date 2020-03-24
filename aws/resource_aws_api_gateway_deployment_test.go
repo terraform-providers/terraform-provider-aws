@@ -227,7 +227,7 @@ func testAccCheckAWSAPIGatewayDeploymentExists(n string, res *apigateway.Deploym
 			return fmt.Errorf("No API Gateway Deployment ID is set")
 		}
 
-		conn := testAccProvider.Meta().(*AWSClient).apigateway
+		conn := testAccProvider.Meta().(*AWSClient).apigatewayconn
 
 		req := &apigateway.GetDeploymentInput{
 			DeploymentId: aws.String(rs.Primary.ID),
@@ -250,7 +250,7 @@ func testAccCheckAWSAPIGatewayDeploymentExists(n string, res *apigateway.Deploym
 
 func testAccCheckAWSAPIGatewayDeploymentStageExists(resourceName string, res *apigateway.Stage) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*AWSClient).apigateway
+		conn := testAccProvider.Meta().(*AWSClient).apigatewayconn
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -273,7 +273,7 @@ func testAccCheckAWSAPIGatewayDeploymentStageExists(resourceName string, res *ap
 }
 
 func testAccCheckAWSAPIGatewayDeploymentDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*AWSClient).apigateway
+	conn := testAccProvider.Meta().(*AWSClient).apigatewayconn
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "aws_api_gateway_deployment" {

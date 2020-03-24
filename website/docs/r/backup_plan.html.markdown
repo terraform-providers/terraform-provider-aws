@@ -56,3 +56,11 @@ In addition to all arguments above, the following attributes are exported:
 * `id` - The id of the backup plan.
 * `arn` - The ARN of the backup plan.
 * `version` - Unique, randomly generated, Unicode, UTF-8 encoded string that serves as the version ID of the backup plan.
+
+## Import
+
+Backup Plan can be imported using the `id`, e.g.
+
+```
+$ terraform import aws_backup_plan.test <id>
+```

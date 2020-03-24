@@ -15,9 +15,14 @@ Subscribes to a Security Hub standard.
 ```hcl
 resource "aws_securityhub_account" "example" {}
 
-resource "aws_securityhub_standards_subscription" "example" {
+resource "aws_securityhub_standards_subscription" "cis" {
   depends_on    = ["aws_securityhub_account.example"]
   standards_arn = "arn:aws:securityhub:::ruleset/cis-aws-foundations-benchmark/v/1.2.0"
+}
+
+resource "aws_securityhub_standards_subscription" "pci_321" {
+  depends_on    = ["aws_securityhub_account.example"]
+  standards_arn = "arn:aws:securityhub:us-east-1::standards/pci-dss/v/3.2.1"
 }
 ```
 
@@ -32,6 +37,7 @@ Currently available standards:
 | Name                | ARN                                                                   |
 |---------------------|-----------------------------------------------------------------------|
 | CIS AWS Foundations | `arn:aws:securityhub:::ruleset/cis-aws-foundations-benchmark/v/1.2.0` |
+| PCI DSS             | `arn:aws:securityhub:us-east-1::standards/pci-dss/v/3.2.1`            |
 
 ## Attributes Reference
 
@@ -44,5 +50,6 @@ The following attributes are exported in addition to the arguments listed above:
 Security Hub standards subscriptions can be imported using the standards subscription ARN, e.g.
 
 ```
-$ terraform import aws_securityhub_standards_subscription.example arn:aws:securityhub:eu-west-1:123456789012:subscription/cis-aws-foundations-benchmark/v/1.2.0
+$ terraform import aws_securityhub_standards_subscription.cis arn:aws:securityhub:eu-west-1:123456789012:subscription/cis-aws-foundations-benchmark/v/1.2.0
+$ terraform import aws_securityhub_standards_subscription.pci_321 arn:aws:securityhub:eu-west-1:123456789012:subscription/pci-dss/v/3.2.1
 ```

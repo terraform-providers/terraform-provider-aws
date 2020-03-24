@@ -84,6 +84,12 @@ func resourceAwsBackupVaultRead(d *schema.ResourceData, meta interface{}) error 
 		d.SetId("")
 		return nil
 	}
+	if isAWSErr(err, "AccessDeniedException", "") {
+		log.Printf("[WARN] Backup Vault %s not found, removing from state", d.Id())
+		d.SetId("")
+		return nil
+	}
+
 	if err != nil {
 		return fmt.Errorf("error reading Backup Vault (%s): %s", d.Id(), err)
 	}

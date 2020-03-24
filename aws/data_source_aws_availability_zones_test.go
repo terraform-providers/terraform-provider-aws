@@ -88,6 +88,23 @@ func TestAccAWSAvailabilityZones_basic(t *testing.T) {
 	})
 }
 
+func TestAccAWSAvailabilityZones_AllAvailabilityZones(t *testing.T) {
+	dataSourceName := "data.aws_availability_zones.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckAwsAvailabilityZonesConfigAllAvailabilityZones(),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsAvailabilityZonesMeta(dataSourceName),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAWSAvailabilityZones_BlacklistedNames(t *testing.T) {
 	allDataSourceName := "data.aws_availability_zones.all"
 	blacklistedDataSourceName := "data.aws_availability_zones.test"
@@ -118,6 +135,23 @@ func TestAccAWSAvailabilityZones_BlacklistedZoneIds(t *testing.T) {
 				Config: testAccCheckAwsAvailabilityZonesConfigBlacklistedZoneIds(),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsAvailabilityZonesBlacklisting(allDataSourceName, blacklistedDataSourceName),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSAvailabilityZones_Filter(t *testing.T) {
+	dataSourceName := "data.aws_availability_zones.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckAwsAvailabilityZonesConfigFilter(),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsAvailabilityZonesMeta(dataSourceName),
 				),
 			},
 		},
@@ -219,6 +253,22 @@ func testAccCheckAwsAvailabilityZoneState(n string) resource.TestCheckFunc {
 }
 
 func testAccCheckAwsAvailabilityZonesBuildAvailable(attrs map[string]string) ([]string, error) {
+	groupNames, groupNamesOk := attrs["group_names.#"]
+
+	if !groupNamesOk {
+		return nil, fmt.Errorf("Availability Zone Group names list is missing.")
+	}
+
+	groupNamesQty, err := strconv.Atoi(groupNames)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if groupNamesQty < 1 {
+		return nil, fmt.Errorf("No Availability Zone Groups found in region, this is probably a bug.")
+	}
+
 	v, ok := attrs["names.#"]
 	if !ok {
 		return nil, fmt.Errorf("Available AZ name list is missing.")
@@ -249,6 +299,14 @@ const testAccCheckAwsAvailabilityZonesConfig = `
 data "aws_availability_zones" "availability_zones" { }
 `
 
+func testAccCheckAwsAvailabilityZonesConfigAllAvailabilityZones() string {
+	return fmt.Sprintf(`
+data "aws_availability_zones" "test" {
+  all_availability_zones = true
+}
+`)
+}
+
 func testAccCheckAwsAvailabilityZonesConfigBlacklistedNames() string {
 	return fmt.Sprintf(`
 data "aws_availability_zones" "all" {}
@@ -265,6 +323,17 @@ data "aws_availability_zones" "all" {}
 
 data "aws_availability_zones" "test" {
   blacklisted_zone_ids = ["${data.aws_availability_zones.all.zone_ids[0]}"]
+}
+`)
+}
+
+func testAccCheckAwsAvailabilityZonesConfigFilter() string {
+	return fmt.Sprintf(`
+data "aws_availability_zones" "test" {
+  filter {
+    name   = "state"
+    values = ["available"]
+  }
 }
 `)
 }

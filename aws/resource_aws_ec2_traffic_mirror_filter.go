@@ -4,16 +4,16 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsEc2TrafficMirrorFilter() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAwsEc2TrafficMirrorinFilterCreate,
+		Create: resourceAwsEc2TrafficMirrorFilterCreate,
 		Read:   resourceAwsEc2TrafficMirrorFilterRead,
 		Update: resourceAwsEc2TrafficMirrorFilterUpdate,
 		Delete: resourceAwsEc2TrafficMirrorFilterDelete,
@@ -36,17 +36,22 @@ func resourceAwsEc2TrafficMirrorFilter() *schema.Resource {
 					}, false),
 				},
 			},
+			"tags": tagsSchema(),
 		},
 	}
 }
 
-func resourceAwsEc2TrafficMirrorinFilterCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAwsEc2TrafficMirrorFilterCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
 
 	input := &ec2.CreateTrafficMirrorFilterInput{}
 
 	if description, ok := d.GetOk("description"); ok {
 		input.Description = aws.String(description.(string))
+	}
+
+	if v, ok := d.GetOk("tags"); ok {
+		input.TagSpecifications = ec2TagSpecificationsFromMap(v.(map[string]interface{}), ec2.ResourceTypeTrafficMirrorFilter)
 	}
 
 	out, err := conn.CreateTrafficMirrorFilter(input)
@@ -56,7 +61,20 @@ func resourceAwsEc2TrafficMirrorinFilterCreate(d *schema.ResourceData, meta inte
 
 	d.SetId(*out.TrafficMirrorFilter.TrafficMirrorFilterId)
 
-	return resourceAwsEc2TrafficMirrorFilterUpdate(d, meta)
+	if v, ok := d.GetOk("network_services"); ok {
+		input := &ec2.ModifyTrafficMirrorFilterNetworkServicesInput{
+			TrafficMirrorFilterId: aws.String(d.Id()),
+			AddNetworkServices:    expandStringSet(v.(*schema.Set)),
+		}
+
+		_, err := conn.ModifyTrafficMirrorFilterNetworkServices(input)
+		if err != nil {
+			return fmt.Errorf("error modifying EC2 Traffic Mirror Filter (%s) network services: %w", d.Id(), err)
+		}
+
+	}
+
+	return resourceAwsEc2TrafficMirrorFilterRead(d, meta)
 }
 
 func resourceAwsEc2TrafficMirrorFilterUpdate(d *schema.ResourceData, meta interface{}) error {
@@ -84,6 +102,14 @@ func resourceAwsEc2TrafficMirrorFilterUpdate(d *schema.ResourceData, meta interf
 		}
 	}
 
+	if d.HasChange("tags") {
+		o, n := d.GetChange("tags")
+
+		if err := keyvaluetags.Ec2UpdateTags(conn, d.Id(), o, n); err != nil {
+			return fmt.Errorf("error updating EC2 Traffic Mirror Filter (%s) tags: %s", d.Id(), err)
+		}
+	}
+
 	return resourceAwsEc2TrafficMirrorFilterRead(d, meta)
 }
 
@@ -95,6 +121,13 @@ func resourceAwsEc2TrafficMirrorFilterRead(d *schema.ResourceData, meta interfac
 	}
 
 	out, err := conn.DescribeTrafficMirrorFilters(input)
+
+	if isAWSErr(err, "InvalidTrafficMirrorFilterId.NotFound", "") {
+		log.Printf("[WARN] EC2 Traffic Mirror Filter (%s) not found, removing from state", d.Id())
+		d.SetId("")
+		return nil
+	}
+
 	if err != nil {
 		return fmt.Errorf("Error describing traffic mirror filter %v: %v", d.Id(), err)
 	}
@@ -105,10 +138,14 @@ func resourceAwsEc2TrafficMirrorFilterRead(d *schema.ResourceData, meta interfac
 		return nil
 	}
 
-	d.SetId(*out.TrafficMirrorFilters[0].TrafficMirrorFilterId)
-	d.Set("description", out.TrafficMirrorFilters[0].Description)
+	trafficMirrorFilter := out.TrafficMirrorFilters[0]
+	d.Set("description", trafficMirrorFilter.Description)
 
-	if err := d.Set("network_services", aws.StringValueSlice(out.TrafficMirrorFilters[0].NetworkServices)); err != nil {
+	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(trafficMirrorFilter.Tags).IgnoreAws().Map()); err != nil {
+		return fmt.Errorf("error setting tags: %s", err)
+	}
+
+	if err := d.Set("network_services", aws.StringValueSlice(trafficMirrorFilter.NetworkServices)); err != nil {
 		return fmt.Errorf("error setting network_services for filter %v: %s", d.Id(), err)
 	}
 

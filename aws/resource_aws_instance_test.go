@@ -1131,9 +1131,8 @@ func TestAccAWSInstance_tags(t *testing.T) {
 				Config: testAccCheckInstanceConfigTags,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckInstanceExists(resourceName, &v),
-					testAccCheckTags(&v.Tags, "test", "test2"),
-					// Guard against regression of https://github.com/hashicorp/terraform/issues/914
-					testAccCheckTags(&v.Tags, "#", ""),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.test", "test2"),
 				),
 			},
 			{
@@ -1145,8 +1144,8 @@ func TestAccAWSInstance_tags(t *testing.T) {
 				Config: testAccCheckInstanceConfigTagsUpdate,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckInstanceExists(resourceName, &v),
-					testAccCheckTags(&v.Tags, "test", ""),
-					testAccCheckTags(&v.Tags, "test2", "test3"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.test2", "test3"),
 				),
 			},
 		},

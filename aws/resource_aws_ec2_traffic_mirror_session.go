@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsEc2TrafficMirrorSession() *schema.Resource {
@@ -52,6 +53,7 @@ func resourceAwsEc2TrafficMirrorSession() *schema.Resource {
 				Computed:     true,
 				ValidateFunc: validation.IntBetween(1, 16777216),
 			},
+			"tags": tagsSchema(),
 		},
 	}
 }
@@ -79,6 +81,10 @@ func resourceAwsEc2TrafficMirrorSessionCreate(d *schema.ResourceData, meta inter
 
 	if v, ok := d.GetOk("virtual_network_id"); ok {
 		input.VirtualNetworkId = aws.Int64(int64(v.(int)))
+	}
+
+	if v, ok := d.GetOk("tags"); ok {
+		input.TagSpecifications = ec2TagSpecificationsFromMap(v.(map[string]interface{}), ec2.ResourceTypeTrafficMirrorSession)
 	}
 
 	out, err := conn.CreateTrafficMirrorSession(input)
@@ -153,6 +159,14 @@ func resourceAwsEc2TrafficMirrorSessionUpdate(d *schema.ResourceData, meta inter
 		return fmt.Errorf("Error updating traffic mirror session %v", err)
 	}
 
+	if d.HasChange("tags") {
+		o, n := d.GetChange("tags")
+
+		if err := keyvaluetags.Ec2UpdateTags(conn, d.Id(), o, n); err != nil {
+			return fmt.Errorf("error updating EC2 Traffic Mirror Session (%s) tags: %s", d.Id(), err)
+		}
+	}
+
 	return resourceAwsEc2TrafficMirrorSessionRead(d, meta)
 }
 
@@ -167,6 +181,13 @@ func resourceAwsEc2TrafficMirrorSessionRead(d *schema.ResourceData, meta interfa
 	}
 
 	out, err := conn.DescribeTrafficMirrorSessions(input)
+
+	if isAWSErr(err, "InvalidTrafficMirrorSessionId.NotFound", "") {
+		log.Printf("[WARN] EC2 Traffic Mirror Session (%s) not found, removing from state", d.Id())
+		d.SetId("")
+		return nil
+	}
+
 	if nil != err {
 		return fmt.Errorf("error describing EC2 Traffic Mirror Session (%s): %w", sessionId, err)
 	}
@@ -185,6 +206,10 @@ func resourceAwsEc2TrafficMirrorSessionRead(d *schema.ResourceData, meta interfa
 	d.Set("description", session.Description)
 	d.Set("packet_length", session.PacketLength)
 	d.Set("virtual_network_id", session.VirtualNetworkId)
+
+	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(session.Tags).IgnoreAws().Map()); err != nil {
+		return fmt.Errorf("error setting tags: %s", err)
+	}
 
 	return nil
 }

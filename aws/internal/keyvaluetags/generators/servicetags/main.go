@@ -23,6 +23,7 @@ var sliceServiceNames = []string{
 	"appmesh",
 	"athena",
 	/* "autoscaling", // includes extra PropagateAtLaunch, skip for now */
+	"cloud9",
 	"cloudformation",
 	"cloudfront",
 	"cloudhsmv2",
@@ -56,6 +57,7 @@ var sliceServiceNames = []string{
 	"fms",
 	"fsx",
 	"gamelift",
+	"globalaccelerator",
 	"iam",
 	"inspector",
 	"iot",
@@ -115,6 +117,7 @@ var mapServiceNames = []string{
 	"guardduty",
 	"greengrass",
 	"kafka",
+	"kinesisvideo",
 	"imagebuilder",
 	"lambda",
 	"mediaconnect",

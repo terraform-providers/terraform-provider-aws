@@ -2280,8 +2280,8 @@ func (c *EFS) PutFileSystemPolicyRequest(input *PutFileSystemPolicyInput) (req *
 // statements. A file system always has exactly one file system policy, which
 // can be the default policy or an explicit policy set or updated using this
 // API operation. When an explicit policy is set, it overrides the default policy.
-// For more information about the default file system policy, see Using Resource-based
-// Policies with EFS (https://docs.aws.amazon.com/efs/latest/ug/res-based-policies-efs.html).
+// For more information about the default file system policy, see Default EFS
+// File System Policy (https://docs.aws.amazon.com/efs/latest/ug/iam-access-control-nfs-efs.html#default-filesystempolicy).
 //
 // This operation requires permissions for the elasticfilesystem:PutFileSystemPolicy
 // action.
@@ -3340,6 +3340,9 @@ type CreateFileSystemInput struct {
 	//
 	// If KmsKeyId is specified, the CreateFileSystemRequest$Encrypted parameter
 	// must be set to true.
+	//
+	// EFS accepts only symmetric CMKs. You cannot use asymmetric CMKs with EFS
+	// file systems.
 	KmsKeyId *string `min:"1" type:"string"`
 
 	// The performance mode of the file system. We recommend generalPurpose performance

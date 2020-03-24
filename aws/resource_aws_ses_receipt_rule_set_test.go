@@ -37,7 +37,7 @@ func TestAccAWSSESReceiptRuleSet_basic(t *testing.T) {
 }
 
 func testAccCheckSESReceiptRuleSetDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*AWSClient).sesConn
+	conn := testAccProvider.Meta().(*AWSClient).sesconn
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "aws_ses_receipt_rule_set" {
@@ -76,7 +76,7 @@ func testAccCheckAwsSESReceiptRuleSetExists(n string) resource.TestCheckFunc {
 			return fmt.Errorf("SES Receipt Rule Set name not set")
 		}
 
-		conn := testAccProvider.Meta().(*AWSClient).sesConn
+		conn := testAccProvider.Meta().(*AWSClient).sesconn
 
 		params := &ses.DescribeReceiptRuleSetInput{
 			RuleSetName: aws.String(rs.Primary.ID),

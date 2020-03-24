@@ -62,8 +62,9 @@ func resourceAwsNatGatewayCreate(d *schema.ResourceData, meta interface{}) error
 
 	// Create the NAT Gateway
 	createOpts := &ec2.CreateNatGatewayInput{
-		AllocationId: aws.String(d.Get("allocation_id").(string)),
-		SubnetId:     aws.String(d.Get("subnet_id").(string)),
+		AllocationId:      aws.String(d.Get("allocation_id").(string)),
+		SubnetId:          aws.String(d.Get("subnet_id").(string)),
+		TagSpecifications: ec2TagSpecificationsFromMap(d.Get("tags").(map[string]interface{}), ec2.ResourceTypeNatgateway),
 	}
 
 	log.Printf("[DEBUG] Create NAT Gateway: %s", *createOpts)
@@ -80,20 +81,14 @@ func resourceAwsNatGatewayCreate(d *schema.ResourceData, meta interface{}) error
 	// Wait for the NAT Gateway to become available
 	log.Printf("[DEBUG] Waiting for NAT Gateway (%s) to become available", d.Id())
 	stateConf := &resource.StateChangeConf{
-		Pending: []string{"pending"},
-		Target:  []string{"available"},
+		Pending: []string{ec2.NatGatewayStatePending},
+		Target:  []string{ec2.NatGatewayStateAvailable},
 		Refresh: NGStateRefreshFunc(conn, d.Id()),
 		Timeout: 10 * time.Minute,
 	}
 
 	if _, err := stateConf.WaitForState(); err != nil {
 		return fmt.Errorf("Error waiting for NAT Gateway (%s) to become available: %s", d.Id(), err)
-	}
-
-	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
-		if err := keyvaluetags.Ec2UpdateTags(conn, d.Id(), nil, v); err != nil {
-			return fmt.Errorf("error adding EC2 NAT Gateway (%s) tags: %s", d.Id(), err)
-		}
 	}
 
 	return resourceAwsNatGatewayRead(d, meta)
@@ -109,9 +104,9 @@ func resourceAwsNatGatewayRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	status := map[string]bool{
-		"deleted":  true,
-		"deleting": true,
-		"failed":   true,
+		ec2.NatGatewayStateDeleted:  true,
+		ec2.NatGatewayStateDeleting: true,
+		ec2.NatGatewayStateFailed:   true,
 	}
 
 	if _, ok := status[strings.ToLower(state)]; ngRaw == nil || ok {
@@ -174,8 +169,8 @@ func resourceAwsNatGatewayDelete(d *schema.ResourceData, meta interface{}) error
 	}
 
 	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"deleting"},
-		Target:     []string{"deleted"},
+		Pending:    []string{ec2.NatGatewayStateDeleting},
+		Target:     []string{ec2.NatGatewayStateDeleted},
 		Refresh:    NGStateRefreshFunc(conn, d.Id()),
 		Timeout:    30 * time.Minute,
 		Delay:      10 * time.Second,
@@ -199,7 +194,7 @@ func NGStateRefreshFunc(conn *ec2.EC2, id string) resource.StateRefreshFunc {
 		}
 		resp, err := conn.DescribeNatGateways(opts)
 		if err != nil {
-			if ec2err, ok := err.(awserr.Error); ok && ec2err.Code() == "NatGatewayNotFound" {
+			if isAWSErr(err, "NatGatewayNotFound", "") {
 				resp = nil
 			} else {
 				log.Printf("Error on NGStateRefresh: %s", err)

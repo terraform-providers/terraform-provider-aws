@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/opsworks"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -19,6 +18,10 @@ func resourceAwsOpsworksApplication() *schema.Resource {
 		Read:   resourceAwsOpsworksApplicationRead,
 		Update: resourceAwsOpsworksApplicationUpdate,
 		Delete: resourceAwsOpsworksApplicationDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
+
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
@@ -76,6 +79,13 @@ func resourceAwsOpsworksApplication() *schema.Resource {
 						"type": {
 							Type:     schema.TypeString,
 							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								opsworks.SourceTypeGit,
+								opsworks.SourceTypeSvn,
+								opsworks.SourceTypeArchive,
+								opsworks.SourceTypeS3,
+								"other",
+							}, false),
 						},
 
 						"url": {
@@ -100,26 +110,31 @@ func resourceAwsOpsworksApplication() *schema.Resource {
 						},
 
 						"ssh_key": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:      schema.TypeString,
+							Optional:  true,
+							Sensitive: true,
 						},
 					},
 				},
 			},
-			// AutoSelectOpsworksMysqlInstance, OpsworksMysqlInstance, or RdsDbInstance.
-			// anything beside auto select will lead into failure in case the instance doesn't exist
-			// XXX: validation?
 			"data_source_type": {
 				Type:     schema.TypeString,
 				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"AutoSelectOpsworksMysqlInstance",
+					"OpsworksMysqlInstance",
+					"RdsDbInstance",
+					"None",
+				}, false),
 			},
 			"data_source_database_name": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
 			"data_source_arn": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validateArn,
 			},
 			"description": {
 				Type:     schema.TypeString,
@@ -261,17 +276,16 @@ func resourceAwsOpsworksApplicationRead(d *schema.ResourceData, meta interface{}
 
 	resp, err := client.DescribeApps(req)
 	if err != nil {
-		if awserr, ok := err.(awserr.Error); ok {
-			if awserr.Code() == "ResourceNotFoundException" {
-				log.Printf("[INFO] App not found: %s", d.Id())
-				d.SetId("")
-				return nil
-			}
+		if isAWSErr(err, opsworks.ErrCodeResourceNotFoundException, "") {
+			log.Printf("[INFO] App not found: %s", d.Id())
+			d.SetId("")
+			return nil
 		}
 		return err
 	}
 
 	app := resp.Apps[0]
+	log.Printf("[DEBUG] Opsworks Application: %#v", app)
 
 	d.Set("name", app.Name)
 	d.Set("stack_id", app.StackId)
@@ -284,6 +298,7 @@ func resourceAwsOpsworksApplicationRead(d *schema.ResourceData, meta interface{}
 	resourceAwsOpsworksSetApplicationDataSources(d, app.DataSources)
 	resourceAwsOpsworksSetApplicationEnvironmentVariable(d, app.Environment)
 	resourceAwsOpsworksSetApplicationAttributes(d, app.Attributes)
+
 	return nil
 }
 

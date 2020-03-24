@@ -15,13 +15,15 @@ github.com/agext/levenshtein
 # github.com/agl/ed25519 v0.0.0-20170116200512-5312a6153412
 github.com/agl/ed25519
 github.com/agl/ed25519/edwards25519
+# github.com/andreyvit/diff v0.0.0-20170406064948-c7f18ee00883
+github.com/andreyvit/diff
 # github.com/apparentlymart/go-cidr v1.0.1
 github.com/apparentlymart/go-cidr/cidr
 # github.com/apparentlymart/go-textseg v1.0.0
 github.com/apparentlymart/go-textseg/textseg
 # github.com/armon/go-radix v1.0.0
 github.com/armon/go-radix
-# github.com/aws/aws-sdk-go v1.29.18
+# github.com/aws/aws-sdk-go v1.29.24
 github.com/aws/aws-sdk-go/aws
 github.com/aws/aws-sdk-go/aws/arn
 github.com/aws/aws-sdk-go/aws/awserr
@@ -216,7 +218,7 @@ github.com/bflad/tfproviderdocs/check
 github.com/bflad/tfproviderdocs/check/sidenavigation
 github.com/bflad/tfproviderdocs/command
 github.com/bflad/tfproviderdocs/version
-# github.com/bflad/tfproviderlint v0.11.0
+# github.com/bflad/tfproviderlint v0.14.0
 github.com/bflad/tfproviderlint/cmd/tfproviderlint
 github.com/bflad/tfproviderlint/helper/analysisutils
 github.com/bflad/tfproviderlint/helper/astutils
@@ -281,6 +283,9 @@ github.com/bflad/tfproviderlint/passes/S031
 github.com/bflad/tfproviderlint/passes/S032
 github.com/bflad/tfproviderlint/passes/S033
 github.com/bflad/tfproviderlint/passes/S034
+github.com/bflad/tfproviderlint/passes/S035
+github.com/bflad/tfproviderlint/passes/S036
+github.com/bflad/tfproviderlint/passes/S037
 github.com/bflad/tfproviderlint/passes/V001
 github.com/bflad/tfproviderlint/passes/V002
 github.com/bflad/tfproviderlint/passes/V003
@@ -296,8 +301,10 @@ github.com/bflad/tfproviderlint/passes/helper/resource/testmatchresourceattrcall
 github.com/bflad/tfproviderlint/passes/helper/schema/crudfuncinfo
 github.com/bflad/tfproviderlint/passes/helper/schema/resourcedatagetchangeassignstmt
 github.com/bflad/tfproviderlint/passes/helper/schema/resourcedatagetokexistscallexpr
+github.com/bflad/tfproviderlint/passes/helper/schema/resourcedatapartialcallexpr
 github.com/bflad/tfproviderlint/passes/helper/schema/resourcedatapartialselectorexpr
 github.com/bflad/tfproviderlint/passes/helper/schema/resourcedatasetcallexpr
+github.com/bflad/tfproviderlint/passes/helper/schema/resourcedatasetpartialcallexpr
 github.com/bflad/tfproviderlint/passes/helper/schema/resourcedatasetpartialselectorexpr
 github.com/bflad/tfproviderlint/passes/helper/schema/resourceinfo
 github.com/bflad/tfproviderlint/passes/helper/schema/resourceinfodatasourceonly
@@ -308,7 +315,9 @@ github.com/bflad/tfproviderlint/passes/helper/schema/schemainfocomputedonly
 github.com/bflad/tfproviderlint/passes/helper/schema/schemamapcompositelit
 github.com/bflad/tfproviderlint/passes/helper/schema/schemavalidatefuncinfo
 github.com/bflad/tfproviderlint/passes/helper/validation/cidrnetworkselectorexpr
+github.com/bflad/tfproviderlint/passes/helper/validation/iprangecallexpr
 github.com/bflad/tfproviderlint/passes/helper/validation/iprangeselectorexpr
+github.com/bflad/tfproviderlint/passes/helper/validation/singleipcallexpr
 github.com/bflad/tfproviderlint/passes/helper/validation/singleipselectorexpr
 github.com/bflad/tfproviderlint/passes/helper/validation/validatejsonstringselectorexpr
 github.com/bflad/tfproviderlint/passes/helper/validation/validatelistuniquestringsselectorexpr
@@ -457,6 +466,8 @@ github.com/google/go-cmp/cmp/internal/value
 github.com/google/uuid
 # github.com/googleapis/gax-go/v2 v2.0.5
 github.com/googleapis/gax-go/v2
+# github.com/gookit/color v1.1.7
+github.com/gookit/color
 # github.com/gostaticanalysis/analysisutil v0.0.0-20190318220348-4088753ea4d3
 github.com/gostaticanalysis/analysisutil
 # github.com/hashicorp/aws-sdk-go-base v0.4.0
@@ -494,8 +505,9 @@ github.com/hashicorp/hcl/hcl/token
 github.com/hashicorp/hcl/json/parser
 github.com/hashicorp/hcl/json/scanner
 github.com/hashicorp/hcl/json/token
-# github.com/hashicorp/hcl/v2 v2.0.0
+# github.com/hashicorp/hcl/v2 v2.3.0
 github.com/hashicorp/hcl/v2
+github.com/hashicorp/hcl/v2/ext/customdecode
 github.com/hashicorp/hcl/v2/ext/dynblock
 github.com/hashicorp/hcl/v2/ext/typeexpr
 github.com/hashicorp/hcl/v2/gohcl
@@ -511,7 +523,7 @@ github.com/hashicorp/logutils
 github.com/hashicorp/terraform-config-inspect/tfconfig
 # github.com/hashicorp/terraform-json v0.4.0
 github.com/hashicorp/terraform-json
-# github.com/hashicorp/terraform-plugin-sdk v1.7.0
+# github.com/hashicorp/terraform-plugin-sdk v1.8.0
 github.com/hashicorp/terraform-plugin-sdk/acctest
 github.com/hashicorp/terraform-plugin-sdk/helper/acctest
 github.com/hashicorp/terraform-plugin-sdk/helper/customdiff
@@ -585,6 +597,15 @@ github.com/jingyugao/rowserrcheck/passes/rowserr
 github.com/jirfag/go-printf-func-name/pkg/analyzer
 # github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af
 github.com/jmespath/go-jmespath
+# github.com/katbyte/terrafmt v0.2.1-0.20200303174203-e6a3e82cb21b
+github.com/katbyte/terrafmt
+github.com/katbyte/terrafmt/cli
+github.com/katbyte/terrafmt/lib/blocks
+github.com/katbyte/terrafmt/lib/common
+github.com/katbyte/terrafmt/lib/fmtverbs
+github.com/katbyte/terrafmt/lib/format
+github.com/katbyte/terrafmt/lib/upgrade012
+github.com/katbyte/terrafmt/lib/version
 # github.com/keybase/go-crypto v0.0.0-20161004153544-93f5b35093ba
 github.com/keybase/go-crypto/brainpool
 github.com/keybase/go-crypto/cast5
@@ -657,6 +678,8 @@ github.com/pquerna/otp/totp
 # github.com/securego/gosec v0.0.0-20200103095621-79fbf3af8d83
 github.com/securego/gosec
 github.com/securego/gosec/rules
+# github.com/sergi/go-diff v1.0.0
+github.com/sergi/go-diff/diffmatchpatch
 # github.com/sirupsen/logrus v1.4.2
 github.com/sirupsen/logrus
 # github.com/sourcegraph/go-diff v0.5.1

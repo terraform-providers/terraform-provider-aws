@@ -179,7 +179,7 @@ func (c *AppMesh) CreateRouteRequest(input *CreateRouteInput) (req *request.Requ
 // If your route matches a request, you can distribute traffic to one or more
 // target virtual nodes with relative weighting.
 //
-// For more information about routes, see Routes (https://docs.aws.amazon.com//app-mesh/latest/userguide/routes.html).
+// For more information about routes, see Routes (https://docs.aws.amazon.com/app-mesh/latest/userguide/routes.html).
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -307,7 +307,7 @@ func (c *AppMesh) CreateVirtualNodeRequest(input *CreateVirtualNodeInput) (req *
 // override the node.cluster value that is set by APPMESH_VIRTUAL_NODE_NAME
 // with the APPMESH_VIRTUAL_NODE_CLUSTER environment variable.
 //
-// For more information about virtual nodes, see Virtual Nodes (https://docs.aws.amazon.com//app-mesh/latest/userguide/virtual_nodes.html).
+// For more information about virtual nodes, see Virtual Nodes (https://docs.aws.amazon.com/app-mesh/latest/userguide/virtual_nodes.html).
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -423,7 +423,7 @@ func (c *AppMesh) CreateVirtualRouterRequest(input *CreateVirtualRouterInput) (r
 // mesh. After you create your virtual router, create and associate routes for
 // your virtual router that direct incoming requests to different virtual nodes.
 //
-// For more information about virtual routers, see Virtual Routers (https://docs.aws.amazon.com//app-mesh/latest/userguide/virtual_routers.html).
+// For more information about virtual routers, see Virtual Routers (https://docs.aws.amazon.com/app-mesh/latest/userguide/virtual_routers.html).
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -538,7 +538,7 @@ func (c *AppMesh) CreateVirtualServiceRequest(input *CreateVirtualServiceInput) 
 // are routed to the virtual node or virtual router that is specified as the
 // provider for the virtual service.
 //
-// For more information about virtual services, see Virtual Services (https://docs.aws.amazon.com//app-mesh/latest/userguide/virtual_services.html).
+// For more information about virtual services, see Virtual Services (https://docs.aws.amazon.com/app-mesh/latest/userguide/virtual_services.html).
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -3833,6 +3833,8 @@ type CreateRouteInput struct {
 	// MeshName is a required field
 	MeshName *string `location:"uri" locationName:"meshName" min:"1" type:"string" required:"true"`
 
+	MeshOwner *string `location:"querystring" locationName:"meshOwner" min:"12" type:"string"`
+
 	// RouteName is a required field
 	RouteName *string `locationName:"routeName" min:"1" type:"string" required:"true"`
 
@@ -3865,6 +3867,9 @@ func (s *CreateRouteInput) Validate() error {
 	}
 	if s.MeshName != nil && len(*s.MeshName) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("MeshName", 1))
+	}
+	if s.MeshOwner != nil && len(*s.MeshOwner) < 12 {
+		invalidParams.Add(request.NewErrParamMinLen("MeshOwner", 12))
 	}
 	if s.RouteName == nil {
 		invalidParams.Add(request.NewErrParamRequired("RouteName"))
@@ -3912,6 +3917,12 @@ func (s *CreateRouteInput) SetClientToken(v string) *CreateRouteInput {
 // SetMeshName sets the MeshName field's value.
 func (s *CreateRouteInput) SetMeshName(v string) *CreateRouteInput {
 	s.MeshName = &v
+	return s
+}
+
+// SetMeshOwner sets the MeshOwner field's value.
+func (s *CreateRouteInput) SetMeshOwner(v string) *CreateRouteInput {
+	s.MeshOwner = &v
 	return s
 }
 
@@ -3972,6 +3983,8 @@ type CreateVirtualNodeInput struct {
 	// MeshName is a required field
 	MeshName *string `location:"uri" locationName:"meshName" min:"1" type:"string" required:"true"`
 
+	MeshOwner *string `location:"querystring" locationName:"meshOwner" min:"12" type:"string"`
+
 	// An object that represents the specification of a virtual node.
 	//
 	// Spec is a required field
@@ -4001,6 +4014,9 @@ func (s *CreateVirtualNodeInput) Validate() error {
 	}
 	if s.MeshName != nil && len(*s.MeshName) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("MeshName", 1))
+	}
+	if s.MeshOwner != nil && len(*s.MeshOwner) < 12 {
+		invalidParams.Add(request.NewErrParamMinLen("MeshOwner", 12))
 	}
 	if s.Spec == nil {
 		invalidParams.Add(request.NewErrParamRequired("Spec"))
@@ -4042,6 +4058,12 @@ func (s *CreateVirtualNodeInput) SetClientToken(v string) *CreateVirtualNodeInpu
 // SetMeshName sets the MeshName field's value.
 func (s *CreateVirtualNodeInput) SetMeshName(v string) *CreateVirtualNodeInput {
 	s.MeshName = &v
+	return s
+}
+
+// SetMeshOwner sets the MeshOwner field's value.
+func (s *CreateVirtualNodeInput) SetMeshOwner(v string) *CreateVirtualNodeInput {
+	s.MeshOwner = &v
 	return s
 }
 
@@ -4096,6 +4118,8 @@ type CreateVirtualRouterInput struct {
 	// MeshName is a required field
 	MeshName *string `location:"uri" locationName:"meshName" min:"1" type:"string" required:"true"`
 
+	MeshOwner *string `location:"querystring" locationName:"meshOwner" min:"12" type:"string"`
+
 	// An object that represents the specification of a virtual router.
 	//
 	// Spec is a required field
@@ -4125,6 +4149,9 @@ func (s *CreateVirtualRouterInput) Validate() error {
 	}
 	if s.MeshName != nil && len(*s.MeshName) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("MeshName", 1))
+	}
+	if s.MeshOwner != nil && len(*s.MeshOwner) < 12 {
+		invalidParams.Add(request.NewErrParamMinLen("MeshOwner", 12))
 	}
 	if s.Spec == nil {
 		invalidParams.Add(request.NewErrParamRequired("Spec"))
@@ -4166,6 +4193,12 @@ func (s *CreateVirtualRouterInput) SetClientToken(v string) *CreateVirtualRouter
 // SetMeshName sets the MeshName field's value.
 func (s *CreateVirtualRouterInput) SetMeshName(v string) *CreateVirtualRouterInput {
 	s.MeshName = &v
+	return s
+}
+
+// SetMeshOwner sets the MeshOwner field's value.
+func (s *CreateVirtualRouterInput) SetMeshOwner(v string) *CreateVirtualRouterInput {
+	s.MeshOwner = &v
 	return s
 }
 
@@ -4220,6 +4253,8 @@ type CreateVirtualServiceInput struct {
 	// MeshName is a required field
 	MeshName *string `location:"uri" locationName:"meshName" min:"1" type:"string" required:"true"`
 
+	MeshOwner *string `location:"querystring" locationName:"meshOwner" min:"12" type:"string"`
+
 	// An object that represents the specification of a virtual service.
 	//
 	// Spec is a required field
@@ -4249,6 +4284,9 @@ func (s *CreateVirtualServiceInput) Validate() error {
 	}
 	if s.MeshName != nil && len(*s.MeshName) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("MeshName", 1))
+	}
+	if s.MeshOwner != nil && len(*s.MeshOwner) < 12 {
+		invalidParams.Add(request.NewErrParamMinLen("MeshOwner", 12))
 	}
 	if s.Spec == nil {
 		invalidParams.Add(request.NewErrParamRequired("Spec"))
@@ -4287,6 +4325,12 @@ func (s *CreateVirtualServiceInput) SetClientToken(v string) *CreateVirtualServi
 // SetMeshName sets the MeshName field's value.
 func (s *CreateVirtualServiceInput) SetMeshName(v string) *CreateVirtualServiceInput {
 	s.MeshName = &v
+	return s
+}
+
+// SetMeshOwner sets the MeshOwner field's value.
+func (s *CreateVirtualServiceInput) SetMeshOwner(v string) *CreateVirtualServiceInput {
+	s.MeshOwner = &v
 	return s
 }
 
@@ -4403,6 +4447,8 @@ type DeleteRouteInput struct {
 	// MeshName is a required field
 	MeshName *string `location:"uri" locationName:"meshName" min:"1" type:"string" required:"true"`
 
+	MeshOwner *string `location:"querystring" locationName:"meshOwner" min:"12" type:"string"`
+
 	// RouteName is a required field
 	RouteName *string `location:"uri" locationName:"routeName" min:"1" type:"string" required:"true"`
 
@@ -4429,6 +4475,9 @@ func (s *DeleteRouteInput) Validate() error {
 	if s.MeshName != nil && len(*s.MeshName) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("MeshName", 1))
 	}
+	if s.MeshOwner != nil && len(*s.MeshOwner) < 12 {
+		invalidParams.Add(request.NewErrParamMinLen("MeshOwner", 12))
+	}
 	if s.RouteName == nil {
 		invalidParams.Add(request.NewErrParamRequired("RouteName"))
 	}
@@ -4451,6 +4500,12 @@ func (s *DeleteRouteInput) Validate() error {
 // SetMeshName sets the MeshName field's value.
 func (s *DeleteRouteInput) SetMeshName(v string) *DeleteRouteInput {
 	s.MeshName = &v
+	return s
+}
+
+// SetMeshOwner sets the MeshOwner field's value.
+func (s *DeleteRouteInput) SetMeshOwner(v string) *DeleteRouteInput {
+	s.MeshOwner = &v
 	return s
 }
 
@@ -4497,6 +4552,8 @@ type DeleteVirtualNodeInput struct {
 	// MeshName is a required field
 	MeshName *string `location:"uri" locationName:"meshName" min:"1" type:"string" required:"true"`
 
+	MeshOwner *string `location:"querystring" locationName:"meshOwner" min:"12" type:"string"`
+
 	// VirtualNodeName is a required field
 	VirtualNodeName *string `location:"uri" locationName:"virtualNodeName" min:"1" type:"string" required:"true"`
 }
@@ -4520,6 +4577,9 @@ func (s *DeleteVirtualNodeInput) Validate() error {
 	if s.MeshName != nil && len(*s.MeshName) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("MeshName", 1))
 	}
+	if s.MeshOwner != nil && len(*s.MeshOwner) < 12 {
+		invalidParams.Add(request.NewErrParamMinLen("MeshOwner", 12))
+	}
 	if s.VirtualNodeName == nil {
 		invalidParams.Add(request.NewErrParamRequired("VirtualNodeName"))
 	}
@@ -4536,6 +4596,12 @@ func (s *DeleteVirtualNodeInput) Validate() error {
 // SetMeshName sets the MeshName field's value.
 func (s *DeleteVirtualNodeInput) SetMeshName(v string) *DeleteVirtualNodeInput {
 	s.MeshName = &v
+	return s
+}
+
+// SetMeshOwner sets the MeshOwner field's value.
+func (s *DeleteVirtualNodeInput) SetMeshOwner(v string) *DeleteVirtualNodeInput {
+	s.MeshOwner = &v
 	return s
 }
 
@@ -4576,6 +4642,8 @@ type DeleteVirtualRouterInput struct {
 	// MeshName is a required field
 	MeshName *string `location:"uri" locationName:"meshName" min:"1" type:"string" required:"true"`
 
+	MeshOwner *string `location:"querystring" locationName:"meshOwner" min:"12" type:"string"`
+
 	// VirtualRouterName is a required field
 	VirtualRouterName *string `location:"uri" locationName:"virtualRouterName" min:"1" type:"string" required:"true"`
 }
@@ -4599,6 +4667,9 @@ func (s *DeleteVirtualRouterInput) Validate() error {
 	if s.MeshName != nil && len(*s.MeshName) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("MeshName", 1))
 	}
+	if s.MeshOwner != nil && len(*s.MeshOwner) < 12 {
+		invalidParams.Add(request.NewErrParamMinLen("MeshOwner", 12))
+	}
 	if s.VirtualRouterName == nil {
 		invalidParams.Add(request.NewErrParamRequired("VirtualRouterName"))
 	}
@@ -4615,6 +4686,12 @@ func (s *DeleteVirtualRouterInput) Validate() error {
 // SetMeshName sets the MeshName field's value.
 func (s *DeleteVirtualRouterInput) SetMeshName(v string) *DeleteVirtualRouterInput {
 	s.MeshName = &v
+	return s
+}
+
+// SetMeshOwner sets the MeshOwner field's value.
+func (s *DeleteVirtualRouterInput) SetMeshOwner(v string) *DeleteVirtualRouterInput {
+	s.MeshOwner = &v
 	return s
 }
 
@@ -4655,6 +4732,8 @@ type DeleteVirtualServiceInput struct {
 	// MeshName is a required field
 	MeshName *string `location:"uri" locationName:"meshName" min:"1" type:"string" required:"true"`
 
+	MeshOwner *string `location:"querystring" locationName:"meshOwner" min:"12" type:"string"`
+
 	// VirtualServiceName is a required field
 	VirtualServiceName *string `location:"uri" locationName:"virtualServiceName" type:"string" required:"true"`
 }
@@ -4678,6 +4757,9 @@ func (s *DeleteVirtualServiceInput) Validate() error {
 	if s.MeshName != nil && len(*s.MeshName) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("MeshName", 1))
 	}
+	if s.MeshOwner != nil && len(*s.MeshOwner) < 12 {
+		invalidParams.Add(request.NewErrParamMinLen("MeshOwner", 12))
+	}
 	if s.VirtualServiceName == nil {
 		invalidParams.Add(request.NewErrParamRequired("VirtualServiceName"))
 	}
@@ -4694,6 +4776,12 @@ func (s *DeleteVirtualServiceInput) Validate() error {
 // SetMeshName sets the MeshName field's value.
 func (s *DeleteVirtualServiceInput) SetMeshName(v string) *DeleteVirtualServiceInput {
 	s.MeshName = &v
+	return s
+}
+
+// SetMeshOwner sets the MeshOwner field's value.
+func (s *DeleteVirtualServiceInput) SetMeshOwner(v string) *DeleteVirtualServiceInput {
+	s.MeshOwner = &v
 	return s
 }
 
@@ -4733,6 +4821,8 @@ type DescribeMeshInput struct {
 
 	// MeshName is a required field
 	MeshName *string `location:"uri" locationName:"meshName" min:"1" type:"string" required:"true"`
+
+	MeshOwner *string `location:"querystring" locationName:"meshOwner" min:"12" type:"string"`
 }
 
 // String returns the string representation
@@ -4754,6 +4844,9 @@ func (s *DescribeMeshInput) Validate() error {
 	if s.MeshName != nil && len(*s.MeshName) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("MeshName", 1))
 	}
+	if s.MeshOwner != nil && len(*s.MeshOwner) < 12 {
+		invalidParams.Add(request.NewErrParamMinLen("MeshOwner", 12))
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -4764,6 +4857,12 @@ func (s *DescribeMeshInput) Validate() error {
 // SetMeshName sets the MeshName field's value.
 func (s *DescribeMeshInput) SetMeshName(v string) *DescribeMeshInput {
 	s.MeshName = &v
+	return s
+}
+
+// SetMeshOwner sets the MeshOwner field's value.
+func (s *DescribeMeshInput) SetMeshOwner(v string) *DescribeMeshInput {
+	s.MeshOwner = &v
 	return s
 }
 
@@ -4798,6 +4897,8 @@ type DescribeRouteInput struct {
 	// MeshName is a required field
 	MeshName *string `location:"uri" locationName:"meshName" min:"1" type:"string" required:"true"`
 
+	MeshOwner *string `location:"querystring" locationName:"meshOwner" min:"12" type:"string"`
+
 	// RouteName is a required field
 	RouteName *string `location:"uri" locationName:"routeName" min:"1" type:"string" required:"true"`
 
@@ -4824,6 +4925,9 @@ func (s *DescribeRouteInput) Validate() error {
 	if s.MeshName != nil && len(*s.MeshName) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("MeshName", 1))
 	}
+	if s.MeshOwner != nil && len(*s.MeshOwner) < 12 {
+		invalidParams.Add(request.NewErrParamMinLen("MeshOwner", 12))
+	}
 	if s.RouteName == nil {
 		invalidParams.Add(request.NewErrParamRequired("RouteName"))
 	}
@@ -4846,6 +4950,12 @@ func (s *DescribeRouteInput) Validate() error {
 // SetMeshName sets the MeshName field's value.
 func (s *DescribeRouteInput) SetMeshName(v string) *DescribeRouteInput {
 	s.MeshName = &v
+	return s
+}
+
+// SetMeshOwner sets the MeshOwner field's value.
+func (s *DescribeRouteInput) SetMeshOwner(v string) *DescribeRouteInput {
+	s.MeshOwner = &v
 	return s
 }
 
@@ -4892,6 +5002,8 @@ type DescribeVirtualNodeInput struct {
 	// MeshName is a required field
 	MeshName *string `location:"uri" locationName:"meshName" min:"1" type:"string" required:"true"`
 
+	MeshOwner *string `location:"querystring" locationName:"meshOwner" min:"12" type:"string"`
+
 	// VirtualNodeName is a required field
 	VirtualNodeName *string `location:"uri" locationName:"virtualNodeName" min:"1" type:"string" required:"true"`
 }
@@ -4915,6 +5027,9 @@ func (s *DescribeVirtualNodeInput) Validate() error {
 	if s.MeshName != nil && len(*s.MeshName) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("MeshName", 1))
 	}
+	if s.MeshOwner != nil && len(*s.MeshOwner) < 12 {
+		invalidParams.Add(request.NewErrParamMinLen("MeshOwner", 12))
+	}
 	if s.VirtualNodeName == nil {
 		invalidParams.Add(request.NewErrParamRequired("VirtualNodeName"))
 	}
@@ -4931,6 +5046,12 @@ func (s *DescribeVirtualNodeInput) Validate() error {
 // SetMeshName sets the MeshName field's value.
 func (s *DescribeVirtualNodeInput) SetMeshName(v string) *DescribeVirtualNodeInput {
 	s.MeshName = &v
+	return s
+}
+
+// SetMeshOwner sets the MeshOwner field's value.
+func (s *DescribeVirtualNodeInput) SetMeshOwner(v string) *DescribeVirtualNodeInput {
+	s.MeshOwner = &v
 	return s
 }
 
@@ -4971,6 +5092,8 @@ type DescribeVirtualRouterInput struct {
 	// MeshName is a required field
 	MeshName *string `location:"uri" locationName:"meshName" min:"1" type:"string" required:"true"`
 
+	MeshOwner *string `location:"querystring" locationName:"meshOwner" min:"12" type:"string"`
+
 	// VirtualRouterName is a required field
 	VirtualRouterName *string `location:"uri" locationName:"virtualRouterName" min:"1" type:"string" required:"true"`
 }
@@ -4994,6 +5117,9 @@ func (s *DescribeVirtualRouterInput) Validate() error {
 	if s.MeshName != nil && len(*s.MeshName) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("MeshName", 1))
 	}
+	if s.MeshOwner != nil && len(*s.MeshOwner) < 12 {
+		invalidParams.Add(request.NewErrParamMinLen("MeshOwner", 12))
+	}
 	if s.VirtualRouterName == nil {
 		invalidParams.Add(request.NewErrParamRequired("VirtualRouterName"))
 	}
@@ -5010,6 +5136,12 @@ func (s *DescribeVirtualRouterInput) Validate() error {
 // SetMeshName sets the MeshName field's value.
 func (s *DescribeVirtualRouterInput) SetMeshName(v string) *DescribeVirtualRouterInput {
 	s.MeshName = &v
+	return s
+}
+
+// SetMeshOwner sets the MeshOwner field's value.
+func (s *DescribeVirtualRouterInput) SetMeshOwner(v string) *DescribeVirtualRouterInput {
+	s.MeshOwner = &v
 	return s
 }
 
@@ -5050,6 +5182,8 @@ type DescribeVirtualServiceInput struct {
 	// MeshName is a required field
 	MeshName *string `location:"uri" locationName:"meshName" min:"1" type:"string" required:"true"`
 
+	MeshOwner *string `location:"querystring" locationName:"meshOwner" min:"12" type:"string"`
+
 	// VirtualServiceName is a required field
 	VirtualServiceName *string `location:"uri" locationName:"virtualServiceName" type:"string" required:"true"`
 }
@@ -5073,6 +5207,9 @@ func (s *DescribeVirtualServiceInput) Validate() error {
 	if s.MeshName != nil && len(*s.MeshName) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("MeshName", 1))
 	}
+	if s.MeshOwner != nil && len(*s.MeshOwner) < 12 {
+		invalidParams.Add(request.NewErrParamMinLen("MeshOwner", 12))
+	}
 	if s.VirtualServiceName == nil {
 		invalidParams.Add(request.NewErrParamRequired("VirtualServiceName"))
 	}
@@ -5089,6 +5226,12 @@ func (s *DescribeVirtualServiceInput) Validate() error {
 // SetMeshName sets the MeshName field's value.
 func (s *DescribeVirtualServiceInput) SetMeshName(v string) *DescribeVirtualServiceInput {
 	s.MeshName = &v
+	return s
+}
+
+// SetMeshOwner sets the MeshOwner field's value.
+func (s *DescribeVirtualServiceInput) SetMeshOwner(v string) *DescribeVirtualServiceInput {
+	s.MeshOwner = &v
 	return s
 }
 
@@ -6496,6 +6639,8 @@ type ListRoutesInput struct {
 	// MeshName is a required field
 	MeshName *string `location:"uri" locationName:"meshName" min:"1" type:"string" required:"true"`
 
+	MeshOwner *string `location:"querystring" locationName:"meshOwner" min:"12" type:"string"`
+
 	NextToken *string `location:"querystring" locationName:"nextToken" type:"string"`
 
 	// VirtualRouterName is a required field
@@ -6524,6 +6669,9 @@ func (s *ListRoutesInput) Validate() error {
 	if s.MeshName != nil && len(*s.MeshName) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("MeshName", 1))
 	}
+	if s.MeshOwner != nil && len(*s.MeshOwner) < 12 {
+		invalidParams.Add(request.NewErrParamMinLen("MeshOwner", 12))
+	}
 	if s.VirtualRouterName == nil {
 		invalidParams.Add(request.NewErrParamRequired("VirtualRouterName"))
 	}
@@ -6546,6 +6694,12 @@ func (s *ListRoutesInput) SetLimit(v int64) *ListRoutesInput {
 // SetMeshName sets the MeshName field's value.
 func (s *ListRoutesInput) SetMeshName(v string) *ListRoutesInput {
 	s.MeshName = &v
+	return s
+}
+
+// SetMeshOwner sets the MeshOwner field's value.
+func (s *ListRoutesInput) SetMeshOwner(v string) *ListRoutesInput {
+	s.MeshOwner = &v
 	return s
 }
 
@@ -6686,6 +6840,8 @@ type ListVirtualNodesInput struct {
 	// MeshName is a required field
 	MeshName *string `location:"uri" locationName:"meshName" min:"1" type:"string" required:"true"`
 
+	MeshOwner *string `location:"querystring" locationName:"meshOwner" min:"12" type:"string"`
+
 	NextToken *string `location:"querystring" locationName:"nextToken" type:"string"`
 }
 
@@ -6711,6 +6867,9 @@ func (s *ListVirtualNodesInput) Validate() error {
 	if s.MeshName != nil && len(*s.MeshName) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("MeshName", 1))
 	}
+	if s.MeshOwner != nil && len(*s.MeshOwner) < 12 {
+		invalidParams.Add(request.NewErrParamMinLen("MeshOwner", 12))
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -6727,6 +6886,12 @@ func (s *ListVirtualNodesInput) SetLimit(v int64) *ListVirtualNodesInput {
 // SetMeshName sets the MeshName field's value.
 func (s *ListVirtualNodesInput) SetMeshName(v string) *ListVirtualNodesInput {
 	s.MeshName = &v
+	return s
+}
+
+// SetMeshOwner sets the MeshOwner field's value.
+func (s *ListVirtualNodesInput) SetMeshOwner(v string) *ListVirtualNodesInput {
+	s.MeshOwner = &v
 	return s
 }
 
@@ -6775,6 +6940,8 @@ type ListVirtualRoutersInput struct {
 	// MeshName is a required field
 	MeshName *string `location:"uri" locationName:"meshName" min:"1" type:"string" required:"true"`
 
+	MeshOwner *string `location:"querystring" locationName:"meshOwner" min:"12" type:"string"`
+
 	NextToken *string `location:"querystring" locationName:"nextToken" type:"string"`
 }
 
@@ -6800,6 +6967,9 @@ func (s *ListVirtualRoutersInput) Validate() error {
 	if s.MeshName != nil && len(*s.MeshName) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("MeshName", 1))
 	}
+	if s.MeshOwner != nil && len(*s.MeshOwner) < 12 {
+		invalidParams.Add(request.NewErrParamMinLen("MeshOwner", 12))
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -6816,6 +6986,12 @@ func (s *ListVirtualRoutersInput) SetLimit(v int64) *ListVirtualRoutersInput {
 // SetMeshName sets the MeshName field's value.
 func (s *ListVirtualRoutersInput) SetMeshName(v string) *ListVirtualRoutersInput {
 	s.MeshName = &v
+	return s
+}
+
+// SetMeshOwner sets the MeshOwner field's value.
+func (s *ListVirtualRoutersInput) SetMeshOwner(v string) *ListVirtualRoutersInput {
+	s.MeshOwner = &v
 	return s
 }
 
@@ -6864,6 +7040,8 @@ type ListVirtualServicesInput struct {
 	// MeshName is a required field
 	MeshName *string `location:"uri" locationName:"meshName" min:"1" type:"string" required:"true"`
 
+	MeshOwner *string `location:"querystring" locationName:"meshOwner" min:"12" type:"string"`
+
 	NextToken *string `location:"querystring" locationName:"nextToken" type:"string"`
 }
 
@@ -6889,6 +7067,9 @@ func (s *ListVirtualServicesInput) Validate() error {
 	if s.MeshName != nil && len(*s.MeshName) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("MeshName", 1))
 	}
+	if s.MeshOwner != nil && len(*s.MeshOwner) < 12 {
+		invalidParams.Add(request.NewErrParamMinLen("MeshOwner", 12))
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -6905,6 +7086,12 @@ func (s *ListVirtualServicesInput) SetLimit(v int64) *ListVirtualServicesInput {
 // SetMeshName sets the MeshName field's value.
 func (s *ListVirtualServicesInput) SetMeshName(v string) *ListVirtualServicesInput {
 	s.MeshName = &v
+	return s
+}
+
+// SetMeshOwner sets the MeshOwner field's value.
+func (s *ListVirtualServicesInput) SetMeshOwner(v string) *ListVirtualServicesInput {
+	s.MeshOwner = &v
 	return s
 }
 
@@ -7121,7 +7308,7 @@ type ListenerTlsCertificate struct {
 
 	// An object that represents a local file certificate. The certificate must
 	// meet specific requirements and you must have proxy authorization enabled.
-	// For more information, see TLS Encryption (https://docs.aws.amazon.com//app-mesh/latest/userguide/virtual-node-tls.html#virtual-node-tls-prerequisites).
+	// For more information, see Transport Layer Security (TLS) (https://docs.aws.amazon.com/app-mesh/latest/userguide/virtual-node-tls.html#virtual-node-tls-prerequisites).
 	File *ListenerTlsFileCertificate `locationName:"file" type:"structure"`
 }
 
@@ -7169,7 +7356,7 @@ func (s *ListenerTlsCertificate) SetFile(v *ListenerTlsFileCertificate) *Listene
 
 // An object that represents a local file certificate. The certificate must
 // meet specific requirements and you must have proxy authorization enabled.
-// For more information, see TLS Encryption (https://docs.aws.amazon.com//app-mesh/latest/userguide/virtual-node-tls.html#virtual-node-tls-prerequisites).
+// For more information, see Transport Layer Security (TLS) (https://docs.aws.amazon.com/app-mesh/latest/userguide/virtual-node-tls.html#virtual-node-tls-prerequisites).
 type ListenerTlsFileCertificate struct {
 	_ struct{} `type:"structure"`
 
@@ -7381,6 +7568,12 @@ type MeshRef struct {
 
 	// MeshName is a required field
 	MeshName *string `locationName:"meshName" min:"1" type:"string" required:"true"`
+
+	// MeshOwner is a required field
+	MeshOwner *string `locationName:"meshOwner" min:"12" type:"string" required:"true"`
+
+	// ResourceOwner is a required field
+	ResourceOwner *string `locationName:"resourceOwner" min:"12" type:"string" required:"true"`
 }
 
 // String returns the string representation
@@ -7402,6 +7595,18 @@ func (s *MeshRef) SetArn(v string) *MeshRef {
 // SetMeshName sets the MeshName field's value.
 func (s *MeshRef) SetMeshName(v string) *MeshRef {
 	s.MeshName = &v
+	return s
+}
+
+// SetMeshOwner sets the MeshOwner field's value.
+func (s *MeshRef) SetMeshOwner(v string) *MeshRef {
+	s.MeshOwner = &v
+	return s
+}
+
+// SetResourceOwner sets the ResourceOwner field's value.
+func (s *MeshRef) SetResourceOwner(v string) *MeshRef {
+	s.ResourceOwner = &v
 	return s
 }
 
@@ -7645,6 +7850,12 @@ type ResourceMetadata struct {
 	// LastUpdatedAt is a required field
 	LastUpdatedAt *time.Time `locationName:"lastUpdatedAt" type:"timestamp" required:"true"`
 
+	// MeshOwner is a required field
+	MeshOwner *string `locationName:"meshOwner" min:"12" type:"string" required:"true"`
+
+	// ResourceOwner is a required field
+	ResourceOwner *string `locationName:"resourceOwner" min:"12" type:"string" required:"true"`
+
 	// Uid is a required field
 	Uid *string `locationName:"uid" type:"string" required:"true"`
 
@@ -7677,6 +7888,18 @@ func (s *ResourceMetadata) SetCreatedAt(v time.Time) *ResourceMetadata {
 // SetLastUpdatedAt sets the LastUpdatedAt field's value.
 func (s *ResourceMetadata) SetLastUpdatedAt(v time.Time) *ResourceMetadata {
 	s.LastUpdatedAt = &v
+	return s
+}
+
+// SetMeshOwner sets the MeshOwner field's value.
+func (s *ResourceMetadata) SetMeshOwner(v string) *ResourceMetadata {
+	s.MeshOwner = &v
+	return s
+}
+
+// SetResourceOwner sets the ResourceOwner field's value.
+func (s *ResourceMetadata) SetResourceOwner(v string) *ResourceMetadata {
+	s.ResourceOwner = &v
 	return s
 }
 
@@ -7777,6 +8000,12 @@ type RouteRef struct {
 	// MeshName is a required field
 	MeshName *string `locationName:"meshName" min:"1" type:"string" required:"true"`
 
+	// MeshOwner is a required field
+	MeshOwner *string `locationName:"meshOwner" min:"12" type:"string" required:"true"`
+
+	// ResourceOwner is a required field
+	ResourceOwner *string `locationName:"resourceOwner" min:"12" type:"string" required:"true"`
+
 	// RouteName is a required field
 	RouteName *string `locationName:"routeName" min:"1" type:"string" required:"true"`
 
@@ -7803,6 +8032,18 @@ func (s *RouteRef) SetArn(v string) *RouteRef {
 // SetMeshName sets the MeshName field's value.
 func (s *RouteRef) SetMeshName(v string) *RouteRef {
 	s.MeshName = &v
+	return s
+}
+
+// SetMeshOwner sets the MeshOwner field's value.
+func (s *RouteRef) SetMeshOwner(v string) *RouteRef {
+	s.MeshOwner = &v
+	return s
+}
+
+// SetResourceOwner sets the ResourceOwner field's value.
+func (s *RouteRef) SetResourceOwner(v string) *RouteRef {
+	s.ResourceOwner = &v
 	return s
 }
 
@@ -8715,6 +8956,8 @@ type UpdateRouteInput struct {
 	// MeshName is a required field
 	MeshName *string `location:"uri" locationName:"meshName" min:"1" type:"string" required:"true"`
 
+	MeshOwner *string `location:"querystring" locationName:"meshOwner" min:"12" type:"string"`
+
 	// RouteName is a required field
 	RouteName *string `location:"uri" locationName:"routeName" min:"1" type:"string" required:"true"`
 
@@ -8745,6 +8988,9 @@ func (s *UpdateRouteInput) Validate() error {
 	}
 	if s.MeshName != nil && len(*s.MeshName) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("MeshName", 1))
+	}
+	if s.MeshOwner != nil && len(*s.MeshOwner) < 12 {
+		invalidParams.Add(request.NewErrParamMinLen("MeshOwner", 12))
 	}
 	if s.RouteName == nil {
 		invalidParams.Add(request.NewErrParamRequired("RouteName"))
@@ -8782,6 +9028,12 @@ func (s *UpdateRouteInput) SetClientToken(v string) *UpdateRouteInput {
 // SetMeshName sets the MeshName field's value.
 func (s *UpdateRouteInput) SetMeshName(v string) *UpdateRouteInput {
 	s.MeshName = &v
+	return s
+}
+
+// SetMeshOwner sets the MeshOwner field's value.
+func (s *UpdateRouteInput) SetMeshOwner(v string) *UpdateRouteInput {
+	s.MeshOwner = &v
 	return s
 }
 
@@ -8836,6 +9088,8 @@ type UpdateVirtualNodeInput struct {
 	// MeshName is a required field
 	MeshName *string `location:"uri" locationName:"meshName" min:"1" type:"string" required:"true"`
 
+	MeshOwner *string `location:"querystring" locationName:"meshOwner" min:"12" type:"string"`
+
 	// An object that represents the specification of a virtual node.
 	//
 	// Spec is a required field
@@ -8863,6 +9117,9 @@ func (s *UpdateVirtualNodeInput) Validate() error {
 	}
 	if s.MeshName != nil && len(*s.MeshName) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("MeshName", 1))
+	}
+	if s.MeshOwner != nil && len(*s.MeshOwner) < 12 {
+		invalidParams.Add(request.NewErrParamMinLen("MeshOwner", 12))
 	}
 	if s.Spec == nil {
 		invalidParams.Add(request.NewErrParamRequired("Spec"))
@@ -8894,6 +9151,12 @@ func (s *UpdateVirtualNodeInput) SetClientToken(v string) *UpdateVirtualNodeInpu
 // SetMeshName sets the MeshName field's value.
 func (s *UpdateVirtualNodeInput) SetMeshName(v string) *UpdateVirtualNodeInput {
 	s.MeshName = &v
+	return s
+}
+
+// SetMeshOwner sets the MeshOwner field's value.
+func (s *UpdateVirtualNodeInput) SetMeshOwner(v string) *UpdateVirtualNodeInput {
+	s.MeshOwner = &v
 	return s
 }
 
@@ -8942,6 +9205,8 @@ type UpdateVirtualRouterInput struct {
 	// MeshName is a required field
 	MeshName *string `location:"uri" locationName:"meshName" min:"1" type:"string" required:"true"`
 
+	MeshOwner *string `location:"querystring" locationName:"meshOwner" min:"12" type:"string"`
+
 	// An object that represents the specification of a virtual router.
 	//
 	// Spec is a required field
@@ -8969,6 +9234,9 @@ func (s *UpdateVirtualRouterInput) Validate() error {
 	}
 	if s.MeshName != nil && len(*s.MeshName) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("MeshName", 1))
+	}
+	if s.MeshOwner != nil && len(*s.MeshOwner) < 12 {
+		invalidParams.Add(request.NewErrParamMinLen("MeshOwner", 12))
 	}
 	if s.Spec == nil {
 		invalidParams.Add(request.NewErrParamRequired("Spec"))
@@ -9000,6 +9268,12 @@ func (s *UpdateVirtualRouterInput) SetClientToken(v string) *UpdateVirtualRouter
 // SetMeshName sets the MeshName field's value.
 func (s *UpdateVirtualRouterInput) SetMeshName(v string) *UpdateVirtualRouterInput {
 	s.MeshName = &v
+	return s
+}
+
+// SetMeshOwner sets the MeshOwner field's value.
+func (s *UpdateVirtualRouterInput) SetMeshOwner(v string) *UpdateVirtualRouterInput {
+	s.MeshOwner = &v
 	return s
 }
 
@@ -9048,6 +9322,8 @@ type UpdateVirtualServiceInput struct {
 	// MeshName is a required field
 	MeshName *string `location:"uri" locationName:"meshName" min:"1" type:"string" required:"true"`
 
+	MeshOwner *string `location:"querystring" locationName:"meshOwner" min:"12" type:"string"`
+
 	// An object that represents the specification of a virtual service.
 	//
 	// Spec is a required field
@@ -9075,6 +9351,9 @@ func (s *UpdateVirtualServiceInput) Validate() error {
 	}
 	if s.MeshName != nil && len(*s.MeshName) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("MeshName", 1))
+	}
+	if s.MeshOwner != nil && len(*s.MeshOwner) < 12 {
+		invalidParams.Add(request.NewErrParamMinLen("MeshOwner", 12))
 	}
 	if s.Spec == nil {
 		invalidParams.Add(request.NewErrParamRequired("Spec"))
@@ -9106,6 +9385,12 @@ func (s *UpdateVirtualServiceInput) SetClientToken(v string) *UpdateVirtualServi
 // SetMeshName sets the MeshName field's value.
 func (s *UpdateVirtualServiceInput) SetMeshName(v string) *UpdateVirtualServiceInput {
 	s.MeshName = &v
+	return s
+}
+
+// SetMeshOwner sets the MeshOwner field's value.
+func (s *UpdateVirtualServiceInput) SetMeshOwner(v string) *UpdateVirtualServiceInput {
+	s.MeshOwner = &v
 	return s
 }
 
@@ -9222,6 +9507,12 @@ type VirtualNodeRef struct {
 	// MeshName is a required field
 	MeshName *string `locationName:"meshName" min:"1" type:"string" required:"true"`
 
+	// MeshOwner is a required field
+	MeshOwner *string `locationName:"meshOwner" min:"12" type:"string" required:"true"`
+
+	// ResourceOwner is a required field
+	ResourceOwner *string `locationName:"resourceOwner" min:"12" type:"string" required:"true"`
+
 	// VirtualNodeName is a required field
 	VirtualNodeName *string `locationName:"virtualNodeName" min:"1" type:"string" required:"true"`
 }
@@ -9245,6 +9536,18 @@ func (s *VirtualNodeRef) SetArn(v string) *VirtualNodeRef {
 // SetMeshName sets the MeshName field's value.
 func (s *VirtualNodeRef) SetMeshName(v string) *VirtualNodeRef {
 	s.MeshName = &v
+	return s
+}
+
+// SetMeshOwner sets the MeshOwner field's value.
+func (s *VirtualNodeRef) SetMeshOwner(v string) *VirtualNodeRef {
+	s.MeshOwner = &v
+	return s
+}
+
+// SetResourceOwner sets the ResourceOwner field's value.
+func (s *VirtualNodeRef) SetResourceOwner(v string) *VirtualNodeRef {
+	s.ResourceOwner = &v
 	return s
 }
 
@@ -9542,6 +9845,12 @@ type VirtualRouterRef struct {
 	// MeshName is a required field
 	MeshName *string `locationName:"meshName" min:"1" type:"string" required:"true"`
 
+	// MeshOwner is a required field
+	MeshOwner *string `locationName:"meshOwner" min:"12" type:"string" required:"true"`
+
+	// ResourceOwner is a required field
+	ResourceOwner *string `locationName:"resourceOwner" min:"12" type:"string" required:"true"`
+
 	// VirtualRouterName is a required field
 	VirtualRouterName *string `locationName:"virtualRouterName" min:"1" type:"string" required:"true"`
 }
@@ -9565,6 +9874,18 @@ func (s *VirtualRouterRef) SetArn(v string) *VirtualRouterRef {
 // SetMeshName sets the MeshName field's value.
 func (s *VirtualRouterRef) SetMeshName(v string) *VirtualRouterRef {
 	s.MeshName = &v
+	return s
+}
+
+// SetMeshOwner sets the MeshOwner field's value.
+func (s *VirtualRouterRef) SetMeshOwner(v string) *VirtualRouterRef {
+	s.MeshOwner = &v
+	return s
+}
+
+// SetResourceOwner sets the ResourceOwner field's value.
+func (s *VirtualRouterRef) SetResourceOwner(v string) *VirtualRouterRef {
+	s.ResourceOwner = &v
 	return s
 }
 
@@ -9864,6 +10185,12 @@ type VirtualServiceRef struct {
 	// MeshName is a required field
 	MeshName *string `locationName:"meshName" min:"1" type:"string" required:"true"`
 
+	// MeshOwner is a required field
+	MeshOwner *string `locationName:"meshOwner" min:"12" type:"string" required:"true"`
+
+	// ResourceOwner is a required field
+	ResourceOwner *string `locationName:"resourceOwner" min:"12" type:"string" required:"true"`
+
 	// VirtualServiceName is a required field
 	VirtualServiceName *string `locationName:"virtualServiceName" type:"string" required:"true"`
 }
@@ -9887,6 +10214,18 @@ func (s *VirtualServiceRef) SetArn(v string) *VirtualServiceRef {
 // SetMeshName sets the MeshName field's value.
 func (s *VirtualServiceRef) SetMeshName(v string) *VirtualServiceRef {
 	s.MeshName = &v
+	return s
+}
+
+// SetMeshOwner sets the MeshOwner field's value.
+func (s *VirtualServiceRef) SetMeshOwner(v string) *VirtualServiceRef {
+	s.MeshOwner = &v
+	return s
+}
+
+// SetResourceOwner sets the ResourceOwner field's value.
+func (s *VirtualServiceRef) SetResourceOwner(v string) *VirtualServiceRef {
+	s.ResourceOwner = &v
 	return s
 }
 

@@ -129,7 +129,7 @@ func resourceAwsApiGatewayStage() *schema.Resource {
 }
 
 func resourceAwsApiGatewayStageCreate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	conn := meta.(*AWSClient).apigatewayconn
 
 	d.Partial(true)
 
@@ -216,7 +216,7 @@ func resourceAwsApiGatewayStageCreate(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceAwsApiGatewayStageRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	conn := meta.(*AWSClient).apigatewayconn
 
 	log.Printf("[DEBUG] Reading API Gateway Stage %s", d.Id())
 	restApiId := d.Get("rest_api_id").(string)
@@ -271,8 +271,7 @@ func resourceAwsApiGatewayStageRead(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("error setting variables: %s", err)
 	}
 
-	region := meta.(*AWSClient).region
-	d.Set("invoke_url", buildApiGatewayInvokeURL(restApiId, region, stageName))
+	d.Set("invoke_url", buildApiGatewayInvokeURL(meta.(*AWSClient), restApiId, stageName))
 
 	executionArn := arn.ARN{
 		Partition: meta.(*AWSClient).partition,
@@ -287,7 +286,7 @@ func resourceAwsApiGatewayStageRead(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceAwsApiGatewayStageUpdate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	conn := meta.(*AWSClient).apigatewayconn
 
 	d.Partial(true)
 
@@ -481,7 +480,7 @@ func apiGatewayStageCacheRefreshFunc(conn *apigateway.APIGateway, apiId, stageNa
 }
 
 func resourceAwsApiGatewayStageDelete(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	conn := meta.(*AWSClient).apigatewayconn
 	log.Printf("[DEBUG] Deleting API Gateway Stage: %s", d.Id())
 	input := apigateway.DeleteStageInput{
 		RestApiId: aws.String(d.Get("rest_api_id").(string)),

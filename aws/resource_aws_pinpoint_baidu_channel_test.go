@@ -2,7 +2,6 @@ package aws
 
 import (
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/service/pinpoint"
@@ -13,10 +12,6 @@ import (
 )
 
 func TestAccAWSPinpointBaiduChannel_basic(t *testing.T) {
-	oldDefaultRegion := os.Getenv("AWS_DEFAULT_REGION")
-	os.Setenv("AWS_DEFAULT_REGION", "us-east-1")
-	defer os.Setenv("AWS_DEFAULT_REGION", oldDefaultRegion)
-
 	var channel pinpoint.BaiduChannelResponse
 	resourceName := "aws_pinpoint_baidu_channel.channel"
 
@@ -25,7 +20,7 @@ func TestAccAWSPinpointBaiduChannel_basic(t *testing.T) {
 	secretKey := "456"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
+		PreCheck:      func() { testAccPreCheck(t); testAccPreCheckAWSPinpointApp(t) },
 		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSPinpointBaiduChannelDestroy,
@@ -46,7 +41,7 @@ func TestAccAWSPinpointBaiduChannel_basic(t *testing.T) {
 				ImportStateVerifyIgnore: []string{"api_key", "secret_key"},
 			},
 			{
-				Config: testAccAWSPinpointBaiduChannelConfig_update(apikeyUpdated, secretKey),
+				Config: testAccAWSPinpointBaiduChannelConfig_basic(apikeyUpdated, secretKey),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSPinpointBaiduChannelExists(resourceName, &channel),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "false"),
@@ -89,28 +84,6 @@ func testAccCheckAWSPinpointBaiduChannelExists(n string, channel *pinpoint.Baidu
 
 func testAccAWSPinpointBaiduChannelConfig_basic(apiKey, secretKey string) string {
 	return fmt.Sprintf(`
-provider "aws" {
-  region = "us-east-1"
-}
-
-resource "aws_pinpoint_app" "test_app" {}
-
-resource "aws_pinpoint_baidu_channel" "channel" {
-  application_id = "${aws_pinpoint_app.test_app.application_id}"
-
-  enabled    = "false"
-  api_key    = "%s"
-  secret_key = "%s"
-}
-`, apiKey, secretKey)
-}
-
-func testAccAWSPinpointBaiduChannelConfig_update(apiKey, secretKey string) string {
-	return fmt.Sprintf(`
-provider "aws" {
-  region = "us-east-1"
-}
-
 resource "aws_pinpoint_app" "test_app" {}
 
 resource "aws_pinpoint_baidu_channel" "channel" {

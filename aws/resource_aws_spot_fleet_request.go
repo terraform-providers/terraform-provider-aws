@@ -341,13 +341,13 @@ func resourceAwsSpotFleetRequest() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.ValidateRFC3339TimeString,
+				ValidateFunc: validation.IsRFC3339Time,
 			},
 			"valid_until": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.ValidateRFC3339TimeString,
+				ValidateFunc: validation.IsRFC3339Time,
 			},
 			"fleet_type": {
 				Type:     schema.TypeString,

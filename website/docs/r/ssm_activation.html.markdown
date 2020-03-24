@@ -30,7 +30,7 @@ EOF
 
 resource "aws_iam_role_policy_attachment" "test_attach" {
   role       = "${aws_iam_role.test_role.name}"
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM"
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
 resource "aws_ssm_activation" "foo" {

@@ -3726,6 +3726,97 @@ func (c *LexModelBuildingService) GetUtterancesViewWithContext(ctx aws.Context, 
 	return out, req.Send()
 }
 
+const opListTagsForResource = "ListTagsForResource"
+
+// ListTagsForResourceRequest generates a "aws/request.Request" representing the
+// client's request for the ListTagsForResource operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See ListTagsForResource for more information on using the ListTagsForResource
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the ListTagsForResourceRequest method.
+//    req, resp := client.ListTagsForResourceRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/lex-models-2017-04-19/ListTagsForResource
+func (c *LexModelBuildingService) ListTagsForResourceRequest(input *ListTagsForResourceInput) (req *request.Request, output *ListTagsForResourceOutput) {
+	op := &request.Operation{
+		Name:       opListTagsForResource,
+		HTTPMethod: "GET",
+		HTTPPath:   "/tags/{resourceArn}",
+	}
+
+	if input == nil {
+		input = &ListTagsForResourceInput{}
+	}
+
+	output = &ListTagsForResourceOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// ListTagsForResource API operation for Amazon Lex Model Building Service.
+//
+// Gets a list of tags associated with the specified resource. Only bots, bot
+// aliases, and bot channels can have tags associated with them.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Lex Model Building Service's
+// API operation ListTagsForResource for usage and error information.
+//
+// Returned Error Types:
+//   * NotFoundException
+//   The resource specified in the request was not found. Check the resource and
+//   try again.
+//
+//   * BadRequestException
+//   The request is not well formed. For example, a value is invalid or a required
+//   field is missing. Check the field values, and try again.
+//
+//   * InternalFailureException
+//   An internal Amazon Lex error occurred. Try your request again.
+//
+//   * LimitExceededException
+//   The request exceeded a limit. Try your request again.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/lex-models-2017-04-19/ListTagsForResource
+func (c *LexModelBuildingService) ListTagsForResource(input *ListTagsForResourceInput) (*ListTagsForResourceOutput, error) {
+	req, out := c.ListTagsForResourceRequest(input)
+	return out, req.Send()
+}
+
+// ListTagsForResourceWithContext is the same as ListTagsForResource with the addition of
+// the ability to pass a context and additional request options.
+//
+// See ListTagsForResource for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *LexModelBuildingService) ListTagsForResourceWithContext(ctx aws.Context, input *ListTagsForResourceInput, opts ...request.Option) (*ListTagsForResourceOutput, error) {
+	req, out := c.ListTagsForResourceRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opPutBot = "PutBot"
 
 // PutBotRequest generates a "aws/request.Request" representing the
@@ -4257,6 +4348,195 @@ func (c *LexModelBuildingService) StartImport(input *StartImportInput) (*StartIm
 // for more information on using Contexts.
 func (c *LexModelBuildingService) StartImportWithContext(ctx aws.Context, input *StartImportInput, opts ...request.Option) (*StartImportOutput, error) {
 	req, out := c.StartImportRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opTagResource = "TagResource"
+
+// TagResourceRequest generates a "aws/request.Request" representing the
+// client's request for the TagResource operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See TagResource for more information on using the TagResource
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the TagResourceRequest method.
+//    req, resp := client.TagResourceRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/lex-models-2017-04-19/TagResource
+func (c *LexModelBuildingService) TagResourceRequest(input *TagResourceInput) (req *request.Request, output *TagResourceOutput) {
+	op := &request.Operation{
+		Name:       opTagResource,
+		HTTPMethod: "POST",
+		HTTPPath:   "/tags/{resourceArn}",
+	}
+
+	if input == nil {
+		input = &TagResourceInput{}
+	}
+
+	output = &TagResourceOutput{}
+	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(restjson.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
+	return
+}
+
+// TagResource API operation for Amazon Lex Model Building Service.
+//
+// Adds the specified tags to the specified resource. If a tag key already exists,
+// the existing value is replaced with the new value.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Lex Model Building Service's
+// API operation TagResource for usage and error information.
+//
+// Returned Error Types:
+//   * NotFoundException
+//   The resource specified in the request was not found. Check the resource and
+//   try again.
+//
+//   * BadRequestException
+//   The request is not well formed. For example, a value is invalid or a required
+//   field is missing. Check the field values, and try again.
+//
+//   * ConflictException
+//   There was a conflict processing the request. Try your request again.
+//
+//   * InternalFailureException
+//   An internal Amazon Lex error occurred. Try your request again.
+//
+//   * LimitExceededException
+//   The request exceeded a limit. Try your request again.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/lex-models-2017-04-19/TagResource
+func (c *LexModelBuildingService) TagResource(input *TagResourceInput) (*TagResourceOutput, error) {
+	req, out := c.TagResourceRequest(input)
+	return out, req.Send()
+}
+
+// TagResourceWithContext is the same as TagResource with the addition of
+// the ability to pass a context and additional request options.
+//
+// See TagResource for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *LexModelBuildingService) TagResourceWithContext(ctx aws.Context, input *TagResourceInput, opts ...request.Option) (*TagResourceOutput, error) {
+	req, out := c.TagResourceRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opUntagResource = "UntagResource"
+
+// UntagResourceRequest generates a "aws/request.Request" representing the
+// client's request for the UntagResource operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See UntagResource for more information on using the UntagResource
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the UntagResourceRequest method.
+//    req, resp := client.UntagResourceRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/lex-models-2017-04-19/UntagResource
+func (c *LexModelBuildingService) UntagResourceRequest(input *UntagResourceInput) (req *request.Request, output *UntagResourceOutput) {
+	op := &request.Operation{
+		Name:       opUntagResource,
+		HTTPMethod: "DELETE",
+		HTTPPath:   "/tags/{resourceArn}",
+	}
+
+	if input == nil {
+		input = &UntagResourceInput{}
+	}
+
+	output = &UntagResourceOutput{}
+	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(restjson.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
+	return
+}
+
+// UntagResource API operation for Amazon Lex Model Building Service.
+//
+// Removes tags from a bot, bot alias or bot channel.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Lex Model Building Service's
+// API operation UntagResource for usage and error information.
+//
+// Returned Error Types:
+//   * NotFoundException
+//   The resource specified in the request was not found. Check the resource and
+//   try again.
+//
+//   * BadRequestException
+//   The request is not well formed. For example, a value is invalid or a required
+//   field is missing. Check the field values, and try again.
+//
+//   * ConflictException
+//   There was a conflict processing the request. Try your request again.
+//
+//   * InternalFailureException
+//   An internal Amazon Lex error occurred. Try your request again.
+//
+//   * LimitExceededException
+//   The request exceeded a limit. Try your request again.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/lex-models-2017-04-19/UntagResource
+func (c *LexModelBuildingService) UntagResource(input *UntagResourceInput) (*UntagResourceOutput, error) {
+	req, out := c.UntagResourceRequest(input)
+	return out, req.Send()
+}
+
+// UntagResourceWithContext is the same as UntagResource with the addition of
+// the ability to pass a context and additional request options.
+//
+// See UntagResource for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *LexModelBuildingService) UntagResourceWithContext(ctx aws.Context, input *UntagResourceInput, opts ...request.Option) (*UntagResourceOutput, error) {
+	req, out := c.UntagResourceRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -9074,6 +9354,70 @@ func (s LimitExceededException) RequestID() string {
 	return s.respMetadata.RequestID
 }
 
+type ListTagsForResourceInput struct {
+	_ struct{} `type:"structure"`
+
+	// The Amazon Resource Name (ARN) of the resource to get a list of tags for.
+	//
+	// ResourceArn is a required field
+	ResourceArn *string `location:"uri" locationName:"resourceArn" min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s ListTagsForResourceInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListTagsForResourceInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ListTagsForResourceInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ListTagsForResourceInput"}
+	if s.ResourceArn == nil {
+		invalidParams.Add(request.NewErrParamRequired("ResourceArn"))
+	}
+	if s.ResourceArn != nil && len(*s.ResourceArn) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ResourceArn", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetResourceArn sets the ResourceArn field's value.
+func (s *ListTagsForResourceInput) SetResourceArn(v string) *ListTagsForResourceInput {
+	s.ResourceArn = &v
+	return s
+}
+
+type ListTagsForResourceOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The tags associated with a resource.
+	Tags []*Tag `locationName:"tags" type:"list"`
+}
+
+// String returns the string representation
+func (s ListTagsForResourceOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListTagsForResourceOutput) GoString() string {
+	return s.String()
+}
+
+// SetTags sets the Tags field's value.
+func (s *ListTagsForResourceOutput) SetTags(v []*Tag) *ListTagsForResourceOutput {
+	s.Tags = v
+	return s
+}
+
 // Settings used to configure delivery mode and destination for conversation
 // logs.
 type LogSettingsRequest struct {
@@ -9532,6 +9876,11 @@ type PutBotAliasInput struct {
 	//
 	// Name is a required field
 	Name *string `location:"uri" locationName:"name" min:"1" type:"string" required:"true"`
+
+	// A list of tags to add to the bot alias. You can only add tags when you create
+	// an alias, you can't use the PutBotAlias operation to update the tags on a
+	// bot alias. To update tags, use the TagResource operation.
+	Tags []*Tag `locationName:"tags" type:"list"`
 }
 
 // String returns the string representation
@@ -9568,6 +9917,16 @@ func (s *PutBotAliasInput) Validate() error {
 	if s.ConversationLogs != nil {
 		if err := s.ConversationLogs.Validate(); err != nil {
 			invalidParams.AddNested("ConversationLogs", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.Tags != nil {
+		for i, v := range s.Tags {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Tags", i), err.(request.ErrInvalidParams))
+			}
 		}
 	}
 
@@ -9613,6 +9972,12 @@ func (s *PutBotAliasInput) SetName(v string) *PutBotAliasInput {
 	return s
 }
 
+// SetTags sets the Tags field's value.
+func (s *PutBotAliasInput) SetTags(v []*Tag) *PutBotAliasInput {
+	s.Tags = v
+	return s
+}
+
 type PutBotAliasOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -9641,6 +10006,9 @@ type PutBotAliasOutput struct {
 
 	// The name of the alias.
 	Name *string `locationName:"name" min:"1" type:"string"`
+
+	// A list of tags associated with a bot.
+	Tags []*Tag `locationName:"tags" type:"list"`
 }
 
 // String returns the string representation
@@ -9698,6 +10066,12 @@ func (s *PutBotAliasOutput) SetLastUpdatedDate(v time.Time) *PutBotAliasOutput {
 // SetName sets the Name field's value.
 func (s *PutBotAliasOutput) SetName(v string) *PutBotAliasOutput {
 	s.Name = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *PutBotAliasOutput) SetTags(v []*Tag) *PutBotAliasOutput {
+	s.Tags = v
 	return s
 }
 
@@ -9850,6 +10224,11 @@ type PutBotInput struct {
 	// If you don't specify this value, the default value is BUILD.
 	ProcessBehavior *string `locationName:"processBehavior" type:"string" enum:"ProcessBehavior"`
 
+	// A list of tags to add to the bot. You can only add tags when you create a
+	// bot, you can't use the PutBot operation to update the tags on a bot. To update
+	// tags, use the TagResource operation.
+	Tags []*Tag `locationName:"tags" type:"list"`
+
 	// The Amazon Polly voice ID that you want Amazon Lex to use for voice interactions
 	// with the user. The locale configured for the voice must match the locale
 	// of the bot. For more information, see Voices in Amazon Polly (https://docs.aws.amazon.com/polly/latest/dg/voicelist.html)
@@ -9902,6 +10281,16 @@ func (s *PutBotInput) Validate() error {
 			}
 			if err := v.Validate(); err != nil {
 				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Intents", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+	if s.Tags != nil {
+		for i, v := range s.Tags {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Tags", i), err.(request.ErrInvalidParams))
 			}
 		}
 	}
@@ -9981,6 +10370,12 @@ func (s *PutBotInput) SetName(v string) *PutBotInput {
 // SetProcessBehavior sets the ProcessBehavior field's value.
 func (s *PutBotInput) SetProcessBehavior(v string) *PutBotInput {
 	s.ProcessBehavior = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *PutBotInput) SetTags(v []*Tag) *PutBotInput {
+	s.Tags = v
 	return s
 }
 
@@ -10081,6 +10476,9 @@ type PutBotOutput struct {
 	//
 	// When the bot is in the READY state you can test and publish the bot.
 	Status *string `locationName:"status" type:"string" enum:"Status"`
+
+	// A list of tags associated with the bot.
+	Tags []*Tag `locationName:"tags" type:"list"`
 
 	// The version of the bot. For a new bot, the version is always $LATEST.
 	Version *string `locationName:"version" min:"1" type:"string"`
@@ -10187,6 +10585,12 @@ func (s *PutBotOutput) SetName(v string) *PutBotOutput {
 // SetStatus sets the Status field's value.
 func (s *PutBotOutput) SetStatus(v string) *PutBotOutput {
 	s.Status = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *PutBotOutput) SetTags(v []*Tag) *PutBotOutput {
+	s.Tags = v
 	return s
 }
 
@@ -11387,6 +11791,10 @@ type StartImportInput struct {
 	//
 	// ResourceType is a required field
 	ResourceType *string `locationName:"resourceType" type:"string" required:"true" enum:"ResourceType"`
+
+	// A list of tags to add to the imported bot. You can only add tags when you
+	// import a bot, you can't add tags to an intent or slot type.
+	Tags []*Tag `locationName:"tags" type:"list"`
 }
 
 // String returns the string representation
@@ -11410,6 +11818,16 @@ func (s *StartImportInput) Validate() error {
 	}
 	if s.ResourceType == nil {
 		invalidParams.Add(request.NewErrParamRequired("ResourceType"))
+	}
+	if s.Tags != nil {
+		for i, v := range s.Tags {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Tags", i), err.(request.ErrInvalidParams))
+			}
+		}
 	}
 
 	if invalidParams.Len() > 0 {
@@ -11436,6 +11854,12 @@ func (s *StartImportInput) SetResourceType(v string) *StartImportInput {
 	return s
 }
 
+// SetTags sets the Tags field's value.
+func (s *StartImportInput) SetTags(v []*Tag) *StartImportInput {
+	s.Tags = v
+	return s
+}
+
 type StartImportOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -11457,6 +11881,9 @@ type StartImportOutput struct {
 
 	// The type of resource to import.
 	ResourceType *string `locationName:"resourceType" type:"string" enum:"ResourceType"`
+
+	// A list of tags added to the imported bot.
+	Tags []*Tag `locationName:"tags" type:"list"`
 }
 
 // String returns the string representation
@@ -11502,6 +11929,12 @@ func (s *StartImportOutput) SetName(v string) *StartImportOutput {
 // SetResourceType sets the ResourceType field's value.
 func (s *StartImportOutput) SetResourceType(v string) *StartImportOutput {
 	s.ResourceType = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *StartImportOutput) SetTags(v []*Tag) *StartImportOutput {
+	s.Tags = v
 	return s
 }
 
@@ -11571,6 +12004,215 @@ func (s *Statement) SetMessages(v []*Message) *Statement {
 func (s *Statement) SetResponseCard(v string) *Statement {
 	s.ResponseCard = &v
 	return s
+}
+
+// A list of key/value pairs that identify a bot, bot alias, or bot channel.
+// Tag keys and values can consist of Unicode letters, digits, white space,
+// and any of the following symbols: _ . : / = + - @.
+type Tag struct {
+	_ struct{} `type:"structure"`
+
+	// The key for the tag. Keys are not case-sensitive and must be unique.
+	//
+	// Key is a required field
+	Key *string `locationName:"key" min:"1" type:"string" required:"true"`
+
+	// The value associated with a key. The value may be an empty string but it
+	// can't be null.
+	//
+	// Value is a required field
+	Value *string `locationName:"value" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s Tag) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s Tag) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *Tag) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "Tag"}
+	if s.Key == nil {
+		invalidParams.Add(request.NewErrParamRequired("Key"))
+	}
+	if s.Key != nil && len(*s.Key) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Key", 1))
+	}
+	if s.Value == nil {
+		invalidParams.Add(request.NewErrParamRequired("Value"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetKey sets the Key field's value.
+func (s *Tag) SetKey(v string) *Tag {
+	s.Key = &v
+	return s
+}
+
+// SetValue sets the Value field's value.
+func (s *Tag) SetValue(v string) *Tag {
+	s.Value = &v
+	return s
+}
+
+type TagResourceInput struct {
+	_ struct{} `type:"structure"`
+
+	// The Amazon Resource Name (ARN) of the bot, bot alias, or bot channel to tag.
+	//
+	// ResourceArn is a required field
+	ResourceArn *string `location:"uri" locationName:"resourceArn" min:"1" type:"string" required:"true"`
+
+	// A list of tag keys to add to the resource. If a tag key already exists, the
+	// existing value is replaced with the new value.
+	//
+	// Tags is a required field
+	Tags []*Tag `locationName:"tags" type:"list" required:"true"`
+}
+
+// String returns the string representation
+func (s TagResourceInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s TagResourceInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *TagResourceInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "TagResourceInput"}
+	if s.ResourceArn == nil {
+		invalidParams.Add(request.NewErrParamRequired("ResourceArn"))
+	}
+	if s.ResourceArn != nil && len(*s.ResourceArn) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ResourceArn", 1))
+	}
+	if s.Tags == nil {
+		invalidParams.Add(request.NewErrParamRequired("Tags"))
+	}
+	if s.Tags != nil {
+		for i, v := range s.Tags {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Tags", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetResourceArn sets the ResourceArn field's value.
+func (s *TagResourceInput) SetResourceArn(v string) *TagResourceInput {
+	s.ResourceArn = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *TagResourceInput) SetTags(v []*Tag) *TagResourceInput {
+	s.Tags = v
+	return s
+}
+
+type TagResourceOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s TagResourceOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s TagResourceOutput) GoString() string {
+	return s.String()
+}
+
+type UntagResourceInput struct {
+	_ struct{} `type:"structure"`
+
+	// The Amazon Resource Name (ARN) of the resource to remove the tags from.
+	//
+	// ResourceArn is a required field
+	ResourceArn *string `location:"uri" locationName:"resourceArn" min:"1" type:"string" required:"true"`
+
+	// A list of tag keys to remove from the resource. If a tag key does not exist
+	// on the resource, it is ignored.
+	//
+	// TagKeys is a required field
+	TagKeys []*string `location:"querystring" locationName:"tagKeys" type:"list" required:"true"`
+}
+
+// String returns the string representation
+func (s UntagResourceInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UntagResourceInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *UntagResourceInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "UntagResourceInput"}
+	if s.ResourceArn == nil {
+		invalidParams.Add(request.NewErrParamRequired("ResourceArn"))
+	}
+	if s.ResourceArn != nil && len(*s.ResourceArn) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ResourceArn", 1))
+	}
+	if s.TagKeys == nil {
+		invalidParams.Add(request.NewErrParamRequired("TagKeys"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetResourceArn sets the ResourceArn field's value.
+func (s *UntagResourceInput) SetResourceArn(v string) *UntagResourceInput {
+	s.ResourceArn = &v
+	return s
+}
+
+// SetTagKeys sets the TagKeys field's value.
+func (s *UntagResourceInput) SetTagKeys(v []*string) *UntagResourceInput {
+	s.TagKeys = v
+	return s
+}
+
+type UntagResourceOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s UntagResourceOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UntagResourceOutput) GoString() string {
+	return s.String()
 }
 
 // Provides information about a single utterance that was made to your bot.

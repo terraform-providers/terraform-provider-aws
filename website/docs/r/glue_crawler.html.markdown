@@ -66,7 +66,7 @@ resource "aws_glue_crawler" "example" {
 
   catalog_target {
     database_name = "${aws_glue_catalog_database.example.name}"
-    tables = ["${aws_glue_catalog_table.example.name}"]
+    tables        = ["${aws_glue_catalog_table.example.name}"]
   }
 
   schema_change_policy {

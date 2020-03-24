@@ -13,7 +13,7 @@ can be specified when creating a VPC endpoint within the region configured in th
 
 ## Example Usage
 
-AWS service usage:
+### AWS Service
 
 ```hcl
 # Declare the data source
@@ -33,7 +33,7 @@ resource "aws_vpc_endpoint" "ep" {
 }
 ```
 
-Non-AWS service usage:
+### Non-AWS Service
 
 ```hcl
 data "aws_vpc_endpoint_service" "custome" {
@@ -47,9 +47,9 @@ The arguments of this data source act as filters for querying the available VPC 
 The given filters must match exactly one VPC endpoint service whose data will be exported as attributes.
 
 * `service` - (Optional) The common name of an AWS service (e.g. `s3`).
-* `service_name` - (Optional) The service name that can be specified when creating a VPC endpoint.
+* `service_name` - (Optional) The service name that is specified when creating a VPC endpoint. For AWS services the service name is usually in the form `com.amazonaws.<region>.<service>` (the SageMaker Notebook service is an exception to this rule, the service name is in the form `aws.sagemaker.<region>.notebook`).
 
-~> **NOTE:** One of `service` or `service_name` must be specified.
+~> **NOTE:** One of `service` or `service_name` must be specified. Specifying `service` will not work for non-AWS services or AWS services that don't follow the standard `service_name` pattern of `com.amazonaws.<region>.<service>`.
 
 ## Attributes Reference
 

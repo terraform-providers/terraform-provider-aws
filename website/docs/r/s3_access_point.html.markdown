@@ -22,8 +22,8 @@ resource "aws_s3_bucket" "example" {
 }
 
 resource "aws_s3_access_point" "example" {
-  bucket     = aws_s3_bucket.example.id
-  name       = "example"
+  bucket = aws_s3_bucket.example.id
+  name   = "example"
 }
 ```
 
@@ -35,8 +35,8 @@ resource "aws_s3_bucket" "example" {
 }
 
 resource "aws_s3_access_point" "example" {
-  bucket     = aws_s3_bucket.example.id
-  name       = "example"
+  bucket = aws_s3_bucket.example.id
+  name   = "example"
 
   vpc_configuration {
     vpc_id = aws_vpc.example.id

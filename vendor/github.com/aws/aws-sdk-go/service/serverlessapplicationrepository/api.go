@@ -1310,6 +1310,103 @@ func (c *ServerlessApplicationRepository) PutApplicationPolicyWithContext(ctx aw
 	return out, req.Send()
 }
 
+const opUnshareApplication = "UnshareApplication"
+
+// UnshareApplicationRequest generates a "aws/request.Request" representing the
+// client's request for the UnshareApplication operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See UnshareApplication for more information on using the UnshareApplication
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the UnshareApplicationRequest method.
+//    req, resp := client.UnshareApplicationRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/serverlessrepo-2017-09-08/UnshareApplication
+func (c *ServerlessApplicationRepository) UnshareApplicationRequest(input *UnshareApplicationInput) (req *request.Request, output *UnshareApplicationOutput) {
+	op := &request.Operation{
+		Name:       opUnshareApplication,
+		HTTPMethod: "POST",
+		HTTPPath:   "/applications/{applicationId}/unshare",
+	}
+
+	if input == nil {
+		input = &UnshareApplicationInput{}
+	}
+
+	output = &UnshareApplicationOutput{}
+	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(restjson.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
+	return
+}
+
+// UnshareApplication API operation for AWSServerlessApplicationRepository.
+//
+// Unshares an application from an AWS Organization.
+//
+// This operation can be called only from the organization's master account.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWSServerlessApplicationRepository's
+// API operation UnshareApplication for usage and error information.
+//
+// Returned Error Types:
+//   * NotFoundException
+//   The resource (for example, an access policy statement) specified in the request
+//   doesn't exist.
+//
+//   * TooManyRequestsException
+//   The client is sending more than the allowed number of requests per unit of
+//   time.
+//
+//   * BadRequestException
+//   One of the parameters in the request is invalid.
+//
+//   * InternalServerErrorException
+//   The AWS Serverless Application Repository service encountered an internal
+//   error.
+//
+//   * ForbiddenException
+//   The client is not authenticated.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/serverlessrepo-2017-09-08/UnshareApplication
+func (c *ServerlessApplicationRepository) UnshareApplication(input *UnshareApplicationInput) (*UnshareApplicationOutput, error) {
+	req, out := c.UnshareApplicationRequest(input)
+	return out, req.Send()
+}
+
+// UnshareApplicationWithContext is the same as UnshareApplication with the addition of
+// the ability to pass a context and additional request options.
+//
+// See UnshareApplication for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *ServerlessApplicationRepository) UnshareApplicationWithContext(ctx aws.Context, input *UnshareApplicationInput, opts ...request.Option) (*UnshareApplicationOutput, error) {
+	req, out := c.UnshareApplicationRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opUpdateApplication = "UpdateApplication"
 
 // UpdateApplicationRequest generates a "aws/request.Request" representing the
@@ -1454,6 +1551,11 @@ type ApplicationPolicyStatement struct {
 	// Actions is a required field
 	Actions []*string `locationName:"actions" type:"list" required:"true"`
 
+	// An array of PrinciplalOrgIDs, which corresponds to AWS IAM aws:PrincipalOrgID
+	// (https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_condition-keys.html#principal-org-id)
+	// global condition key.
+	PrincipalOrgIDs []*string `locationName:"principalOrgIDs" type:"list"`
+
 	// An array of AWS account IDs, or * to make the application public.
 	//
 	// Principals is a required field
@@ -1492,6 +1594,12 @@ func (s *ApplicationPolicyStatement) Validate() error {
 // SetActions sets the Actions field's value.
 func (s *ApplicationPolicyStatement) SetActions(v []*string) *ApplicationPolicyStatement {
 	s.Actions = v
+	return s
+}
+
+// SetPrincipalOrgIDs sets the PrincipalOrgIDs field's value.
+func (s *ApplicationPolicyStatement) SetPrincipalOrgIDs(v []*string) *ApplicationPolicyStatement {
+	s.PrincipalOrgIDs = v
 	return s
 }
 
@@ -3915,6 +4023,71 @@ func (s TooManyRequestsException) StatusCode() int {
 // RequestID returns the service's response RequestID for request.
 func (s TooManyRequestsException) RequestID() string {
 	return s.respMetadata.RequestID
+}
+
+type UnshareApplicationInput struct {
+	_ struct{} `type:"structure"`
+
+	// ApplicationId is a required field
+	ApplicationId *string `location:"uri" locationName:"applicationId" type:"string" required:"true"`
+
+	// OrganizationId is a required field
+	OrganizationId *string `locationName:"organizationId" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s UnshareApplicationInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UnshareApplicationInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *UnshareApplicationInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "UnshareApplicationInput"}
+	if s.ApplicationId == nil {
+		invalidParams.Add(request.NewErrParamRequired("ApplicationId"))
+	}
+	if s.ApplicationId != nil && len(*s.ApplicationId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ApplicationId", 1))
+	}
+	if s.OrganizationId == nil {
+		invalidParams.Add(request.NewErrParamRequired("OrganizationId"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetApplicationId sets the ApplicationId field's value.
+func (s *UnshareApplicationInput) SetApplicationId(v string) *UnshareApplicationInput {
+	s.ApplicationId = &v
+	return s
+}
+
+// SetOrganizationId sets the OrganizationId field's value.
+func (s *UnshareApplicationInput) SetOrganizationId(v string) *UnshareApplicationInput {
+	s.OrganizationId = &v
+	return s
+}
+
+type UnshareApplicationOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s UnshareApplicationOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UnshareApplicationOutput) GoString() string {
+	return s.String()
 }
 
 type UpdateApplicationOutput struct {

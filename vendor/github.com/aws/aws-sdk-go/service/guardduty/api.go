@@ -8292,6 +8292,10 @@ type InstanceDetails struct {
 	// The network interface information of the EC2 instance.
 	NetworkInterfaces []*NetworkInterface `locationName:"networkInterfaces" type:"list"`
 
+	// The Amazon Resource Name (ARN) of the AWS Outpost. Only applicable to AWS
+	// Outposts instances.
+	OutpostArn *string `locationName:"outpostArn" type:"string"`
+
 	// The platform of the EC2 instance.
 	Platform *string `locationName:"platform" type:"string"`
 
@@ -8363,6 +8367,12 @@ func (s *InstanceDetails) SetLaunchTime(v string) *InstanceDetails {
 // SetNetworkInterfaces sets the NetworkInterfaces field's value.
 func (s *InstanceDetails) SetNetworkInterfaces(v []*NetworkInterface) *InstanceDetails {
 	s.NetworkInterfaces = v
+	return s
+}
+
+// SetOutpostArn sets the OutpostArn field's value.
+func (s *InstanceDetails) SetOutpostArn(v string) *InstanceDetails {
+	s.OutpostArn = &v
 	return s
 }
 
@@ -8821,6 +8831,8 @@ type ListFindingsInput struct {
 	//    * resource.instanceDetails.imageId
 	//
 	//    * resource.instanceDetails.instanceId
+	//
+	//    * resource.instanceDetails.outpostArn
 	//
 	//    * resource.instanceDetails.networkInterfaces.ipv6Addresses
 	//

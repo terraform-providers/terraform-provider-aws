@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/acmpca"
 	"github.com/aws/aws-sdk-go/service/appmesh"
 	"github.com/aws/aws-sdk-go/service/athena"
+	"github.com/aws/aws-sdk-go/service/cloud9"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/cloudfront"
 	"github.com/aws/aws-sdk-go/service/cloudhsmv2"
@@ -41,6 +42,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/fms"
 	"github.com/aws/aws-sdk-go/service/fsx"
 	"github.com/aws/aws-sdk-go/service/gamelift"
+	"github.com/aws/aws-sdk-go/service/globalaccelerator"
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/aws/aws-sdk-go/service/inspector"
 	"github.com/aws/aws-sdk-go/service/iot"
@@ -299,6 +301,16 @@ func KafkaKeyValueTags(tags map[string]*string) KeyValueTags {
 	return New(tags)
 }
 
+// KinesisvideoTags returns kinesisvideo service tags.
+func (tags KeyValueTags) KinesisvideoTags() map[string]*string {
+	return aws.StringMap(tags.Map())
+}
+
+// KinesisvideoKeyValueTags creates KeyValueTags from kinesisvideo service tags.
+func KinesisvideoKeyValueTags(tags map[string]*string) KeyValueTags {
+	return New(tags)
+}
+
 // LambdaTags returns lambda service tags.
 func (tags KeyValueTags) LambdaTags() map[string]*string {
 	return aws.StringMap(tags.Map())
@@ -520,6 +532,33 @@ func (tags KeyValueTags) AthenaTags() []*athena.Tag {
 
 // AthenaKeyValueTags creates KeyValueTags from athena service tags.
 func AthenaKeyValueTags(tags []*athena.Tag) KeyValueTags {
+	m := make(map[string]*string, len(tags))
+
+	for _, tag := range tags {
+		m[aws.StringValue(tag.Key)] = tag.Value
+	}
+
+	return New(m)
+}
+
+// Cloud9Tags returns cloud9 service tags.
+func (tags KeyValueTags) Cloud9Tags() []*cloud9.Tag {
+	result := make([]*cloud9.Tag, 0, len(tags))
+
+	for k, v := range tags.Map() {
+		tag := &cloud9.Tag{
+			Key:   aws.String(k),
+			Value: aws.String(v),
+		}
+
+		result = append(result, tag)
+	}
+
+	return result
+}
+
+// Cloud9KeyValueTags creates KeyValueTags from cloud9 service tags.
+func Cloud9KeyValueTags(tags []*cloud9.Tag) KeyValueTags {
 	m := make(map[string]*string, len(tags))
 
 	for _, tag := range tags {
@@ -1426,6 +1465,33 @@ func (tags KeyValueTags) GameliftTags() []*gamelift.Tag {
 
 // GameliftKeyValueTags creates KeyValueTags from gamelift service tags.
 func GameliftKeyValueTags(tags []*gamelift.Tag) KeyValueTags {
+	m := make(map[string]*string, len(tags))
+
+	for _, tag := range tags {
+		m[aws.StringValue(tag.Key)] = tag.Value
+	}
+
+	return New(m)
+}
+
+// GlobalacceleratorTags returns globalaccelerator service tags.
+func (tags KeyValueTags) GlobalacceleratorTags() []*globalaccelerator.Tag {
+	result := make([]*globalaccelerator.Tag, 0, len(tags))
+
+	for k, v := range tags.Map() {
+		tag := &globalaccelerator.Tag{
+			Key:   aws.String(k),
+			Value: aws.String(v),
+		}
+
+		result = append(result, tag)
+	}
+
+	return result
+}
+
+// GlobalacceleratorKeyValueTags creates KeyValueTags from globalaccelerator service tags.
+func GlobalacceleratorKeyValueTags(tags []*globalaccelerator.Tag) KeyValueTags {
 	m := make(map[string]*string, len(tags))
 
 	for _, tag := range tags {

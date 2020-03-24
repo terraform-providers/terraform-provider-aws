@@ -36,19 +36,19 @@ func run(pass *analysis.Pass) (interface{}, error) {
 			return
 		}
 
-		if !astutils.IsFieldListType(funcType.Params, 0, astutils.IsFunctionParameterTypeInterface) {
+		if !astutils.IsFieldListType(funcType.Params, 0, astutils.IsExprTypeInterface) {
 			return
 		}
 
-		if !astutils.IsFieldListType(funcType.Params, 1, astutils.IsFunctionParameterTypeString) {
+		if !astutils.IsFieldListType(funcType.Params, 1, astutils.IsExprTypeString) {
 			return
 		}
 
-		if !astutils.IsFieldListType(funcType.Results, 0, astutils.IsFunctionParameterTypeArrayString) {
+		if !astutils.IsFieldListType(funcType.Results, 0, astutils.IsExprTypeArrayString) {
 			return
 		}
 
-		if !astutils.IsFieldListType(funcType.Results, 1, astutils.IsFunctionParameterTypeArrayError) {
+		if !astutils.IsFieldListType(funcType.Results, 1, astutils.IsExprTypeArrayError) {
 			return
 		}
 

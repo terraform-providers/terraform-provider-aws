@@ -49,7 +49,7 @@ func dataSourceAwsApiGatewayApiKey() *schema.Resource {
 }
 
 func dataSourceAwsApiGatewayApiKeyRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	conn := meta.(*AWSClient).apigatewayconn
 	apiKey, err := conn.GetApiKey(&apigateway.GetApiKeyInput{
 		ApiKey:       aws.String(d.Get("id").(string)),
 		IncludeValue: aws.Bool(true),

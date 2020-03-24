@@ -12,27 +12,28 @@ import (
 )
 
 // DeprecatedReceiverMethodSelectorExprAnalyzer returns an Analyzer for deprecated *ast.SelectorExpr
-func DeprecatedReceiverMethodSelectorExprAnalyzer(analyzerName string, selectorExprAnalyzer *analysis.Analyzer, packageName, typeName, methodName string) *analysis.Analyzer {
+func DeprecatedReceiverMethodSelectorExprAnalyzer(analyzerName string, callExprAnalyzer, selectorExprAnalyzer *analysis.Analyzer, packagePath, typeName, methodName string) *analysis.Analyzer {
 	doc := fmt.Sprintf(`check for deprecated %[2]s.%[3]s usage
 
 The %[1]s analyzer reports usage of the deprecated:
 
 %[2]s.%[3]s
-`, analyzerName, packageName, typeName, methodName)
+`, analyzerName, packagePath, typeName, methodName)
 
 	return &analysis.Analyzer{
 		Name: analyzerName,
 		Doc:  doc,
 		Requires: []*analysis.Analyzer{
+			callExprAnalyzer,
 			commentignore.Analyzer,
 			selectorExprAnalyzer,
 		},
-		Run: DeprecatedReceiverMethodSelectorExprRunner(analyzerName, selectorExprAnalyzer, packageName, typeName, methodName),
+		Run: DeprecatedReceiverMethodSelectorExprRunner(analyzerName, callExprAnalyzer, selectorExprAnalyzer, packagePath, typeName, methodName),
 	}
 }
 
-// DeprecatedWithReplacementSelectorExprAnalyzer returns an Analyzer for deprecated *ast.SelectorExpr with replacement
-func DeprecatedWithReplacementSelectorExprAnalyzer(analyzerName string, selectorExprAnalyzer *analysis.Analyzer, oldPackageName, oldSelectorName, newPackageName, newSelectorName string) *analysis.Analyzer {
+// DeprecatedEmptyCallExprWithReplacementSelectorExprAnalyzer returns an Analyzer for deprecated *ast.SelectorExpr with replacement
+func DeprecatedEmptyCallExprWithReplacementSelectorExprAnalyzer(analyzerName string, callExprAnalyzer, selectorExprAnalyzer *analysis.Analyzer, oldPackagePath, oldSelectorName, newPackagePath, newSelectorName string) *analysis.Analyzer {
 	doc := fmt.Sprintf(`check for deprecated %[2]s.%[3]s usage
 
 The %[1]s analyzer reports usage of the deprecated:
@@ -42,7 +43,32 @@ The %[1]s analyzer reports usage of the deprecated:
 That should be replaced with:
 
 %[4]s.%[5]s
-`, analyzerName, oldPackageName, oldSelectorName, newPackageName, newSelectorName)
+`, analyzerName, oldPackagePath, oldSelectorName, newPackagePath, newSelectorName)
+
+	return &analysis.Analyzer{
+		Name: analyzerName,
+		Doc:  doc,
+		Requires: []*analysis.Analyzer{
+			callExprAnalyzer,
+			commentignore.Analyzer,
+			selectorExprAnalyzer,
+		},
+		Run: DeprecatedEmptyCallExprWithReplacementSelectorExprRunner(analyzerName, callExprAnalyzer, selectorExprAnalyzer, oldPackagePath, oldSelectorName, newPackagePath, newSelectorName),
+	}
+}
+
+// DeprecatedWithReplacementPointerSelectorExprAnalyzer returns an Analyzer for deprecated *ast.SelectorExpr with replacement
+func DeprecatedWithReplacementPointerSelectorExprAnalyzer(analyzerName string, selectorExprAnalyzer *analysis.Analyzer, oldPackagePath, oldSelectorName, newPackagePath, newSelectorName string) *analysis.Analyzer {
+	doc := fmt.Sprintf(`check for deprecated %[2]s.%[3]s usage
+
+The %[1]s analyzer reports usage of the deprecated:
+
+%[2]s.%[3]s
+
+That should be replaced with:
+
+*%[4]s.%[5]s
+`, analyzerName, oldPackagePath, oldSelectorName, newPackagePath, newSelectorName)
 
 	return &analysis.Analyzer{
 		Name: analyzerName,
@@ -51,7 +77,31 @@ That should be replaced with:
 			commentignore.Analyzer,
 			selectorExprAnalyzer,
 		},
-		Run: DeprecatedWithReplacementSelectorExprRunner(analyzerName, selectorExprAnalyzer, oldPackageName, oldSelectorName, newPackageName, newSelectorName),
+		Run: DeprecatedWithReplacementPointerSelectorExprRunner(analyzerName, selectorExprAnalyzer, oldPackagePath, oldSelectorName, newPackagePath, newSelectorName),
+	}
+}
+
+// DeprecatedWithReplacementSelectorExprAnalyzer returns an Analyzer for deprecated *ast.SelectorExpr with replacement
+func DeprecatedWithReplacementSelectorExprAnalyzer(analyzerName string, selectorExprAnalyzer *analysis.Analyzer, oldPackagePath, oldSelectorName, newPackagePath, newSelectorName string) *analysis.Analyzer {
+	doc := fmt.Sprintf(`check for deprecated %[2]s.%[3]s usage
+
+The %[1]s analyzer reports usage of the deprecated:
+
+%[2]s.%[3]s
+
+That should be replaced with:
+
+%[4]s.%[5]s
+`, analyzerName, oldPackagePath, oldSelectorName, newPackagePath, newSelectorName)
+
+	return &analysis.Analyzer{
+		Name: analyzerName,
+		Doc:  doc,
+		Requires: []*analysis.Analyzer{
+			commentignore.Analyzer,
+			selectorExprAnalyzer,
+		},
+		Run: DeprecatedWithReplacementSelectorExprRunner(analyzerName, selectorExprAnalyzer, oldPackagePath, oldSelectorName, newPackagePath, newSelectorName),
 	}
 }
 
@@ -117,5 +167,30 @@ func SelectorExprAnalyzer(analyzerName string, packageFunc func(ast.Expr, *types
 		},
 		Run:        SelectorExprRunner(packageFunc, selectorName),
 		ResultType: reflect.TypeOf([]*ast.SelectorExpr{}),
+	}
+}
+
+// TypeAssertExprRemovalAnalyzer returns an Analyzer for *ast.TypeAssertExpr
+func TypeAssertExprRemovalAnalyzer(analyzerName string, typeAssertExprAnalyzer *analysis.Analyzer, packagePath string, selectorName string) *analysis.Analyzer {
+	return &analysis.Analyzer{
+		Name: analyzerName,
+		Doc:  fmt.Sprintf("remove %s.%s type assertions", packagePath, selectorName),
+		Requires: []*analysis.Analyzer{
+			typeAssertExprAnalyzer,
+		},
+		Run: TypeAssertExprRemovalRunner(analyzerName, typeAssertExprAnalyzer),
+	}
+}
+
+// TypeAssertExprAnalyzer returns an Analyzer for *ast.TypeAssertExpr
+func TypeAssertExprAnalyzer(analyzerName string, packageFunc func(ast.Expr, *types.Info, string) bool, packagePath string, selectorName string) *analysis.Analyzer {
+	return &analysis.Analyzer{
+		Name: analyzerName,
+		Doc:  fmt.Sprintf("find %s.%s type assertions for later passes", packagePath, selectorName),
+		Requires: []*analysis.Analyzer{
+			inspect.Analyzer,
+		},
+		Run:        TypeAssertExprRunner(packageFunc, selectorName),
+		ResultType: reflect.TypeOf([]*ast.TypeAssertExpr{}),
 	}
 }

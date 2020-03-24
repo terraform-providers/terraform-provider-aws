@@ -102,6 +102,7 @@ The following arguments are supported:
 * `subnet_id` - (Optional) Subnet ID to attach to
 * `vpc_id` - (Optional) VPC ID to attach to
 * `log_format` - (Optional) The fields to include in the flow log record, in the order in which they should appear.
+* `tags` - (Optional) Key-value mapping of resource tags
 
 ## Attributes Reference
 

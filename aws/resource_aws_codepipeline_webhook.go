@@ -51,7 +51,7 @@ func resourceAwsCodePipelineWebhook() *schema.Resource {
 							Type:         schema.TypeString,
 							Optional:     true,
 							ForceNew:     true,
-							ValidateFunc: validation.CIDRNetwork(0, 32),
+							ValidateFunc: validation.IsCIDRNetwork(0, 32),
 						},
 					},
 				},

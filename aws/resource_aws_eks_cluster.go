@@ -46,7 +46,6 @@ func resourceAwsEksCluster() *schema.Resource {
 			},
 			"certificate_authority": {
 				Type:     schema.TypeList,
-				MaxItems: 1,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{

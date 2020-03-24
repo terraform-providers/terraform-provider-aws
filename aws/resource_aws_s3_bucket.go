@@ -731,7 +731,12 @@ func resourceAwsS3BucketUpdate(d *schema.ResourceData, meta interface{}) error {
 	if d.HasChange("tags") {
 		o, n := d.GetChange("tags")
 
-		if err := keyvaluetags.S3BucketUpdateTags(s3conn, d.Id(), o, n); err != nil {
+		// Retry due to S3 eventual consistency
+		_, err := retryOnAwsCode(s3.ErrCodeNoSuchBucket, func() (interface{}, error) {
+			terr := keyvaluetags.S3BucketUpdateTags(s3conn, d.Id(), o, n)
+			return nil, terr
+		})
+		if err != nil {
 			return fmt.Errorf("error updating S3 Bucket (%s) tags: %s", d.Id(), err)
 		}
 	}
@@ -860,7 +865,7 @@ func resourceAwsS3BucketRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("bucket", d.Id())
 	}
 
-	d.Set("bucket_domain_name", bucketDomainName(d.Get("bucket").(string)))
+	d.Set("bucket_domain_name", meta.(*AWSClient).PartitionHostname(fmt.Sprintf("%s.s3", d.Get("bucket").(string))))
 
 	// Read the policy
 	if _, ok := d.GetOk("policy"); ok {
@@ -1313,7 +1318,7 @@ func resourceAwsS3BucketRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	// Add website_endpoint as an attribute
-	websiteEndpoint, err := websiteEndpoint(s3conn, d)
+	websiteEndpoint, err := websiteEndpoint(meta.(*AWSClient), d)
 	if err != nil {
 		return err
 	}
@@ -1683,7 +1688,7 @@ func resourceAwsS3BucketWebsiteDelete(s3conn *s3.S3, d *schema.ResourceData) err
 	return nil
 }
 
-func websiteEndpoint(s3conn *s3.S3, d *schema.ResourceData) (*S3Website, error) {
+func websiteEndpoint(client *AWSClient, d *schema.ResourceData) (*S3Website, error) {
 	// If the bucket doesn't have a website configuration, return an empty
 	// endpoint
 	if _, ok := d.GetOk("website"); !ok {
@@ -1695,7 +1700,7 @@ func websiteEndpoint(s3conn *s3.S3, d *schema.ResourceData) (*S3Website, error) 
 	// Lookup the region for this bucket
 
 	locationResponse, err := retryOnAwsCode(s3.ErrCodeNoSuchBucket, func() (interface{}, error) {
-		return s3conn.GetBucketLocation(
+		return client.s3conn.GetBucketLocation(
 			&s3.GetBucketLocationInput{
 				Bucket: aws.String(bucket),
 			},
@@ -1710,11 +1715,7 @@ func websiteEndpoint(s3conn *s3.S3, d *schema.ResourceData) (*S3Website, error) 
 		region = *location.LocationConstraint
 	}
 
-	return WebsiteEndpoint(bucket, region), nil
-}
-
-func bucketDomainName(bucket string) string {
-	return fmt.Sprintf("%s.s3.amazonaws.com", bucket)
+	return WebsiteEndpoint(client, bucket, region), nil
 }
 
 // https://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region
@@ -1722,7 +1723,7 @@ func BucketRegionalDomainName(bucket string, region string) (string, error) {
 	// Return a default AWS Commercial domain name if no region is provided
 	// Otherwise EndpointFor() will return BUCKET.s3..amazonaws.com
 	if region == "" {
-		return fmt.Sprintf("%s.s3.amazonaws.com", bucket), nil
+		return fmt.Sprintf("%s.s3.amazonaws.com", bucket), nil //lintignore:AWSR001
 	}
 	endpoint, err := endpoints.DefaultResolver().EndpointFor(endpoints.S3ServiceID, region)
 	if err != nil {
@@ -1731,24 +1732,21 @@ func BucketRegionalDomainName(bucket string, region string) (string, error) {
 	return fmt.Sprintf("%s.%s", bucket, strings.TrimPrefix(endpoint.URL, "https://")), nil
 }
 
-func WebsiteEndpoint(bucket string, region string) *S3Website {
-	domain := WebsiteDomainUrl(region)
+func WebsiteEndpoint(client *AWSClient, bucket string, region string) *S3Website {
+	domain := WebsiteDomainUrl(client, region)
 	return &S3Website{Endpoint: fmt.Sprintf("%s.%s", bucket, domain), Domain: domain}
 }
 
-func WebsiteDomainUrl(region string) string {
+func WebsiteDomainUrl(client *AWSClient, region string) string {
 	region = normalizeRegion(region)
 
 	// Different regions have different syntax for website endpoints
 	// https://docs.aws.amazon.com/AmazonS3/latest/dev/WebsiteEndpoints.html
 	// https://docs.aws.amazon.com/general/latest/gr/rande.html#s3_website_region_endpoints
 	if isOldRegion(region) {
-		return fmt.Sprintf("s3-website-%s.amazonaws.com", region)
+		return fmt.Sprintf("s3-website-%s.amazonaws.com", region) //lintignore:AWSR001
 	}
-	if partition, ok := endpoints.PartitionForRegion(endpoints.DefaultPartitions(), region); ok && partition.ID() == endpoints.AwsCnPartitionID {
-		return fmt.Sprintf("s3-website.%s.amazonaws.com.cn", region)
-	}
-	return fmt.Sprintf("s3-website.%s.amazonaws.com", region)
+	return client.RegionalHostname(fmt.Sprintf("s3-website"))
 }
 
 func isOldRegion(region string) bool {

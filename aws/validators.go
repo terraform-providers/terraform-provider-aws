@@ -273,6 +273,10 @@ func validateDocDBIdentifier(v interface{}, k string) (ws []string, errors []err
 		errors = append(errors, fmt.Errorf(
 			"%q cannot end with a hyphen", k))
 	}
+	if len(value) > 63 {
+		errors = append(errors, fmt.Errorf(
+			"%q cannot be greater than 63 characters", k))
+	}
 	return
 }
 

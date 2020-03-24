@@ -166,7 +166,7 @@ In addition to [generic `provider` arguments](https://www.terraform.io/docs/conf
   it can also be sourced from the `AWS_SECRET_ACCESS_KEY` environment variable, or
   via a shared credentials file if `profile` is specified.
 
-* `region` - (Required) This is the AWS region. It must be provided, but
+* `region` - (Optional) This is the AWS region. It must be provided, but
   it can also be sourced from the `AWS_DEFAULT_REGION` environment variables, or
   via a shared credentials file if `profile` is specified.
 

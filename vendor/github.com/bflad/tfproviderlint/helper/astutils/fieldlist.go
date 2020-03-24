@@ -60,6 +60,16 @@ func FieldListType(fieldList *ast.FieldList, position int) *ast.Expr {
 	return &field.Type
 }
 
+// HasFieldListLength returns true if the FieldList has the expected length
+// If FieldList is nil, checks against expected length of 0.
+func HasFieldListLength(fieldList *ast.FieldList, expectedLength int) bool {
+	if fieldList == nil {
+		return expectedLength == 0
+	}
+
+	return len(fieldList.List) == expectedLength
+}
+
 // IsFieldListType returns true if the field at position is present and matches expected ast.Expr
 func IsFieldListType(fieldList *ast.FieldList, position int, exprFunc func(ast.Expr) bool) bool {
 	t := FieldListType(fieldList, position)

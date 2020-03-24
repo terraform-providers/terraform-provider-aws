@@ -1,37 +1,38 @@
 package aws
 
 import (
+	"github.com/aws/aws-sdk-go/service/opsworks"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 func resourceAwsOpsworksJavaAppLayer() *schema.Resource {
 	layerType := &opsworksLayerType{
-		TypeName:         "java-app",
+		TypeName:         opsworks.LayerTypeJavaApp,
 		DefaultLayerName: "Java App Server",
 
 		Attributes: map[string]*opsworksLayerTypeAttribute{
 			"jvm_type": {
-				AttrName: "Jvm",
+				AttrName: opsworks.LayerAttributesKeysJvm,
 				Type:     schema.TypeString,
 				Default:  "openjdk",
 			},
 			"jvm_version": {
-				AttrName: "JvmVersion",
+				AttrName: opsworks.LayerAttributesKeysJvmVersion,
 				Type:     schema.TypeString,
 				Default:  "7",
 			},
 			"jvm_options": {
-				AttrName: "JvmOptions",
+				AttrName: opsworks.LayerAttributesKeysJvmOptions,
 				Type:     schema.TypeString,
 				Default:  "",
 			},
 			"app_server": {
-				AttrName: "JavaAppServer",
+				AttrName: opsworks.LayerAttributesKeysJavaAppServer,
 				Type:     schema.TypeString,
 				Default:  "tomcat",
 			},
 			"app_server_version": {
-				AttrName: "JavaAppServerVersion",
+				AttrName: opsworks.LayerAttributesKeysJavaAppServerVersion,
 				Type:     schema.TypeString,
 				Default:  "7",
 			},

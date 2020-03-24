@@ -11,6 +11,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 // Global Route53 Zone ID for Global Accelerators, exported as a
@@ -100,6 +102,7 @@ func resourceAwsGlobalAcceleratorAccelerator() *schema.Resource {
 					},
 				},
 			},
+			"tags": tagsSchema(),
 		},
 	}
 }
@@ -111,6 +114,7 @@ func resourceAwsGlobalAcceleratorAcceleratorCreate(d *schema.ResourceData, meta 
 		Name:             aws.String(d.Get("name").(string)),
 		IdempotencyToken: aws.String(resource.UniqueId()),
 		Enabled:          aws.Bool(d.Get("enabled").(bool)),
+		Tags:             keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().GlobalacceleratorTags(),
 	}
 
 	if v, ok := d.GetOk("ip_address_type"); ok {
@@ -175,6 +179,15 @@ func resourceAwsGlobalAcceleratorAcceleratorRead(d *schema.ResourceData, meta in
 
 	if err := d.Set("attributes", resourceAwsGlobalAcceleratorAcceleratorFlattenAttributes(resp.AcceleratorAttributes)); err != nil {
 		return fmt.Errorf("Error setting Global Accelerator accelerator attributes: %s", err)
+	}
+
+	tags, err := keyvaluetags.GlobalacceleratorListTags(conn, d.Id())
+	if err != nil {
+		return fmt.Errorf("error listing tags for Global Accelerator accelerator (%s): %s", d.Id(), err)
+	}
+
+	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+		return fmt.Errorf("error setting tags: %s", err)
 	}
 
 	return nil
@@ -289,6 +302,16 @@ func resourceAwsGlobalAcceleratorAcceleratorUpdate(d *schema.ResourceData, meta 
 		}
 
 		d.SetPartial("attributes")
+	}
+
+	if d.HasChange("tags") {
+		o, n := d.GetChange("tags")
+
+		if err := keyvaluetags.GlobalacceleratorUpdateTags(conn, d.Id(), o, n); err != nil {
+			return fmt.Errorf("error updating Global Accelerator accelerator (%s) tags: %s", d.Id(), err)
+		}
+
+		d.SetPartial("tags")
 	}
 
 	d.Partial(false)

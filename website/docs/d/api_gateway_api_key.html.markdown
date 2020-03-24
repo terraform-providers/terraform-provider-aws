@@ -1,9 +1,9 @@
 ---
-subcategory: "API Gateway"
+subcategory: "API Gateway (REST APIs)"
 layout: "aws"
 page_title: "AWS: aws_api_gateway_api_key"
 description: |-
-  Get information on an API Gateway API Key
+  Get information on an API Gateway REST API Key
 ---
 
 # Data Source: aws_api_gateway_api_key

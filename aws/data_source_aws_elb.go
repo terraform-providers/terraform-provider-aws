@@ -27,7 +27,6 @@ func dataSourceAwsElb() *schema.Resource {
 			"access_logs": {
 				Type:     schema.TypeList,
 				Computed: true,
-				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"interval": {
@@ -80,7 +79,6 @@ func dataSourceAwsElb() *schema.Resource {
 			"health_check": {
 				Type:     schema.TypeList,
 				Computed: true,
-				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"healthy_threshold": {

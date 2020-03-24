@@ -2443,9 +2443,9 @@ func flattenApiGatewayUsagePlanQuota(s *apigateway.QuotaSettings) []map[string]i
 	return []map[string]interface{}{settings}
 }
 
-func buildApiGatewayInvokeURL(restApiId, region, stageName string) string {
-	return fmt.Sprintf("https://%s.execute-api.%s.amazonaws.com/%s",
-		restApiId, region, stageName)
+func buildApiGatewayInvokeURL(client *AWSClient, restApiId, stageName string) string {
+	hostname := client.RegionalHostname(fmt.Sprintf("%s.execute-api", restApiId))
+	return fmt.Sprintf("https://%s/%s", hostname, stageName)
 }
 
 func expandCognitoSupportedLoginProviders(config map[string]interface{}) map[string]*string {
@@ -2528,6 +2528,10 @@ func flattenCognitoUserPoolEmailConfiguration(s *cognitoidentityprovider.EmailCo
 
 	if s.ReplyToEmailAddress != nil {
 		m["reply_to_email_address"] = *s.ReplyToEmailAddress
+	}
+
+	if s.From != nil {
+		m["from_email_address"] = *s.From
 	}
 
 	if s.SourceArn != nil {
@@ -3479,29 +3483,22 @@ func flattenCognitoUserPoolSchema(configuredAttributes, inputs []*cognitoidentit
 	return values
 }
 
-func expandCognitoUserPoolSmsConfiguration(config map[string]interface{}) *cognitoidentityprovider.SmsConfigurationType {
-	smsConfigurationType := &cognitoidentityprovider.SmsConfigurationType{
-		SnsCallerArn: aws.String(config["sns_caller_arn"].(string)),
+func expandCognitoUserPoolUsernameConfiguration(config map[string]interface{}) *cognitoidentityprovider.UsernameConfigurationType {
+	usernameConfigurationType := &cognitoidentityprovider.UsernameConfigurationType{
+		CaseSensitive: aws.Bool(config["case_sensitive"].(bool)),
 	}
 
-	if v, ok := config["external_id"]; ok && v.(string) != "" {
-		smsConfigurationType.ExternalId = aws.String(v.(string))
-	}
-
-	return smsConfigurationType
+	return usernameConfigurationType
 }
 
-func flattenCognitoUserPoolSmsConfiguration(s *cognitoidentityprovider.SmsConfigurationType) []map[string]interface{} {
+func flattenCognitoUserPoolUsernameConfiguration(u *cognitoidentityprovider.UsernameConfigurationType) []map[string]interface{} {
 	m := map[string]interface{}{}
 
-	if s == nil {
+	if u == nil {
 		return nil
 	}
 
-	if s.ExternalId != nil {
-		m["external_id"] = *s.ExternalId
-	}
-	m["sns_caller_arn"] = *s.SnsCallerArn
+	m["case_sensitive"] = *u.CaseSensitive
 
 	return []map[string]interface{}{m}
 }

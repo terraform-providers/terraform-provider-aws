@@ -1,5 +1,5 @@
 ---
-subcategory: "API Gateway"
+subcategory: "API Gateway (REST APIs)"
 layout: "aws"
 page_title: "AWS: aws_api_gateway_rest_api"
 description: |-
@@ -9,6 +9,8 @@ description: |-
 # Resource: aws_api_gateway_rest_api
 
 Provides an API Gateway REST API.
+
+-> **Note:** Amazon API Gateway Version 1 resources are used for creating and deploying REST APIs. To create and deploy WebSocket and HTTP APIs, use Amazon API Gateway Version 2 [resources](https://www.terraform.io/docs/providers/aws/r/apigatewayv2_api.html).
 
 ## Example Usage
 

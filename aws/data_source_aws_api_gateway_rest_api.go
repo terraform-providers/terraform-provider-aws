@@ -76,7 +76,7 @@ func dataSourceAwsApiGatewayRestApi() *schema.Resource {
 }
 
 func dataSourceAwsApiGatewayRestApiRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	conn := meta.(*AWSClient).apigatewayconn
 	params := &apigateway.GetRestApisInput{}
 
 	target := d.Get("name")

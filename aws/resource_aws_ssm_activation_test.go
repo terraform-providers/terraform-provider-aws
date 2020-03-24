@@ -2,7 +2,6 @@ package aws
 
 import (
 	"fmt"
-	"regexp"
 	"testing"
 	"time"
 
@@ -82,10 +81,6 @@ func TestAccAWSSSMActivation_expirationDate(t *testing.T) {
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSSSMActivationDestroy,
 		Steps: []resource.TestStep{
-			{
-				Config:      testAccAWSSSMActivationConfig_expirationDate(rName, "2018-03-01"),
-				ExpectError: regexp.MustCompile(`invalid RFC3339 timestamp`),
-			},
 			{
 				Config: testAccAWSSSMActivationConfig_expirationDate(rName, expirationDateS),
 				Check: resource.ComposeTestCheckFunc(

@@ -32,6 +32,8 @@ func IsPackageFunc(e ast.Expr, info *types.Info, packageSuffix string, funcName 
 		case *ast.Ident:
 			return strings.HasSuffix(info.ObjectOf(x).(*types.PkgName).Imported().Path(), packageSuffix)
 		}
+	case *ast.StarExpr:
+		return IsPackageFunc(e.X, info, packageSuffix, funcName)
 	}
 
 	return false

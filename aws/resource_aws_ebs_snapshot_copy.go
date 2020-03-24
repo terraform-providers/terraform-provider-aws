@@ -116,6 +116,10 @@ func resourceAwsEbsSnapshotCopyRead(d *schema.ResourceData, meta interface{}) er
 		return nil
 	}
 
+	if err != nil {
+		return fmt.Errorf("error describing EC2 Snapshot (%s): %w", d.Id(), err)
+	}
+
 	snapshot := res.Snapshots[0]
 
 	d.Set("description", snapshot.Description)

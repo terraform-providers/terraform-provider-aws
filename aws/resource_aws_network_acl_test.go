@@ -441,7 +441,9 @@ func TestAccAWSNetworkAcl_OnlyEgressRules(t *testing.T) {
 				Config: testAccAWSNetworkAclEgressConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSNetworkAclExists(resourceName, &networkAcl),
-					testAccCheckTags(&networkAcl.Tags, "foo", "bar"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.Name", "tf-acc-acl-egress"),
+					resource.TestCheckResourceAttr(resourceName, "tags.foo", "bar"),
 				),
 			},
 			{

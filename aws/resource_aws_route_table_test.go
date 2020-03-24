@@ -241,31 +241,33 @@ func TestAccAWSRouteTable_ipv6(t *testing.T) {
 
 func TestAccAWSRouteTable_tags(t *testing.T) {
 	var route_table ec2.RouteTable
+	resourceName := "aws_route_table.foo"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
-		IDRefreshName: "aws_route_table.foo",
+		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckRouteTableDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccRouteTableConfigTags,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckRouteTableExists("aws_route_table.foo", &route_table),
-					testAccCheckTags(&route_table.Tags, "foo", "bar"),
+					testAccCheckRouteTableExists(resourceName, &route_table),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.foo", "bar"),
 				),
 			},
 			{
-				ResourceName:      "aws_route_table.foo",
+				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
 			{
 				Config: testAccRouteTableConfigTagsUpdate,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckRouteTableExists("aws_route_table.foo", &route_table),
-					testAccCheckTags(&route_table.Tags, "foo", ""),
-					testAccCheckTags(&route_table.Tags, "bar", "baz"),
+					testAccCheckRouteTableExists(resourceName, &route_table),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.bar", "baz"),
 				),
 			},
 		},

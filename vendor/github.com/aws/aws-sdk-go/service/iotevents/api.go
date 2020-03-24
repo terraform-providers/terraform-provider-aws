@@ -4002,7 +4002,8 @@ func (s PutLoggingOptionsOutput) GoString() string {
 	return s.String()
 }
 
-// Information needed to reset the timer.
+// Information required to reset the timer. The timer is reset to the previously
+// evaluated result of the duration.
 type ResetTimerAction struct {
 	_ struct{} `type:"structure"`
 
@@ -4324,11 +4325,19 @@ func (s ServiceUnavailableException) RequestID() string {
 type SetTimerAction struct {
 	_ struct{} `type:"structure"`
 
+	// The duration of the timer, in seconds. You can use a string expression that
+	// includes numbers, variables ($variable.<variable-name>), and input values
+	// ($input.<input-name>.<path-to-datum>) as the duration. The range of the duration
+	// is 1-31622400 seconds. To ensure accuracy, the minimum duration is 60 seconds.
+	// The evaluated result of the duration is rounded down to the nearest whole
+	// number.
+	DurationExpression *string `locationName:"durationExpression" min:"1" type:"string"`
+
 	// The number of seconds until the timer expires. The minimum value is 60 seconds
-	// to ensure accuracy. The maximum value is 31622400 seconds.
+	// to ensure accuracy.
 	//
-	// Seconds is a required field
-	Seconds *int64 `locationName:"seconds" type:"integer" required:"true"`
+	// Deprecated: seconds is deprecated. You can use durationExpression for SetTimerAction. The value of seconds can be used as a string expression for durationExpression.
+	Seconds *int64 `locationName:"seconds" min:"1" deprecated:"true" type:"integer"`
 
 	// The name of the timer.
 	//
@@ -4349,8 +4358,11 @@ func (s SetTimerAction) GoString() string {
 // Validate inspects the fields of the type to determine if they are valid.
 func (s *SetTimerAction) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "SetTimerAction"}
-	if s.Seconds == nil {
-		invalidParams.Add(request.NewErrParamRequired("Seconds"))
+	if s.DurationExpression != nil && len(*s.DurationExpression) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("DurationExpression", 1))
+	}
+	if s.Seconds != nil && *s.Seconds < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("Seconds", 1))
 	}
 	if s.TimerName == nil {
 		invalidParams.Add(request.NewErrParamRequired("TimerName"))
@@ -4363,6 +4375,12 @@ func (s *SetTimerAction) Validate() error {
 		return invalidParams
 	}
 	return nil
+}
+
+// SetDurationExpression sets the DurationExpression field's value.
+func (s *SetTimerAction) SetDurationExpression(v string) *SetTimerAction {
+	s.DurationExpression = &v
+	return s
 }
 
 // SetSeconds sets the Seconds field's value.
@@ -4447,7 +4465,7 @@ type SqsAction struct {
 	QueueUrl *string `locationName:"queueUrl" type:"string" required:"true"`
 
 	// Set this to TRUE if you want the data to be base-64 encoded before it is
-	// written to the queue. Otherwise, set this to FALSE.
+	// written to the queue.
 	UseBase64 *bool `locationName:"useBase64" type:"boolean"`
 }
 

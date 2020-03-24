@@ -29,7 +29,7 @@ resource "aws_launch_template" "foo" {
   }
 
   cpu_options {
-    core_count = 4
+    core_count       = 4
     threads_per_core = 2
   }
 

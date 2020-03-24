@@ -30,11 +30,11 @@ resource "aws_eks_fargate_profile" "example" {
 ```hcl
 resource "aws_iam_role" "example" {
   name = "eks-fargate-profile-example"
-  
+
   assume_role_policy = jsonencode({
     Statement = [{
-      Action    = "sts:AssumeRole"
-      Effect    = "Allow"
+      Action = "sts:AssumeRole"
+      Effect = "Allow"
       Principal = {
         Service = "eks-fargate-pods.amazonaws.com"
       }

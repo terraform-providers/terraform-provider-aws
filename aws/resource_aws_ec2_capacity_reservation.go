@@ -42,7 +42,7 @@ func resourceAwsEc2CapacityReservation() *schema.Resource {
 			"end_date": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validation.ValidateRFC3339TimeString,
+				ValidateFunc: validation.IsRFC3339Time,
 			},
 			"end_date_type": {
 				Type:     schema.TypeString,

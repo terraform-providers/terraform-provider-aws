@@ -55,8 +55,11 @@ func resourceAwsVpcEndpointService() *schema.Resource {
 				Type:     schema.TypeSet,
 				Required: true,
 				MinItems: 1,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				Set:      schema.HashString,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: validateArn,
+				},
+				Set: schema.HashString,
 			},
 			"private_dns_name": {
 				Type:     schema.TypeString,
@@ -85,6 +88,7 @@ func resourceAwsVpcEndpointServiceCreate(d *schema.ResourceData, meta interface{
 	req := &ec2.CreateVpcEndpointServiceConfigurationInput{
 		AcceptanceRequired:      aws.Bool(d.Get("acceptance_required").(bool)),
 		NetworkLoadBalancerArns: expandStringSet(d.Get("network_load_balancer_arns").(*schema.Set)),
+		TagSpecifications:       ec2TagSpecificationsFromMap(d.Get("tags").(map[string]interface{}), "vpc-endpoint-service"),
 	}
 
 	log.Printf("[DEBUG] Creating VPC Endpoint Service configuration: %#v", req)
@@ -99,7 +103,18 @@ func resourceAwsVpcEndpointServiceCreate(d *schema.ResourceData, meta interface{
 		return err
 	}
 
-	return resourceAwsVpcEndpointServiceUpdate(d, meta)
+	if v, ok := d.GetOk("allowed_principals"); ok && v.(*schema.Set).Len() > 0 {
+		modifyPermReq := &ec2.ModifyVpcEndpointServicePermissionsInput{
+			ServiceId:            aws.String(d.Id()),
+			AddAllowedPrincipals: expandStringSet(v.(*schema.Set)),
+		}
+		log.Printf("[DEBUG] Adding VPC Endpoint Service permissions: %#v", modifyPermReq)
+		if _, err := conn.ModifyVpcEndpointServicePermissions(modifyPermReq); err != nil {
+			return fmt.Errorf("error adding VPC Endpoint Service permissions: %s", err.Error())
+		}
+	}
+
+	return resourceAwsVpcEndpointServiceRead(d, meta)
 }
 
 func resourceAwsVpcEndpointServiceRead(d *schema.ResourceData, meta interface{}) error {

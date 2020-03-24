@@ -6705,6 +6705,9 @@ func (c *Redshift) EnableLoggingRequest(input *EnableLoggingInput) (req *request
 //   to Bucket Restrictions and Limitations (https://docs.aws.amazon.com/AmazonS3/latest/dev/BucketRestrictions.html)
 //   in the Amazon Simple Storage Service (S3) Developer Guide.
 //
+//   * ErrCodeInvalidClusterStateFault "InvalidClusterState"
+//   The specified cluster is not in the available state.
+//
 // See also, https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/EnableLogging
 func (c *Redshift) EnableLogging(input *EnableLoggingInput) (*LoggingStatus, error) {
 	req, out := c.EnableLoggingRequest(input)
@@ -7421,6 +7424,9 @@ func (c *Redshift) ModifyClusterMaintenanceRequest(input *ModifyClusterMaintenan
 // Returned Error Codes:
 //   * ErrCodeClusterNotFoundFault "ClusterNotFound"
 //   The ClusterIdentifier parameter does not refer to an existing cluster.
+//
+//   * ErrCodeInvalidClusterStateFault "InvalidClusterState"
+//   The specified cluster is not in the available state.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/ModifyClusterMaintenance
 func (c *Redshift) ModifyClusterMaintenance(input *ModifyClusterMaintenanceInput) (*ModifyClusterMaintenanceOutput, error) {
@@ -8198,6 +8204,88 @@ func (c *Redshift) ModifySnapshotScheduleWithContext(ctx aws.Context, input *Mod
 	return out, req.Send()
 }
 
+const opPauseCluster = "PauseCluster"
+
+// PauseClusterRequest generates a "aws/request.Request" representing the
+// client's request for the PauseCluster operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See PauseCluster for more information on using the PauseCluster
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the PauseClusterRequest method.
+//    req, resp := client.PauseClusterRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/PauseCluster
+func (c *Redshift) PauseClusterRequest(input *PauseClusterInput) (req *request.Request, output *PauseClusterOutput) {
+	op := &request.Operation{
+		Name:       opPauseCluster,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &PauseClusterInput{}
+	}
+
+	output = &PauseClusterOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// PauseCluster API operation for Amazon Redshift.
+//
+// Pauses a cluster.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Redshift's
+// API operation PauseCluster for usage and error information.
+//
+// Returned Error Codes:
+//   * ErrCodeClusterNotFoundFault "ClusterNotFound"
+//   The ClusterIdentifier parameter does not refer to an existing cluster.
+//
+//   * ErrCodeInvalidClusterStateFault "InvalidClusterState"
+//   The specified cluster is not in the available state.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/PauseCluster
+func (c *Redshift) PauseCluster(input *PauseClusterInput) (*PauseClusterOutput, error) {
+	req, out := c.PauseClusterRequest(input)
+	return out, req.Send()
+}
+
+// PauseClusterWithContext is the same as PauseCluster with the addition of
+// the ability to pass a context and additional request options.
+//
+// See PauseCluster for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Redshift) PauseClusterWithContext(ctx aws.Context, input *PauseClusterInput, opts ...request.Option) (*PauseClusterOutput, error) {
+	req, out := c.PauseClusterRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opPurchaseReservedNodeOffering = "PurchaseReservedNodeOffering"
 
 // PurchaseReservedNodeOfferingRequest generates a "aws/request.Request" representing the
@@ -8871,6 +8959,88 @@ func (c *Redshift) RestoreTableFromClusterSnapshot(input *RestoreTableFromCluste
 // for more information on using Contexts.
 func (c *Redshift) RestoreTableFromClusterSnapshotWithContext(ctx aws.Context, input *RestoreTableFromClusterSnapshotInput, opts ...request.Option) (*RestoreTableFromClusterSnapshotOutput, error) {
 	req, out := c.RestoreTableFromClusterSnapshotRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opResumeCluster = "ResumeCluster"
+
+// ResumeClusterRequest generates a "aws/request.Request" representing the
+// client's request for the ResumeCluster operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See ResumeCluster for more information on using the ResumeCluster
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the ResumeClusterRequest method.
+//    req, resp := client.ResumeClusterRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/ResumeCluster
+func (c *Redshift) ResumeClusterRequest(input *ResumeClusterInput) (req *request.Request, output *ResumeClusterOutput) {
+	op := &request.Operation{
+		Name:       opResumeCluster,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &ResumeClusterInput{}
+	}
+
+	output = &ResumeClusterOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// ResumeCluster API operation for Amazon Redshift.
+//
+// Resumes a paused cluster.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Redshift's
+// API operation ResumeCluster for usage and error information.
+//
+// Returned Error Codes:
+//   * ErrCodeClusterNotFoundFault "ClusterNotFound"
+//   The ClusterIdentifier parameter does not refer to an existing cluster.
+//
+//   * ErrCodeInvalidClusterStateFault "InvalidClusterState"
+//   The specified cluster is not in the available state.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/ResumeCluster
+func (c *Redshift) ResumeCluster(input *ResumeClusterInput) (*ResumeClusterOutput, error) {
+	req, out := c.ResumeClusterRequest(input)
+	return out, req.Send()
+}
+
+// ResumeClusterWithContext is the same as ResumeCluster with the addition of
+// the ability to pass a context and additional request options.
+//
+// See ResumeCluster for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Redshift) ResumeClusterWithContext(ctx aws.Context, input *ResumeClusterInput, opts ...request.Option) (*ResumeClusterOutput, error) {
+	req, out := c.ResumeClusterRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -10019,6 +10189,8 @@ type Cluster struct {
 	//    * incompatible-restore
 	//
 	//    * modifying
+	//
+	//    * paused
 	//
 	//    * rebooting
 	//
@@ -20428,6 +20600,105 @@ func (s *Parameter) SetSource(v string) *Parameter {
 	return s
 }
 
+type PauseClusterInput struct {
+	_ struct{} `type:"structure"`
+
+	// The identifier of the cluster to be paused.
+	//
+	// ClusterIdentifier is a required field
+	ClusterIdentifier *string `type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s PauseClusterInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s PauseClusterInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *PauseClusterInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "PauseClusterInput"}
+	if s.ClusterIdentifier == nil {
+		invalidParams.Add(request.NewErrParamRequired("ClusterIdentifier"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetClusterIdentifier sets the ClusterIdentifier field's value.
+func (s *PauseClusterInput) SetClusterIdentifier(v string) *PauseClusterInput {
+	s.ClusterIdentifier = &v
+	return s
+}
+
+type PauseClusterMessage struct {
+	_ struct{} `type:"structure"`
+
+	// The identifier of the cluster to be paused.
+	//
+	// ClusterIdentifier is a required field
+	ClusterIdentifier *string `type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s PauseClusterMessage) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s PauseClusterMessage) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *PauseClusterMessage) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "PauseClusterMessage"}
+	if s.ClusterIdentifier == nil {
+		invalidParams.Add(request.NewErrParamRequired("ClusterIdentifier"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetClusterIdentifier sets the ClusterIdentifier field's value.
+func (s *PauseClusterMessage) SetClusterIdentifier(v string) *PauseClusterMessage {
+	s.ClusterIdentifier = &v
+	return s
+}
+
+type PauseClusterOutput struct {
+	_ struct{} `type:"structure"`
+
+	// Describes a cluster.
+	Cluster *Cluster `type:"structure"`
+}
+
+// String returns the string representation
+func (s PauseClusterOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s PauseClusterOutput) GoString() string {
+	return s.String()
+}
+
+// SetCluster sets the Cluster field's value.
+func (s *PauseClusterOutput) SetCluster(v *Cluster) *PauseClusterOutput {
+	s.Cluster = v
+	return s
+}
+
 // Describes cluster attributes that are in a pending state. A change to one
 // or more the attributes was requested and is in progress or will be applied.
 type PendingModifiedValues struct {
@@ -21870,6 +22141,105 @@ func (s *RestoreTableFromClusterSnapshotOutput) SetTableRestoreStatus(v *TableRe
 	return s
 }
 
+type ResumeClusterInput struct {
+	_ struct{} `type:"structure"`
+
+	// The identifier of the cluster to be resumed.
+	//
+	// ClusterIdentifier is a required field
+	ClusterIdentifier *string `type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s ResumeClusterInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResumeClusterInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ResumeClusterInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ResumeClusterInput"}
+	if s.ClusterIdentifier == nil {
+		invalidParams.Add(request.NewErrParamRequired("ClusterIdentifier"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetClusterIdentifier sets the ClusterIdentifier field's value.
+func (s *ResumeClusterInput) SetClusterIdentifier(v string) *ResumeClusterInput {
+	s.ClusterIdentifier = &v
+	return s
+}
+
+type ResumeClusterMessage struct {
+	_ struct{} `type:"structure"`
+
+	// The identifier of the cluster to be resumed.
+	//
+	// ClusterIdentifier is a required field
+	ClusterIdentifier *string `type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s ResumeClusterMessage) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResumeClusterMessage) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ResumeClusterMessage) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ResumeClusterMessage"}
+	if s.ClusterIdentifier == nil {
+		invalidParams.Add(request.NewErrParamRequired("ClusterIdentifier"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetClusterIdentifier sets the ClusterIdentifier field's value.
+func (s *ResumeClusterMessage) SetClusterIdentifier(v string) *ResumeClusterMessage {
+	s.ClusterIdentifier = &v
+	return s
+}
+
+type ResumeClusterOutput struct {
+	_ struct{} `type:"structure"`
+
+	// Describes a cluster.
+	Cluster *Cluster `type:"structure"`
+}
+
+// String returns the string representation
+func (s ResumeClusterOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResumeClusterOutput) GoString() string {
+	return s.String()
+}
+
+// SetCluster sets the Cluster field's value.
+func (s *ResumeClusterOutput) SetCluster(v *Cluster) *ResumeClusterOutput {
+	s.Cluster = v
+	return s
+}
+
 // Describes a RevisionTarget.
 type RevisionTarget struct {
 	_ struct{} `type:"structure"`
@@ -22337,8 +22707,14 @@ func (s *ScheduledActionFilter) SetValues(v []*string) *ScheduledActionFilter {
 type ScheduledActionType struct {
 	_ struct{} `type:"structure"`
 
+	// An action that runs a PauseCluster API operation.
+	PauseCluster *PauseClusterMessage `type:"structure"`
+
 	// An action that runs a ResizeCluster API operation.
 	ResizeCluster *ResizeClusterMessage `type:"structure"`
+
+	// An action that runs a ResumeCluster API operation.
+	ResumeCluster *ResumeClusterMessage `type:"structure"`
 }
 
 // String returns the string representation
@@ -22354,9 +22730,19 @@ func (s ScheduledActionType) GoString() string {
 // Validate inspects the fields of the type to determine if they are valid.
 func (s *ScheduledActionType) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "ScheduledActionType"}
+	if s.PauseCluster != nil {
+		if err := s.PauseCluster.Validate(); err != nil {
+			invalidParams.AddNested("PauseCluster", err.(request.ErrInvalidParams))
+		}
+	}
 	if s.ResizeCluster != nil {
 		if err := s.ResizeCluster.Validate(); err != nil {
 			invalidParams.AddNested("ResizeCluster", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.ResumeCluster != nil {
+		if err := s.ResumeCluster.Validate(); err != nil {
+			invalidParams.AddNested("ResumeCluster", err.(request.ErrInvalidParams))
 		}
 	}
 
@@ -22366,9 +22752,21 @@ func (s *ScheduledActionType) Validate() error {
 	return nil
 }
 
+// SetPauseCluster sets the PauseCluster field's value.
+func (s *ScheduledActionType) SetPauseCluster(v *PauseClusterMessage) *ScheduledActionType {
+	s.PauseCluster = v
+	return s
+}
+
 // SetResizeCluster sets the ResizeCluster field's value.
 func (s *ScheduledActionType) SetResizeCluster(v *ResizeClusterMessage) *ScheduledActionType {
 	s.ResizeCluster = v
+	return s
+}
+
+// SetResumeCluster sets the ResumeCluster field's value.
+func (s *ScheduledActionType) SetResumeCluster(v *ResumeClusterMessage) *ScheduledActionType {
+	s.ResumeCluster = v
 	return s
 }
 
@@ -23454,6 +23852,12 @@ const (
 const (
 	// ScheduledActionTypeValuesResizeCluster is a ScheduledActionTypeValues enum value
 	ScheduledActionTypeValuesResizeCluster = "ResizeCluster"
+
+	// ScheduledActionTypeValuesPauseCluster is a ScheduledActionTypeValues enum value
+	ScheduledActionTypeValuesPauseCluster = "PauseCluster"
+
+	// ScheduledActionTypeValuesResumeCluster is a ScheduledActionTypeValues enum value
+	ScheduledActionTypeValuesResumeCluster = "ResumeCluster"
 )
 
 const (

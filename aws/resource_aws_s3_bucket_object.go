@@ -190,7 +190,7 @@ func resourceAwsS3BucketObject() *schema.Resource {
 			"object_lock_retain_until_date": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validation.ValidateRFC3339TimeString,
+				ValidateFunc: validation.IsRFC3339Time,
 			},
 		},
 	}

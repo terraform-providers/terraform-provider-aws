@@ -1,9 +1,6 @@
 package aws
 
 import (
-	"log"
-	"regexp"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -33,49 +30,6 @@ func tagsSchemaForceNew() *schema.Schema {
 		Optional: true,
 		ForceNew: true,
 	}
-}
-
-// tagsFromMap returns the tags for the given map of data.
-func tagsFromMap(m map[string]interface{}) []*ec2.Tag {
-	result := make([]*ec2.Tag, 0, len(m))
-	for k, v := range m {
-		t := &ec2.Tag{
-			Key:   aws.String(k),
-			Value: aws.String(v.(string)),
-		}
-		if !tagIgnored(t) {
-			result = append(result, t)
-		}
-	}
-
-	return result
-}
-
-// tagsToMap turns the list of tags into a map.
-func tagsToMap(ts []*ec2.Tag) map[string]string {
-	result := make(map[string]string)
-	for _, t := range ts {
-		if !tagIgnored(t) {
-			result[*t.Key] = *t.Value
-		}
-	}
-
-	return result
-}
-
-// tagIgnored compares a tag against a list of strings and checks if it should
-// be ignored or not
-func tagIgnored(t *ec2.Tag) bool {
-	filter := []string{"^aws:"}
-	for _, v := range filter {
-		log.Printf("[DEBUG] Matching %v with %v\n", v, *t.Key)
-		r, _ := regexp.MatchString(v, *t.Key)
-		if r {
-			log.Printf("[DEBUG] Found AWS specific tag %s (val: %s), ignoring.\n", *t.Key, *t.Value)
-			return true
-		}
-	}
-	return false
 }
 
 // ec2TagsFromTagDescriptions returns the tags from the given tag descriptions.

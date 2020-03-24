@@ -29,6 +29,7 @@ func resourceAwsLambdaAlias() *schema.Resource {
 			"function_name": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 			"function_version": {
 				Type:     schema.TypeString,

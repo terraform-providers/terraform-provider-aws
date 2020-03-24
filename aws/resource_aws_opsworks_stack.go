@@ -122,8 +122,9 @@ func resourceAwsOpsworksStack() *schema.Resource {
 						},
 
 						"ssh_key": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:      schema.TypeString,
+							Optional:  true,
+							Sensitive: true,
 						},
 					},
 				},
@@ -323,9 +324,9 @@ func resourceAwsOpsworksStackRead(d *schema.ResourceData, meta interface{}) erro
 			return dErr
 		}
 		// If the stack was found, set the stack_endpoint
-		if client.Config.Region != nil && *client.Config.Region != "" {
-			log.Printf("[DEBUG] Setting stack_endpoint for (%s) to (%s)", d.Id(), *client.Config.Region)
-			if err := d.Set("stack_endpoint", *client.Config.Region); err != nil {
+		if region := aws.StringValue(client.Config.Region); region != "" {
+			log.Printf("[DEBUG] Setting stack_endpoint for (%s) to (%s)", d.Id(), region)
+			if err := d.Set("stack_endpoint", region); err != nil {
 				log.Printf("[WARN] Error setting stack_endpoint: %s", err)
 			}
 		}

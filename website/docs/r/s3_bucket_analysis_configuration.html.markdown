@@ -18,7 +18,7 @@ Provides a S3 bucket [analytics configuration](https://docs.aws.amazon.com/Amazo
 resource "aws_s3_bucket_analytics_configuration" "example-entire-bucket" {
   bucket = aws_s3_bucket.example.bucket
   name   = "EntireBucket"
-  
+
   storage_class_analysis {
     data_export {
       destination {

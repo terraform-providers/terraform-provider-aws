@@ -16715,6 +16715,9 @@ func (s *MultiplexProgramServiceDescriptor) SetServiceName(v string) *MultiplexP
 type MultiplexProgramSettings struct {
 	_ struct{} `type:"structure"`
 
+	// Indicates which pipeline is preferred by the multiplex for program ingest.
+	PreferredChannelPipeline *string `locationName:"preferredChannelPipeline" type:"string" enum:"PreferredChannelPipeline"`
+
 	// Unique program number.
 	//
 	// ProgramNumber is a required field
@@ -16758,6 +16761,12 @@ func (s *MultiplexProgramSettings) Validate() error {
 		return invalidParams
 	}
 	return nil
+}
+
+// SetPreferredChannelPipeline sets the PreferredChannelPipeline field's value.
+func (s *MultiplexProgramSettings) SetPreferredChannelPipeline(v string) *MultiplexProgramSettings {
+	s.PreferredChannelPipeline = &v
+	return s
 }
 
 // SetProgramNumber sets the ProgramNumber field's value.
@@ -24141,6 +24150,23 @@ const (
 
 	// PipelineIdPipeline1 is a PipelineId enum value
 	PipelineIdPipeline1 = "PIPELINE_1"
+)
+
+// Indicates which pipeline is preferred by the multiplex for program ingest.If
+// set to \"PIPELINE_0\" or \"PIPELINE_1\" and an unhealthy ingest causes the
+// multiplex to switch to the non-preferred pipeline,it will switch back once
+// that ingest is healthy again. If set to \"CURRENTLY_ACTIVE\",it will not
+// switch back to the other pipeline based on it recovering to a healthy state,it
+// will only switch if the active pipeline becomes unhealthy.
+const (
+	// PreferredChannelPipelineCurrentlyActive is a PreferredChannelPipeline enum value
+	PreferredChannelPipelineCurrentlyActive = "CURRENTLY_ACTIVE"
+
+	// PreferredChannelPipelinePipeline0 is a PreferredChannelPipeline enum value
+	PreferredChannelPipelinePipeline0 = "PIPELINE_0"
+
+	// PreferredChannelPipelinePipeline1 is a PreferredChannelPipeline enum value
+	PreferredChannelPipelinePipeline1 = "PIPELINE_1"
 )
 
 // Codec, 'MPEG2', 'AVC', 'HEVC', or 'AUDIO'

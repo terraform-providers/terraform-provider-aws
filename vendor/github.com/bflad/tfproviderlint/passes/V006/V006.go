@@ -9,8 +9,8 @@ import (
 var Analyzer = analysisutils.DeprecatedWithReplacementSelectorExprAnalyzer(
 	"V006",
 	validatelistuniquestringsselectorexpr.Analyzer,
-	validation.PackageName,
+	validation.PackagePath,
 	validation.FuncNameValidateListUniqueStrings,
-	validation.PackageName,
+	validation.PackagePath,
 	validation.FuncNameListOfUniqueStrings,
 )

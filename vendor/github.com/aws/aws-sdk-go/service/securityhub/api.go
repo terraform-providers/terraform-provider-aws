@@ -7211,11 +7211,17 @@ func (s *AwsRdsDbInstanceVpcSecurityGroup) SetVpcSecurityGroupId(v string) *AwsR
 type AwsS3BucketDetails struct {
 	_ struct{} `type:"structure"`
 
+	// The date and time when the S3 bucket was created.
+	CreatedAt *string `type:"string"`
+
 	// The canonical user ID of the owner of the S3 bucket.
 	OwnerId *string `type:"string"`
 
 	// The display name of the owner of the S3 bucket.
 	OwnerName *string `type:"string"`
+
+	// The encryption rules that are applied to the S3 bucket.
+	ServerSideEncryptionConfiguration *AwsS3BucketServerSideEncryptionConfiguration `type:"structure"`
 }
 
 // String returns the string representation
@@ -7228,6 +7234,12 @@ func (s AwsS3BucketDetails) GoString() string {
 	return s.String()
 }
 
+// SetCreatedAt sets the CreatedAt field's value.
+func (s *AwsS3BucketDetails) SetCreatedAt(v string) *AwsS3BucketDetails {
+	s.CreatedAt = &v
+	return s
+}
+
 // SetOwnerId sets the OwnerId field's value.
 func (s *AwsS3BucketDetails) SetOwnerId(v string) *AwsS3BucketDetails {
 	s.OwnerId = &v
@@ -7237,6 +7249,168 @@ func (s *AwsS3BucketDetails) SetOwnerId(v string) *AwsS3BucketDetails {
 // SetOwnerName sets the OwnerName field's value.
 func (s *AwsS3BucketDetails) SetOwnerName(v string) *AwsS3BucketDetails {
 	s.OwnerName = &v
+	return s
+}
+
+// SetServerSideEncryptionConfiguration sets the ServerSideEncryptionConfiguration field's value.
+func (s *AwsS3BucketDetails) SetServerSideEncryptionConfiguration(v *AwsS3BucketServerSideEncryptionConfiguration) *AwsS3BucketDetails {
+	s.ServerSideEncryptionConfiguration = v
+	return s
+}
+
+// Specifies the default server-side encryption to apply to new objects in the
+// bucket.
+type AwsS3BucketServerSideEncryptionByDefault struct {
+	_ struct{} `type:"structure"`
+
+	// AWS KMS customer master key (CMK) ID to use for the default encryption.
+	KMSMasterKeyID *string `type:"string"`
+
+	// Server-side encryption algorithm to use for the default encryption.
+	SSEAlgorithm *string `type:"string"`
+}
+
+// String returns the string representation
+func (s AwsS3BucketServerSideEncryptionByDefault) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AwsS3BucketServerSideEncryptionByDefault) GoString() string {
+	return s.String()
+}
+
+// SetKMSMasterKeyID sets the KMSMasterKeyID field's value.
+func (s *AwsS3BucketServerSideEncryptionByDefault) SetKMSMasterKeyID(v string) *AwsS3BucketServerSideEncryptionByDefault {
+	s.KMSMasterKeyID = &v
+	return s
+}
+
+// SetSSEAlgorithm sets the SSEAlgorithm field's value.
+func (s *AwsS3BucketServerSideEncryptionByDefault) SetSSEAlgorithm(v string) *AwsS3BucketServerSideEncryptionByDefault {
+	s.SSEAlgorithm = &v
+	return s
+}
+
+// The encryption configuration for the S3 bucket.
+type AwsS3BucketServerSideEncryptionConfiguration struct {
+	_ struct{} `type:"structure"`
+
+	// The encryption rules that are applied to the S3 bucket.
+	Rules []*AwsS3BucketServerSideEncryptionRule `type:"list"`
+}
+
+// String returns the string representation
+func (s AwsS3BucketServerSideEncryptionConfiguration) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AwsS3BucketServerSideEncryptionConfiguration) GoString() string {
+	return s.String()
+}
+
+// SetRules sets the Rules field's value.
+func (s *AwsS3BucketServerSideEncryptionConfiguration) SetRules(v []*AwsS3BucketServerSideEncryptionRule) *AwsS3BucketServerSideEncryptionConfiguration {
+	s.Rules = v
+	return s
+}
+
+// An encryption rule to apply to the S3 bucket.
+type AwsS3BucketServerSideEncryptionRule struct {
+	_ struct{} `type:"structure"`
+
+	// Specifies the default server-side encryption to apply to new objects in the
+	// bucket. If a PUT Object request doesn't specify any server-side encryption,
+	// this default encryption is applied.
+	ApplyServerSideEncryptionByDefault *AwsS3BucketServerSideEncryptionByDefault `type:"structure"`
+}
+
+// String returns the string representation
+func (s AwsS3BucketServerSideEncryptionRule) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AwsS3BucketServerSideEncryptionRule) GoString() string {
+	return s.String()
+}
+
+// SetApplyServerSideEncryptionByDefault sets the ApplyServerSideEncryptionByDefault field's value.
+func (s *AwsS3BucketServerSideEncryptionRule) SetApplyServerSideEncryptionByDefault(v *AwsS3BucketServerSideEncryptionByDefault) *AwsS3BucketServerSideEncryptionRule {
+	s.ApplyServerSideEncryptionByDefault = v
+	return s
+}
+
+// Details about an AWS S3 object.
+type AwsS3ObjectDetails struct {
+	_ struct{} `type:"structure"`
+
+	// A standard MIME type describing the format of the object data.
+	ContentType *string `type:"string"`
+
+	// The opaque identifier assigned by a web server to a specific version of a
+	// resource found at a URL.
+	ETag *string `type:"string"`
+
+	// The date and time when the object was last modified.
+	LastModified *string `type:"string"`
+
+	// The identifier of the AWS Key Management Service (AWS KMS) symmetric customer
+	// managed customer master key (CMK) that was used for the object.
+	SSEKMSKeyId *string `type:"string"`
+
+	// If the object is stored using server-side encryption, the value of the server-side
+	// encryption algorithm used when storing this object in Amazon S3.
+	ServerSideEncryption *string `type:"string"`
+
+	// The version of the object.
+	VersionId *string `type:"string"`
+}
+
+// String returns the string representation
+func (s AwsS3ObjectDetails) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AwsS3ObjectDetails) GoString() string {
+	return s.String()
+}
+
+// SetContentType sets the ContentType field's value.
+func (s *AwsS3ObjectDetails) SetContentType(v string) *AwsS3ObjectDetails {
+	s.ContentType = &v
+	return s
+}
+
+// SetETag sets the ETag field's value.
+func (s *AwsS3ObjectDetails) SetETag(v string) *AwsS3ObjectDetails {
+	s.ETag = &v
+	return s
+}
+
+// SetLastModified sets the LastModified field's value.
+func (s *AwsS3ObjectDetails) SetLastModified(v string) *AwsS3ObjectDetails {
+	s.LastModified = &v
+	return s
+}
+
+// SetSSEKMSKeyId sets the SSEKMSKeyId field's value.
+func (s *AwsS3ObjectDetails) SetSSEKMSKeyId(v string) *AwsS3ObjectDetails {
+	s.SSEKMSKeyId = &v
+	return s
+}
+
+// SetServerSideEncryption sets the ServerSideEncryption field's value.
+func (s *AwsS3ObjectDetails) SetServerSideEncryption(v string) *AwsS3ObjectDetails {
+	s.ServerSideEncryption = &v
+	return s
+}
+
+// SetVersionId sets the VersionId field's value.
+func (s *AwsS3ObjectDetails) SetVersionId(v string) *AwsS3ObjectDetails {
+	s.VersionId = &v
 	return s
 }
 
@@ -7319,9 +7493,9 @@ type AwsSecurityFinding struct {
 	// The details of process-related information about a finding.
 	Process *ProcessDetails `type:"structure"`
 
-	// The ARN generated by Security Hub that uniquely identifies a third-party
-	// company (security-findings provider) after this provider's product (solution
-	// that generates findings) is registered with Security Hub.
+	// The ARN generated by Security Hub that uniquely identifies a product that
+	// generates findings. This can be the ARN for a third-party product that is
+	// integrated with Security Hub, or the ARN for a custom integration.
 	//
 	// ProductArn is a required field
 	ProductArn *string `type:"string" required:"true"`
@@ -7391,8 +7565,11 @@ type AwsSecurityFinding struct {
 	// Indicates the veracity of a finding.
 	VerificationState *string `type:"string" enum:"VerificationState"`
 
+	// Provides information about the status of the investigation into a finding.
+	Workflow *Workflow `type:"structure"`
+
 	// The workflow state of a finding.
-	WorkflowState *string `type:"string" enum:"WorkflowState"`
+	WorkflowState *string `deprecated:"true" type:"string" enum:"WorkflowState"`
 }
 
 // String returns the string representation
@@ -7477,11 +7654,6 @@ func (s *AwsSecurityFinding) Validate() error {
 			if err := v.Validate(); err != nil {
 				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Resources", i), err.(request.ErrInvalidParams))
 			}
-		}
-	}
-	if s.Severity != nil {
-		if err := s.Severity.Validate(); err != nil {
-			invalidParams.AddNested("Severity", err.(request.ErrInvalidParams))
 		}
 	}
 
@@ -7662,6 +7834,12 @@ func (s *AwsSecurityFinding) SetUserDefinedFields(v map[string]*string) *AwsSecu
 // SetVerificationState sets the VerificationState field's value.
 func (s *AwsSecurityFinding) SetVerificationState(v string) *AwsSecurityFinding {
 	s.VerificationState = &v
+	return s
+}
+
+// SetWorkflow sets the Workflow field's value.
+func (s *AwsSecurityFinding) SetWorkflow(v *Workflow) *AwsSecurityFinding {
+	s.Workflow = v
 	return s
 }
 
@@ -7952,6 +8130,21 @@ type AwsSecurityFindingFilters struct {
 
 	// The workflow state of a finding.
 	WorkflowState []*StringFilter `type:"list"`
+
+	// The status of the investigation into a finding. Allowed values are the following.
+	//
+	//    * NEW - The initial state of a finding, before it is reviewed.
+	//
+	//    * NOTIFIED - Indicates that the resource owner has been notified about
+	//    the security issue. Used when the initial reviewer is not the resource
+	//    owner, and needs intervention from the resource owner.
+	//
+	//    * SUPPRESSED - The finding will not be reviewed again and will not be
+	//    acted upon.
+	//
+	//    * RESOLVED - The finding was reviewed and remediated and is now considered
+	//    resolved.
+	WorkflowStatus []*StringFilter `type:"list"`
 }
 
 // String returns the string representation
@@ -8459,6 +8652,12 @@ func (s *AwsSecurityFindingFilters) SetVerificationState(v []*StringFilter) *Aws
 // SetWorkflowState sets the WorkflowState field's value.
 func (s *AwsSecurityFindingFilters) SetWorkflowState(v []*StringFilter) *AwsSecurityFindingFilters {
 	s.WorkflowState = v
+	return s
+}
+
+// SetWorkflowStatus sets the WorkflowStatus field's value.
+func (s *AwsSecurityFindingFilters) SetWorkflowStatus(v []*StringFilter) *AwsSecurityFindingFilters {
+	s.WorkflowStatus = v
 	return s
 }
 
@@ -10620,7 +10819,9 @@ func (s *GetInsightResultsOutput) SetInsightResults(v *InsightResults) *GetInsig
 type GetInsightsInput struct {
 	_ struct{} `type:"structure"`
 
-	// The ARNs of the insights to describe.
+	// The ARNs of the insights to describe. If you do not provide any insight ARNs,
+	// then GetInsights returns all of your custom insights. It does not return
+	// any managed insights.
 	InsightArns []*string `type:"list"`
 
 	// The maximum number of items to return in the response.
@@ -12761,6 +12962,9 @@ type ResourceDetails struct {
 	// Details about an Amazon S3 Bucket related to a finding.
 	AwsS3Bucket *AwsS3BucketDetails `type:"structure"`
 
+	// Details about an Amazon S3 object related to a finding.
+	AwsS3Object *AwsS3ObjectDetails `type:"structure"`
+
 	// Details about an SNS topic.
 	AwsSnsTopic *AwsSnsTopicDetails `type:"structure"`
 
@@ -12895,6 +13099,12 @@ func (s *ResourceDetails) SetAwsS3Bucket(v *AwsS3BucketDetails) *ResourceDetails
 	return s
 }
 
+// SetAwsS3Object sets the AwsS3Object field's value.
+func (s *ResourceDetails) SetAwsS3Object(v *AwsS3ObjectDetails) *ResourceDetails {
+	s.AwsS3Object = v
+	return s
+}
+
 // SetAwsSnsTopic sets the AwsSnsTopic field's value.
 func (s *ResourceDetails) SetAwsSnsTopic(v *AwsSnsTopicDetails) *ResourceDetails {
 	s.AwsSnsTopic = v
@@ -13020,10 +13230,35 @@ func (s *Result) SetProcessingResult(v string) *Result {
 type Severity struct {
 	_ struct{} `type:"structure"`
 
-	// The normalized severity of a finding.
+	// The severity value of the finding. The allowed values are the following.
 	//
-	// Normalized is a required field
-	Normalized *int64 `type:"integer" required:"true"`
+	//    * INFORMATIONAL - No issue was found.
+	//
+	//    * LOW - The issue does not require action on its own.
+	//
+	//    * MEDIUM - The issue must be addressed but not urgently.
+	//
+	//    * HIGH - The issue must be addressed as a priority.
+	//
+	//    * CRITICAL - The issue must be remediated immediately to avoid it escalating.
+	Label *string `type:"string" enum:"SeverityLabel"`
+
+	// Deprecated. This attribute is being deprecated. Instead of providing Normalized,
+	// provide Label.
+	//
+	// If you provide Normalized and do not provide Label, Label is set automatically
+	// as follows.
+	//
+	//    * 0 - INFORMATIONAL
+	//
+	//    * 1–39 - LOW
+	//
+	//    * 40–69 - MEDIUM
+	//
+	//    * 70–89 - HIGH
+	//
+	//    * 90–100 - CRITICAL
+	Normalized *int64 `type:"integer"`
 
 	// The native severity as defined by the AWS service or integrated partner product
 	// that generated the finding.
@@ -13040,17 +13275,10 @@ func (s Severity) GoString() string {
 	return s.String()
 }
 
-// Validate inspects the fields of the type to determine if they are valid.
-func (s *Severity) Validate() error {
-	invalidParams := request.ErrInvalidParams{Context: "Severity"}
-	if s.Normalized == nil {
-		invalidParams.Add(request.NewErrParamRequired("Normalized"))
-	}
-
-	if invalidParams.Len() > 0 {
-		return invalidParams
-	}
-	return nil
+// SetLabel sets the Label field's value.
+func (s *Severity) SetLabel(v string) *Severity {
+	s.Label = &v
+	return s
 }
 
 // SetNormalized sets the Normalized field's value.
@@ -13999,6 +14227,43 @@ func (s *WafOverrideAction) SetType(v string) *WafOverrideAction {
 	return s
 }
 
+// Provides information about the status of the investigation into a finding.
+type Workflow struct {
+	_ struct{} `type:"structure"`
+
+	// The status of the investigation into the finding. The allowed values are
+	// the following.
+	//
+	//    * NEW - The initial state of a finding, before it is reviewed.
+	//
+	//    * NOTIFIED - Indicates that you notified the resource owner about the
+	//    security issue. Used when the initial reviewer is not the resource owner,
+	//    and needs intervention from the resource owner.
+	//
+	//    * SUPPRESSED - The finding will not be reviewed again and will not be
+	//    acted upon.
+	//
+	//    * RESOLVED - The finding was reviewed and remediated and is now considered
+	//    resolved.
+	Status *string `type:"string" enum:"WorkflowStatus"`
+}
+
+// String returns the string representation
+func (s Workflow) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s Workflow) GoString() string {
+	return s.String()
+}
+
+// SetStatus sets the Status field's value.
+func (s *Workflow) SetStatus(v string) *Workflow {
+	s.Status = &v
+	return s
+}
+
 const (
 	// AwsIamAccessKeyStatusActive is a AwsIamAccessKeyStatus enum value
 	AwsIamAccessKeyStatusActive = "Active"
@@ -14133,6 +14398,23 @@ const (
 )
 
 const (
+	// SeverityLabelInformational is a SeverityLabel enum value
+	SeverityLabelInformational = "INFORMATIONAL"
+
+	// SeverityLabelLow is a SeverityLabel enum value
+	SeverityLabelLow = "LOW"
+
+	// SeverityLabelMedium is a SeverityLabel enum value
+	SeverityLabelMedium = "MEDIUM"
+
+	// SeverityLabelHigh is a SeverityLabel enum value
+	SeverityLabelHigh = "HIGH"
+
+	// SeverityLabelCritical is a SeverityLabel enum value
+	SeverityLabelCritical = "CRITICAL"
+)
+
+const (
 	// SeverityRatingLow is a SeverityRating enum value
 	SeverityRatingLow = "LOW"
 
@@ -14263,4 +14545,18 @@ const (
 
 	// WorkflowStateResolved is a WorkflowState enum value
 	WorkflowStateResolved = "RESOLVED"
+)
+
+const (
+	// WorkflowStatusNew is a WorkflowStatus enum value
+	WorkflowStatusNew = "NEW"
+
+	// WorkflowStatusNotified is a WorkflowStatus enum value
+	WorkflowStatusNotified = "NOTIFIED"
+
+	// WorkflowStatusResolved is a WorkflowStatus enum value
+	WorkflowStatusResolved = "RESOLVED"
+
+	// WorkflowStatusSuppressed is a WorkflowStatus enum value
+	WorkflowStatusSuppressed = "SUPPRESSED"
 )

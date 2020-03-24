@@ -1695,7 +1695,8 @@ func TestAccAWSSecurityGroup_tags(t *testing.T) {
 				Config: testAccAWSSecurityGroupConfigTags,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSSecurityGroupExists(resourceName, &group),
-					testAccCheckTags(&group.Tags, "foo", "bar"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.foo", "bar"),
 				),
 			},
 			{
@@ -1709,9 +1710,9 @@ func TestAccAWSSecurityGroup_tags(t *testing.T) {
 				Config: testAccAWSSecurityGroupConfigTagsUpdate,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSSecurityGroupExists(resourceName, &group),
-					testAccCheckTags(&group.Tags, "foo", ""),
-					testAccCheckTags(&group.Tags, "bar", "baz"),
-					testAccCheckTags(&group.Tags, "env", "Production"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.env", "Production"),
+					resource.TestCheckResourceAttr(resourceName, "tags.bar", "baz"),
 				),
 			},
 		},

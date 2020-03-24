@@ -317,7 +317,7 @@ func resourceAwsLaunchTemplate() *schema.Resource {
 										Type:         schema.TypeString,
 										Optional:     true,
 										Computed:     true,
-										ValidateFunc: validation.ValidateRFC3339TimeString,
+										ValidateFunc: validation.IsRFC3339Time,
 									},
 								},
 							},

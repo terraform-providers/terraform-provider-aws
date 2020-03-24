@@ -51,7 +51,7 @@ func TestAccDataSourceAwsVpcEndpointService_interface(t *testing.T) {
 					resource.TestCheckResourceAttr(datasourceName, "base_endpoint_dns_names.#", "1"),
 					resource.TestCheckResourceAttr(datasourceName, "manages_vpc_endpoints", "false"),
 					resource.TestCheckResourceAttr(datasourceName, "owner", "amazon"),
-					resource.TestCheckResourceAttr(datasourceName, "private_dns_name", fmt.Sprintf("ec2.%s.amazonaws.com", region)),
+					resource.TestCheckResourceAttr(datasourceName, "private_dns_name", fmt.Sprintf("ec2.%s.%s", region, testAccGetPartitionDNSSuffix())),
 					resource.TestCheckResourceAttr(datasourceName, "service_type", "Interface"),
 					resource.TestCheckResourceAttr(datasourceName, "vpc_endpoint_policy_supported", "false"),
 					resource.TestCheckResourceAttr(datasourceName, "tags.%", "0"),

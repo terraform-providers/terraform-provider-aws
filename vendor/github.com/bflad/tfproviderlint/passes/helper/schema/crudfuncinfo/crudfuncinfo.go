@@ -40,11 +40,11 @@ func run(pass *analysis.Pass) (interface{}, error) {
 			return
 		}
 
-		if !astutils.IsFieldListType(funcType.Params, 1, astutils.IsFunctionParameterTypeInterface) {
+		if !astutils.IsFieldListType(funcType.Params, 1, astutils.IsExprTypeInterface) {
 			return
 		}
 
-		if !astutils.IsFieldListType(funcType.Results, 0, astutils.IsFunctionParameterTypeError) {
+		if !astutils.IsFieldListType(funcType.Results, 0, astutils.IsExprTypeError) {
 			return
 		}
 

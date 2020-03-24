@@ -36,7 +36,7 @@ func resourceAwsVpcIpv4CidrBlockAssociation() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.CIDRNetwork(16, 28), // The allowed block size is between a /28 netmask and /16 netmask.
+				ValidateFunc: validation.IsCIDRNetwork(16, 28), // The allowed block size is between a /28 netmask and /16 netmask.
 			},
 		},
 

@@ -95,7 +95,7 @@ func TestAccAWSSesTemplate_Update(t *testing.T) {
 
 func testAccCheckSesTemplate(pr string, template *ses.Template) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*AWSClient).sesConn
+		conn := testAccProvider.Meta().(*AWSClient).sesconn
 		rs, ok := s.RootModule().Resources[pr]
 		if !ok {
 			return fmt.Errorf("Not found: %s", pr)
@@ -115,7 +115,7 @@ func testAccCheckSesTemplate(pr string, template *ses.Template) resource.TestChe
 }
 
 func testAccCheckSesTemplateDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*AWSClient).sesConn
+	conn := testAccProvider.Meta().(*AWSClient).sesconn
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "aws_ses_template" {

@@ -52,7 +52,7 @@ resource "aws_lambda_function" "test_lambda" {
   # source_code_hash = "${base64sha256(file("lambda_function_payload.zip"))}"
   source_code_hash = "${filebase64sha256("lambda_function_payload.zip")}"
 
-  runtime = "nodejs8.10"
+  runtime = "nodejs12.x"
 
   environment {
     variables = {
@@ -85,7 +85,7 @@ For more information about CloudWatch Logs for Lambda, see the [Lambda User Guid
 resource "aws_lambda_function" "test_lambda" {
   function_name = "${var.lambda_function_name}"
   # ... other configuration ...
-  depends_on    = ["aws_iam_role_policy_attachment.lambda_logs", "aws_cloudwatch_log_group.example"]
+  depends_on = ["aws_iam_role_policy_attachment.lambda_logs", "aws_cloudwatch_log_group.example"]
 }
 
 # This is to optionally manage the CloudWatch Log Group for the Lambda Function.
@@ -97,8 +97,8 @@ resource "aws_cloudwatch_log_group" "example" {
 
 # See also the following AWS managed policy: AWSLambdaBasicExecutionRole
 resource "aws_iam_policy" "lambda_logging" {
-  name = "lambda_logging"
-  path = "/"
+  name        = "lambda_logging"
+  path        = "/"
   description = "IAM policy for logging from a lambda"
 
   policy = <<EOF
@@ -120,7 +120,7 @@ EOF
 }
 
 resource "aws_iam_role_policy_attachment" "lambda_logs" {
-  role = "${aws_iam_role.iam_for_lambda.name}"
+  role       = "${aws_iam_role.iam_for_lambda.name}"
   policy_arn = "${aws_iam_policy.lambda_logging.arn}"
 }
 ```

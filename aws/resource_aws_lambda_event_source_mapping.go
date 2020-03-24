@@ -59,7 +59,7 @@ func resourceAwsLambdaEventSourceMapping() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.ValidateRFC3339TimeString,
+				ValidateFunc: validation.IsRFC3339Time,
 			},
 			"batch_size": {
 				Type:     schema.TypeInt,

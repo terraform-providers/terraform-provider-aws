@@ -70,7 +70,7 @@ func resourceAwsDlmLifecyclePolicy() *schema.Resource {
 												"interval": {
 													Type:         schema.TypeInt,
 													Required:     true,
-													ValidateFunc: validation.IntInSlice([]int{2, 3, 4, 6, 8, 12, 24}),
+													ValidateFunc: validation.IntInSlice([]int{1, 2, 3, 4, 6, 8, 12, 24}),
 												},
 												"interval_unit": {
 													Type:     schema.TypeString,

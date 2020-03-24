@@ -136,12 +136,12 @@ resource "aws_codebuild_project" "example" {
 
   logs_config {
     cloudwatch_logs {
-      group_name = "log-group"
+      group_name  = "log-group"
       stream_name = "log-stream"
     }
 
     s3_logs {
-      status = "ENABLED"
+      status   = "ENABLED"
       location = "${aws_s3_bucket.example.id}/build-log"
     }
   }
@@ -152,7 +152,7 @@ resource "aws_codebuild_project" "example" {
     git_clone_depth = 1
 
     git_submodules_config {
-        fetch_submodules = true
+      fetch_submodules = true
     }
   }
 
@@ -183,7 +183,7 @@ resource "aws_codebuild_project" "project-with-cache" {
   build_timeout  = "5"
   queued_timeout = "5"
 
-  service_role  = "${aws_iam_role.example.arn}"
+  service_role = "${aws_iam_role.example.arn}"
 
   artifacts {
     type = "NO_ARTIFACTS"

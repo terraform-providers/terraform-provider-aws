@@ -47,7 +47,7 @@ func dataSourceAwsApiGatewayVpcLink() *schema.Resource {
 }
 
 func dataSourceAwsApiGatewayVpcLinkRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	conn := meta.(*AWSClient).apigatewayconn
 	params := &apigateway.GetVpcLinksInput{}
 
 	target := d.Get("name")

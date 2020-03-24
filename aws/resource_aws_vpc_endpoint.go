@@ -154,6 +154,7 @@ func resourceAwsVpcEndpointCreate(d *schema.ResourceData, meta interface{}) erro
 		VpcEndpointType:   aws.String(d.Get("vpc_endpoint_type").(string)),
 		ServiceName:       aws.String(d.Get("service_name").(string)),
 		PrivateDnsEnabled: aws.Bool(d.Get("private_dns_enabled").(bool)),
+		TagSpecifications: ec2TagSpecificationsFromMap(d.Get("tags").(map[string]interface{}), "vpc-endpoint"),
 	}
 
 	if v, ok := d.GetOk("policy"); ok {
@@ -185,12 +186,6 @@ func resourceAwsVpcEndpointCreate(d *schema.ResourceData, meta interface{}) erro
 
 	if err := vpcEndpointWaitUntilAvailable(conn, d.Id(), d.Timeout(schema.TimeoutCreate)); err != nil {
 		return err
-	}
-
-	if v, ok := d.GetOk("tags"); ok {
-		if err := keyvaluetags.Ec2UpdateTags(conn, d.Id(), nil, v.(map[string]interface{})); err != nil {
-			return fmt.Errorf("error updating tags: %s", err)
-		}
 	}
 
 	return resourceAwsVpcEndpointRead(d, meta)

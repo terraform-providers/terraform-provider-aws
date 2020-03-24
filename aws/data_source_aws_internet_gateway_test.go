@@ -32,7 +32,6 @@ func TestAccDataSourceAwsInternetGateway_typical(t *testing.T) {
 					resource.TestCheckResourceAttrPair(ds3ResourceName, "owner_id", igwResourceName, "owner_id"),
 					resource.TestCheckResourceAttrPair(ds3ResourceName, "attachments.0.vpc_id", vpcResourceName, "id"),
 				),
-				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
@@ -67,10 +66,8 @@ data "aws_internet_gateway" "by_tags" {
 
 data "aws_internet_gateway" "by_filter" {
   filter {
-    name = "attachment.vpc-id"
-    values = ["${aws_vpc.test.id}"]
+    name = "internet-gateway-id"
+    values = ["${aws_internet_gateway.test.id}"]
   }
-
-  depends_on = ["aws_internet_gateway.test"]
 }
 `

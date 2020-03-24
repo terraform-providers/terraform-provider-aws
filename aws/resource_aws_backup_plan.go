@@ -18,6 +18,9 @@ func resourceAwsBackupPlan() *schema.Resource {
 		Read:   resourceAwsBackupPlanRead,
 		Update: resourceAwsBackupPlanUpdate,
 		Delete: resourceAwsBackupPlanDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {

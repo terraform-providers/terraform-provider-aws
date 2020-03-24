@@ -19,7 +19,7 @@ func dataSourceAwsElasticBeanstalkSolutionStack() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.ValidateRegexp,
+				ValidateFunc: validation.StringIsValidRegExp,
 			},
 			"most_recent": {
 				Type:     schema.TypeBool,

@@ -281,7 +281,7 @@ func testAccCheckAWSAPIGatewayAuthorizerDisappears(resourceName string) resource
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("No resource ID is set")
 		}
-		conn := testAccProvider.Meta().(*AWSClient).apigateway
+		conn := testAccProvider.Meta().(*AWSClient).apigatewayconn
 		authorizerId := rs.Primary.ID
 		restApiId := rs.Primary.Attributes["rest_api_id"]
 
@@ -406,7 +406,7 @@ func testAccCheckAWSAPIGatewayAuthorizerExists(n string, res *apigateway.Authori
 			return fmt.Errorf("No API Gateway Authorizer ID is set")
 		}
 
-		conn := testAccProvider.Meta().(*AWSClient).apigateway
+		conn := testAccProvider.Meta().(*AWSClient).apigatewayconn
 
 		req := &apigateway.GetAuthorizerInput{
 			AuthorizerId: aws.String(rs.Primary.ID),
@@ -424,7 +424,7 @@ func testAccCheckAWSAPIGatewayAuthorizerExists(n string, res *apigateway.Authori
 }
 
 func testAccCheckAWSAPIGatewayAuthorizerDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*AWSClient).apigateway
+	conn := testAccProvider.Meta().(*AWSClient).apigatewayconn
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "aws_api_gateway_authorizer" {

@@ -3,7 +3,7 @@ subcategory: "EC2"
 layout: "aws"
 page_title: "AWS: aws_ec2_traffic_mirror_target"
 description: |-
-  Provides an Traffic mirror target
+  Provides a Traffic mirror target
 ---
 
 # Resource: aws_ec2_traffic_mirror_target
@@ -35,6 +35,7 @@ The following arguments are supported:
 * `description` - (Optional, Forces new) A description of the traffic mirror session.
 * `network_interface_id` - (Optional, Forces new) The network interface ID that is associated with the target.
 * `network_load_balancer_arn` - (Optional, Forces new) The Amazon Resource Name (ARN) of the Network Load Balancer that is associated with the target.
+* `tags` - (Optional) Key-value mapping of resource tags.
 
 **NOTE:** Either `network_interface_id` or `network_load_balancer_arn` should be specified and both should not be specified together
 

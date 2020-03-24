@@ -413,6 +413,46 @@ func TestAccAWSLB_applicationLoadBalancer_updateHttp2(t *testing.T) {
 	})
 }
 
+func TestAccAWSLB_applicationLoadBalancer_updateDropInvalidHeaderFields(t *testing.T) {
+	var pre, mid, post elbv2.LoadBalancer
+	lbName := fmt.Sprintf("testaccawsalb-headers-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:      func() { testAccPreCheck(t) },
+		IDRefreshName: "aws_lb.lb_test",
+		Providers:     testAccProviders,
+		CheckDestroy:  testAccCheckAWSLBDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSLBConfig_enableDropInvalidHeaderFields(lbName, false),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSLBExists("aws_lb.lb_test", &pre),
+					testAccCheckAWSLBAttribute("aws_lb.lb_test", "routing.http.drop_invalid_header_fields.enabled", "false"),
+					resource.TestCheckResourceAttr("aws_lb.lb_test", "drop_invalid_header_fields", "false"),
+				),
+			},
+			{
+				Config: testAccAWSLBConfig_enableDropInvalidHeaderFields(lbName, true),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSLBExists("aws_lb.lb_test", &mid),
+					testAccCheckAWSLBAttribute("aws_lb.lb_test", "routing.http.drop_invalid_header_fields.enabled", "true"),
+					resource.TestCheckResourceAttr("aws_lb.lb_test", "drop_invalid_header_fields", "true"),
+					testAccCheckAWSlbARNs(&pre, &mid),
+				),
+			},
+			{
+				Config: testAccAWSLBConfig_enableDropInvalidHeaderFields(lbName, false),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSLBExists("aws_lb.lb_test", &post),
+					testAccCheckAWSLBAttribute("aws_lb.lb_test", "routing.http.drop_invalid_header_fields.enabled", "false"),
+					resource.TestCheckResourceAttr("aws_lb.lb_test", "drop_invalid_header_fields", "false"),
+					testAccCheckAWSlbARNs(&mid, &post),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAWSLB_applicationLoadBalancer_updateDeletionProtection(t *testing.T) {
 	var pre, mid, post elbv2.LoadBalancer
 	lbName := fmt.Sprintf("testaccawsalb-basic-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
@@ -1386,6 +1426,77 @@ resource "aws_security_group" "alb_test" {
   }
 }
 `, lbName, http2)
+}
+
+func testAccAWSLBConfig_enableDropInvalidHeaderFields(lbName string, dropInvalid bool) string {
+	return fmt.Sprintf(`
+resource "aws_lb" "lb_test" {
+  name            = "%s"
+  internal        = true
+  security_groups = ["${aws_security_group.alb_test.id}"]
+  subnets         = ["${aws_subnet.alb_test.*.id[0]}", "${aws_subnet.alb_test.*.id[1]}"]
+
+  idle_timeout               = 30
+  enable_deletion_protection = false
+
+  drop_invalid_header_fields = %t
+
+  tags = {
+    Name = "TestAccAWSALB_basic"
+  }
+}
+
+variable "subnets" {
+  default = ["10.0.1.0/24", "10.0.2.0/24"]
+  type    = "list"
+}
+
+data "aws_availability_zones" "available" {}
+
+resource "aws_vpc" "alb_test" {
+  cidr_block = "10.0.0.0/16"
+
+  tags = {
+    Name = "terraform-testacc-lb-basic"
+  }
+}
+
+resource "aws_subnet" "alb_test" {
+  count                   = 2
+  vpc_id                  = "${aws_vpc.alb_test.id}"
+  cidr_block              = "${element(var.subnets, count.index)}"
+  map_public_ip_on_launch = true
+  availability_zone       = "${element(data.aws_availability_zones.available.names, count.index)}"
+
+  tags = {
+    Name = "tf-acc-lb-basic-${count.index}"
+  }
+}
+
+resource "aws_security_group" "alb_test" {
+  name        = "allow_all_alb_test"
+  description = "Used for ALB Testing"
+  vpc_id      = "${aws_vpc.alb_test.id}"
+
+  ingress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "TestAccAWSALB_basic"
+  }
+}
+`, lbName, dropInvalid)
 }
 
 func testAccAWSLBConfig_enableDeletionProtection(lbName string, deletion_protection bool) string {

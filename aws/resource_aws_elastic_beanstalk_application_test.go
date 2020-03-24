@@ -62,7 +62,7 @@ func testSweepElasticBeanstalkApplications(region string) error {
 	return nil
 }
 
-func TestAWSElasticBeanstalkApplication_importBasic(t *testing.T) {
+func TestAccAWSElasticBeanstalkApplication_basic(t *testing.T) {
 	resourceName := "aws_elastic_beanstalk_application.tftest"
 	config := fmt.Sprintf("tf-test-name-%d", acctest.RandInt())
 

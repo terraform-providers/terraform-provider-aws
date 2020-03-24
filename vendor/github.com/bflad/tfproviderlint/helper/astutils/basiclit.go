@@ -2,8 +2,8 @@ package astutils
 
 import (
 	"go/ast"
+	"go/token"
 	"strconv"
-	"strings"
 )
 
 // ExprBoolValue fetches a bool value from the Expr
@@ -29,8 +29,7 @@ func ExprBoolValue(e ast.Expr) *bool {
 func ExprIntValue(e ast.Expr) *int {
 	switch v := e.(type) {
 	case *ast.BasicLit:
-		stringValue := strings.Trim(v.Value, `"`)
-		intValue, err := strconv.Atoi(stringValue)
+		intValue, err := strconv.Atoi(v.Value)
 
 		if err != nil {
 			return nil
@@ -47,8 +46,10 @@ func ExprIntValue(e ast.Expr) *int {
 func ExprStringValue(e ast.Expr) *string {
 	switch v := e.(type) {
 	case *ast.BasicLit:
-		stringValue := strings.Trim(v.Value, `"`)
-
+		if v.Kind != token.STRING {
+			return nil
+		}
+		stringValue, _ := strconv.Unquote(v.Value) // can assume well-formed Go
 		return &stringValue
 	}
 

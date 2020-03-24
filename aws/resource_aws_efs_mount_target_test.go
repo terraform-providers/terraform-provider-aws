@@ -92,6 +92,7 @@ func TestAccAWSEFSMountTarget_basic(t *testing.T) {
 	var mount efs.MountTargetDescription
 	ct := fmt.Sprintf("createtoken-%d", acctest.RandInt())
 	resourceName := "aws_efs_mount_target.test"
+	resourceName2 := "aws_efs_mount_target.test2"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -101,16 +102,9 @@ func TestAccAWSEFSMountTarget_basic(t *testing.T) {
 			{
 				Config: testAccAWSEFSMountTargetConfig(ct),
 				Check: resource.ComposeTestCheckFunc(
+					testAccCheckEfsMountTarget(resourceName, &mount),
+					testAccMatchResourceAttrRegionalHostname(resourceName, "dns_name", "efs", regexp.MustCompile(`fs-[^.]+`)),
 					testAccMatchResourceAttrRegionalARN(resourceName, "file_system_arn", "elasticfilesystem", regexp.MustCompile(`file-system/fs-.+`)),
-					testAccCheckEfsMountTarget(
-						resourceName,
-						&mount,
-					),
-					resource.TestMatchResourceAttr(
-						resourceName,
-						"dns_name",
-						regexp.MustCompile("^[^.]+.efs.us-west-2.amazonaws.com$"),
-					),
 				),
 			},
 			{
@@ -121,24 +115,10 @@ func TestAccAWSEFSMountTarget_basic(t *testing.T) {
 			{
 				Config: testAccAWSEFSMountTargetConfigModified(ct),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckEfsMountTarget(
-						resourceName,
-						&mount,
-					),
-					resource.TestMatchResourceAttr(
-						resourceName,
-						"dns_name",
-						regexp.MustCompile("^[^.]+.efs.us-west-2.amazonaws.com$"),
-					),
-					testAccCheckEfsMountTarget(
-						"aws_efs_mount_target.test2",
-						&mount,
-					),
-					resource.TestMatchResourceAttr(
-						"aws_efs_mount_target.test2",
-						"dns_name",
-						regexp.MustCompile("^[^.]+.efs.us-west-2.amazonaws.com$"),
-					),
+					testAccCheckEfsMountTarget(resourceName, &mount),
+					testAccCheckEfsMountTarget(resourceName2, &mount),
+					testAccMatchResourceAttrRegionalHostname(resourceName, "dns_name", "efs", regexp.MustCompile(`fs-[^.]+`)),
+					testAccMatchResourceAttrRegionalHostname(resourceName2, "dns_name", "efs", regexp.MustCompile(`fs-[^.]+`)),
 				),
 			},
 		},
@@ -168,16 +148,6 @@ func TestAccAWSEFSMountTarget_disappears(t *testing.T) {
 			},
 		},
 	})
-}
-
-func TestResourceAWSEFSMountTarget_mountTargetDnsName(t *testing.T) {
-	actual := resourceAwsEfsMountTargetDnsName("fs-123456ab", "us-west-2", "amazonaws.com")
-
-	expected := "fs-123456ab.efs.us-west-2.amazonaws.com"
-	if actual != expected {
-		t.Fatalf("Expected EFS mount target DNS name to be %s, got %s",
-			expected, actual)
-	}
 }
 
 func TestResourceAWSEFSMountTarget_hasEmptyMountTargets(t *testing.T) {

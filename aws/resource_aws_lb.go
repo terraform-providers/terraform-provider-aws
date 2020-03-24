@@ -171,6 +171,13 @@ func resourceAwsLb() *schema.Resource {
 				DiffSuppressFunc: suppressIfLBType(elbv2.LoadBalancerTypeEnumNetwork),
 			},
 
+			"drop_invalid_header_fields": {
+				Type:             schema.TypeBool,
+				Optional:         true,
+				Default:          false,
+				DiffSuppressFunc: suppressIfLBType("network"),
+			},
+
 			"enable_cross_zone_load_balancing": {
 				Type:             schema.TypeBool,
 				Optional:         true,
@@ -408,6 +415,14 @@ func resourceAwsLbUpdate(d *schema.ResourceData, meta interface{}) error {
 				Value: aws.String(strconv.FormatBool(d.Get("enable_http2").(bool))),
 			})
 		}
+
+		if d.HasChange("drop_invalid_header_fields") || d.IsNewResource() {
+			attributes = append(attributes, &elbv2.LoadBalancerAttribute{
+				Key:   aws.String("routing.http.drop_invalid_header_fields.enabled"),
+				Value: aws.String(strconv.FormatBool(d.Get("drop_invalid_header_fields").(bool))),
+			})
+		}
+
 	case elbv2.LoadBalancerTypeEnumNetwork:
 		if d.HasChange("enable_cross_zone_load_balancing") || d.IsNewResource() {
 			attributes = append(attributes, &elbv2.LoadBalancerAttribute{
@@ -756,6 +771,10 @@ func flattenAwsLbResource(d *schema.ResourceData, meta interface{}, lb *elbv2.Lo
 			}
 			log.Printf("[DEBUG] Setting ALB Timeout Seconds: %d", timeout)
 			d.Set("idle_timeout", timeout)
+		case "routing.http.drop_invalid_header_fields.enabled":
+			dropInvalidHeaderFieldsEnabled := aws.StringValue(attr.Value) == "true"
+			log.Printf("[DEBUG] Setting LB Invalid Header Fields Enabled: %t", dropInvalidHeaderFieldsEnabled)
+			d.Set("drop_invalid_header_fields", dropInvalidHeaderFieldsEnabled)
 		case "deletion_protection.enabled":
 			protectionEnabled := aws.StringValue(attr.Value) == "true"
 			log.Printf("[DEBUG] Setting LB Deletion Protection Enabled: %t", protectionEnabled)

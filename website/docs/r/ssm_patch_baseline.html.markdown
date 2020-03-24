@@ -92,12 +92,12 @@ resource "aws_ssm_patch_baseline" "windows_os_apps" {
     approve_after_days = 7
 
     patch_filter {
-      key = "CLASSIFICATION"
+      key    = "CLASSIFICATION"
       values = ["CriticalUpdates", "SecurityUpdates"]
     }
 
     patch_filter {
-      key = "MSRC_SEVERITY"
+      key    = "MSRC_SEVERITY"
       values = ["Critical", "Important"]
     }
   }
@@ -106,13 +106,13 @@ resource "aws_ssm_patch_baseline" "windows_os_apps" {
     approve_after_days = 7
 
     patch_filter {
-      key = "PATCH_SET"
+      key    = "PATCH_SET"
       values = ["APPLICATION"]
     }
 
     # Filter on Microsoft product if necessary 
     patch_filter {
-      key = "PRODUCT"
+      key    = "PRODUCT"
       values = ["Office 2013", "Office 2016"]
     }
   }

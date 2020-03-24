@@ -105,12 +105,12 @@ The `attachments_source` argument does not have an SSM API method for reading th
 
 ```hcl
 resource "aws_ssm_document" "test" {
-  name      = "test_document"
+  name          = "test_document"
   document_type = "Package"
 
   attachments_source {
-    key = "SourceUrl"
-	  values = ["s3://${aws_s3_bucket.object_bucket.bucket}/test.zip"]
+    key    = "SourceUrl"
+    values = ["s3://${aws_s3_bucket.object_bucket.bucket}/test.zip"]
   }
 
   # There is no AWS SSM API for reading attachments_source info directly

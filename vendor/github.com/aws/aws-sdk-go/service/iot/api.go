@@ -3180,7 +3180,7 @@ func (c *IoT) CreateThingRequest(input *CreateThingInput) (req *request.Request,
 // call is made with the same thing name but different configuration a ResourceAlreadyExistsException
 // is thrown.
 //
-// This is a control plane operation. See Authorization (https://docs.aws.amazon.com/iot/latest/developerguide/authorization.html)
+// This is a control plane operation. See Authorization (https://docs.aws.amazon.com/iot/latest/developerguide/iot-authorization.html)
 // for information about authorizing control plane actions.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
@@ -3277,7 +3277,7 @@ func (c *IoT) CreateThingGroupRequest(input *CreateThingGroupInput) (req *reques
 //
 // Create a thing group.
 //
-// This is a control plane operation. See Authorization (https://docs.aws.amazon.com/iot/latest/developerguide/authorization.html)
+// This is a control plane operation. See Authorization (https://docs.aws.amazon.com/iot/latest/developerguide/iot-authorization.html)
 // for information about authorizing control plane actions.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
@@ -18442,6 +18442,9 @@ type Action struct {
 	// Change the state of a CloudWatch alarm.
 	CloudwatchAlarm *CloudwatchAlarmAction `locationName:"cloudwatchAlarm" type:"structure"`
 
+	// Send data to CloudWatch logs.
+	CloudwatchLogs *CloudwatchLogsAction `locationName:"cloudwatchLogs" type:"structure"`
+
 	// Capture a CloudWatch metric.
 	CloudwatchMetric *CloudwatchMetricAction `locationName:"cloudwatchMetric" type:"structure"`
 
@@ -18513,6 +18516,11 @@ func (s *Action) Validate() error {
 	if s.CloudwatchAlarm != nil {
 		if err := s.CloudwatchAlarm.Validate(); err != nil {
 			invalidParams.AddNested("CloudwatchAlarm", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.CloudwatchLogs != nil {
+		if err := s.CloudwatchLogs.Validate(); err != nil {
+			invalidParams.AddNested("CloudwatchLogs", err.(request.ErrInvalidParams))
 		}
 	}
 	if s.CloudwatchMetric != nil {
@@ -18605,6 +18613,12 @@ func (s *Action) Validate() error {
 // SetCloudwatchAlarm sets the CloudwatchAlarm field's value.
 func (s *Action) SetCloudwatchAlarm(v *CloudwatchAlarmAction) *Action {
 	s.CloudwatchAlarm = v
+	return s
+}
+
+// SetCloudwatchLogs sets the CloudwatchLogs field's value.
+func (s *Action) SetCloudwatchLogs(v *CloudwatchLogsAction) *Action {
+	s.CloudwatchLogs = v
 	return s
 }
 
@@ -21834,6 +21848,59 @@ func (s *CloudwatchAlarmAction) SetStateReason(v string) *CloudwatchAlarmAction 
 // SetStateValue sets the StateValue field's value.
 func (s *CloudwatchAlarmAction) SetStateValue(v string) *CloudwatchAlarmAction {
 	s.StateValue = &v
+	return s
+}
+
+// Describes an action that sends data to CloudWatch logs.
+type CloudwatchLogsAction struct {
+	_ struct{} `type:"structure"`
+
+	// The CloudWatch log group to which the action sends data.
+	//
+	// LogGroupName is a required field
+	LogGroupName *string `locationName:"logGroupName" type:"string" required:"true"`
+
+	// The IAM role that allows access to the CloudWatch log.
+	//
+	// RoleArn is a required field
+	RoleArn *string `locationName:"roleArn" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s CloudwatchLogsAction) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CloudwatchLogsAction) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *CloudwatchLogsAction) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "CloudwatchLogsAction"}
+	if s.LogGroupName == nil {
+		invalidParams.Add(request.NewErrParamRequired("LogGroupName"))
+	}
+	if s.RoleArn == nil {
+		invalidParams.Add(request.NewErrParamRequired("RoleArn"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetLogGroupName sets the LogGroupName field's value.
+func (s *CloudwatchLogsAction) SetLogGroupName(v string) *CloudwatchLogsAction {
+	s.LogGroupName = &v
+	return s
+}
+
+// SetRoleArn sets the RoleArn field's value.
+func (s *CloudwatchLogsAction) SetRoleArn(v string) *CloudwatchLogsAction {
+	s.RoleArn = &v
 	return s
 }
 
@@ -27730,6 +27797,10 @@ type DescribeEndpointInput struct {
 	//    endpoint.
 	//
 	//    * iot:Jobs - Returns an AWS IoT device management Jobs API endpoint.
+	//
+	// We strongly recommend that customers use the newer iot:Data-ATS endpoint
+	// type to avoid issues related to the widespread distrust of Symantec certificate
+	// authorities.
 	EndpointType *string `location:"querystring" locationName:"endpointType" type:"string"`
 }
 
@@ -39908,7 +39979,8 @@ type RegisterThingInput struct {
 	// for more information.
 	Parameters map[string]*string `locationName:"parameters" type:"map"`
 
-	// The provisioning template. See Programmatic Provisioning (https://docs.aws.amazon.com/iot/latest/developerguide/programmatic-provisioning.html)
+	// The provisioning template. See Provisioning Devices That Have Device Certificates
+	// (https://docs.aws.amazon.com/iot/latest/developerguide/provision-w-cert.html)
 	// for more information.
 	//
 	// TemplateBody is a required field
@@ -45548,9 +45620,10 @@ type UpdateCertificateInput struct {
 
 	// The new status.
 	//
-	// Note: Setting the status to PENDING_TRANSFER will result in an exception
-	// being thrown. PENDING_TRANSFER is a status used internally by AWS IoT. It
-	// is not intended for developer use.
+	// Note: Setting the status to PENDING_TRANSFER or PENDING_ACTIVATION will result
+	// in an exception being thrown. PENDING_TRANSFER and PENDING_ACTIVATION are
+	// statuses used internally by AWS IoT. They are not intended for developer
+	// use.
 	//
 	// Note: The status value REGISTER_INACTIVE is deprecated and should not be
 	// used.

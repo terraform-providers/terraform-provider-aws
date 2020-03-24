@@ -36,3 +36,11 @@ The following arguments are supported:
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the DHCP Options Set Association.
+
+## Import
+
+DHCP associations can be imported by providing the VPC ID associated with the options:
+
+```
+$ terraform import aws_vpc_dhcp_options_association.imported vpc-0f001273ec18911b1
+```

@@ -5,13 +5,13 @@ import (
 	"log"
 	"strconv"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/arn"
+	"github.com/aws/aws-sdk-go/service/opsworks"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/service/opsworks"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 // OpsWorks has a single concept of "layer" which represents several different
@@ -59,8 +59,9 @@ func (lt *opsworksLayerType) SchemaResource() *schema.Resource {
 		},
 
 		"custom_instance_profile_arn": {
-			Type:     schema.TypeString,
-			Optional: true,
+			Type:         schema.TypeString,
+			Optional:     true,
+			ValidateFunc: validateArn,
 		},
 
 		"elastic_load_balancer": {
@@ -208,6 +209,11 @@ func (lt *opsworksLayerType) SchemaResource() *schema.Resource {
 				return hashcode.String(m["mount_point"].(string))
 			},
 		},
+		"arn": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"tags": tagsSchema(),
 	}
 
 	if lt.CustomShortName {
@@ -246,7 +252,7 @@ func (lt *opsworksLayerType) SchemaResource() *schema.Resource {
 		},
 		Create: func(d *schema.ResourceData, meta interface{}) error {
 			client := meta.(*AWSClient).opsworksconn
-			return lt.Create(d, client)
+			return lt.Create(d, client, meta)
 		},
 		Update: func(d *schema.ResourceData, meta interface{}) error {
 			client := meta.(*AWSClient).opsworksconn
@@ -276,11 +282,9 @@ func (lt *opsworksLayerType) Read(d *schema.ResourceData, client *opsworks.OpsWo
 
 	resp, err := client.DescribeLayers(req)
 	if err != nil {
-		if awserr, ok := err.(awserr.Error); ok {
-			if awserr.Code() == "ResourceNotFoundException" {
-				d.SetId("")
-				return nil
-			}
+		if isAWSErr(err, opsworks.ErrCodeResourceNotFoundException, "") {
+			d.SetId("")
+			return nil
 		}
 		return err
 	}
@@ -337,10 +341,22 @@ func (lt *opsworksLayerType) Read(d *schema.ResourceData, client *opsworks.OpsWo
 		}
 	}
 
+	arn := aws.StringValue(layer.Arn)
+	d.Set("arn", arn)
+	tags, err := keyvaluetags.OpsworksListTags(client, arn)
+
+	if err != nil {
+		return fmt.Errorf("error listing tags for Opsworks Layer (%s): %s", arn, err)
+	}
+
+	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+		return fmt.Errorf("error setting tags: %s", err)
+	}
+
 	return nil
 }
 
-func (lt *opsworksLayerType) Create(d *schema.ResourceData, client *opsworks.OpsWorks) error {
+func (lt *opsworksLayerType) Create(d *schema.ResourceData, client *opsworks.OpsWorks, meta interface{}) error {
 
 	req := &opsworks.CreateLayerInput{
 		AutoAssignElasticIps:        aws.Bool(d.Get("auto_assign_elastic_ips").(bool)),
@@ -387,6 +403,20 @@ func (lt *opsworksLayerType) Create(d *schema.ResourceData, client *opsworks.Ops
 		})
 		if err != nil {
 			return err
+		}
+	}
+
+	arn := arn.ARN{
+		Partition: meta.(*AWSClient).partition,
+		Region:    meta.(*AWSClient).region,
+		Service:   "opsworks",
+		AccountID: meta.(*AWSClient).accountid,
+		Resource:  fmt.Sprintf("layer/%s", d.Id()),
+	}.String()
+
+	if v, ok := d.GetOk("tags"); ok {
+		if err := keyvaluetags.OpsworksUpdateTags(client, arn, nil, v.(map[string]interface{})); err != nil {
+			return fmt.Errorf("error updating Opsworks stack (%s) tags: %s", arn, err)
 		}
 	}
 
@@ -454,6 +484,15 @@ func (lt *opsworksLayerType) Update(d *schema.ResourceData, client *opsworks.Ops
 	_, err := client.UpdateLayer(req)
 	if err != nil {
 		return err
+	}
+
+	if d.HasChange("tags") {
+		o, n := d.GetChange("tags")
+
+		arn := d.Get("arn").(string)
+		if err := keyvaluetags.OpsworksUpdateTags(client, arn, o, n); err != nil {
+			return fmt.Errorf("error updating Opsworks Layer (%s) tags: %s", arn, err)
+		}
 	}
 
 	return lt.Read(d, client)

@@ -220,11 +220,7 @@ func resourceAwsEfsMountTargetRead(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Failed getting Availability Zone from subnet ID (%s): %s", *mt.SubnetId, err)
 	}
 
-	region := meta.(*AWSClient).region
-	dnsSuffix := meta.(*AWSClient).dnsSuffix
-	if err := d.Set("dns_name", resourceAwsEfsMountTargetDnsName(aws.StringValue(mt.FileSystemId), region, dnsSuffix)); err != nil {
-		return fmt.Errorf("error setting dns_name: %s", err)
-	}
+	d.Set("dns_name", meta.(*AWSClient).RegionalHostname(fmt.Sprintf("%s.efs", aws.StringValue(mt.FileSystemId))))
 
 	return nil
 }
@@ -302,10 +298,6 @@ func waitForDeleteEfsMountTarget(conn *efs.EFS, id string, timeout time.Duration
 	}
 	_, err := stateConf.WaitForState()
 	return err
-}
-
-func resourceAwsEfsMountTargetDnsName(fileSystemId, region string, dnsSuffix string) string {
-	return fmt.Sprintf("%s.efs.%s.%s", fileSystemId, region, dnsSuffix)
 }
 
 func hasEmptyMountTargets(mto *efs.DescribeMountTargetsOutput) bool {

@@ -69,7 +69,7 @@ func TestAccAWSPinpointApp_basic(t *testing.T) {
 	resourceName := "aws_pinpoint_app.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t); testAccRegionHasServicePreCheck("pinpoint", t) },
+		PreCheck:      func() { testAccPreCheck(t); testAccPreCheckAWSPinpointApp(t) },
 		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSPinpointAppDestroy,
@@ -95,7 +95,7 @@ func TestAccAWSPinpointApp_CampaignHookLambda(t *testing.T) {
 	resourceName := "aws_pinpoint_app.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t); testAccRegionHasServicePreCheck("pinpoint", t) },
+		PreCheck:      func() { testAccPreCheck(t); testAccPreCheckAWSPinpointApp(t) },
 		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSPinpointAppDestroy,
@@ -123,7 +123,7 @@ func TestAccAWSPinpointApp_Limits(t *testing.T) {
 	resourceName := "aws_pinpoint_app.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t); testAccRegionHasServicePreCheck("pinpoint", t) },
+		PreCheck:      func() { testAccPreCheck(t); testAccPreCheckAWSPinpointApp(t) },
 		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSPinpointAppDestroy,
@@ -151,7 +151,7 @@ func TestAccAWSPinpointApp_QuietTime(t *testing.T) {
 	resourceName := "aws_pinpoint_app.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t); testAccRegionHasServicePreCheck("pinpoint", t) },
+		PreCheck:      func() { testAccPreCheck(t); testAccPreCheckAWSPinpointApp(t) },
 		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSPinpointAppDestroy,
@@ -179,7 +179,7 @@ func TestAccAWSPinpointApp_Tags(t *testing.T) {
 	resourceName := "aws_pinpoint_app.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccRegionHasServicePreCheck("pinpoint", t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSPinpointApp(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsRamResourceShareDestroy,
 		Steps: []resource.TestStep{
@@ -215,6 +215,22 @@ func TestAccAWSPinpointApp_Tags(t *testing.T) {
 			},
 		},
 	})
+}
+
+func testAccPreCheckAWSPinpointApp(t *testing.T) {
+	conn := testAccProvider.Meta().(*AWSClient).pinpointconn
+
+	input := &pinpoint.GetAppsInput{}
+
+	_, err := conn.GetApps(input)
+
+	if testAccPreCheckSkipError(err) {
+		t.Skipf("skipping acceptance testing: %s", err)
+	}
+
+	if err != nil {
+		t.Fatalf("unexpected PreCheck error: %s", err)
+	}
 }
 
 func testAccCheckAWSPinpointAppExists(n string, application *pinpoint.ApplicationResponse) resource.TestCheckFunc {

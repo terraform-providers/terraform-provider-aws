@@ -295,7 +295,7 @@ func testAccCheckAWSAPIGatewayIntegrationExists(n string, res *apigateway.Integr
 			return fmt.Errorf("No API Gateway Method ID is set")
 		}
 
-		conn := testAccProvider.Meta().(*AWSClient).apigateway
+		conn := testAccProvider.Meta().(*AWSClient).apigatewayconn
 
 		req := &apigateway.GetIntegrationInput{
 			HttpMethod: aws.String("GET"),
@@ -314,7 +314,7 @@ func testAccCheckAWSAPIGatewayIntegrationExists(n string, res *apigateway.Integr
 }
 
 func testAccCheckAWSAPIGatewayIntegrationDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*AWSClient).apigateway
+	conn := testAccProvider.Meta().(*AWSClient).apigatewayconn
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "aws_api_gateway_integration" {

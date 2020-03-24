@@ -18,6 +18,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/appsync"
 	"github.com/aws/aws-sdk-go/service/athena"
 	"github.com/aws/aws-sdk-go/service/backup"
+	"github.com/aws/aws-sdk-go/service/cloud9"
 	"github.com/aws/aws-sdk-go/service/cloudfront"
 	"github.com/aws/aws-sdk-go/service/cloudhsmv2"
 	"github.com/aws/aws-sdk-go/service/cloudtrail"
@@ -57,6 +58,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/fsx"
 	"github.com/aws/aws-sdk-go/service/gamelift"
 	"github.com/aws/aws-sdk-go/service/glacier"
+	"github.com/aws/aws-sdk-go/service/globalaccelerator"
 	"github.com/aws/aws-sdk-go/service/glue"
 	"github.com/aws/aws-sdk-go/service/greengrass"
 	"github.com/aws/aws-sdk-go/service/guardduty"
@@ -69,6 +71,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/kinesis"
 	"github.com/aws/aws-sdk-go/service/kinesisanalytics"
 	"github.com/aws/aws-sdk-go/service/kinesisanalyticsv2"
+	"github.com/aws/aws-sdk-go/service/kinesisvideo"
 	"github.com/aws/aws-sdk-go/service/kms"
 	"github.com/aws/aws-sdk-go/service/lambda"
 	"github.com/aws/aws-sdk-go/service/licensemanager"
@@ -135,6 +138,8 @@ func ServiceClientType(serviceName string) string {
 		funcType = reflect.TypeOf(athena.New)
 	case "backup":
 		funcType = reflect.TypeOf(backup.New)
+	case "cloud9":
+		funcType = reflect.TypeOf(cloud9.New)
 	case "cloudfront":
 		funcType = reflect.TypeOf(cloudfront.New)
 	case "cloudhsmv2":
@@ -213,6 +218,8 @@ func ServiceClientType(serviceName string) string {
 		funcType = reflect.TypeOf(gamelift.New)
 	case "glacier":
 		funcType = reflect.TypeOf(glacier.New)
+	case "globalaccelerator":
+		funcType = reflect.TypeOf(globalaccelerator.New)
 	case "glue":
 		funcType = reflect.TypeOf(glue.New)
 	case "guardduty":
@@ -237,6 +244,8 @@ func ServiceClientType(serviceName string) string {
 		funcType = reflect.TypeOf(kinesisanalytics.New)
 	case "kinesisanalyticsv2":
 		funcType = reflect.TypeOf(kinesisanalyticsv2.New)
+	case "kinesisvideo":
+		funcType = reflect.TypeOf(kinesisvideo.New)
 	case "kms":
 		funcType = reflect.TypeOf(kms.New)
 	case "lambda":
