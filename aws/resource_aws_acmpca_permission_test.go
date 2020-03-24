@@ -2,6 +2,7 @@ package aws
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -38,81 +39,28 @@ func TestAccAwsAcmpcaPermission_Valid(t *testing.T) {
 }
 
 func TestAccAwsAcmpcaPermission_InvalidPrincipal(t *testing.T) {
-	var permission acmpca.Permission
-	resourceName := "aws_acmpca_permission.test"
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsAcmpcaPermissionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAwsAcmpcaPermissionConfig_InvalidPrincipal,
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAwsAcmpcaPermissionExists(resourceName, &permission),
-					resource.TestCheckResourceAttr(resourceName, "principal", "acm.amazonaws.com"),
-					resource.TestCheckResourceAttr(resourceName, "actions.#", "3"),
-					resource.TestCheckResourceAttr(resourceName, "actions.0", "IssueCertificate"),
-					resource.TestCheckResourceAttr(resourceName, "actions.1", "GetCertificate"),
-					resource.TestCheckResourceAttr(resourceName, "actions.2", "ListPermissions"),
-				),
-			},
-			{
-				ResourceName: resourceName,
-			},
-		},
-	})
-}
-
-func TestAccAwsAcmpcaPermission_InvalidActionsCount(t *testing.T) {
-	var permission acmpca.Permission
-	resourceName := "aws_acmpca_permission.test"
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckAwsAcmpcaPermissionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAwsAcmpcaPermissionConfig_InvalidActionsCount,
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAwsAcmpcaPermissionExists(resourceName, &permission),
-					resource.TestCheckResourceAttr(resourceName, "principal", "acm.amazonaws.com"),
-					resource.TestCheckResourceAttr(resourceName, "actions.#", "3"),
-					resource.TestCheckResourceAttr(resourceName, "actions.0", "IssueCertificate"),
-					resource.TestCheckResourceAttr(resourceName, "actions.1", "GetCertificate"),
-					resource.TestCheckResourceAttr(resourceName, "actions.2", "ListPermissions"),
-				),
-			},
-			{
-				ResourceName: resourceName,
+				Config:      testAccAwsAcmpcaPermissionConfig_InvalidPrincipal,
+				ExpectError: regexp.MustCompile("config is invalid: expected principal to be one of .*, got .*"),
 			},
 		},
 	})
 }
 
 func TestAccAwsAcmpcaPermission_InvalidActionsEntry(t *testing.T) {
-	var permission acmpca.Permission
-	resourceName := "aws_acmpca_permission.test"
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsAcmpcaPermissionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAwsAcmpcaPermissionConfig_InvalidActionsEntry,
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAwsAcmpcaPermissionExists(resourceName, &permission),
-					resource.TestCheckResourceAttr(resourceName, "principal", "acm.amazonaws.com"),
-					resource.TestCheckResourceAttr(resourceName, "actions.#", "3"),
-					resource.TestCheckResourceAttr(resourceName, "actions.0", "IssueCertificate"),
-					resource.TestCheckResourceAttr(resourceName, "actions.1", "GetCertificate"),
-					resource.TestCheckResourceAttr(resourceName, "actions.2", "ListPermissions"),
-				),
-			},
-			{
-				ResourceName: resourceName,
+				Config:      testAccAwsAcmpcaPermissionConfig_InvalidActionsEntry,
+				ExpectError: regexp.MustCompile("config is invalid: expected actions.1 to be one of .*, got .*"),
 			},
 		},
 	})
