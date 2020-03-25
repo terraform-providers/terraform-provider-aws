@@ -21,7 +21,7 @@ func TestAccAwsAcmpcaPermission_Valid(t *testing.T) {
 		CheckDestroy: testAccCheckAwsAcmpcaPermissionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAwsAcmpcaPermissionConfig_Valid,
+				Config: testAccAwsAcmpcaPermissionConfig_Valid(),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsAcmpcaPermissionExists(resourceName, &permission),
 					resource.TestCheckResourceAttr(resourceName, "principal", "acm.amazonaws.com"),
@@ -42,7 +42,7 @@ func TestAccAwsAcmpcaPermission_InvalidPrincipal(t *testing.T) {
 		CheckDestroy: testAccCheckAwsAcmpcaPermissionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccAwsAcmpcaPermissionConfig_InvalidPrincipal,
+				Config:      testAccAwsAcmpcaPermissionConfig_InvalidPrincipal(),
 				ExpectError: regexp.MustCompile("config is invalid: expected principal to be one of .*, got .*"),
 			},
 		},
@@ -56,7 +56,7 @@ func TestAccAwsAcmpcaPermission_InvalidActionsEntry(t *testing.T) {
 		CheckDestroy: testAccCheckAwsAcmpcaPermissionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccAwsAcmpcaPermissionConfig_InvalidActionsEntry,
+				Config:      testAccAwsAcmpcaPermissionConfig_InvalidActionsEntry(),
 				ExpectError: regexp.MustCompile("config is invalid: expected actions.1 to be one of .*, got .*"),
 			},
 		},
@@ -124,8 +124,11 @@ func testAccCheckAwsAcmpcaPermissionExists(resourceName string, permission *acmp
 	}
 }
 
-const testAccAwsAcmpcaPermissionConfig_Valid = `
+func testAccAwsAcmpcaCertificateAuthority() string {
+	return `
 resource "aws_acmpca_certificate_authority" "test" {
+  permanent_deletion_time_in_days = 7
+
   certificate_authority_configuration {
     key_algorithm     = "RSA_4096"
     signing_algorithm = "SHA512WITHRSA"
@@ -135,66 +138,41 @@ resource "aws_acmpca_certificate_authority" "test" {
     }
   }
 }
+`
+}
+
+func testAccAwsAcmpcaPermissionConfig_Valid() string {
+	return fmt.Sprintf(`
+%s
 
 resource "aws_acmpca_permission" "test" {
 	certificate_authority_arn = "${aws_acmpca_certificate_authority.test.arn}"
 	principal                 = "acm.amazonaws.com"
 	actions                   = ["IssueCertificate", "GetCertificate", "ListPermissions"]
 }
-`
-const testAccAwsAcmpcaPermissionConfig_InvalidPrincipal = `
-resource "aws_acmpca_certificate_authority" "test" {
-  certificate_authority_configuration {
-    key_algorithm     = "RSA_4096"
-    signing_algorithm = "SHA512WITHRSA"
-
-    subject {
-      common_name = "terraformtesting.com"
-    }
-  }
+`, testAccAwsAcmpcaCertificateAuthority())
 }
+
+func testAccAwsAcmpcaPermissionConfig_InvalidPrincipal() string {
+	return fmt.Sprintf(`
+%s
 
 resource "aws_acmpca_permission" "test" {
 	certificate_authority_arn = "${aws_acmpca_certificate_authority.test.arn}"
 	principal                 = "notacm.amazonaws.com"
 	actions                   = ["IssueCertificate", "GetCertificate", "ListPermissions"]
 }
-`
-
-const testAccAwsAcmpcaPermissionConfig_InvalidActionsCount = `
-resource "aws_acmpca_certificate_authority" "test" {
-  certificate_authority_configuration {
-    key_algorithm     = "RSA_4096"
-    signing_algorithm = "SHA512WITHRSA"
-
-    subject {
-      common_name = "terraformtesting.com"
-    }
-  }
+`, testAccAwsAcmpcaCertificateAuthority())
 }
 
-resource "aws_acmpca_permission" "test" {
-	certificate_authority_arn = "${aws_acmpca_certificate_authority.test.arn}"
-	principal                 = "acm.amazonaws.com"
-	actions                   = ["GetCertificate", "ListPermissions"]
-}
-`
-
-const testAccAwsAcmpcaPermissionConfig_InvalidActionsEntry = `
-resource "aws_acmpca_certificate_authority" "test" {
-  certificate_authority_configuration {
-    key_algorithm     = "RSA_4096"
-    signing_algorithm = "SHA512WITHRSA"
-
-    subject {
-      common_name = "terraformtesting.com"
-    }
-  }
-}
+func testAccAwsAcmpcaPermissionConfig_InvalidActionsEntry() string {
+	return fmt.Sprintf(`
+%s
 
 resource "aws_acmpca_permission" "test" {
 	certificate_authority_arn = "${aws_acmpca_certificate_authority.test.arn}"
 	principal                 = "acm.amazonaws.com"
 	actions                   = ["IssueCert", "GetCertificate", "ListPermissions"]
 }
-`
+`, testAccAwsAcmpcaCertificateAuthority())
+}
