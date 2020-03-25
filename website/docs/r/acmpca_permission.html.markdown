@@ -9,7 +9,7 @@ description: |-
 # Resource: aws_acmpca_permission
 
 Provides a resource to manage an AWS Certificate Manager Private Certificate Authorities Permission.
-Currently, this is only required in order to allow the ACM service to automatically certificates issued by a PCA.
+Currently, this is only required in order to allow the ACM service to automatically renew certificates issued by a PCA.
 
 ## Example Usage
 

@@ -28,9 +28,6 @@ func TestAccAwsAcmpcaPermission_Valid(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "actions.#", "3"),
 				),
 			},
-			{
-				ResourceName: resourceName,
-			},
 		},
 	})
 }
