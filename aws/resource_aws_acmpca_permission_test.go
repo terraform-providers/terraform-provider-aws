@@ -26,9 +26,6 @@ func TestAccAwsAcmpcaPermission_Valid(t *testing.T) {
 					testAccCheckAwsAcmpcaPermissionExists(resourceName, &permission),
 					resource.TestCheckResourceAttr(resourceName, "principal", "acm.amazonaws.com"),
 					resource.TestCheckResourceAttr(resourceName, "actions.#", "3"),
-					resource.TestCheckResourceAttr(resourceName, "actions.0", "IssueCertificate"),
-					resource.TestCheckResourceAttr(resourceName, "actions.1", "GetCertificate"),
-					resource.TestCheckResourceAttr(resourceName, "actions.2", "ListPermissions"),
 				),
 			},
 			{
@@ -82,6 +79,9 @@ func testAccCheckAwsAcmpcaPermissionDestroy(s *terraform.State) error {
 
 		if err != nil {
 			if isAWSErr(err, acmpca.ErrCodeResourceNotFoundException, "") {
+				return nil
+			}
+			if isAWSErr(err, acmpca.ErrCodeInvalidStateException, "") {
 				return nil
 			}
 			return err
