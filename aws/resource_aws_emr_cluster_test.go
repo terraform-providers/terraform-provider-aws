@@ -1540,10 +1540,7 @@ func testAccCheckAWSEmrDestroy(s *terraform.State) error {
 			}
 
 			if !isAWSErr(err, "InvalidRequestException", "does not exist") {
-				if providerErr, ok := err.(awserr.Error); !ok {
-					log.Printf("[ERROR] %v", providerErr)
-					return err
-				}
+				return err
 			}
 		}
 	}
