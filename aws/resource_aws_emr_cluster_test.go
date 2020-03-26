@@ -1538,6 +1538,13 @@ func testAccCheckAWSEmrDestroy(s *terraform.State) error {
 			if err == nil {
 				return fmt.Errorf("EMR Security Configuration still exists")
 			}
+
+			if !isAWSErr(err, "InvalidRequestException", "does not exist") {
+				if providerErr, ok := err.(awserr.Error); !ok {
+					log.Printf("[ERROR] %v", providerErr)
+					return err
+				}
+			}
 		}
 	}
 

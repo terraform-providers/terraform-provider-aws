@@ -1398,11 +1398,13 @@ func resourceAwsEMRClusterDelete(d *schema.ResourceData, meta interface{}) error
 			return resource.NonRetryableError(describeErr)
 		}
 
-		if describeResp.Cluster != nil {
-			state = aws.StringValue(describeResp.Cluster.Status.State)
-			if state != emr.ClusterStateTerminated && state != emr.ClusterStateTerminatedWithErrors {
-				return resource.RetryableError(fmt.Errorf("EMR Cluster (%s) has (%s) state", d.Id(), state))
-			}
+		if (describeResp == nil) || (describeResp.Cluster == nil) || (describeResp.Cluster.Status == nil) {
+			return resource.RetryableError(fmt.Errorf("Continuing to retrieve EMR Cluster (%s) state", d.Id()))
+		}
+
+		state = aws.StringValue(describeResp.Cluster.Status.State)
+		if (state != emr.ClusterStateTerminated) && (state != emr.ClusterStateTerminatedWithErrors) {
+			return resource.RetryableError(fmt.Errorf("EMR Cluster (%s) has (%s) state", d.Id(), state))
 		}
 		return nil
 	})
