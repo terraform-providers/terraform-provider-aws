@@ -107,7 +107,7 @@ func resourceAwsGameliftScriptRead(d *schema.ResourceData, meta interface{}) err
 
 	d.Set("name", sc.Name)
 	d.Set("version", sc.Version)
-	d.Set("storage_location", flattenStorageLoaction(sc.StorageLocation))
+	d.Set("storage_location", flattenStorageLocation(sc.StorageLocation))
 
 	arn := aws.StringValue(sc.ScriptArn)
 	d.Set("arn", arn)
@@ -133,6 +133,7 @@ func resourceAwsGameliftScriptUpdate(d *schema.ResourceData, meta interface{}) e
 		Name:            aws.String(d.Get("name").(string)),
 		StorageLocation: expandGameliftStorageLocation(d.Get("storage_location").([]interface{})),
 	}
+
 	if v, ok := d.GetOk("version"); ok {
 		input.Version = aws.String(v.(string))
 	}
@@ -164,15 +165,15 @@ func resourceAwsGameliftScriptDelete(d *schema.ResourceData, meta interface{}) e
 	return err
 }
 
-func flattenStorageLoaction(sl *gamelift.S3Location) []interface{} {
+func flattenStorageLocation(sl *gamelift.S3Location) []interface{} {
 	if sl == nil {
 		return []interface{}{}
 	}
 
 	m := map[string]interface{}{
-		"bucket":   sl.Bucket,
-		"key":      sl.Key,
-		"role_arn": sl.RoleArn,
+		"bucket":   aws.StringValue(sl.Bucket),
+		"key":      aws.StringValue(sl.Key),
+		"role_arn": aws.StringValue(sl.RoleArn),
 	}
 
 	return []interface{}{m}
