@@ -109,7 +109,7 @@ func resourceAwsDedicatedHostCreate(d *schema.ResourceData, meta interface{}) er
 	err = resource.Retry(30*time.Second, func() *resource.RetryError {
 		var err error
 		runResp, err = conn.AllocateHosts(runOpts)
-		return resource.NonRetryableError(err)
+		return resource.RetryableError(err)
 	})
 	if isResourceTimeoutError(err) {
 		runResp, err = conn.AllocateHosts(runOpts)
