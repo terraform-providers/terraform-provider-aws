@@ -2,7 +2,9 @@ package aws
 
 import (
 	"errors"
+	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 	"log"
 
 	"github.com/aws/aws-sdk-go/service/ec2"
@@ -51,6 +53,7 @@ func dataSourceAwsAwsDedicatedHostRead(d *schema.ResourceData, meta interface{})
 	hostID, hostIDOk := d.GetOk("host_id")
 
 	filters, filtersOk := d.GetOk("filter")
+	tags, tagsOk := d.GetOk("instance_tags")
 
 	params := &ec2.DescribeHostsInput{}
 	if hostIDOk {
@@ -89,7 +92,9 @@ func dataSourceAwsAwsDedicatedHostRead(d *schema.ResourceData, meta interface{})
 	} else {
 		host = filteredHosts[0]
 	}
-
+	if tagsOk {
+		params.Filter = append(params.Filter, ec2TagFiltersFromMap(tags.(map[string]interface{}))...)
+	}
 	log.Printf("[DEBUG] aws_dedicated_host - Single host ID found: %s", *host.HostId)
 	if err := hostDescriptionAttributes(d, host, conn); err != nil {
 		return err
@@ -110,10 +115,10 @@ func hostDescriptionAttributes(d *schema.ResourceData, host *ec2.Host, conn *ec2
 	if host.AutoPlacement != nil {
 		d.Set("auto_placement", host.AutoPlacement)
 	}
-	// if host.HostProperties !=nil{
-	// 	d.Set()
-	// }
-	d.Set("tags", tagsToMap(host.Tags))
+
+	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(host.Tags).IgnoreAws().Map()); err != nil {
+		return fmt.Errorf("error setting tags: %s", err)
+	}
 	return nil
 
 }
