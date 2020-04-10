@@ -9,13 +9,13 @@ description: |-
 # Resource: aws_dedicated_host
 
 Provides an EC2 host resource. This allows hosts to be created, updated,
-and deleted. hosts also support [provisioning](/docs/provisioners/index.html).
+and deleted.
 
 ## Example Usage
 
 ```hcl
-# Create a new host of the latest Ubuntu 14.04 on an
-# t2.micro node with an AWS Tag naming it "HelloWorld"
+# Create a new host with instance type of c5.18xlarge with Auto Placement 
+# and Host Recovery enabled. 
 provider "aws" {
   region = "us-west-2"
 }
@@ -27,9 +27,9 @@ data "aws_dedicated_host" "host" {
 }
 
 resource "aws_dedicated_host" "test" {
-      + auto_placement    = true
+      + auto_placement    = "on"
       + availability_zone = "us-west-2a"
-      + host_recovery     = true
+      + host_recovery     = "on"
       + instance_type     = "c5.18xlarge"
     }
 ```
@@ -60,13 +60,13 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 In addition to all arguments above, the following attributes are exported:
 
-* `id` - The host ID.
+* `host_id` - The host ID.
 
 
 ## Import
 
-hosts can be imported using the `id`, e.g.
+hosts can be imported using the `host_id`, e.g.
 
 ```
-$ terraform import aws_dedicated_host.host h-0385a99d0e4b20cbb
+$ terraform import aws_dedicated_host.host_id h-0385a99d0e4b20cbb
 ```
