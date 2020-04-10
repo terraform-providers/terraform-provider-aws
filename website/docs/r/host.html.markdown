@@ -20,18 +20,16 @@ provider "aws" {
   region = "us-west-2"
 }
 
-data "aws_dedicated_host" "host" {
-  filter {
-    instance_type   = "c5.18xlarge"
-  }
+resource "aws_dedicated_host" "test" {
+	instance_type = "c5.18xlarge"
+	availability_zone = "us-west-1a"
+	host_recovery = "on"
+	auto_placement = "on"
 }
 
-resource "aws_dedicated_host" "test" {
-      + auto_placement    = "on"
-      + availability_zone = "us-west-2a"
-      + host_recovery     = "on"
-      + instance_type     = "c5.18xlarge"
-    }
+data "aws_dedicated_host" "test_data" {
+	host_id="${aws_dedicated_host.test.id}"
+}
 ```
 
 ## Argument Reference

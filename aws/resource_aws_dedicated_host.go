@@ -3,6 +3,7 @@ package aws
 import (
 	"errors"
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 	"log"
 
 	"time"
@@ -35,7 +36,7 @@ func resourceAwsDedicatedHost() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-
+			"tags": tagsSchema(),
 			"availability_zone": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -89,18 +90,7 @@ func resourceAwsDedicatedHostCreate(d *schema.ResourceData, meta interface{}) er
 		return err
 	}
 
-	tagsSpec := make([]*ec2.TagSpecification, 0)
-
-	if v, ok := d.GetOk("tags"); ok {
-		tags := tagsFromMap(v.(map[string]interface{}))
-
-		spec := &ec2.TagSpecification{
-			ResourceType: aws.String("host"),
-			Tags:         tags,
-		}
-
-		tagsSpec = append(tagsSpec, spec)
-	}
+	tagsSpec := ec2TagSpecificationsFromMap(d.Get("tags").(map[string]interface{}), ec2.ResourceTypeHostReservation)
 
 	// Build the creation struct
 	runOpts := &ec2.AllocateHostsInput{
@@ -181,10 +171,11 @@ func resourceAwsDedicatedHostUpdate(d *schema.ResourceData, meta interface{}) er
 	d.Partial(true)
 
 	if d.HasChange("tags") && !d.IsNewResource() {
-		if err := setTags(conn, d); err != nil {
-			return err
+		o, n := d.GetChange("tags")
+
+		if err := keyvaluetags.Ec2UpdateTags(conn, d.Id(), o, n); err != nil {
+			return fmt.Errorf("error updating tags: %s", err)
 		}
-		d.SetPartial("tags")
 	}
 	if d.HasChange("auto_placement") && !d.IsNewResource() {
 		log.Printf("[INFO] Modifying auto-placement on host %s", d.Id())
