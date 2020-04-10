@@ -154,8 +154,9 @@ func resourceAwsDedicatedHostRead(d *schema.ResourceData, meta interface{}) erro
 	d.Set("availibility_zone", host.AvailabilityZone)
 	d.Set("host_recovery", host.HostRecovery)
 
-	d.Set("tags", tagsToMap(host.Tags))
-
+	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(host.Tags).IgnoreAws().Map()); err != nil {
+		return fmt.Errorf("error setting tags: %s", err)
+	}
 	// If nothing was found, then return no state
 
 	return nil
