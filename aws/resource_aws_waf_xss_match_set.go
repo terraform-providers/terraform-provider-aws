@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/waf"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -16,12 +17,19 @@ func resourceAwsWafXssMatchSet() *schema.Resource {
 		Read:   resourceAwsWafXssMatchSetRead,
 		Update: resourceAwsWafXssMatchSetUpdate,
 		Delete: resourceAwsWafXssMatchSetDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+			},
+			"arn": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 			"xss_match_tuples": {
 				Type:     schema.TypeSet,
@@ -89,7 +97,7 @@ func resourceAwsWafXssMatchSetRead(d *schema.ResourceData, meta interface{}) err
 
 	resp, err := conn.GetXssMatchSet(params)
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok && awsErr.Code() == "WAFNonexistentItemException" {
+		if awsErr, ok := err.(awserr.Error); ok && awsErr.Code() == waf.ErrCodeNonexistentItemException {
 			log.Printf("[WARN] WAF IPSet (%s) not found, removing from state", d.Id())
 			d.SetId("")
 			return nil
@@ -100,6 +108,14 @@ func resourceAwsWafXssMatchSetRead(d *schema.ResourceData, meta interface{}) err
 
 	d.Set("name", resp.XssMatchSet.Name)
 	d.Set("xss_match_tuples", flattenWafXssMatchTuples(resp.XssMatchSet.XssMatchTuples))
+
+	arn := arn.ARN{
+		Partition: meta.(*AWSClient).partition,
+		Service:   "waf",
+		AccountID: meta.(*AWSClient).accountid,
+		Resource:  fmt.Sprintf("xssmatchset/%s", d.Id()),
+	}
+	d.Set("arn", arn.String())
 
 	return nil
 }

@@ -8,8 +8,9 @@ import (
 
 	"golang.org/x/tools/go/analysis"
 
+	"github.com/bflad/tfproviderlint/helper/terraformtype/helper/schema"
 	"github.com/bflad/tfproviderlint/passes/commentignore"
-	"github.com/bflad/tfproviderlint/passes/schemamap"
+	"github.com/bflad/tfproviderlint/passes/helper/schema/schemamapcompositelit"
 )
 
 const Doc = `check for Schema that are missing required fields
@@ -24,7 +25,7 @@ var Analyzer = &analysis.Analyzer{
 	Name: analyzerName,
 	Doc:  Doc,
 	Requires: []*analysis.Analyzer{
-		schemamap.Analyzer,
+		schemamapcompositelit.Analyzer,
 		commentignore.Analyzer,
 	},
 	Run: run,
@@ -32,45 +33,25 @@ var Analyzer = &analysis.Analyzer{
 
 func run(pass *analysis.Pass) (interface{}, error) {
 	ignorer := pass.ResultOf[commentignore.Analyzer].(*commentignore.Ignorer)
-	schemamaps := pass.ResultOf[schemamap.Analyzer].([]*ast.CompositeLit)
+	schemamapcompositelits := pass.ResultOf[schemamapcompositelit.Analyzer].([]*ast.CompositeLit)
 
-	for _, smap := range schemamaps {
-		for _, schema := range schemamap.GetSchemaAttributes(smap) {
-			if ignorer.ShouldIgnore(analyzerName, schema) {
+	for _, smap := range schemamapcompositelits {
+		for _, schemaCompositeLit := range schema.GetSchemaMapSchemas(smap) {
+			schemaInfo := schema.NewSchemaInfo(schemaCompositeLit, pass.TypesInfo)
+
+			if ignorer.ShouldIgnore(analyzerName, schemaInfo.AstCompositeLit) {
 				continue
 			}
 
-			var computedOrOptionalOrRequiredEnabled bool
-
-			for _, elt := range schema.Elts {
-				switch v := elt.(type) {
-				default:
-					continue
-				case *ast.KeyValueExpr:
-					name := v.Key.(*ast.Ident).Name
-
-					switch v := v.Value.(type) {
-					case *ast.Ident:
-						value := v.Name
-
-						switch name {
-						case "Computed", "Optional", "Required":
-							if value == "true" {
-								computedOrOptionalOrRequiredEnabled = true
-								break
-							}
-						}
-					}
-				}
+			if schemaInfo.Schema.Computed || schemaInfo.Schema.Optional || schemaInfo.Schema.Required {
+				continue
 			}
 
-			if !computedOrOptionalOrRequiredEnabled {
-				switch t := schema.Type.(type) {
-				default:
-					pass.Reportf(schema.Lbrace, "%s: schema should configure one of Computed, Optional, or Required", analyzerName)
-				case *ast.SelectorExpr:
-					pass.Reportf(t.Sel.Pos(), "%s: schema should configure one of Computed, Optional, or Required", analyzerName)
-				}
+			switch t := schemaInfo.AstCompositeLit.Type.(type) {
+			default:
+				pass.Reportf(schemaInfo.AstCompositeLit.Lbrace, "%s: schema should configure one of Computed, Optional, or Required", analyzerName)
+			case *ast.SelectorExpr:
+				pass.Reportf(t.Sel.Pos(), "%s: schema should configure one of Computed, Optional, or Required", analyzerName)
 			}
 		}
 	}

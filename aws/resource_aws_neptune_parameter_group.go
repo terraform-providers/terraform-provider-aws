@@ -6,12 +6,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/neptune"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/neptune"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 // We can only modify 20 parameters at a time, so walk them until
@@ -88,6 +88,7 @@ func resourceAwsNeptuneParameterGroupCreate(d *schema.ResourceData, meta interfa
 		DBParameterGroupName:   aws.String(d.Get("name").(string)),
 		DBParameterGroupFamily: aws.String(d.Get("family").(string)),
 		Description:            aws.String(d.Get("description").(string)),
+		Tags:                   keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().NeptuneTags(),
 	}
 
 	log.Printf("[DEBUG] Create Neptune Parameter Group: %#v", createOpts)
@@ -95,12 +96,6 @@ func resourceAwsNeptuneParameterGroupCreate(d *schema.ResourceData, meta interfa
 	if err != nil {
 		return fmt.Errorf("Error creating Neptune Parameter Group: %s", err)
 	}
-
-	d.Partial(true)
-	d.SetPartial("name")
-	d.SetPartial("family")
-	d.SetPartial("description")
-	d.Partial(false)
 
 	d.SetId(*resp.DBParameterGroup.DBParameterGroupName)
 	d.Set("arn", resp.DBParameterGroup.DBParameterGroupArn)
@@ -161,15 +156,14 @@ func resourceAwsNeptuneParameterGroupRead(d *schema.ResourceData, meta interface
 		return fmt.Errorf("error setting parameter: %s", err)
 	}
 
-	resp, err := conn.ListTagsForResource(&neptune.ListTagsForResourceInput{
-		ResourceName: aws.String(arn),
-	})
+	tags, err := keyvaluetags.NeptuneListTags(conn, d.Get("arn").(string))
+
 	if err != nil {
-		log.Printf("[DEBUG] Error retrieving tags for ARN: %s", arn)
+		return fmt.Errorf("error listing tags for Neptune Parameter Group (%s): %s", d.Get("arn").(string), err)
 	}
 
-	if err := d.Set("tags", tagsToMapNeptune(resp.TagList)); err != nil {
-		return fmt.Errorf("error setting neptune tags: %s", err)
+	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+		return fmt.Errorf("error setting tags: %s", err)
 	}
 
 	return nil
@@ -177,8 +171,6 @@ func resourceAwsNeptuneParameterGroupRead(d *schema.ResourceData, meta interface
 
 func resourceAwsNeptuneParameterGroupUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).neptuneconn
-
-	d.Partial(true)
 
 	if d.HasChange("parameter") {
 		o, n := d.GetChange("parameter")
@@ -255,19 +247,15 @@ func resourceAwsNeptuneParameterGroupUpdate(d *schema.ResourceData, meta interfa
 				return fmt.Errorf("Error modifying Neptune Parameter Group: %s", err)
 			}
 		}
-
-		d.SetPartial("parameter")
 	}
 
-	if d.HasChange("tags") {
-		err := setTagsNeptune(conn, d, d.Get("arn").(string))
-		if err != nil {
-			return fmt.Errorf("error setting Neptune Parameter Group %q tags: %s", d.Id(), err)
+	if !d.IsNewResource() && d.HasChange("tags") {
+		o, n := d.GetChange("tags")
+
+		if err := keyvaluetags.NeptuneUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
+			return fmt.Errorf("error updating Neptune Parameter Group (%s) tags: %s", d.Get("arn").(string), err)
 		}
-		d.SetPartial("tags")
 	}
-
-	d.Partial(false)
 
 	return resourceAwsNeptuneParameterGroupRead(d, meta)
 }

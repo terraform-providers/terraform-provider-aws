@@ -224,6 +224,7 @@ configuration, resource recreation can be manually triggered by using the
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the launch configuration.
+* `arn` - The Amazon Resource Name of the launch configuration.
 * `name` - The name of the launch configuration.
 
 [1]: /docs/providers/aws/r/autoscaling_group.html

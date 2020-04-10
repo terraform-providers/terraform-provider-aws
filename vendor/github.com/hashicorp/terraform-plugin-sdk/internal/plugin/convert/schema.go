@@ -2,6 +2,7 @@ package convert
 
 import (
 	"encoding/json"
+	"log"
 	"reflect"
 	"sort"
 
@@ -13,17 +14,24 @@ import (
 // ConfigSchemaToProto takes a *configschema.Block and converts it to a
 // proto.Schema_Block for a grpc response.
 func ConfigSchemaToProto(b *configschema.Block) *proto.Schema_Block {
-	block := &proto.Schema_Block{}
+	block := &proto.Schema_Block{
+		Description:     b.Description,
+		DescriptionKind: protoStringKind(b.DescriptionKind),
+		Deprecated:      b.Deprecated,
+	}
 
 	for _, name := range sortedKeys(b.Attributes) {
 		a := b.Attributes[name]
+
 		attr := &proto.Schema_Attribute{
-			Name:        name,
-			Description: a.Description,
-			Optional:    a.Optional,
-			Computed:    a.Computed,
-			Required:    a.Required,
-			Sensitive:   a.Sensitive,
+			Name:            name,
+			Description:     a.Description,
+			DescriptionKind: protoStringKind(a.DescriptionKind),
+			Optional:        a.Optional,
+			Computed:        a.Computed,
+			Required:        a.Required,
+			Sensitive:       a.Sensitive,
+			Deprecated:      a.Deprecated,
 		}
 
 		ty, err := json.Marshal(a.Type)
@@ -42,6 +50,18 @@ func ConfigSchemaToProto(b *configschema.Block) *proto.Schema_Block {
 	}
 
 	return block
+}
+
+func protoStringKind(k configschema.StringKind) proto.StringKind {
+	switch k {
+	default:
+		log.Printf("[TRACE] unexpected configschema.StringKind: %d", k)
+		return proto.StringKind_PLAIN
+	case configschema.StringPlain:
+		return proto.StringKind_PLAIN
+	case configschema.StringMarkdown:
+		return proto.StringKind_MARKDOWN
+	}
 }
 
 func protoSchemaNestedBlock(name string, b *configschema.NestedBlock) *proto.Schema_NestedBlock {
@@ -83,15 +103,21 @@ func ProtoToConfigSchema(b *proto.Schema_Block) *configschema.Block {
 	block := &configschema.Block{
 		Attributes: make(map[string]*configschema.Attribute),
 		BlockTypes: make(map[string]*configschema.NestedBlock),
+
+		Description:     b.Description,
+		DescriptionKind: schemaStringKind(b.DescriptionKind),
+		Deprecated:      b.Deprecated,
 	}
 
 	for _, a := range b.Attributes {
 		attr := &configschema.Attribute{
-			Description: a.Description,
-			Required:    a.Required,
-			Optional:    a.Optional,
-			Computed:    a.Computed,
-			Sensitive:   a.Sensitive,
+			Description:     a.Description,
+			DescriptionKind: schemaStringKind(a.DescriptionKind),
+			Required:        a.Required,
+			Optional:        a.Optional,
+			Computed:        a.Computed,
+			Sensitive:       a.Sensitive,
+			Deprecated:      a.Deprecated,
 		}
 
 		if err := json.Unmarshal(a.Type, &attr.Type); err != nil {
@@ -106,6 +132,18 @@ func ProtoToConfigSchema(b *proto.Schema_Block) *configschema.Block {
 	}
 
 	return block
+}
+
+func schemaStringKind(k proto.StringKind) configschema.StringKind {
+	switch k {
+	default:
+		log.Printf("[TRACE] unexpected proto.StringKind: %d", k)
+		return configschema.StringPlain
+	case proto.StringKind_PLAIN:
+		return configschema.StringPlain
+	case proto.StringKind_MARKDOWN:
+		return configschema.StringMarkdown
+	}
 }
 
 func schemaNestedBlock(b *proto.Schema_NestedBlock) *configschema.NestedBlock {

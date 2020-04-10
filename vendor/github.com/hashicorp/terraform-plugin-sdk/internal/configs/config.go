@@ -4,7 +4,7 @@ import (
 	"sort"
 
 	version "github.com/hashicorp/go-version"
-	"github.com/hashicorp/hcl2/hcl"
+	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/terraform-plugin-sdk/internal/addrs"
 )
 
@@ -86,18 +86,6 @@ func NewEmptyConfig() *Config {
 	return ret
 }
 
-// Depth returns the number of "hops" the receiver is from the root of its
-// module tree, with the root module having a depth of zero.
-func (c *Config) Depth() int {
-	ret := 0
-	this := c
-	for this.Parent != nil {
-		ret++
-		this = this.Parent
-	}
-	return ret
-}
-
 // DeepEach calls the given function once for each module in the tree, starting
 // with the receiver.
 //
@@ -114,35 +102,6 @@ func (c *Config) DeepEach(cb func(c *Config)) {
 	for _, name := range names {
 		c.Children[name].DeepEach(cb)
 	}
-}
-
-// AllModules returns a slice of all the receiver and all of its descendent
-// nodes in the module tree, in the same order they would be visited by
-// DeepEach.
-func (c *Config) AllModules() []*Config {
-	var ret []*Config
-	c.DeepEach(func(c *Config) {
-		ret = append(ret, c)
-	})
-	return ret
-}
-
-// Descendent returns the descendent config that has the given path beneath
-// the receiver, or nil if there is no such module.
-//
-// The path traverses the static module tree, prior to any expansion to handle
-// count and for_each arguments.
-//
-// An empty path will just return the receiver, and is therefore pointless.
-func (c *Config) Descendent(path addrs.Module) *Config {
-	current := c
-	for _, name := range path {
-		current = current.Children[name]
-		if current == nil {
-			return nil
-		}
-	}
-	return current
 }
 
 // DescendentForInstance is like Descendent except that it accepts a path

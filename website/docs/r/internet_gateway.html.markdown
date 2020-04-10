@@ -31,15 +31,17 @@ The following arguments are supported:
 
 -> **Note:** It's recommended to denote that the AWS Instance or Elastic IP depends on the Internet Gateway. For example:
 
+```hcl
+resource "aws_internet_gateway" "gw" {
+  vpc_id = "${aws_vpc.main.id}"
+}
 
-    resource "aws_internet_gateway" "gw" {
-      vpc_id = "${aws_vpc.main.id}"
-    }
+resource "aws_instance" "foo" {
+  # ... other arguments ...
 
-    resource "aws_instance" "foo" {
-      depends_on = ["aws_internet_gateway.gw"]
-    }
-
+  depends_on = ["aws_internet_gateway.gw"]
+}
+```
 
 ## Attributes Reference
 

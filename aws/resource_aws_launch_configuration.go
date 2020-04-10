@@ -25,6 +25,10 @@ func resourceAwsLaunchConfiguration() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
+			"arn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"name": {
 				Type:          schema.TypeString,
 				Optional:      true,
@@ -552,6 +556,7 @@ func resourceAwsLaunchConfigurationRead(d *schema.ResourceData, meta interface{}
 	d.Set("image_id", lc.ImageId)
 	d.Set("instance_type", lc.InstanceType)
 	d.Set("name", lc.LaunchConfigurationName)
+	d.Set("arn", lc.LaunchConfigurationARN)
 
 	d.Set("iam_instance_profile", lc.IamInstanceProfile)
 	d.Set("ebs_optimized", lc.EbsOptimized)

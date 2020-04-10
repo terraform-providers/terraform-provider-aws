@@ -39,6 +39,7 @@ The following arguments are supported:
 * `fleet_id` - (Optional) ID of the Gamelift Fleet to point the alias to.
 * `message` - (Optional) Message text to be used with the `TERMINAL` routing strategy.
 * `type` - (Required) Type of routing strategy. e.g. `SIMPLE` or `TERMINAL`
+* `tags` - (Optional) Key-value mapping of resource tags
 
 ## Attributes Reference
 

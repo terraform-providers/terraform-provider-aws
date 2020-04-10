@@ -128,33 +128,50 @@ func resourceAwsRamResourceShareAccepterCreate(d *schema.ResourceData, meta inte
 }
 
 func resourceAwsRamResourceShareAccepterRead(d *schema.ResourceData, meta interface{}) error {
+	accountID := meta.(*AWSClient).accountid
 	conn := meta.(*AWSClient).ramconn
 
 	invitation, err := resourceAwsRamResourceShareGetInvitation(conn, d.Id(), ram.ResourceShareInvitationStatusAccepted)
 
-	if err == nil && invitation == nil {
-		log.Printf("[WARN] No RAM resource share invitation by ARN (%s) found, removing from state", d.Id())
+	if err != nil {
+		return fmt.Errorf("Error retrieving invitation for resource share %s: %s", d.Id(), err)
+	}
+
+	if invitation != nil {
+		d.Set("invitation_arn", invitation.ResourceShareInvitationArn)
+		d.Set("receiver_account_id", invitation.ReceiverAccountId)
+	} else {
+		d.Set("receiver_account_id", accountID)
+	}
+
+	listResourceSharesInput := &ram.GetResourceSharesInput{
+		ResourceOwner:     aws.String(ram.ResourceOwnerOtherAccounts),
+		ResourceShareArns: aws.StringSlice([]string{d.Id()}),
+	}
+
+	shares, err := conn.GetResourceShares(listResourceSharesInput)
+	if err != nil {
+		return fmt.Errorf("Error retrieving resource shares: %s", err)
+	}
+
+	if len(shares.ResourceShares) != 1 {
+		log.Printf("[WARN] No RAM resource share with ARN (%s) found, removing from state", d.Id())
 		d.SetId("")
 		return nil
 	}
 
-	if err != nil {
-		return err
-	}
+	resourceShare := shares.ResourceShares[0]
 
-	d.Set("status", invitation.Status)
-	d.Set("receiver_account_id", invitation.ReceiverAccountId)
-	d.Set("sender_account_id", invitation.SenderAccountId)
-	d.Set("share_arn", invitation.ResourceShareArn)
-	d.Set("invitation_arn", invitation.ResourceShareInvitationArn)
+	d.Set("status", resourceShare.Status)
+	d.Set("sender_account_id", resourceShare.OwningAccountId)
+	d.Set("share_arn", resourceShare.ResourceShareArn)
 	d.Set("share_id", resourceAwsRamResourceShareGetIDFromARN(d.Id()))
-	d.Set("share_name", invitation.ResourceShareName)
+	d.Set("share_name", resourceShare.Name)
 
 	listInput := &ram.ListResourcesInput{
 		MaxResults:        aws.Int64(int64(500)),
 		ResourceOwner:     aws.String(ram.ResourceOwnerOtherAccounts),
 		ResourceShareArns: aws.StringSlice([]string{d.Id()}),
-		Principal:         invitation.SenderAccountId,
 	}
 
 	var resourceARNs []*string

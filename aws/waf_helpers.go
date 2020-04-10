@@ -18,7 +18,10 @@ func wafSizeConstraintSetSchema() map[string]*schema.Schema {
 			Required: true,
 			ForceNew: true,
 		},
-
+		"arn": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
 		"size_constraints": {
 			Type:     schema.TypeSet,
 			Optional: true,

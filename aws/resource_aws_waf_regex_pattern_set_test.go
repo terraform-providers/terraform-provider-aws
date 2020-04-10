@@ -2,6 +2,7 @@ package aws
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -32,6 +33,7 @@ func TestAccAWSWafRegexPatternSet(t *testing.T) {
 func testAccAWSWafRegexPatternSet_basic(t *testing.T) {
 	var v waf.RegexPatternSet
 	patternSetName := fmt.Sprintf("tfacc-%s", acctest.RandString(5))
+	resourceName := "aws_waf_regex_pattern_set.test"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSWaf(t) },
@@ -41,12 +43,18 @@ func testAccAWSWafRegexPatternSet_basic(t *testing.T) {
 			{
 				Config: testAccAWSWafRegexPatternSetConfig(patternSetName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSWafRegexPatternSetExists("aws_waf_regex_pattern_set.test", &v),
-					resource.TestCheckResourceAttr("aws_waf_regex_pattern_set.test", "name", patternSetName),
-					resource.TestCheckResourceAttr("aws_waf_regex_pattern_set.test", "regex_pattern_strings.#", "2"),
-					resource.TestCheckResourceAttr("aws_waf_regex_pattern_set.test", "regex_pattern_strings.2848565413", "one"),
-					resource.TestCheckResourceAttr("aws_waf_regex_pattern_set.test", "regex_pattern_strings.3351840846", "two"),
+					testAccCheckAWSWafRegexPatternSetExists(resourceName, &v),
+					testAccMatchResourceAttrGlobalARN(resourceName, "arn", "waf", regexp.MustCompile(`regexpatternset/.+`)),
+					resource.TestCheckResourceAttr(resourceName, "name", patternSetName),
+					resource.TestCheckResourceAttr(resourceName, "regex_pattern_strings.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "regex_pattern_strings.2848565413", "one"),
+					resource.TestCheckResourceAttr(resourceName, "regex_pattern_strings.3351840846", "two"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -55,6 +63,7 @@ func testAccAWSWafRegexPatternSet_basic(t *testing.T) {
 func testAccAWSWafRegexPatternSet_changePatterns(t *testing.T) {
 	var before, after waf.RegexPatternSet
 	patternSetName := fmt.Sprintf("tfacc-%s", acctest.RandString(5))
+	resourceName := "aws_waf_regex_pattern_set.test"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSWaf(t) },
@@ -64,23 +73,28 @@ func testAccAWSWafRegexPatternSet_changePatterns(t *testing.T) {
 			{
 				Config: testAccAWSWafRegexPatternSetConfig(patternSetName),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckAWSWafRegexPatternSetExists("aws_waf_regex_pattern_set.test", &before),
-					resource.TestCheckResourceAttr("aws_waf_regex_pattern_set.test", "name", patternSetName),
-					resource.TestCheckResourceAttr("aws_waf_regex_pattern_set.test", "regex_pattern_strings.#", "2"),
-					resource.TestCheckResourceAttr("aws_waf_regex_pattern_set.test", "regex_pattern_strings.2848565413", "one"),
-					resource.TestCheckResourceAttr("aws_waf_regex_pattern_set.test", "regex_pattern_strings.3351840846", "two"),
+					testAccCheckAWSWafRegexPatternSetExists(resourceName, &before),
+					resource.TestCheckResourceAttr(resourceName, "name", patternSetName),
+					resource.TestCheckResourceAttr(resourceName, "regex_pattern_strings.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "regex_pattern_strings.2848565413", "one"),
+					resource.TestCheckResourceAttr(resourceName, "regex_pattern_strings.3351840846", "two"),
 				),
 			},
 			{
 				Config: testAccAWSWafRegexPatternSetConfig_changePatterns(patternSetName),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckAWSWafRegexPatternSetExists("aws_waf_regex_pattern_set.test", &after),
-					resource.TestCheckResourceAttr("aws_waf_regex_pattern_set.test", "name", patternSetName),
-					resource.TestCheckResourceAttr("aws_waf_regex_pattern_set.test", "regex_pattern_strings.#", "3"),
-					resource.TestCheckResourceAttr("aws_waf_regex_pattern_set.test", "regex_pattern_strings.3351840846", "two"),
-					resource.TestCheckResourceAttr("aws_waf_regex_pattern_set.test", "regex_pattern_strings.2929247714", "three"),
-					resource.TestCheckResourceAttr("aws_waf_regex_pattern_set.test", "regex_pattern_strings.1294846542", "four"),
+					testAccCheckAWSWafRegexPatternSetExists(resourceName, &after),
+					resource.TestCheckResourceAttr(resourceName, "name", patternSetName),
+					resource.TestCheckResourceAttr(resourceName, "regex_pattern_strings.#", "3"),
+					resource.TestCheckResourceAttr(resourceName, "regex_pattern_strings.3351840846", "two"),
+					resource.TestCheckResourceAttr(resourceName, "regex_pattern_strings.2929247714", "three"),
+					resource.TestCheckResourceAttr(resourceName, "regex_pattern_strings.1294846542", "four"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -89,6 +103,7 @@ func testAccAWSWafRegexPatternSet_changePatterns(t *testing.T) {
 func testAccAWSWafRegexPatternSet_noPatterns(t *testing.T) {
 	var patternSet waf.RegexPatternSet
 	patternSetName := fmt.Sprintf("tfacc-%s", acctest.RandString(5))
+	resourceName := "aws_waf_regex_pattern_set.test"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSWaf(t) },
@@ -98,10 +113,15 @@ func testAccAWSWafRegexPatternSet_noPatterns(t *testing.T) {
 			{
 				Config: testAccAWSWafRegexPatternSetConfig_noPatterns(patternSetName),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckAWSWafRegexPatternSetExists("aws_waf_regex_pattern_set.test", &patternSet),
-					resource.TestCheckResourceAttr("aws_waf_regex_pattern_set.test", "name", patternSetName),
-					resource.TestCheckResourceAttr("aws_waf_regex_pattern_set.test", "regex_pattern_strings.#", "0"),
+					testAccCheckAWSWafRegexPatternSetExists(resourceName, &patternSet),
+					resource.TestCheckResourceAttr(resourceName, "name", patternSetName),
+					resource.TestCheckResourceAttr(resourceName, "regex_pattern_strings.#", "0"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -110,6 +130,7 @@ func testAccAWSWafRegexPatternSet_noPatterns(t *testing.T) {
 func testAccAWSWafRegexPatternSet_disappears(t *testing.T) {
 	var v waf.RegexPatternSet
 	patternSetName := fmt.Sprintf("tfacc-%s", acctest.RandString(5))
+	resourceName := "aws_waf_regex_pattern_set.test"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSWaf(t) },
@@ -119,7 +140,7 @@ func testAccAWSWafRegexPatternSet_disappears(t *testing.T) {
 			{
 				Config: testAccAWSWafRegexPatternSetConfig(patternSetName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSWafRegexPatternSetExists("aws_waf_regex_pattern_set.test", &v),
+					testAccCheckAWSWafRegexPatternSetExists(resourceName, &v),
 					testAccCheckAWSWafRegexPatternSetDisappears(&v),
 				),
 				ExpectNonEmptyPlan: true,
@@ -215,7 +236,7 @@ func testAccCheckAWSWafRegexPatternSetDestroy(s *terraform.State) error {
 		}
 
 		// Return nil if the Regex Pattern Set is already destroyed
-		if isAWSErr(err, "WAFNonexistentItemException", "") {
+		if isAWSErr(err, waf.ErrCodeNonexistentItemException, "") {
 			return nil
 		}
 

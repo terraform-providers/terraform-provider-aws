@@ -6,23 +6,22 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/elasticbeanstalk"
+	multierror "github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
-// initialize sweeper
 func init() {
-	resource.AddTestSweepers("aws_beanstalk_application", &resource.Sweeper{
-		Name:         "aws_beanstalk_application",
-		Dependencies: []string{"aws_beanstalk_environment"},
-		F:            testSweepBeanstalkApplications,
+	resource.AddTestSweepers("aws_elastic_beanstalk_application", &resource.Sweeper{
+		Name:         "aws_elastic_beanstalk_application",
+		Dependencies: []string{"aws_elastic_beanstalk_environment"},
+		F:            testSweepElasticBeanstalkApplications,
 	})
 }
 
-func testSweepBeanstalkApplications(region string) error {
+func testSweepElasticBeanstalkApplications(region string) error {
 	client, err := sharedClientForRegion(region)
 	if err != nil {
 		return fmt.Errorf("error getting client: %s", err)
@@ -35,7 +34,7 @@ func testSweepBeanstalkApplications(region string) error {
 			log.Printf("[WARN] Skipping Elastic Beanstalk Application sweep for %s: %s", region, err)
 			return nil
 		}
-		return fmt.Errorf("Error retrieving beanstalk application: %s", err)
+		return fmt.Errorf("error retrieving beanstalk application: %w", err)
 	}
 
 	if len(resp.Applications) == 0 {
@@ -43,26 +42,27 @@ func testSweepBeanstalkApplications(region string) error {
 		return nil
 	}
 
+	var errors error
 	for _, bsa := range resp.Applications {
+		applicationName := aws.StringValue(bsa.ApplicationName)
 		_, err := beanstalkconn.DeleteApplication(
 			&elasticbeanstalk.DeleteApplicationInput{
 				ApplicationName: bsa.ApplicationName,
 			})
 		if err != nil {
-			elasticbeanstalkerr, ok := err.(awserr.Error)
-			if ok && (elasticbeanstalkerr.Code() == "InvalidConfiguration.NotFound" || elasticbeanstalkerr.Code() == "ValidationError") {
-				log.Printf("[DEBUG] beanstalk application (%s) not found", *bsa.ApplicationName)
-				return nil
+			if isAWSErr(err, "InvalidConfiguration.NotFound", "") || isAWSErr(err, "ValidationError", "") {
+				log.Printf("[DEBUG] beanstalk application %q not found", applicationName)
+				continue
 			}
 
-			return err
+			errors = multierror.Append(fmt.Errorf("error deleting Elastic Beanstalk Application %q: %w", applicationName, err))
 		}
 	}
 
-	return nil
+	return errors
 }
 
-func TestAWSElasticBeanstalkApplication_importBasic(t *testing.T) {
+func TestAccAWSElasticBeanstalkApplication_basic(t *testing.T) {
 	resourceName := "aws_elastic_beanstalk_application.tftest"
 	config := fmt.Sprintf("tf-test-name-%d", acctest.RandInt())
 
@@ -87,9 +87,10 @@ func TestAWSElasticBeanstalkApplication_importBasic(t *testing.T) {
 func testAccBeanstalkAppImportConfig(name string) string {
 	return fmt.Sprintf(`
 resource "aws_elastic_beanstalk_application" "tftest" {
-	  name = "%s"
-	  description = "tf-test-desc"
-	}`, name)
+  name        = "%s"
+  description = "tf-test-desc"
+}
+`, name)
 }
 
 func TestAccAWSBeanstalkApp_basic(t *testing.T) {
@@ -243,16 +244,10 @@ func testAccCheckBeanstalkAppDestroy(s *terraform.State) error {
 			if len(resp.Applications) > 0 {
 				return fmt.Errorf("Elastic Beanstalk Application still exists.")
 			}
-
 			return nil
 		}
 
-		// Verify the error is what we want
-		ec2err, ok := err.(awserr.Error)
-		if !ok {
-			return err
-		}
-		if ec2err.Code() != "InvalidBeanstalkAppID.NotFound" {
+		if !isAWSErr(err, "InvalidBeanstalkAppID.NotFound", "") {
 			return err
 		}
 	}
@@ -292,7 +287,7 @@ func testAccCheckBeanstalkAppExists(n string, app *elasticbeanstalk.ApplicationD
 func testAccBeanstalkAppConfig(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_elastic_beanstalk_application" "tftest" {
-  name = "%s"
+  name        = "%s"
   description = "tf-test-desc"
 }
 `, rName)

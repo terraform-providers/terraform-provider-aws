@@ -28,3 +28,14 @@ which will fail schema validation.
     Elem: &schema.Schema{Type: schema.TypeString},
 }
 ```
+
+## Ignoring Reports
+
+Singular reports can be ignored by adding the a `//lintignore:S001` Go code comment at the end of the offending line or on the line immediately proceding, e.g.
+
+```go
+//lintignore:S001
+&schema.Schema{
+    Type: schema.TypeList,
+}
+```

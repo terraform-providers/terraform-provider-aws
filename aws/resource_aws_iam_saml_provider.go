@@ -59,7 +59,7 @@ func resourceAwsIamSamlProviderCreate(d *schema.ResourceData, meta interface{}) 
 		return err
 	}
 
-	d.SetId(*out.SAMLProviderArn)
+	d.SetId(aws.StringValue(out.SAMLProviderArn))
 
 	return resourceAwsIamSamlProviderRead(d, meta)
 }
@@ -80,15 +80,14 @@ func resourceAwsIamSamlProviderRead(d *schema.ResourceData, meta interface{}) er
 		return err
 	}
 
-	validUntil := out.ValidUntil.Format(time.RFC1123)
 	d.Set("arn", d.Id())
 	name, err := extractNameFromIAMSamlProviderArn(d.Id(), meta.(*AWSClient).partition)
 	if err != nil {
 		return err
 	}
 	d.Set("name", name)
-	d.Set("valid_until", validUntil)
-	d.Set("saml_metadata_document", *out.SAMLMetadataDocument)
+	d.Set("valid_until", out.ValidUntil.Format(time.RFC1123))
+	d.Set("saml_metadata_document", out.SAMLMetadataDocument)
 
 	return nil
 }

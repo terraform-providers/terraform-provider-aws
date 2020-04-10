@@ -2,7 +2,6 @@
 subcategory: "WAF"
 layout: "aws"
 page_title: "AWS: aws_waf_rate_based_rule"
-sidebar_current: "docs-aws-datasource-waf-rate-based-rule"
 description: |-
   Retrieves an AWS WAF rate based rule id.
 ---

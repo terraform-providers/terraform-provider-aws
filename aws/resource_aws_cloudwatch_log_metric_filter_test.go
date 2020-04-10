@@ -14,6 +14,7 @@ import (
 func TestAccAWSCloudWatchLogMetricFilter_basic(t *testing.T) {
 	var mf cloudwatchlogs.MetricFilter
 	rInt := acctest.RandInt()
+	resourceName := "aws_cloudwatch_log_metric_filter.foobar"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -23,15 +24,15 @@ func TestAccAWSCloudWatchLogMetricFilter_basic(t *testing.T) {
 			{
 				Config: testAccAWSCloudWatchLogMetricFilterConfig(rInt),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckCloudWatchLogMetricFilterExists("aws_cloudwatch_log_metric_filter.foobar", &mf),
-					resource.TestCheckResourceAttr("aws_cloudwatch_log_metric_filter.foobar", "name", fmt.Sprintf("MyAppAccessCount-%d", rInt)),
+					testAccCheckCloudWatchLogMetricFilterExists(resourceName, &mf),
+					resource.TestCheckResourceAttr(resourceName, "name", fmt.Sprintf("MyAppAccessCount-%d", rInt)),
 					testAccCheckCloudWatchLogMetricFilterName(&mf, fmt.Sprintf("MyAppAccessCount-%d", rInt)),
-					resource.TestCheckResourceAttr("aws_cloudwatch_log_metric_filter.foobar", "pattern", ""),
+					resource.TestCheckResourceAttr(resourceName, "pattern", ""),
 					testAccCheckCloudWatchLogMetricFilterPattern(&mf, ""),
-					resource.TestCheckResourceAttr("aws_cloudwatch_log_metric_filter.foobar", "log_group_name", fmt.Sprintf("MyApp/access-%d.log", rInt)),
-					resource.TestCheckResourceAttr("aws_cloudwatch_log_metric_filter.foobar", "metric_transformation.0.name", "EventCount"),
-					resource.TestCheckResourceAttr("aws_cloudwatch_log_metric_filter.foobar", "metric_transformation.0.namespace", "YourNamespace"),
-					resource.TestCheckResourceAttr("aws_cloudwatch_log_metric_filter.foobar", "metric_transformation.0.value", "1"),
+					resource.TestCheckResourceAttr(resourceName, "log_group_name", fmt.Sprintf("MyApp/access-%d.log", rInt)),
+					resource.TestCheckResourceAttr(resourceName, "metric_transformation.0.name", "EventCount"),
+					resource.TestCheckResourceAttr(resourceName, "metric_transformation.0.namespace", "YourNamespace"),
+					resource.TestCheckResourceAttr(resourceName, "metric_transformation.0.value", "1"),
 					testAccCheckCloudWatchLogMetricFilterTransformation(&mf, &cloudwatchlogs.MetricTransformation{
 						MetricName:      aws.String("EventCount"),
 						MetricNamespace: aws.String("YourNamespace"),
@@ -40,18 +41,24 @@ func TestAccAWSCloudWatchLogMetricFilter_basic(t *testing.T) {
 				),
 			},
 			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateIdFunc: testAccAWSCloudwatchLogMetricFilterImportStateIdFunc(resourceName),
+				ImportStateVerify: true,
+			},
+			{
 				Config: testAccAWSCloudWatchLogMetricFilterConfigModified(rInt),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckCloudWatchLogMetricFilterExists("aws_cloudwatch_log_metric_filter.foobar", &mf),
-					resource.TestCheckResourceAttr("aws_cloudwatch_log_metric_filter.foobar", "name", fmt.Sprintf("MyAppAccessCount-%d", rInt)),
+					testAccCheckCloudWatchLogMetricFilterExists(resourceName, &mf),
+					resource.TestCheckResourceAttr(resourceName, "name", fmt.Sprintf("MyAppAccessCount-%d", rInt)),
 					testAccCheckCloudWatchLogMetricFilterName(&mf, fmt.Sprintf("MyAppAccessCount-%d", rInt)),
-					resource.TestCheckResourceAttr("aws_cloudwatch_log_metric_filter.foobar", "pattern", "{ $.errorCode = \"AccessDenied\" }"),
+					resource.TestCheckResourceAttr(resourceName, "pattern", "{ $.errorCode = \"AccessDenied\" }"),
 					testAccCheckCloudWatchLogMetricFilterPattern(&mf, "{ $.errorCode = \"AccessDenied\" }"),
-					resource.TestCheckResourceAttr("aws_cloudwatch_log_metric_filter.foobar", "log_group_name", fmt.Sprintf("MyApp/access-%d.log", rInt)),
-					resource.TestCheckResourceAttr("aws_cloudwatch_log_metric_filter.foobar", "metric_transformation.0.name", "AccessDeniedCount"),
-					resource.TestCheckResourceAttr("aws_cloudwatch_log_metric_filter.foobar", "metric_transformation.0.namespace", "MyNamespace"),
-					resource.TestCheckResourceAttr("aws_cloudwatch_log_metric_filter.foobar", "metric_transformation.0.value", "2"),
-					resource.TestCheckResourceAttr("aws_cloudwatch_log_metric_filter.foobar", "metric_transformation.0.default_value", "1"),
+					resource.TestCheckResourceAttr(resourceName, "log_group_name", fmt.Sprintf("MyApp/access-%d.log", rInt)),
+					resource.TestCheckResourceAttr(resourceName, "metric_transformation.0.name", "AccessDeniedCount"),
+					resource.TestCheckResourceAttr(resourceName, "metric_transformation.0.namespace", "MyNamespace"),
+					resource.TestCheckResourceAttr(resourceName, "metric_transformation.0.value", "2"),
+					resource.TestCheckResourceAttr(resourceName, "metric_transformation.0.default_value", "1"),
 					testAccCheckCloudWatchLogMetricFilterTransformation(&mf, &cloudwatchlogs.MetricTransformation{
 						MetricName:      aws.String("AccessDeniedCount"),
 						MetricNamespace: aws.String("MyNamespace"),
@@ -134,7 +141,7 @@ func testAccCheckCloudWatchLogMetricFilterExists(n string, mf *cloudwatchlogs.Me
 		}
 
 		conn := testAccProvider.Meta().(*AWSClient).cloudwatchlogsconn
-		metricFilter, err := lookupCloudWatchLogMetricFilter(conn, rs.Primary.ID, rs.Primary.Attributes["log_group_name"], nil)
+		metricFilter, err := lookupCloudWatchLogMetricFilter(conn, rs.Primary.Attributes["name"], rs.Primary.Attributes["log_group_name"], nil)
 		if err != nil {
 			return err
 		}
@@ -153,7 +160,7 @@ func testAccCheckAWSCloudWatchLogMetricFilterDestroy(s *terraform.State) error {
 			continue
 		}
 
-		_, err := lookupCloudWatchLogMetricFilter(conn, rs.Primary.ID, rs.Primary.Attributes["log_group_name"], nil)
+		_, err := lookupCloudWatchLogMetricFilter(conn, rs.Primary.Attributes["name"], rs.Primary.Attributes["log_group_name"], nil)
 		if err == nil {
 			return fmt.Errorf("MetricFilter Still Exists: %s", rs.Primary.ID)
 		}
@@ -241,4 +248,15 @@ resource "aws_cloudwatch_log_group" "mama" {
   name = "MyApp/count-log-%d.log"
 }
 `, rInt, rInt)
+}
+
+func testAccAWSCloudwatchLogMetricFilterImportStateIdFunc(resourceName string) resource.ImportStateIdFunc {
+	return func(s *terraform.State) (string, error) {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return "", fmt.Errorf("Not found: %s", resourceName)
+		}
+
+		return rs.Primary.Attributes["log_group_name"] + ":" + rs.Primary.Attributes["name"], nil
+	}
 }

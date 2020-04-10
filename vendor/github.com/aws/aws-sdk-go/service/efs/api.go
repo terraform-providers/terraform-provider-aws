@@ -13,6 +13,111 @@ import (
 	"github.com/aws/aws-sdk-go/private/protocol/restjson"
 )
 
+const opCreateAccessPoint = "CreateAccessPoint"
+
+// CreateAccessPointRequest generates a "aws/request.Request" representing the
+// client's request for the CreateAccessPoint operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See CreateAccessPoint for more information on using the CreateAccessPoint
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the CreateAccessPointRequest method.
+//    req, resp := client.CreateAccessPointRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/elasticfilesystem-2015-02-01/CreateAccessPoint
+func (c *EFS) CreateAccessPointRequest(input *CreateAccessPointInput) (req *request.Request, output *CreateAccessPointOutput) {
+	op := &request.Operation{
+		Name:       opCreateAccessPoint,
+		HTTPMethod: "POST",
+		HTTPPath:   "/2015-02-01/access-points",
+	}
+
+	if input == nil {
+		input = &CreateAccessPointInput{}
+	}
+
+	output = &CreateAccessPointOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// CreateAccessPoint API operation for Amazon Elastic File System.
+//
+// Creates an EFS access point. An access point is an application-specific view
+// into an EFS file system that applies an operating system user and group,
+// and a file system path, to any file system request made through the access
+// point. The operating system user and group override any identity information
+// provided by the NFS client. The file system path is exposed as the access
+// point's root directory. Applications using the access point can only access
+// data in its own directory and below. To learn more, see Mounting a File System
+// Using EFS Access Points (https://docs.aws.amazon.com/efs/latest/ug/efs-access-points.html).
+//
+// This operation requires permissions for the elasticfilesystem:CreateAccessPoint
+// action.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Elastic File System's
+// API operation CreateAccessPoint for usage and error information.
+//
+// Returned Error Types:
+//   * BadRequest
+//   Returned if the request is malformed or contains an error such as an invalid
+//   parameter value or a missing required parameter.
+//
+//   * AccessPointAlreadyExists
+//   Returned if the access point you are trying to create already exists, with
+//   the creation token you provided in the request.
+//
+//   * InternalServerError
+//   Returned if an error occurred on the server side.
+//
+//   * FileSystemNotFound
+//   Returned if the specified FileSystemId value doesn't exist in the requester's
+//   AWS account.
+//
+//   * AccessPointLimitExceeded
+//   Returned if the AWS account has already created the maximum number of access
+//   points allowed per file system.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/elasticfilesystem-2015-02-01/CreateAccessPoint
+func (c *EFS) CreateAccessPoint(input *CreateAccessPointInput) (*CreateAccessPointOutput, error) {
+	req, out := c.CreateAccessPointRequest(input)
+	return out, req.Send()
+}
+
+// CreateAccessPointWithContext is the same as CreateAccessPoint with the addition of
+// the ability to pass a context and additional request options.
+//
+// See CreateAccessPoint for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *EFS) CreateAccessPointWithContext(ctx aws.Context, input *CreateAccessPointInput, opts ...request.Option) (*CreateAccessPointOutput, error) {
+	req, out := c.CreateAccessPointRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opCreateFileSystem = "CreateFileSystem"
 
 // CreateFileSystemRequest generates a "aws/request.Request" representing the
@@ -112,30 +217,30 @@ func (c *EFS) CreateFileSystemRequest(input *CreateFileSystemInput) (req *reques
 // See the AWS API reference guide for Amazon Elastic File System's
 // API operation CreateFileSystem for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequest "BadRequest"
+// Returned Error Types:
+//   * BadRequest
 //   Returned if the request is malformed or contains an error such as an invalid
 //   parameter value or a missing required parameter.
 //
-//   * ErrCodeInternalServerError "InternalServerError"
+//   * InternalServerError
 //   Returned if an error occurred on the server side.
 //
-//   * ErrCodeFileSystemAlreadyExists "FileSystemAlreadyExists"
+//   * FileSystemAlreadyExists
 //   Returned if the file system you are trying to create already exists, with
 //   the creation token you provided.
 //
-//   * ErrCodeFileSystemLimitExceeded "FileSystemLimitExceeded"
+//   * FileSystemLimitExceeded
 //   Returned if the AWS account has already created the maximum number of file
 //   systems allowed per account.
 //
-//   * ErrCodeInsufficientThroughputCapacity "InsufficientThroughputCapacity"
+//   * InsufficientThroughputCapacity
 //   Returned if there's not enough capacity to provision additional throughput.
 //   This value might be returned when you try to create a file system in provisioned
 //   throughput mode, when you attempt to increase the provisioned throughput
 //   of an existing file system, or when you attempt to change an existing file
 //   system from bursting to provisioned throughput mode.
 //
-//   * ErrCodeThroughputLimitExceeded "ThroughputLimitExceeded"
+//   * ThroughputLimitExceeded
 //   Returned if the throughput mode or amount of provisioned throughput can't
 //   be changed because the throughput limit of 1024 MiB/s has been reached.
 //
@@ -302,37 +407,37 @@ func (c *EFS) CreateMountTargetRequest(input *CreateMountTargetInput) (req *requ
 // See the AWS API reference guide for Amazon Elastic File System's
 // API operation CreateMountTarget for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequest "BadRequest"
+// Returned Error Types:
+//   * BadRequest
 //   Returned if the request is malformed or contains an error such as an invalid
 //   parameter value or a missing required parameter.
 //
-//   * ErrCodeInternalServerError "InternalServerError"
+//   * InternalServerError
 //   Returned if an error occurred on the server side.
 //
-//   * ErrCodeFileSystemNotFound "FileSystemNotFound"
+//   * FileSystemNotFound
 //   Returned if the specified FileSystemId value doesn't exist in the requester's
 //   AWS account.
 //
-//   * ErrCodeIncorrectFileSystemLifeCycleState "IncorrectFileSystemLifeCycleState"
+//   * IncorrectFileSystemLifeCycleState
 //   Returned if the file system's lifecycle state is not "available".
 //
-//   * ErrCodeMountTargetConflict "MountTargetConflict"
+//   * MountTargetConflict
 //   Returned if the mount target would violate one of the specified restrictions
 //   based on the file system's existing mount targets.
 //
-//   * ErrCodeSubnetNotFound "SubnetNotFound"
+//   * SubnetNotFound
 //   Returned if there is no subnet with ID SubnetId provided in the request.
 //
-//   * ErrCodeNoFreeAddressesInSubnet "NoFreeAddressesInSubnet"
+//   * NoFreeAddressesInSubnet
 //   Returned if IpAddress was not specified in the request and there are no free
 //   IP addresses in the subnet.
 //
-//   * ErrCodeIpAddressInUse "IpAddressInUse"
+//   * IpAddressInUse
 //   Returned if the request specified an IpAddress that is already in use in
 //   the subnet.
 //
-//   * ErrCodeNetworkInterfaceLimitExceeded "NetworkInterfaceLimitExceeded"
+//   * NetworkInterfaceLimitExceeded
 //   The calling account has reached the limit for elastic network interfaces
 //   for the specific AWS Region. The client should try to delete some elastic
 //   network interfaces or get the account limit raised. For more information,
@@ -340,15 +445,15 @@ func (c *EFS) CreateMountTargetRequest(input *CreateMountTargetInput) (req *requ
 //   in the Amazon VPC User Guide (see the Network interfaces per VPC entry in
 //   the table).
 //
-//   * ErrCodeSecurityGroupLimitExceeded "SecurityGroupLimitExceeded"
+//   * SecurityGroupLimitExceeded
 //   Returned if the size of SecurityGroups specified in the request is greater
 //   than five.
 //
-//   * ErrCodeSecurityGroupNotFound "SecurityGroupNotFound"
+//   * SecurityGroupNotFound
 //   Returned if one of the specified security groups doesn't exist in the subnet's
 //   VPC.
 //
-//   * ErrCodeUnsupportedAvailabilityZone "UnsupportedAvailabilityZone"
+//   * UnsupportedAvailabilityZone
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/elasticfilesystem-2015-02-01/CreateMountTarget
 func (c *EFS) CreateMountTarget(input *CreateMountTargetInput) (*MountTargetDescription, error) {
@@ -398,7 +503,12 @@ const opCreateTags = "CreateTags"
 //    }
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/elasticfilesystem-2015-02-01/CreateTags
+//
+// Deprecated: Use TagResource.
 func (c *EFS) CreateTagsRequest(input *CreateTagsInput) (req *request.Request, output *CreateTagsOutput) {
+	if c.Client.Config.Logger != nil {
+		c.Client.Config.Logger.Log("This operation, CreateTags, has been deprecated")
+	}
 	op := &request.Operation{
 		Name:       opCreateTags,
 		HTTPMethod: "POST",
@@ -432,19 +542,21 @@ func (c *EFS) CreateTagsRequest(input *CreateTagsInput) (req *request.Request, o
 // See the AWS API reference guide for Amazon Elastic File System's
 // API operation CreateTags for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequest "BadRequest"
+// Returned Error Types:
+//   * BadRequest
 //   Returned if the request is malformed or contains an error such as an invalid
 //   parameter value or a missing required parameter.
 //
-//   * ErrCodeInternalServerError "InternalServerError"
+//   * InternalServerError
 //   Returned if an error occurred on the server side.
 //
-//   * ErrCodeFileSystemNotFound "FileSystemNotFound"
+//   * FileSystemNotFound
 //   Returned if the specified FileSystemId value doesn't exist in the requester's
 //   AWS account.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/elasticfilesystem-2015-02-01/CreateTags
+//
+// Deprecated: Use TagResource.
 func (c *EFS) CreateTags(input *CreateTagsInput) (*CreateTagsOutput, error) {
 	req, out := c.CreateTagsRequest(input)
 	return out, req.Send()
@@ -459,8 +571,104 @@ func (c *EFS) CreateTags(input *CreateTagsInput) (*CreateTagsOutput, error) {
 // the context is nil a panic will occur. In the future the SDK may create
 // sub-contexts for http.Requests. See https://golang.org/pkg/context/
 // for more information on using Contexts.
+//
+// Deprecated: Use TagResource.
 func (c *EFS) CreateTagsWithContext(ctx aws.Context, input *CreateTagsInput, opts ...request.Option) (*CreateTagsOutput, error) {
 	req, out := c.CreateTagsRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opDeleteAccessPoint = "DeleteAccessPoint"
+
+// DeleteAccessPointRequest generates a "aws/request.Request" representing the
+// client's request for the DeleteAccessPoint operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DeleteAccessPoint for more information on using the DeleteAccessPoint
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the DeleteAccessPointRequest method.
+//    req, resp := client.DeleteAccessPointRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/elasticfilesystem-2015-02-01/DeleteAccessPoint
+func (c *EFS) DeleteAccessPointRequest(input *DeleteAccessPointInput) (req *request.Request, output *DeleteAccessPointOutput) {
+	op := &request.Operation{
+		Name:       opDeleteAccessPoint,
+		HTTPMethod: "DELETE",
+		HTTPPath:   "/2015-02-01/access-points/{AccessPointId}",
+	}
+
+	if input == nil {
+		input = &DeleteAccessPointInput{}
+	}
+
+	output = &DeleteAccessPointOutput{}
+	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(restjson.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
+	return
+}
+
+// DeleteAccessPoint API operation for Amazon Elastic File System.
+//
+// Deletes the specified access point. After deletion is complete, new clients
+// can no longer connect to the access points. Clients connected to the access
+// point at the time of deletion will continue to function until they terminate
+// their connection.
+//
+// This operation requires permissions for the elasticfilesystem:DeleteAccessPoint
+// action.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Elastic File System's
+// API operation DeleteAccessPoint for usage and error information.
+//
+// Returned Error Types:
+//   * BadRequest
+//   Returned if the request is malformed or contains an error such as an invalid
+//   parameter value or a missing required parameter.
+//
+//   * InternalServerError
+//   Returned if an error occurred on the server side.
+//
+//   * AccessPointNotFound
+//   Returned if the specified AccessPointId value doesn't exist in the requester's
+//   AWS account.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/elasticfilesystem-2015-02-01/DeleteAccessPoint
+func (c *EFS) DeleteAccessPoint(input *DeleteAccessPointInput) (*DeleteAccessPointOutput, error) {
+	req, out := c.DeleteAccessPointRequest(input)
+	return out, req.Send()
+}
+
+// DeleteAccessPointWithContext is the same as DeleteAccessPoint with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DeleteAccessPoint for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *EFS) DeleteAccessPointWithContext(ctx aws.Context, input *DeleteAccessPointInput, opts ...request.Option) (*DeleteAccessPointOutput, error) {
+	req, out := c.DeleteAccessPointRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -535,19 +743,19 @@ func (c *EFS) DeleteFileSystemRequest(input *DeleteFileSystemInput) (req *reques
 // See the AWS API reference guide for Amazon Elastic File System's
 // API operation DeleteFileSystem for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequest "BadRequest"
+// Returned Error Types:
+//   * BadRequest
 //   Returned if the request is malformed or contains an error such as an invalid
 //   parameter value or a missing required parameter.
 //
-//   * ErrCodeInternalServerError "InternalServerError"
+//   * InternalServerError
 //   Returned if an error occurred on the server side.
 //
-//   * ErrCodeFileSystemNotFound "FileSystemNotFound"
+//   * FileSystemNotFound
 //   Returned if the specified FileSystemId value doesn't exist in the requester's
 //   AWS account.
 //
-//   * ErrCodeFileSystemInUse "FileSystemInUse"
+//   * FileSystemInUse
 //   Returned if a file system has mount targets.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/elasticfilesystem-2015-02-01/DeleteFileSystem
@@ -567,6 +775,99 @@ func (c *EFS) DeleteFileSystem(input *DeleteFileSystemInput) (*DeleteFileSystemO
 // for more information on using Contexts.
 func (c *EFS) DeleteFileSystemWithContext(ctx aws.Context, input *DeleteFileSystemInput, opts ...request.Option) (*DeleteFileSystemOutput, error) {
 	req, out := c.DeleteFileSystemRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opDeleteFileSystemPolicy = "DeleteFileSystemPolicy"
+
+// DeleteFileSystemPolicyRequest generates a "aws/request.Request" representing the
+// client's request for the DeleteFileSystemPolicy operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DeleteFileSystemPolicy for more information on using the DeleteFileSystemPolicy
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the DeleteFileSystemPolicyRequest method.
+//    req, resp := client.DeleteFileSystemPolicyRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/elasticfilesystem-2015-02-01/DeleteFileSystemPolicy
+func (c *EFS) DeleteFileSystemPolicyRequest(input *DeleteFileSystemPolicyInput) (req *request.Request, output *DeleteFileSystemPolicyOutput) {
+	op := &request.Operation{
+		Name:       opDeleteFileSystemPolicy,
+		HTTPMethod: "DELETE",
+		HTTPPath:   "/2015-02-01/file-systems/{FileSystemId}/policy",
+	}
+
+	if input == nil {
+		input = &DeleteFileSystemPolicyInput{}
+	}
+
+	output = &DeleteFileSystemPolicyOutput{}
+	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(restjson.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
+	return
+}
+
+// DeleteFileSystemPolicy API operation for Amazon Elastic File System.
+//
+// Deletes the FileSystemPolicy for the specified file system. The default FileSystemPolicy
+// goes into effect once the existing policy is deleted. For more information
+// about the default file system policy, see Using Resource-based Policies with
+// EFS (https://docs.aws.amazon.com/efs/latest/ug/res-based-policies-efs.html).
+//
+// This operation requires permissions for the elasticfilesystem:DeleteFileSystemPolicy
+// action.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Elastic File System's
+// API operation DeleteFileSystemPolicy for usage and error information.
+//
+// Returned Error Types:
+//   * InternalServerError
+//   Returned if an error occurred on the server side.
+//
+//   * FileSystemNotFound
+//   Returned if the specified FileSystemId value doesn't exist in the requester's
+//   AWS account.
+//
+//   * IncorrectFileSystemLifeCycleState
+//   Returned if the file system's lifecycle state is not "available".
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/elasticfilesystem-2015-02-01/DeleteFileSystemPolicy
+func (c *EFS) DeleteFileSystemPolicy(input *DeleteFileSystemPolicyInput) (*DeleteFileSystemPolicyOutput, error) {
+	req, out := c.DeleteFileSystemPolicyRequest(input)
+	return out, req.Send()
+}
+
+// DeleteFileSystemPolicyWithContext is the same as DeleteFileSystemPolicy with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DeleteFileSystemPolicy for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *EFS) DeleteFileSystemPolicyWithContext(ctx aws.Context, input *DeleteFileSystemPolicyInput, opts ...request.Option) (*DeleteFileSystemPolicyOutput, error) {
+	req, out := c.DeleteFileSystemPolicyRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -650,19 +951,19 @@ func (c *EFS) DeleteMountTargetRequest(input *DeleteMountTargetInput) (req *requ
 // See the AWS API reference guide for Amazon Elastic File System's
 // API operation DeleteMountTarget for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequest "BadRequest"
+// Returned Error Types:
+//   * BadRequest
 //   Returned if the request is malformed or contains an error such as an invalid
 //   parameter value or a missing required parameter.
 //
-//   * ErrCodeInternalServerError "InternalServerError"
+//   * InternalServerError
 //   Returned if an error occurred on the server side.
 //
-//   * ErrCodeDependencyTimeout "DependencyTimeout"
+//   * DependencyTimeout
 //   The service timed out trying to fulfill the request, and the client should
 //   try the call again.
 //
-//   * ErrCodeMountTargetNotFound "MountTargetNotFound"
+//   * MountTargetNotFound
 //   Returned if there is no mount target with the specified ID found in the caller's
 //   account.
 //
@@ -714,7 +1015,12 @@ const opDeleteTags = "DeleteTags"
 //    }
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/elasticfilesystem-2015-02-01/DeleteTags
+//
+// Deprecated: Use UntagResource.
 func (c *EFS) DeleteTagsRequest(input *DeleteTagsInput) (req *request.Request, output *DeleteTagsOutput) {
+	if c.Client.Config.Logger != nil {
+		c.Client.Config.Logger.Log("This operation, DeleteTags, has been deprecated")
+	}
 	op := &request.Operation{
 		Name:       opDeleteTags,
 		HTTPMethod: "POST",
@@ -749,19 +1055,21 @@ func (c *EFS) DeleteTagsRequest(input *DeleteTagsInput) (req *request.Request, o
 // See the AWS API reference guide for Amazon Elastic File System's
 // API operation DeleteTags for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequest "BadRequest"
+// Returned Error Types:
+//   * BadRequest
 //   Returned if the request is malformed or contains an error such as an invalid
 //   parameter value or a missing required parameter.
 //
-//   * ErrCodeInternalServerError "InternalServerError"
+//   * InternalServerError
 //   Returned if an error occurred on the server side.
 //
-//   * ErrCodeFileSystemNotFound "FileSystemNotFound"
+//   * FileSystemNotFound
 //   Returned if the specified FileSystemId value doesn't exist in the requester's
 //   AWS account.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/elasticfilesystem-2015-02-01/DeleteTags
+//
+// Deprecated: Use UntagResource.
 func (c *EFS) DeleteTags(input *DeleteTagsInput) (*DeleteTagsOutput, error) {
 	req, out := c.DeleteTagsRequest(input)
 	return out, req.Send()
@@ -776,8 +1084,255 @@ func (c *EFS) DeleteTags(input *DeleteTagsInput) (*DeleteTagsOutput, error) {
 // the context is nil a panic will occur. In the future the SDK may create
 // sub-contexts for http.Requests. See https://golang.org/pkg/context/
 // for more information on using Contexts.
+//
+// Deprecated: Use UntagResource.
 func (c *EFS) DeleteTagsWithContext(ctx aws.Context, input *DeleteTagsInput, opts ...request.Option) (*DeleteTagsOutput, error) {
 	req, out := c.DeleteTagsRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opDescribeAccessPoints = "DescribeAccessPoints"
+
+// DescribeAccessPointsRequest generates a "aws/request.Request" representing the
+// client's request for the DescribeAccessPoints operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DescribeAccessPoints for more information on using the DescribeAccessPoints
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the DescribeAccessPointsRequest method.
+//    req, resp := client.DescribeAccessPointsRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/elasticfilesystem-2015-02-01/DescribeAccessPoints
+func (c *EFS) DescribeAccessPointsRequest(input *DescribeAccessPointsInput) (req *request.Request, output *DescribeAccessPointsOutput) {
+	op := &request.Operation{
+		Name:       opDescribeAccessPoints,
+		HTTPMethod: "GET",
+		HTTPPath:   "/2015-02-01/access-points",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"NextToken"},
+			OutputTokens:    []string{"NextToken"},
+			LimitToken:      "MaxResults",
+			TruncationToken: "",
+		},
+	}
+
+	if input == nil {
+		input = &DescribeAccessPointsInput{}
+	}
+
+	output = &DescribeAccessPointsOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// DescribeAccessPoints API operation for Amazon Elastic File System.
+//
+// Returns the description of a specific Amazon EFS access point if the AccessPointId
+// is provided. If you provide an EFS FileSystemId, it returns descriptions
+// of all access points for that file system. You can provide either an AccessPointId
+// or a FileSystemId in the request, but not both.
+//
+// This operation requires permissions for the elasticfilesystem:DescribeAccessPoints
+// action.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Elastic File System's
+// API operation DescribeAccessPoints for usage and error information.
+//
+// Returned Error Types:
+//   * BadRequest
+//   Returned if the request is malformed or contains an error such as an invalid
+//   parameter value or a missing required parameter.
+//
+//   * InternalServerError
+//   Returned if an error occurred on the server side.
+//
+//   * FileSystemNotFound
+//   Returned if the specified FileSystemId value doesn't exist in the requester's
+//   AWS account.
+//
+//   * AccessPointNotFound
+//   Returned if the specified AccessPointId value doesn't exist in the requester's
+//   AWS account.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/elasticfilesystem-2015-02-01/DescribeAccessPoints
+func (c *EFS) DescribeAccessPoints(input *DescribeAccessPointsInput) (*DescribeAccessPointsOutput, error) {
+	req, out := c.DescribeAccessPointsRequest(input)
+	return out, req.Send()
+}
+
+// DescribeAccessPointsWithContext is the same as DescribeAccessPoints with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DescribeAccessPoints for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *EFS) DescribeAccessPointsWithContext(ctx aws.Context, input *DescribeAccessPointsInput, opts ...request.Option) (*DescribeAccessPointsOutput, error) {
+	req, out := c.DescribeAccessPointsRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+// DescribeAccessPointsPages iterates over the pages of a DescribeAccessPoints operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See DescribeAccessPoints method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a DescribeAccessPoints operation.
+//    pageNum := 0
+//    err := client.DescribeAccessPointsPages(params,
+//        func(page *efs.DescribeAccessPointsOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *EFS) DescribeAccessPointsPages(input *DescribeAccessPointsInput, fn func(*DescribeAccessPointsOutput, bool) bool) error {
+	return c.DescribeAccessPointsPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// DescribeAccessPointsPagesWithContext same as DescribeAccessPointsPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *EFS) DescribeAccessPointsPagesWithContext(ctx aws.Context, input *DescribeAccessPointsInput, fn func(*DescribeAccessPointsOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *DescribeAccessPointsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.DescribeAccessPointsRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*DescribeAccessPointsOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
+}
+
+const opDescribeFileSystemPolicy = "DescribeFileSystemPolicy"
+
+// DescribeFileSystemPolicyRequest generates a "aws/request.Request" representing the
+// client's request for the DescribeFileSystemPolicy operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DescribeFileSystemPolicy for more information on using the DescribeFileSystemPolicy
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the DescribeFileSystemPolicyRequest method.
+//    req, resp := client.DescribeFileSystemPolicyRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/elasticfilesystem-2015-02-01/DescribeFileSystemPolicy
+func (c *EFS) DescribeFileSystemPolicyRequest(input *DescribeFileSystemPolicyInput) (req *request.Request, output *DescribeFileSystemPolicyOutput) {
+	op := &request.Operation{
+		Name:       opDescribeFileSystemPolicy,
+		HTTPMethod: "GET",
+		HTTPPath:   "/2015-02-01/file-systems/{FileSystemId}/policy",
+	}
+
+	if input == nil {
+		input = &DescribeFileSystemPolicyInput{}
+	}
+
+	output = &DescribeFileSystemPolicyOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// DescribeFileSystemPolicy API operation for Amazon Elastic File System.
+//
+// Returns the FileSystemPolicy for the specified EFS file system.
+//
+// This operation requires permissions for the elasticfilesystem:DescribeFileSystemPolicy
+// action.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Elastic File System's
+// API operation DescribeFileSystemPolicy for usage and error information.
+//
+// Returned Error Types:
+//   * InternalServerError
+//   Returned if an error occurred on the server side.
+//
+//   * FileSystemNotFound
+//   Returned if the specified FileSystemId value doesn't exist in the requester's
+//   AWS account.
+//
+//   * PolicyNotFound
+//   Returned if the default file system policy is in effect for the EFS file
+//   system specified.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/elasticfilesystem-2015-02-01/DescribeFileSystemPolicy
+func (c *EFS) DescribeFileSystemPolicy(input *DescribeFileSystemPolicyInput) (*DescribeFileSystemPolicyOutput, error) {
+	req, out := c.DescribeFileSystemPolicyRequest(input)
+	return out, req.Send()
+}
+
+// DescribeFileSystemPolicyWithContext is the same as DescribeFileSystemPolicy with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DescribeFileSystemPolicy for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *EFS) DescribeFileSystemPolicyWithContext(ctx aws.Context, input *DescribeFileSystemPolicyInput, opts ...request.Option) (*DescribeFileSystemPolicyOutput, error) {
+	req, out := c.DescribeFileSystemPolicyRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -814,6 +1369,12 @@ func (c *EFS) DescribeFileSystemsRequest(input *DescribeFileSystemsInput) (req *
 		Name:       opDescribeFileSystems,
 		HTTPMethod: "GET",
 		HTTPPath:   "/2015-02-01/file-systems",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"Marker"},
+			OutputTokens:    []string{"NextMarker"},
+			LimitToken:      "MaxItems",
+			TruncationToken: "",
+		},
 	}
 
 	if input == nil {
@@ -859,15 +1420,15 @@ func (c *EFS) DescribeFileSystemsRequest(input *DescribeFileSystemsInput) (req *
 // See the AWS API reference guide for Amazon Elastic File System's
 // API operation DescribeFileSystems for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequest "BadRequest"
+// Returned Error Types:
+//   * BadRequest
 //   Returned if the request is malformed or contains an error such as an invalid
 //   parameter value or a missing required parameter.
 //
-//   * ErrCodeInternalServerError "InternalServerError"
+//   * InternalServerError
 //   Returned if an error occurred on the server side.
 //
-//   * ErrCodeFileSystemNotFound "FileSystemNotFound"
+//   * FileSystemNotFound
 //   Returned if the specified FileSystemId value doesn't exist in the requester's
 //   AWS account.
 //
@@ -891,6 +1452,58 @@ func (c *EFS) DescribeFileSystemsWithContext(ctx aws.Context, input *DescribeFil
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
+}
+
+// DescribeFileSystemsPages iterates over the pages of a DescribeFileSystems operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See DescribeFileSystems method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a DescribeFileSystems operation.
+//    pageNum := 0
+//    err := client.DescribeFileSystemsPages(params,
+//        func(page *efs.DescribeFileSystemsOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *EFS) DescribeFileSystemsPages(input *DescribeFileSystemsInput, fn func(*DescribeFileSystemsOutput, bool) bool) error {
+	return c.DescribeFileSystemsPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// DescribeFileSystemsPagesWithContext same as DescribeFileSystemsPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *EFS) DescribeFileSystemsPagesWithContext(ctx aws.Context, input *DescribeFileSystemsInput, fn func(*DescribeFileSystemsOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *DescribeFileSystemsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.DescribeFileSystemsRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*DescribeFileSystemsOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
 }
 
 const opDescribeLifecycleConfiguration = "DescribeLifecycleConfiguration"
@@ -953,15 +1566,15 @@ func (c *EFS) DescribeLifecycleConfigurationRequest(input *DescribeLifecycleConf
 // See the AWS API reference guide for Amazon Elastic File System's
 // API operation DescribeLifecycleConfiguration for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInternalServerError "InternalServerError"
+// Returned Error Types:
+//   * InternalServerError
 //   Returned if an error occurred on the server side.
 //
-//   * ErrCodeBadRequest "BadRequest"
+//   * BadRequest
 //   Returned if the request is malformed or contains an error such as an invalid
 //   parameter value or a missing required parameter.
 //
-//   * ErrCodeFileSystemNotFound "FileSystemNotFound"
+//   * FileSystemNotFound
 //   Returned if the specified FileSystemId value doesn't exist in the requester's
 //   AWS account.
 //
@@ -1050,19 +1663,19 @@ func (c *EFS) DescribeMountTargetSecurityGroupsRequest(input *DescribeMountTarge
 // See the AWS API reference guide for Amazon Elastic File System's
 // API operation DescribeMountTargetSecurityGroups for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequest "BadRequest"
+// Returned Error Types:
+//   * BadRequest
 //   Returned if the request is malformed or contains an error such as an invalid
 //   parameter value or a missing required parameter.
 //
-//   * ErrCodeInternalServerError "InternalServerError"
+//   * InternalServerError
 //   Returned if an error occurred on the server side.
 //
-//   * ErrCodeMountTargetNotFound "MountTargetNotFound"
+//   * MountTargetNotFound
 //   Returned if there is no mount target with the specified ID found in the caller's
 //   account.
 //
-//   * ErrCodeIncorrectMountTargetState "IncorrectMountTargetState"
+//   * IncorrectMountTargetState
 //   Returned if the mount target is not in the correct state for the operation.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/elasticfilesystem-2015-02-01/DescribeMountTargetSecurityGroups
@@ -1146,21 +1759,25 @@ func (c *EFS) DescribeMountTargetsRequest(input *DescribeMountTargetsInput) (req
 // See the AWS API reference guide for Amazon Elastic File System's
 // API operation DescribeMountTargets for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequest "BadRequest"
+// Returned Error Types:
+//   * BadRequest
 //   Returned if the request is malformed or contains an error such as an invalid
 //   parameter value or a missing required parameter.
 //
-//   * ErrCodeInternalServerError "InternalServerError"
+//   * InternalServerError
 //   Returned if an error occurred on the server side.
 //
-//   * ErrCodeFileSystemNotFound "FileSystemNotFound"
+//   * FileSystemNotFound
 //   Returned if the specified FileSystemId value doesn't exist in the requester's
 //   AWS account.
 //
-//   * ErrCodeMountTargetNotFound "MountTargetNotFound"
+//   * MountTargetNotFound
 //   Returned if there is no mount target with the specified ID found in the caller's
 //   account.
+//
+//   * AccessPointNotFound
+//   Returned if the specified AccessPointId value doesn't exist in the requester's
+//   AWS account.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/elasticfilesystem-2015-02-01/DescribeMountTargets
 func (c *EFS) DescribeMountTargets(input *DescribeMountTargetsInput) (*DescribeMountTargetsOutput, error) {
@@ -1210,11 +1827,22 @@ const opDescribeTags = "DescribeTags"
 //    }
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/elasticfilesystem-2015-02-01/DescribeTags
+//
+// Deprecated: Use ListTagsForResource.
 func (c *EFS) DescribeTagsRequest(input *DescribeTagsInput) (req *request.Request, output *DescribeTagsOutput) {
+	if c.Client.Config.Logger != nil {
+		c.Client.Config.Logger.Log("This operation, DescribeTags, has been deprecated")
+	}
 	op := &request.Operation{
 		Name:       opDescribeTags,
 		HTTPMethod: "GET",
 		HTTPPath:   "/2015-02-01/tags/{FileSystemId}/",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"Marker"},
+			OutputTokens:    []string{"NextMarker"},
+			LimitToken:      "MaxItems",
+			TruncationToken: "",
+		},
 	}
 
 	if input == nil {
@@ -1242,19 +1870,21 @@ func (c *EFS) DescribeTagsRequest(input *DescribeTagsInput) (req *request.Reques
 // See the AWS API reference guide for Amazon Elastic File System's
 // API operation DescribeTags for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequest "BadRequest"
+// Returned Error Types:
+//   * BadRequest
 //   Returned if the request is malformed or contains an error such as an invalid
 //   parameter value or a missing required parameter.
 //
-//   * ErrCodeInternalServerError "InternalServerError"
+//   * InternalServerError
 //   Returned if an error occurred on the server side.
 //
-//   * ErrCodeFileSystemNotFound "FileSystemNotFound"
+//   * FileSystemNotFound
 //   Returned if the specified FileSystemId value doesn't exist in the requester's
 //   AWS account.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/elasticfilesystem-2015-02-01/DescribeTags
+//
+// Deprecated: Use ListTagsForResource.
 func (c *EFS) DescribeTags(input *DescribeTagsInput) (*DescribeTagsOutput, error) {
 	req, out := c.DescribeTagsRequest(input)
 	return out, req.Send()
@@ -1269,11 +1899,222 @@ func (c *EFS) DescribeTags(input *DescribeTagsInput) (*DescribeTagsOutput, error
 // the context is nil a panic will occur. In the future the SDK may create
 // sub-contexts for http.Requests. See https://golang.org/pkg/context/
 // for more information on using Contexts.
+//
+// Deprecated: Use ListTagsForResource.
 func (c *EFS) DescribeTagsWithContext(ctx aws.Context, input *DescribeTagsInput, opts ...request.Option) (*DescribeTagsOutput, error) {
 	req, out := c.DescribeTagsRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
+}
+
+// DescribeTagsPages iterates over the pages of a DescribeTags operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See DescribeTags method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a DescribeTags operation.
+//    pageNum := 0
+//    err := client.DescribeTagsPages(params,
+//        func(page *efs.DescribeTagsOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+//
+// Deprecated: Use ListTagsForResource.
+func (c *EFS) DescribeTagsPages(input *DescribeTagsInput, fn func(*DescribeTagsOutput, bool) bool) error {
+	return c.DescribeTagsPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// DescribeTagsPagesWithContext same as DescribeTagsPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+//
+// Deprecated: Use ListTagsForResource.
+func (c *EFS) DescribeTagsPagesWithContext(ctx aws.Context, input *DescribeTagsInput, fn func(*DescribeTagsOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *DescribeTagsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.DescribeTagsRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*DescribeTagsOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
+}
+
+const opListTagsForResource = "ListTagsForResource"
+
+// ListTagsForResourceRequest generates a "aws/request.Request" representing the
+// client's request for the ListTagsForResource operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See ListTagsForResource for more information on using the ListTagsForResource
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the ListTagsForResourceRequest method.
+//    req, resp := client.ListTagsForResourceRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/elasticfilesystem-2015-02-01/ListTagsForResource
+func (c *EFS) ListTagsForResourceRequest(input *ListTagsForResourceInput) (req *request.Request, output *ListTagsForResourceOutput) {
+	op := &request.Operation{
+		Name:       opListTagsForResource,
+		HTTPMethod: "GET",
+		HTTPPath:   "/2015-02-01/resource-tags/{ResourceId}",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"NextToken"},
+			OutputTokens:    []string{"NextToken"},
+			LimitToken:      "MaxResults",
+			TruncationToken: "",
+		},
+	}
+
+	if input == nil {
+		input = &ListTagsForResourceInput{}
+	}
+
+	output = &ListTagsForResourceOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// ListTagsForResource API operation for Amazon Elastic File System.
+//
+// Lists all tags for a top-level EFS resource. You must provide the ID of the
+// resource that you want to retrieve the tags for.
+//
+// This operation requires permissions for the elasticfilesystem:DescribeAccessPoints
+// action.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Elastic File System's
+// API operation ListTagsForResource for usage and error information.
+//
+// Returned Error Types:
+//   * BadRequest
+//   Returned if the request is malformed or contains an error such as an invalid
+//   parameter value or a missing required parameter.
+//
+//   * InternalServerError
+//   Returned if an error occurred on the server side.
+//
+//   * FileSystemNotFound
+//   Returned if the specified FileSystemId value doesn't exist in the requester's
+//   AWS account.
+//
+//   * AccessPointNotFound
+//   Returned if the specified AccessPointId value doesn't exist in the requester's
+//   AWS account.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/elasticfilesystem-2015-02-01/ListTagsForResource
+func (c *EFS) ListTagsForResource(input *ListTagsForResourceInput) (*ListTagsForResourceOutput, error) {
+	req, out := c.ListTagsForResourceRequest(input)
+	return out, req.Send()
+}
+
+// ListTagsForResourceWithContext is the same as ListTagsForResource with the addition of
+// the ability to pass a context and additional request options.
+//
+// See ListTagsForResource for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *EFS) ListTagsForResourceWithContext(ctx aws.Context, input *ListTagsForResourceInput, opts ...request.Option) (*ListTagsForResourceOutput, error) {
+	req, out := c.ListTagsForResourceRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+// ListTagsForResourcePages iterates over the pages of a ListTagsForResource operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListTagsForResource method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListTagsForResource operation.
+//    pageNum := 0
+//    err := client.ListTagsForResourcePages(params,
+//        func(page *efs.ListTagsForResourceOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *EFS) ListTagsForResourcePages(input *ListTagsForResourceInput, fn func(*ListTagsForResourceOutput, bool) bool) error {
+	return c.ListTagsForResourcePagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListTagsForResourcePagesWithContext same as ListTagsForResourcePages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *EFS) ListTagsForResourcePagesWithContext(ctx aws.Context, input *ListTagsForResourceInput, fn func(*ListTagsForResourceOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListTagsForResourceInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListTagsForResourceRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*ListTagsForResourceOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
 }
 
 const opModifyMountTargetSecurityGroups = "ModifyMountTargetSecurityGroups"
@@ -1345,26 +2186,26 @@ func (c *EFS) ModifyMountTargetSecurityGroupsRequest(input *ModifyMountTargetSec
 // See the AWS API reference guide for Amazon Elastic File System's
 // API operation ModifyMountTargetSecurityGroups for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequest "BadRequest"
+// Returned Error Types:
+//   * BadRequest
 //   Returned if the request is malformed or contains an error such as an invalid
 //   parameter value or a missing required parameter.
 //
-//   * ErrCodeInternalServerError "InternalServerError"
+//   * InternalServerError
 //   Returned if an error occurred on the server side.
 //
-//   * ErrCodeMountTargetNotFound "MountTargetNotFound"
+//   * MountTargetNotFound
 //   Returned if there is no mount target with the specified ID found in the caller's
 //   account.
 //
-//   * ErrCodeIncorrectMountTargetState "IncorrectMountTargetState"
+//   * IncorrectMountTargetState
 //   Returned if the mount target is not in the correct state for the operation.
 //
-//   * ErrCodeSecurityGroupLimitExceeded "SecurityGroupLimitExceeded"
+//   * SecurityGroupLimitExceeded
 //   Returned if the size of SecurityGroups specified in the request is greater
 //   than five.
 //
-//   * ErrCodeSecurityGroupNotFound "SecurityGroupNotFound"
+//   * SecurityGroupNotFound
 //   Returned if one of the specified security groups doesn't exist in the subnet's
 //   VPC.
 //
@@ -1385,6 +2226,106 @@ func (c *EFS) ModifyMountTargetSecurityGroups(input *ModifyMountTargetSecurityGr
 // for more information on using Contexts.
 func (c *EFS) ModifyMountTargetSecurityGroupsWithContext(ctx aws.Context, input *ModifyMountTargetSecurityGroupsInput, opts ...request.Option) (*ModifyMountTargetSecurityGroupsOutput, error) {
 	req, out := c.ModifyMountTargetSecurityGroupsRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opPutFileSystemPolicy = "PutFileSystemPolicy"
+
+// PutFileSystemPolicyRequest generates a "aws/request.Request" representing the
+// client's request for the PutFileSystemPolicy operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See PutFileSystemPolicy for more information on using the PutFileSystemPolicy
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the PutFileSystemPolicyRequest method.
+//    req, resp := client.PutFileSystemPolicyRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/elasticfilesystem-2015-02-01/PutFileSystemPolicy
+func (c *EFS) PutFileSystemPolicyRequest(input *PutFileSystemPolicyInput) (req *request.Request, output *PutFileSystemPolicyOutput) {
+	op := &request.Operation{
+		Name:       opPutFileSystemPolicy,
+		HTTPMethod: "PUT",
+		HTTPPath:   "/2015-02-01/file-systems/{FileSystemId}/policy",
+	}
+
+	if input == nil {
+		input = &PutFileSystemPolicyInput{}
+	}
+
+	output = &PutFileSystemPolicyOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// PutFileSystemPolicy API operation for Amazon Elastic File System.
+//
+// Applies an Amazon EFS FileSystemPolicy to an Amazon EFS file system. A file
+// system policy is an IAM resource-based policy and can contain multiple policy
+// statements. A file system always has exactly one file system policy, which
+// can be the default policy or an explicit policy set or updated using this
+// API operation. When an explicit policy is set, it overrides the default policy.
+// For more information about the default file system policy, see Default EFS
+// File System Policy (https://docs.aws.amazon.com/efs/latest/ug/iam-access-control-nfs-efs.html#default-filesystempolicy).
+//
+// This operation requires permissions for the elasticfilesystem:PutFileSystemPolicy
+// action.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Elastic File System's
+// API operation PutFileSystemPolicy for usage and error information.
+//
+// Returned Error Types:
+//   * InternalServerError
+//   Returned if an error occurred on the server side.
+//
+//   * FileSystemNotFound
+//   Returned if the specified FileSystemId value doesn't exist in the requester's
+//   AWS account.
+//
+//   * InvalidPolicyException
+//   Returned if the FileSystemPolicy is is malformed or contains an error such
+//   as an invalid parameter value or a missing required parameter. Returned in
+//   the case of a policy lockout safety check error.
+//
+//   * IncorrectFileSystemLifeCycleState
+//   Returned if the file system's lifecycle state is not "available".
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/elasticfilesystem-2015-02-01/PutFileSystemPolicy
+func (c *EFS) PutFileSystemPolicy(input *PutFileSystemPolicyInput) (*PutFileSystemPolicyOutput, error) {
+	req, out := c.PutFileSystemPolicyRequest(input)
+	return out, req.Send()
+}
+
+// PutFileSystemPolicyWithContext is the same as PutFileSystemPolicy with the addition of
+// the ability to pass a context and additional request options.
+//
+// See PutFileSystemPolicy for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *EFS) PutFileSystemPolicyWithContext(ctx aws.Context, input *PutFileSystemPolicyInput, opts ...request.Option) (*PutFileSystemPolicyOutput, error) {
+	req, out := c.PutFileSystemPolicyRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -1470,19 +2411,19 @@ func (c *EFS) PutLifecycleConfigurationRequest(input *PutLifecycleConfigurationI
 // See the AWS API reference guide for Amazon Elastic File System's
 // API operation PutLifecycleConfiguration for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequest "BadRequest"
+// Returned Error Types:
+//   * BadRequest
 //   Returned if the request is malformed or contains an error such as an invalid
 //   parameter value or a missing required parameter.
 //
-//   * ErrCodeInternalServerError "InternalServerError"
+//   * InternalServerError
 //   Returned if an error occurred on the server side.
 //
-//   * ErrCodeFileSystemNotFound "FileSystemNotFound"
+//   * FileSystemNotFound
 //   Returned if the specified FileSystemId value doesn't exist in the requester's
 //   AWS account.
 //
-//   * ErrCodeIncorrectFileSystemLifeCycleState "IncorrectFileSystemLifeCycleState"
+//   * IncorrectFileSystemLifeCycleState
 //   Returned if the file system's lifecycle state is not "available".
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/elasticfilesystem-2015-02-01/PutLifecycleConfiguration
@@ -1502,6 +2443,198 @@ func (c *EFS) PutLifecycleConfiguration(input *PutLifecycleConfigurationInput) (
 // for more information on using Contexts.
 func (c *EFS) PutLifecycleConfigurationWithContext(ctx aws.Context, input *PutLifecycleConfigurationInput, opts ...request.Option) (*PutLifecycleConfigurationOutput, error) {
 	req, out := c.PutLifecycleConfigurationRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opTagResource = "TagResource"
+
+// TagResourceRequest generates a "aws/request.Request" representing the
+// client's request for the TagResource operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See TagResource for more information on using the TagResource
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the TagResourceRequest method.
+//    req, resp := client.TagResourceRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/elasticfilesystem-2015-02-01/TagResource
+func (c *EFS) TagResourceRequest(input *TagResourceInput) (req *request.Request, output *TagResourceOutput) {
+	op := &request.Operation{
+		Name:       opTagResource,
+		HTTPMethod: "POST",
+		HTTPPath:   "/2015-02-01/resource-tags/{ResourceId}",
+	}
+
+	if input == nil {
+		input = &TagResourceInput{}
+	}
+
+	output = &TagResourceOutput{}
+	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(restjson.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
+	return
+}
+
+// TagResource API operation for Amazon Elastic File System.
+//
+// Creates a tag for an EFS resource. You can create tags for EFS file systems
+// and access points using this API operation.
+//
+// This operation requires permissions for the elasticfilesystem:TagResource
+// action.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Elastic File System's
+// API operation TagResource for usage and error information.
+//
+// Returned Error Types:
+//   * BadRequest
+//   Returned if the request is malformed or contains an error such as an invalid
+//   parameter value or a missing required parameter.
+//
+//   * InternalServerError
+//   Returned if an error occurred on the server side.
+//
+//   * FileSystemNotFound
+//   Returned if the specified FileSystemId value doesn't exist in the requester's
+//   AWS account.
+//
+//   * AccessPointNotFound
+//   Returned if the specified AccessPointId value doesn't exist in the requester's
+//   AWS account.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/elasticfilesystem-2015-02-01/TagResource
+func (c *EFS) TagResource(input *TagResourceInput) (*TagResourceOutput, error) {
+	req, out := c.TagResourceRequest(input)
+	return out, req.Send()
+}
+
+// TagResourceWithContext is the same as TagResource with the addition of
+// the ability to pass a context and additional request options.
+//
+// See TagResource for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *EFS) TagResourceWithContext(ctx aws.Context, input *TagResourceInput, opts ...request.Option) (*TagResourceOutput, error) {
+	req, out := c.TagResourceRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opUntagResource = "UntagResource"
+
+// UntagResourceRequest generates a "aws/request.Request" representing the
+// client's request for the UntagResource operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See UntagResource for more information on using the UntagResource
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the UntagResourceRequest method.
+//    req, resp := client.UntagResourceRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/elasticfilesystem-2015-02-01/UntagResource
+func (c *EFS) UntagResourceRequest(input *UntagResourceInput) (req *request.Request, output *UntagResourceOutput) {
+	op := &request.Operation{
+		Name:       opUntagResource,
+		HTTPMethod: "DELETE",
+		HTTPPath:   "/2015-02-01/resource-tags/{ResourceId}",
+	}
+
+	if input == nil {
+		input = &UntagResourceInput{}
+	}
+
+	output = &UntagResourceOutput{}
+	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(restjson.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
+	return
+}
+
+// UntagResource API operation for Amazon Elastic File System.
+//
+// Removes tags from an EFS resource. You can remove tags from EFS file systems
+// and access points using this API operation.
+//
+// This operation requires permissions for the elasticfilesystem:UntagResource
+// action.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Elastic File System's
+// API operation UntagResource for usage and error information.
+//
+// Returned Error Types:
+//   * BadRequest
+//   Returned if the request is malformed or contains an error such as an invalid
+//   parameter value or a missing required parameter.
+//
+//   * InternalServerError
+//   Returned if an error occurred on the server side.
+//
+//   * FileSystemNotFound
+//   Returned if the specified FileSystemId value doesn't exist in the requester's
+//   AWS account.
+//
+//   * AccessPointNotFound
+//   Returned if the specified AccessPointId value doesn't exist in the requester's
+//   AWS account.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/elasticfilesystem-2015-02-01/UntagResource
+func (c *EFS) UntagResource(input *UntagResourceInput) (*UntagResourceOutput, error) {
+	req, out := c.UntagResourceRequest(input)
+	return out, req.Send()
+}
+
+// UntagResourceWithContext is the same as UntagResource with the addition of
+// the ability to pass a context and additional request options.
+//
+// See UntagResource for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *EFS) UntagResourceWithContext(ctx aws.Context, input *UntagResourceInput, opts ...request.Option) (*UntagResourceOutput, error) {
+	req, out := c.UntagResourceRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -1561,33 +2694,33 @@ func (c *EFS) UpdateFileSystemRequest(input *UpdateFileSystemInput) (req *reques
 // See the AWS API reference guide for Amazon Elastic File System's
 // API operation UpdateFileSystem for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequest "BadRequest"
+// Returned Error Types:
+//   * BadRequest
 //   Returned if the request is malformed or contains an error such as an invalid
 //   parameter value or a missing required parameter.
 //
-//   * ErrCodeFileSystemNotFound "FileSystemNotFound"
+//   * FileSystemNotFound
 //   Returned if the specified FileSystemId value doesn't exist in the requester's
 //   AWS account.
 //
-//   * ErrCodeIncorrectFileSystemLifeCycleState "IncorrectFileSystemLifeCycleState"
+//   * IncorrectFileSystemLifeCycleState
 //   Returned if the file system's lifecycle state is not "available".
 //
-//   * ErrCodeInsufficientThroughputCapacity "InsufficientThroughputCapacity"
+//   * InsufficientThroughputCapacity
 //   Returned if there's not enough capacity to provision additional throughput.
 //   This value might be returned when you try to create a file system in provisioned
 //   throughput mode, when you attempt to increase the provisioned throughput
 //   of an existing file system, or when you attempt to change an existing file
 //   system from bursting to provisioned throughput mode.
 //
-//   * ErrCodeInternalServerError "InternalServerError"
+//   * InternalServerError
 //   Returned if an error occurred on the server side.
 //
-//   * ErrCodeThroughputLimitExceeded "ThroughputLimitExceeded"
+//   * ThroughputLimitExceeded
 //   Returned if the throughput mode or amount of provisioned throughput can't
 //   be changed because the throughput limit of 1024 MiB/s has been reached.
 //
-//   * ErrCodeTooManyRequests "TooManyRequests"
+//   * TooManyRequests
 //   Returned if you don’t wait at least 24 hours before changing the throughput
 //   mode, or decreasing the Provisioned Throughput value.
 //
@@ -1613,14 +2746,576 @@ func (c *EFS) UpdateFileSystemWithContext(ctx aws.Context, input *UpdateFileSyst
 	return out, req.Send()
 }
 
+// Returned if the access point you are trying to create already exists, with
+// the creation token you provided in the request.
+type AccessPointAlreadyExists struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// AccessPointId is a required field
+	AccessPointId *string `type:"string" required:"true"`
+
+	// ErrorCode is a required field
+	ErrorCode *string `min:"1" type:"string" required:"true"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s AccessPointAlreadyExists) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AccessPointAlreadyExists) GoString() string {
+	return s.String()
+}
+
+func newErrorAccessPointAlreadyExists(v protocol.ResponseMetadata) error {
+	return &AccessPointAlreadyExists{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *AccessPointAlreadyExists) Code() string {
+	return "AccessPointAlreadyExists"
+}
+
+// Message returns the exception's message.
+func (s *AccessPointAlreadyExists) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *AccessPointAlreadyExists) OrigErr() error {
+	return nil
+}
+
+func (s *AccessPointAlreadyExists) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *AccessPointAlreadyExists) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *AccessPointAlreadyExists) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// Provides a description of an EFS file system access point.
+type AccessPointDescription struct {
+	_ struct{} `type:"structure"`
+
+	// The unique Amazon Resource Name (ARN) associated with the access point.
+	AccessPointArn *string `type:"string"`
+
+	// The ID of the access point, assigned by Amazon EFS.
+	AccessPointId *string `type:"string"`
+
+	// The opaque string specified in the request to ensure idempotent creation.
+	ClientToken *string `min:"1" type:"string"`
+
+	// The ID of the EFS file system that the access point applies to.
+	FileSystemId *string `type:"string"`
+
+	// Identifies the lifecycle phase of the access point.
+	LifeCycleState *string `type:"string" enum:"LifeCycleState"`
+
+	// The name of the access point. This is the value of the Name tag.
+	Name *string `type:"string"`
+
+	// Identified the AWS account that owns the access point resource.
+	OwnerId *string `type:"string"`
+
+	// The full POSIX identity, including the user ID, group ID, and secondary group
+	// IDs on the access point that is used for all file operations by NFS clients
+	// using the access point.
+	PosixUser *PosixUser `type:"structure"`
+
+	// The directory on the Amazon EFS file system that the access point exposes
+	// as the root directory to NFS clients using the access point.
+	RootDirectory *RootDirectory `type:"structure"`
+
+	// The tags associated with the access point, presented as an array of Tag objects.
+	Tags []*Tag `type:"list"`
+}
+
+// String returns the string representation
+func (s AccessPointDescription) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AccessPointDescription) GoString() string {
+	return s.String()
+}
+
+// SetAccessPointArn sets the AccessPointArn field's value.
+func (s *AccessPointDescription) SetAccessPointArn(v string) *AccessPointDescription {
+	s.AccessPointArn = &v
+	return s
+}
+
+// SetAccessPointId sets the AccessPointId field's value.
+func (s *AccessPointDescription) SetAccessPointId(v string) *AccessPointDescription {
+	s.AccessPointId = &v
+	return s
+}
+
+// SetClientToken sets the ClientToken field's value.
+func (s *AccessPointDescription) SetClientToken(v string) *AccessPointDescription {
+	s.ClientToken = &v
+	return s
+}
+
+// SetFileSystemId sets the FileSystemId field's value.
+func (s *AccessPointDescription) SetFileSystemId(v string) *AccessPointDescription {
+	s.FileSystemId = &v
+	return s
+}
+
+// SetLifeCycleState sets the LifeCycleState field's value.
+func (s *AccessPointDescription) SetLifeCycleState(v string) *AccessPointDescription {
+	s.LifeCycleState = &v
+	return s
+}
+
+// SetName sets the Name field's value.
+func (s *AccessPointDescription) SetName(v string) *AccessPointDescription {
+	s.Name = &v
+	return s
+}
+
+// SetOwnerId sets the OwnerId field's value.
+func (s *AccessPointDescription) SetOwnerId(v string) *AccessPointDescription {
+	s.OwnerId = &v
+	return s
+}
+
+// SetPosixUser sets the PosixUser field's value.
+func (s *AccessPointDescription) SetPosixUser(v *PosixUser) *AccessPointDescription {
+	s.PosixUser = v
+	return s
+}
+
+// SetRootDirectory sets the RootDirectory field's value.
+func (s *AccessPointDescription) SetRootDirectory(v *RootDirectory) *AccessPointDescription {
+	s.RootDirectory = v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *AccessPointDescription) SetTags(v []*Tag) *AccessPointDescription {
+	s.Tags = v
+	return s
+}
+
+// Returned if the AWS account has already created the maximum number of access
+// points allowed per file system.
+type AccessPointLimitExceeded struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// ErrorCode is a required field
+	ErrorCode *string `min:"1" type:"string" required:"true"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s AccessPointLimitExceeded) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AccessPointLimitExceeded) GoString() string {
+	return s.String()
+}
+
+func newErrorAccessPointLimitExceeded(v protocol.ResponseMetadata) error {
+	return &AccessPointLimitExceeded{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *AccessPointLimitExceeded) Code() string {
+	return "AccessPointLimitExceeded"
+}
+
+// Message returns the exception's message.
+func (s *AccessPointLimitExceeded) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *AccessPointLimitExceeded) OrigErr() error {
+	return nil
+}
+
+func (s *AccessPointLimitExceeded) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *AccessPointLimitExceeded) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *AccessPointLimitExceeded) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// Returned if the specified AccessPointId value doesn't exist in the requester's
+// AWS account.
+type AccessPointNotFound struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// ErrorCode is a required field
+	ErrorCode *string `min:"1" type:"string" required:"true"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s AccessPointNotFound) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AccessPointNotFound) GoString() string {
+	return s.String()
+}
+
+func newErrorAccessPointNotFound(v protocol.ResponseMetadata) error {
+	return &AccessPointNotFound{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *AccessPointNotFound) Code() string {
+	return "AccessPointNotFound"
+}
+
+// Message returns the exception's message.
+func (s *AccessPointNotFound) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *AccessPointNotFound) OrigErr() error {
+	return nil
+}
+
+func (s *AccessPointNotFound) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *AccessPointNotFound) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *AccessPointNotFound) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// Returned if the request is malformed or contains an error such as an invalid
+// parameter value or a missing required parameter.
+type BadRequest struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// ErrorCode is a required field
+	ErrorCode *string `min:"1" type:"string" required:"true"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s BadRequest) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s BadRequest) GoString() string {
+	return s.String()
+}
+
+func newErrorBadRequest(v protocol.ResponseMetadata) error {
+	return &BadRequest{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *BadRequest) Code() string {
+	return "BadRequest"
+}
+
+// Message returns the exception's message.
+func (s *BadRequest) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *BadRequest) OrigErr() error {
+	return nil
+}
+
+func (s *BadRequest) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *BadRequest) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *BadRequest) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+type CreateAccessPointInput struct {
+	_ struct{} `type:"structure"`
+
+	// A string of up to 64 ASCII characters that Amazon EFS uses to ensure idempotent
+	// creation.
+	ClientToken *string `min:"1" type:"string" idempotencyToken:"true"`
+
+	// The ID of the EFS file system that the access point provides access to.
+	//
+	// FileSystemId is a required field
+	FileSystemId *string `type:"string" required:"true"`
+
+	// The operating system user and group applied to all file system requests made
+	// using the access point.
+	PosixUser *PosixUser `type:"structure"`
+
+	// Specifies the directory on the Amazon EFS file system that the access point
+	// exposes as the root directory of your file system to NFS clients using the
+	// access point. The clients using the access point can only access the root
+	// directory and below. If the RootDirectory > Path specified does not exist,
+	// EFS creates it and applies the CreationInfo settings when a client connects
+	// to an access point. When specifying a RootDirectory, you need to provide
+	// the Path, and the CreationInfo is optional.
+	RootDirectory *RootDirectory `type:"structure"`
+
+	// Creates tags associated with the access point. Each tag is a key-value pair.
+	Tags []*Tag `type:"list"`
+}
+
+// String returns the string representation
+func (s CreateAccessPointInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateAccessPointInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *CreateAccessPointInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "CreateAccessPointInput"}
+	if s.ClientToken != nil && len(*s.ClientToken) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ClientToken", 1))
+	}
+	if s.FileSystemId == nil {
+		invalidParams.Add(request.NewErrParamRequired("FileSystemId"))
+	}
+	if s.PosixUser != nil {
+		if err := s.PosixUser.Validate(); err != nil {
+			invalidParams.AddNested("PosixUser", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.RootDirectory != nil {
+		if err := s.RootDirectory.Validate(); err != nil {
+			invalidParams.AddNested("RootDirectory", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.Tags != nil {
+		for i, v := range s.Tags {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Tags", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetClientToken sets the ClientToken field's value.
+func (s *CreateAccessPointInput) SetClientToken(v string) *CreateAccessPointInput {
+	s.ClientToken = &v
+	return s
+}
+
+// SetFileSystemId sets the FileSystemId field's value.
+func (s *CreateAccessPointInput) SetFileSystemId(v string) *CreateAccessPointInput {
+	s.FileSystemId = &v
+	return s
+}
+
+// SetPosixUser sets the PosixUser field's value.
+func (s *CreateAccessPointInput) SetPosixUser(v *PosixUser) *CreateAccessPointInput {
+	s.PosixUser = v
+	return s
+}
+
+// SetRootDirectory sets the RootDirectory field's value.
+func (s *CreateAccessPointInput) SetRootDirectory(v *RootDirectory) *CreateAccessPointInput {
+	s.RootDirectory = v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *CreateAccessPointInput) SetTags(v []*Tag) *CreateAccessPointInput {
+	s.Tags = v
+	return s
+}
+
+// Provides a description of an EFS file system access point.
+type CreateAccessPointOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The unique Amazon Resource Name (ARN) associated with the access point.
+	AccessPointArn *string `type:"string"`
+
+	// The ID of the access point, assigned by Amazon EFS.
+	AccessPointId *string `type:"string"`
+
+	// The opaque string specified in the request to ensure idempotent creation.
+	ClientToken *string `min:"1" type:"string"`
+
+	// The ID of the EFS file system that the access point applies to.
+	FileSystemId *string `type:"string"`
+
+	// Identifies the lifecycle phase of the access point.
+	LifeCycleState *string `type:"string" enum:"LifeCycleState"`
+
+	// The name of the access point. This is the value of the Name tag.
+	Name *string `type:"string"`
+
+	// Identified the AWS account that owns the access point resource.
+	OwnerId *string `type:"string"`
+
+	// The full POSIX identity, including the user ID, group ID, and secondary group
+	// IDs on the access point that is used for all file operations by NFS clients
+	// using the access point.
+	PosixUser *PosixUser `type:"structure"`
+
+	// The directory on the Amazon EFS file system that the access point exposes
+	// as the root directory to NFS clients using the access point.
+	RootDirectory *RootDirectory `type:"structure"`
+
+	// The tags associated with the access point, presented as an array of Tag objects.
+	Tags []*Tag `type:"list"`
+}
+
+// String returns the string representation
+func (s CreateAccessPointOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateAccessPointOutput) GoString() string {
+	return s.String()
+}
+
+// SetAccessPointArn sets the AccessPointArn field's value.
+func (s *CreateAccessPointOutput) SetAccessPointArn(v string) *CreateAccessPointOutput {
+	s.AccessPointArn = &v
+	return s
+}
+
+// SetAccessPointId sets the AccessPointId field's value.
+func (s *CreateAccessPointOutput) SetAccessPointId(v string) *CreateAccessPointOutput {
+	s.AccessPointId = &v
+	return s
+}
+
+// SetClientToken sets the ClientToken field's value.
+func (s *CreateAccessPointOutput) SetClientToken(v string) *CreateAccessPointOutput {
+	s.ClientToken = &v
+	return s
+}
+
+// SetFileSystemId sets the FileSystemId field's value.
+func (s *CreateAccessPointOutput) SetFileSystemId(v string) *CreateAccessPointOutput {
+	s.FileSystemId = &v
+	return s
+}
+
+// SetLifeCycleState sets the LifeCycleState field's value.
+func (s *CreateAccessPointOutput) SetLifeCycleState(v string) *CreateAccessPointOutput {
+	s.LifeCycleState = &v
+	return s
+}
+
+// SetName sets the Name field's value.
+func (s *CreateAccessPointOutput) SetName(v string) *CreateAccessPointOutput {
+	s.Name = &v
+	return s
+}
+
+// SetOwnerId sets the OwnerId field's value.
+func (s *CreateAccessPointOutput) SetOwnerId(v string) *CreateAccessPointOutput {
+	s.OwnerId = &v
+	return s
+}
+
+// SetPosixUser sets the PosixUser field's value.
+func (s *CreateAccessPointOutput) SetPosixUser(v *PosixUser) *CreateAccessPointOutput {
+	s.PosixUser = v
+	return s
+}
+
+// SetRootDirectory sets the RootDirectory field's value.
+func (s *CreateAccessPointOutput) SetRootDirectory(v *RootDirectory) *CreateAccessPointOutput {
+	s.RootDirectory = v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *CreateAccessPointOutput) SetTags(v []*Tag) *CreateAccessPointOutput {
+	s.Tags = v
+	return s
+}
+
 type CreateFileSystemInput struct {
 	_ struct{} `type:"structure"`
 
 	// A string of up to 64 ASCII characters. Amazon EFS uses this to ensure idempotent
 	// creation.
-	//
-	// CreationToken is a required field
-	CreationToken *string `min:"1" type:"string" required:"true"`
+	CreationToken *string `min:"1" type:"string" idempotencyToken:"true"`
 
 	// A Boolean value that, if true, creates an encrypted file system. When creating
 	// an encrypted file system, you have the option of specifying CreateFileSystemRequest$KmsKeyId
@@ -1645,6 +3340,9 @@ type CreateFileSystemInput struct {
 	//
 	// If KmsKeyId is specified, the CreateFileSystemRequest$Encrypted parameter
 	// must be set to true.
+	//
+	// EFS accepts only symmetric CMKs. You cannot use asymmetric CMKs with EFS
+	// file systems.
 	KmsKeyId *string `min:"1" type:"string"`
 
 	// The performance mode of the file system. We recommend generalPurpose performance
@@ -1691,9 +3389,6 @@ func (s CreateFileSystemInput) GoString() string {
 // Validate inspects the fields of the type to determine if they are valid.
 func (s *CreateFileSystemInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "CreateFileSystemInput"}
-	if s.CreationToken == nil {
-		invalidParams.Add(request.NewErrParamRequired("CreationToken"))
-	}
 	if s.CreationToken != nil && len(*s.CreationToken) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("CreationToken", 1))
 	}
@@ -1913,6 +3608,138 @@ func (s CreateTagsOutput) GoString() string {
 	return s.String()
 }
 
+// Required if the RootDirectory > Path specified does not exist. Specifies
+// the POSIX IDs and permissions to apply to the access point's RootDirectory
+// > Path. If the access point root directory does not exist, EFS creates it
+// with these settings when a client connects to the access point. When specifying
+// CreationInfo, you must include values for all properties.
+//
+// If you do not provide CreationInfo and the specified RootDirectory does not
+// exist, attempts to mount the file system using the access point will fail.
+type CreationInfo struct {
+	_ struct{} `type:"structure"`
+
+	// Specifies the POSIX group ID to apply to the RootDirectory. Accepts values
+	// from 0 to 2^32 (4294967295).
+	//
+	// OwnerGid is a required field
+	OwnerGid *int64 `type:"long" required:"true"`
+
+	// Specifies the POSIX user ID to apply to the RootDirectory. Accepts values
+	// from 0 to 2^32 (4294967295).
+	//
+	// OwnerUid is a required field
+	OwnerUid *int64 `type:"long" required:"true"`
+
+	// Specifies the POSIX permissions to apply to the RootDirectory, in the format
+	// of an octal number representing the file's mode bits.
+	//
+	// Permissions is a required field
+	Permissions *string `type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s CreationInfo) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreationInfo) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *CreationInfo) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "CreationInfo"}
+	if s.OwnerGid == nil {
+		invalidParams.Add(request.NewErrParamRequired("OwnerGid"))
+	}
+	if s.OwnerUid == nil {
+		invalidParams.Add(request.NewErrParamRequired("OwnerUid"))
+	}
+	if s.Permissions == nil {
+		invalidParams.Add(request.NewErrParamRequired("Permissions"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetOwnerGid sets the OwnerGid field's value.
+func (s *CreationInfo) SetOwnerGid(v int64) *CreationInfo {
+	s.OwnerGid = &v
+	return s
+}
+
+// SetOwnerUid sets the OwnerUid field's value.
+func (s *CreationInfo) SetOwnerUid(v int64) *CreationInfo {
+	s.OwnerUid = &v
+	return s
+}
+
+// SetPermissions sets the Permissions field's value.
+func (s *CreationInfo) SetPermissions(v string) *CreationInfo {
+	s.Permissions = &v
+	return s
+}
+
+type DeleteAccessPointInput struct {
+	_ struct{} `type:"structure"`
+
+	// The ID of the access point that you want to delete.
+	//
+	// AccessPointId is a required field
+	AccessPointId *string `location:"uri" locationName:"AccessPointId" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s DeleteAccessPointInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteAccessPointInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DeleteAccessPointInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DeleteAccessPointInput"}
+	if s.AccessPointId == nil {
+		invalidParams.Add(request.NewErrParamRequired("AccessPointId"))
+	}
+	if s.AccessPointId != nil && len(*s.AccessPointId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("AccessPointId", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetAccessPointId sets the AccessPointId field's value.
+func (s *DeleteAccessPointInput) SetAccessPointId(v string) *DeleteAccessPointInput {
+	s.AccessPointId = &v
+	return s
+}
+
+type DeleteAccessPointOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s DeleteAccessPointOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteAccessPointOutput) GoString() string {
+	return s.String()
+}
+
 type DeleteFileSystemInput struct {
 	_ struct{} `type:"structure"`
 
@@ -1965,6 +3792,61 @@ func (s DeleteFileSystemOutput) String() string {
 
 // GoString returns the string representation
 func (s DeleteFileSystemOutput) GoString() string {
+	return s.String()
+}
+
+type DeleteFileSystemPolicyInput struct {
+	_ struct{} `type:"structure"`
+
+	// Specifies the EFS file system for which to delete the FileSystemPolicy.
+	//
+	// FileSystemId is a required field
+	FileSystemId *string `location:"uri" locationName:"FileSystemId" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s DeleteFileSystemPolicyInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteFileSystemPolicyInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DeleteFileSystemPolicyInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DeleteFileSystemPolicyInput"}
+	if s.FileSystemId == nil {
+		invalidParams.Add(request.NewErrParamRequired("FileSystemId"))
+	}
+	if s.FileSystemId != nil && len(*s.FileSystemId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("FileSystemId", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetFileSystemId sets the FileSystemId field's value.
+func (s *DeleteFileSystemPolicyInput) SetFileSystemId(v string) *DeleteFileSystemPolicyInput {
+	s.FileSystemId = &v
+	return s
+}
+
+type DeleteFileSystemPolicyOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s DeleteFileSystemPolicyOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteFileSystemPolicyOutput) GoString() string {
 	return s.String()
 }
 
@@ -2034,7 +3916,7 @@ type DeleteTagsInput struct {
 	// A list of tag keys to delete.
 	//
 	// TagKeys is a required field
-	TagKeys []*string `type:"list" required:"true"`
+	TagKeys []*string `min:"1" type:"list" required:"true"`
 }
 
 // String returns the string representation
@@ -2058,6 +3940,9 @@ func (s *DeleteTagsInput) Validate() error {
 	}
 	if s.TagKeys == nil {
 		invalidParams.Add(request.NewErrParamRequired("TagKeys"))
+	}
+	if s.TagKeys != nil && len(s.TagKeys) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("TagKeys", 1))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -2092,6 +3977,241 @@ func (s DeleteTagsOutput) GoString() string {
 	return s.String()
 }
 
+// The service timed out trying to fulfill the request, and the client should
+// try the call again.
+type DependencyTimeout struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// ErrorCode is a required field
+	ErrorCode *string `min:"1" type:"string" required:"true"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s DependencyTimeout) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DependencyTimeout) GoString() string {
+	return s.String()
+}
+
+func newErrorDependencyTimeout(v protocol.ResponseMetadata) error {
+	return &DependencyTimeout{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *DependencyTimeout) Code() string {
+	return "DependencyTimeout"
+}
+
+// Message returns the exception's message.
+func (s *DependencyTimeout) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *DependencyTimeout) OrigErr() error {
+	return nil
+}
+
+func (s *DependencyTimeout) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *DependencyTimeout) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *DependencyTimeout) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+type DescribeAccessPointsInput struct {
+	_ struct{} `type:"structure"`
+
+	// (Optional) Specifies an EFS access point to describe in the response; mutually
+	// exclusive with FileSystemId.
+	AccessPointId *string `location:"querystring" locationName:"AccessPointId" type:"string"`
+
+	// (Optional) If you provide a FileSystemId, EFS returns all access points for
+	// that file system; mutually exclusive with AccessPointId.
+	FileSystemId *string `location:"querystring" locationName:"FileSystemId" type:"string"`
+
+	// (Optional) When retrieving all access points for a file system, you can optionally
+	// specify the MaxItems parameter to limit the number of objects returned in
+	// a response. The default value is 100.
+	MaxResults *int64 `location:"querystring" locationName:"MaxResults" min:"1" type:"integer"`
+
+	// NextToken is present if the response is paginated. You can use NextMarker
+	// in the subsequent request to fetch the next page of access point descriptions.
+	NextToken *string `location:"querystring" locationName:"NextToken" type:"string"`
+}
+
+// String returns the string representation
+func (s DescribeAccessPointsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeAccessPointsInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DescribeAccessPointsInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DescribeAccessPointsInput"}
+	if s.MaxResults != nil && *s.MaxResults < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("MaxResults", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetAccessPointId sets the AccessPointId field's value.
+func (s *DescribeAccessPointsInput) SetAccessPointId(v string) *DescribeAccessPointsInput {
+	s.AccessPointId = &v
+	return s
+}
+
+// SetFileSystemId sets the FileSystemId field's value.
+func (s *DescribeAccessPointsInput) SetFileSystemId(v string) *DescribeAccessPointsInput {
+	s.FileSystemId = &v
+	return s
+}
+
+// SetMaxResults sets the MaxResults field's value.
+func (s *DescribeAccessPointsInput) SetMaxResults(v int64) *DescribeAccessPointsInput {
+	s.MaxResults = &v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *DescribeAccessPointsInput) SetNextToken(v string) *DescribeAccessPointsInput {
+	s.NextToken = &v
+	return s
+}
+
+type DescribeAccessPointsOutput struct {
+	_ struct{} `type:"structure"`
+
+	// An array of access point descriptions.
+	AccessPoints []*AccessPointDescription `type:"list"`
+
+	// Present if there are more access points than returned in the response. You
+	// can use the NextMarker in the subsequent request to fetch the additional
+	// descriptions.
+	NextToken *string `type:"string"`
+}
+
+// String returns the string representation
+func (s DescribeAccessPointsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeAccessPointsOutput) GoString() string {
+	return s.String()
+}
+
+// SetAccessPoints sets the AccessPoints field's value.
+func (s *DescribeAccessPointsOutput) SetAccessPoints(v []*AccessPointDescription) *DescribeAccessPointsOutput {
+	s.AccessPoints = v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *DescribeAccessPointsOutput) SetNextToken(v string) *DescribeAccessPointsOutput {
+	s.NextToken = &v
+	return s
+}
+
+type DescribeFileSystemPolicyInput struct {
+	_ struct{} `type:"structure"`
+
+	// Specifies which EFS file system to retrieve the FileSystemPolicy for.
+	//
+	// FileSystemId is a required field
+	FileSystemId *string `location:"uri" locationName:"FileSystemId" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s DescribeFileSystemPolicyInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeFileSystemPolicyInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DescribeFileSystemPolicyInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DescribeFileSystemPolicyInput"}
+	if s.FileSystemId == nil {
+		invalidParams.Add(request.NewErrParamRequired("FileSystemId"))
+	}
+	if s.FileSystemId != nil && len(*s.FileSystemId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("FileSystemId", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetFileSystemId sets the FileSystemId field's value.
+func (s *DescribeFileSystemPolicyInput) SetFileSystemId(v string) *DescribeFileSystemPolicyInput {
+	s.FileSystemId = &v
+	return s
+}
+
+type DescribeFileSystemPolicyOutput struct {
+	_ struct{} `type:"structure"`
+
+	// Specifies the EFS file system to which the FileSystemPolicy applies.
+	FileSystemId *string `type:"string"`
+
+	// The JSON formatted FileSystemPolicy for the EFS file system.
+	Policy *string `type:"string"`
+}
+
+// String returns the string representation
+func (s DescribeFileSystemPolicyOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeFileSystemPolicyOutput) GoString() string {
+	return s.String()
+}
+
+// SetFileSystemId sets the FileSystemId field's value.
+func (s *DescribeFileSystemPolicyOutput) SetFileSystemId(v string) *DescribeFileSystemPolicyOutput {
+	s.FileSystemId = &v
+	return s
+}
+
+// SetPolicy sets the Policy field's value.
+func (s *DescribeFileSystemPolicyOutput) SetPolicy(v string) *DescribeFileSystemPolicyOutput {
+	s.Policy = &v
+	return s
+}
+
 type DescribeFileSystemsInput struct {
 	_ struct{} `type:"structure"`
 
@@ -2109,9 +4229,8 @@ type DescribeFileSystemsInput struct {
 	Marker *string `location:"querystring" locationName:"Marker" type:"string"`
 
 	// (Optional) Specifies the maximum number of file systems to return in the
-	// response (integer). Currently, this number is automatically set to 10, and
-	// other values are ignored. The response is paginated at 10 per page if you
-	// have more than 10 file systems.
+	// response (integer). This number is automatically set to 100. The response
+	// is paginated at 100 per page if you have more than 100 file systems.
 	MaxItems *int64 `location:"querystring" locationName:"MaxItems" min:"1" type:"integer"`
 }
 
@@ -2342,8 +4461,15 @@ func (s *DescribeMountTargetSecurityGroupsOutput) SetSecurityGroups(v []*string)
 type DescribeMountTargetsInput struct {
 	_ struct{} `type:"structure"`
 
+	// (Optional) The ID of the access point whose mount targets that you want to
+	// list. It must be included in your request if a FileSystemId or MountTargetId
+	// is not included in your request. Accepts either an access point ID or ARN
+	// as input.
+	AccessPointId *string `location:"querystring" locationName:"AccessPointId" type:"string"`
+
 	// (Optional) ID of the file system whose mount targets you want to list (String).
-	// It must be included in your request if MountTargetId is not included.
+	// It must be included in your request if an AccessPointId or MountTargetId
+	// is not included. Accepts either a file system ID or ARN as input.
 	FileSystemId *string `location:"querystring" locationName:"FileSystemId" type:"string"`
 
 	// (Optional) Opaque pagination token returned from a previous DescribeMountTargets
@@ -2353,11 +4479,12 @@ type DescribeMountTargetsInput struct {
 
 	// (Optional) Maximum number of mount targets to return in the response. Currently,
 	// this number is automatically set to 10, and other values are ignored. The
-	// response is paginated at 10 per page if you have more than 10 mount targets.
+	// response is paginated at 100 per page if you have more than 100 mount targets.
 	MaxItems *int64 `location:"querystring" locationName:"MaxItems" min:"1" type:"integer"`
 
 	// (Optional) ID of the mount target that you want to have described (String).
-	// It must be included in your request if FileSystemId is not included.
+	// It must be included in your request if FileSystemId is not included. Accepts
+	// either a mount target ID or ARN as input.
 	MountTargetId *string `location:"querystring" locationName:"MountTargetId" type:"string"`
 }
 
@@ -2382,6 +4509,12 @@ func (s *DescribeMountTargetsInput) Validate() error {
 		return invalidParams
 	}
 	return nil
+}
+
+// SetAccessPointId sets the AccessPointId field's value.
+func (s *DescribeMountTargetsInput) SetAccessPointId(v string) *DescribeMountTargetsInput {
+	s.AccessPointId = &v
+	return s
 }
 
 // SetFileSystemId sets the FileSystemId field's value.
@@ -2467,8 +4600,9 @@ type DescribeTagsInput struct {
 	Marker *string `location:"querystring" locationName:"Marker" type:"string"`
 
 	// (Optional) The maximum number of file system tags to return in the response.
-	// Currently, this number is automatically set to 10, and other values are ignored.
-	// The response is paginated at 10 per page if you have more than 10 tags.
+	// Currently, this number is automatically set to 100, and other values are
+	// ignored. The response is paginated at 100 per page if you have more than
+	// 100 tags.
 	MaxItems *int64 `location:"querystring" locationName:"MaxItems" min:"1" type:"integer"`
 }
 
@@ -2563,6 +4697,69 @@ func (s *DescribeTagsOutput) SetNextMarker(v string) *DescribeTagsOutput {
 func (s *DescribeTagsOutput) SetTags(v []*Tag) *DescribeTagsOutput {
 	s.Tags = v
 	return s
+}
+
+// Returned if the file system you are trying to create already exists, with
+// the creation token you provided.
+type FileSystemAlreadyExists struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// ErrorCode is a required field
+	ErrorCode *string `min:"1" type:"string" required:"true"`
+
+	// FileSystemId is a required field
+	FileSystemId *string `type:"string" required:"true"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s FileSystemAlreadyExists) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s FileSystemAlreadyExists) GoString() string {
+	return s.String()
+}
+
+func newErrorFileSystemAlreadyExists(v protocol.ResponseMetadata) error {
+	return &FileSystemAlreadyExists{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *FileSystemAlreadyExists) Code() string {
+	return "FileSystemAlreadyExists"
+}
+
+// Message returns the exception's message.
+func (s *FileSystemAlreadyExists) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *FileSystemAlreadyExists) OrigErr() error {
+	return nil
+}
+
+func (s *FileSystemAlreadyExists) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *FileSystemAlreadyExists) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *FileSystemAlreadyExists) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // A description of the file system.
@@ -2747,6 +4944,185 @@ func (s *FileSystemDescription) SetThroughputMode(v string) *FileSystemDescripti
 	return s
 }
 
+// Returned if a file system has mount targets.
+type FileSystemInUse struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// ErrorCode is a required field
+	ErrorCode *string `min:"1" type:"string" required:"true"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s FileSystemInUse) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s FileSystemInUse) GoString() string {
+	return s.String()
+}
+
+func newErrorFileSystemInUse(v protocol.ResponseMetadata) error {
+	return &FileSystemInUse{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *FileSystemInUse) Code() string {
+	return "FileSystemInUse"
+}
+
+// Message returns the exception's message.
+func (s *FileSystemInUse) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *FileSystemInUse) OrigErr() error {
+	return nil
+}
+
+func (s *FileSystemInUse) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *FileSystemInUse) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *FileSystemInUse) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// Returned if the AWS account has already created the maximum number of file
+// systems allowed per account.
+type FileSystemLimitExceeded struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// ErrorCode is a required field
+	ErrorCode *string `min:"1" type:"string" required:"true"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s FileSystemLimitExceeded) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s FileSystemLimitExceeded) GoString() string {
+	return s.String()
+}
+
+func newErrorFileSystemLimitExceeded(v protocol.ResponseMetadata) error {
+	return &FileSystemLimitExceeded{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *FileSystemLimitExceeded) Code() string {
+	return "FileSystemLimitExceeded"
+}
+
+// Message returns the exception's message.
+func (s *FileSystemLimitExceeded) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *FileSystemLimitExceeded) OrigErr() error {
+	return nil
+}
+
+func (s *FileSystemLimitExceeded) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *FileSystemLimitExceeded) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *FileSystemLimitExceeded) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// Returned if the specified FileSystemId value doesn't exist in the requester's
+// AWS account.
+type FileSystemNotFound struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// ErrorCode is a required field
+	ErrorCode *string `min:"1" type:"string" required:"true"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s FileSystemNotFound) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s FileSystemNotFound) GoString() string {
+	return s.String()
+}
+
+func newErrorFileSystemNotFound(v protocol.ResponseMetadata) error {
+	return &FileSystemNotFound{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *FileSystemNotFound) Code() string {
+	return "FileSystemNotFound"
+}
+
+// Message returns the exception's message.
+func (s *FileSystemNotFound) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *FileSystemNotFound) OrigErr() error {
+	return nil
+}
+
+func (s *FileSystemNotFound) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *FileSystemNotFound) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *FileSystemNotFound) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
 // The latest known metered size (in bytes) of data stored in the file system,
 // in its Value field, and the time at which that size was determined in its
 // Timestamp field. The value doesn't represent the size of a consistent snapshot
@@ -2810,6 +5186,366 @@ func (s *FileSystemSize) SetValueInStandard(v int64) *FileSystemSize {
 	return s
 }
 
+// Returned if the file system's lifecycle state is not "available".
+type IncorrectFileSystemLifeCycleState struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// ErrorCode is a required field
+	ErrorCode *string `min:"1" type:"string" required:"true"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s IncorrectFileSystemLifeCycleState) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s IncorrectFileSystemLifeCycleState) GoString() string {
+	return s.String()
+}
+
+func newErrorIncorrectFileSystemLifeCycleState(v protocol.ResponseMetadata) error {
+	return &IncorrectFileSystemLifeCycleState{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *IncorrectFileSystemLifeCycleState) Code() string {
+	return "IncorrectFileSystemLifeCycleState"
+}
+
+// Message returns the exception's message.
+func (s *IncorrectFileSystemLifeCycleState) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *IncorrectFileSystemLifeCycleState) OrigErr() error {
+	return nil
+}
+
+func (s *IncorrectFileSystemLifeCycleState) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *IncorrectFileSystemLifeCycleState) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *IncorrectFileSystemLifeCycleState) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// Returned if the mount target is not in the correct state for the operation.
+type IncorrectMountTargetState struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// ErrorCode is a required field
+	ErrorCode *string `min:"1" type:"string" required:"true"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s IncorrectMountTargetState) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s IncorrectMountTargetState) GoString() string {
+	return s.String()
+}
+
+func newErrorIncorrectMountTargetState(v protocol.ResponseMetadata) error {
+	return &IncorrectMountTargetState{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *IncorrectMountTargetState) Code() string {
+	return "IncorrectMountTargetState"
+}
+
+// Message returns the exception's message.
+func (s *IncorrectMountTargetState) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *IncorrectMountTargetState) OrigErr() error {
+	return nil
+}
+
+func (s *IncorrectMountTargetState) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *IncorrectMountTargetState) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *IncorrectMountTargetState) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// Returned if there's not enough capacity to provision additional throughput.
+// This value might be returned when you try to create a file system in provisioned
+// throughput mode, when you attempt to increase the provisioned throughput
+// of an existing file system, or when you attempt to change an existing file
+// system from bursting to provisioned throughput mode.
+type InsufficientThroughputCapacity struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// ErrorCode is a required field
+	ErrorCode *string `min:"1" type:"string" required:"true"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s InsufficientThroughputCapacity) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InsufficientThroughputCapacity) GoString() string {
+	return s.String()
+}
+
+func newErrorInsufficientThroughputCapacity(v protocol.ResponseMetadata) error {
+	return &InsufficientThroughputCapacity{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *InsufficientThroughputCapacity) Code() string {
+	return "InsufficientThroughputCapacity"
+}
+
+// Message returns the exception's message.
+func (s *InsufficientThroughputCapacity) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *InsufficientThroughputCapacity) OrigErr() error {
+	return nil
+}
+
+func (s *InsufficientThroughputCapacity) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *InsufficientThroughputCapacity) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *InsufficientThroughputCapacity) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// Returned if an error occurred on the server side.
+type InternalServerError struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// ErrorCode is a required field
+	ErrorCode *string `min:"1" type:"string" required:"true"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s InternalServerError) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InternalServerError) GoString() string {
+	return s.String()
+}
+
+func newErrorInternalServerError(v protocol.ResponseMetadata) error {
+	return &InternalServerError{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *InternalServerError) Code() string {
+	return "InternalServerError"
+}
+
+// Message returns the exception's message.
+func (s *InternalServerError) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *InternalServerError) OrigErr() error {
+	return nil
+}
+
+func (s *InternalServerError) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *InternalServerError) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *InternalServerError) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// Returned if the FileSystemPolicy is is malformed or contains an error such
+// as an invalid parameter value or a missing required parameter. Returned in
+// the case of a policy lockout safety check error.
+type InvalidPolicyException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	ErrorCode *string `min:"1" type:"string"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidPolicyException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidPolicyException) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidPolicyException(v protocol.ResponseMetadata) error {
+	return &InvalidPolicyException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *InvalidPolicyException) Code() string {
+	return "InvalidPolicyException"
+}
+
+// Message returns the exception's message.
+func (s *InvalidPolicyException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *InvalidPolicyException) OrigErr() error {
+	return nil
+}
+
+func (s *InvalidPolicyException) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *InvalidPolicyException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *InvalidPolicyException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// Returned if the request specified an IpAddress that is already in use in
+// the subnet.
+type IpAddressInUse struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// ErrorCode is a required field
+	ErrorCode *string `min:"1" type:"string" required:"true"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s IpAddressInUse) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s IpAddressInUse) GoString() string {
+	return s.String()
+}
+
+func newErrorIpAddressInUse(v protocol.ResponseMetadata) error {
+	return &IpAddressInUse{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *IpAddressInUse) Code() string {
+	return "IpAddressInUse"
+}
+
+// Message returns the exception's message.
+func (s *IpAddressInUse) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *IpAddressInUse) OrigErr() error {
+	return nil
+}
+
+func (s *IpAddressInUse) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *IpAddressInUse) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *IpAddressInUse) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
 // Describes a policy used by EFS lifecycle management to transition files to
 // the Infrequent Access (IA) storage class.
 type LifecyclePolicy struct {
@@ -2834,6 +5570,104 @@ func (s LifecyclePolicy) GoString() string {
 // SetTransitionToIA sets the TransitionToIA field's value.
 func (s *LifecyclePolicy) SetTransitionToIA(v string) *LifecyclePolicy {
 	s.TransitionToIA = &v
+	return s
+}
+
+type ListTagsForResourceInput struct {
+	_ struct{} `type:"structure"`
+
+	// (Optional) Specifies the maximum number of tag objects to return in the response.
+	// The default value is 100.
+	MaxResults *int64 `location:"querystring" locationName:"MaxResults" min:"1" type:"integer"`
+
+	// You can use NextToken in a subsequent request to fetch the next page of access
+	// point descriptions if the response payload was paginated.
+	NextToken *string `location:"querystring" locationName:"NextToken" type:"string"`
+
+	// Specifies the EFS resource you want to retrieve tags for. You can retrieve
+	// tags for EFS file systems and access points using this API endpoint.
+	//
+	// ResourceId is a required field
+	ResourceId *string `location:"uri" locationName:"ResourceId" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s ListTagsForResourceInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListTagsForResourceInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ListTagsForResourceInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ListTagsForResourceInput"}
+	if s.MaxResults != nil && *s.MaxResults < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("MaxResults", 1))
+	}
+	if s.ResourceId == nil {
+		invalidParams.Add(request.NewErrParamRequired("ResourceId"))
+	}
+	if s.ResourceId != nil && len(*s.ResourceId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ResourceId", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetMaxResults sets the MaxResults field's value.
+func (s *ListTagsForResourceInput) SetMaxResults(v int64) *ListTagsForResourceInput {
+	s.MaxResults = &v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListTagsForResourceInput) SetNextToken(v string) *ListTagsForResourceInput {
+	s.NextToken = &v
+	return s
+}
+
+// SetResourceId sets the ResourceId field's value.
+func (s *ListTagsForResourceInput) SetResourceId(v string) *ListTagsForResourceInput {
+	s.ResourceId = &v
+	return s
+}
+
+type ListTagsForResourceOutput struct {
+	_ struct{} `type:"structure"`
+
+	// NextToken is present if the response payload is paginated. You can use NextToken
+	// in a subsequent request to fetch the next page of access point descriptions.
+	NextToken *string `type:"string"`
+
+	// An array of the tags for the specified EFS resource.
+	Tags []*Tag `type:"list"`
+}
+
+// String returns the string representation
+func (s ListTagsForResourceOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListTagsForResourceOutput) GoString() string {
+	return s.String()
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListTagsForResourceOutput) SetNextToken(v string) *ListTagsForResourceOutput {
+	s.NextToken = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *ListTagsForResourceOutput) SetTags(v []*Tag) *ListTagsForResourceOutput {
+	s.Tags = v
 	return s
 }
 
@@ -2901,9 +5735,80 @@ func (s ModifyMountTargetSecurityGroupsOutput) GoString() string {
 	return s.String()
 }
 
+// Returned if the mount target would violate one of the specified restrictions
+// based on the file system's existing mount targets.
+type MountTargetConflict struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// ErrorCode is a required field
+	ErrorCode *string `min:"1" type:"string" required:"true"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s MountTargetConflict) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s MountTargetConflict) GoString() string {
+	return s.String()
+}
+
+func newErrorMountTargetConflict(v protocol.ResponseMetadata) error {
+	return &MountTargetConflict{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *MountTargetConflict) Code() string {
+	return "MountTargetConflict"
+}
+
+// Message returns the exception's message.
+func (s *MountTargetConflict) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *MountTargetConflict) OrigErr() error {
+	return nil
+}
+
+func (s *MountTargetConflict) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *MountTargetConflict) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *MountTargetConflict) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
 // Provides a description of a mount target.
 type MountTargetDescription struct {
 	_ struct{} `type:"structure"`
+
+	// The unique and consistent identifier of the Availability Zone (AZ) that the
+	// mount target resides in. For example, use1-az1 is an AZ ID for the us-east-1
+	// Region and it has the same location in every AWS account.
+	AvailabilityZoneId *string `type:"string"`
+
+	// The name of the Availability Zone (AZ) that the mount target resides in.
+	// AZs are independently mapped to names for each AWS account. For example,
+	// the Availability Zone us-east-1a for your AWS account might not be the same
+	// location as us-east-1a for another AWS account.
+	AvailabilityZoneName *string `type:"string"`
 
 	// The ID of the file system for which the mount target is intended.
 	//
@@ -2946,6 +5851,18 @@ func (s MountTargetDescription) GoString() string {
 	return s.String()
 }
 
+// SetAvailabilityZoneId sets the AvailabilityZoneId field's value.
+func (s *MountTargetDescription) SetAvailabilityZoneId(v string) *MountTargetDescription {
+	s.AvailabilityZoneId = &v
+	return s
+}
+
+// SetAvailabilityZoneName sets the AvailabilityZoneName field's value.
+func (s *MountTargetDescription) SetAvailabilityZoneName(v string) *MountTargetDescription {
+	s.AvailabilityZoneName = &v
+	return s
+}
+
 // SetFileSystemId sets the FileSystemId field's value.
 func (s *MountTargetDescription) SetFileSystemId(v string) *MountTargetDescription {
 	s.FileSystemId = &v
@@ -2985,6 +5902,420 @@ func (s *MountTargetDescription) SetOwnerId(v string) *MountTargetDescription {
 // SetSubnetId sets the SubnetId field's value.
 func (s *MountTargetDescription) SetSubnetId(v string) *MountTargetDescription {
 	s.SubnetId = &v
+	return s
+}
+
+// Returned if there is no mount target with the specified ID found in the caller's
+// account.
+type MountTargetNotFound struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// ErrorCode is a required field
+	ErrorCode *string `min:"1" type:"string" required:"true"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s MountTargetNotFound) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s MountTargetNotFound) GoString() string {
+	return s.String()
+}
+
+func newErrorMountTargetNotFound(v protocol.ResponseMetadata) error {
+	return &MountTargetNotFound{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *MountTargetNotFound) Code() string {
+	return "MountTargetNotFound"
+}
+
+// Message returns the exception's message.
+func (s *MountTargetNotFound) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *MountTargetNotFound) OrigErr() error {
+	return nil
+}
+
+func (s *MountTargetNotFound) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *MountTargetNotFound) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *MountTargetNotFound) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// The calling account has reached the limit for elastic network interfaces
+// for the specific AWS Region. The client should try to delete some elastic
+// network interfaces or get the account limit raised. For more information,
+// see Amazon VPC Limits (https://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_Appendix_Limits.html)
+// in the Amazon VPC User Guide (see the Network interfaces per VPC entry in
+// the table).
+type NetworkInterfaceLimitExceeded struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// ErrorCode is a required field
+	ErrorCode *string `min:"1" type:"string" required:"true"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s NetworkInterfaceLimitExceeded) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s NetworkInterfaceLimitExceeded) GoString() string {
+	return s.String()
+}
+
+func newErrorNetworkInterfaceLimitExceeded(v protocol.ResponseMetadata) error {
+	return &NetworkInterfaceLimitExceeded{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *NetworkInterfaceLimitExceeded) Code() string {
+	return "NetworkInterfaceLimitExceeded"
+}
+
+// Message returns the exception's message.
+func (s *NetworkInterfaceLimitExceeded) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *NetworkInterfaceLimitExceeded) OrigErr() error {
+	return nil
+}
+
+func (s *NetworkInterfaceLimitExceeded) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *NetworkInterfaceLimitExceeded) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *NetworkInterfaceLimitExceeded) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// Returned if IpAddress was not specified in the request and there are no free
+// IP addresses in the subnet.
+type NoFreeAddressesInSubnet struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// ErrorCode is a required field
+	ErrorCode *string `min:"1" type:"string" required:"true"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s NoFreeAddressesInSubnet) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s NoFreeAddressesInSubnet) GoString() string {
+	return s.String()
+}
+
+func newErrorNoFreeAddressesInSubnet(v protocol.ResponseMetadata) error {
+	return &NoFreeAddressesInSubnet{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *NoFreeAddressesInSubnet) Code() string {
+	return "NoFreeAddressesInSubnet"
+}
+
+// Message returns the exception's message.
+func (s *NoFreeAddressesInSubnet) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *NoFreeAddressesInSubnet) OrigErr() error {
+	return nil
+}
+
+func (s *NoFreeAddressesInSubnet) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *NoFreeAddressesInSubnet) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *NoFreeAddressesInSubnet) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// Returned if the default file system policy is in effect for the EFS file
+// system specified.
+type PolicyNotFound struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	ErrorCode *string `min:"1" type:"string"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s PolicyNotFound) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s PolicyNotFound) GoString() string {
+	return s.String()
+}
+
+func newErrorPolicyNotFound(v protocol.ResponseMetadata) error {
+	return &PolicyNotFound{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *PolicyNotFound) Code() string {
+	return "PolicyNotFound"
+}
+
+// Message returns the exception's message.
+func (s *PolicyNotFound) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *PolicyNotFound) OrigErr() error {
+	return nil
+}
+
+func (s *PolicyNotFound) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *PolicyNotFound) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *PolicyNotFound) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// The full POSIX identity, including the user ID, group ID, and any secondary
+// group IDs, on the access point that is used for all file system operations
+// performed by NFS clients using the access point.
+type PosixUser struct {
+	_ struct{} `type:"structure"`
+
+	// The POSIX group ID used for all file system operations using this access
+	// point.
+	//
+	// Gid is a required field
+	Gid *int64 `type:"long" required:"true"`
+
+	// Secondary POSIX group IDs used for all file system operations using this
+	// access point.
+	SecondaryGids []*int64 `type:"list"`
+
+	// The POSIX user ID used for all file system operations using this access point.
+	//
+	// Uid is a required field
+	Uid *int64 `type:"long" required:"true"`
+}
+
+// String returns the string representation
+func (s PosixUser) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s PosixUser) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *PosixUser) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "PosixUser"}
+	if s.Gid == nil {
+		invalidParams.Add(request.NewErrParamRequired("Gid"))
+	}
+	if s.Uid == nil {
+		invalidParams.Add(request.NewErrParamRequired("Uid"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetGid sets the Gid field's value.
+func (s *PosixUser) SetGid(v int64) *PosixUser {
+	s.Gid = &v
+	return s
+}
+
+// SetSecondaryGids sets the SecondaryGids field's value.
+func (s *PosixUser) SetSecondaryGids(v []*int64) *PosixUser {
+	s.SecondaryGids = v
+	return s
+}
+
+// SetUid sets the Uid field's value.
+func (s *PosixUser) SetUid(v int64) *PosixUser {
+	s.Uid = &v
+	return s
+}
+
+type PutFileSystemPolicyInput struct {
+	_ struct{} `type:"structure"`
+
+	// (Optional) A flag to indicate whether to bypass the FileSystemPolicy lockout
+	// safety check. The policy lockout safety check determines whether the policy
+	// in the request will prevent the principal making the request will be locked
+	// out from making future PutFileSystemPolicy requests on the file system. Set
+	// BypassPolicyLockoutSafetyCheck to True only when you intend to prevent the
+	// principal that is making the request from making a subsequent PutFileSystemPolicy
+	// request on the file system. The default value is False.
+	BypassPolicyLockoutSafetyCheck *bool `type:"boolean"`
+
+	// The ID of the EFS file system that you want to create or update the FileSystemPolicy
+	// for.
+	//
+	// FileSystemId is a required field
+	FileSystemId *string `location:"uri" locationName:"FileSystemId" type:"string" required:"true"`
+
+	// The FileSystemPolicy that you're creating. Accepts a JSON formatted policy
+	// definition. To find out more about the elements that make up a file system
+	// policy, see EFS Resource-based Policies (https://docs.aws.amazon.com/efs/latest/ug/access-control-overview.html#access-control-manage-access-intro-resource-policies).
+	//
+	// Policy is a required field
+	Policy *string `type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s PutFileSystemPolicyInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s PutFileSystemPolicyInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *PutFileSystemPolicyInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "PutFileSystemPolicyInput"}
+	if s.FileSystemId == nil {
+		invalidParams.Add(request.NewErrParamRequired("FileSystemId"))
+	}
+	if s.FileSystemId != nil && len(*s.FileSystemId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("FileSystemId", 1))
+	}
+	if s.Policy == nil {
+		invalidParams.Add(request.NewErrParamRequired("Policy"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetBypassPolicyLockoutSafetyCheck sets the BypassPolicyLockoutSafetyCheck field's value.
+func (s *PutFileSystemPolicyInput) SetBypassPolicyLockoutSafetyCheck(v bool) *PutFileSystemPolicyInput {
+	s.BypassPolicyLockoutSafetyCheck = &v
+	return s
+}
+
+// SetFileSystemId sets the FileSystemId field's value.
+func (s *PutFileSystemPolicyInput) SetFileSystemId(v string) *PutFileSystemPolicyInput {
+	s.FileSystemId = &v
+	return s
+}
+
+// SetPolicy sets the Policy field's value.
+func (s *PutFileSystemPolicyInput) SetPolicy(v string) *PutFileSystemPolicyInput {
+	s.Policy = &v
+	return s
+}
+
+type PutFileSystemPolicyOutput struct {
+	_ struct{} `type:"structure"`
+
+	// Specifies the EFS file system to which the FileSystemPolicy applies.
+	FileSystemId *string `type:"string"`
+
+	// The JSON formatted FileSystemPolicy for the EFS file system.
+	Policy *string `type:"string"`
+}
+
+// String returns the string representation
+func (s PutFileSystemPolicyOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s PutFileSystemPolicyOutput) GoString() string {
+	return s.String()
+}
+
+// SetFileSystemId sets the FileSystemId field's value.
+func (s *PutFileSystemPolicyOutput) SetFileSystemId(v string) *PutFileSystemPolicyOutput {
+	s.FileSystemId = &v
+	return s
+}
+
+// SetPolicy sets the Policy field's value.
+func (s *PutFileSystemPolicyOutput) SetPolicy(v string) *PutFileSystemPolicyOutput {
+	s.Policy = &v
 	return s
 }
 
@@ -3071,6 +6402,251 @@ func (s *PutLifecycleConfigurationOutput) SetLifecyclePolicies(v []*LifecyclePol
 	return s
 }
 
+// Specifies the directory on the Amazon EFS file system that the access point
+// provides access to. The access point exposes the specified file system path
+// as the root directory of your file system to applications using the access
+// point. NFS clients using the access point can only access data in the access
+// point's RootDirectory and it's subdirectories.
+type RootDirectory struct {
+	_ struct{} `type:"structure"`
+
+	// (Optional) Specifies the POSIX IDs and permissions to apply to the access
+	// point's RootDirectory. If the RootDirectory > Path specified does not exist,
+	// EFS creates the root directory using the CreationInfo settings when a client
+	// connects to an access point. When specifying the CreationInfo, you must provide
+	// values for all properties.
+	//
+	// If you do not provide CreationInfo and the specified RootDirectory > Path
+	// does not exist, attempts to mount the file system using the access point
+	// will fail.
+	CreationInfo *CreationInfo `type:"structure"`
+
+	// Specifies the path on the EFS file system to expose as the root directory
+	// to NFS clients using the access point to access the EFS file system. A path
+	// can have up to four subdirectories. If the specified path does not exist,
+	// you are required to provide the CreationInfo.
+	Path *string `min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s RootDirectory) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s RootDirectory) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *RootDirectory) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "RootDirectory"}
+	if s.Path != nil && len(*s.Path) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Path", 1))
+	}
+	if s.CreationInfo != nil {
+		if err := s.CreationInfo.Validate(); err != nil {
+			invalidParams.AddNested("CreationInfo", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetCreationInfo sets the CreationInfo field's value.
+func (s *RootDirectory) SetCreationInfo(v *CreationInfo) *RootDirectory {
+	s.CreationInfo = v
+	return s
+}
+
+// SetPath sets the Path field's value.
+func (s *RootDirectory) SetPath(v string) *RootDirectory {
+	s.Path = &v
+	return s
+}
+
+// Returned if the size of SecurityGroups specified in the request is greater
+// than five.
+type SecurityGroupLimitExceeded struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// ErrorCode is a required field
+	ErrorCode *string `min:"1" type:"string" required:"true"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s SecurityGroupLimitExceeded) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s SecurityGroupLimitExceeded) GoString() string {
+	return s.String()
+}
+
+func newErrorSecurityGroupLimitExceeded(v protocol.ResponseMetadata) error {
+	return &SecurityGroupLimitExceeded{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *SecurityGroupLimitExceeded) Code() string {
+	return "SecurityGroupLimitExceeded"
+}
+
+// Message returns the exception's message.
+func (s *SecurityGroupLimitExceeded) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *SecurityGroupLimitExceeded) OrigErr() error {
+	return nil
+}
+
+func (s *SecurityGroupLimitExceeded) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *SecurityGroupLimitExceeded) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *SecurityGroupLimitExceeded) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// Returned if one of the specified security groups doesn't exist in the subnet's
+// VPC.
+type SecurityGroupNotFound struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// ErrorCode is a required field
+	ErrorCode *string `min:"1" type:"string" required:"true"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s SecurityGroupNotFound) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s SecurityGroupNotFound) GoString() string {
+	return s.String()
+}
+
+func newErrorSecurityGroupNotFound(v protocol.ResponseMetadata) error {
+	return &SecurityGroupNotFound{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *SecurityGroupNotFound) Code() string {
+	return "SecurityGroupNotFound"
+}
+
+// Message returns the exception's message.
+func (s *SecurityGroupNotFound) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *SecurityGroupNotFound) OrigErr() error {
+	return nil
+}
+
+func (s *SecurityGroupNotFound) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *SecurityGroupNotFound) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *SecurityGroupNotFound) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// Returned if there is no subnet with ID SubnetId provided in the request.
+type SubnetNotFound struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// ErrorCode is a required field
+	ErrorCode *string `min:"1" type:"string" required:"true"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s SubnetNotFound) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s SubnetNotFound) GoString() string {
+	return s.String()
+}
+
+func newErrorSubnetNotFound(v protocol.ResponseMetadata) error {
+	return &SubnetNotFound{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *SubnetNotFound) Code() string {
+	return "SubnetNotFound"
+}
+
+// Message returns the exception's message.
+func (s *SubnetNotFound) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *SubnetNotFound) OrigErr() error {
+	return nil
+}
+
+func (s *SubnetNotFound) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *SubnetNotFound) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *SubnetNotFound) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
 // A tag is a key-value pair. Allowed characters are letters, white space, and
 // numbers that can be represented in UTF-8, and the following characters:+
 // - = . _ : /
@@ -3127,6 +6703,329 @@ func (s *Tag) SetKey(v string) *Tag {
 func (s *Tag) SetValue(v string) *Tag {
 	s.Value = &v
 	return s
+}
+
+type TagResourceInput struct {
+	_ struct{} `type:"structure"`
+
+	// The ID specifying the EFS resource that you want to create a tag for.
+	//
+	// ResourceId is a required field
+	ResourceId *string `location:"uri" locationName:"ResourceId" type:"string" required:"true"`
+
+	// Tags is a required field
+	Tags []*Tag `type:"list" required:"true"`
+}
+
+// String returns the string representation
+func (s TagResourceInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s TagResourceInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *TagResourceInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "TagResourceInput"}
+	if s.ResourceId == nil {
+		invalidParams.Add(request.NewErrParamRequired("ResourceId"))
+	}
+	if s.ResourceId != nil && len(*s.ResourceId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ResourceId", 1))
+	}
+	if s.Tags == nil {
+		invalidParams.Add(request.NewErrParamRequired("Tags"))
+	}
+	if s.Tags != nil {
+		for i, v := range s.Tags {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Tags", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetResourceId sets the ResourceId field's value.
+func (s *TagResourceInput) SetResourceId(v string) *TagResourceInput {
+	s.ResourceId = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *TagResourceInput) SetTags(v []*Tag) *TagResourceInput {
+	s.Tags = v
+	return s
+}
+
+type TagResourceOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s TagResourceOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s TagResourceOutput) GoString() string {
+	return s.String()
+}
+
+// Returned if the throughput mode or amount of provisioned throughput can't
+// be changed because the throughput limit of 1024 MiB/s has been reached.
+type ThroughputLimitExceeded struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// ErrorCode is a required field
+	ErrorCode *string `min:"1" type:"string" required:"true"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s ThroughputLimitExceeded) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ThroughputLimitExceeded) GoString() string {
+	return s.String()
+}
+
+func newErrorThroughputLimitExceeded(v protocol.ResponseMetadata) error {
+	return &ThroughputLimitExceeded{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *ThroughputLimitExceeded) Code() string {
+	return "ThroughputLimitExceeded"
+}
+
+// Message returns the exception's message.
+func (s *ThroughputLimitExceeded) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *ThroughputLimitExceeded) OrigErr() error {
+	return nil
+}
+
+func (s *ThroughputLimitExceeded) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *ThroughputLimitExceeded) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *ThroughputLimitExceeded) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// Returned if you don’t wait at least 24 hours before changing the throughput
+// mode, or decreasing the Provisioned Throughput value.
+type TooManyRequests struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// ErrorCode is a required field
+	ErrorCode *string `min:"1" type:"string" required:"true"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s TooManyRequests) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s TooManyRequests) GoString() string {
+	return s.String()
+}
+
+func newErrorTooManyRequests(v protocol.ResponseMetadata) error {
+	return &TooManyRequests{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *TooManyRequests) Code() string {
+	return "TooManyRequests"
+}
+
+// Message returns the exception's message.
+func (s *TooManyRequests) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *TooManyRequests) OrigErr() error {
+	return nil
+}
+
+func (s *TooManyRequests) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *TooManyRequests) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *TooManyRequests) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+type UnsupportedAvailabilityZone struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// ErrorCode is a required field
+	ErrorCode *string `min:"1" type:"string" required:"true"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s UnsupportedAvailabilityZone) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UnsupportedAvailabilityZone) GoString() string {
+	return s.String()
+}
+
+func newErrorUnsupportedAvailabilityZone(v protocol.ResponseMetadata) error {
+	return &UnsupportedAvailabilityZone{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *UnsupportedAvailabilityZone) Code() string {
+	return "UnsupportedAvailabilityZone"
+}
+
+// Message returns the exception's message.
+func (s *UnsupportedAvailabilityZone) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *UnsupportedAvailabilityZone) OrigErr() error {
+	return nil
+}
+
+func (s *UnsupportedAvailabilityZone) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *UnsupportedAvailabilityZone) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *UnsupportedAvailabilityZone) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+type UntagResourceInput struct {
+	_ struct{} `type:"structure"`
+
+	// Specifies the EFS resource that you want to remove tags from.
+	//
+	// ResourceId is a required field
+	ResourceId *string `location:"uri" locationName:"ResourceId" type:"string" required:"true"`
+
+	// The keys of the key:value tag pairs that you want to remove from the specified
+	// EFS resource.
+	TagKeys []*string `min:"1" type:"list"`
+}
+
+// String returns the string representation
+func (s UntagResourceInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UntagResourceInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *UntagResourceInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "UntagResourceInput"}
+	if s.ResourceId == nil {
+		invalidParams.Add(request.NewErrParamRequired("ResourceId"))
+	}
+	if s.ResourceId != nil && len(*s.ResourceId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ResourceId", 1))
+	}
+	if s.TagKeys != nil && len(s.TagKeys) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("TagKeys", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetResourceId sets the ResourceId field's value.
+func (s *UntagResourceInput) SetResourceId(v string) *UntagResourceInput {
+	s.ResourceId = &v
+	return s
+}
+
+// SetTagKeys sets the TagKeys field's value.
+func (s *UntagResourceInput) SetTagKeys(v []*string) *UntagResourceInput {
+	s.TagKeys = v
+	return s
+}
+
+type UntagResourceOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s UntagResourceOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UntagResourceOutput) GoString() string {
+	return s.String()
 }
 
 type UpdateFileSystemInput struct {
@@ -3414,6 +7313,9 @@ const (
 )
 
 const (
+	// TransitionToIARulesAfter7Days is a TransitionToIARules enum value
+	TransitionToIARulesAfter7Days = "AFTER_7_DAYS"
+
 	// TransitionToIARulesAfter14Days is a TransitionToIARules enum value
 	TransitionToIARulesAfter14Days = "AFTER_14_DAYS"
 

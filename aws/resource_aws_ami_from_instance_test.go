@@ -1,166 +1,204 @@
 package aws
 
 import (
-	"errors"
 	"fmt"
-	"strings"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
-func TestAccAWSAMIFromInstance(t *testing.T) {
-	var amiId string
-	snapshots := []string{}
-	rInt := acctest.RandInt()
+func TestAccAWSAMIFromInstance_basic(t *testing.T) {
+	var image ec2.Image
+	rName := acctest.RandomWithPrefix("tf-acc")
+	resourceName := "aws_ami_from_instance.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAMIFromInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSAMIFromInstanceConfig(rInt),
-				Check: func(state *terraform.State) error {
-					rs, ok := state.RootModule().Resources["aws_ami_from_instance.test"]
-					if !ok {
-						return fmt.Errorf("AMI resource not found")
-					}
-
-					amiId = rs.Primary.ID
-
-					if amiId == "" {
-						return fmt.Errorf("AMI id is not set")
-					}
-
-					conn := testAccProvider.Meta().(*AWSClient).ec2conn
-					req := &ec2.DescribeImagesInput{
-						ImageIds: []*string{aws.String(amiId)},
-					}
-					describe, err := conn.DescribeImages(req)
-					if err != nil {
-						return err
-					}
-
-					if len(describe.Images) != 1 ||
-						*describe.Images[0].ImageId != rs.Primary.ID {
-						return fmt.Errorf("AMI not found")
-					}
-
-					image := describe.Images[0]
-					if expected := "available"; *image.State != expected {
-						return fmt.Errorf("invalid image state; expected %v, got %v", expected, *image.State)
-					}
-					if expected := "machine"; *image.ImageType != expected {
-						return fmt.Errorf("wrong image type; expected %v, got %v", expected, *image.ImageType)
-					}
-					if expected := fmt.Sprintf("terraform-acc-ami-from-instance-%d", rInt); *image.Name != expected {
-						return fmt.Errorf("wrong name; expected %v, got %v", expected, *image.Name)
-					}
-
-					for _, bdm := range image.BlockDeviceMappings {
-						if bdm.Ebs != nil && bdm.Ebs.SnapshotId != nil {
-							snapshots = append(snapshots, *bdm.Ebs.SnapshotId)
-						}
-					}
-
-					if expected := 1; len(snapshots) != expected {
-						return fmt.Errorf("wrong number of snapshots; expected %v, got %v", expected, len(snapshots))
-					}
-
-					return nil
-				},
+				Config: testAccAWSAMIFromInstanceConfig(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAMIFromInstanceExists(resourceName, &image),
+					resource.TestCheckResourceAttr(resourceName, "description", "Testing Terraform aws_ami_from_instance resource"),
+				),
 			},
-		},
-		CheckDestroy: func(state *terraform.State) error {
-			conn := testAccProvider.Meta().(*AWSClient).ec2conn
-			diReq := &ec2.DescribeImagesInput{
-				ImageIds: []*string{aws.String(amiId)},
-			}
-			diRes, err := conn.DescribeImages(diReq)
-			if err != nil {
-				return err
-			}
-
-			if len(diRes.Images) > 0 {
-				state := diRes.Images[0].State
-				return fmt.Errorf("AMI %v remains in state %v", amiId, state)
-			}
-
-			stillExist := make([]string, 0, len(snapshots))
-			checkErrors := make(map[string]error)
-			for _, snapshotId := range snapshots {
-				dsReq := &ec2.DescribeSnapshotsInput{
-					SnapshotIds: []*string{aws.String(snapshotId)},
-				}
-				_, err := conn.DescribeSnapshots(dsReq)
-				if err == nil {
-					stillExist = append(stillExist, snapshotId)
-					continue
-				}
-
-				awsErr, ok := err.(awserr.Error)
-				if !ok {
-					checkErrors[snapshotId] = err
-					continue
-				}
-
-				if awsErr.Code() != "InvalidSnapshot.NotFound" {
-					checkErrors[snapshotId] = err
-					continue
-				}
-			}
-
-			if len(stillExist) > 0 || len(checkErrors) > 0 {
-				errParts := []string{
-					"Expected all snapshots to be gone, but:",
-				}
-				for _, snapshotId := range stillExist {
-					errParts = append(
-						errParts,
-						fmt.Sprintf("- %v still exists", snapshotId),
-					)
-				}
-				for snapshotId, err := range checkErrors {
-					errParts = append(
-						errParts,
-						fmt.Sprintf("- checking %v gave error: %v", snapshotId, err),
-					)
-				}
-				return errors.New(strings.Join(errParts, "\n"))
-			}
-
-			return nil
 		},
 	})
 }
 
-func testAccAWSAMIFromInstanceConfig(rInt int) string {
+func TestAccAWSAMIFromInstance_tags(t *testing.T) {
+	var image ec2.Image
+	rName := acctest.RandomWithPrefix("tf-acc")
+	resourceName := "aws_ami_from_instance.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAMIFromInstanceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSAMIFromInstanceConfigTags1(rName, "key1", "value1"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAMIFromInstanceExists(resourceName, &image),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1"),
+				),
+			},
+			{
+				Config: testAccAWSAMIFromInstanceConfigTags2(rName, "key1", "value1updated", "key2", "value2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAMIFromInstanceExists(resourceName, &image),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1updated"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
+				),
+			},
+			{
+				Config: testAccAWSAMIFromInstanceConfigTags1(rName, "key2", "value2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAMIFromInstanceExists(resourceName, &image),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
+				),
+			},
+		},
+	})
+}
+
+func testAccCheckAWSAMIFromInstanceExists(resourceName string, image *ec2.Image) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("Not found: %s", resourceName)
+		}
+
+		if rs.Primary.ID == "" {
+			return fmt.Errorf("No ID set for %s", resourceName)
+		}
+
+		conn := testAccProvider.Meta().(*AWSClient).ec2conn
+
+		input := &ec2.DescribeImagesInput{
+			ImageIds: []*string{aws.String(rs.Primary.ID)},
+		}
+		output, err := conn.DescribeImages(input)
+		if err != nil {
+			return err
+		}
+
+		if len(output.Images) == 0 || aws.StringValue(output.Images[0].ImageId) != rs.Primary.ID {
+			return fmt.Errorf("AMI %q not found", rs.Primary.ID)
+		}
+
+		*image = *output.Images[0]
+
+		return nil
+	}
+}
+
+func testAccCheckAWSAMIFromInstanceDestroy(s *terraform.State) error {
+	conn := testAccProvider.Meta().(*AWSClient).ec2conn
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "aws_ami_from_instance" {
+			continue
+		}
+
+		input := &ec2.DescribeImagesInput{
+			ImageIds: []*string{aws.String(rs.Primary.ID)},
+		}
+		output, err := conn.DescribeImages(input)
+		if err != nil {
+			return err
+		}
+
+		if output != nil && len(output.Images) > 0 && aws.StringValue(output.Images[0].ImageId) == rs.Primary.ID {
+			return fmt.Errorf("AMI %q still exists in state: %s", rs.Primary.ID, aws.StringValue(output.Images[0].State))
+		}
+	}
+
+	// Check for managed EBS snapshots
+	return testAccCheckAWSEbsSnapshotDestroy(s)
+}
+
+func testAccAWSAMIFromInstanceConfigBase() string {
 	return fmt.Sprintf(`
-provider "aws" {
-  region = "us-east-1"
+data "aws_ec2_instance_type_offering" "available" {
+  filter {
+    name   = "instance-type"
+    values = ["t3.micro", "t2.micro"]
+  }
+
+  preferred_instance_types = ["t3.micro", "t2.micro"]
+}
+
+data "aws_ami" "amzn-ami-minimal-hvm-ebs" {
+  most_recent = true
+  owners      = ["amazon"]
+
+  filter {
+    name   = "name"
+    values = ["amzn-ami-minimal-hvm-*"]
+  }
+
+  filter {
+    name   = "root-device-type"
+    values = ["ebs"]
+  }
 }
 
 resource "aws_instance" "test" {
-  // This AMI has one block device mapping, so we expect to have
-  // one snapshot in our created AMI.
-  ami = "ami-408c7f28"
-
-  instance_type = "t1.micro"
+  ami           = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
+  instance_type = data.aws_ec2_instance_type_offering.available.instance_type
 
   tags = {
     Name = "testAccAWSAMIFromInstanceConfig_TestAMI"
   }
 }
+`)
+}
 
+func testAccAWSAMIFromInstanceConfig(rName string) string {
+	return testAccAWSAMIFromInstanceConfigBase() + fmt.Sprintf(`
 resource "aws_ami_from_instance" "test" {
-  name               = "terraform-acc-ami-from-instance-%d"
+  name               = %[1]q
   description        = "Testing Terraform aws_ami_from_instance resource"
   source_instance_id = "${aws_instance.test.id}"
 }
-`, rInt)
+`, rName)
+}
+
+func testAccAWSAMIFromInstanceConfigTags1(rName, tagKey1, tagValue1 string) string {
+	return testAccAWSAMIFromInstanceConfigBase() + fmt.Sprintf(`
+resource "aws_ami_from_instance" "test" {
+  name               = %[1]q
+  description        = "Testing Terraform aws_ami_from_instance resource"
+  source_instance_id = "${aws_instance.test.id}"
+
+  tags = {
+    %[2]q = %[3]q
+  }
+}
+`, rName, tagKey1, tagValue1)
+}
+
+func testAccAWSAMIFromInstanceConfigTags2(rName, tagKey1, tagValue1, tagKey2, tagValue2 string) string {
+	return testAccAWSAMIFromInstanceConfigBase() + fmt.Sprintf(`
+resource "aws_ami_from_instance" "test" {
+  name               = %[1]q
+  description        = "Testing Terraform aws_ami_from_instance resource"
+  source_instance_id = "${aws_instance.test.id}"
+
+  tags = {
+    %[2]q = %[3]q
+    %[4]q = %[5]q
+  }
+}
+`, rName, tagKey1, tagValue1, tagKey2, tagValue2)
 }

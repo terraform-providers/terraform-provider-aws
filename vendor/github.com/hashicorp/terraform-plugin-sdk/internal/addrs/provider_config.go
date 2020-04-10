@@ -5,8 +5,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/internal/tfdiags"
 
-	"github.com/hashicorp/hcl2/hcl"
-	"github.com/hashicorp/hcl2/hcl/hclsyntax"
+	"github.com/hashicorp/hcl/v2"
+	"github.com/hashicorp/hcl/v2/hclsyntax"
 )
 
 // ProviderConfig is the address of a provider configuration.
@@ -16,14 +16,6 @@ type ProviderConfig struct {
 	// If not empty, Alias identifies which non-default (aliased) provider
 	// configuration this address refers to.
 	Alias string
-}
-
-// NewDefaultProviderConfig returns the address of the default (un-aliased)
-// configuration for the provider with the given type name.
-func NewDefaultProviderConfig(typeName string) ProviderConfig {
-	return ProviderConfig{
-		Type: typeName,
-	}
 }
 
 // ParseProviderConfigCompact parses the given absolute traversal as a relative

@@ -40,6 +40,7 @@ The following arguments are supported:
 * `use_ebs_optimized_instances` - (Optional) Whether to use EBS-optimized instances.
 * `ebs_volume` - (Optional) `ebs_volume` blocks, as described below, will each create an EBS volume and connect it to the layer's instances.
 * `custom_json` - (Optional) Custom JSON attributes to apply to the layer.
+* `tags` - (Optional) A mapping of tags to assign to the resource.
 
 The following extra optional arguments, all lists of Chef recipe names, allow
 custom Chef recipes to be applied to layer instances at the five different
@@ -59,12 +60,14 @@ An `ebs_volume` block supports the following arguments:
 * `raid_level` - (Required) The RAID level to use for the volume.
 * `type` - (Optional) The type of volume to create. This may be `standard` (the default), `io1` or `gp2`.
 * `iops` - (Optional) For PIOPS volumes, the IOPS per disk.
+* `encrypted` - (Optional) Encrypt the volume.
 
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - The id of the layer.
+* `arn` - The Amazon Resource Name(ARN) of the layer.
 
 ## Import
 

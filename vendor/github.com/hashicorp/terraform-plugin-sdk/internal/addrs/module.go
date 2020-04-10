@@ -16,13 +16,6 @@ import (
 // Although Module is a slice, it should be treated as immutable after creation.
 type Module []string
 
-// RootModule is the module address representing the root of the static module
-// call tree, which is also the zero value of Module.
-//
-// Note that this is not the root of the dynamic module tree, which is instead
-// represented by RootModuleInstance.
-var RootModule Module
-
 // IsRoot returns true if the receiver is the address of the root module,
 // or false otherwise.
 func (m Module) IsRoot() bool {
@@ -34,23 +27,6 @@ func (m Module) String() string {
 		return ""
 	}
 	return strings.Join([]string(m), ".")
-}
-
-// Child returns the address of a child call in the receiver, identified by the
-// given name.
-func (m Module) Child(name string) Module {
-	ret := make(Module, 0, len(m)+1)
-	ret = append(ret, m...)
-	return append(ret, name)
-}
-
-// Parent returns the address of the parent module of the receiver, or the
-// receiver itself if there is no parent (if it's the root module address).
-func (m Module) Parent() Module {
-	if len(m) == 0 {
-		return m
-	}
-	return m[:len(m)-1]
 }
 
 // Call returns the module call address that corresponds to the given module

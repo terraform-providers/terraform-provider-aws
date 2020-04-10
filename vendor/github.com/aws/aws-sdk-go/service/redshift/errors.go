@@ -381,6 +381,12 @@ const (
 	// The schedule you submitted isn't valid.
 	ErrCodeInvalidScheduleFault = "InvalidSchedule"
 
+	// ErrCodeInvalidScheduledActionFault for service response error code
+	// "InvalidScheduledAction".
+	//
+	// The scheduled action is not valid.
+	ErrCodeInvalidScheduledActionFault = "InvalidScheduledAction"
+
 	// ErrCodeInvalidSnapshotCopyGrantStateFault for service response error code
 	// "InvalidSnapshotCopyGrantStateFault".
 	//
@@ -511,6 +517,30 @@ const (
 	//
 	// The definition you submitted is not supported.
 	ErrCodeScheduleDefinitionTypeUnsupportedFault = "ScheduleDefinitionTypeUnsupported"
+
+	// ErrCodeScheduledActionAlreadyExistsFault for service response error code
+	// "ScheduledActionAlreadyExists".
+	//
+	// The scheduled action already exists.
+	ErrCodeScheduledActionAlreadyExistsFault = "ScheduledActionAlreadyExists"
+
+	// ErrCodeScheduledActionNotFoundFault for service response error code
+	// "ScheduledActionNotFound".
+	//
+	// The scheduled action cannot be found.
+	ErrCodeScheduledActionNotFoundFault = "ScheduledActionNotFound"
+
+	// ErrCodeScheduledActionQuotaExceededFault for service response error code
+	// "ScheduledActionQuotaExceeded".
+	//
+	// The quota for scheduled actions exceeded.
+	ErrCodeScheduledActionQuotaExceededFault = "ScheduledActionQuotaExceeded"
+
+	// ErrCodeScheduledActionTypeUnsupportedFault for service response error code
+	// "ScheduledActionTypeUnsupported".
+	//
+	// The action type specified for a scheduled action is not supported.
+	ErrCodeScheduledActionTypeUnsupportedFault = "ScheduledActionTypeUnsupported"
 
 	// ErrCodeSnapshotCopyAlreadyDisabledFault for service response error code
 	// "SnapshotCopyAlreadyDisabledFault".

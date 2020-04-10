@@ -3,7 +3,6 @@ package aws
 import (
 	"fmt"
 	"log"
-	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/rds"
@@ -120,12 +119,6 @@ func dataSourceAwsRdsCluster() *schema.Resource {
 			"preferred_maintenance_window": {
 				Type:     schema.TypeString,
 				Computed: true,
-				StateFunc: func(val interface{}) string {
-					if val == nil {
-						return ""
-					}
-					return strings.ToLower(val.(string))
-				},
 			},
 
 			"port": {

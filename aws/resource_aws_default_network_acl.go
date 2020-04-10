@@ -7,6 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 // ACL Network ACLs all contain explicit deny-all rules that cannot be
@@ -168,7 +169,6 @@ func resourceAwsDefaultNetworkAclCreate(d *schema.ResourceData, meta interface{}
 
 func resourceAwsDefaultNetworkAclUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
-	d.Partial(true)
 
 	if d.HasChange("ingress") {
 		err := updateNetworkAclEntries(d, "ingress", conn)
@@ -232,13 +232,14 @@ func resourceAwsDefaultNetworkAclUpdate(d *schema.ResourceData, meta interface{}
 		}
 	}
 
-	if err := setTags(conn, d); err != nil {
-		return err
-	} else {
-		d.SetPartial("tags")
+	if d.HasChange("tags") {
+		o, n := d.GetChange("tags")
+
+		if err := keyvaluetags.Ec2UpdateTags(conn, d.Id(), o, n); err != nil {
+			return fmt.Errorf("error updating EC2 Default Network ACL (%s) tags: %s", d.Id(), err)
+		}
 	}
 
-	d.Partial(false)
 	// Re-use the exiting Network ACL Resources READ method
 	return resourceAwsNetworkAclRead(d, meta)
 }

@@ -2,14 +2,77 @@ package aws
 
 import (
 	"fmt"
+	"log"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
+
+func init() {
+	resource.AddTestSweepers("aws_cloudformation_stack", &resource.Sweeper{
+		Name: "aws_cloudformation_stack",
+		Dependencies: []string{
+			"aws_cloudformation_stack_set_instance",
+		},
+		F: testSweepCloudformationStacks,
+	})
+}
+
+func testSweepCloudformationStacks(region string) error {
+	client, err := sharedClientForRegion(region)
+
+	if err != nil {
+		return fmt.Errorf("error getting client: %s", err)
+	}
+
+	conn := client.(*AWSClient).cfconn
+	input := &cloudformation.ListStacksInput{
+		StackStatusFilter: aws.StringSlice([]string{
+			cloudformation.StackStatusCreateComplete,
+			cloudformation.StackStatusImportComplete,
+			cloudformation.StackStatusRollbackComplete,
+			cloudformation.StackStatusUpdateComplete,
+		}),
+	}
+	var sweeperErrs *multierror.Error
+
+	err = conn.ListStacksPages(input, func(page *cloudformation.ListStacksOutput, lastPage bool) bool {
+		for _, stack := range page.StackSummaries {
+			input := &cloudformation.DeleteStackInput{
+				StackName: stack.StackName,
+			}
+			name := aws.StringValue(stack.StackName)
+
+			log.Printf("[INFO] Deleting CloudFormation Stack: %s", name)
+			_, err := conn.DeleteStack(input)
+
+			if err != nil {
+				sweeperErr := fmt.Errorf("error deleting CloudFormation Stack (%s): %w", name, err)
+				log.Printf("[ERROR] %s", sweeperErr)
+				sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
+				continue
+			}
+		}
+
+		return !lastPage
+	})
+
+	if testSweepSkipSweepError(err) {
+		log.Printf("[WARN] Skipping CloudFormation Stack sweep for %s: %s", region, err)
+		return nil
+	}
+
+	if err != nil {
+		return fmt.Errorf("error listing CloudFormation Stacks: %s", err)
+	}
+
+	return sweeperErrs.ErrorOrNil()
+}
 
 func TestAccAWSCloudFormationStack_basic(t *testing.T) {
 	var stack cloudformation.Stack
@@ -285,6 +348,32 @@ func TestAccAWSCloudFormationStack_withUrl_withParams_noUpdate(t *testing.T) {
 				Config: testAccAWSCloudFormationStackConfig_templateUrl_withParams(rName, "tf-cf-stack-2.json", "11.0.0.0/16"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudFormationStackExists(resourceName, &stack),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSCloudFormationStack_withTransform(t *testing.T) {
+	var stack cloudformation.Stack
+	rName := fmt.Sprintf("tf-acc-test-with-transform-%s", acctest.RandString(10))
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSCloudFormationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSCloudFormationStackConfig_withTransform(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudFormationStackExists("aws_cloudformation_stack.with-transform", &stack),
+				),
+			},
+			{
+				PlanOnly: true,
+				Config:   testAccAWSCloudFormationStackConfig_withTransform(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudFormationStackExists("aws_cloudformation_stack.with-transform", &stack),
 				),
 			},
 		},
@@ -742,4 +831,59 @@ resource "aws_cloudformation_stack" "test" {
   timeout_in_minutes = 1
 }
 `, rName, bucketKey, vpcCidr)
+}
+
+func testAccAWSCloudFormationStackConfig_withTransform(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_cloudformation_stack" "with-transform" {
+  name = "%[1]s"
+
+  template_body      = <<STACK
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Transform": "AWS::Serverless-2016-10-31",
+  "Resources": {
+    "Api": {
+      "Type": "AWS::Serverless::Api",
+      "Properties": {
+        "StageName": "Prod",
+        "EndpointConfiguration": "REGIONAL",
+        "DefinitionBody": {
+          "swagger": "2.0",
+          "paths": {
+            "/": {
+              "get": {
+                "consumes": ["application/json"],
+                "produces": ["application/json"],
+                "responses": {
+                  "200": {
+                    "description": "200 response"
+                  }
+                },
+                "x-amazon-apigateway-integration": {
+                  "responses": {
+                    "default": {
+                      "statusCode": "200"
+                    }
+                  },
+                  "requestTemplates": {
+                    "application/json": "{\"statusCode\": 200}"
+                  },
+                  "passthroughBehavior": "when_no_match",
+                  "type": "mock"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+STACK
+  capabilities       = ["CAPABILITY_AUTO_EXPAND"]
+  on_failure         = "DELETE"
+  timeout_in_minutes = 10
+}
+`, rName)
 }

@@ -180,8 +180,9 @@ func TestAccAWSVPCPeeringConnection_tags(t *testing.T) {
 						resourceName,
 						&connection,
 					),
-					testAccCheckTags(&connection.Tags, "Name", rName),
-					testAccCheckTags(&connection.Tags, "test", "bar"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.Name", rName),
+					resource.TestCheckResourceAttr(resourceName, "tags.test", "bar"),
 				),
 			},
 			{

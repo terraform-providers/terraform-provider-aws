@@ -335,7 +335,14 @@ resource "aws_network_interface_sg_attachment" "test" {
 
 func testAccAwsNetworkInterfaceSGAttachmentConfigMultiple(rName string) string {
 	return fmt.Sprintf(`
-data "aws_availability_zones" "available" {}
+data "aws_availability_zones" "available" {
+  state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
 
 data "aws_subnet" "test" {
   availability_zone = "${data.aws_availability_zones.available.names[0]}"

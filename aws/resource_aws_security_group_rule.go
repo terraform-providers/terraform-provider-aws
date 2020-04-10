@@ -759,9 +759,9 @@ func setFromIPPerm(d *schema.ResourceData, sg *ec2.SecurityGroup, rule *ec2.IpPe
 		s := rule.UserIdGroupPairs[0]
 
 		if isVPC {
-			d.Set("source_security_group_id", *s.GroupId)
+			d.Set("source_security_group_id", s.GroupId)
 		} else {
-			d.Set("source_security_group_id", *s.GroupName)
+			d.Set("source_security_group_id", s.GroupName)
 		}
 	}
 

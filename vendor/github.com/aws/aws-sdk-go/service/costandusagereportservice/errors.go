@@ -2,6 +2,10 @@
 
 package costandusagereportservice
 
+import (
+	"github.com/aws/aws-sdk-go/private/protocol"
+)
+
 const (
 
 	// ErrCodeDuplicateReportNameException for service response error code
@@ -31,3 +35,10 @@ const (
 	// The input fails to satisfy the constraints specified by an AWS service.
 	ErrCodeValidationException = "ValidationException"
 )
+
+var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
+	"DuplicateReportNameException": newErrorDuplicateReportNameException,
+	"InternalErrorException":       newErrorInternalErrorException,
+	"ReportLimitReachedException":  newErrorReportLimitReachedException,
+	"ValidationException":          newErrorValidationException,
+}

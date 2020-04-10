@@ -34,4 +34,4 @@ In addition to all arguments above, the following attributes are exported:
 * `kafka_version` - Apache Kafka version.
 * `number_of_broker_nodes` - Number of broker nodes in the cluster.
 * `tags` - Map of key-value pairs assigned to the cluster.
-* `zookeeper_connect_string` - A comma separated list of one or more IP:port pairs to use to connect to the Apache Zookeeper cluster.
+* `zookeeper_connect_string` - A comma separated list of one or more hostname:port pairs to use to connect to the Apache Zookeeper cluster.

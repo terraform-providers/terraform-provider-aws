@@ -2,6 +2,10 @@
 
 package glacier
 
+import (
+	"github.com/aws/aws-sdk-go/private/protocol"
+)
+
 const (
 
 	// ErrCodeInsufficientCapacityException for service response error code
@@ -57,3 +61,14 @@ const (
 	// Returned if the service cannot complete the request.
 	ErrCodeServiceUnavailableException = "ServiceUnavailableException"
 )
+
+var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
+	"InsufficientCapacityException":  newErrorInsufficientCapacityException,
+	"InvalidParameterValueException": newErrorInvalidParameterValueException,
+	"LimitExceededException":         newErrorLimitExceededException,
+	"MissingParameterValueException": newErrorMissingParameterValueException,
+	"PolicyEnforcedException":        newErrorPolicyEnforcedException,
+	"RequestTimeoutException":        newErrorRequestTimeoutException,
+	"ResourceNotFoundException":      newErrorResourceNotFoundException,
+	"ServiceUnavailableException":    newErrorServiceUnavailableException,
+}

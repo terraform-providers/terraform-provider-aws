@@ -62,8 +62,6 @@ func (c *ForecastService) CreateDatasetRequest(input *CreateDatasetInput) (req *
 // This includes the following:
 //
 //    * DataFrequency - How frequently your historical time-series data is collected.
-//    Amazon Forecast uses this information when training the model and generating
-//    a forecast.
 //
 //    * Domain and DatasetType - Each dataset has an associated dataset domain
 //    and a type within the domain. Amazon Forecast provides a list of predefined
@@ -71,14 +69,17 @@ func (c *ForecastService) CreateDatasetRequest(input *CreateDatasetInput) (req *
 //    type within the domain, Amazon Forecast requires your data to include
 //    a minimum set of predefined fields.
 //
-//    * Schema - A schema specifies the fields of the dataset, including the
+//    * Schema - A schema specifies the fields in the dataset, including the
 //    field name and data type.
 //
-// After creating a dataset, you import your training data into the dataset
-// and add the dataset to a dataset group. You then use the dataset group to
-// create a predictor. For more information, see howitworks-datasets-groups.
+// After creating a dataset, you import your training data into it and add the
+// dataset to a dataset group. You use the dataset group to create a predictor.
+// For more information, see howitworks-datasets-groups.
 //
 // To get a list of all your datasets, use the ListDatasets operation.
+//
+// For example Forecast datasets, see the Amazon Forecast Sample GitHub repository
+// (https://github.com/aws-samples/amazon-forecast-samples/tree/master/data).
 //
 // The Status of a dataset must be ACTIVE before you can import training data.
 // Use the DescribeDataset operation to get the status.
@@ -90,17 +91,16 @@ func (c *ForecastService) CreateDatasetRequest(input *CreateDatasetInput) (req *
 // See the AWS API reference guide for Amazon Forecast Service's
 // API operation CreateDataset for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidInputException "InvalidInputException"
+// Returned Error Types:
+//   * InvalidInputException
 //   We can't process the request because it includes an invalid value or a value
 //   that exceeds the valid range.
 //
-//   * ErrCodeResourceAlreadyExistsException "ResourceAlreadyExistsException"
-//   There is already a resource with that Amazon Resource Name (ARN). Try again
-//   with a different ARN.
+//   * ResourceAlreadyExistsException
+//   There is already a resource with this name. Try again with a different name.
 //
-//   * ErrCodeLimitExceededException "LimitExceededException"
-//   The limit on the number of requests per second has been exceeded.
+//   * LimitExceededException
+//   The limit on the number of resources per account has been exceeded.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/forecast-2018-06-26/CreateDataset
 func (c *ForecastService) CreateDataset(input *CreateDatasetInput) (*CreateDatasetOutput, error) {
@@ -168,18 +168,18 @@ func (c *ForecastService) CreateDatasetGroupRequest(input *CreateDatasetGroupInp
 
 // CreateDatasetGroup API operation for Amazon Forecast Service.
 //
-// Creates an Amazon Forecast dataset group, which holds a collection of related
-// datasets. You can add datasets to the dataset group when you create the dataset
-// group, or you can add datasets later with the UpdateDatasetGroup operation.
+// Creates a dataset group, which holds a collection of related datasets. You
+// can add datasets to the dataset group when you create the dataset group,
+// or later by using the UpdateDatasetGroup operation.
 //
 // After creating a dataset group and adding datasets, you use the dataset group
 // when you create a predictor. For more information, see howitworks-datasets-groups.
 //
 // To get a list of all your datasets groups, use the ListDatasetGroups operation.
 //
-// The Status of a dataset group must be ACTIVE before you can create a predictor
-// using the dataset group. Use the DescribeDatasetGroup operation to get the
-// status.
+// The Status of a dataset group must be ACTIVE before you can create use the
+// dataset group to create a predictor. To get the status, use the DescribeDatasetGroup
+// operation.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -188,24 +188,23 @@ func (c *ForecastService) CreateDatasetGroupRequest(input *CreateDatasetGroupInp
 // See the AWS API reference guide for Amazon Forecast Service's
 // API operation CreateDatasetGroup for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidInputException "InvalidInputException"
+// Returned Error Types:
+//   * InvalidInputException
 //   We can't process the request because it includes an invalid value or a value
 //   that exceeds the valid range.
 //
-//   * ErrCodeResourceAlreadyExistsException "ResourceAlreadyExistsException"
-//   There is already a resource with that Amazon Resource Name (ARN). Try again
-//   with a different ARN.
+//   * ResourceAlreadyExistsException
+//   There is already a resource with this name. Try again with a different name.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   We can't find a resource with that Amazon Resource Name (ARN). Check the
 //   ARN and try again.
 //
-//   * ErrCodeResourceInUseException "ResourceInUseException"
+//   * ResourceInUseException
 //   The specified resource is in use.
 //
-//   * ErrCodeLimitExceededException "LimitExceededException"
-//   The limit on the number of requests per second has been exceeded.
+//   * LimitExceededException
+//   The limit on the number of resources per account has been exceeded.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/forecast-2018-06-26/CreateDatasetGroup
 func (c *ForecastService) CreateDatasetGroup(input *CreateDatasetGroupInput) (*CreateDatasetGroupOutput, error) {
@@ -282,24 +281,14 @@ func (c *ForecastService) CreateDatasetImportJobRequest(input *CreateDatasetImpo
 // Management (IAM) role that Amazon Forecast can assume to access the data.
 // For more information, see aws-forecast-iam-roles.
 //
-// Two properties of the training data are optionally specified:
+// The training data must be in CSV format. The delimiter must be a comma (,).
 //
-//    * The delimiter that separates the data fields. The default delimiter
-//    is a comma (,), which is the only supported delimiter in this release.
+// You can specify the path to a specific CSV file, the S3 bucket, or to a folder
+// in the S3 bucket. For the latter two cases, Amazon Forecast imports all files
+// up to the limit of 10,000 files.
 //
-//    * The format of timestamps. If the format is not specified, Amazon Forecast
-//    expects the format to be "yyyy-MM-dd HH:mm:ss".
-//
-// When Amazon Forecast uploads your training data, it verifies that the data
-// was collected at the DataFrequency specified when the target dataset was
-// created. For more information, see CreateDataset and howitworks-datasets-groups.
-// Amazon Forecast also verifies the delimiter and timestamp format.
-//
-// You can use the ListDatasetImportJobs operation to get a list of all your
-// dataset import jobs, filtered by specified criteria.
-//
-// To get a list of all your dataset import jobs, filtered by the specified
-// criteria, use the ListDatasetGroups operation.
+// To get a list of all your dataset import jobs, filtered by specified criteria,
+// use the ListDatasetImportJobs operation.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -308,24 +297,23 @@ func (c *ForecastService) CreateDatasetImportJobRequest(input *CreateDatasetImpo
 // See the AWS API reference guide for Amazon Forecast Service's
 // API operation CreateDatasetImportJob for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidInputException "InvalidInputException"
+// Returned Error Types:
+//   * InvalidInputException
 //   We can't process the request because it includes an invalid value or a value
 //   that exceeds the valid range.
 //
-//   * ErrCodeResourceAlreadyExistsException "ResourceAlreadyExistsException"
-//   There is already a resource with that Amazon Resource Name (ARN). Try again
-//   with a different ARN.
+//   * ResourceAlreadyExistsException
+//   There is already a resource with this name. Try again with a different name.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   We can't find a resource with that Amazon Resource Name (ARN). Check the
 //   ARN and try again.
 //
-//   * ErrCodeResourceInUseException "ResourceInUseException"
+//   * ResourceInUseException
 //   The specified resource is in use.
 //
-//   * ErrCodeLimitExceededException "LimitExceededException"
-//   The limit on the number of requests per second has been exceeded.
+//   * LimitExceededException
+//   The limit on the number of resources per account has been exceeded.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/forecast-2018-06-26/CreateDatasetImportJob
 func (c *ForecastService) CreateDatasetImportJob(input *CreateDatasetImportJobInput) (*CreateDatasetImportJobOutput, error) {
@@ -396,17 +384,17 @@ func (c *ForecastService) CreateForecastRequest(input *CreateForecastInput) (req
 // Creates a forecast for each item in the TARGET_TIME_SERIES dataset that was
 // used to train the predictor. This is known as inference. To retrieve the
 // forecast for a single item at low latency, use the operation. To export the
-// complete forecast into your Amazon Simple Storage Service (Amazon S3), use
-// the CreateForecastExportJob operation.
+// complete forecast into your Amazon Simple Storage Service (Amazon S3) bucket,
+// use the CreateForecastExportJob operation.
 //
-// The range of the forecast is determined by the ForecastHorizon, specified
-// in the CreatePredictor request, multiplied by the DataFrequency, specified
-// in the CreateDataset request. When you query a forecast, you can request
-// a specific date range within the complete forecast.
+// The range of the forecast is determined by the ForecastHorizon value, which
+// you specify in the CreatePredictor request, multiplied by the DataFrequency
+// value, which you specify in the CreateDataset request. When you query a forecast,
+// you can request a specific date range within the forecast.
 //
 // To get a list of all your forecasts, use the ListForecasts operation.
 //
-// The forecasts generated by Amazon Forecast are in the same timezone as the
+// The forecasts generated by Amazon Forecast are in the same time zone as the
 // dataset that was used to create the predictor.
 //
 // For more information, see howitworks-forecast.
@@ -421,24 +409,23 @@ func (c *ForecastService) CreateForecastRequest(input *CreateForecastInput) (req
 // See the AWS API reference guide for Amazon Forecast Service's
 // API operation CreateForecast for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidInputException "InvalidInputException"
+// Returned Error Types:
+//   * InvalidInputException
 //   We can't process the request because it includes an invalid value or a value
 //   that exceeds the valid range.
 //
-//   * ErrCodeResourceAlreadyExistsException "ResourceAlreadyExistsException"
-//   There is already a resource with that Amazon Resource Name (ARN). Try again
-//   with a different ARN.
+//   * ResourceAlreadyExistsException
+//   There is already a resource with this name. Try again with a different name.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   We can't find a resource with that Amazon Resource Name (ARN). Check the
 //   ARN and try again.
 //
-//   * ErrCodeResourceInUseException "ResourceInUseException"
+//   * ResourceInUseException
 //   The specified resource is in use.
 //
-//   * ErrCodeLimitExceededException "LimitExceededException"
-//   The limit on the number of requests per second has been exceeded.
+//   * LimitExceededException
+//   The limit on the number of resources per account has been exceeded.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/forecast-2018-06-26/CreateForecast
 func (c *ForecastService) CreateForecast(input *CreateForecastInput) (*CreateForecastOutput, error) {
@@ -507,7 +494,12 @@ func (c *ForecastService) CreateForecastExportJobRequest(input *CreateForecastEx
 // CreateForecastExportJob API operation for Amazon Forecast Service.
 //
 // Exports a forecast created by the CreateForecast operation to your Amazon
-// Simple Storage Service (Amazon S3) bucket.
+// Simple Storage Service (Amazon S3) bucket. The forecast file name will match
+// the following conventions:
+//
+// <ForecastExportJobName>_<ExportTimestamp>_<PageNumber>
+//
+// where the <ExportTimestamp> component is in Java SimpleDateFormat (yyyy-MM-ddTHH-mm-ssZ).
 //
 // You must specify a DataDestination object that includes an AWS Identity and
 // Access Management (IAM) role that Amazon Forecast can assume to access the
@@ -519,8 +511,8 @@ func (c *ForecastService) CreateForecastExportJobRequest(input *CreateForecastEx
 // operation.
 //
 // The Status of the forecast export job must be ACTIVE before you can access
-// the forecast in your Amazon S3 bucket. Use the DescribeForecastExportJob
-// operation to get the status.
+// the forecast in your Amazon S3 bucket. To get the status, use the DescribeForecastExportJob
+// operation.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -529,24 +521,23 @@ func (c *ForecastService) CreateForecastExportJobRequest(input *CreateForecastEx
 // See the AWS API reference guide for Amazon Forecast Service's
 // API operation CreateForecastExportJob for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidInputException "InvalidInputException"
+// Returned Error Types:
+//   * InvalidInputException
 //   We can't process the request because it includes an invalid value or a value
 //   that exceeds the valid range.
 //
-//   * ErrCodeResourceAlreadyExistsException "ResourceAlreadyExistsException"
-//   There is already a resource with that Amazon Resource Name (ARN). Try again
-//   with a different ARN.
+//   * ResourceAlreadyExistsException
+//   There is already a resource with this name. Try again with a different name.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   We can't find a resource with that Amazon Resource Name (ARN). Check the
 //   ARN and try again.
 //
-//   * ErrCodeResourceInUseException "ResourceInUseException"
+//   * ResourceInUseException
 //   The specified resource is in use.
 //
-//   * ErrCodeLimitExceededException "LimitExceededException"
-//   The limit on the number of requests per second has been exceeded.
+//   * LimitExceededException
+//   The limit on the number of resources per account has been exceeded.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/forecast-2018-06-26/CreateForecastExportJob
 func (c *ForecastService) CreateForecastExportJob(input *CreateForecastExportJobInput) (*CreateForecastExportJobOutput, error) {
@@ -629,14 +620,19 @@ func (c *ForecastService) CreatePredictorRequest(input *CreatePredictorInput) (r
 // review the evaluation metrics before deciding to use the predictor to generate
 // a forecast.
 //
-// Optionally, you can specify a featurization configuration to fill and aggragate
+// Optionally, you can specify a featurization configuration to fill and aggregate
 // the data fields in the TARGET_TIME_SERIES dataset to improve model training.
 // For more information, see FeaturizationConfig.
 //
+// For RELATED_TIME_SERIES datasets, CreatePredictor verifies that the DataFrequency
+// specified when the dataset was created matches the ForecastFrequency. TARGET_TIME_SERIES
+// datasets don't have this restriction. Amazon Forecast also verifies the delimiter
+// and timestamp format. For more information, see howitworks-datasets-groups.
+//
 // AutoML
 //
-// If you set PerformAutoML to true, Amazon Forecast evaluates each algorithm
-// and chooses the one that minimizes the objective function. The objective
+// If you want Amazon Forecast to evaluate each algorithm and choose the one
+// that minimizes the objective function, set PerformAutoML to true. The objective
 // function is defined as the mean of the weighted p10, p50, and p90 quantile
 // losses. For more information, see EvaluationResult.
 //
@@ -650,11 +646,11 @@ func (c *ForecastService) CreatePredictorRequest(input *CreatePredictorInput) (r
 //
 //    * TrainingParameters
 //
-// To get a list of all your predictors, use the ListPredictors operation.
+// To get a list of all of your predictors, use the ListPredictors operation.
 //
-// The Status of the predictor must be ACTIVE, signifying that training has
-// completed, before you can use the predictor to create a forecast. Use the
-// DescribePredictor operation to get the status.
+// Before you can use the predictor to create a forecast, the Status of the
+// predictor must be ACTIVE, signifying that training has completed. To get
+// the status, use the DescribePredictor operation.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -663,24 +659,23 @@ func (c *ForecastService) CreatePredictorRequest(input *CreatePredictorInput) (r
 // See the AWS API reference guide for Amazon Forecast Service's
 // API operation CreatePredictor for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidInputException "InvalidInputException"
+// Returned Error Types:
+//   * InvalidInputException
 //   We can't process the request because it includes an invalid value or a value
 //   that exceeds the valid range.
 //
-//   * ErrCodeResourceAlreadyExistsException "ResourceAlreadyExistsException"
-//   There is already a resource with that Amazon Resource Name (ARN). Try again
-//   with a different ARN.
+//   * ResourceAlreadyExistsException
+//   There is already a resource with this name. Try again with a different name.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   We can't find a resource with that Amazon Resource Name (ARN). Check the
 //   ARN and try again.
 //
-//   * ErrCodeResourceInUseException "ResourceInUseException"
+//   * ResourceInUseException
 //   The specified resource is in use.
 //
-//   * ErrCodeLimitExceededException "LimitExceededException"
-//   The limit on the number of requests per second has been exceeded.
+//   * LimitExceededException
+//   The limit on the number of resources per account has been exceeded.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/forecast-2018-06-26/CreatePredictor
 func (c *ForecastService) CreatePredictor(input *CreatePredictorInput) (*CreatePredictorOutput, error) {
@@ -749,9 +744,9 @@ func (c *ForecastService) DeleteDatasetRequest(input *DeleteDatasetInput) (req *
 
 // DeleteDataset API operation for Amazon Forecast Service.
 //
-// Deletes an Amazon Forecast dataset created using the CreateDataset operation.
-// To be deleted, the dataset must have a status of ACTIVE or CREATE_FAILED.
-// Use the DescribeDataset operation to get the status.
+// Deletes an Amazon Forecast dataset that was created using the CreateDataset
+// operation. You can only delete datasets that have a status of ACTIVE or CREATE_FAILED.
+// To get the status use the DescribeDataset operation.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -760,16 +755,16 @@ func (c *ForecastService) DeleteDatasetRequest(input *DeleteDatasetInput) (req *
 // See the AWS API reference guide for Amazon Forecast Service's
 // API operation DeleteDataset for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidInputException "InvalidInputException"
+// Returned Error Types:
+//   * InvalidInputException
 //   We can't process the request because it includes an invalid value or a value
 //   that exceeds the valid range.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   We can't find a resource with that Amazon Resource Name (ARN). Check the
 //   ARN and try again.
 //
-//   * ErrCodeResourceInUseException "ResourceInUseException"
+//   * ResourceInUseException
 //   The specified resource is in use.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/forecast-2018-06-26/DeleteDataset
@@ -839,11 +834,11 @@ func (c *ForecastService) DeleteDatasetGroupRequest(input *DeleteDatasetGroupInp
 
 // DeleteDatasetGroup API operation for Amazon Forecast Service.
 //
-// Deletes a dataset group created using the CreateDatasetGroup operation. To
-// be deleted, the dataset group must have a status of ACTIVE, CREATE_FAILED,
-// or UPDATE_FAILED. Use the DescribeDatasetGroup operation to get the status.
+// Deletes a dataset group created using the CreateDatasetGroup operation. You
+// can only delete dataset groups that have a status of ACTIVE, CREATE_FAILED,
+// or UPDATE_FAILED. To get the status, use the DescribeDatasetGroup operation.
 //
-// The operation deletes only the dataset group, not the datasets in the group.
+// This operation deletes only the dataset group, not the datasets in the group.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -852,16 +847,16 @@ func (c *ForecastService) DeleteDatasetGroupRequest(input *DeleteDatasetGroupInp
 // See the AWS API reference guide for Amazon Forecast Service's
 // API operation DeleteDatasetGroup for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidInputException "InvalidInputException"
+// Returned Error Types:
+//   * InvalidInputException
 //   We can't process the request because it includes an invalid value or a value
 //   that exceeds the valid range.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   We can't find a resource with that Amazon Resource Name (ARN). Check the
 //   ARN and try again.
 //
-//   * ErrCodeResourceInUseException "ResourceInUseException"
+//   * ResourceInUseException
 //   The specified resource is in use.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/forecast-2018-06-26/DeleteDatasetGroup
@@ -932,8 +927,8 @@ func (c *ForecastService) DeleteDatasetImportJobRequest(input *DeleteDatasetImpo
 // DeleteDatasetImportJob API operation for Amazon Forecast Service.
 //
 // Deletes a dataset import job created using the CreateDatasetImportJob operation.
-// To be deleted, the import job must have a status of ACTIVE or CREATE_FAILED.
-// Use the DescribeDatasetImportJob operation to get the status.
+// You can delete only dataset import jobs that have a status of ACTIVE or CREATE_FAILED.
+// To get the status, use the DescribeDatasetImportJob operation.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -942,16 +937,16 @@ func (c *ForecastService) DeleteDatasetImportJobRequest(input *DeleteDatasetImpo
 // See the AWS API reference guide for Amazon Forecast Service's
 // API operation DeleteDatasetImportJob for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidInputException "InvalidInputException"
+// Returned Error Types:
+//   * InvalidInputException
 //   We can't process the request because it includes an invalid value or a value
 //   that exceeds the valid range.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   We can't find a resource with that Amazon Resource Name (ARN). Check the
 //   ARN and try again.
 //
-//   * ErrCodeResourceInUseException "ResourceInUseException"
+//   * ResourceInUseException
 //   The specified resource is in use.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/forecast-2018-06-26/DeleteDatasetImportJob
@@ -1021,11 +1016,12 @@ func (c *ForecastService) DeleteForecastRequest(input *DeleteForecastInput) (req
 
 // DeleteForecast API operation for Amazon Forecast Service.
 //
-// Deletes a forecast created using the CreateForecast operation. To be deleted,
-// the forecast must have a status of ACTIVE or CREATE_FAILED. Use the DescribeForecast
-// operation to get the status.
+// Deletes a forecast created using the CreateForecast operation. You can delete
+// only forecasts that have a status of ACTIVE or CREATE_FAILED. To get the
+// status, use the DescribeForecast operation.
 //
-// You can't delete a forecast while it is being exported.
+// You can't delete a forecast while it is being exported. After a forecast
+// is deleted, you can no longer query the forecast.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1034,16 +1030,16 @@ func (c *ForecastService) DeleteForecastRequest(input *DeleteForecastInput) (req
 // See the AWS API reference guide for Amazon Forecast Service's
 // API operation DeleteForecast for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidInputException "InvalidInputException"
+// Returned Error Types:
+//   * InvalidInputException
 //   We can't process the request because it includes an invalid value or a value
 //   that exceeds the valid range.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   We can't find a resource with that Amazon Resource Name (ARN). Check the
 //   ARN and try again.
 //
-//   * ErrCodeResourceInUseException "ResourceInUseException"
+//   * ResourceInUseException
 //   The specified resource is in use.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/forecast-2018-06-26/DeleteForecast
@@ -1114,8 +1110,8 @@ func (c *ForecastService) DeleteForecastExportJobRequest(input *DeleteForecastEx
 // DeleteForecastExportJob API operation for Amazon Forecast Service.
 //
 // Deletes a forecast export job created using the CreateForecastExportJob operation.
-// To be deleted, the export job must have a status of ACTIVE or CREATE_FAILED.
-// Use the DescribeForecastExportJob operation to get the status.
+// You can delete only export jobs that have a status of ACTIVE or CREATE_FAILED.
+// To get the status, use the DescribeForecastExportJob operation.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1124,16 +1120,16 @@ func (c *ForecastService) DeleteForecastExportJobRequest(input *DeleteForecastEx
 // See the AWS API reference guide for Amazon Forecast Service's
 // API operation DeleteForecastExportJob for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidInputException "InvalidInputException"
+// Returned Error Types:
+//   * InvalidInputException
 //   We can't process the request because it includes an invalid value or a value
 //   that exceeds the valid range.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   We can't find a resource with that Amazon Resource Name (ARN). Check the
 //   ARN and try again.
 //
-//   * ErrCodeResourceInUseException "ResourceInUseException"
+//   * ResourceInUseException
 //   The specified resource is in use.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/forecast-2018-06-26/DeleteForecastExportJob
@@ -1203,11 +1199,9 @@ func (c *ForecastService) DeletePredictorRequest(input *DeletePredictorInput) (r
 
 // DeletePredictor API operation for Amazon Forecast Service.
 //
-// Deletes a predictor created using the CreatePredictor operation. To be deleted,
-// the predictor must have a status of ACTIVE or CREATE_FAILED. Use the DescribePredictor
-// operation to get the status.
-//
-// Any forecasts generated by the predictor will no longer be available.
+// Deletes a predictor created using the CreatePredictor operation. You can
+// delete only predictor that have a status of ACTIVE or CREATE_FAILED. To get
+// the status, use the DescribePredictor operation.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1216,16 +1210,16 @@ func (c *ForecastService) DeletePredictorRequest(input *DeletePredictorInput) (r
 // See the AWS API reference guide for Amazon Forecast Service's
 // API operation DeletePredictor for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidInputException "InvalidInputException"
+// Returned Error Types:
+//   * InvalidInputException
 //   We can't process the request because it includes an invalid value or a value
 //   that exceeds the valid range.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   We can't find a resource with that Amazon Resource Name (ARN). Check the
 //   ARN and try again.
 //
-//   * ErrCodeResourceInUseException "ResourceInUseException"
+//   * ResourceInUseException
 //   The specified resource is in use.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/forecast-2018-06-26/DeletePredictor
@@ -1296,8 +1290,8 @@ func (c *ForecastService) DescribeDatasetRequest(input *DescribeDatasetInput) (r
 //
 // Describes an Amazon Forecast dataset created using the CreateDataset operation.
 //
-// In addition to listing the properties provided by the user in the CreateDataset
-// request, this operation includes the following properties:
+// In addition to listing the parameters specified in the CreateDataset request,
+// this operation includes the following dataset properties:
 //
 //    * CreationTime
 //
@@ -1312,12 +1306,12 @@ func (c *ForecastService) DescribeDatasetRequest(input *DescribeDatasetInput) (r
 // See the AWS API reference guide for Amazon Forecast Service's
 // API operation DescribeDataset for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidInputException "InvalidInputException"
+// Returned Error Types:
+//   * InvalidInputException
 //   We can't process the request because it includes an invalid value or a value
 //   that exceeds the valid range.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   We can't find a resource with that Amazon Resource Name (ARN). Check the
 //   ARN and try again.
 //
@@ -1389,7 +1383,7 @@ func (c *ForecastService) DescribeDatasetGroupRequest(input *DescribeDatasetGrou
 //
 // Describes a dataset group created using the CreateDatasetGroup operation.
 //
-// In addition to listing the properties provided by the user in the CreateDatasetGroup
+// In addition to listing the parameters provided in the CreateDatasetGroup
 // request, this operation includes the following properties:
 //
 //    * DatasetArns - The datasets belonging to the group.
@@ -1407,12 +1401,12 @@ func (c *ForecastService) DescribeDatasetGroupRequest(input *DescribeDatasetGrou
 // See the AWS API reference guide for Amazon Forecast Service's
 // API operation DescribeDatasetGroup for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidInputException "InvalidInputException"
+// Returned Error Types:
+//   * InvalidInputException
 //   We can't process the request because it includes an invalid value or a value
 //   that exceeds the valid range.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   We can't find a resource with that Amazon Resource Name (ARN). Check the
 //   ARN and try again.
 //
@@ -1484,7 +1478,7 @@ func (c *ForecastService) DescribeDatasetImportJobRequest(input *DescribeDataset
 //
 // Describes a dataset import job created using the CreateDatasetImportJob operation.
 //
-// In addition to listing the properties provided by the user in the CreateDatasetImportJob
+// In addition to listing the parameters provided in the CreateDatasetImportJob
 // request, this operation includes the following properties:
 //
 //    * CreationTime
@@ -1506,12 +1500,12 @@ func (c *ForecastService) DescribeDatasetImportJobRequest(input *DescribeDataset
 // See the AWS API reference guide for Amazon Forecast Service's
 // API operation DescribeDatasetImportJob for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidInputException "InvalidInputException"
+// Returned Error Types:
+//   * InvalidInputException
 //   We can't process the request because it includes an invalid value or a value
 //   that exceeds the valid range.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   We can't find a resource with that Amazon Resource Name (ARN). Check the
 //   ARN and try again.
 //
@@ -1583,8 +1577,8 @@ func (c *ForecastService) DescribeForecastRequest(input *DescribeForecastInput) 
 //
 // Describes a forecast created using the CreateForecast operation.
 //
-// In addition to listing the properties provided by the user in the CreateForecast
-// request, this operation includes the following properties:
+// In addition to listing the properties provided in the CreateForecast request,
+// this operation lists the following properties:
 //
 //    * DatasetGroupArn - The dataset group that provided the training data.
 //
@@ -1603,12 +1597,12 @@ func (c *ForecastService) DescribeForecastRequest(input *DescribeForecastInput) 
 // See the AWS API reference guide for Amazon Forecast Service's
 // API operation DescribeForecast for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidInputException "InvalidInputException"
+// Returned Error Types:
+//   * InvalidInputException
 //   We can't process the request because it includes an invalid value or a value
 //   that exceeds the valid range.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   We can't find a resource with that Amazon Resource Name (ARN). Check the
 //   ARN and try again.
 //
@@ -1682,7 +1676,7 @@ func (c *ForecastService) DescribeForecastExportJobRequest(input *DescribeForeca
 // operation.
 //
 // In addition to listing the properties provided by the user in the CreateForecastExportJob
-// request, this operation includes the following properties:
+// request, this operation lists the following properties:
 //
 //    * CreationTime
 //
@@ -1699,12 +1693,12 @@ func (c *ForecastService) DescribeForecastExportJobRequest(input *DescribeForeca
 // See the AWS API reference guide for Amazon Forecast Service's
 // API operation DescribeForecastExportJob for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidInputException "InvalidInputException"
+// Returned Error Types:
+//   * InvalidInputException
 //   We can't process the request because it includes an invalid value or a value
 //   that exceeds the valid range.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   We can't find a resource with that Amazon Resource Name (ARN). Check the
 //   ARN and try again.
 //
@@ -1776,13 +1770,14 @@ func (c *ForecastService) DescribePredictorRequest(input *DescribePredictorInput
 //
 // Describes a predictor created using the CreatePredictor operation.
 //
-// In addition to listing the properties provided by the user in the CreatePredictor
-// request, this operation includes the following properties:
+// In addition to listing the properties provided in the CreatePredictor request,
+// this operation lists the following properties:
 //
 //    * DatasetImportJobArns - The dataset import jobs used to import training
 //    data.
 //
-//    * AutoMLAlgorithmArns - If AutoML is performed, the algorithms evaluated.
+//    * AutoMLAlgorithmArns - If AutoML is performed, the algorithms that were
+//    evaluated.
 //
 //    * CreationTime
 //
@@ -1799,12 +1794,12 @@ func (c *ForecastService) DescribePredictorRequest(input *DescribePredictorInput
 // See the AWS API reference guide for Amazon Forecast Service's
 // API operation DescribePredictor for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidInputException "InvalidInputException"
+// Returned Error Types:
+//   * InvalidInputException
 //   We can't process the request because it includes an invalid value or a value
 //   that exceeds the valid range.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   We can't find a resource with that Amazon Resource Name (ARN). Check the
 //   ARN and try again.
 //
@@ -1876,17 +1871,23 @@ func (c *ForecastService) GetAccuracyMetricsRequest(input *GetAccuracyMetricsInp
 //
 // Provides metrics on the accuracy of the models that were trained by the CreatePredictor
 // operation. Use metrics to see how well the model performed and to decide
-// whether to use the predictor to generate a forecast.
+// whether to use the predictor to generate a forecast. For more information,
+// see metrics.
 //
-// Metrics are generated for each backtest window evaluated. For more information,
-// see EvaluationParameters.
+// This operation generates metrics for each backtest window that was evaluated.
+// The number of backtest windows (NumberOfBacktestWindows) is specified using
+// the EvaluationParameters object, which is optionally included in the CreatePredictor
+// request. If NumberOfBacktestWindows isn't specified, the number defaults
+// to one.
 //
 // The parameters of the filling method determine which items contribute to
-// the metrics. If zero is specified, all items contribute. If nan is specified,
-// only those items that have complete data in the range being evaluated contribute.
-// For more information, see FeaturizationMethod.
+// the metrics. If you want all items to contribute, specify zero. If you want
+// only those items that have complete data in the range being evaluated to
+// contribute, specify nan. For more information, see FeaturizationMethod.
 //
-// For an example of how to train a model and review metrics, see getting-started.
+// Before you can get accuracy metrics, the Status of the predictor must be
+// ACTIVE, signifying that training has completed. To get the status, use the
+// DescribePredictor operation.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1895,16 +1896,16 @@ func (c *ForecastService) GetAccuracyMetricsRequest(input *GetAccuracyMetricsInp
 // See the AWS API reference guide for Amazon Forecast Service's
 // API operation GetAccuracyMetrics for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidInputException "InvalidInputException"
+// Returned Error Types:
+//   * InvalidInputException
 //   We can't process the request because it includes an invalid value or a value
 //   that exceeds the valid range.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   We can't find a resource with that Amazon Resource Name (ARN). Check the
 //   ARN and try again.
 //
-//   * ErrCodeResourceInUseException "ResourceInUseException"
+//   * ResourceInUseException
 //   The specified resource is in use.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/forecast-2018-06-26/GetAccuracyMetrics
@@ -1980,9 +1981,10 @@ func (c *ForecastService) ListDatasetGroupsRequest(input *ListDatasetGroupsInput
 // ListDatasetGroups API operation for Amazon Forecast Service.
 //
 // Returns a list of dataset groups created using the CreateDatasetGroup operation.
-// For each dataset group, a summary of its properties, including its Amazon
-// Resource Name (ARN), is returned. You can retrieve the complete set of properties
-// by using the ARN with the DescribeDatasetGroup operation.
+// For each dataset group, this operation returns a summary of its properties,
+// including its Amazon Resource Name (ARN). You can retrieve the complete set
+// of properties by using the dataset group ARN with the DescribeDatasetGroup
+// operation.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1991,8 +1993,8 @@ func (c *ForecastService) ListDatasetGroupsRequest(input *ListDatasetGroupsInput
 // See the AWS API reference guide for Amazon Forecast Service's
 // API operation ListDatasetGroups for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidNextTokenException "InvalidNextTokenException"
+// Returned Error Types:
+//   * InvalidNextTokenException
 //   The token is not valid. Tokens expire after 24 hours.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/forecast-2018-06-26/ListDatasetGroups
@@ -2060,10 +2062,12 @@ func (c *ForecastService) ListDatasetGroupsPagesWithContext(ctx aws.Context, inp
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListDatasetGroupsOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListDatasetGroupsOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -2118,8 +2122,8 @@ func (c *ForecastService) ListDatasetImportJobsRequest(input *ListDatasetImportJ
 // ListDatasetImportJobs API operation for Amazon Forecast Service.
 //
 // Returns a list of dataset import jobs created using the CreateDatasetImportJob
-// operation. For each import job, a summary of its properties, including its
-// Amazon Resource Name (ARN), is returned. You can retrieve the complete set
+// operation. For each import job, this operation returns a summary of its properties,
+// including its Amazon Resource Name (ARN). You can retrieve the complete set
 // of properties by using the ARN with the DescribeDatasetImportJob operation.
 // You can filter the list by providing an array of Filter objects.
 //
@@ -2130,11 +2134,11 @@ func (c *ForecastService) ListDatasetImportJobsRequest(input *ListDatasetImportJ
 // See the AWS API reference guide for Amazon Forecast Service's
 // API operation ListDatasetImportJobs for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidNextTokenException "InvalidNextTokenException"
+// Returned Error Types:
+//   * InvalidNextTokenException
 //   The token is not valid. Tokens expire after 24 hours.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   We can't process the request because it includes an invalid value or a value
 //   that exceeds the valid range.
 //
@@ -2203,10 +2207,12 @@ func (c *ForecastService) ListDatasetImportJobsPagesWithContext(ctx aws.Context,
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListDatasetImportJobsOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListDatasetImportJobsOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -2262,8 +2268,8 @@ func (c *ForecastService) ListDatasetsRequest(input *ListDatasetsInput) (req *re
 //
 // Returns a list of datasets created using the CreateDataset operation. For
 // each dataset, a summary of its properties, including its Amazon Resource
-// Name (ARN), is returned. You can retrieve the complete set of properties
-// by using the ARN with the DescribeDataset operation.
+// Name (ARN), is returned. To retrieve the complete set of properties, use
+// the ARN with the DescribeDataset operation.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -2272,8 +2278,8 @@ func (c *ForecastService) ListDatasetsRequest(input *ListDatasetsInput) (req *re
 // See the AWS API reference guide for Amazon Forecast Service's
 // API operation ListDatasets for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidNextTokenException "InvalidNextTokenException"
+// Returned Error Types:
+//   * InvalidNextTokenException
 //   The token is not valid. Tokens expire after 24 hours.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/forecast-2018-06-26/ListDatasets
@@ -2341,10 +2347,12 @@ func (c *ForecastService) ListDatasetsPagesWithContext(ctx aws.Context, input *L
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListDatasetsOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListDatasetsOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -2399,10 +2407,10 @@ func (c *ForecastService) ListForecastExportJobsRequest(input *ListForecastExpor
 // ListForecastExportJobs API operation for Amazon Forecast Service.
 //
 // Returns a list of forecast export jobs created using the CreateForecastExportJob
-// operation. For each forecast export job, a summary of its properties, including
-// its Amazon Resource Name (ARN), is returned. You can retrieve the complete
-// set of properties by using the ARN with the DescribeForecastExportJob operation.
-// The list can be filtered using an array of Filter objects.
+// operation. For each forecast export job, this operation returns a summary
+// of its properties, including its Amazon Resource Name (ARN). To retrieve
+// the complete set of properties, use the ARN with the DescribeForecastExportJob
+// operation. You can filter the list using an array of Filter objects.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -2411,11 +2419,11 @@ func (c *ForecastService) ListForecastExportJobsRequest(input *ListForecastExpor
 // See the AWS API reference guide for Amazon Forecast Service's
 // API operation ListForecastExportJobs for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidNextTokenException "InvalidNextTokenException"
+// Returned Error Types:
+//   * InvalidNextTokenException
 //   The token is not valid. Tokens expire after 24 hours.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   We can't process the request because it includes an invalid value or a value
 //   that exceeds the valid range.
 //
@@ -2484,10 +2492,12 @@ func (c *ForecastService) ListForecastExportJobsPagesWithContext(ctx aws.Context
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListForecastExportJobsOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListForecastExportJobsOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -2542,9 +2552,9 @@ func (c *ForecastService) ListForecastsRequest(input *ListForecastsInput) (req *
 // ListForecasts API operation for Amazon Forecast Service.
 //
 // Returns a list of forecasts created using the CreateForecast operation. For
-// each forecast, a summary of its properties, including its Amazon Resource
-// Name (ARN), is returned. You can retrieve the complete set of properties
-// by using the ARN with the DescribeForecast operation. The list can be filtered
+// each forecast, this operation returns a summary of its properties, including
+// its Amazon Resource Name (ARN). To retrieve the complete set of properties,
+// specify the ARN with the DescribeForecast operation. You can filter the list
 // using an array of Filter objects.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
@@ -2554,11 +2564,11 @@ func (c *ForecastService) ListForecastsRequest(input *ListForecastsInput) (req *
 // See the AWS API reference guide for Amazon Forecast Service's
 // API operation ListForecasts for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidNextTokenException "InvalidNextTokenException"
+// Returned Error Types:
+//   * InvalidNextTokenException
 //   The token is not valid. Tokens expire after 24 hours.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   We can't process the request because it includes an invalid value or a value
 //   that exceeds the valid range.
 //
@@ -2627,10 +2637,12 @@ func (c *ForecastService) ListForecastsPagesWithContext(ctx aws.Context, input *
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListForecastsOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListForecastsOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -2685,10 +2697,10 @@ func (c *ForecastService) ListPredictorsRequest(input *ListPredictorsInput) (req
 // ListPredictors API operation for Amazon Forecast Service.
 //
 // Returns a list of predictors created using the CreatePredictor operation.
-// For each predictor, a summary of its properties, including its Amazon Resource
-// Name (ARN), is returned. You can retrieve the complete set of properties
-// by using the ARN with the DescribePredictor operation. The list can be filtered
-// using an array of Filter objects.
+// For each predictor, this operation returns a summary of its properties, including
+// its Amazon Resource Name (ARN). You can retrieve the complete set of properties
+// by using the ARN with the DescribePredictor operation. You can filter the
+// list using an array of Filter objects.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -2697,11 +2709,11 @@ func (c *ForecastService) ListPredictorsRequest(input *ListPredictorsInput) (req
 // See the AWS API reference guide for Amazon Forecast Service's
 // API operation ListPredictors for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidNextTokenException "InvalidNextTokenException"
+// Returned Error Types:
+//   * InvalidNextTokenException
 //   The token is not valid. Tokens expire after 24 hours.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   We can't process the request because it includes an invalid value or a value
 //   that exceeds the valid range.
 //
@@ -2770,10 +2782,12 @@ func (c *ForecastService) ListPredictorsPagesWithContext(ctx aws.Context, input 
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListPredictorsOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListPredictorsOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -2822,11 +2836,11 @@ func (c *ForecastService) UpdateDatasetGroupRequest(input *UpdateDatasetGroupInp
 
 // UpdateDatasetGroup API operation for Amazon Forecast Service.
 //
-// Replaces any existing datasets in the dataset group with the specified datasets.
+// Replaces the datasets in a dataset group with the specified datasets.
 //
-// The Status of the dataset group must be ACTIVE before creating a predictor
-// using the dataset group. Use the DescribeDatasetGroup operation to get the
-// status.
+// The Status of the dataset group must be ACTIVE before you can use the dataset
+// group to create a predictor. Use the DescribeDatasetGroup operation to get
+// the status.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -2835,16 +2849,16 @@ func (c *ForecastService) UpdateDatasetGroupRequest(input *UpdateDatasetGroupInp
 // See the AWS API reference guide for Amazon Forecast Service's
 // API operation UpdateDatasetGroup for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidInputException "InvalidInputException"
+// Returned Error Types:
+//   * InvalidInputException
 //   We can't process the request because it includes an invalid value or a value
 //   that exceeds the valid range.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   We can't find a resource with that Amazon Resource Name (ARN). Check the
 //   ARN and try again.
 //
-//   * ErrCodeResourceInUseException "ResourceInUseException"
+//   * ResourceInUseException
 //   The specified resource is in use.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/forecast-2018-06-26/UpdateDatasetGroup
@@ -2950,9 +2964,7 @@ type ContinuousParameterRange struct {
 	Name *string `min:"1" type:"string" required:"true"`
 
 	// The scale that hyperparameter tuning uses to search the hyperparameter range.
-	// For information about choosing a hyperparameter scale, see Hyperparameter
-	// Scaling (http://docs.aws.amazon.com/sagemaker/latest/dg/automatic-model-tuning-define-ranges.html#scaling-type).
-	// One of the following values:
+	// Valid values:
 	//
 	// Auto
 	//
@@ -2968,16 +2980,19 @@ type ContinuousParameterRange struct {
 	// Hyperparameter tuning searches the values in the hyperparameter range by
 	// using a logarithmic scale.
 	//
-	// Logarithmic scaling works only for ranges that have only values greater than
-	// 0.
+	// Logarithmic scaling works only for ranges that have values greater than 0.
 	//
 	// ReverseLogarithmic
 	//
-	// Hyperparemeter tuning searches the values in the hyperparameter range by
+	// hyperparameter tuning searches the values in the hyperparameter range by
 	// using a reverse logarithmic scale.
 	//
 	// Reverse logarithmic scaling works only for ranges that are entirely within
 	// the range 0 <= x < 1.0.
+	//
+	// For information about choosing a hyperparameter scale, see Hyperparameter
+	// Scaling (http://docs.aws.amazon.com/sagemaker/latest/dg/automatic-model-tuning-define-ranges.html#scaling-type).
+	// One of the following values:
 	ScalingType *string `type:"string" enum:"ScalingType"`
 }
 
@@ -3049,12 +3064,15 @@ type CreateDatasetGroupInput struct {
 	// DatasetGroupName is a required field
 	DatasetGroupName *string `min:"1" type:"string" required:"true"`
 
-	// The domain associated with the dataset group. The Domain and DatasetType
-	// that you choose determine the fields that must be present in the training
-	// data that you import to the dataset. For example, if you choose the RETAIL
-	// domain and TARGET_TIME_SERIES as the DatasetType, Amazon Forecast requires
-	// item_id, timestamp, and demand fields to be present in your data. For more
-	// information, see howitworks-datasets-groups.
+	// The domain associated with the dataset group. When you add a dataset to a
+	// dataset group, this value and the value specified for the Domain parameter
+	// of the CreateDataset operation must match.
+	//
+	// The Domain and DatasetType that you choose determine the fields that must
+	// be present in training data that you import to a dataset. For example, if
+	// you choose the RETAIL domain and TARGET_TIME_SERIES as the DatasetType, Amazon
+	// Forecast requires that item_id, timestamp, and demand fields are present
+	// in your data. For more information, see howitworks-datasets-groups.
 	//
 	// Domain is a required field
 	Domain *string `type:"string" required:"true" enum:"Domain"`
@@ -3135,6 +3153,12 @@ type CreateDatasetImportJobInput struct {
 
 	// The location of the training data to import and an AWS Identity and Access
 	// Management (IAM) role that Amazon Forecast can assume to access the data.
+	// The training data must be stored in an Amazon S3 bucket.
+	//
+	// If encryption is used, DataSource must include an AWS Key Management Service
+	// (KMS) key and the IAM role must allow Amazon Forecast permission to access
+	// the key. The KMS key and IAM role must match those specified in the EncryptionConfig
+	// parameter of the CreateDataset operation.
 	//
 	// DataSource is a required field
 	DataSource *DataSource `type:"structure" required:"true"`
@@ -3145,20 +3169,24 @@ type CreateDatasetImportJobInput struct {
 	// DatasetArn is a required field
 	DatasetArn *string `type:"string" required:"true"`
 
-	// The name for the dataset import job. It is recommended to include the current
-	// timestamp in the name to guard against getting a ResourceAlreadyExistsException
-	// exception, for example, 20190721DatasetImport.
+	// The name for the dataset import job. We recommend including the current timestamp
+	// in the name, for example, 20190721DatasetImport. This can help you avoid
+	// getting a ResourceAlreadyExistsException exception.
 	//
 	// DatasetImportJobName is a required field
 	DatasetImportJobName *string `min:"1" type:"string" required:"true"`
 
-	// The format of timestamps in the dataset. Two formats are supported, dependent
-	// on the DataFrequency specified when the dataset was created.
+	// The format of timestamps in the dataset. The format that you specify depends
+	// on the DataFrequency specified when the dataset was created. The following
+	// formats are supported
 	//
-	//    * "yyyy-MM-dd" For data frequencies: Y, M, W, and D
+	//    * "yyyy-MM-dd" For the following data frequencies: Y, M, W, and D
 	//
-	//    * "yyyy-MM-dd HH:mm:ss" For data frequencies: H, 30min, 15min, and 1min;
-	//    and optionally, for: Y, M, W, and D
+	//    * "yyyy-MM-dd HH:mm:ss" For the following data frequencies: H, 30min,
+	//    15min, and 1min; and optionally, for: Y, M, W, and D
+	//
+	// If the format isn't specified, Amazon Forecast expects the format to be "yyyy-MM-dd
+	// HH:mm:ss".
 	TimestampFormat *string `type:"string"`
 }
 
@@ -3249,7 +3277,8 @@ func (s *CreateDatasetImportJobOutput) SetDatasetImportJobArn(v string) *CreateD
 type CreateDatasetInput struct {
 	_ struct{} `type:"structure"`
 
-	// The frequency of data collection.
+	// The frequency of data collection. This parameter is required for RELATED_TIME_SERIES
+	// datasets.
 	//
 	// Valid intervals are Y (Year), M (Month), W (Week), D (Day), H (Hour), 30min
 	// (30 minutes), 15min (15 minutes), 10min (10 minutes), 5min (5 minutes), and
@@ -3267,12 +3296,15 @@ type CreateDatasetInput struct {
 	// DatasetType is a required field
 	DatasetType *string `type:"string" required:"true" enum:"DatasetType"`
 
-	// The domain associated with the dataset. The Domain and DatasetType that you
-	// choose determine the fields that must be present in the training data that
-	// you import to the dataset. For example, if you choose the RETAIL domain and
-	// TARGET_TIME_SERIES as the DatasetType, Amazon Forecast requires item_id,
-	// timestamp, and demand fields to be present in your data. For more information,
-	// see howitworks-datasets-groups.
+	// The domain associated with the dataset. When you add a dataset to a dataset
+	// group, this value and the value specified for the Domain parameter of the
+	// CreateDatasetGroup operation must match.
+	//
+	// The Domain and DatasetType that you choose determine the fields that must
+	// be present in the training data that you import to the dataset. For example,
+	// if you choose the RETAIL domain and TARGET_TIME_SERIES as the DatasetType,
+	// Amazon Forecast requires item_id, timestamp, and demand fields to be present
+	// in your data. For more information, see howitworks-datasets-groups.
 	//
 	// Domain is a required field
 	Domain *string `type:"string" required:"true" enum:"Domain"`
@@ -3397,9 +3429,13 @@ func (s *CreateDatasetOutput) SetDatasetArn(v string) *CreateDatasetOutput {
 type CreateForecastExportJobInput struct {
 	_ struct{} `type:"structure"`
 
-	// The path to the Amazon S3 bucket where you want to save the forecast and
-	// an AWS Identity and Access Management (IAM) role that Amazon Forecast can
-	// assume to access the bucket.
+	// The location where you want to save the forecast and an AWS Identity and
+	// Access Management (IAM) role that Amazon Forecast can assume to access the
+	// location. The forecast must be exported to an Amazon S3 bucket.
+	//
+	// If encryption is used, Destination must include an AWS Key Management Service
+	// (KMS) key. The IAM role must allow Amazon Forecast permission to access the
+	// key.
 	//
 	// Destination is a required field
 	Destination *DataDestination `type:"structure" required:"true"`
@@ -3496,10 +3532,17 @@ func (s *CreateForecastExportJobOutput) SetForecastExportJobArn(v string) *Creat
 type CreateForecastInput struct {
 	_ struct{} `type:"structure"`
 
-	// The name for the forecast.
+	// A name for the forecast.
 	//
 	// ForecastName is a required field
 	ForecastName *string `min:"1" type:"string" required:"true"`
+
+	// The quantiles at which probabilistic forecasts are generated. You can specify
+	// up to 5 quantiles per forecast. Accepted values include 0.01 to 0.99 (increments
+	// of .01 only) and mean. The mean forecast is different from the median (0.50)
+	// when the distribution is not symmetric (e.g. Beta, Negative Binomial). The
+	// default value is ["0.1", "0.5", "0.9"].
+	ForecastTypes []*string `min:"1" type:"list"`
 
 	// The Amazon Resource Name (ARN) of the predictor to use to generate the forecast.
 	//
@@ -3526,6 +3569,9 @@ func (s *CreateForecastInput) Validate() error {
 	if s.ForecastName != nil && len(*s.ForecastName) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("ForecastName", 1))
 	}
+	if s.ForecastTypes != nil && len(s.ForecastTypes) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ForecastTypes", 1))
+	}
 	if s.PredictorArn == nil {
 		invalidParams.Add(request.NewErrParamRequired("PredictorArn"))
 	}
@@ -3539,6 +3585,12 @@ func (s *CreateForecastInput) Validate() error {
 // SetForecastName sets the ForecastName field's value.
 func (s *CreateForecastInput) SetForecastName(v string) *CreateForecastInput {
 	s.ForecastName = &v
+	return s
+}
+
+// SetForecastTypes sets the ForecastTypes field's value.
+func (s *CreateForecastInput) SetForecastTypes(v []*string) *CreateForecastInput {
+	s.ForecastTypes = v
 	return s
 }
 
@@ -3577,12 +3629,12 @@ type CreatePredictorInput struct {
 	// The Amazon Resource Name (ARN) of the algorithm to use for model training.
 	// Required if PerformAutoML is not set to true.
 	//
-	// Supported algorithms
+	// Supported algorithms:
 	//
 	//    * arn:aws:forecast:::algorithm/ARIMA
 	//
-	//    * arn:aws:forecast:::algorithm/Deep_AR_Plus - supports hyperparameter
-	//    optimization (HPO)
+	//    * arn:aws:forecast:::algorithm/Deep_AR_Plus Supports hyperparameter optimization
+	//    (HPO)
 	//
 	//    * arn:aws:forecast:::algorithm/ETS
 	//
@@ -3613,6 +3665,9 @@ type CreatePredictorInput struct {
 	// the DataFrequency parameter of the CreateDataset operation) and set the forecast
 	// horizon to 10, the model returns predictions for 10 days.
 	//
+	// The maximum forecast horizon is the lesser of 500 time-steps or 1/3 of the
+	// TARGET_TIME_SERIES dataset length.
+	//
 	// ForecastHorizon is a required field
 	ForecastHorizon *int64 `type:"integer" required:"true"`
 
@@ -3620,6 +3675,8 @@ type CreatePredictorInput struct {
 	// this parameter, Amazon Forecast uses default values. The individual algorithms
 	// specify which hyperparameters support hyperparameter optimization (HPO).
 	// For more information, see aws-forecast-choosing-recipes.
+	//
+	// If you included the HPOConfig object, you must set PerformHPO to true.
 	HPOConfig *HyperParameterTuningJobConfig `type:"structure"`
 
 	// Describes the dataset group that contains the data to use to train the predictor.
@@ -3627,27 +3684,32 @@ type CreatePredictorInput struct {
 	// InputDataConfig is a required field
 	InputDataConfig *InputDataConfig `type:"structure" required:"true"`
 
-	// Whether to perform AutoML. The default value is false. In this case, you
-	// are required to specify an algorithm.
+	// Whether to perform AutoML. When Amazon Forecast performs AutoML, it evaluates
+	// the algorithms it provides and chooses the best algorithm and configuration
+	// for your training dataset.
 	//
-	// If you want Amazon Forecast to evaluate the algorithms it provides and choose
-	// the best algorithm and configuration for your training dataset, set PerformAutoML
-	// to true. This is a good option if you aren't sure which algorithm is suitable
-	// for your application.
+	// The default value is false. In this case, you are required to specify an
+	// algorithm.
+	//
+	// Set PerformAutoML to true to have Amazon Forecast perform AutoML. This is
+	// a good option if you aren't sure which algorithm is suitable for your training
+	// data. In this case, PerformHPO must be false.
 	PerformAutoML *bool `type:"boolean"`
 
 	// Whether to perform hyperparameter optimization (HPO). HPO finds optimal hyperparameter
 	// values for your training data. The process of performing HPO is known as
-	// a hyperparameter tuning job.
+	// running a hyperparameter tuning job.
 	//
 	// The default value is false. In this case, Amazon Forecast uses default hyperparameter
 	// values from the chosen algorithm.
 	//
-	// To override the default values, set PerformHPO to true and supply the HyperParameterTuningJobConfig
-	// object. The tuning job specifies an objective metric, the hyperparameters
-	// to optimize, and the valid range for each hyperparameter.
+	// To override the default values, set PerformHPO to true and, optionally, supply
+	// the HyperParameterTuningJobConfig object. The tuning job specifies a metric
+	// to optimize, which hyperparameters participate in tuning, and the valid range
+	// for each tunable hyperparameter. In this case, you are required to specify
+	// an algorithm and PerformAutoML must be false.
 	//
-	// The following algorithms support HPO:
+	// The following algorithm supports HPO:
 	//
 	//    * DeepAR+
 	PerformHPO *bool `type:"boolean"`
@@ -3657,8 +3719,9 @@ type CreatePredictorInput struct {
 	// PredictorName is a required field
 	PredictorName *string `min:"1" type:"string" required:"true"`
 
-	// The training parameters to override for model training. The parameters that
-	// you can override are listed in the individual algorithms in aws-forecast-choosing-recipes.
+	// The hyperparameters to override for model training. The hyperparameters that
+	// you can override are listed in the individual algorithms. For the list of
+	// supported algorithms, see aws-forecast-choosing-recipes.
 	TrainingParameters map[string]*string `type:"map"`
 }
 
@@ -3806,8 +3869,10 @@ func (s *CreatePredictorOutput) SetPredictorArn(v string) *CreatePredictorOutput
 	return s
 }
 
-// The destination of an exported forecast and credentials to access the location.
-// This object is submitted in the CreateForecastExportJob request.
+// The destination for an exported forecast, an AWS Identity and Access Management
+// (IAM) role that allows Amazon Forecast to access the location and, optionally,
+// an AWS Key Management Service (KMS) key. This object is submitted in the
+// CreateForecastExportJob request.
 type DataDestination struct {
 	_ struct{} `type:"structure"`
 
@@ -3852,8 +3917,10 @@ func (s *DataDestination) SetS3Config(v *S3Config) *DataDestination {
 	return s
 }
 
-// The source of your training data and credentials to access the data. This
-// object is submitted in the CreateDatasetImportJob request.
+// The source of your training data, an AWS Identity and Access Management (IAM)
+// role that allows Amazon Forecast to access the data and, optionally, an AWS
+// Key Management Service (KMS) key. This object is submitted in the CreateDatasetImportJob
+// request.
 type DataSource struct {
 	_ struct{} `type:"structure"`
 
@@ -3900,11 +3967,11 @@ func (s *DataSource) SetS3Config(v *S3Config) *DataSource {
 
 // Provides a summary of the dataset group properties used in the ListDatasetGroups
 // operation. To get the complete set of properties, call the DescribeDatasetGroup
-// operation, and provide the listed DatasetGroupArn.
+// operation, and provide the DatasetGroupArn.
 type DatasetGroupSummary struct {
 	_ struct{} `type:"structure"`
 
-	// When the datase group was created.
+	// When the dataset group was created.
 	CreationTime *time.Time `type:"timestamp"`
 
 	// The Amazon Resource Name (ARN) of the dataset group.
@@ -3915,7 +3982,7 @@ type DatasetGroupSummary struct {
 
 	// When the dataset group was created or last updated from a call to the UpdateDatasetGroup
 	// operation. While the dataset group is being updated, LastModificationTime
-	// is the current query time.
+	// is the current time of the ListDatasetGroups call.
 	LastModificationTime *time.Time `type:"timestamp"`
 }
 
@@ -3955,14 +4022,19 @@ func (s *DatasetGroupSummary) SetLastModificationTime(v time.Time) *DatasetGroup
 
 // Provides a summary of the dataset import job properties used in the ListDatasetImportJobs
 // operation. To get the complete set of properties, call the DescribeDatasetImportJob
-// operation, and provide the listed DatasetImportJobArn.
+// operation, and provide the DatasetImportJobArn.
 type DatasetImportJobSummary struct {
 	_ struct{} `type:"structure"`
 
 	// When the dataset import job was created.
 	CreationTime *time.Time `type:"timestamp"`
 
-	// The location of the Amazon S3 bucket that contains the training data.
+	// The location of the training data to import and an AWS Identity and Access
+	// Management (IAM) role that Amazon Forecast can assume to access the data.
+	// The training data must be stored in an Amazon S3 bucket.
+	//
+	// If encryption is used, DataSource includes an AWS Key Management Service
+	// (KMS) key.
 	DataSource *DataSource `type:"structure"`
 
 	// The Amazon Resource Name (ARN) of the dataset import job.
@@ -3971,13 +4043,14 @@ type DatasetImportJobSummary struct {
 	// The name of the dataset import job.
 	DatasetImportJobName *string `min:"1" type:"string"`
 
-	// Dependent on the status as follows:
+	// The last time that the dataset was modified. The time depends on the status
+	// of the job, as follows:
 	//
-	//    * CREATE_PENDING - same as CreationTime
+	//    * CREATE_PENDING - The same time as CreationTime.
 	//
-	//    * CREATE_IN_PROGRESS - the current timestamp
+	//    * CREATE_IN_PROGRESS - The current timestamp.
 	//
-	//    * ACTIVE or CREATE_FAILED - when the job finished or failed
+	//    * ACTIVE or CREATE_FAILED - When the job finished or failed.
 	LastModificationTime *time.Time `type:"timestamp"`
 
 	// If an error occurred, an informational message about the error.
@@ -4049,7 +4122,7 @@ func (s *DatasetImportJobSummary) SetStatus(v string) *DatasetImportJobSummary {
 
 // Provides a summary of the dataset properties used in the ListDatasets operation.
 // To get the complete set of properties, call the DescribeDataset operation,
-// and provide the listed DatasetArn.
+// and provide the DatasetArn.
 type DatasetSummary struct {
 	_ struct{} `type:"structure"`
 
@@ -4068,10 +4141,10 @@ type DatasetSummary struct {
 	// The domain associated with the dataset.
 	Domain *string `type:"string" enum:"Domain"`
 
-	// When the dataset is created, LastModificationTime is the same as CreationTime.
-	// After a CreateDatasetImportJob operation is called, LastModificationTime
-	// is when the import job finished or failed. While data is being imported to
-	// the dataset, LastModificationTime is the current query time.
+	// When you create a dataset, LastModificationTime is the same as CreationTime.
+	// While data is being imported to the dataset, LastModificationTime is the
+	// current time of the ListDatasets call. After a CreateDatasetImportJob operation
+	// has finished, LastModificationTime is when the import job completed or failed.
 	LastModificationTime *time.Time `type:"timestamp"`
 }
 
@@ -4487,17 +4560,12 @@ type DescribeDatasetGroupOutput struct {
 	// The name of the dataset group.
 	DatasetGroupName *string `min:"1" type:"string"`
 
-	// The domain associated with the dataset group. The Domain and DatasetType
-	// that you choose determine the fields that must be present in the training
-	// data that you import to the dataset. For example, if you choose the RETAIL
-	// domain and TARGET_TIME_SERIES as the DatasetType, Amazon Forecast requires
-	// item_id, timestamp, and demand fields to be present in your data. For more
-	// information, see howitworks-datasets-groups.
+	// The domain associated with the dataset group.
 	Domain *string `type:"string" enum:"Domain"`
 
 	// When the dataset group was created or last updated from a call to the UpdateDatasetGroup
 	// operation. While the dataset group is being updated, LastModificationTime
-	// is the current query time.
+	// is the current time of the DescribeDatasetGroup call.
 	LastModificationTime *time.Time `type:"timestamp"`
 
 	// The status of the dataset group. States include:
@@ -4510,10 +4578,10 @@ type DescribeDatasetGroupOutput struct {
 	//
 	//    * UPDATE_PENDING, UPDATE_IN_PROGRESS, UPDATE_FAILED
 	//
-	// The UPDATE states apply when the UpdateDatasetGroup operation is called.
+	// The UPDATE states apply when you call the UpdateDatasetGroup operation.
 	//
-	// The Status of the dataset group must be ACTIVE before creating a predictor
-	// using the dataset group.
+	// The Status of the dataset group must be ACTIVE before you can use the dataset
+	// group to create a predictor.
 	Status *string `type:"string"`
 }
 
@@ -4613,12 +4681,14 @@ type DescribeDatasetImportJobOutput struct {
 	// When the dataset import job was created.
 	CreationTime *time.Time `type:"timestamp"`
 
-	// The size of the dataset in gigabytes (GB) after completion of the import
-	// job.
+	// The size of the dataset in gigabytes (GB) after the import job has finished.
 	DataSize *float64 `type:"double"`
 
-	// The location of the training data to import. The training data must be stored
-	// in an Amazon S3 bucket.
+	// The location of the training data to import and an AWS Identity and Access
+	// Management (IAM) role that Amazon Forecast can assume to access the data.
+	//
+	// If encryption is used, DataSource includes an AWS Key Management Service
+	// (KMS) key.
 	DataSource *DataSource `type:"structure"`
 
 	// The Amazon Resource Name (ARN) of the dataset that the training data was
@@ -4634,13 +4704,14 @@ type DescribeDatasetImportJobOutput struct {
 	// Statistical information about each field in the input data.
 	FieldStatistics map[string]*Statistics `type:"map"`
 
-	// Dependent on the status as follows:
+	// The last time that the dataset was modified. The time depends on the status
+	// of the job, as follows:
 	//
-	//    * CREATE_PENDING - same as CreationTime
+	//    * CREATE_PENDING - The same time as CreationTime.
 	//
-	//    * CREATE_IN_PROGRESS - the current timestamp
+	//    * CREATE_IN_PROGRESS - The current timestamp.
 	//
-	//    * ACTIVE or CREATE_FAILED - when the job finished or failed
+	//    * ACTIVE or CREATE_FAILED - When the job finished or failed.
 	LastModificationTime *time.Time `type:"timestamp"`
 
 	// If an error occurred, an informational message about the error.
@@ -4657,13 +4728,14 @@ type DescribeDatasetImportJobOutput struct {
 	//    * DELETE_PENDING, DELETE_IN_PROGRESS, DELETE_FAILED
 	Status *string `type:"string"`
 
-	// The format of timestamps in the dataset. Two formats are supported dependent
-	// on the DataFrequency specified when the dataset was created.
+	// The format of timestamps in the dataset. The format that you specify depends
+	// on the DataFrequency specified when the dataset was created. The following
+	// formats are supported
 	//
-	//    * "yyyy-MM-dd" For data frequencies: Y, M, W, and D
+	//    * "yyyy-MM-dd" For the following data frequencies: Y, M, W, and D
 	//
-	//    * "yyyy-MM-dd HH:mm:ss" For data frequencies: H, 30min, 15min, and 1min;
-	//    and optionally, for: Y, M, W, and D
+	//    * "yyyy-MM-dd HH:mm:ss" For the following data frequencies: H, 30min,
+	//    15min, and 1min; and optionally, for: Y, M, W, and D
 	TimestampFormat *string `type:"string"`
 }
 
@@ -4804,17 +4876,18 @@ type DescribeDatasetOutput struct {
 	// The dataset type.
 	DatasetType *string `type:"string" enum:"DatasetType"`
 
-	// The dataset domain.
+	// The domain associated with the dataset.
 	Domain *string `type:"string" enum:"Domain"`
 
-	// An AWS Key Management Service (KMS) key and the AWS Identity and Access Management
-	// (IAM) role that Amazon Forecast can assume to access the key.
+	// The AWS Key Management Service (KMS) key and the AWS Identity and Access
+	// Management (IAM) role that Amazon Forecast can assume to access the key.
 	EncryptionConfig *EncryptionConfig `type:"structure"`
 
-	// When the dataset is created, LastModificationTime is the same as CreationTime.
-	// After a CreateDatasetImportJob operation is called, LastModificationTime
-	// is when the import job finished or failed. While data is being imported to
-	// the dataset, LastModificationTime is the current query time.
+	// When you create a dataset, LastModificationTime is the same as CreationTime.
+	// While data is being imported to the dataset, LastModificationTime is the
+	// current time of the DescribeDataset call. After a CreateDatasetImportJob
+	// operation has finished, LastModificationTime is when the import job completed
+	// or failed.
 	LastModificationTime *time.Time `type:"timestamp"`
 
 	// An array of SchemaAttribute objects that specify the dataset fields. Each
@@ -4832,9 +4905,9 @@ type DescribeDatasetOutput struct {
 	//    * UPDATE_PENDING, UPDATE_IN_PROGRESS, UPDATE_FAILED
 	//
 	// The UPDATE states apply while data is imported to the dataset from a call
-	// to the CreateDatasetImportJob operation. During this time, the status reflects
-	// the status of the dataset import job. For example, when the import job status
-	// is CREATE_IN_PROGRESS, the status of the dataset is UPDATE_IN_PROGRESS.
+	// to the CreateDatasetImportJob operation and reflect the status of the dataset
+	// import job. For example, when the import job status is CREATE_IN_PROGRESS,
+	// the status of the dataset is UPDATE_IN_PROGRESS.
 	//
 	// The Status of the dataset must be ACTIVE before you can import training data.
 	Status *string `type:"string"`
@@ -4954,7 +5027,8 @@ type DescribeForecastExportJobOutput struct {
 	// When the forecast export job was created.
 	CreationTime *time.Time `type:"timestamp"`
 
-	// The path to the AWS S3 bucket where the forecast is exported.
+	// The path to the Amazon Simple Storage Service (Amazon S3) bucket where the
+	// forecast is exported.
 	Destination *DataDestination `type:"structure"`
 
 	// The Amazon Resource Name (ARN) of the exported forecast.
@@ -4972,7 +5046,7 @@ type DescribeForecastExportJobOutput struct {
 	// If an error occurred, an informational message about the error.
 	Message *string `type:"string"`
 
-	// The status of the forecast export job. One of the following states:
+	// The status of the forecast export job. States include:
 	//
 	//    * ACTIVE
 	//
@@ -4981,7 +5055,7 @@ type DescribeForecastExportJobOutput struct {
 	//    * DELETE_PENDING, DELETE_IN_PROGRESS, DELETE_FAILED
 	//
 	// The Status of the forecast export job must be ACTIVE before you can access
-	// the forecast in your Amazon S3 bucket.
+	// the forecast in your S3 bucket.
 	Status *string `type:"string"`
 }
 
@@ -5090,11 +5164,14 @@ type DescribeForecastOutput struct {
 	// The ARN of the dataset group that provided the data used to train the predictor.
 	DatasetGroupArn *string `type:"string"`
 
-	// The same forecast ARN as given in the request.
+	// The forecast ARN as specified in the request.
 	ForecastArn *string `type:"string"`
 
 	// The name of the forecast.
 	ForecastName *string `min:"1" type:"string"`
+
+	// The quantiles at which proababilistic forecasts were generated.
+	ForecastTypes []*string `min:"1" type:"list"`
 
 	// Initially, the same as CreationTime (status is CREATE_PENDING). Updated when
 	// inference (creating the forecast) starts (status changed to CREATE_IN_PROGRESS),
@@ -5152,6 +5229,12 @@ func (s *DescribeForecastOutput) SetForecastArn(v string) *DescribeForecastOutpu
 // SetForecastName sets the ForecastName field's value.
 func (s *DescribeForecastOutput) SetForecastName(v string) *DescribeForecastOutput {
 	s.ForecastName = &v
+	return s
+}
+
+// SetForecastTypes sets the ForecastTypes field's value.
+func (s *DescribeForecastOutput) SetForecastTypes(v []*string) *DescribeForecastOutput {
+	s.ForecastTypes = v
 	return s
 }
 
@@ -5230,7 +5313,7 @@ type DescribePredictorOutput struct {
 	// When the model training task was created.
 	CreationTime *time.Time `type:"timestamp"`
 
-	// An array of ARNs of the dataset import jobs used to import training data
+	// An array of the ARNs of the dataset import jobs used to import training data
 	// for the predictor.
 	DatasetImportJobArns []*string `type:"list"`
 
@@ -5257,9 +5340,10 @@ type DescribePredictorOutput struct {
 	// Describes the dataset group that contains the data to use to train the predictor.
 	InputDataConfig *InputDataConfig `type:"structure"`
 
-	// Initially, the same as CreationTime (status is CREATE_PENDING). Updated when
-	// training starts (status changed to CREATE_IN_PROGRESS), and when training
-	// is complete (status changed to ACTIVE) or fails (status changed to CREATE_FAILED).
+	// Initially, the same as CreationTime (when the status is CREATE_PENDING).
+	// This value is updated when training starts (when the status changes to CREATE_IN_PROGRESS),
+	// and when training has completed (when the status changes to ACTIVE) or fails
+	// (when the status changes to CREATE_FAILED).
 	LastModificationTime *time.Time `type:"timestamp"`
 
 	// If an error occurred, an informational message about the error.
@@ -5268,11 +5352,16 @@ type DescribePredictorOutput struct {
 	// Whether the predictor is set to perform AutoML.
 	PerformAutoML *bool `type:"boolean"`
 
-	// Whether the predictor is set to perform HPO.
+	// Whether the predictor is set to perform hyperparameter optimization (HPO).
 	PerformHPO *bool `type:"boolean"`
 
 	// The ARN of the predictor.
 	PredictorArn *string `min:"1" type:"string"`
+
+	// Details on the the status and results of the backtests performed to evaluate
+	// the accuracy of the predictor. You specify the number of backtests to perform
+	// when you call the operation.
+	PredictorExecutionDetails *PredictorExecutionDetails `type:"structure"`
 
 	// The name of the predictor.
 	PredictorName *string `min:"1" type:"string"`
@@ -5287,12 +5376,14 @@ type DescribePredictorOutput struct {
 	//
 	//    * UPDATE_PENDING, UPDATE_IN_PROGRESS, UPDATE_FAILED
 	//
-	// The Status of the predictor must be ACTIVE before using the predictor to
-	// create a forecast.
+	// The Status of the predictor must be ACTIVE before you can use the predictor
+	// to create a forecast.
 	Status *string `type:"string"`
 
-	// The training parameters to override for model training. The parameters that
-	// you can override are listed in the individual algorithms in aws-forecast-choosing-recipes.
+	// The default training parameters or overrides selected during model training.
+	// If using the AutoML algorithm or if HPO is turned on while using the DeepAR+
+	// algorithms, the optimized values for the chosen hyperparameters are returned.
+	// For more information, see aws-forecast-choosing-recipes.
 	TrainingParameters map[string]*string `type:"map"`
 }
 
@@ -5396,6 +5487,12 @@ func (s *DescribePredictorOutput) SetPredictorArn(v string) *DescribePredictorOu
 	return s
 }
 
+// SetPredictorExecutionDetails sets the PredictorExecutionDetails field's value.
+func (s *DescribePredictorOutput) SetPredictorExecutionDetails(v *PredictorExecutionDetails) *DescribePredictorOutput {
+	s.PredictorExecutionDetails = v
+	return s
+}
+
 // SetPredictorName sets the PredictorName field's value.
 func (s *DescribePredictorOutput) SetPredictorName(v string) *DescribePredictorOutput {
 	s.PredictorName = &v
@@ -5415,21 +5512,21 @@ func (s *DescribePredictorOutput) SetTrainingParameters(v map[string]*string) *D
 }
 
 // An AWS Key Management Service (KMS) key and an AWS Identity and Access Management
-// (IAM) role that Amazon Forecast can assume to access the key. This object
-// is optionally submitted in the CreateDataset and CreatePredictor requests.
+// (IAM) role that Amazon Forecast can assume to access the key. You can specify
+// this optional object in the CreateDataset and CreatePredictor requests.
 type EncryptionConfig struct {
 	_ struct{} `type:"structure"`
 
-	// The Amazon Resource Name (ARN) of an AWS Key Management Service (KMS) key.
+	// The Amazon Resource Name (ARN) of the KMS key.
 	//
 	// KMSKeyArn is a required field
 	KMSKeyArn *string `type:"string" required:"true"`
 
-	// The ARN of the AWS Identity and Access Management (IAM) role that Amazon
-	// Forecast can assume to access the AWS KMS key.
+	// The ARN of the IAM role that Amazon Forecast can assume to access the AWS
+	// KMS key.
 	//
-	// Cross-account pass role is not allowed. If you pass a role that doesn't belong
-	// to your account, an InvalidInputException is thrown.
+	// Passing a role across AWS accounts is not allowed. If you pass a role that
+	// isn't in your account, you get an InvalidInputException error.
 	//
 	// RoleArn is a required field
 	RoleArn *string `type:"string" required:"true"`
@@ -5475,27 +5572,24 @@ func (s *EncryptionConfig) SetRoleArn(v string) *EncryptionConfig {
 
 // Parameters that define how to split a dataset into training data and testing
 // data, and the number of iterations to perform. These parameters are specified
-// in the predefined algorithms and can be overridden in the CreatePredictor
+// in the predefined algorithms but you can override them in the CreatePredictor
 // request.
-//
-// For example, suppose that you have a dataset with data collection frequency
-// set to every day and you have 200 days worth of data (that is, 200 data points).
-// Now suppose that you set the NumberOfBacktestWindows to 2 and the BackTestWindowOffset
-// parameter to 20. The algorithm splits the data twice. The first time, the
-// algorithm trains the model using the first 180 data points and uses the last
-// 20 data points for evaluation. The second time, the algorithm trains the
-// model using the first 160 data points and uses the last 40 data points for
-// evaluation.
 type EvaluationParameters struct {
 	_ struct{} `type:"structure"`
 
 	// The point from the end of the dataset where you want to split the data for
-	// model training and evaluation. The value is specified as the number of data
-	// points.
+	// model training and testing (evaluation). Specify the value as the number
+	// of data points. The default is the value of the forecast horizon. BackTestWindowOffset
+	// can be used to mimic a past virtual forecast start date. This value must
+	// be greater than or equal to the forecast horizon and less than half of the
+	// TARGET_TIME_SERIES dataset length.
+	//
+	// ForecastHorizon <= BackTestWindowOffset < 1/2 * TARGET_TIME_SERIES dataset
+	// length
 	BackTestWindowOffset *int64 `type:"integer"`
 
-	// The number of times to split the input data. The default is 1. The range
-	// is 1 through 5.
+	// The number of times to split the input data. The default is 1. Valid values
+	// are 1 through 5.
 	NumberOfBacktestWindows *int64 `type:"integer"`
 }
 
@@ -5578,16 +5672,16 @@ func (s *EvaluationResult) SetTestWindows(v []*WindowSummary) *EvaluationResult 
 type Featurization struct {
 	_ struct{} `type:"structure"`
 
-	// The name of the schema attribute specifying the data field to be featurized.
-	// In this release, only the target field of the TARGET_TIME_SERIES dataset
-	// type is supported. For example, for the RETAIL domain, the target is demand,
-	// and for the CUSTOM domain, the target is target_value.
+	// The name of the schema attribute that specifies the data field to be featurized.
+	// Only the target field of the TARGET_TIME_SERIES dataset type is supported.
+	// For example, for the RETAIL domain, the target is demand, and for the CUSTOM
+	// domain, the target is target_value.
 	//
 	// AttributeName is a required field
 	AttributeName *string `min:"1" type:"string" required:"true"`
 
-	// An array FeaturizationMethod objects that specifies the feature transformation
-	// methods. For this release, the number of methods is limited to one.
+	// An array of one FeaturizationMethod object that specifies the feature transformation
+	// method.
 	FeaturizationPipeline []*FeaturizationMethod `min:"1" type:"list"`
 }
 
@@ -5649,7 +5743,7 @@ func (s *Featurization) SetFeaturizationPipeline(v []*FeaturizationMethod) *Feat
 //
 // You define featurization using the FeaturizationConfig object. You specify
 // an array of transformations, one for each field that you want to featurize.
-// You then include the FeaturizationConfig in your CreatePredictor request.
+// You then include the FeaturizationConfig object in your CreatePredictor request.
 // Amazon Forecast applies the featurization to the TARGET_TIME_SERIES dataset
 // before model training.
 //
@@ -5660,7 +5754,7 @@ type FeaturizationConfig struct {
 	_ struct{} `type:"structure"`
 
 	// An array of featurization (transformation) information for the fields of
-	// a dataset. In this release, only a single featurization is supported.
+	// a dataset. Only a single featurization is supported.
 	Featurizations []*Featurization `min:"1" type:"list"`
 
 	// An array of dimension (field) names that specify how to group the generated
@@ -5670,6 +5764,11 @@ type FeaturizationConfig struct {
 	// all of your stores, and your dataset contains a store_id field. If you want
 	// the sales forecast for each item by store, you would specify store_id as
 	// the dimension.
+	//
+	// All forecast dimensions specified in the TARGET_TIME_SERIES dataset don't
+	// need to be specified in the CreatePredictor request. All forecast dimensions
+	// specified in the RELATED_TIME_SERIES dataset must be specified in the CreatePredictor
+	// request.
 	ForecastDimensions []*string `min:"1" type:"list"`
 
 	// The frequency of predictions in a forecast.
@@ -5678,6 +5777,12 @@ type FeaturizationConfig struct {
 	// (30 minutes), 15min (15 minutes), 10min (10 minutes), 5min (5 minutes), and
 	// 1min (1 minute). For example, "Y" indicates every year and "5min" indicates
 	// every five minutes.
+	//
+	// The frequency must be greater than or equal to the TARGET_TIME_SERIES dataset
+	// frequency.
+	//
+	// When a RELATED_TIME_SERIES dataset is provided, the frequency must be equal
+	// to the RELATED_TIME_SERIES dataset frequency.
 	//
 	// ForecastFrequency is a required field
 	ForecastFrequency *string `type:"string" required:"true"`
@@ -5740,12 +5845,12 @@ func (s *FeaturizationConfig) SetForecastFrequency(v string) *FeaturizationConfi
 	return s
 }
 
-// Provides information about a method that featurizes (transforms) a dataset
+// Provides information about the method that featurizes (transforms) a dataset
 // field. The method is part of the FeaturizationPipeline of the Featurization
-// object. If FeaturizationMethodParameters isn't specified, Amazon Forecast
+// object. If you don't specify FeaturizationMethodParameters, Amazon Forecast
 // uses default parameters.
 //
-// For example:
+// The following is an example of how you specify a FeaturizationMethod object.
 //
 // {
 //
@@ -5757,15 +5862,14 @@ func (s *FeaturizationConfig) SetForecastFrequency(v string) *FeaturizationConfi
 type FeaturizationMethod struct {
 	_ struct{} `type:"structure"`
 
-	// The name of the method. In this release, "filling" is the only supported
-	// method.
+	// The name of the method. The "filling" method is the only supported method.
 	//
 	// FeaturizationMethodName is a required field
 	FeaturizationMethodName *string `type:"string" required:"true" enum:"FeaturizationMethodName"`
 
-	// The method parameters (key-value pairs). Specify these to override the default
-	// values. The following list shows the parameters and their valid values. Bold
-	// signifies the default value.
+	// The method parameters (key-value pairs). Specify these parameters to override
+	// the default values. The following list shows the parameters and their valid
+	// values. Bold signifies the default value.
 	//
 	//    * aggregation: sum, avg, first, min, max
 	//
@@ -5817,12 +5921,13 @@ func (s *FeaturizationMethod) SetFeaturizationMethodParameters(v map[string]*str
 
 // Describes a filter for choosing a subset of objects. Each filter consists
 // of a condition and a match statement. The condition is either IS or IS_NOT,
-// which specifies whether to include or exclude, respectively, the objects
-// that match the statement. The match statement consists of a key and a value.
+// which specifies whether to include or exclude the objects that match the
+// statement, respectively. The match statement consists of a key and a value.
 type Filter struct {
 	_ struct{} `type:"structure"`
 
-	// The condition to apply.
+	// The condition to apply. To include the objects that match the statement,
+	// specify IS. To exclude matching objects, specify IS_NOT.
 	//
 	// Condition is a required field
 	Condition *string `type:"string" required:"true" enum:"FilterConditionString"`
@@ -5832,7 +5937,7 @@ type Filter struct {
 	// Key is a required field
 	Key *string `type:"string" required:"true"`
 
-	// A valid value for Key.
+	// The value to match.
 	//
 	// Value is a required field
 	Value *string `type:"string" required:"true"`
@@ -5894,7 +5999,8 @@ type ForecastExportJobSummary struct {
 	// When the forecast export job was created.
 	CreationTime *time.Time `type:"timestamp"`
 
-	// The path to the S3 bucket where the forecast is stored.
+	// The path to the Amazon Simple Storage Service (Amazon S3) bucket where the
+	// forecast is exported.
 	Destination *DataDestination `type:"structure"`
 
 	// The Amazon Resource Name (ARN) of the forecast export job.
@@ -5909,7 +6015,7 @@ type ForecastExportJobSummary struct {
 	// If an error occurred, an informational message about the error.
 	Message *string `type:"string"`
 
-	// The status of the forecast export job. One of the following states:
+	// The status of the forecast export job. States include:
 	//
 	//    * ACTIVE
 	//
@@ -5918,7 +6024,7 @@ type ForecastExportJobSummary struct {
 	//    * DELETE_PENDING, DELETE_IN_PROGRESS, DELETE_FAILED
 	//
 	// The Status of the forecast export job must be ACTIVE before you can access
-	// the forecast in your Amazon S3 bucket.
+	// the forecast in your S3 bucket.
 	Status *string `type:"string"`
 }
 
@@ -5976,7 +6082,7 @@ func (s *ForecastExportJobSummary) SetStatus(v string) *ForecastExportJobSummary
 
 // Provides a summary of the forecast properties used in the ListForecasts operation.
 // To get the complete set of properties, call the DescribeForecast operation,
-// and provide the listed ForecastArn.
+// and provide the ForecastArn that is listed in the summary.
 type ForecastSummary struct {
 	_ struct{} `type:"structure"`
 
@@ -6137,19 +6243,19 @@ func (s *GetAccuracyMetricsOutput) SetPredictorEvaluationResults(v []*Evaluation
 	return s
 }
 
-// Configuration information for a hyperparameter tuning job. This object is
-// specified in the CreatePredictor request.
+// Configuration information for a hyperparameter tuning job. You specify this
+// object in the CreatePredictor request.
 //
-// A hyperparameter is a parameter that governs the model training process and
-// is set before training starts. This is as opposed to a model parameter that
-// is determined during training. The values of the hyperparameters have an
-// effect on the chosen model parameters.
+// A hyperparameter is a parameter that governs the model training process.
+// You set hyperparameters before training starts, unlike model parameters,
+// which are determined during training. The values of the hyperparameters effect
+// which values are chosen for the model parameters.
 //
-// A hyperparameter tuning job is the process of choosing the optimum set of
-// hyperparameter values that optimize a specified metric. This is accomplished
-// by running many training jobs over a range of hyperparameter values. The
-// optimum set of values is dependent on the algorithm, the training data, and
-// the given metric objective.
+// In a hyperparameter tuning job, Amazon Forecast chooses the set of hyperparameter
+// values that optimize a specified metric. Forecast accomplishes this by running
+// many training jobs over a range of hyperparameter values. The optimum set
+// of values depends on the algorithm, the training data, and the specified
+// metric objective.
 type HyperParameterTuningJobConfig struct {
 	_ struct{} `type:"structure"`
 
@@ -6189,7 +6295,7 @@ func (s *HyperParameterTuningJobConfig) SetParameterRanges(v *ParameterRanges) *
 }
 
 // The data used to train a predictor. The data includes a dataset group and
-// any supplementary features. This object is specified in the CreatePredictor
+// any supplementary features. You specify this object in the CreatePredictor
 // request.
 type InputDataConfig struct {
 	_ struct{} `type:"structure"`
@@ -6199,8 +6305,8 @@ type InputDataConfig struct {
 	// DatasetGroupArn is a required field
 	DatasetGroupArn *string `type:"string" required:"true"`
 
-	// An array of supplementary features. For this release, the only supported
-	// feature is a holiday calendar.
+	// An array of supplementary features. The only supported feature is a holiday
+	// calendar.
 	SupplementaryFeatures []*SupplementaryFeature `min:"1" type:"list"`
 }
 
@@ -6273,9 +6379,7 @@ type IntegerParameterRange struct {
 	Name *string `min:"1" type:"string" required:"true"`
 
 	// The scale that hyperparameter tuning uses to search the hyperparameter range.
-	// For information about choosing a hyperparameter scale, see Hyperparameter
-	// Scaling (http://docs.aws.amazon.com/sagemaker/latest/dg/automatic-model-tuning-define-ranges.html#scaling-type).
-	// One of the following values:
+	// Valid values:
 	//
 	// Auto
 	//
@@ -6291,8 +6395,7 @@ type IntegerParameterRange struct {
 	// Hyperparameter tuning searches the values in the hyperparameter range by
 	// using a logarithmic scale.
 	//
-	// Logarithmic scaling works only for ranges that have only values greater than
-	// 0.
+	// Logarithmic scaling works only for ranges that have values greater than 0.
 	//
 	// ReverseLogarithmic
 	//
@@ -6300,6 +6403,10 @@ type IntegerParameterRange struct {
 	//
 	// Reverse logarithmic scaling works only for ranges that are entirely within
 	// the range 0 <= x < 1.0.
+	//
+	// For information about choosing a hyperparameter scale, see Hyperparameter
+	// Scaling (http://docs.aws.amazon.com/sagemaker/latest/dg/automatic-model-tuning-define-ranges.html#scaling-type).
+	// One of the following values:
 	ScalingType *string `type:"string" enum:"ScalingType"`
 }
 
@@ -6357,6 +6464,175 @@ func (s *IntegerParameterRange) SetName(v string) *IntegerParameterRange {
 func (s *IntegerParameterRange) SetScalingType(v string) *IntegerParameterRange {
 	s.ScalingType = &v
 	return s
+}
+
+// We can't process the request because it includes an invalid value or a value
+// that exceeds the valid range.
+type InvalidInputException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidInputException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidInputException) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidInputException(v protocol.ResponseMetadata) error {
+	return &InvalidInputException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *InvalidInputException) Code() string {
+	return "InvalidInputException"
+}
+
+// Message returns the exception's message.
+func (s *InvalidInputException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *InvalidInputException) OrigErr() error {
+	return nil
+}
+
+func (s *InvalidInputException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *InvalidInputException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *InvalidInputException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// The token is not valid. Tokens expire after 24 hours.
+type InvalidNextTokenException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidNextTokenException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidNextTokenException) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidNextTokenException(v protocol.ResponseMetadata) error {
+	return &InvalidNextTokenException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *InvalidNextTokenException) Code() string {
+	return "InvalidNextTokenException"
+}
+
+// Message returns the exception's message.
+func (s *InvalidNextTokenException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *InvalidNextTokenException) OrigErr() error {
+	return nil
+}
+
+func (s *InvalidNextTokenException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *InvalidNextTokenException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *InvalidNextTokenException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// The limit on the number of resources per account has been exceeded.
+type LimitExceededException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s LimitExceededException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s LimitExceededException) GoString() string {
+	return s.String()
+}
+
+func newErrorLimitExceededException(v protocol.ResponseMetadata) error {
+	return &LimitExceededException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *LimitExceededException) Code() string {
+	return "LimitExceededException"
+}
+
+// Message returns the exception's message.
+func (s *LimitExceededException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *LimitExceededException) OrigErr() error {
+	return nil
+}
+
+func (s *LimitExceededException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *LimitExceededException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *LimitExceededException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 type ListDatasetGroupsInput struct {
@@ -6447,22 +6723,24 @@ type ListDatasetImportJobsInput struct {
 
 	// An array of filters. For each filter, you provide a condition and a match
 	// statement. The condition is either IS or IS_NOT, which specifies whether
-	// to include or exclude, respectively, from the list, the predictors that match
-	// the statement. The match statement consists of a key and a value. In this
-	// release, Name is the only valid key, which filters on the DatasetImportJobName
-	// property.
+	// to include or exclude the datasets that match the statement from the list,
+	// respectively. The match statement consists of a key and a value.
 	//
-	//    * Condition - IS or IS_NOT
+	// Filter properties
 	//
-	//    * Key - Name
+	//    * Condition - The condition to apply. Valid values are IS and IS_NOT.
+	//    To include the datasets that match the statement, specify IS. To exclude
+	//    matching datasets, specify IS_NOT.
 	//
-	//    * Value - the value to match
+	//    * Key - The name of the parameter to filter on. Valid values are DatasetArn
+	//    and Status.
 	//
-	// For example, to list all dataset import jobs named my_dataset_import_job,
-	// you would specify:
+	//    * Value - The value to match.
 	//
-	// "Filters": [ { "Condition": "IS", "Key": "Name", "Value": "my_dataset_import_job"
-	// } ]
+	// For example, to list all dataset import jobs whose status is ACTIVE, you
+	// specify the following filter:
+	//
+	// "Filters": [ { "Condition": "IS", "Key": "Status", "Value": "ACTIVE" } ]
 	Filters []*Filter `type:"list"`
 
 	// The number of items to return in the response.
@@ -6649,21 +6927,24 @@ type ListForecastExportJobsInput struct {
 
 	// An array of filters. For each filter, you provide a condition and a match
 	// statement. The condition is either IS or IS_NOT, which specifies whether
-	// to include or exclude, respectively, from the list, the predictors that match
-	// the statement. The match statement consists of a key and a value. In this
-	// release, Name is the only valid key, which filters on the ForecastExportJobName
-	// property.
+	// to include or exclude the forecast export jobs that match the statement from
+	// the list, respectively. The match statement consists of a key and a value.
 	//
-	//    * Condition - IS or IS_NOT
+	// Filter properties
 	//
-	//    * Key - Name
+	//    * Condition - The condition to apply. Valid values are IS and IS_NOT.
+	//    To include the forecast export jobs that match the statement, specify
+	//    IS. To exclude matching forecast export jobs, specify IS_NOT.
 	//
-	//    * Value - the value to match
+	//    * Key - The name of the parameter to filter on. Valid values are ForecastArn
+	//    and Status.
 	//
-	// For example, to list all forecast export jobs named my_forecast_export_job,
-	// you would specify:
+	//    * Value - The value to match.
 	//
-	// "Filters": [ { "Condition": "IS", "Key": "Name", "Value": "my_forecast_export_job"
+	// For example, to list all jobs that export a forecast named electricityforecast,
+	// specify the following filter:
+	//
+	// "Filters": [ { "Condition": "IS", "Key": "ForecastArn", "Value": "arn:aws:forecast:us-west-2:<acct-id>:forecast/electricityforecast"
 	// } ]
 	Filters []*Filter `type:"list"`
 
@@ -6768,20 +7049,25 @@ type ListForecastsInput struct {
 
 	// An array of filters. For each filter, you provide a condition and a match
 	// statement. The condition is either IS or IS_NOT, which specifies whether
-	// to include or exclude, respectively, from the list, the predictors that match
-	// the statement. The match statement consists of a key and a value. In this
-	// release, Name is the only valid key, which filters on the ForecastName property.
+	// to include or exclude the forecasts that match the statement from the list,
+	// respectively. The match statement consists of a key and a value.
 	//
-	//    * Condition - IS or IS_NOT
+	// Filter properties
 	//
-	//    * Key - Name
+	//    * Condition - The condition to apply. Valid values are IS and IS_NOT.
+	//    To include the forecasts that match the statement, specify IS. To exclude
+	//    matching forecasts, specify IS_NOT.
 	//
-	//    * Value - the value to match
+	//    * Key - The name of the parameter to filter on. Valid values are DatasetGroupArn,
+	//    PredictorArn, and Status.
 	//
-	// For example, to list all forecasts named my_forecast, you would specify:
+	//    * Value - The value to match.
 	//
-	// "Filters": [ { "Condition": "IS", "Key": "Name", "Value": "my_forecast" }
-	// ]
+	// For example, to list all forecasts whose status is not ACTIVE, you would
+	// specify:
+	//
+	// "Filters": [ { "Condition": "IS_NOT", "Key": "Status", "Value": "ACTIVE"
+	// } ]
 	Filters []*Filter `type:"list"`
 
 	// The number of items to return in the response.
@@ -6885,20 +7171,23 @@ type ListPredictorsInput struct {
 
 	// An array of filters. For each filter, you provide a condition and a match
 	// statement. The condition is either IS or IS_NOT, which specifies whether
-	// to include or exclude, respectively, from the list, the predictors that match
-	// the statement. The match statement consists of a key and a value. In this
-	// release, Name is the only valid key, which filters on the PredictorName property.
+	// to include or exclude the predictors that match the statement from the list,
+	// respectively. The match statement consists of a key and a value.
 	//
-	//    * Condition - IS or IS_NOT
+	// Filter properties
 	//
-	//    * Key - Name
+	//    * Condition - The condition to apply. Valid values are IS and IS_NOT.
+	//    To include the predictors that match the statement, specify IS. To exclude
+	//    matching predictors, specify IS_NOT.
 	//
-	//    * Value - the value to match
+	//    * Key - The name of the parameter to filter on. Valid values are DatasetGroupArn
+	//    and Status.
 	//
-	// For example, to list all predictors named my_predictor, you would specify:
+	//    * Value - The value to match.
 	//
-	// "Filters": [ { "Condition": "IS", "Key": "Name", "Value": "my_predictor"
-	// } ]
+	// For example, to list all predictors whose status is ACTIVE, you would specify:
+	//
+	// "Filters": [ { "Condition": "IS", "Key": "Status", "Value": "ACTIVE" } ]
 	Filters []*Filter `type:"list"`
 
 	// The number of items to return in the response.
@@ -6997,8 +7286,8 @@ func (s *ListPredictorsOutput) SetPredictors(v []*PredictorSummary) *ListPredict
 	return s
 }
 
-// Provides metrics used to evaluate the performance of a predictor. This object
-// is part of the WindowSummary object.
+// Provides metrics that are used to evaluate the performance of a predictor.
+// This object is part of the WindowSummary object.
 type Metrics struct {
 	_ struct{} `type:"structure"`
 
@@ -7127,7 +7416,70 @@ func (s *ParameterRanges) SetIntegerParameterRanges(v []*IntegerParameterRange) 
 	return s
 }
 
-// Provides a summary of the predictor properties used in the ListPredictors
+// The algorithm used to perform a backtest and the status of those tests.
+type PredictorExecution struct {
+	_ struct{} `type:"structure"`
+
+	// The ARN of the algorithm used to test the predictor.
+	AlgorithmArn *string `type:"string"`
+
+	// An array of test windows used to evaluate the algorithm. The NumberOfBacktestWindows
+	// from the object determines the number of windows in the array.
+	TestWindows []*TestWindowSummary `type:"list"`
+}
+
+// String returns the string representation
+func (s PredictorExecution) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s PredictorExecution) GoString() string {
+	return s.String()
+}
+
+// SetAlgorithmArn sets the AlgorithmArn field's value.
+func (s *PredictorExecution) SetAlgorithmArn(v string) *PredictorExecution {
+	s.AlgorithmArn = &v
+	return s
+}
+
+// SetTestWindows sets the TestWindows field's value.
+func (s *PredictorExecution) SetTestWindows(v []*TestWindowSummary) *PredictorExecution {
+	s.TestWindows = v
+	return s
+}
+
+// Contains details on the backtests performed to evaluate the accuracy of the
+// predictor. The tests are returned in descending order of accuracy, with the
+// most accurate backtest appearing first. You specify the number of backtests
+// to perform when you call the operation.
+type PredictorExecutionDetails struct {
+	_ struct{} `type:"structure"`
+
+	// An array of the backtests performed to evaluate the accuracy of the predictor
+	// against a particular algorithm. The NumberOfBacktestWindows from the object
+	// determines the number of windows in the array.
+	PredictorExecutions []*PredictorExecution `min:"1" type:"list"`
+}
+
+// String returns the string representation
+func (s PredictorExecutionDetails) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s PredictorExecutionDetails) GoString() string {
+	return s.String()
+}
+
+// SetPredictorExecutions sets the PredictorExecutions field's value.
+func (s *PredictorExecutionDetails) SetPredictorExecutions(v []*PredictorExecution) *PredictorExecutionDetails {
+	s.PredictorExecutions = v
+	return s
+}
+
+// Provides a summary of the predictor properties that are used in the ListPredictors
 // operation. To get the complete set of properties, call the DescribePredictor
 // operation, and provide the listed PredictorArn.
 type PredictorSummary struct {
@@ -7164,8 +7516,8 @@ type PredictorSummary struct {
 	//
 	//    * UPDATE_PENDING, UPDATE_IN_PROGRESS, UPDATE_FAILED
 	//
-	// The Status of the predictor must be ACTIVE before using the predictor to
-	// create a forecast.
+	// The Status of the predictor must be ACTIVE before you can use the predictor
+	// to create a forecast.
 	Status *string `type:"string"`
 }
 
@@ -7221,11 +7573,181 @@ func (s *PredictorSummary) SetStatus(v string) *PredictorSummary {
 	return s
 }
 
+// There is already a resource with this name. Try again with a different name.
+type ResourceAlreadyExistsException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s ResourceAlreadyExistsException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResourceAlreadyExistsException) GoString() string {
+	return s.String()
+}
+
+func newErrorResourceAlreadyExistsException(v protocol.ResponseMetadata) error {
+	return &ResourceAlreadyExistsException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *ResourceAlreadyExistsException) Code() string {
+	return "ResourceAlreadyExistsException"
+}
+
+// Message returns the exception's message.
+func (s *ResourceAlreadyExistsException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *ResourceAlreadyExistsException) OrigErr() error {
+	return nil
+}
+
+func (s *ResourceAlreadyExistsException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *ResourceAlreadyExistsException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *ResourceAlreadyExistsException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// The specified resource is in use.
+type ResourceInUseException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s ResourceInUseException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResourceInUseException) GoString() string {
+	return s.String()
+}
+
+func newErrorResourceInUseException(v protocol.ResponseMetadata) error {
+	return &ResourceInUseException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *ResourceInUseException) Code() string {
+	return "ResourceInUseException"
+}
+
+// Message returns the exception's message.
+func (s *ResourceInUseException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *ResourceInUseException) OrigErr() error {
+	return nil
+}
+
+func (s *ResourceInUseException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *ResourceInUseException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *ResourceInUseException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// We can't find a resource with that Amazon Resource Name (ARN). Check the
+// ARN and try again.
+type ResourceNotFoundException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s ResourceNotFoundException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResourceNotFoundException) GoString() string {
+	return s.String()
+}
+
+func newErrorResourceNotFoundException(v protocol.ResponseMetadata) error {
+	return &ResourceNotFoundException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *ResourceNotFoundException) Code() string {
+	return "ResourceNotFoundException"
+}
+
+// Message returns the exception's message.
+func (s *ResourceNotFoundException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *ResourceNotFoundException) OrigErr() error {
+	return nil
+}
+
+func (s *ResourceNotFoundException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *ResourceNotFoundException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *ResourceNotFoundException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
 // The path to the file(s) in an Amazon Simple Storage Service (Amazon S3) bucket,
 // and an AWS Identity and Access Management (IAM) role that Amazon Forecast
 // can assume to access the file(s). Optionally, includes an AWS Key Management
-// Service (KMS) key. This object is submitted in the CreateDatasetImportJob
-// and CreateForecastExportJob requests.
+// Service (KMS) key. This object is part of the DataSource object that is submitted
+// in the CreateDatasetImportJob request, and part of the DataDestination object
+// that is submitted in the CreateForecastExportJob request.
 type S3Config struct {
 	_ struct{} `type:"structure"`
 
@@ -7239,10 +7761,11 @@ type S3Config struct {
 	Path *string `type:"string" required:"true"`
 
 	// The ARN of the AWS Identity and Access Management (IAM) role that Amazon
-	// Forecast can assume to access the Amazon S3 bucket or file(s).
+	// Forecast can assume to access the Amazon S3 bucket or files. If you provide
+	// a value for the KMSKeyArn key, the role must allow access to the key.
 	//
-	// Cross-account pass role is not allowed. If you pass a role that doesn't belong
-	// to your account, an InvalidInputException is thrown.
+	// Passing a role across AWS accounts is not allowed. If you pass a role that
+	// isn't in your account, you get an InvalidInputException error.
 	//
 	// RoleArn is a required field
 	RoleArn *string `type:"string" required:"true"`
@@ -7292,7 +7815,7 @@ func (s *S3Config) SetRoleArn(v string) *S3Config {
 	return s
 }
 
-// Defines the fields of a dataset. This object is specified in the CreateDataset
+// Defines the fields of a dataset. You specify this object in the CreateDataset
 // request.
 type Schema struct {
 	_ struct{} `type:"structure"`
@@ -7337,7 +7860,7 @@ func (s *Schema) SetAttributes(v []*SchemaAttribute) *Schema {
 	return s
 }
 
-// An attribute of a schema, which defines a field of a dataset. A schema attribute
+// An attribute of a schema, which defines a dataset field. A schema attribute
 // is required for every field in a dataset. The Schema object contains an array
 // of SchemaAttribute objects.
 type SchemaAttribute struct {
@@ -7385,8 +7908,8 @@ func (s *SchemaAttribute) SetAttributeType(v string) *SchemaAttribute {
 	return s
 }
 
-// Provides statistics for each data field imported to an Amazon Forecast dataset
-// with the CreateDatasetImportJob operation.
+// Provides statistics for each data field imported into to an Amazon Forecast
+// dataset with the CreateDatasetImportJob operation.
 type Statistics struct {
 	_ struct{} `type:"structure"`
 
@@ -7476,9 +7999,10 @@ func (s *Statistics) SetStddev(v float64) *Statistics {
 // Describes a supplementary feature of a dataset group. This object is part
 // of the InputDataConfig object.
 //
-// For this release, the only supported feature is a holiday calendar. If the
-// calendar is used, all data should belong to the same country as the calendar.
-// For the calendar data, see http://jollyday.sourceforge.net/data.html (http://jollyday.sourceforge.net/data.html).
+// The only supported feature is a holiday calendar. If you use the calendar,
+// all data in the datasets should belong to the same country as the calendar.
+// For the holiday calendar data, see the Jollyday (http://jollyday.sourceforge.net/data.html)
+// web site.
 type SupplementaryFeature struct {
 	_ struct{} `type:"structure"`
 
@@ -7544,11 +8068,69 @@ func (s *SupplementaryFeature) SetValue(v string) *SupplementaryFeature {
 	return s
 }
 
+// The status, start time, and end time of a backtest, as well as a failure
+// reason if applicable.
+type TestWindowSummary struct {
+	_ struct{} `type:"structure"`
+
+	// If the test failed, the reason why it failed.
+	Message *string `type:"string"`
+
+	// The status of the test. Possible status values are:
+	//
+	//    * ACTIVE
+	//
+	//    * CREATE_IN_PROGRESS
+	//
+	//    * CREATE_FAILED
+	Status *string `type:"string"`
+
+	// The time at which the test ended.
+	TestWindowEnd *time.Time `type:"timestamp"`
+
+	// The time at which the test began.
+	TestWindowStart *time.Time `type:"timestamp"`
+}
+
+// String returns the string representation
+func (s TestWindowSummary) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s TestWindowSummary) GoString() string {
+	return s.String()
+}
+
+// SetMessage sets the Message field's value.
+func (s *TestWindowSummary) SetMessage(v string) *TestWindowSummary {
+	s.Message = &v
+	return s
+}
+
+// SetStatus sets the Status field's value.
+func (s *TestWindowSummary) SetStatus(v string) *TestWindowSummary {
+	s.Status = &v
+	return s
+}
+
+// SetTestWindowEnd sets the TestWindowEnd field's value.
+func (s *TestWindowSummary) SetTestWindowEnd(v time.Time) *TestWindowSummary {
+	s.TestWindowEnd = &v
+	return s
+}
+
+// SetTestWindowStart sets the TestWindowStart field's value.
+func (s *TestWindowSummary) SetTestWindowStart(v time.Time) *TestWindowSummary {
+	s.TestWindowStart = &v
+	return s
+}
+
 type UpdateDatasetGroupInput struct {
 	_ struct{} `type:"structure"`
 
-	// An array of Amazon Resource Names (ARNs) of the datasets to add to the dataset
-	// group.
+	// An array of the Amazon Resource Names (ARNs) of the datasets to add to the
+	// dataset group.
 	//
 	// DatasetArns is a required field
 	DatasetArns []*string `type:"list" required:"true"`
@@ -7616,8 +8198,8 @@ func (s UpdateDatasetGroupOutput) GoString() string {
 type WeightedQuantileLoss struct {
 	_ struct{} `type:"structure"`
 
-	// The difference between the predicted value and actual value over the quantile,
-	// weighted (normalized) by dividing by the sum over all quantiles.
+	// The difference between the predicted value and the actual value over the
+	// quantile, weighted (normalized) by dividing by the sum over all quantiles.
 	LossValue *float64 `type:"double"`
 
 	// The quantile. Quantiles divide a probability distribution into regions of
@@ -7666,8 +8248,7 @@ type WindowSummary struct {
 	// The number of data points within the window.
 	ItemCount *int64 `type:"integer"`
 
-	// Provides metrics used to evaluate the performance of a predictor. This object
-	// is part of the WindowSummary object.
+	// Provides metrics used to evaluate the performance of a predictor.
 	Metrics *Metrics `type:"structure"`
 
 	// The timestamp that defines the end of the window.

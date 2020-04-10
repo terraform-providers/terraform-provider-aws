@@ -23,7 +23,7 @@ type ResourceProvider interface {
 	* Functions related to the provider
 	*********************************************************************/
 
-	// ProviderSchema returns the config schema for the main provider
+	// GetSchema returns the config schema for the main provider
 	// configuration, as would appear in a "provider" block in the
 	// configuration files.
 	//

@@ -67,22 +67,22 @@ func (c *Inspector) AddAttributesToFindingsRequest(input *AddAttributesToFinding
 // See the AWS API reference guide for Amazon Inspector's
 // API operation AddAttributesToFindings for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInternalException "InternalException"
+// Returned Error Types:
+//   * InternalException
 //   Internal server error.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   The request was rejected because an invalid or out-of-range value was supplied
 //   for an input parameter.
 //
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+//   * AccessDeniedException
 //   You do not have required permissions to access the requested resource.
 //
-//   * ErrCodeNoSuchEntityException "NoSuchEntityException"
+//   * NoSuchEntityException
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error code describes the entity.
 //
-//   * ErrCodeServiceTemporarilyUnavailableException "ServiceTemporarilyUnavailableException"
+//   * ServiceTemporarilyUnavailableException
 //   The serice is temporary unavailable.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/inspector-2016-02-16/AddAttributesToFindings
@@ -168,30 +168,30 @@ func (c *Inspector) CreateAssessmentTargetRequest(input *CreateAssessmentTargetI
 // See the AWS API reference guide for Amazon Inspector's
 // API operation CreateAssessmentTarget for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInternalException "InternalException"
+// Returned Error Types:
+//   * InternalException
 //   Internal server error.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   The request was rejected because an invalid or out-of-range value was supplied
 //   for an input parameter.
 //
-//   * ErrCodeLimitExceededException "LimitExceededException"
+//   * LimitExceededException
 //   The request was rejected because it attempted to create resources beyond
 //   the current AWS account limits. The error code describes the limit exceeded.
 //
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+//   * AccessDeniedException
 //   You do not have required permissions to access the requested resource.
 //
-//   * ErrCodeNoSuchEntityException "NoSuchEntityException"
+//   * NoSuchEntityException
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error code describes the entity.
 //
-//   * ErrCodeInvalidCrossAccountRoleException "InvalidCrossAccountRoleException"
+//   * InvalidCrossAccountRoleException
 //   Amazon Inspector cannot assume the cross-account role that it needs to list
 //   your EC2 instances during the assessment run.
 //
-//   * ErrCodeServiceTemporarilyUnavailableException "ServiceTemporarilyUnavailableException"
+//   * ServiceTemporarilyUnavailableException
 //   The serice is temporary unavailable.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/inspector-2016-02-16/CreateAssessmentTarget
@@ -273,26 +273,26 @@ func (c *Inspector) CreateAssessmentTemplateRequest(input *CreateAssessmentTempl
 // See the AWS API reference guide for Amazon Inspector's
 // API operation CreateAssessmentTemplate for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInternalException "InternalException"
+// Returned Error Types:
+//   * InternalException
 //   Internal server error.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   The request was rejected because an invalid or out-of-range value was supplied
 //   for an input parameter.
 //
-//   * ErrCodeLimitExceededException "LimitExceededException"
+//   * LimitExceededException
 //   The request was rejected because it attempted to create resources beyond
 //   the current AWS account limits. The error code describes the limit exceeded.
 //
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+//   * AccessDeniedException
 //   You do not have required permissions to access the requested resource.
 //
-//   * ErrCodeNoSuchEntityException "NoSuchEntityException"
+//   * NoSuchEntityException
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error code describes the entity.
 //
-//   * ErrCodeServiceTemporarilyUnavailableException "ServiceTemporarilyUnavailableException"
+//   * ServiceTemporarilyUnavailableException
 //   The serice is temporary unavailable.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/inspector-2016-02-16/CreateAssessmentTemplate
@@ -372,26 +372,26 @@ func (c *Inspector) CreateExclusionsPreviewRequest(input *CreateExclusionsPrevie
 // See the AWS API reference guide for Amazon Inspector's
 // API operation CreateExclusionsPreview for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidInputException "InvalidInputException"
+// Returned Error Types:
+//   * InvalidInputException
 //   The request was rejected because an invalid or out-of-range value was supplied
 //   for an input parameter.
 //
-//   * ErrCodePreviewGenerationInProgressException "PreviewGenerationInProgressException"
+//   * PreviewGenerationInProgressException
 //   The request is rejected. The specified assessment template is currently generating
 //   an exclusions preview.
 //
-//   * ErrCodeInternalException "InternalException"
+//   * InternalException
 //   Internal server error.
 //
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+//   * AccessDeniedException
 //   You do not have required permissions to access the requested resource.
 //
-//   * ErrCodeNoSuchEntityException "NoSuchEntityException"
+//   * NoSuchEntityException
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error code describes the entity.
 //
-//   * ErrCodeServiceTemporarilyUnavailableException "ServiceTemporarilyUnavailableException"
+//   * ServiceTemporarilyUnavailableException
 //   The serice is temporary unavailable.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/inspector-2016-02-16/CreateExclusionsPreview
@@ -472,22 +472,22 @@ func (c *Inspector) CreateResourceGroupRequest(input *CreateResourceGroupInput) 
 // See the AWS API reference guide for Amazon Inspector's
 // API operation CreateResourceGroup for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInternalException "InternalException"
+// Returned Error Types:
+//   * InternalException
 //   Internal server error.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   The request was rejected because an invalid or out-of-range value was supplied
 //   for an input parameter.
 //
-//   * ErrCodeLimitExceededException "LimitExceededException"
+//   * LimitExceededException
 //   The request was rejected because it attempted to create resources beyond
 //   the current AWS account limits. The error code describes the limit exceeded.
 //
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+//   * AccessDeniedException
 //   You do not have required permissions to access the requested resource.
 //
-//   * ErrCodeServiceTemporarilyUnavailableException "ServiceTemporarilyUnavailableException"
+//   * ServiceTemporarilyUnavailableException
 //   The serice is temporary unavailable.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/inspector-2016-02-16/CreateResourceGroup
@@ -567,26 +567,26 @@ func (c *Inspector) DeleteAssessmentRunRequest(input *DeleteAssessmentRunInput) 
 // See the AWS API reference guide for Amazon Inspector's
 // API operation DeleteAssessmentRun for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInternalException "InternalException"
+// Returned Error Types:
+//   * InternalException
 //   Internal server error.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   The request was rejected because an invalid or out-of-range value was supplied
 //   for an input parameter.
 //
-//   * ErrCodeAssessmentRunInProgressException "AssessmentRunInProgressException"
+//   * AssessmentRunInProgressException
 //   You cannot perform a specified action if an assessment run is currently in
 //   progress.
 //
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+//   * AccessDeniedException
 //   You do not have required permissions to access the requested resource.
 //
-//   * ErrCodeNoSuchEntityException "NoSuchEntityException"
+//   * NoSuchEntityException
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error code describes the entity.
 //
-//   * ErrCodeServiceTemporarilyUnavailableException "ServiceTemporarilyUnavailableException"
+//   * ServiceTemporarilyUnavailableException
 //   The serice is temporary unavailable.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/inspector-2016-02-16/DeleteAssessmentRun
@@ -666,26 +666,26 @@ func (c *Inspector) DeleteAssessmentTargetRequest(input *DeleteAssessmentTargetI
 // See the AWS API reference guide for Amazon Inspector's
 // API operation DeleteAssessmentTarget for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInternalException "InternalException"
+// Returned Error Types:
+//   * InternalException
 //   Internal server error.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   The request was rejected because an invalid or out-of-range value was supplied
 //   for an input parameter.
 //
-//   * ErrCodeAssessmentRunInProgressException "AssessmentRunInProgressException"
+//   * AssessmentRunInProgressException
 //   You cannot perform a specified action if an assessment run is currently in
 //   progress.
 //
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+//   * AccessDeniedException
 //   You do not have required permissions to access the requested resource.
 //
-//   * ErrCodeNoSuchEntityException "NoSuchEntityException"
+//   * NoSuchEntityException
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error code describes the entity.
 //
-//   * ErrCodeServiceTemporarilyUnavailableException "ServiceTemporarilyUnavailableException"
+//   * ServiceTemporarilyUnavailableException
 //   The serice is temporary unavailable.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/inspector-2016-02-16/DeleteAssessmentTarget
@@ -765,26 +765,26 @@ func (c *Inspector) DeleteAssessmentTemplateRequest(input *DeleteAssessmentTempl
 // See the AWS API reference guide for Amazon Inspector's
 // API operation DeleteAssessmentTemplate for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInternalException "InternalException"
+// Returned Error Types:
+//   * InternalException
 //   Internal server error.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   The request was rejected because an invalid or out-of-range value was supplied
 //   for an input parameter.
 //
-//   * ErrCodeAssessmentRunInProgressException "AssessmentRunInProgressException"
+//   * AssessmentRunInProgressException
 //   You cannot perform a specified action if an assessment run is currently in
 //   progress.
 //
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+//   * AccessDeniedException
 //   You do not have required permissions to access the requested resource.
 //
-//   * ErrCodeNoSuchEntityException "NoSuchEntityException"
+//   * NoSuchEntityException
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error code describes the entity.
 //
-//   * ErrCodeServiceTemporarilyUnavailableException "ServiceTemporarilyUnavailableException"
+//   * ServiceTemporarilyUnavailableException
 //   The serice is temporary unavailable.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/inspector-2016-02-16/DeleteAssessmentTemplate
@@ -863,11 +863,11 @@ func (c *Inspector) DescribeAssessmentRunsRequest(input *DescribeAssessmentRunsI
 // See the AWS API reference guide for Amazon Inspector's
 // API operation DescribeAssessmentRuns for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInternalException "InternalException"
+// Returned Error Types:
+//   * InternalException
 //   Internal server error.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   The request was rejected because an invalid or out-of-range value was supplied
 //   for an input parameter.
 //
@@ -947,11 +947,11 @@ func (c *Inspector) DescribeAssessmentTargetsRequest(input *DescribeAssessmentTa
 // See the AWS API reference guide for Amazon Inspector's
 // API operation DescribeAssessmentTargets for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInternalException "InternalException"
+// Returned Error Types:
+//   * InternalException
 //   Internal server error.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   The request was rejected because an invalid or out-of-range value was supplied
 //   for an input parameter.
 //
@@ -1031,11 +1031,11 @@ func (c *Inspector) DescribeAssessmentTemplatesRequest(input *DescribeAssessment
 // See the AWS API reference guide for Amazon Inspector's
 // API operation DescribeAssessmentTemplates for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInternalException "InternalException"
+// Returned Error Types:
+//   * InternalException
 //   Internal server error.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   The request was rejected because an invalid or out-of-range value was supplied
 //   for an input parameter.
 //
@@ -1114,8 +1114,8 @@ func (c *Inspector) DescribeCrossAccountAccessRoleRequest(input *DescribeCrossAc
 // See the AWS API reference guide for Amazon Inspector's
 // API operation DescribeCrossAccountAccessRole for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInternalException "InternalException"
+// Returned Error Types:
+//   * InternalException
 //   Internal server error.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/inspector-2016-02-16/DescribeCrossAccountAccessRole
@@ -1193,11 +1193,11 @@ func (c *Inspector) DescribeExclusionsRequest(input *DescribeExclusionsInput) (r
 // See the AWS API reference guide for Amazon Inspector's
 // API operation DescribeExclusions for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInternalException "InternalException"
+// Returned Error Types:
+//   * InternalException
 //   Internal server error.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   The request was rejected because an invalid or out-of-range value was supplied
 //   for an input parameter.
 //
@@ -1276,11 +1276,11 @@ func (c *Inspector) DescribeFindingsRequest(input *DescribeFindingsInput) (req *
 // See the AWS API reference guide for Amazon Inspector's
 // API operation DescribeFindings for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInternalException "InternalException"
+// Returned Error Types:
+//   * InternalException
 //   Internal server error.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   The request was rejected because an invalid or out-of-range value was supplied
 //   for an input parameter.
 //
@@ -1360,11 +1360,11 @@ func (c *Inspector) DescribeResourceGroupsRequest(input *DescribeResourceGroupsI
 // See the AWS API reference guide for Amazon Inspector's
 // API operation DescribeResourceGroups for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInternalException "InternalException"
+// Returned Error Types:
+//   * InternalException
 //   Internal server error.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   The request was rejected because an invalid or out-of-range value was supplied
 //   for an input parameter.
 //
@@ -1444,11 +1444,11 @@ func (c *Inspector) DescribeRulesPackagesRequest(input *DescribeRulesPackagesInp
 // See the AWS API reference guide for Amazon Inspector's
 // API operation DescribeRulesPackages for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInternalException "InternalException"
+// Returned Error Types:
+//   * InternalException
 //   Internal server error.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   The request was rejected because an invalid or out-of-range value was supplied
 //   for an input parameter.
 //
@@ -1528,33 +1528,33 @@ func (c *Inspector) GetAssessmentReportRequest(input *GetAssessmentReportInput) 
 // See the AWS API reference guide for Amazon Inspector's
 // API operation GetAssessmentReport for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInternalException "InternalException"
+// Returned Error Types:
+//   * InternalException
 //   Internal server error.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   The request was rejected because an invalid or out-of-range value was supplied
 //   for an input parameter.
 //
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+//   * AccessDeniedException
 //   You do not have required permissions to access the requested resource.
 //
-//   * ErrCodeNoSuchEntityException "NoSuchEntityException"
+//   * NoSuchEntityException
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error code describes the entity.
 //
-//   * ErrCodeAssessmentRunInProgressException "AssessmentRunInProgressException"
+//   * AssessmentRunInProgressException
 //   You cannot perform a specified action if an assessment run is currently in
 //   progress.
 //
-//   * ErrCodeUnsupportedFeatureException "UnsupportedFeatureException"
+//   * UnsupportedFeatureException
 //   Used by the GetAssessmentReport API. The request was rejected because you
 //   tried to generate a report for an assessment run that existed before reporting
 //   was supported in Amazon Inspector. You can only generate reports for assessment
 //   runs that took place or will take place after generating reports in Amazon
 //   Inspector became available.
 //
-//   * ErrCodeServiceTemporarilyUnavailableException "ServiceTemporarilyUnavailableException"
+//   * ServiceTemporarilyUnavailableException
 //   The serice is temporary unavailable.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/inspector-2016-02-16/GetAssessmentReport
@@ -1640,18 +1640,18 @@ func (c *Inspector) GetExclusionsPreviewRequest(input *GetExclusionsPreviewInput
 // See the AWS API reference guide for Amazon Inspector's
 // API operation GetExclusionsPreview for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidInputException "InvalidInputException"
+// Returned Error Types:
+//   * InvalidInputException
 //   The request was rejected because an invalid or out-of-range value was supplied
 //   for an input parameter.
 //
-//   * ErrCodeInternalException "InternalException"
+//   * InternalException
 //   Internal server error.
 //
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+//   * AccessDeniedException
 //   You do not have required permissions to access the requested resource.
 //
-//   * ErrCodeNoSuchEntityException "NoSuchEntityException"
+//   * NoSuchEntityException
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error code describes the entity.
 //
@@ -1720,10 +1720,12 @@ func (c *Inspector) GetExclusionsPreviewPagesWithContext(ctx aws.Context, input 
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*GetExclusionsPreviewOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*GetExclusionsPreviewOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -1781,18 +1783,18 @@ func (c *Inspector) GetTelemetryMetadataRequest(input *GetTelemetryMetadataInput
 // See the AWS API reference guide for Amazon Inspector's
 // API operation GetTelemetryMetadata for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInternalException "InternalException"
+// Returned Error Types:
+//   * InternalException
 //   Internal server error.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   The request was rejected because an invalid or out-of-range value was supplied
 //   for an input parameter.
 //
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+//   * AccessDeniedException
 //   You do not have required permissions to access the requested resource.
 //
-//   * ErrCodeNoSuchEntityException "NoSuchEntityException"
+//   * NoSuchEntityException
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error code describes the entity.
 //
@@ -1878,18 +1880,18 @@ func (c *Inspector) ListAssessmentRunAgentsRequest(input *ListAssessmentRunAgent
 // See the AWS API reference guide for Amazon Inspector's
 // API operation ListAssessmentRunAgents for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInternalException "InternalException"
+// Returned Error Types:
+//   * InternalException
 //   Internal server error.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   The request was rejected because an invalid or out-of-range value was supplied
 //   for an input parameter.
 //
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+//   * AccessDeniedException
 //   You do not have required permissions to access the requested resource.
 //
-//   * ErrCodeNoSuchEntityException "NoSuchEntityException"
+//   * NoSuchEntityException
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error code describes the entity.
 //
@@ -1958,10 +1960,12 @@ func (c *Inspector) ListAssessmentRunAgentsPagesWithContext(ctx aws.Context, inp
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListAssessmentRunAgentsOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListAssessmentRunAgentsOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -2025,18 +2029,18 @@ func (c *Inspector) ListAssessmentRunsRequest(input *ListAssessmentRunsInput) (r
 // See the AWS API reference guide for Amazon Inspector's
 // API operation ListAssessmentRuns for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInternalException "InternalException"
+// Returned Error Types:
+//   * InternalException
 //   Internal server error.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   The request was rejected because an invalid or out-of-range value was supplied
 //   for an input parameter.
 //
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+//   * AccessDeniedException
 //   You do not have required permissions to access the requested resource.
 //
-//   * ErrCodeNoSuchEntityException "NoSuchEntityException"
+//   * NoSuchEntityException
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error code describes the entity.
 //
@@ -2105,10 +2109,12 @@ func (c *Inspector) ListAssessmentRunsPagesWithContext(ctx aws.Context, input *L
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListAssessmentRunsOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListAssessmentRunsOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -2173,15 +2179,15 @@ func (c *Inspector) ListAssessmentTargetsRequest(input *ListAssessmentTargetsInp
 // See the AWS API reference guide for Amazon Inspector's
 // API operation ListAssessmentTargets for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInternalException "InternalException"
+// Returned Error Types:
+//   * InternalException
 //   Internal server error.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   The request was rejected because an invalid or out-of-range value was supplied
 //   for an input parameter.
 //
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+//   * AccessDeniedException
 //   You do not have required permissions to access the requested resource.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/inspector-2016-02-16/ListAssessmentTargets
@@ -2249,10 +2255,12 @@ func (c *Inspector) ListAssessmentTargetsPagesWithContext(ctx aws.Context, input
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListAssessmentTargetsOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListAssessmentTargetsOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -2316,18 +2324,18 @@ func (c *Inspector) ListAssessmentTemplatesRequest(input *ListAssessmentTemplate
 // See the AWS API reference guide for Amazon Inspector's
 // API operation ListAssessmentTemplates for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInternalException "InternalException"
+// Returned Error Types:
+//   * InternalException
 //   Internal server error.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   The request was rejected because an invalid or out-of-range value was supplied
 //   for an input parameter.
 //
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+//   * AccessDeniedException
 //   You do not have required permissions to access the requested resource.
 //
-//   * ErrCodeNoSuchEntityException "NoSuchEntityException"
+//   * NoSuchEntityException
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error code describes the entity.
 //
@@ -2396,10 +2404,12 @@ func (c *Inspector) ListAssessmentTemplatesPagesWithContext(ctx aws.Context, inp
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListAssessmentTemplatesOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListAssessmentTemplatesOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -2464,18 +2474,18 @@ func (c *Inspector) ListEventSubscriptionsRequest(input *ListEventSubscriptionsI
 // See the AWS API reference guide for Amazon Inspector's
 // API operation ListEventSubscriptions for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInternalException "InternalException"
+// Returned Error Types:
+//   * InternalException
 //   Internal server error.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   The request was rejected because an invalid or out-of-range value was supplied
 //   for an input parameter.
 //
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+//   * AccessDeniedException
 //   You do not have required permissions to access the requested resource.
 //
-//   * ErrCodeNoSuchEntityException "NoSuchEntityException"
+//   * NoSuchEntityException
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error code describes the entity.
 //
@@ -2544,10 +2554,12 @@ func (c *Inspector) ListEventSubscriptionsPagesWithContext(ctx aws.Context, inpu
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListEventSubscriptionsOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListEventSubscriptionsOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -2610,18 +2622,18 @@ func (c *Inspector) ListExclusionsRequest(input *ListExclusionsInput) (req *requ
 // See the AWS API reference guide for Amazon Inspector's
 // API operation ListExclusions for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInternalException "InternalException"
+// Returned Error Types:
+//   * InternalException
 //   Internal server error.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   The request was rejected because an invalid or out-of-range value was supplied
 //   for an input parameter.
 //
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+//   * AccessDeniedException
 //   You do not have required permissions to access the requested resource.
 //
-//   * ErrCodeNoSuchEntityException "NoSuchEntityException"
+//   * NoSuchEntityException
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error code describes the entity.
 //
@@ -2690,10 +2702,12 @@ func (c *Inspector) ListExclusionsPagesWithContext(ctx aws.Context, input *ListE
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListExclusionsOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListExclusionsOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -2757,18 +2771,18 @@ func (c *Inspector) ListFindingsRequest(input *ListFindingsInput) (req *request.
 // See the AWS API reference guide for Amazon Inspector's
 // API operation ListFindings for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInternalException "InternalException"
+// Returned Error Types:
+//   * InternalException
 //   Internal server error.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   The request was rejected because an invalid or out-of-range value was supplied
 //   for an input parameter.
 //
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+//   * AccessDeniedException
 //   You do not have required permissions to access the requested resource.
 //
-//   * ErrCodeNoSuchEntityException "NoSuchEntityException"
+//   * NoSuchEntityException
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error code describes the entity.
 //
@@ -2837,10 +2851,12 @@ func (c *Inspector) ListFindingsPagesWithContext(ctx aws.Context, input *ListFin
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListFindingsOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListFindingsOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -2903,15 +2919,15 @@ func (c *Inspector) ListRulesPackagesRequest(input *ListRulesPackagesInput) (req
 // See the AWS API reference guide for Amazon Inspector's
 // API operation ListRulesPackages for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInternalException "InternalException"
+// Returned Error Types:
+//   * InternalException
 //   Internal server error.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   The request was rejected because an invalid or out-of-range value was supplied
 //   for an input parameter.
 //
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+//   * AccessDeniedException
 //   You do not have required permissions to access the requested resource.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/inspector-2016-02-16/ListRulesPackages
@@ -2979,10 +2995,12 @@ func (c *Inspector) ListRulesPackagesPagesWithContext(ctx aws.Context, input *Li
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListRulesPackagesOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListRulesPackagesOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -3039,18 +3057,18 @@ func (c *Inspector) ListTagsForResourceRequest(input *ListTagsForResourceInput) 
 // See the AWS API reference guide for Amazon Inspector's
 // API operation ListTagsForResource for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInternalException "InternalException"
+// Returned Error Types:
+//   * InternalException
 //   Internal server error.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   The request was rejected because an invalid or out-of-range value was supplied
 //   for an input parameter.
 //
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+//   * AccessDeniedException
 //   You do not have required permissions to access the requested resource.
 //
-//   * ErrCodeNoSuchEntityException "NoSuchEntityException"
+//   * NoSuchEntityException
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error code describes the entity.
 //
@@ -3136,22 +3154,22 @@ func (c *Inspector) PreviewAgentsRequest(input *PreviewAgentsInput) (req *reques
 // See the AWS API reference guide for Amazon Inspector's
 // API operation PreviewAgents for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInternalException "InternalException"
+// Returned Error Types:
+//   * InternalException
 //   Internal server error.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   The request was rejected because an invalid or out-of-range value was supplied
 //   for an input parameter.
 //
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+//   * AccessDeniedException
 //   You do not have required permissions to access the requested resource.
 //
-//   * ErrCodeNoSuchEntityException "NoSuchEntityException"
+//   * NoSuchEntityException
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error code describes the entity.
 //
-//   * ErrCodeInvalidCrossAccountRoleException "InvalidCrossAccountRoleException"
+//   * InvalidCrossAccountRoleException
 //   Amazon Inspector cannot assume the cross-account role that it needs to list
 //   your EC2 instances during the assessment run.
 //
@@ -3220,10 +3238,12 @@ func (c *Inspector) PreviewAgentsPagesWithContext(ctx aws.Context, input *Previe
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*PreviewAgentsOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*PreviewAgentsOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -3282,22 +3302,22 @@ func (c *Inspector) RegisterCrossAccountAccessRoleRequest(input *RegisterCrossAc
 // See the AWS API reference guide for Amazon Inspector's
 // API operation RegisterCrossAccountAccessRole for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInternalException "InternalException"
+// Returned Error Types:
+//   * InternalException
 //   Internal server error.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   The request was rejected because an invalid or out-of-range value was supplied
 //   for an input parameter.
 //
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+//   * AccessDeniedException
 //   You do not have required permissions to access the requested resource.
 //
-//   * ErrCodeInvalidCrossAccountRoleException "InvalidCrossAccountRoleException"
+//   * InvalidCrossAccountRoleException
 //   Amazon Inspector cannot assume the cross-account role that it needs to list
 //   your EC2 instances during the assessment run.
 //
-//   * ErrCodeServiceTemporarilyUnavailableException "ServiceTemporarilyUnavailableException"
+//   * ServiceTemporarilyUnavailableException
 //   The serice is temporary unavailable.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/inspector-2016-02-16/RegisterCrossAccountAccessRole
@@ -3377,22 +3397,22 @@ func (c *Inspector) RemoveAttributesFromFindingsRequest(input *RemoveAttributesF
 // See the AWS API reference guide for Amazon Inspector's
 // API operation RemoveAttributesFromFindings for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInternalException "InternalException"
+// Returned Error Types:
+//   * InternalException
 //   Internal server error.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   The request was rejected because an invalid or out-of-range value was supplied
 //   for an input parameter.
 //
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+//   * AccessDeniedException
 //   You do not have required permissions to access the requested resource.
 //
-//   * ErrCodeNoSuchEntityException "NoSuchEntityException"
+//   * NoSuchEntityException
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error code describes the entity.
 //
-//   * ErrCodeServiceTemporarilyUnavailableException "ServiceTemporarilyUnavailableException"
+//   * ServiceTemporarilyUnavailableException
 //   The serice is temporary unavailable.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/inspector-2016-02-16/RemoveAttributesFromFindings
@@ -3472,22 +3492,22 @@ func (c *Inspector) SetTagsForResourceRequest(input *SetTagsForResourceInput) (r
 // See the AWS API reference guide for Amazon Inspector's
 // API operation SetTagsForResource for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInternalException "InternalException"
+// Returned Error Types:
+//   * InternalException
 //   Internal server error.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   The request was rejected because an invalid or out-of-range value was supplied
 //   for an input parameter.
 //
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+//   * AccessDeniedException
 //   You do not have required permissions to access the requested resource.
 //
-//   * ErrCodeNoSuchEntityException "NoSuchEntityException"
+//   * NoSuchEntityException
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error code describes the entity.
 //
-//   * ErrCodeServiceTemporarilyUnavailableException "ServiceTemporarilyUnavailableException"
+//   * ServiceTemporarilyUnavailableException
 //   The serice is temporary unavailable.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/inspector-2016-02-16/SetTagsForResource
@@ -3567,34 +3587,34 @@ func (c *Inspector) StartAssessmentRunRequest(input *StartAssessmentRunInput) (r
 // See the AWS API reference guide for Amazon Inspector's
 // API operation StartAssessmentRun for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInternalException "InternalException"
+// Returned Error Types:
+//   * InternalException
 //   Internal server error.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   The request was rejected because an invalid or out-of-range value was supplied
 //   for an input parameter.
 //
-//   * ErrCodeLimitExceededException "LimitExceededException"
+//   * LimitExceededException
 //   The request was rejected because it attempted to create resources beyond
 //   the current AWS account limits. The error code describes the limit exceeded.
 //
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+//   * AccessDeniedException
 //   You do not have required permissions to access the requested resource.
 //
-//   * ErrCodeNoSuchEntityException "NoSuchEntityException"
+//   * NoSuchEntityException
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error code describes the entity.
 //
-//   * ErrCodeInvalidCrossAccountRoleException "InvalidCrossAccountRoleException"
+//   * InvalidCrossAccountRoleException
 //   Amazon Inspector cannot assume the cross-account role that it needs to list
 //   your EC2 instances during the assessment run.
 //
-//   * ErrCodeAgentsAlreadyRunningAssessmentException "AgentsAlreadyRunningAssessmentException"
+//   * AgentsAlreadyRunningAssessmentException
 //   You started an assessment run, but one of the instances is already participating
 //   in another assessment run.
 //
-//   * ErrCodeServiceTemporarilyUnavailableException "ServiceTemporarilyUnavailableException"
+//   * ServiceTemporarilyUnavailableException
 //   The serice is temporary unavailable.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/inspector-2016-02-16/StartAssessmentRun
@@ -3673,22 +3693,22 @@ func (c *Inspector) StopAssessmentRunRequest(input *StopAssessmentRunInput) (req
 // See the AWS API reference guide for Amazon Inspector's
 // API operation StopAssessmentRun for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInternalException "InternalException"
+// Returned Error Types:
+//   * InternalException
 //   Internal server error.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   The request was rejected because an invalid or out-of-range value was supplied
 //   for an input parameter.
 //
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+//   * AccessDeniedException
 //   You do not have required permissions to access the requested resource.
 //
-//   * ErrCodeNoSuchEntityException "NoSuchEntityException"
+//   * NoSuchEntityException
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error code describes the entity.
 //
-//   * ErrCodeServiceTemporarilyUnavailableException "ServiceTemporarilyUnavailableException"
+//   * ServiceTemporarilyUnavailableException
 //   The serice is temporary unavailable.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/inspector-2016-02-16/StopAssessmentRun
@@ -3768,26 +3788,26 @@ func (c *Inspector) SubscribeToEventRequest(input *SubscribeToEventInput) (req *
 // See the AWS API reference guide for Amazon Inspector's
 // API operation SubscribeToEvent for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInternalException "InternalException"
+// Returned Error Types:
+//   * InternalException
 //   Internal server error.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   The request was rejected because an invalid or out-of-range value was supplied
 //   for an input parameter.
 //
-//   * ErrCodeLimitExceededException "LimitExceededException"
+//   * LimitExceededException
 //   The request was rejected because it attempted to create resources beyond
 //   the current AWS account limits. The error code describes the limit exceeded.
 //
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+//   * AccessDeniedException
 //   You do not have required permissions to access the requested resource.
 //
-//   * ErrCodeNoSuchEntityException "NoSuchEntityException"
+//   * NoSuchEntityException
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error code describes the entity.
 //
-//   * ErrCodeServiceTemporarilyUnavailableException "ServiceTemporarilyUnavailableException"
+//   * ServiceTemporarilyUnavailableException
 //   The serice is temporary unavailable.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/inspector-2016-02-16/SubscribeToEvent
@@ -3867,22 +3887,22 @@ func (c *Inspector) UnsubscribeFromEventRequest(input *UnsubscribeFromEventInput
 // See the AWS API reference guide for Amazon Inspector's
 // API operation UnsubscribeFromEvent for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInternalException "InternalException"
+// Returned Error Types:
+//   * InternalException
 //   Internal server error.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   The request was rejected because an invalid or out-of-range value was supplied
 //   for an input parameter.
 //
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+//   * AccessDeniedException
 //   You do not have required permissions to access the requested resource.
 //
-//   * ErrCodeNoSuchEntityException "NoSuchEntityException"
+//   * NoSuchEntityException
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error code describes the entity.
 //
-//   * ErrCodeServiceTemporarilyUnavailableException "ServiceTemporarilyUnavailableException"
+//   * ServiceTemporarilyUnavailableException
 //   The serice is temporary unavailable.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/inspector-2016-02-16/UnsubscribeFromEvent
@@ -3965,22 +3985,22 @@ func (c *Inspector) UpdateAssessmentTargetRequest(input *UpdateAssessmentTargetI
 // See the AWS API reference guide for Amazon Inspector's
 // API operation UpdateAssessmentTarget for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInternalException "InternalException"
+// Returned Error Types:
+//   * InternalException
 //   Internal server error.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   The request was rejected because an invalid or out-of-range value was supplied
 //   for an input parameter.
 //
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+//   * AccessDeniedException
 //   You do not have required permissions to access the requested resource.
 //
-//   * ErrCodeNoSuchEntityException "NoSuchEntityException"
+//   * NoSuchEntityException
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error code describes the entity.
 //
-//   * ErrCodeServiceTemporarilyUnavailableException "ServiceTemporarilyUnavailableException"
+//   * ServiceTemporarilyUnavailableException
 //   The serice is temporary unavailable.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/inspector-2016-02-16/UpdateAssessmentTarget
@@ -4003,6 +4023,73 @@ func (c *Inspector) UpdateAssessmentTargetWithContext(ctx aws.Context, input *Up
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
+}
+
+// You do not have required permissions to access the requested resource.
+type AccessDeniedException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// You can immediately retry your request.
+	//
+	// CanRetry is a required field
+	CanRetry *bool `locationName:"canRetry" type:"boolean" required:"true"`
+
+	// Code that indicates the type of error that is generated.
+	//
+	// ErrorCode is a required field
+	ErrorCode *string `locationName:"errorCode" type:"string" required:"true" enum:"AccessDeniedErrorCode"`
+
+	// Details of the exception error.
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s AccessDeniedException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AccessDeniedException) GoString() string {
+	return s.String()
+}
+
+func newErrorAccessDeniedException(v protocol.ResponseMetadata) error {
+	return &AccessDeniedException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *AccessDeniedException) Code() string {
+	return "AccessDeniedException"
+}
+
+// Message returns the exception's message.
+func (s *AccessDeniedException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *AccessDeniedException) OrigErr() error {
+	return nil
+}
+
+func (s *AccessDeniedException) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *AccessDeniedException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *AccessDeniedException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 type AddAttributesToFindingsInput struct {
@@ -4281,6 +4368,75 @@ func (s *AgentPreview) SetKernelVersion(v string) *AgentPreview {
 func (s *AgentPreview) SetOperatingSystem(v string) *AgentPreview {
 	s.OperatingSystem = &v
 	return s
+}
+
+// You started an assessment run, but one of the instances is already participating
+// in another assessment run.
+type AgentsAlreadyRunningAssessmentException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// Agents is a required field
+	Agents []*AgentAlreadyRunningAssessment `locationName:"agents" min:"1" type:"list" required:"true"`
+
+	// AgentsTruncated is a required field
+	AgentsTruncated *bool `locationName:"agentsTruncated" type:"boolean" required:"true"`
+
+	// You can immediately retry your request.
+	//
+	// CanRetry is a required field
+	CanRetry *bool `locationName:"canRetry" type:"boolean" required:"true"`
+
+	// Details of the exception error.
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s AgentsAlreadyRunningAssessmentException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AgentsAlreadyRunningAssessmentException) GoString() string {
+	return s.String()
+}
+
+func newErrorAgentsAlreadyRunningAssessmentException(v protocol.ResponseMetadata) error {
+	return &AgentsAlreadyRunningAssessmentException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *AgentsAlreadyRunningAssessmentException) Code() string {
+	return "AgentsAlreadyRunningAssessmentException"
+}
+
+// Message returns the exception's message.
+func (s *AgentsAlreadyRunningAssessmentException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *AgentsAlreadyRunningAssessmentException) OrigErr() error {
+	return nil
+}
+
+func (s *AgentsAlreadyRunningAssessmentException) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *AgentsAlreadyRunningAssessmentException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *AgentsAlreadyRunningAssessmentException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // A snapshot of an Amazon Inspector assessment run that contains the findings
@@ -4666,6 +4822,80 @@ func (s *AssessmentRunFilter) SetStateChangeTimeRange(v *TimestampRange) *Assess
 func (s *AssessmentRunFilter) SetStates(v []*string) *AssessmentRunFilter {
 	s.States = v
 	return s
+}
+
+// You cannot perform a specified action if an assessment run is currently in
+// progress.
+type AssessmentRunInProgressException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// The ARNs of the assessment runs that are currently in progress.
+	//
+	// AssessmentRunArns is a required field
+	AssessmentRunArns []*string `locationName:"assessmentRunArns" min:"1" type:"list" required:"true"`
+
+	// Boolean value that indicates whether the ARN list of the assessment runs
+	// is truncated.
+	//
+	// AssessmentRunArnsTruncated is a required field
+	AssessmentRunArnsTruncated *bool `locationName:"assessmentRunArnsTruncated" type:"boolean" required:"true"`
+
+	// You can immediately retry your request.
+	//
+	// CanRetry is a required field
+	CanRetry *bool `locationName:"canRetry" type:"boolean" required:"true"`
+
+	// Details of the exception error.
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s AssessmentRunInProgressException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AssessmentRunInProgressException) GoString() string {
+	return s.String()
+}
+
+func newErrorAssessmentRunInProgressException(v protocol.ResponseMetadata) error {
+	return &AssessmentRunInProgressException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *AssessmentRunInProgressException) Code() string {
+	return "AssessmentRunInProgressException"
+}
+
+// Message returns the exception's message.
+func (s *AssessmentRunInProgressException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *AssessmentRunInProgressException) OrigErr() error {
+	return nil
+}
+
+func (s *AssessmentRunInProgressException) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *AssessmentRunInProgressException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *AssessmentRunInProgressException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Used as one of the elements of the AssessmentRun data type.
@@ -7297,6 +7527,272 @@ func (s *GetTelemetryMetadataOutput) SetTelemetryMetadata(v []*TelemetryMetadata
 	return s
 }
 
+// Internal server error.
+type InternalException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// You can immediately retry your request.
+	//
+	// CanRetry is a required field
+	CanRetry *bool `locationName:"canRetry" type:"boolean" required:"true"`
+
+	// Details of the exception error.
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s InternalException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InternalException) GoString() string {
+	return s.String()
+}
+
+func newErrorInternalException(v protocol.ResponseMetadata) error {
+	return &InternalException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *InternalException) Code() string {
+	return "InternalException"
+}
+
+// Message returns the exception's message.
+func (s *InternalException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *InternalException) OrigErr() error {
+	return nil
+}
+
+func (s *InternalException) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *InternalException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *InternalException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// Amazon Inspector cannot assume the cross-account role that it needs to list
+// your EC2 instances during the assessment run.
+type InvalidCrossAccountRoleException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// You can immediately retry your request.
+	//
+	// CanRetry is a required field
+	CanRetry *bool `locationName:"canRetry" type:"boolean" required:"true"`
+
+	// Code that indicates the type of error that is generated.
+	//
+	// ErrorCode is a required field
+	ErrorCode *string `locationName:"errorCode" type:"string" required:"true" enum:"InvalidCrossAccountRoleErrorCode"`
+
+	// Details of the exception error.
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidCrossAccountRoleException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidCrossAccountRoleException) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidCrossAccountRoleException(v protocol.ResponseMetadata) error {
+	return &InvalidCrossAccountRoleException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *InvalidCrossAccountRoleException) Code() string {
+	return "InvalidCrossAccountRoleException"
+}
+
+// Message returns the exception's message.
+func (s *InvalidCrossAccountRoleException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *InvalidCrossAccountRoleException) OrigErr() error {
+	return nil
+}
+
+func (s *InvalidCrossAccountRoleException) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *InvalidCrossAccountRoleException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *InvalidCrossAccountRoleException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// The request was rejected because an invalid or out-of-range value was supplied
+// for an input parameter.
+type InvalidInputException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// You can immediately retry your request.
+	//
+	// CanRetry is a required field
+	CanRetry *bool `locationName:"canRetry" type:"boolean" required:"true"`
+
+	// Code that indicates the type of error that is generated.
+	//
+	// ErrorCode is a required field
+	ErrorCode *string `locationName:"errorCode" type:"string" required:"true" enum:"InvalidInputErrorCode"`
+
+	// Details of the exception error.
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidInputException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidInputException) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidInputException(v protocol.ResponseMetadata) error {
+	return &InvalidInputException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *InvalidInputException) Code() string {
+	return "InvalidInputException"
+}
+
+// Message returns the exception's message.
+func (s *InvalidInputException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *InvalidInputException) OrigErr() error {
+	return nil
+}
+
+func (s *InvalidInputException) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *InvalidInputException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *InvalidInputException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// The request was rejected because it attempted to create resources beyond
+// the current AWS account limits. The error code describes the limit exceeded.
+type LimitExceededException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// You can immediately retry your request.
+	//
+	// CanRetry is a required field
+	CanRetry *bool `locationName:"canRetry" type:"boolean" required:"true"`
+
+	// Code that indicates the type of error that is generated.
+	//
+	// ErrorCode is a required field
+	ErrorCode *string `locationName:"errorCode" type:"string" required:"true" enum:"LimitExceededErrorCode"`
+
+	// Details of the exception error.
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s LimitExceededException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s LimitExceededException) GoString() string {
+	return s.String()
+}
+
+func newErrorLimitExceededException(v protocol.ResponseMetadata) error {
+	return &LimitExceededException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *LimitExceededException) Code() string {
+	return "LimitExceededException"
+}
+
+// Message returns the exception's message.
+func (s *LimitExceededException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *LimitExceededException) OrigErr() error {
+	return nil
+}
+
+func (s *LimitExceededException) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *LimitExceededException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *LimitExceededException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
 type ListAssessmentRunAgentsInput struct {
 	_ struct{} `type:"structure"`
 
@@ -8335,6 +8831,74 @@ func (s *NetworkInterface) SetVpcId(v string) *NetworkInterface {
 	return s
 }
 
+// The request was rejected because it referenced an entity that does not exist.
+// The error code describes the entity.
+type NoSuchEntityException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// You can immediately retry your request.
+	//
+	// CanRetry is a required field
+	CanRetry *bool `locationName:"canRetry" type:"boolean" required:"true"`
+
+	// Code that indicates the type of error that is generated.
+	//
+	// ErrorCode is a required field
+	ErrorCode *string `locationName:"errorCode" type:"string" required:"true" enum:"NoSuchEntityErrorCode"`
+
+	// Details of the exception error.
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s NoSuchEntityException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s NoSuchEntityException) GoString() string {
+	return s.String()
+}
+
+func newErrorNoSuchEntityException(v protocol.ResponseMetadata) error {
+	return &NoSuchEntityException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *NoSuchEntityException) Code() string {
+	return "NoSuchEntityException"
+}
+
+// Message returns the exception's message.
+func (s *NoSuchEntityException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *NoSuchEntityException) OrigErr() error {
+	return nil
+}
+
+func (s *NoSuchEntityException) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *NoSuchEntityException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *NoSuchEntityException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
 type PreviewAgentsInput struct {
 	_ struct{} `type:"structure"`
 
@@ -8436,6 +9000,63 @@ func (s *PreviewAgentsOutput) SetAgentPreviews(v []*AgentPreview) *PreviewAgents
 func (s *PreviewAgentsOutput) SetNextToken(v string) *PreviewAgentsOutput {
 	s.NextToken = &v
 	return s
+}
+
+// The request is rejected. The specified assessment template is currently generating
+// an exclusions preview.
+type PreviewGenerationInProgressException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s PreviewGenerationInProgressException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s PreviewGenerationInProgressException) GoString() string {
+	return s.String()
+}
+
+func newErrorPreviewGenerationInProgressException(v protocol.ResponseMetadata) error {
+	return &PreviewGenerationInProgressException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *PreviewGenerationInProgressException) Code() string {
+	return "PreviewGenerationInProgressException"
+}
+
+// Message returns the exception's message.
+func (s *PreviewGenerationInProgressException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *PreviewGenerationInProgressException) OrigErr() error {
+	return nil
+}
+
+func (s *PreviewGenerationInProgressException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *PreviewGenerationInProgressException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *PreviewGenerationInProgressException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Contains information about a private IP address associated with a network
@@ -8895,6 +9516,68 @@ func (s *ServiceAttributes) SetRulesPackageArn(v string) *ServiceAttributes {
 func (s *ServiceAttributes) SetSchemaVersion(v int64) *ServiceAttributes {
 	s.SchemaVersion = &v
 	return s
+}
+
+// The serice is temporary unavailable.
+type ServiceTemporarilyUnavailableException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// You can wait and then retry your request.
+	//
+	// CanRetry is a required field
+	CanRetry *bool `locationName:"canRetry" type:"boolean" required:"true"`
+
+	// Details of the exception error.
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s ServiceTemporarilyUnavailableException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ServiceTemporarilyUnavailableException) GoString() string {
+	return s.String()
+}
+
+func newErrorServiceTemporarilyUnavailableException(v protocol.ResponseMetadata) error {
+	return &ServiceTemporarilyUnavailableException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *ServiceTemporarilyUnavailableException) Code() string {
+	return "ServiceTemporarilyUnavailableException"
+}
+
+// Message returns the exception's message.
+func (s *ServiceTemporarilyUnavailableException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *ServiceTemporarilyUnavailableException) OrigErr() error {
+	return nil
+}
+
+func (s *ServiceTemporarilyUnavailableException) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *ServiceTemporarilyUnavailableException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *ServiceTemporarilyUnavailableException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 type SetTagsForResourceInput struct {
@@ -9480,6 +10163,69 @@ func (s UnsubscribeFromEventOutput) String() string {
 // GoString returns the string representation
 func (s UnsubscribeFromEventOutput) GoString() string {
 	return s.String()
+}
+
+// Used by the GetAssessmentReport API. The request was rejected because you
+// tried to generate a report for an assessment run that existed before reporting
+// was supported in Amazon Inspector. You can only generate reports for assessment
+// runs that took place or will take place after generating reports in Amazon
+// Inspector became available.
+type UnsupportedFeatureException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// CanRetry is a required field
+	CanRetry *bool `locationName:"canRetry" type:"boolean" required:"true"`
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s UnsupportedFeatureException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UnsupportedFeatureException) GoString() string {
+	return s.String()
+}
+
+func newErrorUnsupportedFeatureException(v protocol.ResponseMetadata) error {
+	return &UnsupportedFeatureException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *UnsupportedFeatureException) Code() string {
+	return "UnsupportedFeatureException"
+}
+
+// Message returns the exception's message.
+func (s *UnsupportedFeatureException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *UnsupportedFeatureException) OrigErr() error {
+	return nil
+}
+
+func (s *UnsupportedFeatureException) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *UnsupportedFeatureException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *UnsupportedFeatureException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 type UpdateAssessmentTargetInput struct {

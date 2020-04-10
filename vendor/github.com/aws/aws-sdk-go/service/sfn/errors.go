@@ -2,6 +2,10 @@
 
 package sfn
 
+import (
+	"github.com/aws/aws-sdk-go/private/protocol"
+)
+
 const (
 
 	// ErrCodeActivityDoesNotExist for service response error code
@@ -63,6 +67,10 @@ const (
 	// The provided JSON input data is invalid.
 	ErrCodeInvalidExecutionInput = "InvalidExecutionInput"
 
+	// ErrCodeInvalidLoggingConfiguration for service response error code
+	// "InvalidLoggingConfiguration".
+	ErrCodeInvalidLoggingConfiguration = "InvalidLoggingConfiguration"
+
 	// ErrCodeInvalidName for service response error code
 	// "InvalidName".
 	//
@@ -121,6 +129,10 @@ const (
 	// must be deleted before a new state machine can be created.
 	ErrCodeStateMachineLimitExceeded = "StateMachineLimitExceeded"
 
+	// ErrCodeStateMachineTypeNotSupported for service response error code
+	// "StateMachineTypeNotSupported".
+	ErrCodeStateMachineTypeNotSupported = "StateMachineTypeNotSupported"
+
 	// ErrCodeTaskDoesNotExist for service response error code
 	// "TaskDoesNotExist".
 	ErrCodeTaskDoesNotExist = "TaskDoesNotExist"
@@ -137,3 +149,29 @@ const (
 	// in the AWS Step Functions Developer Guide.
 	ErrCodeTooManyTags = "TooManyTags"
 )
+
+var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
+	"ActivityDoesNotExist":         newErrorActivityDoesNotExist,
+	"ActivityLimitExceeded":        newErrorActivityLimitExceeded,
+	"ActivityWorkerLimitExceeded":  newErrorActivityWorkerLimitExceeded,
+	"ExecutionAlreadyExists":       newErrorExecutionAlreadyExists,
+	"ExecutionDoesNotExist":        newErrorExecutionDoesNotExist,
+	"ExecutionLimitExceeded":       newErrorExecutionLimitExceeded,
+	"InvalidArn":                   newErrorInvalidArn,
+	"InvalidDefinition":            newErrorInvalidDefinition,
+	"InvalidExecutionInput":        newErrorInvalidExecutionInput,
+	"InvalidLoggingConfiguration":  newErrorInvalidLoggingConfiguration,
+	"InvalidName":                  newErrorInvalidName,
+	"InvalidOutput":                newErrorInvalidOutput,
+	"InvalidToken":                 newErrorInvalidToken,
+	"MissingRequiredParameter":     newErrorMissingRequiredParameter,
+	"ResourceNotFound":             newErrorResourceNotFound,
+	"StateMachineAlreadyExists":    newErrorStateMachineAlreadyExists,
+	"StateMachineDeleting":         newErrorStateMachineDeleting,
+	"StateMachineDoesNotExist":     newErrorStateMachineDoesNotExist,
+	"StateMachineLimitExceeded":    newErrorStateMachineLimitExceeded,
+	"StateMachineTypeNotSupported": newErrorStateMachineTypeNotSupported,
+	"TaskDoesNotExist":             newErrorTaskDoesNotExist,
+	"TaskTimedOut":                 newErrorTaskTimedOut,
+	"TooManyTags":                  newErrorTooManyTags,
+}

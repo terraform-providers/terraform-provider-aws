@@ -9,13 +9,29 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
-func TestAccDataSourceAwsPrefixList(t *testing.T) {
+func TestAccDataSourceAwsPrefixList_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAwsPrefixListConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccDataSourceAwsPrefixListCheck("data.aws_prefix_list.s3_by_id"),
+					testAccDataSourceAwsPrefixListCheck("data.aws_prefix_list.s3_by_name"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDataSourceAwsPrefixList_filter(t *testing.T) {
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceAwsPrefixListConfigFilter,
 				Check: resource.ComposeTestCheckFunc(
 					testAccDataSourceAwsPrefixListCheck("data.aws_prefix_list.s3_by_id"),
 					testAccDataSourceAwsPrefixListCheck("data.aws_prefix_list.s3_by_name"),
@@ -64,5 +80,21 @@ data "aws_prefix_list" "s3_by_id" {
 
 data "aws_prefix_list" "s3_by_name" {
  name = "com.amazonaws.us-west-2.s3"
+}
+`
+
+const testAccDataSourceAwsPrefixListConfigFilter = `
+data "aws_prefix_list" "s3_by_name" {
+  filter {
+    name   = "prefix-list-name"
+    values = ["com.amazonaws.us-west-2.s3"]
+  }
+}
+
+data "aws_prefix_list" "s3_by_id" {
+  filter {
+    name   = "prefix-list-id"
+    values = ["pl-68a54001"]
+  }
 }
 `

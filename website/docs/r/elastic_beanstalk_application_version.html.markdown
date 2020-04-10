@@ -18,12 +18,7 @@ Environment.
 ~> **NOTE on Application Version Resource:**  When using the Application Version resource with multiple 
 [Elastic Beanstalk Environments](elastic_beanstalk_environment.html) it is possible that an error may be returned
 when attempting to delete an Application Version while it is still in use by a different environment.
-To work around this you can:
-<ol>
-<li>Create each environment in a separate AWS account</li>
-<li>Create your `aws_elastic_beanstalk_application_version` resources with a unique names in your 
-Elastic Beanstalk Application. For example &lt;revision&gt;-&lt;environment&gt;.</li>
-</ol>
+To work around this you can either create each environment in a separate AWS account or create your `aws_elastic_beanstalk_application_version` resources with a unique names in your Elastic Beanstalk Application. For example &lt;revision&gt;-&lt;environment&gt;.
 
 ## Example Usage
 

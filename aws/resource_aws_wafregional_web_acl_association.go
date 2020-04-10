@@ -17,6 +17,9 @@ func resourceAwsWafRegionalWebAclAssociation() *schema.Resource {
 		Create: resourceAwsWafRegionalWebAclAssociationCreate,
 		Read:   resourceAwsWafRegionalWebAclAssociationRead,
 		Delete: resourceAwsWafRegionalWebAclAssociationDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 
 		Schema: map[string]*schema.Schema{
 			"web_acl_id": {

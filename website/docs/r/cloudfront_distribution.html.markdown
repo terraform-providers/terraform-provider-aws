@@ -458,7 +458,7 @@ argument is not required.
 
   * `failover_criteria` (Required) - The [failover criteria](#failover-criteria-arguments) for when to failover to the secondary origin
 
-  * `member` (Required) - Ordered [member](#member-arguments) configuration blocks assigned to the origin group, where the first member is the primary origin. Minimum 2.
+  * `member` (Required) - Ordered [member](#member-arguments) configuration blocks assigned to the origin group, where the first member is the primary origin. You must specify two members.
 
 ##### Failover Criteria Arguments
 
@@ -499,7 +499,8 @@ The arguments of `geo_restriction` are:
     this, `acm_certificate_arn`, or `cloudfront_default_certificate`.
 
   * `minimum_protocol_version` - The minimum version of the SSL protocol that
-    you want CloudFront to use for HTTPS connections. One of `SSLv3`, `TLSv1`,
+    you want CloudFront to use for HTTPS connections. Can only be set if 
+    `cloudfront_default_certificate = false`. One of `SSLv3`, `TLSv1`,
     `TLSv1_2016`, `TLSv1.1_2016` or `TLSv1.2_2018`. Default: `TLSv1`. **NOTE**:
     If you are using a custom certificate (specified with `acm_certificate_arn`
     or `iam_certificate_id`), and have specified `sni-only` in

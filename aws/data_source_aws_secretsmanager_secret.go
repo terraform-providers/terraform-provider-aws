@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func dataSourceAwsSecretsManagerSecret() *schema.Resource {
@@ -131,7 +132,7 @@ func dataSourceAwsSecretsManagerSecretRead(d *schema.ResourceData, meta interfac
 		return fmt.Errorf("error setting rotation_rules: %s", err)
 	}
 
-	if err := d.Set("tags", tagsToMapSecretsManager(output.Tags)); err != nil {
+	if err := d.Set("tags", keyvaluetags.SecretsmanagerKeyValueTags(output.Tags).IgnoreAws().Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 

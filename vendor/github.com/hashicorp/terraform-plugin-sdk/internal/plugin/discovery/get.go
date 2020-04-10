@@ -21,9 +21,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/internal/registry"
 	"github.com/hashicorp/terraform-plugin-sdk/internal/registry/regsrc"
 	"github.com/hashicorp/terraform-plugin-sdk/internal/registry/response"
-	"github.com/hashicorp/terraform-plugin-sdk/internal/svchost/disco"
 	"github.com/hashicorp/terraform-plugin-sdk/internal/tfdiags"
 	tfversion "github.com/hashicorp/terraform-plugin-sdk/internal/version"
+	"github.com/hashicorp/terraform-svchost/disco"
 	"github.com/mitchellh/cli"
 )
 
@@ -41,13 +41,6 @@ func init() {
 
 	getter.Getters["http"] = httpGetter
 	getter.Getters["https"] = httpGetter
-}
-
-// An Installer maintains a local cache of plugins by downloading plugins
-// from an online repository.
-type Installer interface {
-	Get(provider addrs.ProviderType, req Constraints) (PluginMeta, tfdiags.Diagnostics, error)
-	PurgeUnused(used map[string]PluginMeta) (removed PluginMetaSet, err error)
 }
 
 // ProviderInstaller is an Installer implementation that knows how to

@@ -2,6 +2,10 @@
 
 package qldb
 
+import (
+	"github.com/aws/aws-sdk-go/private/protocol"
+)
+
 const (
 
 	// ErrCodeInvalidParameterException for service response error code
@@ -40,3 +44,12 @@ const (
 	// The operation failed because a condition wasn't satisfied in advance.
 	ErrCodeResourcePreconditionNotMetException = "ResourcePreconditionNotMetException"
 )
+
+var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
+	"InvalidParameterException":           newErrorInvalidParameterException,
+	"LimitExceededException":              newErrorLimitExceededException,
+	"ResourceAlreadyExistsException":      newErrorResourceAlreadyExistsException,
+	"ResourceInUseException":              newErrorResourceInUseException,
+	"ResourceNotFoundException":           newErrorResourceNotFoundException,
+	"ResourcePreconditionNotMetException": newErrorResourcePreconditionNotMetException,
+}

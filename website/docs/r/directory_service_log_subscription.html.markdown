@@ -27,7 +27,7 @@ data "aws_iam_policy_document" "ad-log-policy" {
 
     principals {
       identifiers = ["ds.amazonaws.com"]
-      type = "Service"
+      type        = "Service"
     }
 
     resources = ["${aws_cloudwatch_log_group.example.arn}"]

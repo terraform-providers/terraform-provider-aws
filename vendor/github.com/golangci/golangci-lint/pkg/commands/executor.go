@@ -11,15 +11,13 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/golangci/golangci-lint/internal/cache"
-
 	"github.com/fatih/color"
+	"github.com/gofrs/flock"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
-	"github.com/gofrs/flock"
-
+	"github.com/golangci/golangci-lint/internal/cache"
 	"github.com/golangci/golangci-lint/internal/pkgcache"
 	"github.com/golangci/golangci-lint/pkg/config"
 	"github.com/golangci/golangci-lint/pkg/fsutils"
@@ -62,7 +60,7 @@ func NewExecutor(version, commit, date string) *Executor {
 		version:   version,
 		commit:    commit,
 		date:      date,
-		DBManager: lintersdb.NewManager(nil),
+		DBManager: lintersdb.NewManager(nil, nil),
 		debugf:    logutils.Debug("exec"),
 	}
 
@@ -114,7 +112,7 @@ func NewExecutor(version, commit, date string) *Executor {
 	}
 
 	// recreate after getting config
-	e.DBManager = lintersdb.NewManager(e.cfg)
+	e.DBManager = lintersdb.NewManager(e.cfg, e.log).WithCustomLinters()
 
 	e.cfg.LintersSettings.Gocritic.InferEnabledChecks(e.log)
 	if err = e.cfg.LintersSettings.Gocritic.Validate(e.log); err != nil {
@@ -212,7 +210,8 @@ func (e *Executor) acquireFileLock() bool {
 	ctx, finish := context.WithTimeout(context.Background(), time.Minute)
 	defer finish()
 
-	if ok, _ := f.TryLockContext(ctx, time.Second*3); !ok {
+	timeout := time.Second * 3
+	if ok, _ := f.TryLockContext(ctx, timeout); !ok {
 		return false
 	}
 
@@ -223,5 +222,8 @@ func (e *Executor) acquireFileLock() bool {
 func (e *Executor) releaseFileLock() {
 	if err := e.flock.Unlock(); err != nil {
 		e.debugf("Failed to unlock on file: %s", err)
+	}
+	if err := os.Remove(e.flock.Path()); err != nil {
+		e.debugf("Failed to remove lock file: %s", err)
 	}
 }

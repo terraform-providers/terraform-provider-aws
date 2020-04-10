@@ -2,6 +2,10 @@
 
 package appmesh
 
+import (
+	"github.com/aws/aws-sdk-go/private/protocol"
+)
+
 const (
 
 	// ErrCodeBadRequestException for service response error code
@@ -74,3 +78,16 @@ const (
 	// of tags in the request. None of the tags in this request were applied.
 	ErrCodeTooManyTagsException = "TooManyTagsException"
 )
+
+var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
+	"BadRequestException":          newErrorBadRequestException,
+	"ConflictException":            newErrorConflictException,
+	"ForbiddenException":           newErrorForbiddenException,
+	"InternalServerErrorException": newErrorInternalServerErrorException,
+	"LimitExceededException":       newErrorLimitExceededException,
+	"NotFoundException":            newErrorNotFoundException,
+	"ResourceInUseException":       newErrorResourceInUseException,
+	"ServiceUnavailableException":  newErrorServiceUnavailableException,
+	"TooManyRequestsException":     newErrorTooManyRequestsException,
+	"TooManyTagsException":         newErrorTooManyTagsException,
+}

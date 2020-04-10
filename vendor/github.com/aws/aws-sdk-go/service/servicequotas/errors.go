@@ -2,6 +2,10 @@
 
 package servicequotas
 
+import (
+	"github.com/aws/aws-sdk-go/private/protocol"
+)
+
 const (
 
 	// ErrCodeAWSServiceAccessNotEnabledException for service response error code
@@ -102,3 +106,21 @@ const (
 	// calls, or request an increase for this quota.
 	ErrCodeTooManyRequestsException = "TooManyRequestsException"
 )
+
+var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
+	"AWSServiceAccessNotEnabledException":       newErrorAWSServiceAccessNotEnabledException,
+	"AccessDeniedException":                     newErrorAccessDeniedException,
+	"DependencyAccessDeniedException":           newErrorDependencyAccessDeniedException,
+	"IllegalArgumentException":                  newErrorIllegalArgumentException,
+	"InvalidPaginationTokenException":           newErrorInvalidPaginationTokenException,
+	"InvalidResourceStateException":             newErrorInvalidResourceStateException,
+	"NoAvailableOrganizationException":          newErrorNoAvailableOrganizationException,
+	"NoSuchResourceException":                   newErrorNoSuchResourceException,
+	"OrganizationNotInAllFeaturesModeException": newErrorOrganizationNotInAllFeaturesModeException,
+	"QuotaExceededException":                    newErrorQuotaExceededException,
+	"ResourceAlreadyExistsException":            newErrorResourceAlreadyExistsException,
+	"ServiceException":                          newErrorServiceException,
+	"ServiceQuotaTemplateNotInUseException":     newErrorServiceQuotaTemplateNotInUseException,
+	"TemplatesNotAvailableInRegionException":    newErrorTemplatesNotAvailableInRegionException,
+	"TooManyRequestsException":                  newErrorTooManyRequestsException,
+}

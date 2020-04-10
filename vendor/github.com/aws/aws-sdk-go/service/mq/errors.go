@@ -2,6 +2,10 @@
 
 package mq
 
+import (
+	"github.com/aws/aws-sdk-go/private/protocol"
+)
+
 const (
 
 	// ErrCodeBadRequestException for service response error code
@@ -40,3 +44,12 @@ const (
 	// Returns information about an error.
 	ErrCodeUnauthorizedException = "UnauthorizedException"
 )
+
+var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
+	"BadRequestException":          newErrorBadRequestException,
+	"ConflictException":            newErrorConflictException,
+	"ForbiddenException":           newErrorForbiddenException,
+	"InternalServerErrorException": newErrorInternalServerErrorException,
+	"NotFoundException":            newErrorNotFoundException,
+	"UnauthorizedException":        newErrorUnauthorizedException,
+}

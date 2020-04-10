@@ -289,7 +289,8 @@ func resourceAwsCloudFormationStackRead(d *schema.ResourceData, meta interface{}
 	}
 
 	tInput := cloudformation.GetTemplateInput{
-		StackName: aws.String(d.Id()),
+		StackName:     aws.String(d.Id()),
+		TemplateStage: aws.String("Original"),
 	}
 	out, err := conn.GetTemplate(&tInput)
 	if err != nil {

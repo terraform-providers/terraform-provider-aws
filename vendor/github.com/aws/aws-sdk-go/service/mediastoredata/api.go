@@ -3,6 +3,7 @@
 package mediastoredata
 
 import (
+	"fmt"
 	"io"
 	"time"
 
@@ -68,14 +69,14 @@ func (c *MediaStoreData) DeleteObjectRequest(input *DeleteObjectInput) (req *req
 // See the AWS API reference guide for AWS Elemental MediaStore Data Plane's
 // API operation DeleteObject for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeContainerNotFoundException "ContainerNotFoundException"
+// Returned Error Types:
+//   * ContainerNotFoundException
 //   The specified container was not found for the specified account.
 //
-//   * ErrCodeObjectNotFoundException "ObjectNotFoundException"
+//   * ObjectNotFoundException
 //   Could not perform an operation on an object that does not exist.
 //
-//   * ErrCodeInternalServerError "InternalServerError"
+//   * InternalServerError
 //   The service is temporarily unavailable.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/mediastore-data-2017-09-01/DeleteObject
@@ -153,14 +154,14 @@ func (c *MediaStoreData) DescribeObjectRequest(input *DescribeObjectInput) (req 
 // See the AWS API reference guide for AWS Elemental MediaStore Data Plane's
 // API operation DescribeObject for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeContainerNotFoundException "ContainerNotFoundException"
+// Returned Error Types:
+//   * ContainerNotFoundException
 //   The specified container was not found for the specified account.
 //
-//   * ErrCodeObjectNotFoundException "ObjectNotFoundException"
+//   * ObjectNotFoundException
 //   Could not perform an operation on an object that does not exist.
 //
-//   * ErrCodeInternalServerError "InternalServerError"
+//   * InternalServerError
 //   The service is temporarily unavailable.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/mediastore-data-2017-09-01/DescribeObject
@@ -240,17 +241,17 @@ func (c *MediaStoreData) GetObjectRequest(input *GetObjectInput) (req *request.R
 // See the AWS API reference guide for AWS Elemental MediaStore Data Plane's
 // API operation GetObject for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeContainerNotFoundException "ContainerNotFoundException"
+// Returned Error Types:
+//   * ContainerNotFoundException
 //   The specified container was not found for the specified account.
 //
-//   * ErrCodeObjectNotFoundException "ObjectNotFoundException"
+//   * ObjectNotFoundException
 //   Could not perform an operation on an object that does not exist.
 //
-//   * ErrCodeRequestedRangeNotSatisfiableException "RequestedRangeNotSatisfiableException"
+//   * RequestedRangeNotSatisfiableException
 //   The requested content range is not valid.
 //
-//   * ErrCodeInternalServerError "InternalServerError"
+//   * InternalServerError
 //   The service is temporarily unavailable.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/mediastore-data-2017-09-01/GetObject
@@ -335,11 +336,11 @@ func (c *MediaStoreData) ListItemsRequest(input *ListItemsInput) (req *request.R
 // See the AWS API reference guide for AWS Elemental MediaStore Data Plane's
 // API operation ListItems for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeContainerNotFoundException "ContainerNotFoundException"
+// Returned Error Types:
+//   * ContainerNotFoundException
 //   The specified container was not found for the specified account.
 //
-//   * ErrCodeInternalServerError "InternalServerError"
+//   * InternalServerError
 //   The service is temporarily unavailable.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/mediastore-data-2017-09-01/ListItems
@@ -407,10 +408,12 @@ func (c *MediaStoreData) ListItemsPagesWithContext(ctx aws.Context, input *ListI
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListItemsOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListItemsOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -471,11 +474,11 @@ func (c *MediaStoreData) PutObjectRequest(input *PutObjectInput) (req *request.R
 // See the AWS API reference guide for AWS Elemental MediaStore Data Plane's
 // API operation PutObject for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeContainerNotFoundException "ContainerNotFoundException"
+// Returned Error Types:
+//   * ContainerNotFoundException
 //   The specified container was not found for the specified account.
 //
-//   * ErrCodeInternalServerError "InternalServerError"
+//   * InternalServerError
 //   The service is temporarily unavailable.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/mediastore-data-2017-09-01/PutObject
@@ -498,6 +501,62 @@ func (c *MediaStoreData) PutObjectWithContext(ctx aws.Context, input *PutObjectI
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
+}
+
+// The specified container was not found for the specified account.
+type ContainerNotFoundException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"Message" min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s ContainerNotFoundException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ContainerNotFoundException) GoString() string {
+	return s.String()
+}
+
+func newErrorContainerNotFoundException(v protocol.ResponseMetadata) error {
+	return &ContainerNotFoundException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *ContainerNotFoundException) Code() string {
+	return "ContainerNotFoundException"
+}
+
+// Message returns the exception's message.
+func (s *ContainerNotFoundException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *ContainerNotFoundException) OrigErr() error {
+	return nil
+}
+
+func (s *ContainerNotFoundException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *ContainerNotFoundException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *ContainerNotFoundException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 type DeleteObjectInput struct {
@@ -831,6 +890,62 @@ func (s *GetObjectOutput) SetStatusCode(v int64) *GetObjectOutput {
 	return s
 }
 
+// The service is temporarily unavailable.
+type InternalServerError struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"Message" min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s InternalServerError) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InternalServerError) GoString() string {
+	return s.String()
+}
+
+func newErrorInternalServerError(v protocol.ResponseMetadata) error {
+	return &InternalServerError{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *InternalServerError) Code() string {
+	return "InternalServerError"
+}
+
+// Message returns the exception's message.
+func (s *InternalServerError) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *InternalServerError) OrigErr() error {
+	return nil
+}
+
+func (s *InternalServerError) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *InternalServerError) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *InternalServerError) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
 // A metadata entry for a folder or object.
 type Item struct {
 	_ struct{} `type:"structure"`
@@ -1003,6 +1118,62 @@ func (s *ListItemsOutput) SetItems(v []*Item) *ListItemsOutput {
 func (s *ListItemsOutput) SetNextToken(v string) *ListItemsOutput {
 	s.NextToken = &v
 	return s
+}
+
+// Could not perform an operation on an object that does not exist.
+type ObjectNotFoundException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"Message" min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s ObjectNotFoundException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ObjectNotFoundException) GoString() string {
+	return s.String()
+}
+
+func newErrorObjectNotFoundException(v protocol.ResponseMetadata) error {
+	return &ObjectNotFoundException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *ObjectNotFoundException) Code() string {
+	return "ObjectNotFoundException"
+}
+
+// Message returns the exception's message.
+func (s *ObjectNotFoundException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *ObjectNotFoundException) OrigErr() error {
+	return nil
+}
+
+func (s *ObjectNotFoundException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *ObjectNotFoundException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *ObjectNotFoundException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 type PutObjectInput struct {
@@ -1181,6 +1352,62 @@ func (s *PutObjectOutput) SetETag(v string) *PutObjectOutput {
 func (s *PutObjectOutput) SetStorageClass(v string) *PutObjectOutput {
 	s.StorageClass = &v
 	return s
+}
+
+// The requested content range is not valid.
+type RequestedRangeNotSatisfiableException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"Message" min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s RequestedRangeNotSatisfiableException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s RequestedRangeNotSatisfiableException) GoString() string {
+	return s.String()
+}
+
+func newErrorRequestedRangeNotSatisfiableException(v protocol.ResponseMetadata) error {
+	return &RequestedRangeNotSatisfiableException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *RequestedRangeNotSatisfiableException) Code() string {
+	return "RequestedRangeNotSatisfiableException"
+}
+
+// Message returns the exception's message.
+func (s *RequestedRangeNotSatisfiableException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *RequestedRangeNotSatisfiableException) OrigErr() error {
+	return nil
+}
+
+func (s *RequestedRangeNotSatisfiableException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *RequestedRangeNotSatisfiableException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *RequestedRangeNotSatisfiableException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 const (

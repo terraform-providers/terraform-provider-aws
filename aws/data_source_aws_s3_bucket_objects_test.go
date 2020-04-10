@@ -34,6 +34,31 @@ func TestAccDataSourceAWSS3BucketObjects_basic(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceAWSS3BucketObjects_basicViaAccessPoint(t *testing.T) {
+	rInt := acctest.RandInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                  func() { testAccPreCheck(t) },
+		Providers:                 testAccProviders,
+		PreventPostDestroyRefresh: true,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSDataSourceS3ObjectsConfigResourcesPlusAccessPoint(rInt), // NOTE: contains no data source
+				// Does not need Check
+			},
+			{
+				Config: testAccAWSDataSourceS3ObjectsConfigBasicViaAccessPoint(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsS3ObjectsDataSourceExists("data.aws_s3_bucket_objects.yesh"),
+					resource.TestCheckResourceAttr("data.aws_s3_bucket_objects.yesh", "keys.#", "2"),
+					resource.TestCheckResourceAttr("data.aws_s3_bucket_objects.yesh", "keys.0", "arch/navajo/north_window"),
+					resource.TestCheckResourceAttr("data.aws_s3_bucket_objects.yesh", "keys.1", "arch/navajo/sand_dune"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccDataSourceAWSS3BucketObjects_all(t *testing.T) {
 	rInt := acctest.RandInt()
 
@@ -209,7 +234,7 @@ func testAccCheckAwsS3ObjectsDataSourceExists(addr string) resource.TestCheckFun
 func testAccAWSDataSourceS3ObjectsConfigResources(randInt int) string {
 	return fmt.Sprintf(`
 resource "aws_s3_bucket" "objects_bucket" {
-  bucket = "tf-objects-test-bucket-%d"
+  bucket = "tf-acc-objects-test-bucket-%d"
 }
 
 resource "aws_s3_bucket_object" "object1" {
@@ -256,6 +281,15 @@ resource "aws_s3_bucket_object" "object7" {
 `, randInt)
 }
 
+func testAccAWSDataSourceS3ObjectsConfigResourcesPlusAccessPoint(randInt int) string {
+	return testAccAWSDataSourceS3ObjectsConfigResources(randInt) + fmt.Sprintf(`
+resource "aws_s3_access_point" "test" {
+  bucket = "${aws_s3_bucket.objects_bucket.bucket}"
+  name   = "tf-objects-test-access-point-%[1]d"
+}
+`, randInt)
+}
+
 func testAccAWSDataSourceS3ObjectsConfigBasic(randInt int) string {
 	return fmt.Sprintf(`
 %s
@@ -266,6 +300,16 @@ data "aws_s3_bucket_objects" "yesh" {
   delimiter = "/"
 }
 `, testAccAWSDataSourceS3ObjectsConfigResources(randInt))
+}
+
+func testAccAWSDataSourceS3ObjectsConfigBasicViaAccessPoint(randInt int) string {
+	return testAccAWSDataSourceS3ObjectsConfigResourcesPlusAccessPoint(randInt) + fmt.Sprintf(`
+data "aws_s3_bucket_objects" "yesh" {
+  bucket    = "${aws_s3_access_point.test.arn}"
+  prefix    = "arch/navajo/"
+  delimiter = "/"
+}
+`)
 }
 
 func testAccAWSDataSourceS3ObjectsConfigAll(randInt int) string {

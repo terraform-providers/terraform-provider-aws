@@ -139,9 +139,9 @@ func dataSourceAwsIAMServerCertificateRead(d *schema.ResourceData, meta interfac
 
 	metadata := metadatas[0]
 	d.SetId(*metadata.ServerCertificateId)
-	d.Set("arn", *metadata.Arn)
-	d.Set("path", *metadata.Path)
-	d.Set("name", *metadata.ServerCertificateName)
+	d.Set("arn", metadata.Arn)
+	d.Set("path", metadata.Path)
+	d.Set("name", metadata.ServerCertificateName)
 	if metadata.Expiration != nil {
 		d.Set("expiration_date", metadata.Expiration.Format(time.RFC3339))
 	}

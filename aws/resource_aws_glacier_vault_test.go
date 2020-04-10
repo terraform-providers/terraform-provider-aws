@@ -2,13 +2,11 @@ package aws
 
 import (
 	"fmt"
-	"reflect"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/glacier"
-
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
@@ -91,57 +89,6 @@ func TestAccAWSGlacierVault_RemoveNotifications(t *testing.T) {
 			},
 		},
 	})
-}
-
-func TestDiffGlacierVaultTags(t *testing.T) {
-	cases := []struct {
-		Old, New map[string]interface{}
-		Create   map[string]string
-		Remove   []string
-	}{
-		// Basic add/remove
-		{
-			Old: map[string]interface{}{
-				"foo": "bar",
-			},
-			New: map[string]interface{}{
-				"bar": "baz",
-			},
-			Create: map[string]string{
-				"bar": "baz",
-			},
-			Remove: []string{
-				"foo",
-			},
-		},
-
-		// Modify
-		{
-			Old: map[string]interface{}{
-				"foo": "bar",
-			},
-			New: map[string]interface{}{
-				"foo": "baz",
-			},
-			Create: map[string]string{
-				"foo": "baz",
-			},
-			Remove: []string{
-				"foo",
-			},
-		},
-	}
-
-	for i, tc := range cases {
-		c, r := diffGlacierVaultTags(mapGlacierVaultTags(tc.Old), mapGlacierVaultTags(tc.New))
-
-		if !reflect.DeepEqual(c, tc.Create) {
-			t.Fatalf("%d: bad create: %#v", i, c)
-		}
-		if !reflect.DeepEqual(r, tc.Remove) {
-			t.Fatalf("%d: bad remove: %#v", i, r)
-		}
-	}
 }
 
 func testAccCheckGlacierVaultExists(name string) resource.TestCheckFunc {

@@ -55,6 +55,7 @@ Set to -1 if you don't want to change the maximum size at the scheduled time.
 ~> **NOTE:** When `start_time` and `end_time` are specified with `recurrence` , they form the boundaries of when the recurring action will start and stop.
 
 ## Attribute Reference
+
 * `arn` - The ARN assigned by AWS to the autoscaling schedule.
 
 ## Import

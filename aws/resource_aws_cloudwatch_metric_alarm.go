@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudwatch"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsCloudWatchMetricAlarm() *schema.Resource {
@@ -123,8 +123,15 @@ func resourceAwsCloudWatchMetricAlarm() *schema.Resource {
 				ConflictsWith: []string{"extended_statistic", "metric_query"},
 			},
 			"threshold": {
-				Type:     schema.TypeFloat,
-				Required: true,
+				Type:          schema.TypeFloat,
+				Optional:      true,
+				ConflictsWith: []string{"threshold_metric_id"},
+			},
+			"threshold_metric_id": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				ConflictsWith: []string{"threshold"},
+				ValidateFunc:  validation.StringLenBetween(1, 255),
 			},
 			"actions_enabled": {
 				Type:     schema.TypeBool,
@@ -242,41 +249,44 @@ func resourceAwsCloudWatchMetricAlarmCreate(d *schema.ResourceData, meta interfa
 }
 
 func resourceAwsCloudWatchMetricAlarmRead(d *schema.ResourceData, meta interface{}) error {
-	a, err := getAwsCloudWatchMetricAlarm(d, meta)
+	conn := meta.(*AWSClient).cloudwatchconn
+
+	resp, err := getAwsCloudWatchMetricAlarm(d, meta)
 	if err != nil {
 		return err
 	}
-	if a == nil {
+	if resp == nil {
 		d.SetId("")
 		return nil
 	}
 
 	log.Printf("[DEBUG] Reading CloudWatch Metric Alarm: %s", d.Get("alarm_name"))
 
-	d.Set("actions_enabled", a.ActionsEnabled)
+	d.Set("actions_enabled", resp.ActionsEnabled)
 
-	if err := d.Set("alarm_actions", _strArrPtrToList(a.AlarmActions)); err != nil {
+	if err := d.Set("alarm_actions", _strArrPtrToList(resp.AlarmActions)); err != nil {
 		log.Printf("[WARN] Error setting Alarm Actions: %s", err)
 	}
-	d.Set("alarm_description", a.AlarmDescription)
-	d.Set("alarm_name", a.AlarmName)
-	d.Set("arn", a.AlarmArn)
-	d.Set("comparison_operator", a.ComparisonOperator)
-	d.Set("datapoints_to_alarm", a.DatapointsToAlarm)
-	if err := d.Set("dimensions", flattenDimensions(a.Dimensions)); err != nil {
+	arn := *resp.AlarmArn
+	d.Set("alarm_description", resp.AlarmDescription)
+	d.Set("alarm_name", resp.AlarmName)
+	d.Set("arn", arn)
+	d.Set("comparison_operator", resp.ComparisonOperator)
+	d.Set("datapoints_to_alarm", resp.DatapointsToAlarm)
+	if err := d.Set("dimensions", flattenDimensions(resp.Dimensions)); err != nil {
 		return err
 	}
-	d.Set("evaluation_periods", a.EvaluationPeriods)
+	d.Set("evaluation_periods", resp.EvaluationPeriods)
 
-	if err := d.Set("insufficient_data_actions", _strArrPtrToList(a.InsufficientDataActions)); err != nil {
+	if err := d.Set("insufficient_data_actions", _strArrPtrToList(resp.InsufficientDataActions)); err != nil {
 		log.Printf("[WARN] Error setting Insufficient Data Actions: %s", err)
 	}
-	d.Set("metric_name", a.MetricName)
-	d.Set("namespace", a.Namespace)
+	d.Set("metric_name", resp.MetricName)
+	d.Set("namespace", resp.Namespace)
 
-	if a.Metrics != nil && len(a.Metrics) > 0 {
-		metricQueries := make([]interface{}, len(a.Metrics))
-		for i, mq := range a.Metrics {
+	if resp.Metrics != nil && len(resp.Metrics) > 0 {
+		metricQueries := make([]interface{}, len(resp.Metrics))
+		for i, mq := range resp.Metrics {
 			metricQuery := map[string]interface{}{
 				"expression":  aws.StringValue(mq.Expression),
 				"id":          aws.StringValue(mq.Id),
@@ -301,18 +311,25 @@ func resourceAwsCloudWatchMetricAlarmRead(d *schema.ResourceData, meta interface
 		}
 	}
 
-	if err := d.Set("ok_actions", _strArrPtrToList(a.OKActions)); err != nil {
+	if err := d.Set("ok_actions", _strArrPtrToList(resp.OKActions)); err != nil {
 		log.Printf("[WARN] Error setting OK Actions: %s", err)
 	}
-	d.Set("period", a.Period)
-	d.Set("statistic", a.Statistic)
-	d.Set("threshold", a.Threshold)
-	d.Set("unit", a.Unit)
-	d.Set("extended_statistic", a.ExtendedStatistic)
-	d.Set("treat_missing_data", a.TreatMissingData)
-	d.Set("evaluate_low_sample_count_percentiles", a.EvaluateLowSampleCountPercentile)
+	d.Set("period", resp.Period)
+	d.Set("statistic", resp.Statistic)
+	d.Set("threshold", resp.Threshold)
+	d.Set("threshold_metric_id", resp.ThresholdMetricId)
+	d.Set("unit", resp.Unit)
+	d.Set("extended_statistic", resp.ExtendedStatistic)
+	d.Set("treat_missing_data", resp.TreatMissingData)
+	d.Set("evaluate_low_sample_count_percentiles", resp.EvaluateLowSampleCountPercentile)
 
-	if err := saveTagsCloudWatch(meta.(*AWSClient).cloudwatchconn, d, aws.StringValue(a.AlarmArn)); err != nil {
+	tags, err := keyvaluetags.CloudwatchListTags(conn, arn)
+
+	if err != nil {
+		return fmt.Errorf("error listing tags for CloudWatch Metric Alarm (%s): %s", arn, err)
+	}
+
+	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
@@ -330,20 +347,24 @@ func resourceAwsCloudWatchMetricAlarmUpdate(d *schema.ResourceData, meta interfa
 	}
 	log.Println("[INFO] CloudWatch Metric Alarm updated")
 
-	// Tags are cannot update by PutMetricAlarm.
-	if err := setTagsCloudWatch(conn, d, d.Get("arn").(string)); err != nil {
-		return fmt.Errorf("error updating tags for %s: %s", d.Id(), err)
+	arn := d.Get("arn").(string)
+	if d.HasChange("tags") {
+		o, n := d.GetChange("tags")
+
+		if err := keyvaluetags.CloudwatchUpdateTags(conn, arn, o, n); err != nil {
+			return fmt.Errorf("error updating CloudWatch Metric Alarm (%s) tags: %s", arn, err)
+		}
 	}
 
 	return resourceAwsCloudWatchMetricAlarmRead(d, meta)
 }
 
 func resourceAwsCloudWatchMetricAlarmDelete(d *schema.ResourceData, meta interface{}) error {
-	p, err := getAwsCloudWatchMetricAlarm(d, meta)
+	resp, err := getAwsCloudWatchMetricAlarm(d, meta)
 	if err != nil {
 		return err
 	}
-	if p == nil {
+	if resp == nil {
 		log.Printf("[DEBUG] CloudWatch Metric Alarm %s is already gone", d.Id())
 		return nil
 	}
@@ -368,9 +389,8 @@ func getAwsCloudWatchPutMetricAlarmInput(d *schema.ResourceData) cloudwatch.PutM
 		AlarmName:          aws.String(d.Get("alarm_name").(string)),
 		ComparisonOperator: aws.String(d.Get("comparison_operator").(string)),
 		EvaluationPeriods:  aws.Int64(int64(d.Get("evaluation_periods").(int))),
-		Threshold:          aws.Float64(d.Get("threshold").(float64)),
 		TreatMissingData:   aws.String(d.Get("treat_missing_data").(string)),
-		Tags:               tagsFromMapCloudWatch(d.Get("tags").(map[string]interface{})),
+		Tags:               keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().CloudwatchTags(),
 	}
 
 	if v := d.Get("actions_enabled"); v != nil {
@@ -410,6 +430,12 @@ func getAwsCloudWatchPutMetricAlarmInput(d *schema.ResourceData) cloudwatch.PutM
 
 	if v, ok := d.GetOk("evaluate_low_sample_count_percentiles"); ok {
 		params.EvaluateLowSampleCountPercentile = aws.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("threshold_metric_id"); ok {
+		params.ThresholdMetricId = aws.String(v.(string))
+	} else {
+		params.Threshold = aws.Float64(d.Get("threshold").(float64))
 	}
 
 	var alarmActions []*string

@@ -66,3 +66,12 @@ The following arguments are supported:
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the WAF Regex Match Set.
+* `arn` - Amazon Resource Name (ARN)
+
+## Import
+
+WAF Regex Match Set can be imported using their ID, e.g.
+
+```
+$ terraform import aws_waf_regex_match_set.example a1b2c3d4-d5f6-7777-8888-9999aaaabbbbcccc
+```

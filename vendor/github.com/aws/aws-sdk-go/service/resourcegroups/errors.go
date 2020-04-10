@@ -2,6 +2,10 @@
 
 package resourcegroups
 
+import (
+	"github.com/aws/aws-sdk-go/private/protocol"
+)
+
 const (
 
 	// ErrCodeBadRequestException for service response error code
@@ -48,3 +52,13 @@ const (
 	// for the target resource.
 	ErrCodeUnauthorizedException = "UnauthorizedException"
 )
+
+var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
+	"BadRequestException":          newErrorBadRequestException,
+	"ForbiddenException":           newErrorForbiddenException,
+	"InternalServerErrorException": newErrorInternalServerErrorException,
+	"MethodNotAllowedException":    newErrorMethodNotAllowedException,
+	"NotFoundException":            newErrorNotFoundException,
+	"TooManyRequestsException":     newErrorTooManyRequestsException,
+	"UnauthorizedException":        newErrorUnauthorizedException,
+}

@@ -29,7 +29,7 @@ this resource will delete any propagating gateways not explicitly listed in
 `propagating_vgws`. Omit this argument when defining route propagation using
 the separate resource.
 
-## Example usage with tags:
+## Example Usage
 
 ```hcl
 resource "aws_route_table" "r" {

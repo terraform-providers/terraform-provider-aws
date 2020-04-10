@@ -31,7 +31,7 @@ var initRequest func(*request.Request)
 const (
 	ServiceName = "S3 Control" // Name of service.
 	EndpointsID = "s3-control" // ID to lookup a service endpoint with.
-	ServiceID   = "S3 Control" // ServiceID is a unique identifer of a specific service.
+	ServiceID   = "S3 Control" // ServiceID is a unique identifier of a specific service.
 )
 
 // New creates a new instance of the S3Control client with a session.
@@ -39,6 +39,8 @@ const (
 // aws.Config parameter to add your extra config.
 //
 // Example:
+//     mySession := session.Must(session.NewSession())
+//
 //     // Create a S3Control client from just a session.
 //     svc := s3control.New(mySession)
 //

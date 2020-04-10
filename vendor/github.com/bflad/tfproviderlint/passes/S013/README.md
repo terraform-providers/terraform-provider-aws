@@ -42,3 +42,16 @@ map[string]*schema.Schema{
     },
 }
 ```
+
+## Ignoring Reports
+
+Singular reports can be ignored by adding the a `//lintignore:S013` Go code comment at the end of the offending line or on the line immediately proceding, e.g.
+
+```go
+//lintignore:S013
+map[string]*schema.Schema{
+    "attribute_name": {
+        Type: schema.TypeString,
+    },
+}
+```

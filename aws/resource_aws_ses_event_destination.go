@@ -130,7 +130,7 @@ func resourceAwsSesEventDestination() *schema.Resource {
 }
 
 func resourceAwsSesEventDestinationCreate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).sesConn
+	conn := meta.(*AWSClient).sesconn
 
 	configurationSetName := d.Get("configuration_set_name").(string)
 	eventDestinationName := d.Get("name").(string)
@@ -191,7 +191,7 @@ func resourceAwsSesEventDestinationRead(d *schema.ResourceData, meta interface{}
 }
 
 func resourceAwsSesEventDestinationDelete(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).sesConn
+	conn := meta.(*AWSClient).sesconn
 
 	log.Printf("[DEBUG] SES Delete Configuration Set Destination: %s", d.Id())
 	_, err := conn.DeleteConfigurationSetEventDestination(&ses.DeleteConfigurationSetEventDestinationInput{

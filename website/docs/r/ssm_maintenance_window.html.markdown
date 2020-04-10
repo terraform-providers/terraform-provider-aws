@@ -29,6 +29,7 @@ The following arguments are supported:
 * `schedule` - (Required) The schedule of the Maintenance Window in the form of a [cron](https://docs.aws.amazon.com/systems-manager/latest/userguide/sysman-maintenance-cron.html) or rate expression.
 * `cutoff` - (Required) The number of hours before the end of the Maintenance Window that Systems Manager stops scheduling new tasks for execution.
 * `duration` - (Required) The duration of the Maintenance Window in hours.
+* `description` - (Optional) A description for the maintenance window.
 * `allow_unassociated_targets` - (Optional) Whether targets must be registered with the Maintenance Window before tasks can be defined for those targets.
 * `enabled` - (Optional) Whether the maintenance window is enabled. Default: `true`.
 * `end_date` - (Optional) Timestamp in [ISO-8601 extended format](https://www.iso.org/iso-8601-date-and-time-format.html) when to no longer run the maintenance window.
@@ -43,7 +44,9 @@ In addition to all arguments above, the following attributes are exported:
 * `id` - The ID of the maintenance window.
 
 ## Import
+
 SSM  Maintenance Windows can be imported using the `maintenance window id`, e.g.
+
 ```
 $ terraform import aws_ssm_maintenance_window.imported-window mw-0123456789
 ```

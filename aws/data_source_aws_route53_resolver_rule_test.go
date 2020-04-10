@@ -10,7 +10,7 @@ import (
 )
 
 func TestAccDataSourceAwsRoute53ResolverRule_basic(t *testing.T) {
-	rName := fmt.Sprintf("tf-testacc-r53-resolver-%s", acctest.RandStringFromCharSet(8, acctest.CharSetAlphaNum))
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_route53_resolver_rule.example"
 	ds1ResourceName := "data.aws_route53_resolver_rule.by_resolver_rule_id"
 	ds2ResourceName := "data.aws_route53_resolver_rule.by_domain_name"
@@ -62,7 +62,7 @@ func TestAccDataSourceAwsRoute53ResolverRule_basic(t *testing.T) {
 }
 
 func TestAccDataSourceAwsRoute53ResolverRule_ResolverEndpointIdWithTags(t *testing.T) {
-	rName := fmt.Sprintf("tf-testacc-r53-resolver-%s", acctest.RandStringFromCharSet(8, acctest.CharSetAlphaNum))
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_route53_resolver_rule.example"
 	ds1ResourceName := "data.aws_route53_resolver_rule.by_resolver_endpoint_id"
 
@@ -94,7 +94,7 @@ func TestAccDataSourceAwsRoute53ResolverRule_ResolverEndpointIdWithTags(t *testi
 
 func TestAccDataSourceAwsRoute53ResolverRule_SharedByMe(t *testing.T) {
 	var providers []*schema.Provider
-	rName := fmt.Sprintf("tf-testacc-r53-resolver-%s", acctest.RandStringFromCharSet(8, acctest.CharSetAlphaNum))
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_route53_resolver_rule.example"
 	ds1ResourceName := "data.aws_route53_resolver_rule.by_resolver_endpoint_id"
 
@@ -131,7 +131,7 @@ func TestAccDataSourceAwsRoute53ResolverRule_SharedByMe(t *testing.T) {
 
 func TestAccDataSourceAwsRoute53ResolverRule_SharedWithMe(t *testing.T) {
 	var providers []*schema.Provider
-	rName := fmt.Sprintf("tf-testacc-r53-resolver-%s", acctest.RandStringFromCharSet(8, acctest.CharSetAlphaNum))
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_route53_resolver_rule.example"
 	ds1ResourceName := "data.aws_route53_resolver_rule.by_resolver_endpoint_id"
 

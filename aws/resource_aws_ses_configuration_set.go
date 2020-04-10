@@ -29,7 +29,7 @@ func resourceAwsSesConfigurationSet() *schema.Resource {
 }
 
 func resourceAwsSesConfigurationSetCreate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).sesConn
+	conn := meta.(*AWSClient).sesconn
 
 	configurationSetName := d.Get("name").(string)
 
@@ -68,7 +68,7 @@ func resourceAwsSesConfigurationSetRead(d *schema.ResourceData, meta interface{}
 }
 
 func resourceAwsSesConfigurationSetDelete(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).sesConn
+	conn := meta.(*AWSClient).sesconn
 
 	log.Printf("[DEBUG] SES Delete Configuration Rule Set: %s", d.Id())
 	_, err := conn.DeleteConfigurationSet(&ses.DeleteConfigurationSetInput{
@@ -79,7 +79,7 @@ func resourceAwsSesConfigurationSetDelete(d *schema.ResourceData, meta interface
 }
 
 func findConfigurationSet(name string, token *string, meta interface{}) (bool, error) {
-	conn := meta.(*AWSClient).sesConn
+	conn := meta.(*AWSClient).sesconn
 
 	configurationSetExists := false
 

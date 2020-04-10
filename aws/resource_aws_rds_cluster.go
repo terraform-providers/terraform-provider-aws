@@ -16,6 +16,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
+const (
+	rdsClusterScalingConfiguration_DefaultMinCapacity = 2
+	rdsClusterScalingConfiguration_DefaultMaxCapacity = 16
+)
+
 func resourceAwsRDSCluster() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceAwsRDSClusterCreate,
@@ -158,15 +163,10 @@ func resourceAwsRDSCluster() *schema.Resource {
 			},
 
 			"scaling_configuration": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-					if old == "1" && new == "0" {
-						return true
-					}
-					return false
-				},
+				Type:             schema.TypeList,
+				Optional:         true,
+				MaxItems:         1,
+				DiffSuppressFunc: suppressMissingOptionalConfigurationBlock,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"auto_pause": {
@@ -177,12 +177,12 @@ func resourceAwsRDSCluster() *schema.Resource {
 						"max_capacity": {
 							Type:     schema.TypeInt,
 							Optional: true,
-							Default:  16,
+							Default:  rdsClusterScalingConfiguration_DefaultMaxCapacity,
 						},
 						"min_capacity": {
 							Type:     schema.TypeInt,
 							Optional: true,
-							Default:  2,
+							Default:  rdsClusterScalingConfiguration_DefaultMinCapacity,
 						},
 						"seconds_until_auto_pause": {
 							Type:         schema.TypeInt,
@@ -403,6 +403,11 @@ func resourceAwsRDSCluster() *schema.Resource {
 					}, false),
 				},
 			},
+			"enable_http_endpoint": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
 
 			"tags": tagsSchema(),
 		},
@@ -448,7 +453,7 @@ func resourceAwsRDSClusterCreate(d *schema.ResourceData, meta interface{}) error
 			DeletionProtection:   aws.Bool(d.Get("deletion_protection").(bool)),
 			Engine:               aws.String(d.Get("engine").(string)),
 			EngineMode:           aws.String(d.Get("engine_mode").(string)),
-			ScalingConfiguration: expandRdsScalingConfiguration(d.Get("scaling_configuration").([]interface{})),
+			ScalingConfiguration: expandRdsClusterScalingConfiguration(d.Get("scaling_configuration").([]interface{}), d.Get("engine_mode").(string)),
 			SnapshotIdentifier:   aws.String(d.Get("snapshot_identifier").(string)),
 			Tags:                 tags,
 		}
@@ -544,7 +549,7 @@ func resourceAwsRDSClusterCreate(d *schema.ResourceData, meta interface{}) error
 			Engine:                      aws.String(d.Get("engine").(string)),
 			EngineMode:                  aws.String(d.Get("engine_mode").(string)),
 			ReplicationSourceIdentifier: aws.String(d.Get("replication_source_identifier").(string)),
-			ScalingConfiguration:        expandRdsScalingConfiguration(d.Get("scaling_configuration").([]interface{})),
+			ScalingConfiguration:        expandRdsClusterScalingConfiguration(d.Get("scaling_configuration").([]interface{}), d.Get("engine_mode").(string)),
 			Tags:                        tags,
 		}
 
@@ -763,7 +768,7 @@ func resourceAwsRDSClusterCreate(d *schema.ResourceData, meta interface{}) error
 			DeletionProtection:   aws.Bool(d.Get("deletion_protection").(bool)),
 			Engine:               aws.String(d.Get("engine").(string)),
 			EngineMode:           aws.String(d.Get("engine_mode").(string)),
-			ScalingConfiguration: expandRdsScalingConfiguration(d.Get("scaling_configuration").([]interface{})),
+			ScalingConfiguration: expandRdsClusterScalingConfiguration(d.Get("scaling_configuration").([]interface{}), d.Get("engine_mode").(string)),
 			Tags:                 tags,
 		}
 
@@ -775,6 +780,9 @@ func resourceAwsRDSClusterCreate(d *schema.ResourceData, meta interface{}) error
 			createOpts.MasterUsername = aws.String(v.(string))
 		}
 
+		if v, ok := d.GetOk("enable_http_endpoint"); ok {
+			createOpts.EnableHttpEndpoint = aws.Bool(v.(bool))
+		}
 		// Need to check value > 0 due to:
 		// InvalidParameterValue: Backtrack is not enabled for the aurora-postgresql engine.
 		if v, ok := d.GetOk("backtrack_window"); ok && v.(int) > 0 {
@@ -839,10 +847,6 @@ func resourceAwsRDSClusterCreate(d *schema.ResourceData, meta interface{}) error
 
 		if attr, ok := d.GetOk("enabled_cloudwatch_logs_exports"); ok && len(attr.([]interface{})) > 0 {
 			createOpts.EnableCloudwatchLogsExports = expandStringList(attr.([]interface{}))
-		}
-
-		if attr, ok := d.GetOk("scaling_configuration"); ok && len(attr.([]interface{})) > 0 {
-			createOpts.ScalingConfiguration = expandRdsScalingConfiguration(attr.([]interface{}))
 		}
 
 		if attr, ok := d.GetOkExists("storage_encrypted"); ok {
@@ -1024,6 +1028,7 @@ func resourceAwsRDSClusterRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	d.Set("storage_encrypted", dbc.StorageEncrypted)
+	d.Set("enable_http_endpoint", dbc.HttpEndpointEnabled)
 
 	var vpcg []string
 	for _, g := range dbc.VpcSecurityGroups {
@@ -1113,7 +1118,6 @@ func resourceAwsRDSClusterUpdate(d *schema.ResourceData, meta interface{}) error
 	}
 
 	if d.HasChange("db_cluster_parameter_group_name") {
-		d.SetPartial("db_cluster_parameter_group_name")
 		req.DBClusterParameterGroupName = aws.String(d.Get("db_cluster_parameter_group_name").(string))
 		requestUpdate = true
 	}
@@ -1129,14 +1133,17 @@ func resourceAwsRDSClusterUpdate(d *schema.ResourceData, meta interface{}) error
 	}
 
 	if d.HasChange("enabled_cloudwatch_logs_exports") {
-		d.SetPartial("enabled_cloudwatch_logs_exports")
 		req.CloudwatchLogsExportConfiguration = buildCloudwatchLogsExportConfiguration(d)
 		requestUpdate = true
 	}
 
 	if d.HasChange("scaling_configuration") {
-		d.SetPartial("scaling_configuration")
-		req.ScalingConfiguration = expandRdsScalingConfiguration(d.Get("scaling_configuration").([]interface{}))
+		req.ScalingConfiguration = expandRdsClusterScalingConfiguration(d.Get("scaling_configuration").([]interface{}), d.Get("engine_mode").(string))
+		requestUpdate = true
+	}
+
+	if d.HasChange("enable_http_endpoint") {
+		req.EnableHttpEndpoint = aws.Bool(d.Get("enable_http_endpoint").(bool))
 		requestUpdate = true
 	}
 
@@ -1231,8 +1238,6 @@ func resourceAwsRDSClusterUpdate(d *schema.ResourceData, meta interface{}) error
 
 		if err := keyvaluetags.RdsUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating tags: %s", err)
-		} else {
-			d.SetPartial("tags")
 		}
 	}
 

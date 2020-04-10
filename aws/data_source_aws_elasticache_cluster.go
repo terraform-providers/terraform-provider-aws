@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/elasticache"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func dataSourceAwsElastiCacheCluster() *schema.Resource {
@@ -222,19 +223,15 @@ func dataSourceAwsElastiCacheClusterRead(d *schema.ResourceData, meta interface{
 	}.String()
 	d.Set("arn", arn)
 
-	tagResp, err := conn.ListTagsForResource(&elasticache.ListTagsForResourceInput{
-		ResourceName: aws.String(arn),
-	})
+	tags, err := keyvaluetags.ElasticacheListTags(conn, arn)
 
 	if err != nil {
-		log.Printf("[DEBUG] Error retrieving tags for ARN: %s", arn)
+		return fmt.Errorf("error listing tags for Elasticache Cluster (%s): %s", arn, err)
 	}
 
-	var et []*elasticache.Tag
-	if len(tagResp.TagList) > 0 {
-		et = tagResp.TagList
+	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+		return fmt.Errorf("error setting tags: %s", err)
 	}
-	d.Set("tags", tagsToMapEC(et))
 
 	return nil
 

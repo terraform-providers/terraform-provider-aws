@@ -2,6 +2,10 @@
 
 package appsync
 
+import (
+	"github.com/aws/aws-sdk-go/private/protocol"
+)
+
 const (
 
 	// ErrCodeAccessDeniedException for service response error code
@@ -74,3 +78,17 @@ const (
 	// You are not authorized to perform this operation.
 	ErrCodeUnauthorizedException = "UnauthorizedException"
 )
+
+var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
+	"AccessDeniedException":              newErrorAccessDeniedException,
+	"ApiKeyLimitExceededException":       newErrorApiKeyLimitExceededException,
+	"ApiKeyValidityOutOfBoundsException": newErrorApiKeyValidityOutOfBoundsException,
+	"ApiLimitExceededException":          newErrorApiLimitExceededException,
+	"BadRequestException":                newErrorBadRequestException,
+	"ConcurrentModificationException":    newErrorConcurrentModificationException,
+	"GraphQLSchemaException":             newErrorGraphQLSchemaException,
+	"InternalFailureException":           newErrorInternalFailureException,
+	"LimitExceededException":             newErrorLimitExceededException,
+	"NotFoundException":                  newErrorNotFoundException,
+	"UnauthorizedException":              newErrorUnauthorizedException,
+}

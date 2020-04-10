@@ -20,3 +20,15 @@ which will fail schema validation.
     Type: schema.TypeSet,
 }
 ```
+
+## Ignoring Reports
+
+Singular reports can be ignored by adding the a `//lintignore:S016` Go code comment at the end of the offending line or on the line immediately proceding, e.g.
+
+```go
+//lintignore:S016
+&schema.Schema{
+    Set:  /* ... */,
+    Type: schema.TypeList,
+}
+```

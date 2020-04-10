@@ -14,6 +14,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsLb() *schema.Resource {
@@ -73,7 +75,11 @@ func resourceAwsLb() *schema.Resource {
 				Type:     schema.TypeString,
 				ForceNew: true,
 				Optional: true,
-				Default:  "application",
+				Default:  elbv2.LoadBalancerTypeEnumApplication,
+				ValidateFunc: validation.StringInSlice([]string{
+					elbv2.LoadBalancerTypeEnumApplication,
+					elbv2.LoadBalancerTypeEnumNetwork,
+				}, false),
 			},
 
 			"security_groups": {
@@ -162,6 +168,13 @@ func resourceAwsLb() *schema.Resource {
 				Type:             schema.TypeInt,
 				Optional:         true,
 				Default:          60,
+				DiffSuppressFunc: suppressIfLBType(elbv2.LoadBalancerTypeEnumNetwork),
+			},
+
+			"drop_invalid_header_fields": {
+				Type:             schema.TypeBool,
+				Optional:         true,
+				Default:          false,
 				DiffSuppressFunc: suppressIfLBType("network"),
 			},
 
@@ -169,20 +182,24 @@ func resourceAwsLb() *schema.Resource {
 				Type:             schema.TypeBool,
 				Optional:         true,
 				Default:          false,
-				DiffSuppressFunc: suppressIfLBType("application"),
+				DiffSuppressFunc: suppressIfLBType(elbv2.LoadBalancerTypeEnumApplication),
 			},
 
 			"enable_http2": {
 				Type:             schema.TypeBool,
 				Optional:         true,
 				Default:          true,
-				DiffSuppressFunc: suppressIfLBType("network"),
+				DiffSuppressFunc: suppressIfLBType(elbv2.LoadBalancerTypeEnumNetwork),
 			},
 
 			"ip_address_type": {
 				Type:     schema.TypeString,
 				Computed: true,
 				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					elbv2.IpAddressTypeIpv4,
+					elbv2.IpAddressTypeDualstack,
+				}, false),
 			},
 
 			"vpc_id": {
@@ -213,6 +230,7 @@ func suppressIfLBType(t string) schema.SchemaDiffSuppressFunc {
 
 func resourceAwsLbCreate(d *schema.ResourceData, meta interface{}) error {
 	elbconn := meta.(*AWSClient).elbv2conn
+	tags := keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().Elbv2Tags()
 
 	var name string
 	if v, ok := d.GetOk("name"); ok {
@@ -227,7 +245,10 @@ func resourceAwsLbCreate(d *schema.ResourceData, meta interface{}) error {
 	elbOpts := &elbv2.CreateLoadBalancerInput{
 		Name: aws.String(name),
 		Type: aws.String(d.Get("load_balancer_type").(string)),
-		Tags: tagsFromMapELBv2(d.Get("tags").(map[string]interface{})),
+	}
+
+	if len(tags) > 0 {
+		elbOpts.Tags = tags
 	}
 
 	if scheme, ok := d.GetOk("internal"); ok && scheme.(bool) {
@@ -338,9 +359,11 @@ func resourceAwsLbRead(d *schema.ResourceData, meta interface{}) error {
 func resourceAwsLbUpdate(d *schema.ResourceData, meta interface{}) error {
 	elbconn := meta.(*AWSClient).elbv2conn
 
-	if !d.IsNewResource() {
-		if err := setElbV2Tags(elbconn, d); err != nil {
-			return fmt.Errorf("Error Modifying Tags on ALB: %s", err)
+	if d.HasChange("tags") {
+		o, n := d.GetChange("tags")
+
+		if err := keyvaluetags.Elbv2UpdateTags(elbconn, d.Id(), o, n); err != nil {
+			return fmt.Errorf("error updating ALB (%s) tags: %s", d.Id(), err)
 		}
 	}
 
@@ -379,7 +402,7 @@ func resourceAwsLbUpdate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	switch d.Get("load_balancer_type").(string) {
-	case "application":
+	case elbv2.LoadBalancerTypeEnumApplication:
 		if d.HasChange("idle_timeout") || d.IsNewResource() {
 			attributes = append(attributes, &elbv2.LoadBalancerAttribute{
 				Key:   aws.String("idle_timeout.timeout_seconds"),
@@ -392,7 +415,15 @@ func resourceAwsLbUpdate(d *schema.ResourceData, meta interface{}) error {
 				Value: aws.String(strconv.FormatBool(d.Get("enable_http2").(bool))),
 			})
 		}
-	case "network":
+
+		if d.HasChange("drop_invalid_header_fields") || d.IsNewResource() {
+			attributes = append(attributes, &elbv2.LoadBalancerAttribute{
+				Key:   aws.String("routing.http.drop_invalid_header_fields.enabled"),
+				Value: aws.String(strconv.FormatBool(d.Get("drop_invalid_header_fields").(bool))),
+			})
+		}
+
+	case elbv2.LoadBalancerTypeEnumNetwork:
 		if d.HasChange("enable_cross_zone_load_balancing") || d.IsNewResource() {
 			attributes = append(attributes, &elbv2.LoadBalancerAttribute{
 				Key:   aws.String("load_balancing.cross_zone.enabled"),
@@ -702,20 +733,14 @@ func flattenAwsLbResource(d *schema.ResourceData, meta interface{}, lb *elbv2.Lo
 		return fmt.Errorf("error setting subnet_mapping: %s", err)
 	}
 
-	respTags, err := elbconn.DescribeTags(&elbv2.DescribeTagsInput{
-		ResourceArns: []*string{lb.LoadBalancerArn},
-	})
+	tags, err := keyvaluetags.Elbv2ListTags(elbconn, d.Id())
+
 	if err != nil {
-		return fmt.Errorf("Error retrieving LB Tags: %s", err)
+		return fmt.Errorf("error listing tags for (%s): %s", d.Id(), err)
 	}
 
-	var et []*elbv2.Tag
-	if len(respTags.TagDescriptions) > 0 {
-		et = respTags.TagDescriptions[0].Tags
-	}
-
-	if err := d.Set("tags", tagsToMapELBv2(et)); err != nil {
-		log.Printf("[WARN] Error setting tags for AWS LB (%s): %s", d.Id(), err)
+	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+		return fmt.Errorf("error setting tags: %s", err)
 	}
 
 	attributesResp, err := elbconn.DescribeLoadBalancerAttributes(&elbv2.DescribeLoadBalancerAttributesInput{
@@ -746,6 +771,10 @@ func flattenAwsLbResource(d *schema.ResourceData, meta interface{}, lb *elbv2.Lo
 			}
 			log.Printf("[DEBUG] Setting ALB Timeout Seconds: %d", timeout)
 			d.Set("idle_timeout", timeout)
+		case "routing.http.drop_invalid_header_fields.enabled":
+			dropInvalidHeaderFieldsEnabled := aws.StringValue(attr.Value) == "true"
+			log.Printf("[DEBUG] Setting LB Invalid Header Fields Enabled: %t", dropInvalidHeaderFieldsEnabled)
+			d.Set("drop_invalid_header_fields", dropInvalidHeaderFieldsEnabled)
 		case "deletion_protection.enabled":
 			protectionEnabled := aws.StringValue(attr.Value) == "true"
 			log.Printf("[DEBUG] Setting LB Deletion Protection Enabled: %t", protectionEnabled)
@@ -782,7 +811,7 @@ func customizeDiffNLBSubnets(diff *schema.ResourceDiff, v interface{}) error {
 	// Application Load Balancers, so the logic below is simple individual checks.
 	// If other differences arise we'll want to refactor to check other
 	// conditions in combinations, but for now all we handle is subnets
-	if lbType := diff.Get("load_balancer_type").(string); lbType != "network" {
+	if lbType := diff.Get("load_balancer_type").(string); lbType != elbv2.LoadBalancerTypeEnumNetwork {
 		return nil
 	}
 

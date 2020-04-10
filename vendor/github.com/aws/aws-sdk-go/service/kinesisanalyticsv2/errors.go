@@ -2,6 +2,10 @@
 
 package kinesisanalyticsv2
 
+import (
+	"github.com/aws/aws-sdk-go/private/protocol"
+)
+
 const (
 
 	// ErrCodeCodeValidationException for service response error code
@@ -92,3 +96,19 @@ const (
 	// a specified resource is not valid for this operation.
 	ErrCodeUnsupportedOperationException = "UnsupportedOperationException"
 )
+
+var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
+	"CodeValidationException":                        newErrorCodeValidationException,
+	"ConcurrentModificationException":                newErrorConcurrentModificationException,
+	"InvalidApplicationConfigurationException":       newErrorInvalidApplicationConfigurationException,
+	"InvalidArgumentException":                       newErrorInvalidArgumentException,
+	"InvalidRequestException":                        newErrorInvalidRequestException,
+	"LimitExceededException":                         newErrorLimitExceededException,
+	"ResourceInUseException":                         newErrorResourceInUseException,
+	"ResourceNotFoundException":                      newErrorResourceNotFoundException,
+	"ResourceProvisionedThroughputExceededException": newErrorResourceProvisionedThroughputExceededException,
+	"ServiceUnavailableException":                    newErrorServiceUnavailableException,
+	"TooManyTagsException":                           newErrorTooManyTagsException,
+	"UnableToDetectSchemaException":                  newErrorUnableToDetectSchemaException,
+	"UnsupportedOperationException":                  newErrorUnsupportedOperationException,
+}

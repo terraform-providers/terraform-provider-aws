@@ -2,6 +2,10 @@
 
 package databasemigrationservice
 
+import (
+	"github.com/aws/aws-sdk-go/private/protocol"
+)
+
 const (
 
 	// ErrCodeAccessDeniedFault for service response error code
@@ -128,3 +132,26 @@ const (
 	// An upgrade dependency is preventing the database migration.
 	ErrCodeUpgradeDependencyFailureFault = "UpgradeDependencyFailureFault"
 )
+
+var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
+	"AccessDeniedFault":                           newErrorAccessDeniedFault,
+	"InsufficientResourceCapacityFault":           newErrorInsufficientResourceCapacityFault,
+	"InvalidCertificateFault":                     newErrorInvalidCertificateFault,
+	"InvalidResourceStateFault":                   newErrorInvalidResourceStateFault,
+	"InvalidSubnet":                               newErrorInvalidSubnet,
+	"KMSAccessDeniedFault":                        newErrorKMSAccessDeniedFault,
+	"KMSDisabledFault":                            newErrorKMSDisabledFault,
+	"KMSInvalidStateFault":                        newErrorKMSInvalidStateFault,
+	"KMSKeyNotAccessibleFault":                    newErrorKMSKeyNotAccessibleFault,
+	"KMSNotFoundFault":                            newErrorKMSNotFoundFault,
+	"KMSThrottlingFault":                          newErrorKMSThrottlingFault,
+	"ReplicationSubnetGroupDoesNotCoverEnoughAZs": newErrorReplicationSubnetGroupDoesNotCoverEnoughAZs,
+	"ResourceAlreadyExistsFault":                  newErrorResourceAlreadyExistsFault,
+	"ResourceNotFoundFault":                       newErrorResourceNotFoundFault,
+	"ResourceQuotaExceededFault":                  newErrorResourceQuotaExceededFault,
+	"SNSInvalidTopicFault":                        newErrorSNSInvalidTopicFault,
+	"SNSNoAuthorizationFault":                     newErrorSNSNoAuthorizationFault,
+	"StorageQuotaExceededFault":                   newErrorStorageQuotaExceededFault,
+	"SubnetAlreadyInUse":                          newErrorSubnetAlreadyInUse,
+	"UpgradeDependencyFailureFault":               newErrorUpgradeDependencyFailureFault,
+}

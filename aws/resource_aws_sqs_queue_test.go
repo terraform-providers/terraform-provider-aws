@@ -17,6 +17,7 @@ import (
 func TestAccAWSSQSQueue_basic(t *testing.T) {
 	var queueAttributes map[string]*string
 
+	resourceName := "aws_sqs_queue.queue"
 	queueName := fmt.Sprintf("sqs-queue-%s", acctest.RandString(10))
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -26,12 +27,12 @@ func TestAccAWSSQSQueue_basic(t *testing.T) {
 			{
 				Config: testAccAWSSQSConfigWithDefaults(queueName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSSQSQueueExists("aws_sqs_queue.queue", &queueAttributes),
+					testAccCheckAWSSQSQueueExists(resourceName, &queueAttributes),
 					testAccCheckAWSSQSQueueDefaultAttributes(&queueAttributes),
 				),
 			},
 			{
-				ResourceName:      "aws_sqs_queue.queue",
+				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
@@ -41,14 +42,14 @@ func TestAccAWSSQSQueue_basic(t *testing.T) {
 			{
 				Config: testAccAWSSQSConfigWithOverrides(queueName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSSQSQueueExists("aws_sqs_queue.queue", &queueAttributes),
+					testAccCheckAWSSQSQueueExists(resourceName, &queueAttributes),
 					testAccCheckAWSSQSQueueOverrideAttributes(&queueAttributes),
 				),
 			},
 			{
 				Config: testAccAWSSQSConfigWithDefaults(queueName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSSQSQueueExists("aws_sqs_queue.queue", &queueAttributes),
+					testAccCheckAWSSQSQueueExists(resourceName, &queueAttributes),
 					testAccCheckAWSSQSQueueDefaultAttributes(&queueAttributes),
 				),
 			},
@@ -59,6 +60,7 @@ func TestAccAWSSQSQueue_basic(t *testing.T) {
 func TestAccAWSSQSQueue_tags(t *testing.T) {
 	var queueAttributes map[string]*string
 
+	resourceName := "aws_sqs_queue.queue"
 	queueName := fmt.Sprintf("sqs-queue-%s", acctest.RandString(10))
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -68,14 +70,14 @@ func TestAccAWSSQSQueue_tags(t *testing.T) {
 			{
 				Config: testAccAWSSQSConfigWithTags(queueName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSSQSQueueExists("aws_sqs_queue.queue", &queueAttributes),
+					testAccCheckAWSSQSQueueExists(resourceName, &queueAttributes),
 					testAccCheckAWSSQSQueueDefaultAttributes(&queueAttributes),
-					resource.TestCheckResourceAttr("aws_sqs_queue.queue", "tags.%", "2"),
-					resource.TestCheckResourceAttr("aws_sqs_queue.queue", "tags.Usage", "original"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.Usage", "original"),
 				),
 			},
 			{
-				ResourceName:      "aws_sqs_queue.queue",
+				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
@@ -85,18 +87,18 @@ func TestAccAWSSQSQueue_tags(t *testing.T) {
 			{
 				Config: testAccAWSSQSConfigWithTagsChanged(queueName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSSQSQueueExists("aws_sqs_queue.queue", &queueAttributes),
+					testAccCheckAWSSQSQueueExists(resourceName, &queueAttributes),
 					testAccCheckAWSSQSQueueDefaultAttributes(&queueAttributes),
-					resource.TestCheckResourceAttr("aws_sqs_queue.queue", "tags.%", "1"),
-					resource.TestCheckResourceAttr("aws_sqs_queue.queue", "tags.Usage", "changed"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.Usage", "changed"),
 				),
 			},
 			{
 				Config: testAccAWSSQSConfigWithDefaults(queueName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSSQSQueueExists("aws_sqs_queue.queue", &queueAttributes),
+					testAccCheckAWSSQSQueueExists(resourceName, &queueAttributes),
 					testAccCheckAWSSQSQueueDefaultAttributes(&queueAttributes),
-					resource.TestCheckNoResourceAttr("aws_sqs_queue.queue", "tags"),
+					resource.TestCheckNoResourceAttr(resourceName, "tags"),
 				),
 			},
 		},
@@ -106,6 +108,7 @@ func TestAccAWSSQSQueue_tags(t *testing.T) {
 func TestAccAWSSQSQueue_namePrefix(t *testing.T) {
 	var queueAttributes map[string]*string
 
+	resourceName := "aws_sqs_queue.queue"
 	prefix := "acctest-sqs-queue"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -115,13 +118,13 @@ func TestAccAWSSQSQueue_namePrefix(t *testing.T) {
 			{
 				Config: testAccAWSSQSConfigWithNamePrefix(prefix),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSSQSQueueExists("aws_sqs_queue.queue", &queueAttributes),
+					testAccCheckAWSSQSQueueExists(resourceName, &queueAttributes),
 					testAccCheckAWSSQSQueueDefaultAttributes(&queueAttributes),
-					resource.TestMatchResourceAttr("aws_sqs_queue.queue", "name", regexp.MustCompile(`^acctest-sqs-queue`)),
+					resource.TestMatchResourceAttr(resourceName, "name", regexp.MustCompile(`^acctest-sqs-queue`)),
 				),
 			},
 			{
-				ResourceName:      "aws_sqs_queue.queue",
+				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
@@ -135,6 +138,7 @@ func TestAccAWSSQSQueue_namePrefix(t *testing.T) {
 func TestAccAWSSQSQueue_namePrefix_fifo(t *testing.T) {
 	var queueAttributes map[string]*string
 
+	resourceName := "aws_sqs_queue.queue"
 	prefix := "acctest-sqs-queue"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -144,13 +148,13 @@ func TestAccAWSSQSQueue_namePrefix_fifo(t *testing.T) {
 			{
 				Config: testAccAWSSQSFifoConfigWithNamePrefix(prefix),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSSQSQueueExists("aws_sqs_queue.queue", &queueAttributes),
+					testAccCheckAWSSQSQueueExists(resourceName, &queueAttributes),
 					testAccCheckAWSSQSQueueDefaultAttributes(&queueAttributes),
-					resource.TestMatchResourceAttr("aws_sqs_queue.queue", "name", regexp.MustCompile(`^acctest-sqs-queue.*\.fifo$`)),
+					resource.TestMatchResourceAttr(resourceName, "name", regexp.MustCompile(`^acctest-sqs-queue.*\.fifo$`)),
 				),
 			},
 			{
-				ResourceName:      "aws_sqs_queue.queue",
+				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
@@ -198,6 +202,7 @@ func TestAccAWSSQSQueue_policy(t *testing.T) {
 func TestAccAWSSQSQueue_queueDeletedRecently(t *testing.T) {
 	var queueAttributes map[string]*string
 
+	resourceName := "aws_sqs_queue.queue"
 	queueName := fmt.Sprintf("sqs-queue-%s", acctest.RandString(10))
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -207,17 +212,17 @@ func TestAccAWSSQSQueue_queueDeletedRecently(t *testing.T) {
 			{
 				Config: testAccAWSSQSConfigWithDefaults(queueName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSSQSQueueExists("aws_sqs_queue.queue", &queueAttributes),
+					testAccCheckAWSSQSQueueExists(resourceName, &queueAttributes),
 					testAccCheckAWSSQSQueueDefaultAttributes(&queueAttributes),
 				),
 			},
 			{
 				Config: testAccAWSSQSConfigWithDefaults(queueName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSSQSQueueExists("aws_sqs_queue.queue", &queueAttributes),
+					testAccCheckAWSSQSQueueExists(resourceName, &queueAttributes),
 					testAccCheckAWSSQSQueueDefaultAttributes(&queueAttributes),
 				),
-				Taint: []string{"aws_sqs_queue.queue"},
+				Taint: []string{resourceName},
 			},
 		},
 	})
@@ -283,6 +288,7 @@ func TestAccAWSSQSQueue_Policybasic(t *testing.T) {
 func TestAccAWSSQSQueue_FIFO(t *testing.T) {
 	var queueAttributes map[string]*string
 
+	resourceName := "aws_sqs_queue.queue"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -291,12 +297,12 @@ func TestAccAWSSQSQueue_FIFO(t *testing.T) {
 			{
 				Config: testAccAWSSQSConfigWithFIFO(acctest.RandString(10)),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSSQSQueueExists("aws_sqs_queue.queue", &queueAttributes),
-					resource.TestCheckResourceAttr("aws_sqs_queue.queue", "fifo_queue", "true"),
+					testAccCheckAWSSQSQueueExists(resourceName, &queueAttributes),
+					resource.TestCheckResourceAttr(resourceName, "fifo_queue", "true"),
 				),
 			},
 			{
-				ResourceName:      "aws_sqs_queue.queue",
+				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
@@ -324,6 +330,7 @@ func TestAccAWSSQSQueue_FIFOExpectNameError(t *testing.T) {
 func TestAccAWSSQSQueue_FIFOWithContentBasedDeduplication(t *testing.T) {
 	var queueAttributes map[string]*string
 
+	resourceName := "aws_sqs_queue.queue"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -332,13 +339,13 @@ func TestAccAWSSQSQueue_FIFOWithContentBasedDeduplication(t *testing.T) {
 			{
 				Config: testAccAWSSQSConfigWithFIFOContentBasedDeduplication(acctest.RandString(10)),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSSQSQueueExists("aws_sqs_queue.queue", &queueAttributes),
-					resource.TestCheckResourceAttr("aws_sqs_queue.queue", "fifo_queue", "true"),
-					resource.TestCheckResourceAttr("aws_sqs_queue.queue", "content_based_deduplication", "true"),
+					testAccCheckAWSSQSQueueExists(resourceName, &queueAttributes),
+					resource.TestCheckResourceAttr(resourceName, "fifo_queue", "true"),
+					resource.TestCheckResourceAttr(resourceName, "content_based_deduplication", "true"),
 				),
 			},
 			{
-				ResourceName:      "aws_sqs_queue.queue",
+				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
@@ -366,6 +373,7 @@ func TestAccAWSSQSQueue_ExpectContentBasedDeduplicationError(t *testing.T) {
 func TestAccAWSSQSQueue_Encryption(t *testing.T) {
 	var queueAttributes map[string]*string
 
+	resourceName := "aws_sqs_queue.queue"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -374,12 +382,12 @@ func TestAccAWSSQSQueue_Encryption(t *testing.T) {
 			{
 				Config: testAccAWSSQSConfigWithEncryption(acctest.RandString(10)),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSSQSQueueExists("aws_sqs_queue.queue", &queueAttributes),
-					resource.TestCheckResourceAttr("aws_sqs_queue.queue", "kms_master_key_id", "alias/aws/sqs"),
+					testAccCheckAWSSQSQueueExists(resourceName, &queueAttributes),
+					resource.TestCheckResourceAttr(resourceName, "kms_master_key_id", "alias/aws/sqs"),
 				),
 			},
 			{
-				ResourceName:      "aws_sqs_queue.queue",
+				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{

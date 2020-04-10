@@ -4,12 +4,13 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/aws/aws-sdk-go/service/wafregional"
-
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/waf"
+	"github.com/aws/aws-sdk-go/service/wafregional"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsWafRegionalRule() *schema.Resource {
@@ -55,6 +56,11 @@ func resourceAwsWafRegionalRule() *schema.Resource {
 					},
 				},
 			},
+			"tags": tagsSchema(),
+			"arn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -62,6 +68,7 @@ func resourceAwsWafRegionalRule() *schema.Resource {
 func resourceAwsWafRegionalRuleCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).wafregionalconn
 	region := meta.(*AWSClient).region
+	tags := keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().WafregionalTags()
 
 	wr := newWafRegionalRetryer(conn, region)
 	out, err := wr.RetryWithToken(func(token *string) (interface{}, error) {
@@ -71,6 +78,10 @@ func resourceAwsWafRegionalRuleCreate(d *schema.ResourceData, meta interface{}) 
 			Name:        aws.String(d.Get("name").(string)),
 		}
 
+		if len(tags) > 0 {
+			params.Tags = tags
+		}
+
 		return conn.CreateRule(params)
 	})
 	if err != nil {
@@ -78,7 +89,16 @@ func resourceAwsWafRegionalRuleCreate(d *schema.ResourceData, meta interface{}) 
 	}
 	resp := out.(*waf.CreateRuleOutput)
 	d.SetId(*resp.Rule.RuleId)
-	return resourceAwsWafRegionalRuleUpdate(d, meta)
+
+	newPredicates := d.Get("predicate").(*schema.Set).List()
+	if len(newPredicates) > 0 {
+		noPredicates := []interface{}{}
+		err := updateWafRegionalRuleResource(d.Id(), noPredicates, newPredicates, meta)
+		if err != nil {
+			return fmt.Errorf("Error Updating WAF Regional Rule: %s", err)
+		}
+	}
+	return resourceAwsWafRegionalRuleRead(d, meta)
 }
 
 func resourceAwsWafRegionalRuleRead(d *schema.ResourceData, meta interface{}) error {
@@ -99,6 +119,25 @@ func resourceAwsWafRegionalRuleRead(d *schema.ResourceData, meta interface{}) er
 		return err
 	}
 
+	arn := arn.ARN{
+		AccountID: meta.(*AWSClient).accountid,
+		Partition: meta.(*AWSClient).partition,
+		Region:    meta.(*AWSClient).region,
+		Resource:  fmt.Sprintf("rule/%s", d.Id()),
+		Service:   "waf-regional",
+	}.String()
+	d.Set("arn", arn)
+
+	tags, err := keyvaluetags.WafregionalListTags(conn, arn)
+
+	if err != nil {
+		return fmt.Errorf("error listing tags for WAF Regional Rule (%s): %s", arn, err)
+	}
+
+	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+		return fmt.Errorf("error setting tags: %s", err)
+	}
+
 	d.Set("predicate", flattenWafPredicates(resp.Rule.Predicates))
 	d.Set("name", resp.Rule.Name)
 	d.Set("metric_name", resp.Rule.MetricName)
@@ -107,6 +146,8 @@ func resourceAwsWafRegionalRuleRead(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceAwsWafRegionalRuleUpdate(d *schema.ResourceData, meta interface{}) error {
+	conn := meta.(*AWSClient).wafregionalconn
+
 	if d.HasChange("predicate") {
 		o, n := d.GetChange("predicate")
 		oldP, newP := o.(*schema.Set).List(), n.(*schema.Set).List()
@@ -116,6 +157,15 @@ func resourceAwsWafRegionalRuleUpdate(d *schema.ResourceData, meta interface{}) 
 			return fmt.Errorf("Error Updating WAF Rule: %s", err)
 		}
 	}
+
+	if d.HasChange("tags") {
+		o, n := d.GetChange("tags")
+
+		if err := keyvaluetags.WafregionalUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
+			return fmt.Errorf("error updating tags: %s", err)
+		}
+	}
+
 	return resourceAwsWafRegionalRuleRead(d, meta)
 }
 

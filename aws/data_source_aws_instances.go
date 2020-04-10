@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func dataSourceAwsInstances() *schema.Resource {
@@ -82,7 +83,7 @@ func dataSourceAwsInstancesRead(d *schema.ResourceData, meta interface{}) error 
 	}
 	if tagsOk {
 		params.Filters = append(params.Filters, buildEC2TagFilterList(
-			tagsFromMap(tags.(map[string]interface{})),
+			keyvaluetags.New(tags.(map[string]interface{})).Ec2Tags(),
 		)...)
 	}
 

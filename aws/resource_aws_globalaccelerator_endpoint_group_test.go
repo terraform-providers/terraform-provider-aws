@@ -61,7 +61,7 @@ func TestAccAwsGlobalAcceleratorEndpointGroup_update(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "health_check_port", "8080"),
 					resource.TestCheckResourceAttr(resourceName, "health_check_protocol", "HTTPS"),
 					resource.TestCheckResourceAttr(resourceName, "threshold_count", "1"),
-					resource.TestCheckResourceAttr(resourceName, "traffic_dial_percentage", "50"),
+					resource.TestCheckResourceAttr(resourceName, "traffic_dial_percentage", "0"),
 					resource.TestCheckResourceAttr(resourceName, "endpoint_configuration.#", "1"),
 				),
 			},
@@ -197,7 +197,7 @@ resource "aws_globalaccelerator_endpoint_group" "example" {
   health_check_port             = 8080
   health_check_protocol         = "HTTPS"
   threshold_count               = 1
-  traffic_dial_percentage       = 50
+  traffic_dial_percentage       = 0
 }
 `, rInt)
 }

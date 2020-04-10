@@ -26,12 +26,15 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the placement group.
 * `strategy` - (Required) The placement strategy.
+* `tags` - (Optional) Key-value mapping of resource tags.
+
 
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - The name of the placement group.
+* `placement_group_id` - The ID of the placement group.
 
 ## Import
 

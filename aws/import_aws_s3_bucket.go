@@ -33,7 +33,7 @@ func resourceAwsS3BucketImportState(
 	pData.SetId(d.Id())
 	pData.SetType("aws_s3_bucket_policy")
 	pData.Set("bucket", d.Id())
-	pData.Set("policy", pol)
+	pData.Set("policy", pol.Policy)
 	results = append(results, pData)
 
 	return results, nil

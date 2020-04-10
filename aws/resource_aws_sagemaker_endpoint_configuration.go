@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/sagemaker"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsSagemakerEndpointConfiguration() *schema.Resource {
@@ -71,7 +71,7 @@ func resourceAwsSagemakerEndpointConfiguration() *schema.Resource {
 							Type:         schema.TypeFloat,
 							Optional:     true,
 							ForceNew:     true,
-							ValidateFunc: FloatAtLeast(0),
+							ValidateFunc: validation.FloatAtLeast(0),
 							Default:      1,
 						},
 
@@ -116,7 +116,7 @@ func resourceAwsSagemakerEndpointConfigurationCreate(d *schema.ResourceData, met
 	}
 
 	if v, ok := d.GetOk("tags"); ok {
-		createOpts.Tags = tagsFromMapSagemaker(v.(map[string]interface{}))
+		createOpts.Tags = keyvaluetags.New(v.(map[string]interface{})).IgnoreAws().SagemakerTags()
 	}
 
 	log.Printf("[DEBUG] SageMaker Endpoint Configuration create config: %#v", *createOpts)
@@ -159,23 +159,27 @@ func resourceAwsSagemakerEndpointConfigurationRead(d *schema.ResourceData, meta 
 		return err
 	}
 
-	tagsOutput, err := conn.ListTags(&sagemaker.ListTagsInput{
-		ResourceArn: endpointConfig.EndpointConfigArn,
-	})
+	tags, err := keyvaluetags.SagemakerListTags(conn, aws.StringValue(endpointConfig.EndpointConfigArn))
 	if err != nil {
-		return fmt.Errorf("error listing tags of SageMaker Endpoint Configuration %s: %s", d.Id(), err)
+		return fmt.Errorf("error listing tags for Sagemaker Endpoint Configuration (%s): %s", d.Id(), err)
 	}
-	if err := d.Set("tags", tagsToMapSagemaker(tagsOutput.Tags)); err != nil {
-		return err
+
+	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+		return fmt.Errorf("error setting tags: %s", err)
 	}
+
 	return nil
 }
 
 func resourceAwsSagemakerEndpointConfigurationUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).sagemakerconn
 
-	if err := setSagemakerTags(conn, d); err != nil {
-		return err
+	if d.HasChange("tags") {
+		o, n := d.GetChange("tags")
+
+		if err := keyvaluetags.SagemakerUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
+			return fmt.Errorf("error updating Sagemaker Endpoint Configuration (%s) tags: %s", d.Id(), err)
+		}
 	}
 	return resourceAwsSagemakerEndpointConfigurationRead(d, meta)
 }

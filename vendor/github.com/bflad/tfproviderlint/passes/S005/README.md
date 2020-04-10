@@ -25,3 +25,15 @@ and configures `Default`, which will fail provider schema validation.
     Default: true,
 }
 ```
+
+## Ignoring Reports
+
+Singular reports can be ignored by adding the a `//lintignore:S005` Go code comment at the end of the offending line or on the line immediately proceding, e.g.
+
+```go
+//lintignore:S005
+&schema.Schema{
+    Computed: true,
+    Default:  /* ... */,
+}
+```

@@ -544,7 +544,7 @@ resource "aws_lambda_function" "test" {
   filename      = "test-fixtures/lambdatest.zip"
   function_name = %[1]q
   role          = "${aws_iam_role.test.arn}"
-  runtime       = "nodejs8.10"
+  runtime       = "nodejs12.x"
   handler       = "exports.handler"
 }
 

@@ -75,19 +75,19 @@ func (c *ACMPCA) CreateCertificateAuthorityRequest(input *CreateCertificateAutho
 // See the AWS API reference guide for AWS Certificate Manager Private Certificate Authority's
 // API operation CreateCertificateAuthority for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidArgsException "InvalidArgsException"
+// Returned Error Types:
+//   * InvalidArgsException
 //   One or more of the specified arguments was not valid.
 //
-//   * ErrCodeInvalidPolicyException "InvalidPolicyException"
+//   * InvalidPolicyException
 //   The S3 bucket policy is not valid. The policy must give ACM Private CA rights
 //   to read from and write to the bucket and find the bucket location.
 //
-//   * ErrCodeInvalidTagException "InvalidTagException"
+//   * InvalidTagException
 //   The tag associated with the CA is not valid. The invalid argument is contained
 //   in the message field.
 //
-//   * ErrCodeLimitExceededException "LimitExceededException"
+//   * LimitExceededException
 //   An ACM Private CA limit has been exceeded. See the exception message returned
 //   to determine the limit that was exceeded.
 //
@@ -168,24 +168,24 @@ func (c *ACMPCA) CreateCertificateAuthorityAuditReportRequest(input *CreateCerti
 // See the AWS API reference guide for AWS Certificate Manager Private Certificate Authority's
 // API operation CreateCertificateAuthorityAuditReport for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeRequestInProgressException "RequestInProgressException"
+// Returned Error Types:
+//   * RequestInProgressException
 //   Your request is already in progress.
 //
-//   * ErrCodeRequestFailedException "RequestFailedException"
+//   * RequestFailedException
 //   The request has failed for an unspecified reason.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   A resource such as a private CA, S3 bucket, certificate, or audit report
 //   cannot be found.
 //
-//   * ErrCodeInvalidArnException "InvalidArnException"
+//   * InvalidArnException
 //   The requested Amazon Resource Name (ARN) does not refer to an existing resource.
 //
-//   * ErrCodeInvalidArgsException "InvalidArgsException"
+//   * InvalidArgsException
 //   One or more of the specified arguments was not valid.
 //
-//   * ErrCodeInvalidStateException "InvalidStateException"
+//   * InvalidStateException
 //   The private CA is in a state during which a report or certificate cannot
 //   be generated.
 //
@@ -274,26 +274,26 @@ func (c *ACMPCA) CreatePermissionRequest(input *CreatePermissionInput) (req *req
 // See the AWS API reference guide for AWS Certificate Manager Private Certificate Authority's
 // API operation CreatePermission for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   A resource such as a private CA, S3 bucket, certificate, or audit report
 //   cannot be found.
 //
-//   * ErrCodeInvalidArnException "InvalidArnException"
+//   * InvalidArnException
 //   The requested Amazon Resource Name (ARN) does not refer to an existing resource.
 //
-//   * ErrCodePermissionAlreadyExistsException "PermissionAlreadyExistsException"
+//   * PermissionAlreadyExistsException
 //   The designated permission has already been given to the user.
 //
-//   * ErrCodeLimitExceededException "LimitExceededException"
+//   * LimitExceededException
 //   An ACM Private CA limit has been exceeded. See the exception message returned
 //   to determine the limit that was exceeded.
 //
-//   * ErrCodeInvalidStateException "InvalidStateException"
+//   * InvalidStateException
 //   The private CA is in a state during which a report or certificate cannot
 //   be generated.
 //
-//   * ErrCodeRequestFailedException "RequestFailedException"
+//   * RequestFailedException
 //   The request has failed for an unspecified reason.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/acm-pca-2017-08-22/CreatePermission
@@ -394,18 +394,18 @@ func (c *ACMPCA) DeleteCertificateAuthorityRequest(input *DeleteCertificateAutho
 // See the AWS API reference guide for AWS Certificate Manager Private Certificate Authority's
 // API operation DeleteCertificateAuthority for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
+// Returned Error Types:
+//   * ConcurrentModificationException
 //   A previous update to your private CA is still ongoing.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   A resource such as a private CA, S3 bucket, certificate, or audit report
 //   cannot be found.
 //
-//   * ErrCodeInvalidArnException "InvalidArnException"
+//   * InvalidArnException
 //   The requested Amazon Resource Name (ARN) does not refer to an existing resource.
 //
-//   * ErrCodeInvalidStateException "InvalidStateException"
+//   * InvalidStateException
 //   The private CA is in a state during which a report or certificate cannot
 //   be generated.
 //
@@ -487,19 +487,19 @@ func (c *ACMPCA) DeletePermissionRequest(input *DeletePermissionInput) (req *req
 // See the AWS API reference guide for AWS Certificate Manager Private Certificate Authority's
 // API operation DeletePermission for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   A resource such as a private CA, S3 bucket, certificate, or audit report
 //   cannot be found.
 //
-//   * ErrCodeInvalidArnException "InvalidArnException"
+//   * InvalidArnException
 //   The requested Amazon Resource Name (ARN) does not refer to an existing resource.
 //
-//   * ErrCodeInvalidStateException "InvalidStateException"
+//   * InvalidStateException
 //   The private CA is in a state during which a report or certificate cannot
 //   be generated.
 //
-//   * ErrCodeRequestFailedException "RequestFailedException"
+//   * RequestFailedException
 //   The request has failed for an unspecified reason.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/acm-pca-2017-08-22/DeletePermission
@@ -599,12 +599,12 @@ func (c *ACMPCA) DescribeCertificateAuthorityRequest(input *DescribeCertificateA
 // See the AWS API reference guide for AWS Certificate Manager Private Certificate Authority's
 // API operation DescribeCertificateAuthority for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   A resource such as a private CA, S3 bucket, certificate, or audit report
 //   cannot be found.
 //
-//   * ErrCodeInvalidArnException "InvalidArnException"
+//   * InvalidArnException
 //   The requested Amazon Resource Name (ARN) does not refer to an existing resource.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/acm-pca-2017-08-22/DescribeCertificateAuthority
@@ -685,15 +685,15 @@ func (c *ACMPCA) DescribeCertificateAuthorityAuditReportRequest(input *DescribeC
 // See the AWS API reference guide for AWS Certificate Manager Private Certificate Authority's
 // API operation DescribeCertificateAuthorityAuditReport for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   A resource such as a private CA, S3 bucket, certificate, or audit report
 //   cannot be found.
 //
-//   * ErrCodeInvalidArnException "InvalidArnException"
+//   * InvalidArnException
 //   The requested Amazon Resource Name (ARN) does not refer to an existing resource.
 //
-//   * ErrCodeInvalidArgsException "InvalidArgsException"
+//   * InvalidArgsException
 //   One or more of the specified arguments was not valid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/acm-pca-2017-08-22/DescribeCertificateAuthorityAuditReport
@@ -777,21 +777,21 @@ func (c *ACMPCA) GetCertificateRequest(input *GetCertificateInput) (req *request
 // See the AWS API reference guide for AWS Certificate Manager Private Certificate Authority's
 // API operation GetCertificate for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeRequestInProgressException "RequestInProgressException"
+// Returned Error Types:
+//   * RequestInProgressException
 //   Your request is already in progress.
 //
-//   * ErrCodeRequestFailedException "RequestFailedException"
+//   * RequestFailedException
 //   The request has failed for an unspecified reason.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   A resource such as a private CA, S3 bucket, certificate, or audit report
 //   cannot be found.
 //
-//   * ErrCodeInvalidArnException "InvalidArnException"
+//   * InvalidArnException
 //   The requested Amazon Resource Name (ARN) does not refer to an existing resource.
 //
-//   * ErrCodeInvalidStateException "InvalidStateException"
+//   * InvalidStateException
 //   The private CA is in a state during which a report or certificate cannot
 //   be generated.
 //
@@ -873,16 +873,16 @@ func (c *ACMPCA) GetCertificateAuthorityCertificateRequest(input *GetCertificate
 // See the AWS API reference guide for AWS Certificate Manager Private Certificate Authority's
 // API operation GetCertificateAuthorityCertificate for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   A resource such as a private CA, S3 bucket, certificate, or audit report
 //   cannot be found.
 //
-//   * ErrCodeInvalidStateException "InvalidStateException"
+//   * InvalidStateException
 //   The private CA is in a state during which a report or certificate cannot
 //   be generated.
 //
-//   * ErrCodeInvalidArnException "InvalidArnException"
+//   * InvalidArnException
 //   The requested Amazon Resource Name (ARN) does not refer to an existing resource.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/acm-pca-2017-08-22/GetCertificateAuthorityCertificate
@@ -965,21 +965,21 @@ func (c *ACMPCA) GetCertificateAuthorityCsrRequest(input *GetCertificateAuthorit
 // See the AWS API reference guide for AWS Certificate Manager Private Certificate Authority's
 // API operation GetCertificateAuthorityCsr for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeRequestInProgressException "RequestInProgressException"
+// Returned Error Types:
+//   * RequestInProgressException
 //   Your request is already in progress.
 //
-//   * ErrCodeRequestFailedException "RequestFailedException"
+//   * RequestFailedException
 //   The request has failed for an unspecified reason.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   A resource such as a private CA, S3 bucket, certificate, or audit report
 //   cannot be found.
 //
-//   * ErrCodeInvalidArnException "InvalidArnException"
+//   * InvalidArnException
 //   The requested Amazon Resource Name (ARN) does not refer to an existing resource.
 //
-//   * ErrCodeInvalidStateException "InvalidStateException"
+//   * InvalidStateException
 //   The private CA is in a state during which a report or certificate cannot
 //   be generated.
 //
@@ -1092,34 +1092,34 @@ func (c *ACMPCA) ImportCertificateAuthorityCertificateRequest(input *ImportCerti
 // See the AWS API reference guide for AWS Certificate Manager Private Certificate Authority's
 // API operation ImportCertificateAuthorityCertificate for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
+// Returned Error Types:
+//   * ConcurrentModificationException
 //   A previous update to your private CA is still ongoing.
 //
-//   * ErrCodeRequestInProgressException "RequestInProgressException"
+//   * RequestInProgressException
 //   Your request is already in progress.
 //
-//   * ErrCodeRequestFailedException "RequestFailedException"
+//   * RequestFailedException
 //   The request has failed for an unspecified reason.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   A resource such as a private CA, S3 bucket, certificate, or audit report
 //   cannot be found.
 //
-//   * ErrCodeInvalidArnException "InvalidArnException"
+//   * InvalidArnException
 //   The requested Amazon Resource Name (ARN) does not refer to an existing resource.
 //
-//   * ErrCodeInvalidRequestException "InvalidRequestException"
+//   * InvalidRequestException
 //   The request action cannot be performed or is prohibited.
 //
-//   * ErrCodeInvalidStateException "InvalidStateException"
+//   * InvalidStateException
 //   The private CA is in a state during which a report or certificate cannot
 //   be generated.
 //
-//   * ErrCodeMalformedCertificateException "MalformedCertificateException"
+//   * MalformedCertificateException
 //   One or more fields in the certificate are invalid.
 //
-//   * ErrCodeCertificateMismatchException "CertificateMismatchException"
+//   * CertificateMismatchException
 //   The certificate authority certificate you are importing does not comply with
 //   conditions specified in the certificate that signed it.
 //
@@ -1204,26 +1204,26 @@ func (c *ACMPCA) IssueCertificateRequest(input *IssueCertificateInput) (req *req
 // See the AWS API reference guide for AWS Certificate Manager Private Certificate Authority's
 // API operation IssueCertificate for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeLimitExceededException "LimitExceededException"
+// Returned Error Types:
+//   * LimitExceededException
 //   An ACM Private CA limit has been exceeded. See the exception message returned
 //   to determine the limit that was exceeded.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   A resource such as a private CA, S3 bucket, certificate, or audit report
 //   cannot be found.
 //
-//   * ErrCodeInvalidStateException "InvalidStateException"
+//   * InvalidStateException
 //   The private CA is in a state during which a report or certificate cannot
 //   be generated.
 //
-//   * ErrCodeInvalidArnException "InvalidArnException"
+//   * InvalidArnException
 //   The requested Amazon Resource Name (ARN) does not refer to an existing resource.
 //
-//   * ErrCodeInvalidArgsException "InvalidArgsException"
+//   * InvalidArgsException
 //   One or more of the specified arguments was not valid.
 //
-//   * ErrCodeMalformedCSRException "MalformedCSRException"
+//   * MalformedCSRException
 //   The certificate signing request is invalid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/acm-pca-2017-08-22/IssueCertificate
@@ -1308,8 +1308,8 @@ func (c *ACMPCA) ListCertificateAuthoritiesRequest(input *ListCertificateAuthori
 // See the AWS API reference guide for AWS Certificate Manager Private Certificate Authority's
 // API operation ListCertificateAuthorities for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidNextTokenException "InvalidNextTokenException"
+// Returned Error Types:
+//   * InvalidNextTokenException
 //   The token specified in the NextToken argument is not valid. Use the token
 //   returned from your previous call to ListCertificateAuthorities.
 //
@@ -1378,10 +1378,12 @@ func (c *ACMPCA) ListCertificateAuthoritiesPagesWithContext(ctx aws.Context, inp
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListCertificateAuthoritiesOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListCertificateAuthoritiesOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -1446,23 +1448,23 @@ func (c *ACMPCA) ListPermissionsRequest(input *ListPermissionsInput) (req *reque
 // See the AWS API reference guide for AWS Certificate Manager Private Certificate Authority's
 // API operation ListPermissions for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   A resource such as a private CA, S3 bucket, certificate, or audit report
 //   cannot be found.
 //
-//   * ErrCodeInvalidArnException "InvalidArnException"
+//   * InvalidArnException
 //   The requested Amazon Resource Name (ARN) does not refer to an existing resource.
 //
-//   * ErrCodeInvalidNextTokenException "InvalidNextTokenException"
+//   * InvalidNextTokenException
 //   The token specified in the NextToken argument is not valid. Use the token
 //   returned from your previous call to ListCertificateAuthorities.
 //
-//   * ErrCodeInvalidStateException "InvalidStateException"
+//   * InvalidStateException
 //   The private CA is in a state during which a report or certificate cannot
 //   be generated.
 //
-//   * ErrCodeRequestFailedException "RequestFailedException"
+//   * RequestFailedException
 //   The request has failed for an unspecified reason.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/acm-pca-2017-08-22/ListPermissions
@@ -1530,10 +1532,12 @@ func (c *ACMPCA) ListPermissionsPagesWithContext(ctx aws.Context, input *ListPer
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListPermissionsOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListPermissionsOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -1600,15 +1604,15 @@ func (c *ACMPCA) ListTagsRequest(input *ListTagsInput) (req *request.Request, ou
 // See the AWS API reference guide for AWS Certificate Manager Private Certificate Authority's
 // API operation ListTags for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   A resource such as a private CA, S3 bucket, certificate, or audit report
 //   cannot be found.
 //
-//   * ErrCodeInvalidArnException "InvalidArnException"
+//   * InvalidArnException
 //   The requested Amazon Resource Name (ARN) does not refer to an existing resource.
 //
-//   * ErrCodeInvalidStateException "InvalidStateException"
+//   * InvalidStateException
 //   The private CA is in a state during which a report or certificate cannot
 //   be generated.
 //
@@ -1677,10 +1681,12 @@ func (c *ACMPCA) ListTagsPagesWithContext(ctx aws.Context, input *ListTagsInput,
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListTagsOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListTagsOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -1750,16 +1756,16 @@ func (c *ACMPCA) RestoreCertificateAuthorityRequest(input *RestoreCertificateAut
 // See the AWS API reference guide for AWS Certificate Manager Private Certificate Authority's
 // API operation RestoreCertificateAuthority for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   A resource such as a private CA, S3 bucket, certificate, or audit report
 //   cannot be found.
 //
-//   * ErrCodeInvalidStateException "InvalidStateException"
+//   * InvalidStateException
 //   The private CA is in a state during which a report or certificate cannot
 //   be generated.
 //
-//   * ErrCodeInvalidArnException "InvalidArnException"
+//   * InvalidArnException
 //   The requested Amazon Resource Name (ARN) does not refer to an existing resource.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/acm-pca-2017-08-22/RestoreCertificateAuthority
@@ -1846,35 +1852,35 @@ func (c *ACMPCA) RevokeCertificateRequest(input *RevokeCertificateInput) (req *r
 // See the AWS API reference guide for AWS Certificate Manager Private Certificate Authority's
 // API operation RevokeCertificate for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
+// Returned Error Types:
+//   * ConcurrentModificationException
 //   A previous update to your private CA is still ongoing.
 //
-//   * ErrCodeInvalidArnException "InvalidArnException"
+//   * InvalidArnException
 //   The requested Amazon Resource Name (ARN) does not refer to an existing resource.
 //
-//   * ErrCodeInvalidRequestException "InvalidRequestException"
+//   * InvalidRequestException
 //   The request action cannot be performed or is prohibited.
 //
-//   * ErrCodeInvalidStateException "InvalidStateException"
+//   * InvalidStateException
 //   The private CA is in a state during which a report or certificate cannot
 //   be generated.
 //
-//   * ErrCodeLimitExceededException "LimitExceededException"
+//   * LimitExceededException
 //   An ACM Private CA limit has been exceeded. See the exception message returned
 //   to determine the limit that was exceeded.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   A resource such as a private CA, S3 bucket, certificate, or audit report
 //   cannot be found.
 //
-//   * ErrCodeRequestAlreadyProcessedException "RequestAlreadyProcessedException"
+//   * RequestAlreadyProcessedException
 //   Your request has already been completed.
 //
-//   * ErrCodeRequestInProgressException "RequestInProgressException"
+//   * RequestInProgressException
 //   Your request is already in progress.
 //
-//   * ErrCodeRequestFailedException "RequestFailedException"
+//   * RequestFailedException
 //   The request has failed for an unspecified reason.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/acm-pca-2017-08-22/RevokeCertificate
@@ -1961,23 +1967,23 @@ func (c *ACMPCA) TagCertificateAuthorityRequest(input *TagCertificateAuthorityIn
 // See the AWS API reference guide for AWS Certificate Manager Private Certificate Authority's
 // API operation TagCertificateAuthority for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   A resource such as a private CA, S3 bucket, certificate, or audit report
 //   cannot be found.
 //
-//   * ErrCodeInvalidArnException "InvalidArnException"
+//   * InvalidArnException
 //   The requested Amazon Resource Name (ARN) does not refer to an existing resource.
 //
-//   * ErrCodeInvalidStateException "InvalidStateException"
+//   * InvalidStateException
 //   The private CA is in a state during which a report or certificate cannot
 //   be generated.
 //
-//   * ErrCodeInvalidTagException "InvalidTagException"
+//   * InvalidTagException
 //   The tag associated with the CA is not valid. The invalid argument is contained
 //   in the message field.
 //
-//   * ErrCodeTooManyTagsException "TooManyTagsException"
+//   * TooManyTagsException
 //   You can associate up to 50 tags with a private CA. Exception information
 //   is contained in the exception message field.
 //
@@ -2062,19 +2068,19 @@ func (c *ACMPCA) UntagCertificateAuthorityRequest(input *UntagCertificateAuthori
 // See the AWS API reference guide for AWS Certificate Manager Private Certificate Authority's
 // API operation UntagCertificateAuthority for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   A resource such as a private CA, S3 bucket, certificate, or audit report
 //   cannot be found.
 //
-//   * ErrCodeInvalidArnException "InvalidArnException"
+//   * InvalidArnException
 //   The requested Amazon Resource Name (ARN) does not refer to an existing resource.
 //
-//   * ErrCodeInvalidStateException "InvalidStateException"
+//   * InvalidStateException
 //   The private CA is in a state during which a report or certificate cannot
 //   be generated.
 //
-//   * ErrCodeInvalidTagException "InvalidTagException"
+//   * InvalidTagException
 //   The tag associated with the CA is not valid. The invalid argument is contained
 //   in the message field.
 //
@@ -2157,25 +2163,25 @@ func (c *ACMPCA) UpdateCertificateAuthorityRequest(input *UpdateCertificateAutho
 // See the AWS API reference guide for AWS Certificate Manager Private Certificate Authority's
 // API operation UpdateCertificateAuthority for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
+// Returned Error Types:
+//   * ConcurrentModificationException
 //   A previous update to your private CA is still ongoing.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   A resource such as a private CA, S3 bucket, certificate, or audit report
 //   cannot be found.
 //
-//   * ErrCodeInvalidArgsException "InvalidArgsException"
+//   * InvalidArgsException
 //   One or more of the specified arguments was not valid.
 //
-//   * ErrCodeInvalidArnException "InvalidArnException"
+//   * InvalidArnException
 //   The requested Amazon Resource Name (ARN) does not refer to an existing resource.
 //
-//   * ErrCodeInvalidStateException "InvalidStateException"
+//   * InvalidStateException
 //   The private CA is in a state during which a report or certificate cannot
 //   be generated.
 //
-//   * ErrCodeInvalidPolicyException "InvalidPolicyException"
+//   * InvalidPolicyException
 //   The S3 bucket policy is not valid. The policy must give ACM Private CA rights
 //   to read from and write to the bucket and find the bucket location.
 //
@@ -2568,6 +2574,119 @@ func (s *CertificateAuthorityConfiguration) SetSigningAlgorithm(v string) *Certi
 func (s *CertificateAuthorityConfiguration) SetSubject(v *ASN1Subject) *CertificateAuthorityConfiguration {
 	s.Subject = v
 	return s
+}
+
+// The certificate authority certificate you are importing does not comply with
+// conditions specified in the certificate that signed it.
+type CertificateMismatchException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s CertificateMismatchException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CertificateMismatchException) GoString() string {
+	return s.String()
+}
+
+func newErrorCertificateMismatchException(v protocol.ResponseMetadata) error {
+	return &CertificateMismatchException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *CertificateMismatchException) Code() string {
+	return "CertificateMismatchException"
+}
+
+// Message returns the exception's message.
+func (s *CertificateMismatchException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *CertificateMismatchException) OrigErr() error {
+	return nil
+}
+
+func (s *CertificateMismatchException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *CertificateMismatchException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *CertificateMismatchException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// A previous update to your private CA is still ongoing.
+type ConcurrentModificationException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s ConcurrentModificationException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ConcurrentModificationException) GoString() string {
+	return s.String()
+}
+
+func newErrorConcurrentModificationException(v protocol.ResponseMetadata) error {
+	return &ConcurrentModificationException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *ConcurrentModificationException) Code() string {
+	return "ConcurrentModificationException"
+}
+
+// Message returns the exception's message.
+func (s *ConcurrentModificationException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *ConcurrentModificationException) OrigErr() error {
+	return nil
+}
+
+func (s *ConcurrentModificationException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *ConcurrentModificationException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *ConcurrentModificationException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 type CreateCertificateAuthorityAuditReportInput struct {
@@ -3727,6 +3846,402 @@ func (s ImportCertificateAuthorityCertificateOutput) GoString() string {
 	return s.String()
 }
 
+// One or more of the specified arguments was not valid.
+type InvalidArgsException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidArgsException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidArgsException) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidArgsException(v protocol.ResponseMetadata) error {
+	return &InvalidArgsException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *InvalidArgsException) Code() string {
+	return "InvalidArgsException"
+}
+
+// Message returns the exception's message.
+func (s *InvalidArgsException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *InvalidArgsException) OrigErr() error {
+	return nil
+}
+
+func (s *InvalidArgsException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *InvalidArgsException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *InvalidArgsException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// The requested Amazon Resource Name (ARN) does not refer to an existing resource.
+type InvalidArnException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidArnException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidArnException) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidArnException(v protocol.ResponseMetadata) error {
+	return &InvalidArnException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *InvalidArnException) Code() string {
+	return "InvalidArnException"
+}
+
+// Message returns the exception's message.
+func (s *InvalidArnException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *InvalidArnException) OrigErr() error {
+	return nil
+}
+
+func (s *InvalidArnException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *InvalidArnException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *InvalidArnException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// The token specified in the NextToken argument is not valid. Use the token
+// returned from your previous call to ListCertificateAuthorities.
+type InvalidNextTokenException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidNextTokenException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidNextTokenException) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidNextTokenException(v protocol.ResponseMetadata) error {
+	return &InvalidNextTokenException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *InvalidNextTokenException) Code() string {
+	return "InvalidNextTokenException"
+}
+
+// Message returns the exception's message.
+func (s *InvalidNextTokenException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *InvalidNextTokenException) OrigErr() error {
+	return nil
+}
+
+func (s *InvalidNextTokenException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *InvalidNextTokenException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *InvalidNextTokenException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// The S3 bucket policy is not valid. The policy must give ACM Private CA rights
+// to read from and write to the bucket and find the bucket location.
+type InvalidPolicyException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidPolicyException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidPolicyException) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidPolicyException(v protocol.ResponseMetadata) error {
+	return &InvalidPolicyException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *InvalidPolicyException) Code() string {
+	return "InvalidPolicyException"
+}
+
+// Message returns the exception's message.
+func (s *InvalidPolicyException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *InvalidPolicyException) OrigErr() error {
+	return nil
+}
+
+func (s *InvalidPolicyException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *InvalidPolicyException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *InvalidPolicyException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// The request action cannot be performed or is prohibited.
+type InvalidRequestException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidRequestException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidRequestException) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidRequestException(v protocol.ResponseMetadata) error {
+	return &InvalidRequestException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *InvalidRequestException) Code() string {
+	return "InvalidRequestException"
+}
+
+// Message returns the exception's message.
+func (s *InvalidRequestException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *InvalidRequestException) OrigErr() error {
+	return nil
+}
+
+func (s *InvalidRequestException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *InvalidRequestException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *InvalidRequestException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// The private CA is in a state during which a report or certificate cannot
+// be generated.
+type InvalidStateException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidStateException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidStateException) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidStateException(v protocol.ResponseMetadata) error {
+	return &InvalidStateException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *InvalidStateException) Code() string {
+	return "InvalidStateException"
+}
+
+// Message returns the exception's message.
+func (s *InvalidStateException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *InvalidStateException) OrigErr() error {
+	return nil
+}
+
+func (s *InvalidStateException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *InvalidStateException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *InvalidStateException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// The tag associated with the CA is not valid. The invalid argument is contained
+// in the message field.
+type InvalidTagException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidTagException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidTagException) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidTagException(v protocol.ResponseMetadata) error {
+	return &InvalidTagException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *InvalidTagException) Code() string {
+	return "InvalidTagException"
+}
+
+// Message returns the exception's message.
+func (s *InvalidTagException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *InvalidTagException) OrigErr() error {
+	return nil
+}
+
+func (s *InvalidTagException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *InvalidTagException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *InvalidTagException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
 type IssueCertificateInput struct {
 	_ struct{} `type:"structure"`
 
@@ -3908,6 +4423,63 @@ func (s IssueCertificateOutput) GoString() string {
 func (s *IssueCertificateOutput) SetCertificateArn(v string) *IssueCertificateOutput {
 	s.CertificateArn = &v
 	return s
+}
+
+// An ACM Private CA limit has been exceeded. See the exception message returned
+// to determine the limit that was exceeded.
+type LimitExceededException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s LimitExceededException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s LimitExceededException) GoString() string {
+	return s.String()
+}
+
+func newErrorLimitExceededException(v protocol.ResponseMetadata) error {
+	return &LimitExceededException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *LimitExceededException) Code() string {
+	return "LimitExceededException"
+}
+
+// Message returns the exception's message.
+func (s *LimitExceededException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *LimitExceededException) OrigErr() error {
+	return nil
+}
+
+func (s *LimitExceededException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *LimitExceededException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *LimitExceededException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 type ListCertificateAuthoritiesInput struct {
@@ -4210,6 +4782,118 @@ func (s *ListTagsOutput) SetTags(v []*Tag) *ListTagsOutput {
 	return s
 }
 
+// The certificate signing request is invalid.
+type MalformedCSRException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s MalformedCSRException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s MalformedCSRException) GoString() string {
+	return s.String()
+}
+
+func newErrorMalformedCSRException(v protocol.ResponseMetadata) error {
+	return &MalformedCSRException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *MalformedCSRException) Code() string {
+	return "MalformedCSRException"
+}
+
+// Message returns the exception's message.
+func (s *MalformedCSRException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *MalformedCSRException) OrigErr() error {
+	return nil
+}
+
+func (s *MalformedCSRException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *MalformedCSRException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *MalformedCSRException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// One or more fields in the certificate are invalid.
+type MalformedCertificateException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s MalformedCertificateException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s MalformedCertificateException) GoString() string {
+	return s.String()
+}
+
+func newErrorMalformedCertificateException(v protocol.ResponseMetadata) error {
+	return &MalformedCertificateException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *MalformedCertificateException) Code() string {
+	return "MalformedCertificateException"
+}
+
+// Message returns the exception's message.
+func (s *MalformedCertificateException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *MalformedCertificateException) OrigErr() error {
+	return nil
+}
+
+func (s *MalformedCertificateException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *MalformedCertificateException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *MalformedCertificateException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
 // Permissions designate which private CA actions can be performed by an AWS
 // service or entity. In order for ACM to automatically renew private certificates,
 // you must give the ACM service principal all available permissions (IssueCertificate,
@@ -4284,6 +4968,287 @@ func (s *Permission) SetPrincipal(v string) *Permission {
 func (s *Permission) SetSourceAccount(v string) *Permission {
 	s.SourceAccount = &v
 	return s
+}
+
+// The designated permission has already been given to the user.
+type PermissionAlreadyExistsException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s PermissionAlreadyExistsException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s PermissionAlreadyExistsException) GoString() string {
+	return s.String()
+}
+
+func newErrorPermissionAlreadyExistsException(v protocol.ResponseMetadata) error {
+	return &PermissionAlreadyExistsException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *PermissionAlreadyExistsException) Code() string {
+	return "PermissionAlreadyExistsException"
+}
+
+// Message returns the exception's message.
+func (s *PermissionAlreadyExistsException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *PermissionAlreadyExistsException) OrigErr() error {
+	return nil
+}
+
+func (s *PermissionAlreadyExistsException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *PermissionAlreadyExistsException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *PermissionAlreadyExistsException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// Your request has already been completed.
+type RequestAlreadyProcessedException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s RequestAlreadyProcessedException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s RequestAlreadyProcessedException) GoString() string {
+	return s.String()
+}
+
+func newErrorRequestAlreadyProcessedException(v protocol.ResponseMetadata) error {
+	return &RequestAlreadyProcessedException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *RequestAlreadyProcessedException) Code() string {
+	return "RequestAlreadyProcessedException"
+}
+
+// Message returns the exception's message.
+func (s *RequestAlreadyProcessedException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *RequestAlreadyProcessedException) OrigErr() error {
+	return nil
+}
+
+func (s *RequestAlreadyProcessedException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *RequestAlreadyProcessedException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *RequestAlreadyProcessedException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// The request has failed for an unspecified reason.
+type RequestFailedException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s RequestFailedException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s RequestFailedException) GoString() string {
+	return s.String()
+}
+
+func newErrorRequestFailedException(v protocol.ResponseMetadata) error {
+	return &RequestFailedException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *RequestFailedException) Code() string {
+	return "RequestFailedException"
+}
+
+// Message returns the exception's message.
+func (s *RequestFailedException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *RequestFailedException) OrigErr() error {
+	return nil
+}
+
+func (s *RequestFailedException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *RequestFailedException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *RequestFailedException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// Your request is already in progress.
+type RequestInProgressException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s RequestInProgressException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s RequestInProgressException) GoString() string {
+	return s.String()
+}
+
+func newErrorRequestInProgressException(v protocol.ResponseMetadata) error {
+	return &RequestInProgressException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *RequestInProgressException) Code() string {
+	return "RequestInProgressException"
+}
+
+// Message returns the exception's message.
+func (s *RequestInProgressException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *RequestInProgressException) OrigErr() error {
+	return nil
+}
+
+func (s *RequestInProgressException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *RequestInProgressException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *RequestInProgressException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// A resource such as a private CA, S3 bucket, certificate, or audit report
+// cannot be found.
+type ResourceNotFoundException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s ResourceNotFoundException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResourceNotFoundException) GoString() string {
+	return s.String()
+}
+
+func newErrorResourceNotFoundException(v protocol.ResponseMetadata) error {
+	return &ResourceNotFoundException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *ResourceNotFoundException) Code() string {
+	return "ResourceNotFoundException"
+}
+
+// Message returns the exception's message.
+func (s *ResourceNotFoundException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *ResourceNotFoundException) OrigErr() error {
+	return nil
+}
+
+func (s *ResourceNotFoundException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *ResourceNotFoundException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *ResourceNotFoundException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 type RestoreCertificateAuthorityInput struct {
@@ -4623,6 +5588,63 @@ func (s TagCertificateAuthorityOutput) String() string {
 // GoString returns the string representation
 func (s TagCertificateAuthorityOutput) GoString() string {
 	return s.String()
+}
+
+// You can associate up to 50 tags with a private CA. Exception information
+// is contained in the exception message field.
+type TooManyTagsException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s TooManyTagsException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s TooManyTagsException) GoString() string {
+	return s.String()
+}
+
+func newErrorTooManyTagsException(v protocol.ResponseMetadata) error {
+	return &TooManyTagsException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *TooManyTagsException) Code() string {
+	return "TooManyTagsException"
+}
+
+// Message returns the exception's message.
+func (s *TooManyTagsException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *TooManyTagsException) OrigErr() error {
+	return nil
+}
+
+func (s *TooManyTagsException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *TooManyTagsException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *TooManyTagsException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 type UntagCertificateAuthorityInput struct {

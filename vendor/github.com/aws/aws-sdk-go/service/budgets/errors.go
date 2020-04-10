@@ -2,7 +2,17 @@
 
 package budgets
 
+import (
+	"github.com/aws/aws-sdk-go/private/protocol"
+)
+
 const (
+
+	// ErrCodeAccessDeniedException for service response error code
+	// "AccessDeniedException".
+	//
+	// You are not authorized to use this operation with the given parameters.
+	ErrCodeAccessDeniedException = "AccessDeniedException"
 
 	// ErrCodeCreationLimitExceededException for service response error code
 	// "CreationLimitExceededException".
@@ -48,3 +58,14 @@ const (
 	// We can’t locate the resource that you specified.
 	ErrCodeNotFoundException = "NotFoundException"
 )
+
+var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
+	"AccessDeniedException":          newErrorAccessDeniedException,
+	"CreationLimitExceededException": newErrorCreationLimitExceededException,
+	"DuplicateRecordException":       newErrorDuplicateRecordException,
+	"ExpiredNextTokenException":      newErrorExpiredNextTokenException,
+	"InternalErrorException":         newErrorInternalErrorException,
+	"InvalidNextTokenException":      newErrorInvalidNextTokenException,
+	"InvalidParameterException":      newErrorInvalidParameterException,
+	"NotFoundException":              newErrorNotFoundException,
+}

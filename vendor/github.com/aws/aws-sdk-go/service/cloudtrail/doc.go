@@ -21,7 +21,7 @@
 // to download and install them, see the Tools for Amazon Web Services page
 // (http://aws.amazon.com/tools/).
 //
-// See the AWS CloudTrail User Guide (http://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-user-guide.html)
+// See the AWS CloudTrail User Guide (https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-user-guide.html)
 // for information about the data that is included with each AWS API call listed
 // in the log files.
 //

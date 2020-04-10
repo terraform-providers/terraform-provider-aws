@@ -2,6 +2,10 @@
 
 package mediastoredata
 
+import (
+	"github.com/aws/aws-sdk-go/private/protocol"
+)
+
 const (
 
 	// ErrCodeContainerNotFoundException for service response error code
@@ -28,3 +32,10 @@ const (
 	// The requested content range is not valid.
 	ErrCodeRequestedRangeNotSatisfiableException = "RequestedRangeNotSatisfiableException"
 )
+
+var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
+	"ContainerNotFoundException":            newErrorContainerNotFoundException,
+	"InternalServerError":                   newErrorInternalServerError,
+	"ObjectNotFoundException":               newErrorObjectNotFoundException,
+	"RequestedRangeNotSatisfiableException": newErrorRequestedRangeNotSatisfiableException,
+}

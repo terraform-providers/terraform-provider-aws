@@ -19,3 +19,14 @@ var t time.Time
 
 d.Set("example", t.Format(time.RFC3339))
 ```
+
+## Ignoring Reports
+
+Singular reports can be ignored by adding the a `//lintignore:R004` Go code comment at the end of the offending line or on the line immediately proceding, e.g.
+
+```go
+var t time.Time
+
+//lintignore:R004
+d.Set("example", t)
+```

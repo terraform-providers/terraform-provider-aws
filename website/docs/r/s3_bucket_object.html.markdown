@@ -115,7 +115,7 @@ resource "aws_s3_bucket_object" "examplebucket_object" {
 
 The following arguments are supported:
 
-* `bucket` - (Required) The name of the bucket to put the file in.
+* `bucket` - (Required) The name of the bucket to put the file in. Alternatively, an [S3 access point](https://docs.aws.amazon.com/AmazonS3/latest/dev/using-access-points.html) ARN can be specified.
 * `key` - (Required) The name of the object once it is in the bucket.
 * `source` - (Optional, conflicts with `content` and `content_base64`) The path to a file that will be read and uploaded as raw bytes for the object content.
 * `content` - (Optional, conflicts with `source` and `content_base64`) Literal string value to use as the object content, which will be uploaded as UTF-8-encoded text.

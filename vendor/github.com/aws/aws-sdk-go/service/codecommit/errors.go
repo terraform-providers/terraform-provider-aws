@@ -2,6 +2,10 @@
 
 package codecommit
 
+import (
+	"github.com/aws/aws-sdk-go/private/protocol"
+)
+
 const (
 
 	// ErrCodeActorDoesNotExistException for service response error code
@@ -9,6 +13,75 @@ const (
 	//
 	// The specified Amazon Resource Name (ARN) does not exist in the AWS account.
 	ErrCodeActorDoesNotExistException = "ActorDoesNotExistException"
+
+	// ErrCodeApprovalRuleContentRequiredException for service response error code
+	// "ApprovalRuleContentRequiredException".
+	//
+	// The content for the approval rule is empty. You must provide some content
+	// for an approval rule. The content cannot be null.
+	ErrCodeApprovalRuleContentRequiredException = "ApprovalRuleContentRequiredException"
+
+	// ErrCodeApprovalRuleDoesNotExistException for service response error code
+	// "ApprovalRuleDoesNotExistException".
+	//
+	// The specified approval rule does not exist.
+	ErrCodeApprovalRuleDoesNotExistException = "ApprovalRuleDoesNotExistException"
+
+	// ErrCodeApprovalRuleNameAlreadyExistsException for service response error code
+	// "ApprovalRuleNameAlreadyExistsException".
+	//
+	// An approval rule with that name already exists. Approval rule names must
+	// be unique within the scope of a pull request.
+	ErrCodeApprovalRuleNameAlreadyExistsException = "ApprovalRuleNameAlreadyExistsException"
+
+	// ErrCodeApprovalRuleNameRequiredException for service response error code
+	// "ApprovalRuleNameRequiredException".
+	//
+	// An approval rule name is required, but was not specified.
+	ErrCodeApprovalRuleNameRequiredException = "ApprovalRuleNameRequiredException"
+
+	// ErrCodeApprovalRuleTemplateContentRequiredException for service response error code
+	// "ApprovalRuleTemplateContentRequiredException".
+	//
+	// The content for the approval rule template is empty. You must provide some
+	// content for an approval rule template. The content cannot be null.
+	ErrCodeApprovalRuleTemplateContentRequiredException = "ApprovalRuleTemplateContentRequiredException"
+
+	// ErrCodeApprovalRuleTemplateDoesNotExistException for service response error code
+	// "ApprovalRuleTemplateDoesNotExistException".
+	//
+	// The specified approval rule template does not exist. Verify that the name
+	// is correct and that you are signed in to the AWS Region where the template
+	// was created, and then try again.
+	ErrCodeApprovalRuleTemplateDoesNotExistException = "ApprovalRuleTemplateDoesNotExistException"
+
+	// ErrCodeApprovalRuleTemplateInUseException for service response error code
+	// "ApprovalRuleTemplateInUseException".
+	//
+	// The approval rule template is associated with one or more repositories. You
+	// cannot delete a template that is associated with a repository. Remove all
+	// associations, and then try again.
+	ErrCodeApprovalRuleTemplateInUseException = "ApprovalRuleTemplateInUseException"
+
+	// ErrCodeApprovalRuleTemplateNameAlreadyExistsException for service response error code
+	// "ApprovalRuleTemplateNameAlreadyExistsException".
+	//
+	// You cannot create an approval rule template with that name because a template
+	// with that name already exists in this AWS Region for your AWS account. Approval
+	// rule template names must be unique.
+	ErrCodeApprovalRuleTemplateNameAlreadyExistsException = "ApprovalRuleTemplateNameAlreadyExistsException"
+
+	// ErrCodeApprovalRuleTemplateNameRequiredException for service response error code
+	// "ApprovalRuleTemplateNameRequiredException".
+	//
+	// An approval rule template name is required, but was not specified.
+	ErrCodeApprovalRuleTemplateNameRequiredException = "ApprovalRuleTemplateNameRequiredException"
+
+	// ErrCodeApprovalStateRequiredException for service response error code
+	// "ApprovalStateRequiredException".
+	//
+	// An approval state is required, but was not specified.
+	ErrCodeApprovalStateRequiredException = "ApprovalStateRequiredException"
 
 	// ErrCodeAuthorDoesNotExistException for service response error code
 	// "AuthorDoesNotExistException".
@@ -32,7 +105,7 @@ const (
 	// ErrCodeBlobIdRequiredException for service response error code
 	// "BlobIdRequiredException".
 	//
-	// A blob ID is required but was not specified.
+	// A blob ID is required, but was not specified.
 	ErrCodeBlobIdRequiredException = "BlobIdRequiredException"
 
 	// ErrCodeBranchDoesNotExistException for service response error code
@@ -50,25 +123,39 @@ const (
 	// ErrCodeBranchNameIsTagNameException for service response error code
 	// "BranchNameIsTagNameException".
 	//
-	// The specified branch name is not valid because it is a tag name. Type the
-	// name of a current branch in the repository. For a list of valid branch names,
-	// use ListBranches.
+	// The specified branch name is not valid because it is a tag name. Enter the
+	// name of a branch in the repository. For a list of valid branch names, use
+	// ListBranches.
 	ErrCodeBranchNameIsTagNameException = "BranchNameIsTagNameException"
 
 	// ErrCodeBranchNameRequiredException for service response error code
 	// "BranchNameRequiredException".
 	//
-	// A branch name is required but was not specified.
+	// A branch name is required, but was not specified.
 	ErrCodeBranchNameRequiredException = "BranchNameRequiredException"
+
+	// ErrCodeCannotDeleteApprovalRuleFromTemplateException for service response error code
+	// "CannotDeleteApprovalRuleFromTemplateException".
+	//
+	// The approval rule cannot be deleted from the pull request because it was
+	// created by an approval rule template and applied to the pull request automatically.
+	ErrCodeCannotDeleteApprovalRuleFromTemplateException = "CannotDeleteApprovalRuleFromTemplateException"
+
+	// ErrCodeCannotModifyApprovalRuleFromTemplateException for service response error code
+	// "CannotModifyApprovalRuleFromTemplateException".
+	//
+	// The approval rule cannot be modified for the pull request because it was
+	// created by an approval rule template and applied to the pull request automatically.
+	ErrCodeCannotModifyApprovalRuleFromTemplateException = "CannotModifyApprovalRuleFromTemplateException"
 
 	// ErrCodeClientRequestTokenRequiredException for service response error code
 	// "ClientRequestTokenRequiredException".
 	//
 	// A client request token is required. A client request token is an unique,
-	// client-generated idempotency token that when provided in a request, ensures
+	// client-generated idempotency token that, when provided in a request, ensures
 	// the request cannot be repeated with a changed parameter. If a request is
-	// received with the same parameters and a token is included, the request will
-	// return information about the initial request that used that token.
+	// received with the same parameters and a token is included, the request returns
+	// information about the initial request that used that token.
 	ErrCodeClientRequestTokenRequiredException = "ClientRequestTokenRequiredException"
 
 	// ErrCodeCommentContentRequiredException for service response error code
@@ -94,8 +181,8 @@ const (
 	// ErrCodeCommentDoesNotExistException for service response error code
 	// "CommentDoesNotExistException".
 	//
-	// No comment exists with the provided ID. Verify that you have provided the
-	// correct ID, and then try again.
+	// No comment exists with the provided ID. Verify that you have used the correct
+	// ID, and then try again.
 	ErrCodeCommentDoesNotExistException = "CommentDoesNotExistException"
 
 	// ErrCodeCommentIdRequiredException for service response error code
@@ -140,6 +227,9 @@ const (
 
 	// ErrCodeCommitIdsListRequiredException for service response error code
 	// "CommitIdsListRequiredException".
+	//
+	// A list of commit IDs is required, but was either not specified or the list
+	// was empty.
 	ErrCodeCommitIdsListRequiredException = "CommitIdsListRequiredException"
 
 	// ErrCodeCommitMessageLengthExceededException for service response error code
@@ -214,7 +304,7 @@ const (
 	//
 	// The commit cannot be created because both a source file and file content
 	// have been specified for the same file. You cannot provide both. Either specify
-	// a source file, or provide the file content directly.
+	// a source file or provide the file content directly.
 	ErrCodeFileContentAndSourceFileSpecifiedException = "FileContentAndSourceFileSpecifiedException"
 
 	// ErrCodeFileContentRequiredException for service response error code
@@ -227,16 +317,16 @@ const (
 	// ErrCodeFileContentSizeLimitExceededException for service response error code
 	// "FileContentSizeLimitExceededException".
 	//
-	// The file cannot be added because it is too large. The maximum file size that
-	// can be added is 6 MB, and the combined file content change size is 7 MB.
-	// Consider making these changes using a Git client.
+	// The file cannot be added because it is too large. The maximum file size is
+	// 6 MB, and the combined file content change size is 7 MB. Consider making
+	// these changes using a Git client.
 	ErrCodeFileContentSizeLimitExceededException = "FileContentSizeLimitExceededException"
 
 	// ErrCodeFileDoesNotExistException for service response error code
 	// "FileDoesNotExistException".
 	//
-	// The specified file does not exist. Verify that you have provided the correct
-	// name of the file, including its full path and extension.
+	// The specified file does not exist. Verify that you have used the correct
+	// file name, full path, and extension.
 	ErrCodeFileDoesNotExistException = "FileDoesNotExistException"
 
 	// ErrCodeFileEntryRequiredException for service response error code
@@ -249,8 +339,8 @@ const (
 	// ErrCodeFileModeRequiredException for service response error code
 	// "FileModeRequiredException".
 	//
-	// The commit cannot be created because a file mode is required to update mode
-	// permissions for an existing file, but no file mode has been specified.
+	// The commit cannot be created because no file mode has been specified. A file
+	// mode is required to update mode permissions for a file.
 	ErrCodeFileModeRequiredException = "FileModeRequiredException"
 
 	// ErrCodeFileNameConflictsWithDirectoryNameException for service response error code
@@ -291,14 +381,14 @@ const (
 	// "FolderDoesNotExistException".
 	//
 	// The specified folder does not exist. Either the folder name is not correct,
-	// or you did not provide the full path to the folder.
+	// or you did not enter the full path to the folder.
 	ErrCodeFolderDoesNotExistException = "FolderDoesNotExistException"
 
 	// ErrCodeIdempotencyParameterMismatchException for service response error code
 	// "IdempotencyParameterMismatchException".
 	//
 	// The client request token is not valid. Either the token is not in a valid
-	// format, or the token has been used in a previous request and cannot be re-used.
+	// format, or the token has been used in a previous request and cannot be reused.
 	ErrCodeIdempotencyParameterMismatchException = "IdempotencyParameterMismatchException"
 
 	// ErrCodeInvalidActorArnException for service response error code
@@ -308,6 +398,47 @@ const (
 	// the full ARN for the user who initiated the change for the pull request,
 	// and then try again.
 	ErrCodeInvalidActorArnException = "InvalidActorArnException"
+
+	// ErrCodeInvalidApprovalRuleContentException for service response error code
+	// "InvalidApprovalRuleContentException".
+	//
+	// The content for the approval rule is not valid.
+	ErrCodeInvalidApprovalRuleContentException = "InvalidApprovalRuleContentException"
+
+	// ErrCodeInvalidApprovalRuleNameException for service response error code
+	// "InvalidApprovalRuleNameException".
+	//
+	// The name for the approval rule is not valid.
+	ErrCodeInvalidApprovalRuleNameException = "InvalidApprovalRuleNameException"
+
+	// ErrCodeInvalidApprovalRuleTemplateContentException for service response error code
+	// "InvalidApprovalRuleTemplateContentException".
+	//
+	// The content of the approval rule template is not valid.
+	ErrCodeInvalidApprovalRuleTemplateContentException = "InvalidApprovalRuleTemplateContentException"
+
+	// ErrCodeInvalidApprovalRuleTemplateDescriptionException for service response error code
+	// "InvalidApprovalRuleTemplateDescriptionException".
+	//
+	// The description for the approval rule template is not valid because it exceeds
+	// the maximum characters allowed for a description. For more information about
+	// limits in AWS CodeCommit, see AWS CodeCommit User Guide (https://docs.aws.amazon.com/codecommit/latest/userguide/limits.html).
+	ErrCodeInvalidApprovalRuleTemplateDescriptionException = "InvalidApprovalRuleTemplateDescriptionException"
+
+	// ErrCodeInvalidApprovalRuleTemplateNameException for service response error code
+	// "InvalidApprovalRuleTemplateNameException".
+	//
+	// The name of the approval rule template is not valid. Template names must
+	// be between 1 and 100 valid characters in length. For more information about
+	// limits in AWS CodeCommit, see AWS CodeCommit User Guide (https://docs.aws.amazon.com/codecommit/latest/userguide/limits.html).
+	ErrCodeInvalidApprovalRuleTemplateNameException = "InvalidApprovalRuleTemplateNameException"
+
+	// ErrCodeInvalidApprovalStateException for service response error code
+	// "InvalidApprovalStateException".
+	//
+	// The state for the approval is not valid. Valid values include APPROVE and
+	// REVOKE.
+	ErrCodeInvalidApprovalStateException = "InvalidApprovalStateException"
 
 	// ErrCodeInvalidAuthorArnException for service response error code
 	// "InvalidAuthorArnException".
@@ -386,8 +517,8 @@ const (
 	// ErrCodeInvalidDescriptionException for service response error code
 	// "InvalidDescriptionException".
 	//
-	// The pull request description is not valid. Descriptions are limited to 1,000
-	// characters in length.
+	// The pull request description is not valid. Descriptions cannot be more than
+	// 1,000 characters.
 	ErrCodeInvalidDescriptionException = "InvalidDescriptionException"
 
 	// ErrCodeInvalidDestinationCommitSpecifierException for service response error code
@@ -408,8 +539,8 @@ const (
 	// ErrCodeInvalidFileLocationException for service response error code
 	// "InvalidFileLocationException".
 	//
-	// The location of the file is not valid. Make sure that you include the extension
-	// of the file as well as the file name.
+	// The location of the file is not valid. Make sure that you include the file
+	// name and extension.
 	ErrCodeInvalidFileLocationException = "InvalidFileLocationException"
 
 	// ErrCodeInvalidFileModeException for service response error code
@@ -457,6 +588,12 @@ const (
 	// The specified sort order is not valid.
 	ErrCodeInvalidOrderException = "InvalidOrderException"
 
+	// ErrCodeInvalidOverrideStatusException for service response error code
+	// "InvalidOverrideStatusException".
+	//
+	// The override status is not valid. Valid statuses are OVERRIDE and REVOKE.
+	ErrCodeInvalidOverrideStatusException = "InvalidOverrideStatusException"
+
 	// ErrCodeInvalidParentCommitIdException for service response error code
 	// "InvalidParentCommitIdException".
 	//
@@ -503,7 +640,7 @@ const (
 	// "InvalidReferenceNameException".
 	//
 	// The specified reference name format is not valid. Reference names must conform
-	// to the Git references format, for example refs/heads/master. For more information,
+	// to the Git references format (for example, refs/heads/master). For more information,
 	// see Git Internals - Git References (https://git-scm.com/book/en/v2/Git-Internals-Git-References)
 	// or consult your Git documentation.
 	ErrCodeInvalidReferenceNameException = "InvalidReferenceNameException"
@@ -538,9 +675,9 @@ const (
 	// ErrCodeInvalidRepositoryNameException for service response error code
 	// "InvalidRepositoryNameException".
 	//
-	// At least one specified repository name is not valid.
+	// A specified repository name is not valid.
 	//
-	// This exception only occurs when a specified repository name is not valid.
+	// This exception occurs only when a specified repository name is not valid.
 	// Other exceptions occur when a required repository parameter is missing, or
 	// when a specified repository does not exist.
 	ErrCodeInvalidRepositoryNameException = "InvalidRepositoryNameException"
@@ -581,8 +718,9 @@ const (
 	// ErrCodeInvalidRepositoryTriggerRegionException for service response error code
 	// "InvalidRepositoryTriggerRegionException".
 	//
-	// The region for the trigger target does not match the region for the repository.
-	// Triggers must be created in the same region as the target for the trigger.
+	// The AWS Region for the trigger target does not match the AWS Region for the
+	// repository. Triggers must be created in the same Region as the target for
+	// the trigger.
 	ErrCodeInvalidRepositoryTriggerRegionException = "InvalidRepositoryTriggerRegionException"
 
 	// ErrCodeInvalidResourceArnException for service response error code
@@ -592,6 +730,18 @@ const (
 	// in AWS CodeCommit, see CodeCommit Resources and Operations (https://docs.aws.amazon.com/codecommit/latest/userguide/auth-and-access-control-iam-access-control-identity-based.html#arn-formats)
 	// in the AWS CodeCommit User Guide.
 	ErrCodeInvalidResourceArnException = "InvalidResourceArnException"
+
+	// ErrCodeInvalidRevisionIdException for service response error code
+	// "InvalidRevisionIdException".
+	//
+	// The revision ID is not valid. Use GetPullRequest to determine the value.
+	ErrCodeInvalidRevisionIdException = "InvalidRevisionIdException"
+
+	// ErrCodeInvalidRuleContentSha256Exception for service response error code
+	// "InvalidRuleContentSha256Exception".
+	//
+	// The SHA-256 hash signature for the rule content is not valid.
+	ErrCodeInvalidRuleContentSha256Exception = "InvalidRuleContentSha256Exception"
 
 	// ErrCodeInvalidSortByException for service response error code
 	// "InvalidSortByException".
@@ -690,9 +840,16 @@ const (
 	// ErrCodeMaximumItemsToCompareExceededException for service response error code
 	// "MaximumItemsToCompareExceededException".
 	//
-	// The maximum number of items to compare between the source or destination
-	// branches and the merge base has exceeded the maximum allowed.
+	// The number of items to compare between the source or destination branches
+	// and the merge base has exceeded the maximum allowed.
 	ErrCodeMaximumItemsToCompareExceededException = "MaximumItemsToCompareExceededException"
+
+	// ErrCodeMaximumNumberOfApprovalsExceededException for service response error code
+	// "MaximumNumberOfApprovalsExceededException".
+	//
+	// The number of approvals required for the approval rule exceeds the maximum
+	// number allowed.
+	ErrCodeMaximumNumberOfApprovalsExceededException = "MaximumNumberOfApprovalsExceededException"
 
 	// ErrCodeMaximumOpenPullRequestsExceededException for service response error code
 	// "MaximumOpenPullRequestsExceededException".
@@ -706,7 +863,7 @@ const (
 	// "MaximumRepositoryNamesExceededException".
 	//
 	// The maximum number of allowed repository names was exceeded. Currently, this
-	// number is 25.
+	// number is 100.
 	ErrCodeMaximumRepositoryNamesExceededException = "MaximumRepositoryNamesExceededException"
 
 	// ErrCodeMaximumRepositoryTriggersExceededException for service response error code
@@ -714,6 +871,13 @@ const (
 	//
 	// The number of triggers allowed for the repository was exceeded.
 	ErrCodeMaximumRepositoryTriggersExceededException = "MaximumRepositoryTriggersExceededException"
+
+	// ErrCodeMaximumRuleTemplatesAssociatedWithRepositoryException for service response error code
+	// "MaximumRuleTemplatesAssociatedWithRepositoryException".
+	//
+	// The maximum number of approval rule templates for a repository has been exceeded.
+	// You cannot associate more than 25 approval rule templates with a repository.
+	ErrCodeMaximumRuleTemplatesAssociatedWithRepositoryException = "MaximumRuleTemplatesAssociatedWithRepositoryException"
 
 	// ErrCodeMergeOptionRequiredException for service response error code
 	// "MergeOptionRequiredException".
@@ -749,6 +913,33 @@ const (
 	// The commit cannot be created because no changes will be made to the repository
 	// as a result of this commit. A commit must contain at least one change.
 	ErrCodeNoChangeException = "NoChangeException"
+
+	// ErrCodeNumberOfRuleTemplatesExceededException for service response error code
+	// "NumberOfRuleTemplatesExceededException".
+	//
+	// The maximum number of approval rule templates has been exceeded for this
+	// AWS Region.
+	ErrCodeNumberOfRuleTemplatesExceededException = "NumberOfRuleTemplatesExceededException"
+
+	// ErrCodeNumberOfRulesExceededException for service response error code
+	// "NumberOfRulesExceededException".
+	//
+	// The approval rule cannot be added. The pull request has the maximum number
+	// of approval rules associated with it.
+	ErrCodeNumberOfRulesExceededException = "NumberOfRulesExceededException"
+
+	// ErrCodeOverrideAlreadySetException for service response error code
+	// "OverrideAlreadySetException".
+	//
+	// The pull request has already had its approval rules set to override.
+	ErrCodeOverrideAlreadySetException = "OverrideAlreadySetException"
+
+	// ErrCodeOverrideStatusRequiredException for service response error code
+	// "OverrideStatusRequiredException".
+	//
+	// An override status is required, but no value was provided. Valid values include
+	// OVERRIDE and REVOKE.
+	ErrCodeOverrideStatusRequiredException = "OverrideStatusRequiredException"
 
 	// ErrCodeParentCommitDoesNotExistException for service response error code
 	// "ParentCommitDoesNotExistException".
@@ -790,6 +981,21 @@ const (
 	//
 	// The pull request status cannot be updated because it is already closed.
 	ErrCodePullRequestAlreadyClosedException = "PullRequestAlreadyClosedException"
+
+	// ErrCodePullRequestApprovalRulesNotSatisfiedException for service response error code
+	// "PullRequestApprovalRulesNotSatisfiedException".
+	//
+	// The pull request cannot be merged because one or more approval rules applied
+	// to the pull request have conditions that have not been met.
+	ErrCodePullRequestApprovalRulesNotSatisfiedException = "PullRequestApprovalRulesNotSatisfiedException"
+
+	// ErrCodePullRequestCannotBeApprovedByAuthorException for service response error code
+	// "PullRequestCannotBeApprovedByAuthorException".
+	//
+	// The approval cannot be applied because the user approving the pull request
+	// matches the user who created the pull request. You cannot approve a pull
+	// request that you created.
+	ErrCodePullRequestCannotBeApprovedByAuthorException = "PullRequestCannotBeApprovedByAuthorException"
 
 	// ErrCodePullRequestDoesNotExistException for service response error code
 	// "PullRequestDoesNotExistException".
@@ -838,7 +1044,7 @@ const (
 	// ErrCodeReplacementContentRequiredException for service response error code
 	// "ReplacementContentRequiredException".
 	//
-	// USE_NEW_CONTENT was specified but no replacement content has been provided.
+	// USE_NEW_CONTENT was specified, but no replacement content has been provided.
 	ErrCodeReplacementContentRequiredException = "ReplacementContentRequiredException"
 
 	// ErrCodeReplacementTypeRequiredException for service response error code
@@ -868,13 +1074,13 @@ const (
 	// ErrCodeRepositoryNameRequiredException for service response error code
 	// "RepositoryNameRequiredException".
 	//
-	// A repository name is required but was not specified.
+	// A repository name is required, but was not specified.
 	ErrCodeRepositoryNameRequiredException = "RepositoryNameRequiredException"
 
 	// ErrCodeRepositoryNamesRequiredException for service response error code
 	// "RepositoryNamesRequiredException".
 	//
-	// A repository names object is required but was not specified.
+	// At least one repository name object is required, but was not specified.
 	ErrCodeRepositoryNamesRequiredException = "RepositoryNamesRequiredException"
 
 	// ErrCodeRepositoryNotAssociatedWithPullRequestException for service response error code
@@ -888,33 +1094,33 @@ const (
 	// ErrCodeRepositoryTriggerBranchNameListRequiredException for service response error code
 	// "RepositoryTriggerBranchNameListRequiredException".
 	//
-	// At least one branch name is required but was not specified in the trigger
+	// At least one branch name is required, but was not specified in the trigger
 	// configuration.
 	ErrCodeRepositoryTriggerBranchNameListRequiredException = "RepositoryTriggerBranchNameListRequiredException"
 
 	// ErrCodeRepositoryTriggerDestinationArnRequiredException for service response error code
 	// "RepositoryTriggerDestinationArnRequiredException".
 	//
-	// A destination ARN for the target service for the trigger is required but
+	// A destination ARN for the target service for the trigger is required, but
 	// was not specified.
 	ErrCodeRepositoryTriggerDestinationArnRequiredException = "RepositoryTriggerDestinationArnRequiredException"
 
 	// ErrCodeRepositoryTriggerEventsListRequiredException for service response error code
 	// "RepositoryTriggerEventsListRequiredException".
 	//
-	// At least one event for the trigger is required but was not specified.
+	// At least one event for the trigger is required, but was not specified.
 	ErrCodeRepositoryTriggerEventsListRequiredException = "RepositoryTriggerEventsListRequiredException"
 
 	// ErrCodeRepositoryTriggerNameRequiredException for service response error code
 	// "RepositoryTriggerNameRequiredException".
 	//
-	// A name for the trigger is required but was not specified.
+	// A name for the trigger is required, but was not specified.
 	ErrCodeRepositoryTriggerNameRequiredException = "RepositoryTriggerNameRequiredException"
 
 	// ErrCodeRepositoryTriggersListRequiredException for service response error code
 	// "RepositoryTriggersListRequiredException".
 	//
-	// The list of triggers for the repository is required but was not specified.
+	// The list of triggers for the repository is required, but was not specified.
 	ErrCodeRepositoryTriggersListRequiredException = "RepositoryTriggersListRequiredException"
 
 	// ErrCodeResourceArnRequiredException for service response error code
@@ -932,6 +1138,19 @@ const (
 	// The commit cannot be created because one of the changes specifies copying
 	// or moving a .gitkeep file.
 	ErrCodeRestrictedSourceFileException = "RestrictedSourceFileException"
+
+	// ErrCodeRevisionIdRequiredException for service response error code
+	// "RevisionIdRequiredException".
+	//
+	// A revision ID is required, but was not provided.
+	ErrCodeRevisionIdRequiredException = "RevisionIdRequiredException"
+
+	// ErrCodeRevisionNotCurrentException for service response error code
+	// "RevisionNotCurrentException".
+	//
+	// The revision ID provided in the request does not match the current revision
+	// ID. Use GetPullRequest to retrieve the current revision ID.
+	ErrCodeRevisionNotCurrentException = "RevisionNotCurrentException"
 
 	// ErrCodeSameFileContentException for service response error code
 	// "SameFileContentException".
@@ -953,8 +1172,8 @@ const (
 	// ErrCodeSourceAndDestinationAreSameException for service response error code
 	// "SourceAndDestinationAreSameException".
 	//
-	// The source branch and the destination branch for the pull request are the
-	// same. You must specify different branches for the source and destination.
+	// The source branch and destination branch for the pull request are the same.
+	// You must specify different branches for the source and destination.
 	ErrCodeSourceAndDestinationAreSameException = "SourceAndDestinationAreSameException"
 
 	// ErrCodeSourceFileOrContentRequiredException for service response error code
@@ -1024,3 +1243,187 @@ const (
 	// The maximum number of tags for an AWS CodeCommit resource has been exceeded.
 	ErrCodeTooManyTagsException = "TooManyTagsException"
 )
+
+var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
+	"ActorDoesNotExistException":                            newErrorActorDoesNotExistException,
+	"ApprovalRuleContentRequiredException":                  newErrorApprovalRuleContentRequiredException,
+	"ApprovalRuleDoesNotExistException":                     newErrorApprovalRuleDoesNotExistException,
+	"ApprovalRuleNameAlreadyExistsException":                newErrorApprovalRuleNameAlreadyExistsException,
+	"ApprovalRuleNameRequiredException":                     newErrorApprovalRuleNameRequiredException,
+	"ApprovalRuleTemplateContentRequiredException":          newErrorApprovalRuleTemplateContentRequiredException,
+	"ApprovalRuleTemplateDoesNotExistException":             newErrorApprovalRuleTemplateDoesNotExistException,
+	"ApprovalRuleTemplateInUseException":                    newErrorApprovalRuleTemplateInUseException,
+	"ApprovalRuleTemplateNameAlreadyExistsException":        newErrorApprovalRuleTemplateNameAlreadyExistsException,
+	"ApprovalRuleTemplateNameRequiredException":             newErrorApprovalRuleTemplateNameRequiredException,
+	"ApprovalStateRequiredException":                        newErrorApprovalStateRequiredException,
+	"AuthorDoesNotExistException":                           newErrorAuthorDoesNotExistException,
+	"BeforeCommitIdAndAfterCommitIdAreSameException":        newErrorBeforeCommitIdAndAfterCommitIdAreSameException,
+	"BlobIdDoesNotExistException":                           newErrorBlobIdDoesNotExistException,
+	"BlobIdRequiredException":                               newErrorBlobIdRequiredException,
+	"BranchDoesNotExistException":                           newErrorBranchDoesNotExistException,
+	"BranchNameExistsException":                             newErrorBranchNameExistsException,
+	"BranchNameIsTagNameException":                          newErrorBranchNameIsTagNameException,
+	"BranchNameRequiredException":                           newErrorBranchNameRequiredException,
+	"CannotDeleteApprovalRuleFromTemplateException":         newErrorCannotDeleteApprovalRuleFromTemplateException,
+	"CannotModifyApprovalRuleFromTemplateException":         newErrorCannotModifyApprovalRuleFromTemplateException,
+	"ClientRequestTokenRequiredException":                   newErrorClientRequestTokenRequiredException,
+	"CommentContentRequiredException":                       newErrorCommentContentRequiredException,
+	"CommentContentSizeLimitExceededException":              newErrorCommentContentSizeLimitExceededException,
+	"CommentDeletedException":                               newErrorCommentDeletedException,
+	"CommentDoesNotExistException":                          newErrorCommentDoesNotExistException,
+	"CommentIdRequiredException":                            newErrorCommentIdRequiredException,
+	"CommentNotCreatedByCallerException":                    newErrorCommentNotCreatedByCallerException,
+	"CommitDoesNotExistException":                           newErrorCommitDoesNotExistException,
+	"CommitIdDoesNotExistException":                         newErrorCommitIdDoesNotExistException,
+	"CommitIdRequiredException":                             newErrorCommitIdRequiredException,
+	"CommitIdsLimitExceededException":                       newErrorCommitIdsLimitExceededException,
+	"CommitIdsListRequiredException":                        newErrorCommitIdsListRequiredException,
+	"CommitMessageLengthExceededException":                  newErrorCommitMessageLengthExceededException,
+	"CommitRequiredException":                               newErrorCommitRequiredException,
+	"ConcurrentReferenceUpdateException":                    newErrorConcurrentReferenceUpdateException,
+	"DefaultBranchCannotBeDeletedException":                 newErrorDefaultBranchCannotBeDeletedException,
+	"DirectoryNameConflictsWithFileNameException":           newErrorDirectoryNameConflictsWithFileNameException,
+	"EncryptionIntegrityChecksFailedException":              newErrorEncryptionIntegrityChecksFailedException,
+	"EncryptionKeyAccessDeniedException":                    newErrorEncryptionKeyAccessDeniedException,
+	"EncryptionKeyDisabledException":                        newErrorEncryptionKeyDisabledException,
+	"EncryptionKeyNotFoundException":                        newErrorEncryptionKeyNotFoundException,
+	"EncryptionKeyUnavailableException":                     newErrorEncryptionKeyUnavailableException,
+	"FileContentAndSourceFileSpecifiedException":            newErrorFileContentAndSourceFileSpecifiedException,
+	"FileContentRequiredException":                          newErrorFileContentRequiredException,
+	"FileContentSizeLimitExceededException":                 newErrorFileContentSizeLimitExceededException,
+	"FileDoesNotExistException":                             newErrorFileDoesNotExistException,
+	"FileEntryRequiredException":                            newErrorFileEntryRequiredException,
+	"FileModeRequiredException":                             newErrorFileModeRequiredException,
+	"FileNameConflictsWithDirectoryNameException":           newErrorFileNameConflictsWithDirectoryNameException,
+	"FilePathConflictsWithSubmodulePathException":           newErrorFilePathConflictsWithSubmodulePathException,
+	"FileTooLargeException":                                 newErrorFileTooLargeException,
+	"FolderContentSizeLimitExceededException":               newErrorFolderContentSizeLimitExceededException,
+	"FolderDoesNotExistException":                           newErrorFolderDoesNotExistException,
+	"IdempotencyParameterMismatchException":                 newErrorIdempotencyParameterMismatchException,
+	"InvalidActorArnException":                              newErrorInvalidActorArnException,
+	"InvalidApprovalRuleContentException":                   newErrorInvalidApprovalRuleContentException,
+	"InvalidApprovalRuleNameException":                      newErrorInvalidApprovalRuleNameException,
+	"InvalidApprovalRuleTemplateContentException":           newErrorInvalidApprovalRuleTemplateContentException,
+	"InvalidApprovalRuleTemplateDescriptionException":       newErrorInvalidApprovalRuleTemplateDescriptionException,
+	"InvalidApprovalRuleTemplateNameException":              newErrorInvalidApprovalRuleTemplateNameException,
+	"InvalidApprovalStateException":                         newErrorInvalidApprovalStateException,
+	"InvalidAuthorArnException":                             newErrorInvalidAuthorArnException,
+	"InvalidBlobIdException":                                newErrorInvalidBlobIdException,
+	"InvalidBranchNameException":                            newErrorInvalidBranchNameException,
+	"InvalidClientRequestTokenException":                    newErrorInvalidClientRequestTokenException,
+	"InvalidCommentIdException":                             newErrorInvalidCommentIdException,
+	"InvalidCommitException":                                newErrorInvalidCommitException,
+	"InvalidCommitIdException":                              newErrorInvalidCommitIdException,
+	"InvalidConflictDetailLevelException":                   newErrorInvalidConflictDetailLevelException,
+	"InvalidConflictResolutionException":                    newErrorInvalidConflictResolutionException,
+	"InvalidConflictResolutionStrategyException":            newErrorInvalidConflictResolutionStrategyException,
+	"InvalidContinuationTokenException":                     newErrorInvalidContinuationTokenException,
+	"InvalidDeletionParameterException":                     newErrorInvalidDeletionParameterException,
+	"InvalidDescriptionException":                           newErrorInvalidDescriptionException,
+	"InvalidDestinationCommitSpecifierException":            newErrorInvalidDestinationCommitSpecifierException,
+	"InvalidEmailException":                                 newErrorInvalidEmailException,
+	"InvalidFileLocationException":                          newErrorInvalidFileLocationException,
+	"InvalidFileModeException":                              newErrorInvalidFileModeException,
+	"InvalidFilePositionException":                          newErrorInvalidFilePositionException,
+	"InvalidMaxConflictFilesException":                      newErrorInvalidMaxConflictFilesException,
+	"InvalidMaxMergeHunksException":                         newErrorInvalidMaxMergeHunksException,
+	"InvalidMaxResultsException":                            newErrorInvalidMaxResultsException,
+	"InvalidMergeOptionException":                           newErrorInvalidMergeOptionException,
+	"InvalidOrderException":                                 newErrorInvalidOrderException,
+	"InvalidOverrideStatusException":                        newErrorInvalidOverrideStatusException,
+	"InvalidParentCommitIdException":                        newErrorInvalidParentCommitIdException,
+	"InvalidPathException":                                  newErrorInvalidPathException,
+	"InvalidPullRequestEventTypeException":                  newErrorInvalidPullRequestEventTypeException,
+	"InvalidPullRequestIdException":                         newErrorInvalidPullRequestIdException,
+	"InvalidPullRequestStatusException":                     newErrorInvalidPullRequestStatusException,
+	"InvalidPullRequestStatusUpdateException":               newErrorInvalidPullRequestStatusUpdateException,
+	"InvalidReferenceNameException":                         newErrorInvalidReferenceNameException,
+	"InvalidRelativeFileVersionEnumException":               newErrorInvalidRelativeFileVersionEnumException,
+	"InvalidReplacementContentException":                    newErrorInvalidReplacementContentException,
+	"InvalidReplacementTypeException":                       newErrorInvalidReplacementTypeException,
+	"InvalidRepositoryDescriptionException":                 newErrorInvalidRepositoryDescriptionException,
+	"InvalidRepositoryNameException":                        newErrorInvalidRepositoryNameException,
+	"InvalidRepositoryTriggerBranchNameException":           newErrorInvalidRepositoryTriggerBranchNameException,
+	"InvalidRepositoryTriggerCustomDataException":           newErrorInvalidRepositoryTriggerCustomDataException,
+	"InvalidRepositoryTriggerDestinationArnException":       newErrorInvalidRepositoryTriggerDestinationArnException,
+	"InvalidRepositoryTriggerEventsException":               newErrorInvalidRepositoryTriggerEventsException,
+	"InvalidRepositoryTriggerNameException":                 newErrorInvalidRepositoryTriggerNameException,
+	"InvalidRepositoryTriggerRegionException":               newErrorInvalidRepositoryTriggerRegionException,
+	"InvalidResourceArnException":                           newErrorInvalidResourceArnException,
+	"InvalidRevisionIdException":                            newErrorInvalidRevisionIdException,
+	"InvalidRuleContentSha256Exception":                     newErrorInvalidRuleContentSha256Exception,
+	"InvalidSortByException":                                newErrorInvalidSortByException,
+	"InvalidSourceCommitSpecifierException":                 newErrorInvalidSourceCommitSpecifierException,
+	"InvalidSystemTagUsageException":                        newErrorInvalidSystemTagUsageException,
+	"InvalidTagKeysListException":                           newErrorInvalidTagKeysListException,
+	"InvalidTagsMapException":                               newErrorInvalidTagsMapException,
+	"InvalidTargetBranchException":                          newErrorInvalidTargetBranchException,
+	"InvalidTargetException":                                newErrorInvalidTargetException,
+	"InvalidTargetsException":                               newErrorInvalidTargetsException,
+	"InvalidTitleException":                                 newErrorInvalidTitleException,
+	"ManualMergeRequiredException":                          newErrorManualMergeRequiredException,
+	"MaximumBranchesExceededException":                      newErrorMaximumBranchesExceededException,
+	"MaximumConflictResolutionEntriesExceededException":     newErrorMaximumConflictResolutionEntriesExceededException,
+	"MaximumFileContentToLoadExceededException":             newErrorMaximumFileContentToLoadExceededException,
+	"MaximumFileEntriesExceededException":                   newErrorMaximumFileEntriesExceededException,
+	"MaximumItemsToCompareExceededException":                newErrorMaximumItemsToCompareExceededException,
+	"MaximumNumberOfApprovalsExceededException":             newErrorMaximumNumberOfApprovalsExceededException,
+	"MaximumOpenPullRequestsExceededException":              newErrorMaximumOpenPullRequestsExceededException,
+	"MaximumRepositoryNamesExceededException":               newErrorMaximumRepositoryNamesExceededException,
+	"MaximumRepositoryTriggersExceededException":            newErrorMaximumRepositoryTriggersExceededException,
+	"MaximumRuleTemplatesAssociatedWithRepositoryException": newErrorMaximumRuleTemplatesAssociatedWithRepositoryException,
+	"MergeOptionRequiredException":                          newErrorMergeOptionRequiredException,
+	"MultipleConflictResolutionEntriesException":            newErrorMultipleConflictResolutionEntriesException,
+	"MultipleRepositoriesInPullRequestException":            newErrorMultipleRepositoriesInPullRequestException,
+	"NameLengthExceededException":                           newErrorNameLengthExceededException,
+	"NoChangeException":                                     newErrorNoChangeException,
+	"NumberOfRuleTemplatesExceededException":                newErrorNumberOfRuleTemplatesExceededException,
+	"NumberOfRulesExceededException":                        newErrorNumberOfRulesExceededException,
+	"OverrideAlreadySetException":                           newErrorOverrideAlreadySetException,
+	"OverrideStatusRequiredException":                       newErrorOverrideStatusRequiredException,
+	"ParentCommitDoesNotExistException":                     newErrorParentCommitDoesNotExistException,
+	"ParentCommitIdOutdatedException":                       newErrorParentCommitIdOutdatedException,
+	"ParentCommitIdRequiredException":                       newErrorParentCommitIdRequiredException,
+	"PathDoesNotExistException":                             newErrorPathDoesNotExistException,
+	"PathRequiredException":                                 newErrorPathRequiredException,
+	"PullRequestAlreadyClosedException":                     newErrorPullRequestAlreadyClosedException,
+	"PullRequestApprovalRulesNotSatisfiedException":         newErrorPullRequestApprovalRulesNotSatisfiedException,
+	"PullRequestCannotBeApprovedByAuthorException":          newErrorPullRequestCannotBeApprovedByAuthorException,
+	"PullRequestDoesNotExistException":                      newErrorPullRequestDoesNotExistException,
+	"PullRequestIdRequiredException":                        newErrorPullRequestIdRequiredException,
+	"PullRequestStatusRequiredException":                    newErrorPullRequestStatusRequiredException,
+	"PutFileEntryConflictException":                         newErrorPutFileEntryConflictException,
+	"ReferenceDoesNotExistException":                        newErrorReferenceDoesNotExistException,
+	"ReferenceNameRequiredException":                        newErrorReferenceNameRequiredException,
+	"ReferenceTypeNotSupportedException":                    newErrorReferenceTypeNotSupportedException,
+	"ReplacementContentRequiredException":                   newErrorReplacementContentRequiredException,
+	"ReplacementTypeRequiredException":                      newErrorReplacementTypeRequiredException,
+	"RepositoryDoesNotExistException":                       newErrorRepositoryDoesNotExistException,
+	"RepositoryLimitExceededException":                      newErrorRepositoryLimitExceededException,
+	"RepositoryNameExistsException":                         newErrorRepositoryNameExistsException,
+	"RepositoryNameRequiredException":                       newErrorRepositoryNameRequiredException,
+	"RepositoryNamesRequiredException":                      newErrorRepositoryNamesRequiredException,
+	"RepositoryNotAssociatedWithPullRequestException":       newErrorRepositoryNotAssociatedWithPullRequestException,
+	"RepositoryTriggerBranchNameListRequiredException":      newErrorRepositoryTriggerBranchNameListRequiredException,
+	"RepositoryTriggerDestinationArnRequiredException":      newErrorRepositoryTriggerDestinationArnRequiredException,
+	"RepositoryTriggerEventsListRequiredException":          newErrorRepositoryTriggerEventsListRequiredException,
+	"RepositoryTriggerNameRequiredException":                newErrorRepositoryTriggerNameRequiredException,
+	"RepositoryTriggersListRequiredException":               newErrorRepositoryTriggersListRequiredException,
+	"ResourceArnRequiredException":                          newErrorResourceArnRequiredException,
+	"RestrictedSourceFileException":                         newErrorRestrictedSourceFileException,
+	"RevisionIdRequiredException":                           newErrorRevisionIdRequiredException,
+	"RevisionNotCurrentException":                           newErrorRevisionNotCurrentException,
+	"SameFileContentException":                              newErrorSameFileContentException,
+	"SamePathRequestException":                              newErrorSamePathRequestException,
+	"SourceAndDestinationAreSameException":                  newErrorSourceAndDestinationAreSameException,
+	"SourceFileOrContentRequiredException":                  newErrorSourceFileOrContentRequiredException,
+	"TagKeysListRequiredException":                          newErrorTagKeysListRequiredException,
+	"TagPolicyException":                                    newErrorTagPolicyException,
+	"TagsMapRequiredException":                              newErrorTagsMapRequiredException,
+	"TargetRequiredException":                               newErrorTargetRequiredException,
+	"TargetsRequiredException":                              newErrorTargetsRequiredException,
+	"TipOfSourceReferenceIsDifferentException":              newErrorTipOfSourceReferenceIsDifferentException,
+	"TipsDivergenceExceededException":                       newErrorTipsDivergenceExceededException,
+	"TitleRequiredException":                                newErrorTitleRequiredException,
+	"TooManyTagsException":                                  newErrorTooManyTagsException,
+}

@@ -2,8 +2,11 @@ package aws
 
 import (
 	"fmt"
+	"log"
 	"testing"
+	"time"
 
+	multierror "github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
@@ -11,6 +14,68 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/route53resolver"
 )
+
+func init() {
+	resource.AddTestSweepers("aws_route53_resolver_rule_association", &resource.Sweeper{
+		Name: "aws_route53_resolver_rule_association",
+		F:    testSweepRoute53ResolverRuleAssociations,
+	})
+}
+
+func testSweepRoute53ResolverRuleAssociations(region string) error {
+	client, err := sharedClientForRegion(region)
+	if err != nil {
+		return fmt.Errorf("error getting client: %s", err)
+	}
+	conn := client.(*AWSClient).route53resolverconn
+
+	var errors error
+	err = conn.ListResolverRuleAssociationsPages(&route53resolver.ListResolverRuleAssociationsInput{}, func(page *route53resolver.ListResolverRuleAssociationsOutput, isLast bool) bool {
+		if page == nil {
+			return !isLast
+		}
+
+		for _, resolverRuleAssociation := range page.ResolverRuleAssociations {
+			id := aws.StringValue(resolverRuleAssociation.Id)
+
+			log.Printf("[INFO] Deleting Route53 Resolver rule association %q", id)
+			_, err := conn.DisassociateResolverRule(&route53resolver.DisassociateResolverRuleInput{
+				ResolverRuleId: resolverRuleAssociation.ResolverRuleId,
+				VPCId:          resolverRuleAssociation.VPCId,
+			})
+			if isAWSErr(err, route53resolver.ErrCodeResourceNotFoundException, "") {
+				continue
+			}
+			if testSweepSkipSweepError(err) {
+				log.Printf("[INFO] Skipping Route53 Resolver rule association %q: %s", id, err)
+				continue
+			}
+			if err != nil {
+				errors = multierror.Append(errors, fmt.Errorf("error deleting Route53 Resolver rule association (%s): %w", id, err))
+				continue
+			}
+
+			err = route53ResolverRuleAssociationWaitUntilTargetState(conn, id, 10*time.Minute,
+				[]string{route53resolver.ResolverRuleAssociationStatusDeleting},
+				[]string{route53ResolverRuleAssociationStatusDeleted})
+			if err != nil {
+				errors = multierror.Append(errors, err)
+				continue
+			}
+		}
+
+		return !isLast
+	})
+	if err != nil {
+		if testSweepSkipSweepError(err) {
+			log.Printf("[WARN] Skipping Route53 Resolver rule association sweep for %s: %s", region, err)
+			return nil
+		}
+		errors = multierror.Append(errors, fmt.Errorf("error retrievingRoute53 Resolver rule associations: %w", err))
+	}
+
+	return errors
+}
 
 func TestAccAwsRoute53ResolverRuleAssociation_basic(t *testing.T) {
 	var assn route53resolver.ResolverRuleAssociation

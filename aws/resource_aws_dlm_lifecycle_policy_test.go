@@ -2,6 +2,7 @@ package aws
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -24,6 +25,7 @@ func TestAccAWSDlmLifecyclePolicy_Basic(t *testing.T) {
 				Config: dlmLifecyclePolicyBasicConfig(rName),
 				Check: resource.ComposeTestCheckFunc(
 					checkDlmLifecyclePolicyExists(resourceName),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "dlm", regexp.MustCompile(`policy/.+`)),
 					resource.TestCheckResourceAttr(resourceName, "description", "tf-acc-basic"),
 					resource.TestCheckResourceAttrSet(resourceName, "execution_role_arn"),
 					resource.TestCheckResourceAttr(resourceName, "state", "ENABLED"),
@@ -34,6 +36,7 @@ func TestAccAWSDlmLifecyclePolicy_Basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "policy_details.0.schedule.0.create_rule.0.times.0"),
 					resource.TestCheckResourceAttr(resourceName, "policy_details.0.schedule.0.retain_rule.0.count", "10"),
 					resource.TestCheckResourceAttr(resourceName, "policy_details.0.target_tags.tf-acc-test", "basic"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 				),
 			},
 			{
@@ -88,6 +91,49 @@ func TestAccAWSDlmLifecyclePolicy_Full(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "policy_details.0.schedule.0.tags_to_add.tf-acc-test-added", "full-updated"),
 					resource.TestCheckResourceAttr(resourceName, "policy_details.0.schedule.0.copy_tags", "true"),
 					resource.TestCheckResourceAttr(resourceName, "policy_details.0.target_tags.tf-acc-test", "full-updated"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSDlmLifecyclePolicy_Tags(t *testing.T) {
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_dlm_lifecycle_policy.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSDlm(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: dlmLifecyclePolicyDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: dlmLifecyclePolicyConfigTags1(rName, "key1", "value1"),
+				Check: resource.ComposeTestCheckFunc(
+					checkDlmLifecyclePolicyExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: dlmLifecyclePolicyConfigTags2(rName, "key1", "value1updated", "key2", "value2"),
+				Check: resource.ComposeTestCheckFunc(
+					checkDlmLifecyclePolicyExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1updated"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
+				),
+			},
+			{
+				Config: dlmLifecyclePolicyConfigTags1(rName, "key2", "value2"),
+				Check: resource.ComposeTestCheckFunc(
+					checkDlmLifecyclePolicyExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
 				),
 			},
 		},
@@ -326,4 +372,111 @@ resource "aws_dlm_lifecycle_policy" "full" {
   }
 }
 `, rName)
+}
+
+func dlmLifecyclePolicyConfigTags1(rName, tagKey1, tagValue1 string) string {
+	return fmt.Sprintf(`
+resource "aws_iam_role" "test" {
+  name = %[1]q
+
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "dlm.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_dlm_lifecycle_policy" "test" {
+  description        = %[1]q
+  execution_role_arn = aws_iam_role.test.arn
+
+  policy_details {
+    resource_types = ["VOLUME"]
+
+    schedule {
+      name = "test"
+
+      create_rule {
+        interval = 12
+      }
+
+      retain_rule {
+        count = 10
+      }
+    }
+
+    target_tags = {
+      test = "true"
+    }
+  }
+
+  tags = {
+    %[2]q = %[3]q
+  }
+}
+`, rName, tagKey1, tagValue1)
+}
+
+func dlmLifecyclePolicyConfigTags2(rName, tagKey1, tagValue1, tagKey2, tagValue2 string) string {
+	return fmt.Sprintf(`
+resource "aws_iam_role" "test" {
+  name = %[1]q
+
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "dlm.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_dlm_lifecycle_policy" "test" {
+  description        = %[1]q
+  execution_role_arn = aws_iam_role.test.arn
+
+  policy_details {
+    resource_types = ["VOLUME"]
+
+    schedule {
+      name = "test"
+
+      create_rule {
+        interval = 12
+      }
+
+      retain_rule {
+        count = 10
+      }
+    }
+
+    target_tags = {
+      test = "true"
+    }
+  }
+
+  tags = {
+    %[2]q = %[3]q
+    %[4]q = %[5]q
+  }
+}
+`, rName, tagKey1, tagValue1, tagKey2, tagValue2)
 }

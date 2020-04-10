@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/directconnect"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func dxVirtualInterfaceRead(id string, conn *directconnect.DirectConnect) (*directconnect.VirtualInterface, error) {
@@ -35,12 +36,17 @@ func dxVirtualInterfaceUpdate(d *schema.ResourceData, meta interface{}) error {
 		log.Printf("[DEBUG] Modifying Direct Connect virtual interface attributes: %s", req)
 		_, err := conn.UpdateVirtualInterfaceAttributes(req)
 		if err != nil {
-			return fmt.Errorf("error modifying Direct Connect virtual interface (%s) attributes, error: %s", d.Id(), err)
+			return fmt.Errorf("error modifying Direct Connect virtual interface (%s) attributes: %s", d.Id(), err)
 		}
 	}
 
-	if err := setTagsDX(conn, d, d.Get("arn").(string)); err != nil {
-		return fmt.Errorf("error setting Direct Connect virtual interface (%s) tags: %s", d.Id(), err)
+	arn := d.Get("arn").(string)
+	if d.HasChange("tags") {
+		o, n := d.GetChange("tags")
+
+		if err := keyvaluetags.DirectconnectUpdateTags(conn, arn, o, n); err != nil {
+			return fmt.Errorf("error updating Direct Connect virtual interface (%s) tags: %s", arn, err)
+		}
 	}
 
 	return nil

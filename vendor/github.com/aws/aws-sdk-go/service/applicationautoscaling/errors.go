@@ -2,6 +2,10 @@
 
 package applicationautoscaling
 
+import (
+	"github.com/aws/aws-sdk-go/private/protocol"
+)
+
 const (
 
 	// ErrCodeConcurrentUpdateException for service response error code
@@ -58,3 +62,13 @@ const (
 	// for the API request.
 	ErrCodeValidationException = "ValidationException"
 )
+
+var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
+	"ConcurrentUpdateException":     newErrorConcurrentUpdateException,
+	"FailedResourceAccessException": newErrorFailedResourceAccessException,
+	"InternalServiceException":      newErrorInternalServiceException,
+	"InvalidNextTokenException":     newErrorInvalidNextTokenException,
+	"LimitExceededException":        newErrorLimitExceededException,
+	"ObjectNotFoundException":       newErrorObjectNotFoundException,
+	"ValidationException":           newErrorValidationException,
+}

@@ -87,7 +87,7 @@ func resourceAwsApiGatewayMethodSettings() *schema.Resource {
 }
 
 func resourceAwsApiGatewayMethodSettingsRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	conn := meta.(*AWSClient).apigatewayconn
 
 	log.Printf("[DEBUG] Reading API Gateway Method Settings %s", d.Id())
 	input := apigateway.GetStageInput{
@@ -128,7 +128,7 @@ func resourceAwsApiGatewayMethodSettingsRead(d *schema.ResourceData, meta interf
 }
 
 func resourceAwsApiGatewayMethodSettingsUpdate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	conn := meta.(*AWSClient).apigatewayconn
 
 	methodPath := d.Get("method_path").(string)
 	prefix := fmt.Sprintf("/%s/", methodPath)
@@ -225,7 +225,7 @@ func resourceAwsApiGatewayMethodSettingsUpdate(d *schema.ResourceData, meta inte
 }
 
 func resourceAwsApiGatewayMethodSettingsDelete(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	conn := meta.(*AWSClient).apigatewayconn
 	log.Printf("[DEBUG] Deleting API Gateway Method Settings: %s", d.Id())
 
 	input := apigateway.UpdateStageInput{

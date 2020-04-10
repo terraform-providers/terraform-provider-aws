@@ -15,8 +15,8 @@ func TestAccAWSAPIGatewayDocumentationVersion_basic(t *testing.T) {
 	var conf apigateway.DocumentationVersion
 
 	rString := acctest.RandString(8)
-	version := fmt.Sprintf("tf_acc_version_%s", rString)
-	apiName := fmt.Sprintf("tf_acc_api_doc_version_basic_%s", rString)
+	version := fmt.Sprintf("tf-acc-test_version_%s", rString)
+	apiName := fmt.Sprintf("tf-acc-test_api_doc_version_basic_%s", rString)
 
 	resourceName := "aws_api_gateway_documentation_version.test"
 
@@ -46,9 +46,9 @@ func TestAccAWSAPIGatewayDocumentationVersion_allFields(t *testing.T) {
 	var conf apigateway.DocumentationVersion
 
 	rString := acctest.RandString(8)
-	version := fmt.Sprintf("tf_acc_version_%s", rString)
-	apiName := fmt.Sprintf("tf_acc_api_doc_version_method_%s", rString)
-	stageName := fmt.Sprintf("tf_acc_stage_%s", rString)
+	version := fmt.Sprintf("tf-acc-test_version_%s", rString)
+	apiName := fmt.Sprintf("tf-acc-test_api_doc_version_method_%s", rString)
+	stageName := fmt.Sprintf("tf-acc-test_stage_%s", rString)
 	description := fmt.Sprintf("Tf Acc Test description %s", rString)
 	uDescription := fmt.Sprintf("Tf Acc Test description updated %s", rString)
 
@@ -97,7 +97,7 @@ func testAccCheckAWSAPIGatewayDocumentationVersionExists(n string, res *apigatew
 			return fmt.Errorf("No API Gateway Documentation Version ID is set")
 		}
 
-		conn := testAccProvider.Meta().(*AWSClient).apigateway
+		conn := testAccProvider.Meta().(*AWSClient).apigatewayconn
 
 		apiId, version, err := decodeApiGatewayDocumentationVersionId(rs.Primary.ID)
 		if err != nil {
@@ -120,7 +120,7 @@ func testAccCheckAWSAPIGatewayDocumentationVersionExists(n string, res *apigatew
 }
 
 func testAccCheckAWSAPIGatewayDocumentationVersionDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*AWSClient).apigateway
+	conn := testAccProvider.Meta().(*AWSClient).apigatewayconn
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "aws_api_gateway_documentation_version" {

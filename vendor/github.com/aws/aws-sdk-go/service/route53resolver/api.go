@@ -69,26 +69,26 @@ func (c *Route53Resolver) AssociateResolverEndpointIpAddressRequest(input *Assoc
 // See the AWS API reference guide for Amazon Route 53 Resolver's
 // API operation AssociateResolverEndpointIpAddress for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   The specified resource doesn't exist.
 //
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+//   * InvalidParameterException
 //   One or more parameters in this request are not valid.
 //
-//   * ErrCodeInvalidRequestException "InvalidRequestException"
+//   * InvalidRequestException
 //   The request is invalid.
 //
-//   * ErrCodeResourceExistsException "ResourceExistsException"
+//   * ResourceExistsException
 //   The resource that you tried to create already exists.
 //
-//   * ErrCodeInternalServiceErrorException "InternalServiceErrorException"
+//   * InternalServiceErrorException
 //   We encountered an unknown error. Try again in a few minutes.
 //
-//   * ErrCodeLimitExceededException "LimitExceededException"
+//   * LimitExceededException
 //   The request caused one or more limits to be exceeded.
 //
-//   * ErrCodeThrottlingException "ThrottlingException"
+//   * ThrottlingException
 //   The request was throttled. Try again in a few minutes.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/route53resolver-2018-04-01/AssociateResolverEndpointIpAddress
@@ -170,26 +170,26 @@ func (c *Route53Resolver) AssociateResolverRuleRequest(input *AssociateResolverR
 // See the AWS API reference guide for Amazon Route 53 Resolver's
 // API operation AssociateResolverRule for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   The specified resource doesn't exist.
 //
-//   * ErrCodeInvalidRequestException "InvalidRequestException"
+//   * InvalidRequestException
 //   The request is invalid.
 //
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+//   * InvalidParameterException
 //   One or more parameters in this request are not valid.
 //
-//   * ErrCodeResourceUnavailableException "ResourceUnavailableException"
+//   * ResourceUnavailableException
 //   The specified resource isn't available.
 //
-//   * ErrCodeResourceExistsException "ResourceExistsException"
+//   * ResourceExistsException
 //   The resource that you tried to create already exists.
 //
-//   * ErrCodeInternalServiceErrorException "InternalServiceErrorException"
+//   * InternalServiceErrorException
 //   We encountered an unknown error. Try again in a few minutes.
 //
-//   * ErrCodeThrottlingException "ThrottlingException"
+//   * ThrottlingException
 //   The request was throttled. Try again in a few minutes.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/route53resolver-2018-04-01/AssociateResolverRule
@@ -274,26 +274,26 @@ func (c *Route53Resolver) CreateResolverEndpointRequest(input *CreateResolverEnd
 // See the AWS API reference guide for Amazon Route 53 Resolver's
 // API operation CreateResolverEndpoint for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+// Returned Error Types:
+//   * InvalidParameterException
 //   One or more parameters in this request are not valid.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The specified resource doesn't exist.
 //
-//   * ErrCodeInvalidRequestException "InvalidRequestException"
+//   * InvalidRequestException
 //   The request is invalid.
 //
-//   * ErrCodeResourceExistsException "ResourceExistsException"
+//   * ResourceExistsException
 //   The resource that you tried to create already exists.
 //
-//   * ErrCodeLimitExceededException "LimitExceededException"
+//   * LimitExceededException
 //   The request caused one or more limits to be exceeded.
 //
-//   * ErrCodeInternalServiceErrorException "InternalServiceErrorException"
+//   * InternalServiceErrorException
 //   We encountered an unknown error. Try again in a few minutes.
 //
-//   * ErrCodeThrottlingException "ThrottlingException"
+//   * ThrottlingException
 //   The request was throttled. Try again in a few minutes.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/route53resolver-2018-04-01/CreateResolverEndpoint
@@ -373,29 +373,29 @@ func (c *Route53Resolver) CreateResolverRuleRequest(input *CreateResolverRuleInp
 // See the AWS API reference guide for Amazon Route 53 Resolver's
 // API operation CreateResolverRule for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+// Returned Error Types:
+//   * InvalidParameterException
 //   One or more parameters in this request are not valid.
 //
-//   * ErrCodeInvalidRequestException "InvalidRequestException"
+//   * InvalidRequestException
 //   The request is invalid.
 //
-//   * ErrCodeLimitExceededException "LimitExceededException"
+//   * LimitExceededException
 //   The request caused one or more limits to be exceeded.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The specified resource doesn't exist.
 //
-//   * ErrCodeResourceExistsException "ResourceExistsException"
+//   * ResourceExistsException
 //   The resource that you tried to create already exists.
 //
-//   * ErrCodeResourceUnavailableException "ResourceUnavailableException"
+//   * ResourceUnavailableException
 //   The specified resource isn't available.
 //
-//   * ErrCodeInternalServiceErrorException "InternalServiceErrorException"
+//   * InternalServiceErrorException
 //   We encountered an unknown error. Try again in a few minutes.
 //
-//   * ErrCodeThrottlingException "ThrottlingException"
+//   * ThrottlingException
 //   The request was throttled. Try again in a few minutes.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/route53resolver-2018-04-01/CreateResolverRule
@@ -480,20 +480,20 @@ func (c *Route53Resolver) DeleteResolverEndpointRequest(input *DeleteResolverEnd
 // See the AWS API reference guide for Amazon Route 53 Resolver's
 // API operation DeleteResolverEndpoint for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   The specified resource doesn't exist.
 //
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+//   * InvalidParameterException
 //   One or more parameters in this request are not valid.
 //
-//   * ErrCodeInvalidRequestException "InvalidRequestException"
+//   * InvalidRequestException
 //   The request is invalid.
 //
-//   * ErrCodeInternalServiceErrorException "InternalServiceErrorException"
+//   * InternalServiceErrorException
 //   We encountered an unknown error. Try again in a few minutes.
 //
-//   * ErrCodeThrottlingException "ThrottlingException"
+//   * ThrottlingException
 //   The request was throttled. Try again in a few minutes.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/route53resolver-2018-04-01/DeleteResolverEndpoint
@@ -573,20 +573,20 @@ func (c *Route53Resolver) DeleteResolverRuleRequest(input *DeleteResolverRuleInp
 // See the AWS API reference guide for Amazon Route 53 Resolver's
 // API operation DeleteResolverRule for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+// Returned Error Types:
+//   * InvalidParameterException
 //   One or more parameters in this request are not valid.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The specified resource doesn't exist.
 //
-//   * ErrCodeResourceInUseException "ResourceInUseException"
+//   * ResourceInUseException
 //   The resource that you tried to update or delete is currently in use.
 //
-//   * ErrCodeInternalServiceErrorException "InternalServiceErrorException"
+//   * InternalServiceErrorException
 //   We encountered an unknown error. Try again in a few minutes.
 //
-//   * ErrCodeThrottlingException "ThrottlingException"
+//   * ThrottlingException
 //   The request was throttled. Try again in a few minutes.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/route53resolver-2018-04-01/DeleteResolverRule
@@ -668,23 +668,23 @@ func (c *Route53Resolver) DisassociateResolverEndpointIpAddressRequest(input *Di
 // See the AWS API reference guide for Amazon Route 53 Resolver's
 // API operation DisassociateResolverEndpointIpAddress for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   The specified resource doesn't exist.
 //
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+//   * InvalidParameterException
 //   One or more parameters in this request are not valid.
 //
-//   * ErrCodeInvalidRequestException "InvalidRequestException"
+//   * InvalidRequestException
 //   The request is invalid.
 //
-//   * ErrCodeResourceExistsException "ResourceExistsException"
+//   * ResourceExistsException
 //   The resource that you tried to create already exists.
 //
-//   * ErrCodeInternalServiceErrorException "InternalServiceErrorException"
+//   * InternalServiceErrorException
 //   We encountered an unknown error. Try again in a few minutes.
 //
-//   * ErrCodeThrottlingException "ThrottlingException"
+//   * ThrottlingException
 //   The request was throttled. Try again in a few minutes.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/route53resolver-2018-04-01/DisassociateResolverEndpointIpAddress
@@ -766,17 +766,17 @@ func (c *Route53Resolver) DisassociateResolverRuleRequest(input *DisassociateRes
 // See the AWS API reference guide for Amazon Route 53 Resolver's
 // API operation DisassociateResolverRule for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   The specified resource doesn't exist.
 //
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+//   * InvalidParameterException
 //   One or more parameters in this request are not valid.
 //
-//   * ErrCodeInternalServiceErrorException "InternalServiceErrorException"
+//   * InternalServiceErrorException
 //   We encountered an unknown error. Try again in a few minutes.
 //
-//   * ErrCodeThrottlingException "ThrottlingException"
+//   * ThrottlingException
 //   The request was throttled. Try again in a few minutes.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/route53resolver-2018-04-01/DisassociateResolverRule
@@ -856,17 +856,17 @@ func (c *Route53Resolver) GetResolverEndpointRequest(input *GetResolverEndpointI
 // See the AWS API reference guide for Amazon Route 53 Resolver's
 // API operation GetResolverEndpoint for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   The specified resource doesn't exist.
 //
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+//   * InvalidParameterException
 //   One or more parameters in this request are not valid.
 //
-//   * ErrCodeInternalServiceErrorException "InternalServiceErrorException"
+//   * InternalServiceErrorException
 //   We encountered an unknown error. Try again in a few minutes.
 //
-//   * ErrCodeThrottlingException "ThrottlingException"
+//   * ThrottlingException
 //   The request was throttled. Try again in a few minutes.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/route53resolver-2018-04-01/GetResolverEndpoint
@@ -946,17 +946,17 @@ func (c *Route53Resolver) GetResolverRuleRequest(input *GetResolverRuleInput) (r
 // See the AWS API reference guide for Amazon Route 53 Resolver's
 // API operation GetResolverRule for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   The specified resource doesn't exist.
 //
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+//   * InvalidParameterException
 //   One or more parameters in this request are not valid.
 //
-//   * ErrCodeInternalServiceErrorException "InternalServiceErrorException"
+//   * InternalServiceErrorException
 //   We encountered an unknown error. Try again in a few minutes.
 //
-//   * ErrCodeThrottlingException "ThrottlingException"
+//   * ThrottlingException
 //   The request was throttled. Try again in a few minutes.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/route53resolver-2018-04-01/GetResolverRule
@@ -1035,17 +1035,17 @@ func (c *Route53Resolver) GetResolverRuleAssociationRequest(input *GetResolverRu
 // See the AWS API reference guide for Amazon Route 53 Resolver's
 // API operation GetResolverRuleAssociation for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   The specified resource doesn't exist.
 //
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+//   * InvalidParameterException
 //   One or more parameters in this request are not valid.
 //
-//   * ErrCodeInternalServiceErrorException "InternalServiceErrorException"
+//   * InternalServiceErrorException
 //   We encountered an unknown error. Try again in a few minutes.
 //
-//   * ErrCodeThrottlingException "ThrottlingException"
+//   * ThrottlingException
 //   The request was throttled. Try again in a few minutes.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/route53resolver-2018-04-01/GetResolverRuleAssociation
@@ -1125,14 +1125,14 @@ func (c *Route53Resolver) GetResolverRulePolicyRequest(input *GetResolverRulePol
 // See the AWS API reference guide for Amazon Route 53 Resolver's
 // API operation GetResolverRulePolicy for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+// Returned Error Types:
+//   * InvalidParameterException
 //   One or more parameters in this request are not valid.
 //
-//   * ErrCodeUnknownResourceException "UnknownResourceException"
+//   * UnknownResourceException
 //   The specified resource doesn't exist.
 //
-//   * ErrCodeInternalServiceErrorException "InternalServiceErrorException"
+//   * InternalServiceErrorException
 //   We encountered an unknown error. Try again in a few minutes.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/route53resolver-2018-04-01/GetResolverRulePolicy
@@ -1216,20 +1216,20 @@ func (c *Route53Resolver) ListResolverEndpointIpAddressesRequest(input *ListReso
 // See the AWS API reference guide for Amazon Route 53 Resolver's
 // API operation ListResolverEndpointIpAddresses for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   The specified resource doesn't exist.
 //
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+//   * InvalidParameterException
 //   One or more parameters in this request are not valid.
 //
-//   * ErrCodeInternalServiceErrorException "InternalServiceErrorException"
+//   * InternalServiceErrorException
 //   We encountered an unknown error. Try again in a few minutes.
 //
-//   * ErrCodeInvalidNextTokenException "InvalidNextTokenException"
+//   * InvalidNextTokenException
 //   The value that you specified for NextToken in a List request isn't valid.
 //
-//   * ErrCodeThrottlingException "ThrottlingException"
+//   * ThrottlingException
 //   The request was throttled. Try again in a few minutes.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/route53resolver-2018-04-01/ListResolverEndpointIpAddresses
@@ -1297,10 +1297,12 @@ func (c *Route53Resolver) ListResolverEndpointIpAddressesPagesWithContext(ctx aw
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListResolverEndpointIpAddressesOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListResolverEndpointIpAddressesOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -1364,20 +1366,20 @@ func (c *Route53Resolver) ListResolverEndpointsRequest(input *ListResolverEndpoi
 // See the AWS API reference guide for Amazon Route 53 Resolver's
 // API operation ListResolverEndpoints for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidNextTokenException "InvalidNextTokenException"
+// Returned Error Types:
+//   * InvalidNextTokenException
 //   The value that you specified for NextToken in a List request isn't valid.
 //
-//   * ErrCodeInvalidRequestException "InvalidRequestException"
+//   * InvalidRequestException
 //   The request is invalid.
 //
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+//   * InvalidParameterException
 //   One or more parameters in this request are not valid.
 //
-//   * ErrCodeInternalServiceErrorException "InternalServiceErrorException"
+//   * InternalServiceErrorException
 //   We encountered an unknown error. Try again in a few minutes.
 //
-//   * ErrCodeThrottlingException "ThrottlingException"
+//   * ThrottlingException
 //   The request was throttled. Try again in a few minutes.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/route53resolver-2018-04-01/ListResolverEndpoints
@@ -1445,10 +1447,12 @@ func (c *Route53Resolver) ListResolverEndpointsPagesWithContext(ctx aws.Context,
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListResolverEndpointsOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListResolverEndpointsOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -1512,20 +1516,20 @@ func (c *Route53Resolver) ListResolverRuleAssociationsRequest(input *ListResolve
 // See the AWS API reference guide for Amazon Route 53 Resolver's
 // API operation ListResolverRuleAssociations for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidNextTokenException "InvalidNextTokenException"
+// Returned Error Types:
+//   * InvalidNextTokenException
 //   The value that you specified for NextToken in a List request isn't valid.
 //
-//   * ErrCodeInvalidRequestException "InvalidRequestException"
+//   * InvalidRequestException
 //   The request is invalid.
 //
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+//   * InvalidParameterException
 //   One or more parameters in this request are not valid.
 //
-//   * ErrCodeInternalServiceErrorException "InternalServiceErrorException"
+//   * InternalServiceErrorException
 //   We encountered an unknown error. Try again in a few minutes.
 //
-//   * ErrCodeThrottlingException "ThrottlingException"
+//   * ThrottlingException
 //   The request was throttled. Try again in a few minutes.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/route53resolver-2018-04-01/ListResolverRuleAssociations
@@ -1593,10 +1597,12 @@ func (c *Route53Resolver) ListResolverRuleAssociationsPagesWithContext(ctx aws.C
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListResolverRuleAssociationsOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListResolverRuleAssociationsOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -1659,20 +1665,20 @@ func (c *Route53Resolver) ListResolverRulesRequest(input *ListResolverRulesInput
 // See the AWS API reference guide for Amazon Route 53 Resolver's
 // API operation ListResolverRules for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidNextTokenException "InvalidNextTokenException"
+// Returned Error Types:
+//   * InvalidNextTokenException
 //   The value that you specified for NextToken in a List request isn't valid.
 //
-//   * ErrCodeInvalidRequestException "InvalidRequestException"
+//   * InvalidRequestException
 //   The request is invalid.
 //
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+//   * InvalidParameterException
 //   One or more parameters in this request are not valid.
 //
-//   * ErrCodeInternalServiceErrorException "InternalServiceErrorException"
+//   * InternalServiceErrorException
 //   We encountered an unknown error. Try again in a few minutes.
 //
-//   * ErrCodeThrottlingException "ThrottlingException"
+//   * ThrottlingException
 //   The request was throttled. Try again in a few minutes.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/route53resolver-2018-04-01/ListResolverRules
@@ -1740,10 +1746,12 @@ func (c *Route53Resolver) ListResolverRulesPagesWithContext(ctx aws.Context, inp
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListResolverRulesOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListResolverRulesOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -1800,23 +1808,23 @@ func (c *Route53Resolver) ListTagsForResourceRequest(input *ListTagsForResourceI
 // See the AWS API reference guide for Amazon Route 53 Resolver's
 // API operation ListTagsForResource for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   The specified resource doesn't exist.
 //
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+//   * InvalidParameterException
 //   One or more parameters in this request are not valid.
 //
-//   * ErrCodeInvalidNextTokenException "InvalidNextTokenException"
+//   * InvalidNextTokenException
 //   The value that you specified for NextToken in a List request isn't valid.
 //
-//   * ErrCodeInvalidRequestException "InvalidRequestException"
+//   * InvalidRequestException
 //   The request is invalid.
 //
-//   * ErrCodeInternalServiceErrorException "InternalServiceErrorException"
+//   * InternalServiceErrorException
 //   We encountered an unknown error. Try again in a few minutes.
 //
-//   * ErrCodeThrottlingException "ThrottlingException"
+//   * ThrottlingException
 //   The request was throttled. Try again in a few minutes.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/route53resolver-2018-04-01/ListTagsForResource
@@ -1895,17 +1903,17 @@ func (c *Route53Resolver) PutResolverRulePolicyRequest(input *PutResolverRulePol
 // See the AWS API reference guide for Amazon Route 53 Resolver's
 // API operation PutResolverRulePolicy for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidPolicyDocument "InvalidPolicyDocument"
+// Returned Error Types:
+//   * InvalidPolicyDocument
 //   The specified resolver rule policy is invalid.
 //
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+//   * InvalidParameterException
 //   One or more parameters in this request are not valid.
 //
-//   * ErrCodeUnknownResourceException "UnknownResourceException"
+//   * UnknownResourceException
 //   The specified resource doesn't exist.
 //
-//   * ErrCodeInternalServiceErrorException "InternalServiceErrorException"
+//   * InternalServiceErrorException
 //   We encountered an unknown error. Try again in a few minutes.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/route53resolver-2018-04-01/PutResolverRulePolicy
@@ -1984,23 +1992,23 @@ func (c *Route53Resolver) TagResourceRequest(input *TagResourceInput) (req *requ
 // See the AWS API reference guide for Amazon Route 53 Resolver's
 // API operation TagResource for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeLimitExceededException "LimitExceededException"
+// Returned Error Types:
+//   * LimitExceededException
 //   The request caused one or more limits to be exceeded.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The specified resource doesn't exist.
 //
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+//   * InvalidParameterException
 //   One or more parameters in this request are not valid.
 //
-//   * ErrCodeInvalidTagException "InvalidTagException"
+//   * InvalidTagException
 //   The specified tag is invalid.
 //
-//   * ErrCodeInternalServiceErrorException "InternalServiceErrorException"
+//   * InternalServiceErrorException
 //   We encountered an unknown error. Try again in a few minutes.
 //
-//   * ErrCodeThrottlingException "ThrottlingException"
+//   * ThrottlingException
 //   The request was throttled. Try again in a few minutes.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/route53resolver-2018-04-01/TagResource
@@ -2079,17 +2087,17 @@ func (c *Route53Resolver) UntagResourceRequest(input *UntagResourceInput) (req *
 // See the AWS API reference guide for Amazon Route 53 Resolver's
 // API operation UntagResource for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   The specified resource doesn't exist.
 //
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+//   * InvalidParameterException
 //   One or more parameters in this request are not valid.
 //
-//   * ErrCodeInternalServiceErrorException "InternalServiceErrorException"
+//   * InternalServiceErrorException
 //   We encountered an unknown error. Try again in a few minutes.
 //
-//   * ErrCodeThrottlingException "ThrottlingException"
+//   * ThrottlingException
 //   The request was throttled. Try again in a few minutes.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/route53resolver-2018-04-01/UntagResource
@@ -2167,20 +2175,20 @@ func (c *Route53Resolver) UpdateResolverEndpointRequest(input *UpdateResolverEnd
 // See the AWS API reference guide for Amazon Route 53 Resolver's
 // API operation UpdateResolverEndpoint for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   The specified resource doesn't exist.
 //
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+//   * InvalidParameterException
 //   One or more parameters in this request are not valid.
 //
-//   * ErrCodeInvalidRequestException "InvalidRequestException"
+//   * InvalidRequestException
 //   The request is invalid.
 //
-//   * ErrCodeInternalServiceErrorException "InternalServiceErrorException"
+//   * InternalServiceErrorException
 //   We encountered an unknown error. Try again in a few minutes.
 //
-//   * ErrCodeThrottlingException "ThrottlingException"
+//   * ThrottlingException
 //   The request was throttled. Try again in a few minutes.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/route53resolver-2018-04-01/UpdateResolverEndpoint
@@ -2260,26 +2268,26 @@ func (c *Route53Resolver) UpdateResolverRuleRequest(input *UpdateResolverRuleInp
 // See the AWS API reference guide for Amazon Route 53 Resolver's
 // API operation UpdateResolverRule for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidRequestException "InvalidRequestException"
+// Returned Error Types:
+//   * InvalidRequestException
 //   The request is invalid.
 //
-//   * ErrCodeInvalidParameterException "InvalidParameterException"
+//   * InvalidParameterException
 //   One or more parameters in this request are not valid.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The specified resource doesn't exist.
 //
-//   * ErrCodeResourceUnavailableException "ResourceUnavailableException"
+//   * ResourceUnavailableException
 //   The specified resource isn't available.
 //
-//   * ErrCodeLimitExceededException "LimitExceededException"
+//   * LimitExceededException
 //   The request caused one or more limits to be exceeded.
 //
-//   * ErrCodeInternalServiceErrorException "InternalServiceErrorException"
+//   * InternalServiceErrorException
 //   We encountered an unknown error. Try again in a few minutes.
 //
-//   * ErrCodeThrottlingException "ThrottlingException"
+//   * ThrottlingException
 //   The request was throttled. Try again in a few minutes.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/route53resolver-2018-04-01/UpdateResolverRule
@@ -3402,6 +3410,346 @@ func (s *GetResolverRulePolicyOutput) SetResolverRulePolicy(v string) *GetResolv
 	return s
 }
 
+// We encountered an unknown error. Try again in a few minutes.
+type InternalServiceErrorException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s InternalServiceErrorException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InternalServiceErrorException) GoString() string {
+	return s.String()
+}
+
+func newErrorInternalServiceErrorException(v protocol.ResponseMetadata) error {
+	return &InternalServiceErrorException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *InternalServiceErrorException) Code() string {
+	return "InternalServiceErrorException"
+}
+
+// Message returns the exception's message.
+func (s *InternalServiceErrorException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *InternalServiceErrorException) OrigErr() error {
+	return nil
+}
+
+func (s *InternalServiceErrorException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *InternalServiceErrorException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *InternalServiceErrorException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// The value that you specified for NextToken in a List request isn't valid.
+type InvalidNextTokenException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidNextTokenException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidNextTokenException) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidNextTokenException(v protocol.ResponseMetadata) error {
+	return &InvalidNextTokenException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *InvalidNextTokenException) Code() string {
+	return "InvalidNextTokenException"
+}
+
+// Message returns the exception's message.
+func (s *InvalidNextTokenException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *InvalidNextTokenException) OrigErr() error {
+	return nil
+}
+
+func (s *InvalidNextTokenException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *InvalidNextTokenException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *InvalidNextTokenException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// One or more parameters in this request are not valid.
+type InvalidParameterException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// For an InvalidParameterException error, the name of the parameter that's
+	// invalid.
+	FieldName *string `type:"string"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidParameterException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidParameterException) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidParameterException(v protocol.ResponseMetadata) error {
+	return &InvalidParameterException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *InvalidParameterException) Code() string {
+	return "InvalidParameterException"
+}
+
+// Message returns the exception's message.
+func (s *InvalidParameterException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *InvalidParameterException) OrigErr() error {
+	return nil
+}
+
+func (s *InvalidParameterException) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *InvalidParameterException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *InvalidParameterException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// The specified resolver rule policy is invalid.
+type InvalidPolicyDocument struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidPolicyDocument) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidPolicyDocument) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidPolicyDocument(v protocol.ResponseMetadata) error {
+	return &InvalidPolicyDocument{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *InvalidPolicyDocument) Code() string {
+	return "InvalidPolicyDocument"
+}
+
+// Message returns the exception's message.
+func (s *InvalidPolicyDocument) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *InvalidPolicyDocument) OrigErr() error {
+	return nil
+}
+
+func (s *InvalidPolicyDocument) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *InvalidPolicyDocument) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *InvalidPolicyDocument) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// The request is invalid.
+type InvalidRequestException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidRequestException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidRequestException) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidRequestException(v protocol.ResponseMetadata) error {
+	return &InvalidRequestException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *InvalidRequestException) Code() string {
+	return "InvalidRequestException"
+}
+
+// Message returns the exception's message.
+func (s *InvalidRequestException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *InvalidRequestException) OrigErr() error {
+	return nil
+}
+
+func (s *InvalidRequestException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *InvalidRequestException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *InvalidRequestException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// The specified tag is invalid.
+type InvalidTagException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidTagException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidTagException) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidTagException(v protocol.ResponseMetadata) error {
+	return &InvalidTagException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *InvalidTagException) Code() string {
+	return "InvalidTagException"
+}
+
+// Message returns the exception's message.
+func (s *InvalidTagException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *InvalidTagException) OrigErr() error {
+	return nil
+}
+
+func (s *InvalidTagException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *InvalidTagException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *InvalidTagException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
 // In an CreateResolverEndpoint request, a subnet and IP address that you want
 // to use for DNS queries.
 type IpAddressRequest struct {
@@ -3600,6 +3948,66 @@ func (s *IpAddressUpdate) SetIpId(v string) *IpAddressUpdate {
 func (s *IpAddressUpdate) SetSubnetId(v string) *IpAddressUpdate {
 	s.SubnetId = &v
 	return s
+}
+
+// The request caused one or more limits to be exceeded.
+type LimitExceededException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+
+	// For a LimitExceededException error, the type of resource that exceeded the
+	// current limit.
+	ResourceType *string `type:"string"`
+}
+
+// String returns the string representation
+func (s LimitExceededException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s LimitExceededException) GoString() string {
+	return s.String()
+}
+
+func newErrorLimitExceededException(v protocol.ResponseMetadata) error {
+	return &LimitExceededException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *LimitExceededException) Code() string {
+	return "LimitExceededException"
+}
+
+// Message returns the exception's message.
+func (s *LimitExceededException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *LimitExceededException) OrigErr() error {
+	return nil
+}
+
+func (s *LimitExceededException) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *LimitExceededException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *LimitExceededException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 type ListResolverEndpointIpAddressesInput struct {
@@ -4678,6 +5086,246 @@ func (s *ResolverRuleConfig) SetTargetIps(v []*TargetAddress) *ResolverRuleConfi
 	return s
 }
 
+// The resource that you tried to create already exists.
+type ResourceExistsException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+
+	// For a ResourceExistsException error, the type of resource that the error
+	// applies to.
+	ResourceType *string `type:"string"`
+}
+
+// String returns the string representation
+func (s ResourceExistsException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResourceExistsException) GoString() string {
+	return s.String()
+}
+
+func newErrorResourceExistsException(v protocol.ResponseMetadata) error {
+	return &ResourceExistsException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *ResourceExistsException) Code() string {
+	return "ResourceExistsException"
+}
+
+// Message returns the exception's message.
+func (s *ResourceExistsException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *ResourceExistsException) OrigErr() error {
+	return nil
+}
+
+func (s *ResourceExistsException) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *ResourceExistsException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *ResourceExistsException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// The resource that you tried to update or delete is currently in use.
+type ResourceInUseException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+
+	// For a ResourceInUseException error, the type of resource that is currently
+	// in use.
+	ResourceType *string `type:"string"`
+}
+
+// String returns the string representation
+func (s ResourceInUseException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResourceInUseException) GoString() string {
+	return s.String()
+}
+
+func newErrorResourceInUseException(v protocol.ResponseMetadata) error {
+	return &ResourceInUseException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *ResourceInUseException) Code() string {
+	return "ResourceInUseException"
+}
+
+// Message returns the exception's message.
+func (s *ResourceInUseException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *ResourceInUseException) OrigErr() error {
+	return nil
+}
+
+func (s *ResourceInUseException) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *ResourceInUseException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *ResourceInUseException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// The specified resource doesn't exist.
+type ResourceNotFoundException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+
+	// For a ResourceNotFoundException error, the type of resource that doesn't
+	// exist.
+	ResourceType *string `type:"string"`
+}
+
+// String returns the string representation
+func (s ResourceNotFoundException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResourceNotFoundException) GoString() string {
+	return s.String()
+}
+
+func newErrorResourceNotFoundException(v protocol.ResponseMetadata) error {
+	return &ResourceNotFoundException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *ResourceNotFoundException) Code() string {
+	return "ResourceNotFoundException"
+}
+
+// Message returns the exception's message.
+func (s *ResourceNotFoundException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *ResourceNotFoundException) OrigErr() error {
+	return nil
+}
+
+func (s *ResourceNotFoundException) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *ResourceNotFoundException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *ResourceNotFoundException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// The specified resource isn't available.
+type ResourceUnavailableException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+
+	// For a ResourceUnavailableException error, the type of resource that isn't
+	// available.
+	ResourceType *string `type:"string"`
+}
+
+// String returns the string representation
+func (s ResourceUnavailableException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResourceUnavailableException) GoString() string {
+	return s.String()
+}
+
+func newErrorResourceUnavailableException(v protocol.ResponseMetadata) error {
+	return &ResourceUnavailableException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *ResourceUnavailableException) Code() string {
+	return "ResourceUnavailableException"
+}
+
+// Message returns the exception's message.
+func (s *ResourceUnavailableException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *ResourceUnavailableException) OrigErr() error {
+	return nil
+}
+
+func (s *ResourceUnavailableException) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *ResourceUnavailableException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *ResourceUnavailableException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
 // One tag that you want to add to the specified resource. A tag consists of
 // a Key (a name for the tag) and a Value.
 type Tag struct {
@@ -4848,6 +5496,118 @@ func (s *TargetAddress) SetIp(v string) *TargetAddress {
 func (s *TargetAddress) SetPort(v int64) *TargetAddress {
 	s.Port = &v
 	return s
+}
+
+// The request was throttled. Try again in a few minutes.
+type ThrottlingException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s ThrottlingException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ThrottlingException) GoString() string {
+	return s.String()
+}
+
+func newErrorThrottlingException(v protocol.ResponseMetadata) error {
+	return &ThrottlingException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *ThrottlingException) Code() string {
+	return "ThrottlingException"
+}
+
+// Message returns the exception's message.
+func (s *ThrottlingException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *ThrottlingException) OrigErr() error {
+	return nil
+}
+
+func (s *ThrottlingException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *ThrottlingException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *ThrottlingException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// The specified resource doesn't exist.
+type UnknownResourceException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s UnknownResourceException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UnknownResourceException) GoString() string {
+	return s.String()
+}
+
+func newErrorUnknownResourceException(v protocol.ResponseMetadata) error {
+	return &UnknownResourceException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *UnknownResourceException) Code() string {
+	return "UnknownResourceException"
+}
+
+// Message returns the exception's message.
+func (s *UnknownResourceException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *UnknownResourceException) OrigErr() error {
+	return nil
+}
+
+func (s *UnknownResourceException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *UnknownResourceException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *UnknownResourceException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 type UntagResourceInput struct {

@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/internal/registry/regsrc"
-	"github.com/hashicorp/terraform-plugin-sdk/internal/svchost/disco"
+	"github.com/hashicorp/terraform-svchost/disco"
 )
 
 type errModuleNotFound struct {
@@ -29,14 +29,6 @@ type errProviderNotFound struct {
 
 func (e *errProviderNotFound) Error() string {
 	return fmt.Sprintf("provider %s not found", e.addr)
-}
-
-// IsProviderNotFound returns true only if the given error is a "provider not found"
-// error. This allows callers to recognize this particular error condition
-// as distinct from operational errors such as poor network connectivity.
-func IsProviderNotFound(err error) bool {
-	_, ok := err.(*errProviderNotFound)
-	return ok
 }
 
 // IsServiceNotProvided returns true only if the given error is a "service not provided"

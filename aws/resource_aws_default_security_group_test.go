@@ -28,6 +28,8 @@ func TestAccAWSDefaultSecurityGroup_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"aws_default_security_group.web", "name", "default"),
 					resource.TestCheckResourceAttr(
+						"aws_default_security_group.web", "description", "default VPC security group"),
+					resource.TestCheckResourceAttr(
 						"aws_default_security_group.web", "ingress.3629188364.protocol", "tcp"),
 					resource.TestCheckResourceAttr(
 						"aws_default_security_group.web", "ingress.3629188364.from_port", "80"),

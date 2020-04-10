@@ -245,8 +245,8 @@ func resourceAwsVolumeAttachmentDelete(d *schema.ResourceData, meta interface{})
 	_, err = stateConf.WaitForState()
 	if err != nil {
 		return fmt.Errorf(
-			"Error waiting for Volume (%s) to detach from Instance: %s",
-			vID, iID)
+			"Error waiting for Volume (%s) to detach from Instance (%s): %s",
+			vID, iID, err)
 	}
 
 	return nil

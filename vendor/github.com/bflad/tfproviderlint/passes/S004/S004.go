@@ -7,8 +7,9 @@ import (
 
 	"golang.org/x/tools/go/analysis"
 
+	"github.com/bflad/tfproviderlint/helper/terraformtype/helper/schema"
 	"github.com/bflad/tfproviderlint/passes/commentignore"
-	"github.com/bflad/tfproviderlint/passes/schemaschema"
+	"github.com/bflad/tfproviderlint/passes/helper/schema/schemainfo"
 )
 
 const Doc = `check for Schema with Required enabled and Default configured
@@ -22,7 +23,7 @@ var Analyzer = &analysis.Analyzer{
 	Name: analyzerName,
 	Doc:  Doc,
 	Requires: []*analysis.Analyzer{
-		schemaschema.Analyzer,
+		schemainfo.Analyzer,
 		commentignore.Analyzer,
 	},
 	Run: run,
@@ -30,56 +31,21 @@ var Analyzer = &analysis.Analyzer{
 
 func run(pass *analysis.Pass) (interface{}, error) {
 	ignorer := pass.ResultOf[commentignore.Analyzer].(*commentignore.Ignorer)
-	schemas := pass.ResultOf[schemaschema.Analyzer].([]*ast.CompositeLit)
-	for _, schema := range schemas {
-		if ignorer.ShouldIgnore(analyzerName, schema) {
+	schemaInfos := pass.ResultOf[schemainfo.Analyzer].([]*schema.SchemaInfo)
+	for _, schemaInfo := range schemaInfos {
+		if ignorer.ShouldIgnore(analyzerName, schemaInfo.AstCompositeLit) {
 			continue
 		}
 
-		var defaultConfigured, requiredEnabled bool
-
-		for _, elt := range schema.Elts {
-			switch v := elt.(type) {
-			default:
-				continue
-			case *ast.KeyValueExpr:
-				name := v.Key.(*ast.Ident).Name
-
-				if name != "Default" && name != "Required" {
-					continue
-				}
-
-				switch v := v.Value.(type) {
-				default:
-					if name == "Default" {
-						defaultConfigured = true
-					}
-
-					continue
-				case *ast.Ident:
-					value := v.Name
-
-					if name == "Default" && value != "nil" {
-						defaultConfigured = true
-						continue
-					}
-
-					if value != "true" {
-						continue
-					}
-
-					requiredEnabled = true
-				}
-			}
+		if !schemaInfo.Schema.Required || schemaInfo.Schema.Default == nil {
+			continue
 		}
 
-		if defaultConfigured && requiredEnabled {
-			switch t := schema.Type.(type) {
-			default:
-				pass.Reportf(schema.Lbrace, "%s: schema should not enable Required and configure Default", analyzerName)
-			case *ast.SelectorExpr:
-				pass.Reportf(t.Sel.Pos(), "%s: schema should not enable Required and configure Default", analyzerName)
-			}
+		switch t := schemaInfo.AstCompositeLit.Type.(type) {
+		default:
+			pass.Reportf(schemaInfo.AstCompositeLit.Lbrace, "%s: schema should not enable Required and configure Default", analyzerName)
+		case *ast.SelectorExpr:
+			pass.Reportf(t.Sel.Pos(), "%s: schema should not enable Required and configure Default", analyzerName)
 		}
 	}
 

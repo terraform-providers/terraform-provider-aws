@@ -82,8 +82,9 @@ func resourceAwsS3BucketInventory() *schema.Resource {
 										ValidateFunc: validateArn,
 									},
 									"account_id": {
-										Type:     schema.TypeString,
-										Optional: true,
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validateAwsAccountId,
 									},
 									"prefix": {
 										Type:     schema.TypeString,
@@ -172,6 +173,7 @@ func resourceAwsS3BucketInventory() *schema.Resource {
 						s3.InventoryOptionalFieldObjectLockMode,
 						s3.InventoryOptionalFieldObjectLockRetainUntilDate,
 						s3.InventoryOptionalFieldObjectLockLegalHoldStatus,
+						s3.InventoryOptionalFieldIntelligentTieringAccessTier,
 					}, false),
 				},
 				Set: schema.HashString,

@@ -8,8 +8,8 @@ import (
 
 	"golang.org/x/tools/go/analysis"
 
-	"github.com/bflad/tfproviderlint/passes/acctestfunc"
 	"github.com/bflad/tfproviderlint/passes/commentignore"
+	"github.com/bflad/tfproviderlint/passes/testaccfuncdecl"
 )
 
 const Doc = `check for acceptance test function names including the word import
@@ -26,7 +26,7 @@ var Analyzer = &analysis.Analyzer{
 	Name: analyzerName,
 	Doc:  Doc,
 	Requires: []*analysis.Analyzer{
-		acctestfunc.Analyzer,
+		testaccfuncdecl.Analyzer,
 		commentignore.Analyzer,
 	},
 	Run: run,
@@ -34,7 +34,7 @@ var Analyzer = &analysis.Analyzer{
 
 func run(pass *analysis.Pass) (interface{}, error) {
 	ignorer := pass.ResultOf[commentignore.Analyzer].(*commentignore.Ignorer)
-	testAccFuncs := pass.ResultOf[acctestfunc.Analyzer].([]*ast.FuncDecl)
+	testAccFuncs := pass.ResultOf[testaccfuncdecl.Analyzer].([]*ast.FuncDecl)
 	for _, testAccFunc := range testAccFuncs {
 		if ignorer.ShouldIgnore(analyzerName, testAccFunc) {
 			continue

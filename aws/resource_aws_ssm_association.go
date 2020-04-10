@@ -114,6 +114,10 @@ func resourceAwsSsmAssociation() *schema.Resource {
 					ssm.ComplianceSeverityCritical,
 				}, false),
 			},
+			"automation_target_parameter_name": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 		},
 	}
 }
@@ -167,6 +171,10 @@ func resourceAwsSsmAssociationCreate(d *schema.ResourceData, meta interface{}) e
 		associationInput.MaxErrors = aws.String(v.(string))
 	}
 
+	if v, ok := d.GetOk("automation_target_parameter_name"); ok {
+		associationInput.AutomationTargetParameterName = aws.String(v.(string))
+	}
+
 	resp, err := ssmconn.CreateAssociation(associationInput)
 	if err != nil {
 		return fmt.Errorf("Error creating SSM association: %s", err)
@@ -215,6 +223,7 @@ func resourceAwsSsmAssociationRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("compliance_severity", association.ComplianceSeverity)
 	d.Set("max_concurrency", association.MaxConcurrency)
 	d.Set("max_errors", association.MaxErrors)
+	d.Set("automation_target_parameter_name", association.AutomationTargetParameterName)
 
 	if err := d.Set("targets", flattenAwsSsmTargets(association.Targets)); err != nil {
 		return fmt.Errorf("Error setting targets error: %#v", err)
@@ -271,6 +280,10 @@ func resourceAwsSsmAssociationUpdate(d *schema.ResourceData, meta interface{}) e
 
 	if v, ok := d.GetOk("max_errors"); ok {
 		associationInput.MaxErrors = aws.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("automation_target_parameter_name"); ok {
+		associationInput.AutomationTargetParameterName = aws.String(v.(string))
 	}
 
 	_, err := ssmconn.UpdateAssociation(associationInput)

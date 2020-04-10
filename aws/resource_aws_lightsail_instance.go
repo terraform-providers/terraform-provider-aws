@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsLightsailInstance() *schema.Resource {
@@ -135,10 +136,8 @@ func resourceAwsLightsailInstanceCreate(d *schema.ResourceData, meta interface{}
 		req.UserData = aws.String(v.(string))
 	}
 
-	tags := tagsFromMapLightsail(d.Get("tags").(map[string]interface{}))
-
-	if len(tags) != 0 {
-		req.Tags = tags
+	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
+		req.Tags = keyvaluetags.New(v).IgnoreAws().LightsailTags()
 	}
 
 	resp, err := conn.CreateInstances(&req)
@@ -214,8 +213,8 @@ func resourceAwsLightsailInstanceRead(d *schema.ResourceData, meta interface{}) 
 	d.Set("private_ip_address", i.PrivateIpAddress)
 	d.Set("public_ip_address", i.PublicIpAddress)
 
-	if err := d.Set("tags", tagsToMapLightsail(i.Tags)); err != nil {
-		return fmt.Errorf("Error setting tags: %s", err)
+	if err := d.Set("tags", keyvaluetags.LightsailKeyValueTags(i.Tags).IgnoreAws().Map()); err != nil {
+		return fmt.Errorf("error setting tags: %s", err)
 	}
 
 	return nil
@@ -256,10 +255,11 @@ func resourceAwsLightsailInstanceUpdate(d *schema.ResourceData, meta interface{}
 	conn := meta.(*AWSClient).lightsailconn
 
 	if d.HasChange("tags") {
-		if err := setTagsLightsail(conn, d); err != nil {
-			return err
+		o, n := d.GetChange("tags")
+
+		if err := keyvaluetags.LightsailUpdateTags(conn, d.Id(), o, n); err != nil {
+			return fmt.Errorf("error updating Lightsail Instance (%s) tags: %s", d.Id(), err)
 		}
-		d.SetPartial("tags")
 	}
 
 	return resourceAwsLightsailInstanceRead(d, meta)

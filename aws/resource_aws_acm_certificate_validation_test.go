@@ -23,7 +23,7 @@ func TestAccAWSAcmCertificateValidation_basic(t *testing.T) {
 			{
 				Config: testAccAcmCertificateValidation_basic(rootDomain, domain),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestMatchResourceAttr("aws_acm_certificate_validation.cert", "certificate_arn", certificateArnRegex),
+					testAccMatchResourceAttrRegionalARN("aws_acm_certificate_validation.cert", "certificate_arn", "acm", regexp.MustCompile("certificate/.+$")),
 				),
 			},
 		},
@@ -65,7 +65,7 @@ func TestAccAWSAcmCertificateValidation_validationRecordFqdns(t *testing.T) {
 			{
 				Config: testAccAcmCertificateValidation_validationRecordFqdnsOneRoute53Record(rootDomain, domain),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestMatchResourceAttr("aws_acm_certificate_validation.cert", "certificate_arn", certificateArnRegex),
+					testAccMatchResourceAttrRegionalARN("aws_acm_certificate_validation.cert", "certificate_arn", "acm", regexp.MustCompile("certificate/.+$")),
 				),
 			},
 		},
@@ -100,7 +100,7 @@ func TestAccAWSAcmCertificateValidation_validationRecordFqdnsRoot(t *testing.T) 
 			{
 				Config: testAccAcmCertificateValidation_validationRecordFqdnsOneRoute53Record(rootDomain, rootDomain),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestMatchResourceAttr("aws_acm_certificate_validation.cert", "certificate_arn", certificateArnRegex),
+					testAccMatchResourceAttrRegionalARN("aws_acm_certificate_validation.cert", "certificate_arn", "acm", regexp.MustCompile("certificate/.+$")),
 				),
 			},
 		},
@@ -119,7 +119,7 @@ func TestAccAWSAcmCertificateValidation_validationRecordFqdnsRootAndWildcard(t *
 			{
 				Config: testAccAcmCertificateValidation_validationRecordFqdnsTwoRoute53Records(rootDomain, rootDomain, strconv.Quote(wildcardDomain)),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestMatchResourceAttr("aws_acm_certificate_validation.cert", "certificate_arn", certificateArnRegex),
+					testAccMatchResourceAttrRegionalARN("aws_acm_certificate_validation.cert", "certificate_arn", "acm", regexp.MustCompile("certificate/.+$")),
 				),
 			},
 		},
@@ -139,7 +139,7 @@ func TestAccAWSAcmCertificateValidation_validationRecordFqdnsSan(t *testing.T) {
 			{
 				Config: testAccAcmCertificateValidation_validationRecordFqdnsTwoRoute53Records(rootDomain, domain, strconv.Quote(sanDomain)),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestMatchResourceAttr("aws_acm_certificate_validation.cert", "certificate_arn", certificateArnRegex),
+					testAccMatchResourceAttrRegionalARN("aws_acm_certificate_validation.cert", "certificate_arn", "acm", regexp.MustCompile("certificate/.+$")),
 				),
 			},
 		},
@@ -158,7 +158,7 @@ func TestAccAWSAcmCertificateValidation_validationRecordFqdnsWildcard(t *testing
 			{
 				Config: testAccAcmCertificateValidation_validationRecordFqdnsOneRoute53Record(rootDomain, wildcardDomain),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestMatchResourceAttr("aws_acm_certificate_validation.cert", "certificate_arn", certificateArnRegex),
+					testAccMatchResourceAttrRegionalARN("aws_acm_certificate_validation.cert", "certificate_arn", "acm", regexp.MustCompile("certificate/.+$")),
 				),
 			},
 		},
@@ -177,7 +177,7 @@ func TestAccAWSAcmCertificateValidation_validationRecordFqdnsWildcardAndRoot(t *
 			{
 				Config: testAccAcmCertificateValidation_validationRecordFqdnsTwoRoute53Records(rootDomain, wildcardDomain, strconv.Quote(rootDomain)),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestMatchResourceAttr("aws_acm_certificate_validation.cert", "certificate_arn", certificateArnRegex),
+					testAccMatchResourceAttrRegionalARN("aws_acm_certificate_validation.cert", "certificate_arn", "acm", regexp.MustCompile("certificate/.+$")),
 				),
 			},
 		},

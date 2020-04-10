@@ -6,7 +6,11 @@
     - [Pull Request Review Process](#pull-request-review-process)
         - [Dependency Updates](#dependency-updates)
             - [AWS Go SDK Updates](#aws-go-sdk-updates)
-            - [Terraform Updates](#terraform-updates)
+            - [golangci-lint Updates](#golangci-lint-updates)
+            - [Terraform Plugin SDK Updates](#terraform-plugin-sdk-updates)
+            - [tfproviderdocs Updates](#tfproviderdocs-updates)
+            - [tfproviderlint Updates](#tfproviderlint-updates)
+            - [yaml.v2 Updates](#yaml-v2-updates)
     - [Pull Request Merge Process](#pull-request-merge-process)
     - [Pull Request Types to CHANGELOG](#pull-request-types-to-changelog)
 - [Release Process](#release-process)
@@ -241,9 +245,25 @@ ENHANCEMENTS:
 * backend/s3: Support automatic region validation for `XX-XXXXX-#` [GH-####]
 ```
 
-##### Terraform Updates
+##### golangci-lint Updates
 
-Run the full acceptance testing suite against the pull request and verify there are no new or unexpected failures.
+Merge if CI passes.
+
+##### Terraform Plugin SDK Updates
+
+Except for trivial changes, run the full acceptance testing suite against the pull request and verify there are no new or unexpected failures.
+
+##### tfproviderdocs Updates
+
+Merge if CI passes.
+
+##### tfproviderlint Updates
+
+Merge if CI passes.
+
+##### yaml.v2 Updates
+
+Run the acceptance testing pattern, `TestAccAWSCloudFormationStack(_dataSource)?_yaml`, and merge if passing.
 
 ### Pull Request Merge Process
 
@@ -285,6 +305,6 @@ Changes that should _not_ have a CHANGELOG entry:
 - Create a milestone for the next release after this release (generally, the next milestone will be a minor version increase unless previously decided for a major or patch version)
 - Check the existing release milestone for open items and either work through them or move them to the next milestone
 - Run the HashiCorp (non-OSS) TeamCity release job with the `DEPLOYMENT_TARGET_VERSION` matching the expected release milestone and `DEPLOYMENT_NEXT_VERSION` matching the next release milestone
-- Wait for the TeamCity release job and TeamCity website deployment jobs to complete either by watching the build logs or Slack notifications
+- Wait for the TeamCity release job and CircleCI website deployment jobs to complete either by watching the build logs or Slack notifications
 - Close the release milestone
-- Create a new GitHub release with the release title exactly matching the tag and milestone (e.g. `v2.22.0`). This will trigger [HashiBot](https://github.com/apps/hashibot) release comments.
+- Create a new GitHub release with the release title exactly matching the tag and milestone (e.g. `v2.22.0`) and copy the notes from the CHANGELOG to the release notes. This will trigger [HashiBot](https://github.com/apps/hashibot) release comments.

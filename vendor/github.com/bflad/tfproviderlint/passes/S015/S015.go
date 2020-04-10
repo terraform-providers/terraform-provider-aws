@@ -5,13 +5,13 @@ package S015
 
 import (
 	"go/ast"
-	"regexp"
 	"strings"
 
 	"golang.org/x/tools/go/analysis"
 
+	"github.com/bflad/tfproviderlint/helper/terraformtype/helper/schema"
 	"github.com/bflad/tfproviderlint/passes/commentignore"
-	"github.com/bflad/tfproviderlint/passes/schemamap"
+	"github.com/bflad/tfproviderlint/passes/helper/schema/schemamapcompositelit"
 )
 
 const Doc = `check for Schema that attribute names are valid
@@ -26,7 +26,7 @@ var Analyzer = &analysis.Analyzer{
 	Name: analyzerName,
 	Doc:  Doc,
 	Requires: []*analysis.Analyzer{
-		schemamap.Analyzer,
+		schemamapcompositelit.Analyzer,
 		commentignore.Analyzer,
 	},
 	Run: run,
@@ -34,23 +34,21 @@ var Analyzer = &analysis.Analyzer{
 
 func run(pass *analysis.Pass) (interface{}, error) {
 	ignorer := pass.ResultOf[commentignore.Analyzer].(*commentignore.Ignorer)
-	schemamaps := pass.ResultOf[schemamap.Analyzer].([]*ast.CompositeLit)
+	schemamapcompositelits := pass.ResultOf[schemamapcompositelit.Analyzer].([]*ast.CompositeLit)
 
-	attributeNameRegex := regexp.MustCompile(`^[a-z0-9_]+$`)
-
-	for _, smap := range schemamaps {
+	for _, smap := range schemamapcompositelits {
 		if ignorer.ShouldIgnore(analyzerName, smap) {
 			continue
 		}
 
-		for _, attributeName := range schemamap.GetSchemaAttributeNames(smap) {
+		for _, attributeName := range schema.GetSchemaMapAttributeNames(smap) {
 			switch t := attributeName.(type) {
 			default:
 				continue
 			case *ast.BasicLit:
 				value := strings.Trim(t.Value, `"`)
 
-				if !attributeNameRegex.MatchString(value) {
+				if !schema.AttributeNameRegexp.MatchString(value) {
 					pass.Reportf(t.Pos(), "%s: schema attribute names should only be lowercase alphanumeric characters or underscores", analyzerName)
 				}
 			}

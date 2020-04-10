@@ -102,6 +102,27 @@ case "datapipeline":
     return "AddTags"
 ```
 
+#### ServiceTagInputCustomValue
+
+Given the following compilation errors:
+
+```text
+aws/internal/keyvaluetags/update_tags_gen.go:1994:4: cannot use updatedTags.IgnoreAws().KinesisTags() (type []*kinesis.Tag) as type map[string]*string in field value
+```
+
+or
+
+```text
+aws/internal/keyvaluetags/update_tags_gen.go:2534:4: cannot use updatedTags.IgnoreAws().PinpointTags() (type map[string]*string) as type *pinpoint.TagsModel in field value
+```
+
+The value of the tags for tagging must be transformed. Add an entry within the `ServiceTagInputCustomValue()` function of the generator to return the custom value. In the above case:
+
+```go
+case "kinesis":
+	return "aws.StringMap(chunk.IgnoreAws().Map())"
+```
+
 #### ServiceTagInputIdentifierField
 
 Given the following compilation error:
@@ -116,6 +137,21 @@ The field name to identify the resource for tagging must be updated. Add an entr
 ```go
 case "athena":
     return "ResourceARN"
+```
+
+#### ServiceTagInputIdentifierRequiresSlice
+
+Given the following compilation error:
+
+```text
+aws/internal/keyvaluetags/update_tags_gen.go:1296:4: cannot use aws.String(identifier) (type *string) as type []*string in field value
+```
+
+The value to identify the resource for tagging must be passed in a string slice. Add an entry within the `ServiceTagInputIdentifierRequiresSlice()` function of the generator to ensure that the value is passed as expected. In the above case
+
+```go
+case "ec2":
+	return "yes"
 ```
 
 #### ServiceTagInputTagsField
@@ -162,4 +198,19 @@ The field name with the tag keys for untagging must be updated. Add an entry wit
 ```go
 case "cloudhsmv2":
     return "TagKeyList"
+```
+
+#### ServiceUntagInputCustomValue
+
+Given the following compilation error:
+
+```text
+aws/internal/keyvaluetags/update_tags_gen.go:523:4: cannot use updatedTags.IgnoreAws().CloudfrontTags() (type []*cloudfront.Tag) as type *cloudfront.Tags in field value
+```
+
+The value of the tags for untagging must be transformed. Add an entry within the `ServiceUntagInputCustomValue()` function of the generator to return the custom value. In the above case:
+
+```go
+case "cloudfront":
+	return "&cloudfront.TagKeys{Items: aws.StringSlice(removedTags.IgnoreAws().Keys())}"
 ```

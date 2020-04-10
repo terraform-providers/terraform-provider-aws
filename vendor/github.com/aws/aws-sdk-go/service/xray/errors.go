@@ -2,6 +2,10 @@
 
 package xray
 
+import (
+	"github.com/aws/aws-sdk-go/private/protocol"
+)
+
 const (
 
 	// ErrCodeInvalidRequestException for service response error code
@@ -22,3 +26,9 @@ const (
 	// The request exceeds the maximum number of requests per second.
 	ErrCodeThrottledException = "ThrottledException"
 )
+
+var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
+	"InvalidRequestException":    newErrorInvalidRequestException,
+	"RuleLimitExceededException": newErrorRuleLimitExceededException,
+	"ThrottledException":         newErrorThrottledException,
+}

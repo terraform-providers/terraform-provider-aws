@@ -178,9 +178,36 @@ func resourceAwsWafWebAclCreate(d *schema.ResourceData, meta interface{}) error 
 		Resource:  fmt.Sprintf("webacl/%s", d.Id()),
 	}.String()
 
-	// Set for update
-	d.Set("arn", arn)
-	return resourceAwsWafWebAclUpdate(d, meta)
+	loggingConfiguration := d.Get("logging_configuration").([]interface{})
+	if len(loggingConfiguration) == 1 {
+		input := &waf.PutLoggingConfigurationInput{
+			LoggingConfiguration: expandWAFLoggingConfiguration(loggingConfiguration, arn),
+		}
+
+		log.Printf("[DEBUG] Updating WAF Web ACL (%s) Logging Configuration: %s", d.Id(), input)
+		if _, err := conn.PutLoggingConfiguration(input); err != nil {
+			return fmt.Errorf("error updating WAF Web ACL (%s) Logging Configuration: %s", d.Id(), err)
+		}
+	}
+
+	rules := d.Get("rules").(*schema.Set).List()
+	if len(rules) > 0 {
+		wr := newWafRetryer(conn)
+		_, err := wr.RetryWithToken(func(token *string) (interface{}, error) {
+			req := &waf.UpdateWebACLInput{
+				ChangeToken:   token,
+				DefaultAction: expandWafAction(d.Get("default_action").(*schema.Set).List()),
+				Updates:       diffWafWebAclRules([]interface{}{}, rules),
+				WebACLId:      aws.String(d.Id()),
+			}
+			return conn.UpdateWebACL(req)
+		})
+		if err != nil {
+			return fmt.Errorf("Error Updating WAF ACL: %s", err)
+		}
+	}
+
+	return resourceAwsWafWebAclRead(d, meta)
 }
 
 func resourceAwsWafWebAclRead(d *schema.ResourceData, meta interface{}) error {
@@ -206,13 +233,8 @@ func resourceAwsWafWebAclRead(d *schema.ResourceData, meta interface{}) error {
 		return nil
 	}
 
-	arn := arn.ARN{
-		Partition: meta.(*AWSClient).partition,
-		Service:   "waf",
-		AccountID: meta.(*AWSClient).accountid,
-		Resource:  fmt.Sprintf("webacl/%s", d.Id()),
-	}.String()
-	d.Set("arn", arn)
+	d.Set("arn", resp.WebACL.WebACLArn)
+	arn := *resp.WebACL.WebACLArn
 
 	if err := d.Set("default_action", flattenWafAction(resp.WebACL.DefaultAction)); err != nil {
 		return fmt.Errorf("error setting default_action: %s", err)
@@ -220,13 +242,11 @@ func resourceAwsWafWebAclRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("name", resp.WebACL.Name)
 	d.Set("metric_name", resp.WebACL.MetricName)
 
-	tagList, err := conn.ListTagsForResource(&waf.ListTagsForResourceInput{
-		ResourceARN: aws.String(arn),
-	})
+	tags, err := keyvaluetags.WafListTags(conn, arn)
 	if err != nil {
-		return fmt.Errorf("Failed to get WAF ACL parameter tags for %s: %s", d.Get("name"), err)
+		return fmt.Errorf("error listing tags for WAF ACL (%s): %s", arn, err)
 	}
-	if err := d.Set("tags", keyvaluetags.WafKeyValueTags(tagList.TagInfoForResource.TagList).IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 

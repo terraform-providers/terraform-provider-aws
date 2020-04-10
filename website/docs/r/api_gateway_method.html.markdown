@@ -1,5 +1,5 @@
 ---
-subcategory: "API Gateway"
+subcategory: "API Gateway (REST APIs)"
 layout: "aws"
 page_title: "AWS: aws_api_gateway_method"
 description: |-
@@ -33,6 +33,7 @@ resource "aws_api_gateway_method" "MyDemoMethod" {
 ```
 
 ## Usage with Cognito User Pool Authorizer
+
 ```hcl
 variable "cognito_user_pool_name" {}
 

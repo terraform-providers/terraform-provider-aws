@@ -116,8 +116,8 @@ func resourceAwsOpsworksSetPermission(d *schema.ResourceData, meta interface{}) 
 		StackId:    aws.String(d.Get("stack_id").(string)),
 	}
 
-	if v, ok := d.GetOk("level"); ok {
-		req.Level = aws.String(v.(string))
+	if d.HasChange("level") {
+		req.Level = aws.String(d.Get("level").(string))
 	}
 
 	err := resource.Retry(2*time.Minute, func() *resource.RetryError {

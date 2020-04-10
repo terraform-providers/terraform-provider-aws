@@ -102,13 +102,6 @@ func resourceAwsAppautoscalingPolicy() *schema.Resource {
 					},
 				},
 			},
-			"alarms": {
-				Type:     schema.TypeList,
-				Optional: true,
-				ForceNew: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-			},
-
 			"adjustment_type": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -304,6 +297,9 @@ func resourceAwsAppautoscalingPolicyRead(d *schema.ResourceData, meta interface{
 			}
 			return resource.NonRetryableError(err)
 		}
+		if d.IsNewResource() && p == nil {
+			return resource.RetryableError(&resource.NotFoundError{})
+		}
 		return nil
 	})
 	if isResourceTimeoutError(err) {
@@ -327,7 +323,7 @@ func resourceAwsAppautoscalingPolicyRead(d *schema.ResourceData, meta interface{
 	d.Set("resource_id", p.ResourceId)
 	d.Set("scalable_dimension", p.ScalableDimension)
 	d.Set("service_namespace", p.ServiceNamespace)
-	d.Set("alarms", p.Alarms)
+
 	if err := d.Set("step_scaling_policy_configuration", flattenStepScalingPolicyConfiguration(p.StepScalingPolicyConfiguration)); err != nil {
 		return fmt.Errorf("error setting step_scaling_policy_configuration: %s", err)
 	}
@@ -445,9 +441,16 @@ func validateAppautoscalingPolicyImportInput(id string) ([]string, error) {
 	switch idParts[0] {
 	case "dynamodb":
 		serviceNamespace = idParts[0]
-		resourceId = strings.Join(idParts[1:3], "/")
-		scalableDimension = idParts[3]
-		policyName = strings.Join(idParts[4:], "/")
+
+		dimensionIx := 3
+		// DynamoDB resource ID can be "/table/tableName" or "/table/tableName/index/indexName"
+		if idParts[dimensionIx] == "index" {
+			dimensionIx = 5
+		}
+
+		resourceId = strings.Join(idParts[1:dimensionIx], "/")
+		scalableDimension = idParts[dimensionIx]
+		policyName = strings.Join(idParts[dimensionIx+1:], "/")
 	default:
 		serviceNamespace = idParts[0]
 		resourceId = strings.Join(idParts[1:len(idParts)-2], "/")

@@ -11,6 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func dataSourceAwsS3BucketObject() *schema.Resource {
@@ -218,15 +219,15 @@ func dataSourceAwsS3BucketObjectRead(d *schema.ResourceData, meta interface{}) e
 			uniqueId, contentType)
 	}
 
-	tagResp, err := conn.GetObjectTagging(
-		&s3.GetObjectTaggingInput{
-			Bucket: aws.String(bucket),
-			Key:    aws.String(key),
-		})
+	tags, err := keyvaluetags.S3ObjectListTags(conn, bucket, key)
+
 	if err != nil {
-		return err
+		return fmt.Errorf("error listing tags for S3 Bucket (%s) Object (%s): %s", bucket, key, err)
 	}
-	d.Set("tags", tagsToMapS3(tagResp.TagSet))
+
+	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+		return fmt.Errorf("error setting tags: %s", err)
+	}
 
 	return nil
 }

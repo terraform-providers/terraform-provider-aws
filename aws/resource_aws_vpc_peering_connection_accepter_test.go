@@ -52,6 +52,13 @@ func TestAccAWSVPCPeeringConnectionAccepter_sameRegionSameAccount(t *testing.T) 
 					resource.TestCheckResourceAttr(resourceNameAccepter, "accept_status", "active"),
 				),
 			},
+			{
+				Config:                  testAccAwsVPCPeeringConnectionAccepterConfigSameRegionSameAccount(rName),
+				ResourceName:            resourceNameAccepter,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"auto_accept"},
+			},
 		},
 	})
 }
@@ -90,6 +97,13 @@ func TestAccAWSVPCPeeringConnectionAccepter_differentRegionSameAccount(t *testin
 					resource.TestCheckResourceAttr(resourceNameAccepter, "peer_region", testAccGetAlternateRegion()),
 					resource.TestCheckResourceAttr(resourceNameAccepter, "accept_status", "active"),
 				),
+			},
+			{
+				Config:                  testAccAwsVPCPeeringConnectionAccepterConfigDifferentRegionSameAccount(rName),
+				ResourceName:            resourceNameAccepter,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"auto_accept"},
 			},
 		},
 	})

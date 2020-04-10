@@ -95,7 +95,7 @@ resource "aws_ssm_maintenance_window_task" "example" {
       notification_config {
         notification_arn    = "${aws_sns_topic.example.arn}"
         notification_events = ["All"]
-        notification_type   = ["Command"]
+        notification_type   = "Command"
       }
 
       parameter {

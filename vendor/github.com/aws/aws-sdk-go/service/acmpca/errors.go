@@ -2,6 +2,10 @@
 
 package acmpca
 
+import (
+	"github.com/aws/aws-sdk-go/private/protocol"
+)
+
 const (
 
 	// ErrCodeCertificateMismatchException for service response error code
@@ -120,3 +124,24 @@ const (
 	// is contained in the exception message field.
 	ErrCodeTooManyTagsException = "TooManyTagsException"
 )
+
+var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
+	"CertificateMismatchException":     newErrorCertificateMismatchException,
+	"ConcurrentModificationException":  newErrorConcurrentModificationException,
+	"InvalidArgsException":             newErrorInvalidArgsException,
+	"InvalidArnException":              newErrorInvalidArnException,
+	"InvalidNextTokenException":        newErrorInvalidNextTokenException,
+	"InvalidPolicyException":           newErrorInvalidPolicyException,
+	"InvalidRequestException":          newErrorInvalidRequestException,
+	"InvalidStateException":            newErrorInvalidStateException,
+	"InvalidTagException":              newErrorInvalidTagException,
+	"LimitExceededException":           newErrorLimitExceededException,
+	"MalformedCSRException":            newErrorMalformedCSRException,
+	"MalformedCertificateException":    newErrorMalformedCertificateException,
+	"PermissionAlreadyExistsException": newErrorPermissionAlreadyExistsException,
+	"RequestAlreadyProcessedException": newErrorRequestAlreadyProcessedException,
+	"RequestFailedException":           newErrorRequestFailedException,
+	"RequestInProgressException":       newErrorRequestInProgressException,
+	"ResourceNotFoundException":        newErrorResourceNotFoundException,
+	"TooManyTagsException":             newErrorTooManyTagsException,
+}

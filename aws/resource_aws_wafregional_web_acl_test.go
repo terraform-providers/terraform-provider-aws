@@ -131,24 +131,62 @@ func TestAccAWSWafRegionalWebAcl_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSWafRegionalWebAclExists(resourceName, &v),
 					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "waf-regional", regexp.MustCompile(`webacl/.+`)),
-					resource.TestCheckResourceAttr(
-						resourceName, "default_action.#", "1"),
-					resource.TestCheckResourceAttr(
-						resourceName, "default_action.0.type", "ALLOW"),
-					resource.TestCheckResourceAttr(
-						resourceName, "name", wafAclName),
-					resource.TestCheckResourceAttr(
-						resourceName, "rule.#", "1"),
-					resource.TestCheckResourceAttr(
-						resourceName, "metric_name", wafAclName),
-					resource.TestCheckResourceAttr(
-						resourceName, "logging_configuration.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "default_action.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "default_action.0.type", "ALLOW"),
+					resource.TestCheckResourceAttr(resourceName, "name", wafAclName),
+					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "metric_name", wafAclName),
+					resource.TestCheckResourceAttr(resourceName, "logging_configuration.#", "0"),
 				),
 			},
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSWafRegionalWebAcl_tags(t *testing.T) {
+	var v waf.WebACL
+	wafAclName := fmt.Sprintf("wafacl%s", acctest.RandString(5))
+	resourceName := "aws_wafregional_web_acl.waf_acl"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSWafRegionalWebAclDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSWafRegionalWebAclConfigTags1(wafAclName, "key1", "value1"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSWafRegionalWebAclExists(resourceName, &v),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAWSWafRegionalWebAclConfigTags2(wafAclName, "key1", "value1updated", "key2", "value2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSWafRegionalWebAclExists(resourceName, &v),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1updated"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
+				),
+			},
+			{
+				Config: testAccAWSWafRegionalWebAclConfigTags1(wafAclName, "key2", "value2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSWafRegionalWebAclExists(resourceName, &v),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
+				),
 			},
 		},
 	})
@@ -168,16 +206,11 @@ func TestAccAWSWafRegionalWebAcl_createRateBased(t *testing.T) {
 				Config: testAccAWSWafRegionalWebAclConfigRateBased(wafAclName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSWafRegionalWebAclExists(resourceName, &v),
-					resource.TestCheckResourceAttr(
-						resourceName, "default_action.#", "1"),
-					resource.TestCheckResourceAttr(
-						resourceName, "default_action.0.type", "ALLOW"),
-					resource.TestCheckResourceAttr(
-						resourceName, "name", wafAclName),
-					resource.TestCheckResourceAttr(
-						resourceName, "rule.#", "1"),
-					resource.TestCheckResourceAttr(
-						resourceName, "metric_name", wafAclName),
+					resource.TestCheckResourceAttr(resourceName, "default_action.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "default_action.0.type", "ALLOW"),
+					resource.TestCheckResourceAttr(resourceName, "name", wafAclName),
+					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "metric_name", wafAclName),
 				),
 			},
 		},
@@ -198,16 +231,11 @@ func TestAccAWSWafRegionalWebAcl_createGroup(t *testing.T) {
 				Config: testAccAWSWafRegionalWebAclConfigGroup(wafAclName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSWafRegionalWebAclExists(resourceName, &v),
-					resource.TestCheckResourceAttr(
-						resourceName, "default_action.#", "1"),
-					resource.TestCheckResourceAttr(
-						resourceName, "default_action.0.type", "ALLOW"),
-					resource.TestCheckResourceAttr(
-						resourceName, "name", wafAclName),
-					resource.TestCheckResourceAttr(
-						resourceName, "rule.#", "1"),
-					resource.TestCheckResourceAttr(
-						resourceName, "metric_name", wafAclName),
+					resource.TestCheckResourceAttr(resourceName, "default_action.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "default_action.0.type", "ALLOW"),
+					resource.TestCheckResourceAttr(resourceName, "name", wafAclName),
+					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "metric_name", wafAclName),
 				),
 			},
 			{
@@ -234,32 +262,22 @@ func TestAccAWSWafRegionalWebAcl_changeNameForceNew(t *testing.T) {
 				Config: testAccAWSWafRegionalWebAclConfig(wafAclName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSWafRegionalWebAclExists(resourceName, &before),
-					resource.TestCheckResourceAttr(
-						resourceName, "default_action.#", "1"),
-					resource.TestCheckResourceAttr(
-						resourceName, "default_action.0.type", "ALLOW"),
-					resource.TestCheckResourceAttr(
-						resourceName, "name", wafAclName),
-					resource.TestCheckResourceAttr(
-						resourceName, "rule.#", "1"),
-					resource.TestCheckResourceAttr(
-						resourceName, "metric_name", wafAclName),
+					resource.TestCheckResourceAttr(resourceName, "default_action.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "default_action.0.type", "ALLOW"),
+					resource.TestCheckResourceAttr(resourceName, "name", wafAclName),
+					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "metric_name", wafAclName),
 				),
 			},
 			{
 				Config: testAccAWSWafRegionalWebAclConfig_changeName(wafAclNewName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSWafRegionalWebAclExists(resourceName, &after),
-					resource.TestCheckResourceAttr(
-						resourceName, "default_action.#", "1"),
-					resource.TestCheckResourceAttr(
-						resourceName, "default_action.0.type", "ALLOW"),
-					resource.TestCheckResourceAttr(
-						resourceName, "name", wafAclNewName),
-					resource.TestCheckResourceAttr(
-						resourceName, "rule.#", "1"),
-					resource.TestCheckResourceAttr(
-						resourceName, "metric_name", wafAclNewName),
+					resource.TestCheckResourceAttr(resourceName, "default_action.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "default_action.0.type", "ALLOW"),
+					resource.TestCheckResourceAttr(resourceName, "name", wafAclNewName),
+					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "metric_name", wafAclNewName),
 				),
 			},
 			{
@@ -286,32 +304,22 @@ func TestAccAWSWafRegionalWebAcl_changeDefaultAction(t *testing.T) {
 				Config: testAccAWSWafRegionalWebAclConfig(wafAclName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSWafRegionalWebAclExists(resourceName, &before),
-					resource.TestCheckResourceAttr(
-						resourceName, "default_action.#", "1"),
-					resource.TestCheckResourceAttr(
-						resourceName, "default_action.0.type", "ALLOW"),
-					resource.TestCheckResourceAttr(
-						resourceName, "name", wafAclName),
-					resource.TestCheckResourceAttr(
-						resourceName, "rule.#", "1"),
-					resource.TestCheckResourceAttr(
-						resourceName, "metric_name", wafAclName),
+					resource.TestCheckResourceAttr(resourceName, "default_action.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "default_action.0.type", "ALLOW"),
+					resource.TestCheckResourceAttr(resourceName, "name", wafAclName),
+					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "metric_name", wafAclName),
 				),
 			},
 			{
 				Config: testAccAWSWafRegionalWebAclConfig_changeDefaultAction(wafAclNewName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSWafRegionalWebAclExists(resourceName, &after),
-					resource.TestCheckResourceAttr(
-						resourceName, "default_action.#", "1"),
-					resource.TestCheckResourceAttr(
-						resourceName, "default_action.0.type", "BLOCK"),
-					resource.TestCheckResourceAttr(
-						resourceName, "name", wafAclNewName),
-					resource.TestCheckResourceAttr(
-						resourceName, "rule.#", "1"),
-					resource.TestCheckResourceAttr(
-						resourceName, "metric_name", wafAclNewName),
+					resource.TestCheckResourceAttr(resourceName, "default_action.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "default_action.0.type", "BLOCK"),
+					resource.TestCheckResourceAttr(resourceName, "name", wafAclNewName),
+					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "metric_name", wafAclNewName),
 				),
 			},
 			{
@@ -359,14 +367,10 @@ func TestAccAWSWafRegionalWebAcl_noRules(t *testing.T) {
 				Config: testAccAWSWafRegionalWebAclConfig_noRules(wafAclName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSWafRegionalWebAclExists(resourceName, &v),
-					resource.TestCheckResourceAttr(
-						resourceName, "default_action.#", "1"),
-					resource.TestCheckResourceAttr(
-						resourceName, "default_action.0.type", "ALLOW"),
-					resource.TestCheckResourceAttr(
-						resourceName, "name", wafAclName),
-					resource.TestCheckResourceAttr(
-						resourceName, "rule.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "default_action.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "default_action.0.type", "ALLOW"),
+					resource.TestCheckResourceAttr(resourceName, "name", wafAclName),
+					resource.TestCheckResourceAttr(resourceName, "rule.#", "0"),
 				),
 			},
 			{
@@ -395,14 +399,10 @@ func TestAccAWSWafRegionalWebAcl_changeRules(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSWafRegionalRuleExists("aws_wafregional_rule.wafrule", &r),
 					testAccCheckAWSWafRegionalWebAclExists(resourceName, &v),
-					resource.TestCheckResourceAttr(
-						resourceName, "default_action.#", "1"),
-					resource.TestCheckResourceAttr(
-						resourceName, "default_action.0.type", "ALLOW"),
-					resource.TestCheckResourceAttr(
-						resourceName, "name", wafAclName),
-					resource.TestCheckResourceAttr(
-						resourceName, "rule.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "default_action.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "default_action.0.type", "ALLOW"),
+					resource.TestCheckResourceAttr(resourceName, "name", wafAclName),
+					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
 					computeWafRegionalWebAclRuleIndex(&r.RuleId, 1, "REGULAR", "BLOCK", &idx),
 					testCheckResourceAttrWithIndexesAddr(resourceName, "rule.%d.priority", &idx, "1"),
 				),
@@ -411,14 +411,10 @@ func TestAccAWSWafRegionalWebAcl_changeRules(t *testing.T) {
 				Config: testAccAWSWafRegionalWebAclConfig_changeRules(wafAclName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSWafRegionalWebAclExists(resourceName, &v),
-					resource.TestCheckResourceAttr(
-						resourceName, "default_action.#", "1"),
-					resource.TestCheckResourceAttr(
-						resourceName, "default_action.0.type", "ALLOW"),
-					resource.TestCheckResourceAttr(
-						resourceName, "name", wafAclName),
-					resource.TestCheckResourceAttr(
-						resourceName, "rule.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "default_action.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "default_action.0.type", "ALLOW"),
+					resource.TestCheckResourceAttr(resourceName, "name", wafAclName),
+					resource.TestCheckResourceAttr(resourceName, "rule.#", "2"),
 				),
 			},
 			{
@@ -602,13 +598,13 @@ func testAccCheckAWSWafRegionalWebAclExists(n string, v *waf.WebACL) resource.Te
 func testAccAWSWafRegionalWebAclConfig(name string) string {
 	return fmt.Sprintf(`
 resource "aws_wafregional_rule" "wafrule" {
-  name        = "%s"
-  metric_name = "%s"
+  name        = %[1]q
+  metric_name = %[1]q
 }
 
 resource "aws_wafregional_web_acl" "waf_acl" {
-  name        = "%s"
-  metric_name = "%s"
+  name        = %[1]q
+  metric_name = %[1]q
 
   default_action {
     type = "ALLOW"
@@ -623,22 +619,85 @@ resource "aws_wafregional_web_acl" "waf_acl" {
     rule_id  = "${aws_wafregional_rule.wafrule.id}"
   }
 }
-`, name, name, name, name)
+`, name)
+}
+
+func testAccAWSWafRegionalWebAclConfigTags1(name, tagKey1, tagValue1 string) string {
+	return fmt.Sprintf(`
+resource "aws_wafregional_rule" "wafrule" {
+  name        = %[1]q
+  metric_name = %[1]q
+}
+
+resource "aws_wafregional_web_acl" "waf_acl" {
+  name        = %[1]q
+  metric_name = %[1]q
+
+  default_action {
+    type = "ALLOW"
+  }
+
+  rule {
+    action {
+      type = "BLOCK"
+    }
+
+    priority = 1
+    rule_id  = "${aws_wafregional_rule.wafrule.id}"
+  }
+
+  tags = {
+    %[2]q = %[3]q
+  }
+}
+`, name, tagKey1, tagValue1)
+}
+
+func testAccAWSWafRegionalWebAclConfigTags2(name, tagKey1, tagValue1, tagKey2, tagValue2 string) string {
+	return fmt.Sprintf(`
+resource "aws_wafregional_rule" "wafrule" {
+  name        = %[1]q
+  metric_name = %[1]q
+}
+
+resource "aws_wafregional_web_acl" "waf_acl" {
+  name        = %[1]q
+  metric_name = %[1]q
+
+  default_action {
+    type = "ALLOW"
+  }
+
+  rule {
+    action {
+      type = "BLOCK"
+    }
+
+    priority = 1
+    rule_id  = "${aws_wafregional_rule.wafrule.id}"
+  }
+
+  tags = {
+    %[2]q = %[3]q
+    %[4]q = %[5]q
+  }
+}
+`, name, tagKey1, tagValue1, tagKey2, tagValue2)
 }
 
 func testAccAWSWafRegionalWebAclConfigRateBased(name string) string {
 	return fmt.Sprintf(`
 resource "aws_wafregional_rate_based_rule" "wafrule" {
-  name        = "%s"
-  metric_name = "%s"
+  name        = %[1]q
+  metric_name = %[1]q
 
   rate_key   = "IP"
   rate_limit = 2000
 }
 
 resource "aws_wafregional_web_acl" "waf_acl" {
-  name        = "%s"
-  metric_name = "%s"
+  name        = %[1]q
+  metric_name = %[1]q
 
   default_action {
     type = "ALLOW"
@@ -654,19 +713,19 @@ resource "aws_wafregional_web_acl" "waf_acl" {
     rule_id  = "${aws_wafregional_rate_based_rule.wafrule.id}"
   }
 }
-`, name, name, name, name)
+`, name)
 }
 
 func testAccAWSWafRegionalWebAclConfigGroup(name string) string {
 	return fmt.Sprintf(`
 resource "aws_wafregional_rule_group" "wafrulegroup" {
-  name        = "%s"
-  metric_name = "%s"
+  name        = %[1]q
+  metric_name = %[1]q
 }
 
 resource "aws_wafregional_web_acl" "waf_acl" {
-  name        = "%s"
-  metric_name = "%s"
+  name        = %[1]q
+  metric_name = %[1]q
 
   default_action {
     type = "ALLOW"
@@ -682,19 +741,19 @@ resource "aws_wafregional_web_acl" "waf_acl" {
     rule_id  = "${aws_wafregional_rule_group.wafrulegroup.id}" # todo
   }
 }
-`, name, name, name, name)
+`, name)
 }
 
 func testAccAWSWafRegionalWebAclConfig_changeName(name string) string {
 	return fmt.Sprintf(`
 resource "aws_wafregional_rule" "wafrule" {
-  name        = "%s"
-  metric_name = "%s"
+  name        = %[1]q
+  metric_name = %[1]q
 }
 
 resource "aws_wafregional_web_acl" "waf_acl" {
-  name        = "%s"
-  metric_name = "%s"
+  name        = %[1]q
+  metric_name = %[1]q
 
   default_action {
     type = "ALLOW"
@@ -709,19 +768,19 @@ resource "aws_wafregional_web_acl" "waf_acl" {
     rule_id  = "${aws_wafregional_rule.wafrule.id}"
   }
 }
-`, name, name, name, name)
+`, name)
 }
 
 func testAccAWSWafRegionalWebAclConfig_changeDefaultAction(name string) string {
 	return fmt.Sprintf(`
 resource "aws_wafregional_rule" "wafrule" {
-  name        = "%s"
-  metric_name = "%s"
+  name        = %[1]q
+  metric_name = %[1]q
 }
 
 resource "aws_wafregional_web_acl" "waf_acl" {
-  name        = "%s"
-  metric_name = "%s"
+  name        = %[1]q
+  metric_name = %[1]q
 
   default_action {
     type = "BLOCK"
@@ -736,32 +795,32 @@ resource "aws_wafregional_web_acl" "waf_acl" {
     rule_id  = "${aws_wafregional_rule.wafrule.id}"
   }
 }
-`, name, name, name, name)
+`, name)
 }
 
 func testAccAWSWafRegionalWebAclConfig_noRules(name string) string {
 	return fmt.Sprintf(`
 resource "aws_wafregional_web_acl" "waf_acl" {
-  name        = "%s"
-  metric_name = "%s"
+  name        = %[1]q
+  metric_name = %[1]q
 
   default_action {
     type = "ALLOW"
   }
 }
-`, name, name)
+`, name)
 }
 
 func testAccAWSWafRegionalWebAclConfig_changeRules(name string) string {
 	return fmt.Sprintf(`
 resource "aws_wafregional_rule" "wafrule" {
-  name        = "%s"
-  metric_name = "%s"
+  name        = %[1]q
+  metric_name = %[1]q
 }
 
 resource "aws_wafregional_web_acl" "waf_acl" {
-  name        = "%s"
-  metric_name = "%s"
+  name        = %[1]q
+  metric_name = %[1]q
 
   default_action {
     type = "ALLOW"
@@ -785,7 +844,7 @@ resource "aws_wafregional_web_acl" "waf_acl" {
     rule_id  = "${aws_wafregional_rule.wafrule.id}"
   }
 }
-`, name, name, name, name)
+`, name)
 }
 
 func testAccAWSWafRegionalWebAclConfigLoggingConfiguration(rName string) string {

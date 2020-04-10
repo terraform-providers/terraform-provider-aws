@@ -5,8 +5,10 @@ import (
 	"log"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/apigateway"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func dataSourceAwsApiGatewayRestApi() *schema.Resource {
@@ -21,12 +23,60 @@ func dataSourceAwsApiGatewayRestApi() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"arn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"description": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"policy": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"api_key_source": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"minimum_compression_size": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
+			"binary_media_types": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
+			"endpoint_configuration": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"types": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
+						"vpc_endpoint_ids": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
+					},
+				},
+			},
+			"execution_arn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"tags": tagsSchemaComputed(),
 		},
 	}
 }
 
 func dataSourceAwsApiGatewayRestApiRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	conn := meta.(*AWSClient).apigatewayconn
 	params := &apigateway.GetRestApisInput{}
 
 	target := d.Get("name")
@@ -55,19 +105,54 @@ func dataSourceAwsApiGatewayRestApiRead(d *schema.ResourceData, meta interface{}
 
 	d.SetId(*match.Id)
 
-	resp, err := conn.GetResources(&apigateway.GetResourcesInput{
+	restApiArn := arn.ARN{
+		Partition: meta.(*AWSClient).partition,
+		Service:   "apigateway",
+		Region:    meta.(*AWSClient).region,
+		Resource:  fmt.Sprintf("/restapis/%s", d.Id()),
+	}.String()
+	d.Set("arn", restApiArn)
+	d.Set("description", match.Description)
+	d.Set("policy", match.Policy)
+	d.Set("api_key_source", match.ApiKeySource)
+	d.Set("binary_media_types", match.BinaryMediaTypes)
+
+	if match.MinimumCompressionSize == nil {
+		d.Set("minimum_compression_size", -1)
+	} else {
+		d.Set("minimum_compression_size", match.MinimumCompressionSize)
+	}
+
+	if err := d.Set("endpoint_configuration", flattenApiGatewayEndpointConfiguration(match.EndpointConfiguration)); err != nil {
+		return fmt.Errorf("error setting endpoint_configuration: %s", err)
+	}
+
+	if err := d.Set("tags", keyvaluetags.ApigatewayKeyValueTags(match.Tags).IgnoreAws().Map()); err != nil {
+		return fmt.Errorf("error setting tags: %s", err)
+	}
+
+	executionArn := arn.ARN{
+		Partition: meta.(*AWSClient).partition,
+		Service:   "execute-api",
+		Region:    meta.(*AWSClient).region,
+		AccountID: meta.(*AWSClient).accountid,
+		Resource:  d.Id(),
+	}.String()
+	d.Set("execution_arn", executionArn)
+
+	resourceParams := &apigateway.GetResourcesInput{
 		RestApiId: aws.String(d.Id()),
-	})
-	if err != nil {
-		return err
 	}
 
-	for _, item := range resp.Items {
-		if *item.Path == "/" {
-			d.Set("root_resource_id", item.Id)
-			break
+	err = conn.GetResourcesPages(resourceParams, func(page *apigateway.GetResourcesOutput, lastPage bool) bool {
+		for _, item := range page.Items {
+			if *item.Path == "/" {
+				d.Set("root_resource_id", item.Id)
+				return false
+			}
 		}
-	}
+		return !lastPage
+	})
 
-	return nil
+	return err
 }

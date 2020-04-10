@@ -2,31 +2,36 @@ package aws
 
 import (
 	"fmt"
-	"regexp"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
 func TestAccDataSourceAwsKmsKey_basic(t *testing.T) {
+	resourceName := "aws_kms_key.test"
+	datasourceName := "data.aws_kms_key.test"
+	rName := fmt.Sprintf("tf-testacc-kms-key-%s", acctest.RandStringFromCharSet(13, acctest.CharSetAlphaNum))
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAwsKmsKeyConfig,
+				Config: testAccDataSourceAwsKmsKeyConfig(rName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccDataSourceAwsKmsKeyCheck("data.aws_kms_key.arbitrary"),
-					resource.TestMatchResourceAttr("data.aws_kms_key.arbitrary", "arn", regexp.MustCompile("^arn:[^:]+:kms:[^:]+:[^:]+:key/.+")),
-					resource.TestCheckResourceAttrSet("data.aws_kms_key.arbitrary", "aws_account_id"),
-					resource.TestCheckResourceAttrSet("data.aws_kms_key.arbitrary", "creation_date"),
-					resource.TestCheckResourceAttr("data.aws_kms_key.arbitrary", "description", "Terraform acc test"),
-					resource.TestCheckResourceAttr("data.aws_kms_key.arbitrary", "enabled", "true"),
-					resource.TestCheckResourceAttrSet("data.aws_kms_key.arbitrary", "key_manager"),
-					resource.TestCheckResourceAttrSet("data.aws_kms_key.arbitrary", "key_state"),
-					resource.TestCheckResourceAttr("data.aws_kms_key.arbitrary", "key_usage", "ENCRYPT_DECRYPT"),
-					resource.TestCheckResourceAttrSet("data.aws_kms_key.arbitrary", "origin"),
+					testAccDataSourceAwsKmsKeyCheck(datasourceName),
+					resource.TestCheckResourceAttrPair(datasourceName, "arn", resourceName, "arn"),
+					resource.TestCheckResourceAttrPair(datasourceName, "customer_master_key_spec", resourceName, "customer_master_key_spec"),
+					resource.TestCheckResourceAttrPair(datasourceName, "description", resourceName, "description"),
+					resource.TestCheckResourceAttrPair(datasourceName, "enabled", resourceName, "is_enabled"),
+					resource.TestCheckResourceAttrPair(datasourceName, "key_usage", resourceName, "key_usage"),
+					resource.TestCheckResourceAttrSet(datasourceName, "aws_account_id"),
+					resource.TestCheckResourceAttrSet(datasourceName, "creation_date"),
+					resource.TestCheckResourceAttrSet(datasourceName, "key_manager"),
+					resource.TestCheckResourceAttrSet(datasourceName, "key_state"),
+					resource.TestCheckResourceAttrSet(datasourceName, "origin"),
 				),
 			},
 		},
@@ -35,41 +40,23 @@ func TestAccDataSourceAwsKmsKey_basic(t *testing.T) {
 
 func testAccDataSourceAwsKmsKeyCheck(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[name]
+		_, ok := s.RootModule().Resources[name]
 		if !ok {
 			return fmt.Errorf("root module has no resource called %s", name)
-		}
-
-		kmsKeyRs, ok := s.RootModule().Resources["aws_kms_key.arbitrary"]
-		if !ok {
-			return fmt.Errorf("can't find aws_kms_key.arbitrary in state")
-		}
-
-		attr := rs.Primary.Attributes
-
-		checkProperties := []string{"arn", "key_usage", "description"}
-
-		for _, p := range checkProperties {
-			if attr[p] != kmsKeyRs.Primary.Attributes[p] {
-				return fmt.Errorf(
-					"%s is %s; want %s",
-					p,
-					attr[p],
-					kmsKeyRs.Primary.Attributes[p],
-				)
-			}
 		}
 
 		return nil
 	}
 }
 
-const testAccDataSourceAwsKmsKeyConfig = `
-resource "aws_kms_key" "arbitrary" {
-    description = "Terraform acc test"
-    deletion_window_in_days = 7
+func testAccDataSourceAwsKmsKeyConfig(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_kms_key" "test" {
+  description             = %[1]q
+  deletion_window_in_days = 7
 }
 
-data "aws_kms_key" "arbitrary" {
-  key_id = "${aws_kms_key.arbitrary.key_id}"
-}`
+data "aws_kms_key" "test" {
+  key_id = "${aws_kms_key.test.key_id}"
+}`, rName)
+}

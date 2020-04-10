@@ -630,6 +630,25 @@ resource "aws_s3_bucket" "destination" {
   force_destroy = true
 }
 
+resource "aws_iam_role_policy" "destination" {
+  role   = aws_iam_role.destination.id
+  policy = <<POLICY
+{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Action": [
+      "s3:*"
+    ],
+    "Effect": "Allow",
+    "Resource": [
+      "${aws_s3_bucket.destination.arn}",
+      "${aws_s3_bucket.destination.arn}/*"
+    ]
+  }]
+}
+POLICY
+}
+
 resource "aws_datasync_location_s3" "destination" {
   s3_bucket_arn = "${aws_s3_bucket.destination.arn}"
   subdirectory  = "/destination"
@@ -637,6 +656,8 @@ resource "aws_datasync_location_s3" "destination" {
   s3_config {
     bucket_access_role_arn = "${aws_iam_role.destination.arn}"
   }
+
+  depends_on = [aws_iam_role_policy.destination]
 }
 `, rName, rName)
 }

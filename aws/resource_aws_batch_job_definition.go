@@ -6,10 +6,12 @@ import (
 	"encoding/json"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/private/protocol/json/jsonutil"
 	"github.com/aws/aws-sdk-go/service/batch"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/batch/equivalency"
 )
 
 func resourceAwsBatchJobDefinition() *schema.Resource {
@@ -17,6 +19,13 @@ func resourceAwsBatchJobDefinition() *schema.Resource {
 		Create: resourceAwsBatchJobDefinitionCreate,
 		Read:   resourceAwsBatchJobDefinitionRead,
 		Delete: resourceAwsBatchJobDefinitionDelete,
+
+		Importer: &schema.ResourceImporter{
+			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+				d.Set("arn", d.Id())
+				return []*schema.ResourceData{d}, nil
+			},
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -33,8 +42,12 @@ func resourceAwsBatchJobDefinition() *schema.Resource {
 					json, _ := structure.NormalizeJsonString(v)
 					return json
 				},
-				DiffSuppressFunc: suppressEquivalentJsonDiffs,
-				ValidateFunc:     validateAwsBatchJobContainerProperties,
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					equal, _ := equivalency.EquivalentBatchContainerPropertiesJSON(old, new)
+
+					return equal
+				},
+				ValidateFunc: validateAwsBatchJobContainerProperties,
 			},
 			"parameters": {
 				Type:     schema.TypeMap,
@@ -142,7 +155,19 @@ func resourceAwsBatchJobDefinitionRead(d *schema.ResourceData, meta interface{})
 		return nil
 	}
 	d.Set("arn", job.JobDefinitionArn)
-	d.Set("container_properties", job.ContainerProperties)
+
+	containerProperties, err := flattenBatchContainerProperties(job.ContainerProperties)
+
+	if err != nil {
+		return fmt.Errorf("error converting Batch Container Properties to JSON: %s", err)
+	}
+
+	if err := d.Set("container_properties", containerProperties); err != nil {
+		return fmt.Errorf("error setting container_properties: %s", err)
+	}
+
+	d.Set("name", job.JobDefinitionName)
+
 	d.Set("parameters", aws.StringValueMap(job.Parameters))
 
 	if err := d.Set("retry_strategy", flattenBatchRetryStrategy(job.RetryStrategy)); err != nil {
@@ -213,6 +238,17 @@ func expandBatchJobContainerProperties(rawProps string) (*batch.ContainerPropert
 	}
 
 	return props, nil
+}
+
+// Convert batch.ContainerProperties object into its JSON representation
+func flattenBatchContainerProperties(containerProperties *batch.ContainerProperties) (string, error) {
+	b, err := jsonutil.BuildJSON(containerProperties)
+
+	if err != nil {
+		return "", err
+	}
+
+	return string(b), nil
 }
 
 func expandJobDefinitionParameters(params map[string]interface{}) map[string]*string {

@@ -52,7 +52,7 @@ resource "aws_lambda_function" "test_lambda" {
   # source_code_hash = "${base64sha256(file("lambda_function_payload.zip"))}"
   source_code_hash = "${filebase64sha256("lambda_function_payload.zip")}"
 
-  runtime = "nodejs8.10"
+  runtime = "nodejs12.x"
 
   environment {
     variables = {
@@ -84,8 +84,8 @@ For more information about CloudWatch Logs for Lambda, see the [Lambda User Guid
 ```hcl
 resource "aws_lambda_function" "test_lambda" {
   function_name = "${var.lambda_function_name}"
-  ...
-  depends_on    = ["aws_iam_role_policy_attachment.lambda_logs", "aws_cloudwatch_log_group.example"]
+  # ... other configuration ...
+  depends_on = ["aws_iam_role_policy_attachment.lambda_logs", "aws_cloudwatch_log_group.example"]
 }
 
 # This is to optionally manage the CloudWatch Log Group for the Lambda Function.
@@ -97,8 +97,8 @@ resource "aws_cloudwatch_log_group" "example" {
 
 # See also the following AWS managed policy: AWSLambdaBasicExecutionRole
 resource "aws_iam_policy" "lambda_logging" {
-  name = "lambda_logging"
-  path = "/"
+  name        = "lambda_logging"
+  path        = "/"
   description = "IAM policy for logging from a lambda"
 
   policy = <<EOF
@@ -120,7 +120,7 @@ EOF
 }
 
 resource "aws_iam_role_policy_attachment" "lambda_logs" {
-  role = "${aws_iam_role.iam_for_lambda.name}"
+  role       = "${aws_iam_role.iam_for_lambda.name}"
   policy_arn = "${aws_iam_policy.lambda_logging.arn}"
 }
 ```
@@ -157,7 +157,7 @@ large files efficiently.
 * `publish` - (Optional) Whether to publish creation/change as new Lambda Function Version. Defaults to `false`.
 * `vpc_config` - (Optional) Provide this to allow your function to access your VPC. Fields documented below. See [Lambda in VPC][7]
 * `environment` - (Optional) The Lambda environment's configuration settings. Fields documented below.
-* `kms_key_arn` - (Optional) The ARN for the KMS encryption key.
+* `kms_key_arn` - (Optional) Amazon Resource Name (ARN) of the AWS Key Management Service (KMS) key that is used to encrypt environment variables. If this configuration is not provided when environment variables are in use, AWS Lambda uses a default service key. If this configuration is provided when environment variables are not in use, the AWS Lambda API does not save this configuration and Terraform will show a perpetual difference of adding the key. To fix the perpetual difference, remove this configuration.
 * `source_code_hash` - (Optional) Used to trigger updates. Must be set to a base64-encoded SHA256 hash of the package file specified with either `filename` or `s3_key`. The usual way to set this is `filebase64sha256("file.zip")` (Terraform 0.11.12 and later) or `base64sha256(file("file.zip"))` (Terraform 0.11.11 and earlier), where "file.zip" is the local filename of the lambda function source archive.
 * `tags` - (Optional) A mapping of tags to assign to the object.
 

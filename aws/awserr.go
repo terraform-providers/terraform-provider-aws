@@ -21,6 +21,19 @@ func isAWSErr(err error, code string, message string) bool {
 	return false
 }
 
+// Returns true if the error matches all these conditions:
+//  * err is of type awserr.RequestFailure
+//  * RequestFailure.StatusCode() matches status code
+// It is always preferable to use isAWSErr() except in older APIs (e.g. S3)
+// that sometimes only respond with status codes.
+func isAWSErrRequestFailureStatusCode(err error, statusCode int) bool {
+	var awsErr awserr.RequestFailure
+	if errors.As(err, &awsErr) {
+		return awsErr.StatusCode() == statusCode
+	}
+	return false
+}
+
 func retryOnAwsCode(code string, f func() (interface{}, error)) (interface{}, error) {
 	var resp interface{}
 	err := resource.Retry(2*time.Minute, func() *resource.RetryError {

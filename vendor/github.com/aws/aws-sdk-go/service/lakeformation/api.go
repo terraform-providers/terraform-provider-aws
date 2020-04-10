@@ -66,11 +66,11 @@ func (c *LakeFormation) BatchGrantPermissionsRequest(input *BatchGrantPermission
 // See the AWS API reference guide for AWS Lake Formation's
 // API operation BatchGrantPermissions for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidInputException "InvalidInputException"
+// Returned Error Types:
+//   * InvalidInputException
 //   The input provided was not valid.
 //
-//   * ErrCodeOperationTimeoutException "OperationTimeoutException"
+//   * OperationTimeoutException
 //   The operation timed out.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/lakeformation-2017-03-31/BatchGrantPermissions
@@ -148,11 +148,11 @@ func (c *LakeFormation) BatchRevokePermissionsRequest(input *BatchRevokePermissi
 // See the AWS API reference guide for AWS Lake Formation's
 // API operation BatchRevokePermissions for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidInputException "InvalidInputException"
+// Returned Error Types:
+//   * InvalidInputException
 //   The input provided was not valid.
 //
-//   * ErrCodeOperationTimeoutException "OperationTimeoutException"
+//   * OperationTimeoutException
 //   The operation timed out.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/lakeformation-2017-03-31/BatchRevokePermissions
@@ -234,17 +234,17 @@ func (c *LakeFormation) DeregisterResourceRequest(input *DeregisterResourceInput
 // See the AWS API reference guide for AWS Lake Formation's
 // API operation DeregisterResource for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidInputException "InvalidInputException"
+// Returned Error Types:
+//   * InvalidInputException
 //   The input provided was not valid.
 //
-//   * ErrCodeInternalServiceException "InternalServiceException"
+//   * InternalServiceException
 //   An internal service error occurred.
 //
-//   * ErrCodeOperationTimeoutException "OperationTimeoutException"
+//   * OperationTimeoutException
 //   The operation timed out.
 //
-//   * ErrCodeEntityNotFoundException "EntityNotFoundException"
+//   * EntityNotFoundException
 //   A specified entity does not exist
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/lakeformation-2017-03-31/DeregisterResource
@@ -323,17 +323,17 @@ func (c *LakeFormation) DescribeResourceRequest(input *DescribeResourceInput) (r
 // See the AWS API reference guide for AWS Lake Formation's
 // API operation DescribeResource for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidInputException "InvalidInputException"
+// Returned Error Types:
+//   * InvalidInputException
 //   The input provided was not valid.
 //
-//   * ErrCodeInternalServiceException "InternalServiceException"
+//   * InternalServiceException
 //   An internal service error occurred.
 //
-//   * ErrCodeOperationTimeoutException "OperationTimeoutException"
+//   * OperationTimeoutException
 //   The operation timed out.
 //
-//   * ErrCodeEntityNotFoundException "EntityNotFoundException"
+//   * EntityNotFoundException
 //   A specified entity does not exist
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/lakeformation-2017-03-31/DescribeResource
@@ -411,14 +411,14 @@ func (c *LakeFormation) GetDataLakeSettingsRequest(input *GetDataLakeSettingsInp
 // See the AWS API reference guide for AWS Lake Formation's
 // API operation GetDataLakeSettings for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInternalServiceException "InternalServiceException"
+// Returned Error Types:
+//   * InternalServiceException
 //   An internal service error occurred.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   The input provided was not valid.
 //
-//   * ErrCodeEntityNotFoundException "EntityNotFoundException"
+//   * EntityNotFoundException
 //   A specified entity does not exist
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/lakeformation-2017-03-31/GetDataLakeSettings
@@ -503,17 +503,17 @@ func (c *LakeFormation) GetEffectivePermissionsForPathRequest(input *GetEffectiv
 // See the AWS API reference guide for AWS Lake Formation's
 // API operation GetEffectivePermissionsForPath for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidInputException "InvalidInputException"
+// Returned Error Types:
+//   * InvalidInputException
 //   The input provided was not valid.
 //
-//   * ErrCodeEntityNotFoundException "EntityNotFoundException"
+//   * EntityNotFoundException
 //   A specified entity does not exist
 //
-//   * ErrCodeOperationTimeoutException "OperationTimeoutException"
+//   * OperationTimeoutException
 //   The operation timed out.
 //
-//   * ErrCodeInternalServiceException "InternalServiceException"
+//   * InternalServiceException
 //   An internal service error occurred.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/lakeformation-2017-03-31/GetEffectivePermissionsForPath
@@ -581,10 +581,12 @@ func (c *LakeFormation) GetEffectivePermissionsForPathPagesWithContext(ctx aws.C
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*GetEffectivePermissionsForPathOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*GetEffectivePermissionsForPathOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -646,14 +648,14 @@ func (c *LakeFormation) GrantPermissionsRequest(input *GrantPermissionsInput) (r
 // See the AWS API reference guide for AWS Lake Formation's
 // API operation GrantPermissions for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
+// Returned Error Types:
+//   * ConcurrentModificationException
 //   Two processes are trying to modify a resource simultaneously.
 //
-//   * ErrCodeEntityNotFoundException "EntityNotFoundException"
+//   * EntityNotFoundException
 //   A specified entity does not exist
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   The input provided was not valid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/lakeformation-2017-03-31/GrantPermissions
@@ -744,14 +746,14 @@ func (c *LakeFormation) ListPermissionsRequest(input *ListPermissionsInput) (req
 // See the AWS API reference guide for AWS Lake Formation's
 // API operation ListPermissions for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidInputException "InvalidInputException"
+// Returned Error Types:
+//   * InvalidInputException
 //   The input provided was not valid.
 //
-//   * ErrCodeOperationTimeoutException "OperationTimeoutException"
+//   * OperationTimeoutException
 //   The operation timed out.
 //
-//   * ErrCodeInternalServiceException "InternalServiceException"
+//   * InternalServiceException
 //   An internal service error occurred.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/lakeformation-2017-03-31/ListPermissions
@@ -819,10 +821,12 @@ func (c *LakeFormation) ListPermissionsPagesWithContext(ctx aws.Context, input *
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListPermissionsOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListPermissionsOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -885,14 +889,14 @@ func (c *LakeFormation) ListResourcesRequest(input *ListResourcesInput) (req *re
 // See the AWS API reference guide for AWS Lake Formation's
 // API operation ListResources for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidInputException "InvalidInputException"
+// Returned Error Types:
+//   * InvalidInputException
 //   The input provided was not valid.
 //
-//   * ErrCodeInternalServiceException "InternalServiceException"
+//   * InternalServiceException
 //   An internal service error occurred.
 //
-//   * ErrCodeOperationTimeoutException "OperationTimeoutException"
+//   * OperationTimeoutException
 //   The operation timed out.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/lakeformation-2017-03-31/ListResources
@@ -960,10 +964,12 @@ func (c *LakeFormation) ListResourcesPagesWithContext(ctx aws.Context, input *Li
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListResourcesOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListResourcesOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -1021,11 +1027,11 @@ func (c *LakeFormation) PutDataLakeSettingsRequest(input *PutDataLakeSettingsInp
 // See the AWS API reference guide for AWS Lake Formation's
 // API operation PutDataLakeSettings for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInternalServiceException "InternalServiceException"
+// Returned Error Types:
+//   * InternalServiceException
 //   An internal service error occurred.
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   The input provided was not valid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/lakeformation-2017-03-31/PutDataLakeSettings
@@ -1113,17 +1119,17 @@ func (c *LakeFormation) RegisterResourceRequest(input *RegisterResourceInput) (r
 // See the AWS API reference guide for AWS Lake Formation's
 // API operation RegisterResource for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidInputException "InvalidInputException"
+// Returned Error Types:
+//   * InvalidInputException
 //   The input provided was not valid.
 //
-//   * ErrCodeInternalServiceException "InternalServiceException"
+//   * InternalServiceException
 //   An internal service error occurred.
 //
-//   * ErrCodeOperationTimeoutException "OperationTimeoutException"
+//   * OperationTimeoutException
 //   The operation timed out.
 //
-//   * ErrCodeAlreadyExistsException "AlreadyExistsException"
+//   * AlreadyExistsException
 //   A resource to be created or added already exists.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/lakeformation-2017-03-31/RegisterResource
@@ -1203,14 +1209,14 @@ func (c *LakeFormation) RevokePermissionsRequest(input *RevokePermissionsInput) 
 // See the AWS API reference guide for AWS Lake Formation's
 // API operation RevokePermissions for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
+// Returned Error Types:
+//   * ConcurrentModificationException
 //   Two processes are trying to modify a resource simultaneously.
 //
-//   * ErrCodeEntityNotFoundException "EntityNotFoundException"
+//   * EntityNotFoundException
 //   A specified entity does not exist
 //
-//   * ErrCodeInvalidInputException "InvalidInputException"
+//   * InvalidInputException
 //   The input provided was not valid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/lakeformation-2017-03-31/RevokePermissions
@@ -1290,17 +1296,17 @@ func (c *LakeFormation) UpdateResourceRequest(input *UpdateResourceInput) (req *
 // See the AWS API reference guide for AWS Lake Formation's
 // API operation UpdateResource for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidInputException "InvalidInputException"
+// Returned Error Types:
+//   * InvalidInputException
 //   The input provided was not valid.
 //
-//   * ErrCodeInternalServiceException "InternalServiceException"
+//   * InternalServiceException
 //   An internal service error occurred.
 //
-//   * ErrCodeOperationTimeoutException "OperationTimeoutException"
+//   * OperationTimeoutException
 //   The operation timed out.
 //
-//   * ErrCodeEntityNotFoundException "EntityNotFoundException"
+//   * EntityNotFoundException
 //   A specified entity does not exist
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/lakeformation-2017-03-31/UpdateResource
@@ -1323,6 +1329,63 @@ func (c *LakeFormation) UpdateResourceWithContext(ctx aws.Context, input *Update
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
+}
+
+// A resource to be created or added already exists.
+type AlreadyExistsException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// A message describing the problem.
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s AlreadyExistsException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AlreadyExistsException) GoString() string {
+	return s.String()
+}
+
+func newErrorAlreadyExistsException(v protocol.ResponseMetadata) error {
+	return &AlreadyExistsException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *AlreadyExistsException) Code() string {
+	return "AlreadyExistsException"
+}
+
+// Message returns the exception's message.
+func (s *AlreadyExistsException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *AlreadyExistsException) OrigErr() error {
+	return nil
+}
+
+func (s *AlreadyExistsException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *AlreadyExistsException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *AlreadyExistsException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 type BatchGrantPermissionsInput struct {
@@ -1660,6 +1723,63 @@ func (s *ColumnWildcard) SetExcludedColumnNames(v []*string) *ColumnWildcard {
 	return s
 }
 
+// Two processes are trying to modify a resource simultaneously.
+type ConcurrentModificationException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// A message describing the problem.
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s ConcurrentModificationException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ConcurrentModificationException) GoString() string {
+	return s.String()
+}
+
+func newErrorConcurrentModificationException(v protocol.ResponseMetadata) error {
+	return &ConcurrentModificationException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *ConcurrentModificationException) Code() string {
+	return "ConcurrentModificationException"
+}
+
+// Message returns the exception's message.
+func (s *ConcurrentModificationException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *ConcurrentModificationException) OrigErr() error {
+	return nil
+}
+
+func (s *ConcurrentModificationException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *ConcurrentModificationException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *ConcurrentModificationException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
 // The AWS Lake Formation principal.
 type DataLakePrincipal struct {
 	_ struct{} `type:"structure"`
@@ -1974,6 +2094,63 @@ func (s DescribeResourceOutput) GoString() string {
 func (s *DescribeResourceOutput) SetResourceInfo(v *ResourceInfo) *DescribeResourceOutput {
 	s.ResourceInfo = v
 	return s
+}
+
+// A specified entity does not exist
+type EntityNotFoundException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// A message describing the problem.
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s EntityNotFoundException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s EntityNotFoundException) GoString() string {
+	return s.String()
+}
+
+func newErrorEntityNotFoundException(v protocol.ResponseMetadata) error {
+	return &EntityNotFoundException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *EntityNotFoundException) Code() string {
+	return "EntityNotFoundException"
+}
+
+// Message returns the exception's message.
+func (s *EntityNotFoundException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *EntityNotFoundException) OrigErr() error {
+	return nil
+}
+
+func (s *EntityNotFoundException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *EntityNotFoundException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *EntityNotFoundException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Contains details about an error.
@@ -2349,6 +2526,120 @@ func (s GrantPermissionsOutput) GoString() string {
 	return s.String()
 }
 
+// An internal service error occurred.
+type InternalServiceException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// A message describing the problem.
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s InternalServiceException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InternalServiceException) GoString() string {
+	return s.String()
+}
+
+func newErrorInternalServiceException(v protocol.ResponseMetadata) error {
+	return &InternalServiceException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *InternalServiceException) Code() string {
+	return "InternalServiceException"
+}
+
+// Message returns the exception's message.
+func (s *InternalServiceException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *InternalServiceException) OrigErr() error {
+	return nil
+}
+
+func (s *InternalServiceException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *InternalServiceException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *InternalServiceException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// The input provided was not valid.
+type InvalidInputException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// A message describing the problem.
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidInputException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidInputException) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidInputException(v protocol.ResponseMetadata) error {
+	return &InvalidInputException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *InvalidInputException) Code() string {
+	return "InvalidInputException"
+}
+
+// Message returns the exception's message.
+func (s *InvalidInputException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *InvalidInputException) OrigErr() error {
+	return nil
+}
+
+func (s *InvalidInputException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *InvalidInputException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *InvalidInputException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
 type ListPermissionsInput struct {
 	_ struct{} `type:"structure"`
 
@@ -2571,6 +2862,63 @@ func (s *ListResourcesOutput) SetNextToken(v string) *ListResourcesOutput {
 func (s *ListResourcesOutput) SetResourceInfoList(v []*ResourceInfo) *ListResourcesOutput {
 	s.ResourceInfoList = v
 	return s
+}
+
+// The operation timed out.
+type OperationTimeoutException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// A message describing the problem.
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s OperationTimeoutException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s OperationTimeoutException) GoString() string {
+	return s.String()
+}
+
+func newErrorOperationTimeoutException(v protocol.ResponseMetadata) error {
+	return &OperationTimeoutException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *OperationTimeoutException) Code() string {
+	return "OperationTimeoutException"
+}
+
+// Message returns the exception's message.
+func (s *OperationTimeoutException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *OperationTimeoutException) OrigErr() error {
+	return nil
+}
+
+func (s *OperationTimeoutException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *OperationTimeoutException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *OperationTimeoutException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Permissions granted to a principal.

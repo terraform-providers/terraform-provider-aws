@@ -138,19 +138,13 @@ func resourceAwsLicenseManagerLicenseConfigurationRead(d *schema.ResourceData, m
 func resourceAwsLicenseManagerLicenseConfigurationUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).licensemanagerconn
 
-	d.Partial(true)
-
 	if d.HasChange("tags") {
 		o, n := d.GetChange("tags")
 
 		if err := keyvaluetags.LicensemanagerUpdateTags(conn, d.Id(), o, n); err != nil {
 			return fmt.Errorf("error updating License Manager License Configuration (%s) tags: %s", d.Id(), err)
 		}
-
-		d.SetPartial("tags")
 	}
-
-	d.Partial(false)
 
 	opts := &licensemanager.UpdateLicenseConfigurationInput{
 		LicenseConfigurationArn: aws.String(d.Id()),

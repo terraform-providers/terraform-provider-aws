@@ -2,6 +2,10 @@
 
 package cloudwatchlogs
 
+import (
+	"github.com/aws/aws-sdk-go/private/protocol"
+)
+
 const (
 
 	// ErrCodeDataAlreadyAcceptedException for service response error code
@@ -25,7 +29,8 @@ const (
 	// ErrCodeInvalidSequenceTokenException for service response error code
 	// "InvalidSequenceTokenException".
 	//
-	// The sequence token is not valid.
+	// The sequence token is not valid. You can get the correct sequence token in
+	// the expectedSequenceToken field in the InvalidSequenceTokenException message.
 	ErrCodeInvalidSequenceTokenException = "InvalidSequenceTokenException"
 
 	// ErrCodeLimitExceededException for service response error code
@@ -74,3 +79,17 @@ const (
 	// The most likely cause is an invalid AWS access key ID or secret key.
 	ErrCodeUnrecognizedClientException = "UnrecognizedClientException"
 )
+
+var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
+	"DataAlreadyAcceptedException":   newErrorDataAlreadyAcceptedException,
+	"InvalidOperationException":      newErrorInvalidOperationException,
+	"InvalidParameterException":      newErrorInvalidParameterException,
+	"InvalidSequenceTokenException":  newErrorInvalidSequenceTokenException,
+	"LimitExceededException":         newErrorLimitExceededException,
+	"MalformedQueryException":        newErrorMalformedQueryException,
+	"OperationAbortedException":      newErrorOperationAbortedException,
+	"ResourceAlreadyExistsException": newErrorResourceAlreadyExistsException,
+	"ResourceNotFoundException":      newErrorResourceNotFoundException,
+	"ServiceUnavailableException":    newErrorServiceUnavailableException,
+	"UnrecognizedClientException":    newErrorUnrecognizedClientException,
+}

@@ -105,6 +105,14 @@ func resourceAwsBackupSelectionCreate(d *schema.ResourceData, meta interface{}) 
 		// Retry on the following error:
 		// InvalidParameterValueException: IAM Role arn:aws:iam::123456789012:role/XXX cannot be assumed by AWS Backup
 		if isAWSErr(err, backup.ErrCodeInvalidParameterValueException, "cannot be assumed") {
+			log.Printf("[DEBUG] Received %s, retrying create backup selection.", err)
+			return resource.RetryableError(err)
+		}
+
+		// Retry on the following error:
+		// InvalidParameterValueException: IAM Role arn:aws:iam::123456789012:role/XXX is not authorized to call tag:GetResources
+		if isAWSErr(err, backup.ErrCodeInvalidParameterValueException, "is not authorized to call") {
+			log.Printf("[DEBUG] Received %s, retrying create backup selection.", err)
 			return resource.RetryableError(err)
 		}
 

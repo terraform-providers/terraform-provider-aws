@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"log"
-	"regexp"
 	"sort"
 	"strings"
 	"time"
@@ -76,15 +75,16 @@ func resourceAwsCodeDeployDeploymentGroup() *schema.Resource {
 			},
 
 			"deployment_style": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Computed: true,
-				MaxItems: 1,
+				Type:             schema.TypeList,
+				Optional:         true,
+				DiffSuppressFunc: suppressMissingOptionalConfigurationBlock,
+				MaxItems:         1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"deployment_option": {
 							Type:     schema.TypeString,
 							Optional: true,
+							Default:  codedeploy.DeploymentOptionWithoutTrafficControl,
 							ValidateFunc: validation.StringInSlice([]string{
 								codedeploy.DeploymentOptionWithTrafficControl,
 								codedeploy.DeploymentOptionWithoutTrafficControl,
@@ -93,6 +93,7 @@ func resourceAwsCodeDeployDeploymentGroup() *schema.Resource {
 						"deployment_type": {
 							Type:     schema.TypeString,
 							Optional: true,
+							Default:  codedeploy.DeploymentTypeInPlace,
 							ValidateFunc: validation.StringInSlice([]string{
 								codedeploy.DeploymentTypeInPlace,
 								codedeploy.DeploymentTypeBlueGreen,
@@ -211,7 +212,6 @@ func resourceAwsCodeDeployDeploymentGroup() *schema.Resource {
 			"load_balancer_info": {
 				Type:     schema.TypeList,
 				Optional: true,
-				Computed: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -552,7 +552,20 @@ func resourceAwsCodeDeployDeploymentGroupCreate(d *schema.ResourceData, meta int
 	var err error
 	err = resource.Retry(5*time.Minute, func() *resource.RetryError {
 		resp, err = conn.CreateDeploymentGroup(&input)
-		return handleCreateError(err)
+
+		if isAWSErr(err, codedeploy.ErrCodeInvalidRoleException, "") {
+			return resource.RetryableError(err)
+		}
+
+		if isAWSErr(err, codedeploy.ErrCodeInvalidTriggerConfigException, "Topic ARN") {
+			return resource.RetryableError(err)
+		}
+
+		if err != nil {
+			return resource.NonRetryableError(err)
+		}
+
+		return nil
 	})
 
 	if isResourceTimeoutError(err) {
@@ -672,8 +685,8 @@ func resourceAwsCodeDeployDeploymentGroupUpdate(d *schema.ResourceData, meta int
 		input.DeploymentConfigName = aws.String(n.(string))
 	}
 
-	// include (original or new) autoscaling groups when blue_green_deployment_config changes
-	if d.HasChange("autoscaling_groups") || d.HasChange("blue_green_deployment_config") {
+	// include (original or new) autoscaling groups when blue_green_deployment_config changes except for ECS
+	if _, isEcs := d.GetOk("ecs_service"); d.HasChange("autoscaling_groups") || (d.HasChange("blue_green_deployment_config") && !isEcs) {
 		_, n := d.GetChange("autoscaling_groups")
 		input.AutoScalingGroups = expandStringList(n.(*schema.Set).List())
 	}
@@ -732,7 +745,20 @@ func resourceAwsCodeDeployDeploymentGroupUpdate(d *schema.ResourceData, meta int
 	var err error
 	err = resource.Retry(5*time.Minute, func() *resource.RetryError {
 		_, err = conn.UpdateDeploymentGroup(&input)
-		return handleUpdateError(err)
+
+		if isAWSErr(err, codedeploy.ErrCodeInvalidRoleException, "") {
+			return resource.RetryableError(err)
+		}
+
+		if isAWSErr(err, codedeploy.ErrCodeInvalidTriggerConfigException, "Topic ARN") {
+			return resource.RetryableError(err)
+		}
+
+		if err != nil {
+			return resource.NonRetryableError(err)
+		}
+
+		return nil
 	})
 
 	if isResourceTimeoutError(err) {
@@ -755,44 +781,6 @@ func resourceAwsCodeDeployDeploymentGroupDelete(d *schema.ResourceData, meta int
 	})
 
 	return err
-}
-
-func handleCreateError(err error) *resource.RetryError {
-	return handleCodeDeployApiError(err, "create")
-}
-
-func handleUpdateError(err error) *resource.RetryError {
-	return handleCodeDeployApiError(err, "update")
-}
-
-func handleCodeDeployApiError(err error, operation string) *resource.RetryError {
-	if err == nil {
-		return nil
-	}
-
-	retry := false
-	codedeployErr, ok := err.(awserr.Error)
-	if !ok {
-		return resource.NonRetryableError(err)
-	}
-
-	if codedeployErr.Code() == "InvalidRoleException" {
-		retry = true
-	}
-
-	if codedeployErr.Code() == "InvalidTriggerConfigException" {
-		r := regexp.MustCompile("^Topic ARN .+ is not valid$")
-		if r.MatchString(codedeployErr.Message()) {
-			retry = true
-		}
-	}
-
-	if retry {
-		log.Printf("[DEBUG] Trying to %s DeploymentGroup again: %q", operation, codedeployErr.Message())
-		return resource.RetryableError(err)
-	}
-
-	return resource.NonRetryableError(err)
 }
 
 // buildOnPremTagFilters converts raw schema lists into a list of
@@ -1030,14 +1018,14 @@ func expandDeploymentStyle(list []interface{}) *codedeploy.DeploymentStyle {
 }
 
 // expandLoadBalancerInfo converts a raw schema list containing a map[string]interface{}
-// into a single codedeploy.LoadBalancerInfo object
+// into a single codedeploy.LoadBalancerInfo object. Returns an empty object if list is nil.
 func expandLoadBalancerInfo(list []interface{}) *codedeploy.LoadBalancerInfo {
+	loadBalancerInfo := &codedeploy.LoadBalancerInfo{}
 	if len(list) == 0 || list[0] == nil {
-		return nil
+		return loadBalancerInfo
 	}
 
 	lbInfo := list[0].(map[string]interface{})
-	loadBalancerInfo := &codedeploy.LoadBalancerInfo{}
 
 	if attr, ok := lbInfo["elb_info"]; ok && attr.(*schema.Set).Len() > 0 {
 		loadBalancerInfo.ElbInfoList = expandCodeDeployElbInfo(attr.(*schema.Set).List())

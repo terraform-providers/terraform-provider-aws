@@ -286,6 +286,11 @@ func testAccDBSubnetGroupConfig(rName string) string {
 	return fmt.Sprintf(`
 data "aws_availability_zones" "available" {
   state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
 }
 
 resource "aws_vpc" "test" {
@@ -331,6 +336,11 @@ func testAccDBSubnetGroupConfig_updatedDescription(rName string) string {
 	return fmt.Sprintf(`
 data "aws_availability_zones" "available" {
   state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
 }
 
 resource "aws_vpc" "test" {
@@ -376,6 +386,11 @@ resource "aws_db_subnet_group" "test" {
 const testAccDBSubnetGroupConfig_namePrefix = `
 data "aws_availability_zones" "available" {
   state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
 }
 
 resource "aws_vpc" "test" {
@@ -411,6 +426,11 @@ resource "aws_db_subnet_group" "test" {
 const testAccDBSubnetGroupConfig_generatedName = `
 data "aws_availability_zones" "available" {
   state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
 }
 
 resource "aws_vpc" "test" {
@@ -445,6 +465,11 @@ resource "aws_db_subnet_group" "test" {
 const testAccDBSubnetGroupConfig_withUnderscoresAndPeriodsAndSpaces = `
 data "aws_availability_zones" "available" {
   state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
 }
 
 resource "aws_vpc" "main" {

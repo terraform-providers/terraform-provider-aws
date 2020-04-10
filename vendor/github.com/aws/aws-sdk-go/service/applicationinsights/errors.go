@@ -2,6 +2,10 @@
 
 package applicationinsights
 
+import (
+	"github.com/aws/aws-sdk-go/private/protocol"
+)
+
 const (
 
 	// ErrCodeBadRequestException for service response error code
@@ -28,9 +32,32 @@ const (
 	// The resource does not exist in the customer account.
 	ErrCodeResourceNotFoundException = "ResourceNotFoundException"
 
+	// ErrCodeTagsAlreadyExistException for service response error code
+	// "TagsAlreadyExistException".
+	//
+	// Tags are already registered for the specified application ARN.
+	ErrCodeTagsAlreadyExistException = "TagsAlreadyExistException"
+
+	// ErrCodeTooManyTagsException for service response error code
+	// "TooManyTagsException".
+	//
+	// The number of the provided tags is beyond the limit, or the number of total
+	// tags you are trying to attach to the specified resource exceeds the limit.
+	ErrCodeTooManyTagsException = "TooManyTagsException"
+
 	// ErrCodeValidationException for service response error code
 	// "ValidationException".
 	//
 	// The parameter is not valid.
 	ErrCodeValidationException = "ValidationException"
 )
+
+var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
+	"BadRequestException":       newErrorBadRequestException,
+	"InternalServerException":   newErrorInternalServerException,
+	"ResourceInUseException":    newErrorResourceInUseException,
+	"ResourceNotFoundException": newErrorResourceNotFoundException,
+	"TagsAlreadyExistException": newErrorTagsAlreadyExistException,
+	"TooManyTagsException":      newErrorTooManyTagsException,
+	"ValidationException":       newErrorValidationException,
+}

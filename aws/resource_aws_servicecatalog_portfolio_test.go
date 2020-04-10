@@ -2,6 +2,7 @@ package aws
 
 import (
 	"fmt"
+	"regexp"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/servicecatalog"
@@ -24,49 +25,21 @@ func TestAccAWSServiceCatalogPortfolio_Basic(t *testing.T) {
 		CheckDestroy: testAccCheckServiceCatlaogPortfolioDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckAwsServiceCatalogPortfolioResourceConfigBasic1(name),
+				Config: testAccCheckAwsServiceCatalogPortfolioResourceConfigBasic(name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckPortfolio(resourceName, &dpo),
-					resource.TestCheckResourceAttrSet(resourceName, "arn"),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "catalog", regexp.MustCompile(`portfolio/.+`)),
 					resource.TestCheckResourceAttrSet(resourceName, "created_time"),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
 					resource.TestCheckResourceAttr(resourceName, "description", "test-2"),
 					resource.TestCheckResourceAttr(resourceName, "provider_name", "test-3"),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(resourceName, "tags.Key1", "Value One"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 				),
 			},
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
-			},
-			{
-				Config: testAccCheckAwsServiceCatalogPortfolioResourceConfigBasic2(name),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckPortfolio(resourceName, &dpo),
-					resource.TestCheckResourceAttrSet(resourceName, "arn"),
-					resource.TestCheckResourceAttrSet(resourceName, "created_time"),
-					resource.TestCheckResourceAttr(resourceName, "name", name),
-					resource.TestCheckResourceAttr(resourceName, "description", "test-b"),
-					resource.TestCheckResourceAttr(resourceName, "provider_name", "test-c"),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
-					resource.TestCheckResourceAttr(resourceName, "tags.Key1", "Value 1"),
-					resource.TestCheckResourceAttr(resourceName, "tags.Key2", "Value Two"),
-				),
-			},
-			{
-				Config: testAccCheckAwsServiceCatalogPortfolioResourceConfigBasic3(name),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckPortfolio(resourceName, &dpo),
-					resource.TestCheckResourceAttrSet(resourceName, "arn"),
-					resource.TestCheckResourceAttrSet(resourceName, "created_time"),
-					resource.TestCheckResourceAttr(resourceName, "name", name),
-					resource.TestCheckResourceAttr(resourceName, "description", "test-only-change-me"),
-					resource.TestCheckResourceAttr(resourceName, "provider_name", "test-c"),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(resourceName, "tags.Key3", "Value Three"),
-				),
 			},
 		},
 	})
@@ -83,12 +56,59 @@ func TestAccAWSServiceCatalogPortfolio_Disappears(t *testing.T) {
 		CheckDestroy: testAccCheckServiceCatlaogPortfolioDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckAwsServiceCatalogPortfolioResourceConfigBasic1(name),
+				Config: testAccCheckAwsServiceCatalogPortfolioResourceConfigBasic(name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckPortfolio(resourceName, &dpo),
 					testAccCheckServiceCatlaogPortfolioDisappears(&dpo),
 				),
 				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSServiceCatalogPortfolio_Tags(t *testing.T) {
+	resourceName := "aws_servicecatalog_portfolio.test"
+	name := acctest.RandString(5)
+	var dpo servicecatalog.DescribePortfolioOutput
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckServiceCatlaogPortfolioDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckAwsServiceCatalogPortfolioResourceConfigTags1(name, "key1", "value1"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckPortfolio(resourceName, &dpo),
+					resource.TestCheckResourceAttr(resourceName, "name", name),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccCheckAwsServiceCatalogPortfolioResourceConfigTags2(name, "key1", "value1updated", "key2", "value2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckPortfolio(resourceName, &dpo),
+					resource.TestCheckResourceAttr(resourceName, "name", name),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1updated"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
+				),
+			},
+			{
+				Config: testAccCheckAwsServiceCatalogPortfolioResourceConfigTags1(name, "key2", "value2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckPortfolio(resourceName, &dpo),
+					resource.TestCheckResourceAttr(resourceName, "name", name),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
+				),
 			},
 		},
 	})
@@ -150,45 +170,41 @@ func testAccCheckServiceCatlaogPortfolioDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccCheckAwsServiceCatalogPortfolioResourceConfigBasic1(name string) string {
+func testAccCheckAwsServiceCatalogPortfolioResourceConfigBasic(name string) string {
 	return fmt.Sprintf(`
 resource "aws_servicecatalog_portfolio" "test" {
   name          = "%s"
   description   = "test-2"
   provider_name = "test-3"
-
-  tags = {
-    Key1 = "Value One"
-  }
 }
 `, name)
 }
 
-func testAccCheckAwsServiceCatalogPortfolioResourceConfigBasic2(name string) string {
+func testAccCheckAwsServiceCatalogPortfolioResourceConfigTags1(name, tagKey1, tagValue1 string) string {
 	return fmt.Sprintf(`
 resource "aws_servicecatalog_portfolio" "test" {
-  name          = "%s"
+  name          = %[1]q
   description   = "test-b"
   provider_name = "test-c"
 
   tags = {
-    Key1 = "Value 1"
-    Key2 = "Value Two"
+    %[2]q = %[3]q
   }
 }
-`, name)
+`, name, tagKey1, tagValue1)
 }
 
-func testAccCheckAwsServiceCatalogPortfolioResourceConfigBasic3(name string) string {
+func testAccCheckAwsServiceCatalogPortfolioResourceConfigTags2(name, tagKey1, tagValue1, tagKey2, tagValue2 string) string {
 	return fmt.Sprintf(`
 resource "aws_servicecatalog_portfolio" "test" {
-  name          = "%s"
+  name          = %[1]q
   description   = "test-only-change-me"
   provider_name = "test-c"
 
   tags = {
-    Key3 = "Value Three"
+    %[2]q = %[3]q
+    %[4]q = %[5]q
   }
 }
-`, name)
+`, name, tagKey1, tagValue1, tagKey2, tagValue2)
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/route53resolver"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func dataSourceAwsRoute53ResolverRule() *schema.Resource {
@@ -118,7 +119,8 @@ func dataSourceAwsRoute53ResolverRuleRead(d *schema.ResourceData, meta interface
 	}
 
 	d.SetId(aws.StringValue(rule.Id))
-	d.Set("arn", rule.Arn)
+	arn := *rule.Arn
+	d.Set("arn", arn)
 	d.Set("domain_name", rule.DomainName)
 	d.Set("name", rule.Name)
 	d.Set("owner_id", rule.OwnerId)
@@ -129,8 +131,14 @@ func dataSourceAwsRoute53ResolverRuleRead(d *schema.ResourceData, meta interface
 	d.Set("share_status", shareStatus)
 	// https://github.com/terraform-providers/terraform-provider-aws/issues/10211
 	if shareStatus != route53resolver.ShareStatusSharedWithMe {
-		if err := getTagsRoute53Resolver(conn, d); err != nil {
-			return fmt.Errorf("error reading Route 53 Resolver rule (%s) tags: %s", d.Id(), err)
+		tags, err := keyvaluetags.Route53resolverListTags(conn, arn)
+
+		if err != nil {
+			return fmt.Errorf("error listing tags for Route 53 Resolver rule (%s): %s", arn, err)
+		}
+
+		if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+			return fmt.Errorf("error setting tags: %s", err)
 		}
 	}
 

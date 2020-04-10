@@ -283,7 +283,12 @@ func testAccCheckAWSEIPAssociationDestroy(s *terraform.State) error {
 
 const testAccAWSEIPAssociationConfig = `
 data "aws_availability_zones" "available" {
-	state = "available"
+  state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
 }
 
 resource "aws_vpc" "test" {
@@ -353,7 +358,12 @@ resource "aws_network_interface" "test" {
 
 const testAccAWSEIPAssociationConfigDisappears = `
 data "aws_availability_zones" "available" {
-	state = "available"
+  state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
 }
 
 data "aws_ami" "amzn-ami-minimal-pv" {
@@ -405,7 +415,12 @@ provider "aws" {
 resource "aws_eip" "test" {}
 
 data "aws_availability_zones" "available" {
-	state = "available"
+  state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
 }
 
 data "aws_ami" "ubuntu" {

@@ -25,3 +25,15 @@ _ = schema.Schema{
     Optional: true,
 }
 ```
+
+## Ignoring Reports
+
+Singular reports can be ignored by adding the a `//lintignore:S002` Go code comment at the end of the offending line or on the line immediately proceding, e.g.
+
+```go
+//lintignore:S002
+_ = schema.Schema{
+    Required: true,
+    Optional: true,
+}
+```

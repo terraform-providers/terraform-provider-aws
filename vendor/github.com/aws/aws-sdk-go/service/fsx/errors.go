@@ -2,6 +2,10 @@
 
 package fsx
 
+import (
+	"github.com/aws/aws-sdk-go/private/protocol"
+)
+
 const (
 
 	// ErrCodeActiveDirectoryError for service response error code
@@ -34,6 +38,26 @@ const (
 	//
 	// A generic error indicating a failure with a client request.
 	ErrCodeBadRequest = "BadRequest"
+
+	// ErrCodeDataRepositoryTaskEnded for service response error code
+	// "DataRepositoryTaskEnded".
+	//
+	// The data repository task could not be canceled because the task has already
+	// ended.
+	ErrCodeDataRepositoryTaskEnded = "DataRepositoryTaskEnded"
+
+	// ErrCodeDataRepositoryTaskExecuting for service response error code
+	// "DataRepositoryTaskExecuting".
+	//
+	// An existing data repository task is currently executing on the file system.
+	// Wait until the existing task has completed, then create the new task.
+	ErrCodeDataRepositoryTaskExecuting = "DataRepositoryTaskExecuting"
+
+	// ErrCodeDataRepositoryTaskNotFound for service response error code
+	// "DataRepositoryTaskNotFound".
+	//
+	// The data repository task or tasks you specified could not be found.
+	ErrCodeDataRepositoryTaskNotFound = "DataRepositoryTaskNotFound"
 
 	// ErrCodeFileSystemNotFound for service response error code
 	// "FileSystemNotFound".
@@ -78,10 +102,17 @@ const (
 	// specified.
 	ErrCodeInvalidNetworkSettings = "InvalidNetworkSettings"
 
+	// ErrCodeInvalidPerUnitStorageThroughput for service response error code
+	// "InvalidPerUnitStorageThroughput".
+	//
+	// An invalid value for PerUnitStorageThroughput was provided. Please create
+	// your file system again, using a valid value.
+	ErrCodeInvalidPerUnitStorageThroughput = "InvalidPerUnitStorageThroughput"
+
 	// ErrCodeMissingFileSystemConfiguration for service response error code
 	// "MissingFileSystemConfiguration".
 	//
-	// File system configuration is required for this operation.
+	// A file system configuration is required for this operation.
 	ErrCodeMissingFileSystemConfiguration = "MissingFileSystemConfiguration"
 
 	// ErrCodeNotServiceResourceError for service response error code
@@ -113,6 +144,30 @@ const (
 	// ErrCodeUnsupportedOperation for service response error code
 	// "UnsupportedOperation".
 	//
-	// An error occured.
+	// The requested operation is not supported for this resource or API.
 	ErrCodeUnsupportedOperation = "UnsupportedOperation"
 )
+
+var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
+	"ActiveDirectoryError":            newErrorActiveDirectoryError,
+	"BackupInProgress":                newErrorBackupInProgress,
+	"BackupNotFound":                  newErrorBackupNotFound,
+	"BackupRestoring":                 newErrorBackupRestoring,
+	"BadRequest":                      newErrorBadRequest,
+	"DataRepositoryTaskEnded":         newErrorDataRepositoryTaskEnded,
+	"DataRepositoryTaskExecuting":     newErrorDataRepositoryTaskExecuting,
+	"DataRepositoryTaskNotFound":      newErrorDataRepositoryTaskNotFound,
+	"FileSystemNotFound":              newErrorFileSystemNotFound,
+	"IncompatibleParameterError":      newErrorIncompatibleParameterError,
+	"InternalServerError":             newErrorInternalServerError,
+	"InvalidExportPath":               newErrorInvalidExportPath,
+	"InvalidImportPath":               newErrorInvalidImportPath,
+	"InvalidNetworkSettings":          newErrorInvalidNetworkSettings,
+	"InvalidPerUnitStorageThroughput": newErrorInvalidPerUnitStorageThroughput,
+	"MissingFileSystemConfiguration":  newErrorMissingFileSystemConfiguration,
+	"NotServiceResourceError":         newErrorNotServiceResourceError,
+	"ResourceDoesNotSupportTagging":   newErrorResourceDoesNotSupportTagging,
+	"ResourceNotFound":                newErrorResourceNotFound,
+	"ServiceLimitExceeded":            newErrorServiceLimitExceeded,
+	"UnsupportedOperation":            newErrorUnsupportedOperation,
+}

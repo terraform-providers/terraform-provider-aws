@@ -35,8 +35,11 @@ The following arguments are supported:
 In addition to all arguments above, the following attributes are exported:
 
 * `arn` - Amazon Resource Name of the file system.
-* `performance_mode` - The PerformanceMode of the file system.
-* `tags` - The list of tags assigned to the file system.
+* `dns_name` - The DNS name for the filesystem per [documented convention](http://docs.aws.amazon.com/efs/latest/ug/mounting-fs-mount-cmd-dns-name.html).
 * `encrypted` - Whether EFS is encrypted.
 * `kms_key_id` - The ARN for the KMS encryption key.
-* `dns_name` - The DNS name for the filesystem per [documented convention](http://docs.aws.amazon.com/efs/latest/ug/mounting-fs-mount-cmd-dns-name.html).
+* `lifecycle_policy` - A file system [lifecycle policy](https://docs.aws.amazon.com/efs/latest/ug/API_LifecyclePolicy.html) object.
+* `performance_mode` - The file system performance mode.
+* `provisioned_throughput_in_mibps` - The throughput, measured in MiB/s, that you want to provision for the file system.
+* `tags` -A mapping of tags to assign to the file system.
+* `throughput_mode` - Throughput mode for the file system.

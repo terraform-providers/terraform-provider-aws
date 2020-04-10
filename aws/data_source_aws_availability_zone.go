@@ -14,28 +14,41 @@ func dataSourceAwsAvailabilityZone() *schema.Resource {
 		Read: dataSourceAwsAvailabilityZoneRead,
 
 		Schema: map[string]*schema.Schema{
+			"all_availability_zones": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+			"filter": ec2CustomFiltersSchema(),
+			"group_name": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"name": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
 			},
-
-			"region": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
 			"name_suffix": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-
+			"network_border_group": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"opt_in_status": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"region": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"state": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
 			},
-
 			"zone_id": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -50,6 +63,10 @@ func dataSourceAwsAvailabilityZoneRead(d *schema.ResourceData, meta interface{})
 
 	req := &ec2.DescribeAvailabilityZonesInput{}
 
+	if v, ok := d.GetOk("all_availability_zones"); ok {
+		req.AllAvailabilityZones = aws.Bool(v.(bool))
+	}
+
 	if v := d.Get("name").(string); v != "" {
 		req.ZoneNames = []*string{aws.String(v)}
 	}
@@ -61,6 +78,13 @@ func dataSourceAwsAvailabilityZoneRead(d *schema.ResourceData, meta interface{})
 			"state": d.Get("state").(string),
 		},
 	)
+
+	if filters, filtersOk := d.GetOk("filter"); filtersOk {
+		req.Filters = append(req.Filters, buildEC2CustomFilterList(
+			filters.(*schema.Set),
+		)...)
+	}
+
 	if len(req.Filters) == 0 {
 		// Don't send an empty filters list; the EC2 API won't accept it.
 		req.Filters = nil
@@ -87,8 +111,11 @@ func dataSourceAwsAvailabilityZoneRead(d *schema.ResourceData, meta interface{})
 	nameSuffix := (*az.ZoneName)[len(*az.RegionName):]
 
 	d.SetId(aws.StringValue(az.ZoneName))
+	d.Set("group_name", az.GroupName)
 	d.Set("name", az.ZoneName)
 	d.Set("name_suffix", nameSuffix)
+	d.Set("network_border_group", az.NetworkBorderGroup)
+	d.Set("opt_in_status", az.OptInStatus)
 	d.Set("region", az.RegionName)
 	d.Set("state", az.State)
 	d.Set("zone_id", az.ZoneId)

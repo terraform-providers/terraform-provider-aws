@@ -3,6 +3,8 @@
 package costandusagereportservice
 
 import (
+	"fmt"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awsutil"
 	"github.com/aws/aws-sdk-go/aws/request"
@@ -63,12 +65,12 @@ func (c *CostandUsageReportService) DeleteReportDefinitionRequest(input *DeleteR
 // See the AWS API reference guide for AWS Cost and Usage Report Service's
 // API operation DeleteReportDefinition for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInternalErrorException "InternalErrorException"
+// Returned Error Types:
+//   * InternalErrorException
 //   An error on the server occurred during the processing of your request. Try
 //   again later.
 //
-//   * ErrCodeValidationException "ValidationException"
+//   * ValidationException
 //   The input fails to satisfy the constraints specified by an AWS service.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/cur-2017-01-06/DeleteReportDefinition
@@ -152,8 +154,8 @@ func (c *CostandUsageReportService) DescribeReportDefinitionsRequest(input *Desc
 // See the AWS API reference guide for AWS Cost and Usage Report Service's
 // API operation DescribeReportDefinitions for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInternalErrorException "InternalErrorException"
+// Returned Error Types:
+//   * InternalErrorException
 //   An error on the server occurred during the processing of your request. Try
 //   again later.
 //
@@ -222,10 +224,12 @@ func (c *CostandUsageReportService) DescribeReportDefinitionsPagesWithContext(ct
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*DescribeReportDefinitionsOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*DescribeReportDefinitionsOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -283,12 +287,12 @@ func (c *CostandUsageReportService) ModifyReportDefinitionRequest(input *ModifyR
 // See the AWS API reference guide for AWS Cost and Usage Report Service's
 // API operation ModifyReportDefinition for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInternalErrorException "InternalErrorException"
+// Returned Error Types:
+//   * InternalErrorException
 //   An error on the server occurred during the processing of your request. Try
 //   again later.
 //
-//   * ErrCodeValidationException "ValidationException"
+//   * ValidationException
 //   The input fails to satisfy the constraints specified by an AWS service.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/cur-2017-01-06/ModifyReportDefinition
@@ -367,20 +371,20 @@ func (c *CostandUsageReportService) PutReportDefinitionRequest(input *PutReportD
 // See the AWS API reference guide for AWS Cost and Usage Report Service's
 // API operation PutReportDefinition for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeDuplicateReportNameException "DuplicateReportNameException"
+// Returned Error Types:
+//   * DuplicateReportNameException
 //   A report with the specified name already exists in the account. Specify a
 //   different report name.
 //
-//   * ErrCodeReportLimitReachedException "ReportLimitReachedException"
+//   * ReportLimitReachedException
 //   This account already has five reports defined. To define a new report, you
 //   must delete an existing report.
 //
-//   * ErrCodeInternalErrorException "InternalErrorException"
+//   * InternalErrorException
 //   An error on the server occurred during the processing of your request. Try
 //   again later.
 //
-//   * ErrCodeValidationException "ValidationException"
+//   * ValidationException
 //   The input fails to satisfy the constraints specified by an AWS service.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/cur-2017-01-06/PutReportDefinition
@@ -531,6 +535,122 @@ func (s *DescribeReportDefinitionsOutput) SetNextToken(v string) *DescribeReport
 func (s *DescribeReportDefinitionsOutput) SetReportDefinitions(v []*ReportDefinition) *DescribeReportDefinitionsOutput {
 	s.ReportDefinitions = v
 	return s
+}
+
+// A report with the specified name already exists in the account. Specify a
+// different report name.
+type DuplicateReportNameException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// A message to show the detail of the exception.
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s DuplicateReportNameException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DuplicateReportNameException) GoString() string {
+	return s.String()
+}
+
+func newErrorDuplicateReportNameException(v protocol.ResponseMetadata) error {
+	return &DuplicateReportNameException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *DuplicateReportNameException) Code() string {
+	return "DuplicateReportNameException"
+}
+
+// Message returns the exception's message.
+func (s *DuplicateReportNameException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *DuplicateReportNameException) OrigErr() error {
+	return nil
+}
+
+func (s *DuplicateReportNameException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *DuplicateReportNameException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *DuplicateReportNameException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// An error on the server occurred during the processing of your request. Try
+// again later.
+type InternalErrorException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// A message to show the detail of the exception.
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s InternalErrorException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InternalErrorException) GoString() string {
+	return s.String()
+}
+
+func newErrorInternalErrorException(v protocol.ResponseMetadata) error {
+	return &InternalErrorException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *InternalErrorException) Code() string {
+	return "InternalErrorException"
+}
+
+// Message returns the exception's message.
+func (s *InternalErrorException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *InternalErrorException) OrigErr() error {
+	return nil
+}
+
+func (s *InternalErrorException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *InternalErrorException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *InternalErrorException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 type ModifyReportDefinitionInput struct {
@@ -839,6 +959,121 @@ func (s *ReportDefinition) SetS3Region(v string) *ReportDefinition {
 func (s *ReportDefinition) SetTimeUnit(v string) *ReportDefinition {
 	s.TimeUnit = &v
 	return s
+}
+
+// This account already has five reports defined. To define a new report, you
+// must delete an existing report.
+type ReportLimitReachedException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// A message to show the detail of the exception.
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s ReportLimitReachedException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ReportLimitReachedException) GoString() string {
+	return s.String()
+}
+
+func newErrorReportLimitReachedException(v protocol.ResponseMetadata) error {
+	return &ReportLimitReachedException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *ReportLimitReachedException) Code() string {
+	return "ReportLimitReachedException"
+}
+
+// Message returns the exception's message.
+func (s *ReportLimitReachedException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *ReportLimitReachedException) OrigErr() error {
+	return nil
+}
+
+func (s *ReportLimitReachedException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *ReportLimitReachedException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *ReportLimitReachedException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// The input fails to satisfy the constraints specified by an AWS service.
+type ValidationException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// A message to show the detail of the exception.
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s ValidationException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ValidationException) GoString() string {
+	return s.String()
+}
+
+func newErrorValidationException(v protocol.ResponseMetadata) error {
+	return &ValidationException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *ValidationException) Code() string {
+	return "ValidationException"
+}
+
+// Message returns the exception's message.
+func (s *ValidationException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *ValidationException) OrigErr() error {
+	return nil
+}
+
+func (s *ValidationException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *ValidationException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *ValidationException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The region of the S3 bucket that AWS delivers the report into.

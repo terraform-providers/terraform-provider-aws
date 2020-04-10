@@ -39,3 +39,11 @@ The following arguments are supported:
 ## Attributes Reference
 
 * `arn` - Amazon Resource Name (ARN) of snapshot copy grant
+
+## Import
+
+Redshift Snapshot Copy Grants support import by name, e.g.
+
+```console
+$ terraform import aws_redshift_snapshot_copy_grant.test my-grant
+```

@@ -27,12 +27,12 @@
 //    the repository.
 //
 //    * UpdateRepositoryName, which changes the name of the repository. If you
-//    change the name of a repository, no other users of that repository will
-//    be able to access it until you send them the new HTTPS or SSH URL to use.
+//    change the name of a repository, no other users of that repository can
+//    access it until you send them the new HTTPS or SSH URL to use.
 //
 // Branches, by calling the following:
 //
-//    * CreateBranch, which creates a new branch in a specified repository.
+//    * CreateBranch, which creates a branch in a specified repository.
 //
 //    * DeleteBranch, which deletes the specified branch in a repository unless
 //    it is the default branch.
@@ -49,7 +49,7 @@
 //    branch.
 //
 //    * GetBlob, which returns the base-64 encoded content of an individual
-//    Git blob object within a repository.
+//    Git blob object in a repository.
 //
 //    * GetFile, which returns the base-64 encoded content of a specified file.
 //
@@ -61,7 +61,7 @@
 // Commits, by calling the following:
 //
 //    * BatchGetCommits, which returns information about one or more commits
-//    in a repository
+//    in a repository.
 //
 //    * CreateCommit, which creates a commit for changes to a repository.
 //
@@ -69,7 +69,7 @@
 //    messages and author and committer information.
 //
 //    * GetDifferences, which returns information about the differences in a
-//    valid commit specifier (such as a branch, tag, HEAD, commit ID or other
+//    valid commit specifier (such as a branch, tag, HEAD, commit ID, or other
 //    fully qualified reference).
 //
 // Merges, by calling the following:
@@ -107,13 +107,30 @@
 //
 //    * CreatePullRequest, which creates a pull request in a specified repository.
 //
+//    * CreatePullRequestApprovalRule, which creates an approval rule for a
+//    specified pull request.
+//
+//    * DeletePullRequestApprovalRule, which deletes an approval rule for a
+//    specified pull request.
+//
 //    * DescribePullRequestEvents, which returns information about one or more
 //    pull request events.
+//
+//    * EvaluatePullRequestApprovalRules, which evaluates whether a pull request
+//    has met all the conditions specified in its associated approval rules.
 //
 //    * GetCommentsForPullRequest, which returns information about comments
 //    on a specified pull request.
 //
 //    * GetPullRequest, which returns information about a specified pull request.
+//
+//    * GetPullRequestApprovalStates, which returns information about the approval
+//    states for a specified pull request.
+//
+//    * GetPullRequestOverrideState, which returns information about whether
+//    approval rules have been set aside (overriden) for a pull request, and
+//    if so, the Amazon Resource Name (ARN) of the user or identity that overrode
+//    the rules and their requirements for the pull request.
 //
 //    * ListPullRequests, which lists all pull requests for a repository.
 //
@@ -129,8 +146,17 @@
 //    of a pull request into the specified destination branch for that pull
 //    request using the three-way merge option.
 //
+//    * OverridePullRequestApprovalRules, which sets aside all approval rule
+//    requirements for a pull request.
+//
 //    * PostCommentForPullRequest, which posts a comment to a pull request at
 //    the specified line, file, or request.
+//
+//    * UpdatePullRequestApprovalRuleContent, which updates the structure of
+//    an approval rule for a pull request.
+//
+//    * UpdatePullRequestApprovalState, which updates the state of an approval
+//    on a pull request.
 //
 //    * UpdatePullRequestDescription, which updates the description of a pull
 //    request.
@@ -138,6 +164,58 @@
 //    * UpdatePullRequestStatus, which updates the status of a pull request.
 //
 //    * UpdatePullRequestTitle, which updates the title of a pull request.
+//
+// Approval rule templates, by calling the following:
+//
+//    * AssociateApprovalRuleTemplateWithRepository, which associates a template
+//    with a specified repository. After the template is associated with a repository,
+//    AWS CodeCommit creates approval rules that match the template conditions
+//    on every pull request created in the specified repository.
+//
+//    * BatchAssociateApprovalRuleTemplateWithRepositories, which associates
+//    a template with one or more specified repositories. After the template
+//    is associated with a repository, AWS CodeCommit creates approval rules
+//    that match the template conditions on every pull request created in the
+//    specified repositories.
+//
+//    * BatchDisassociateApprovalRuleTemplateFromRepositories, which removes
+//    the association between a template and specified repositories so that
+//    approval rules based on the template are not automatically created when
+//    pull requests are created in those repositories.
+//
+//    * CreateApprovalRuleTemplate, which creates a template for approval rules
+//    that can then be associated with one or more repositories in your AWS
+//    account.
+//
+//    * DeleteApprovalRuleTemplate, which deletes the specified template. It
+//    does not remove approval rules on pull requests already created with the
+//    template.
+//
+//    * DisassociateApprovalRuleTemplateFromRepository, which removes the association
+//    between a template and a repository so that approval rules based on the
+//    template are not automatically created when pull requests are created
+//    in the specified repository.
+//
+//    * GetApprovalRuleTemplate, which returns information about an approval
+//    rule template.
+//
+//    * ListApprovalRuleTemplates, which lists all approval rule templates in
+//    the AWS Region in your AWS account.
+//
+//    * ListAssociatedApprovalRuleTemplatesForRepository, which lists all approval
+//    rule templates that are associated with a specified repository.
+//
+//    * ListRepositoriesForApprovalRuleTemplate, which lists all repositories
+//    associated with the specified approval rule template.
+//
+//    * UpdateApprovalRuleTemplateDescription, which updates the description
+//    of an approval rule template.
+//
+//    * UpdateApprovalRuleTemplateName, which updates the name of an approval
+//    rule template.
+//
+//    * UpdateApprovalRuleTemplateContent, which updates the content of an approval
+//    rule template.
 //
 // Comments in a repository, by calling the following:
 //

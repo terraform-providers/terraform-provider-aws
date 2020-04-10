@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/mitchellh/copystructure"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsMqBroker() *schema.Resource {
@@ -263,7 +264,7 @@ func resourceAwsMqBrokerCreate(d *schema.ResourceData, meta interface{}) error {
 		input.SubnetIds = expandStringList(v.(*schema.Set).List())
 	}
 	if v, ok := d.GetOk("tags"); ok {
-		input.Tags = tagsFromMapGeneric(v.(map[string]interface{}))
+		input.Tags = keyvaluetags.New(v.(map[string]interface{})).IgnoreAws().MqTags()
 	}
 
 	log.Printf("[INFO] Creating MQ Broker: %s", input)
@@ -375,7 +376,15 @@ func resourceAwsMqBrokerRead(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	return getTagsMQ(conn, d, aws.StringValue(out.BrokerArn))
+	tags, err := keyvaluetags.MqListTags(conn, aws.StringValue(out.BrokerArn))
+	if err != nil {
+		return fmt.Errorf("error listing tags for MQ Broker (%s): %s", d.Id(), err)
+	}
+	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+		return fmt.Errorf("error setting tags: %s", err)
+	}
+
+	return nil
 }
 
 func resourceAwsMqBrokerUpdate(d *schema.ResourceData, meta interface{}) error {
@@ -454,8 +463,12 @@ func resourceAwsMqBrokerUpdate(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
-	if tagErr := setTagsMQ(conn, d, d.Get("arn").(string)); tagErr != nil {
-		return fmt.Errorf("error setting mq broker tags: %s", tagErr)
+	if d.HasChange("tags") {
+		o, n := d.GetChange("tags")
+
+		if err := keyvaluetags.MqUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
+			return fmt.Errorf("error updating MQ Broker (%s) tags: %s", d.Get("arn").(string), err)
+		}
 	}
 
 	return nil
