@@ -107,6 +107,8 @@ func resourceAwsDedicatedHostCreate(d *schema.ResourceData, meta interface{}) er
 		AvailabilityZone: hostOpts.AvailabilityZone,
 		Quantity:         aws.Int64(int64(1)),
 		InstanceType:     hostOpts.InstanceType,
+		HostRecovery:     hostOpts.HostRecovery,
+		AutoPlacement:    hostOpts.AutoPlacement,
 	}
 
 	if len(tagsSpec) > 0 {

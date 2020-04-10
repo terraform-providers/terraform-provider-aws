@@ -2,6 +2,7 @@ package aws
 
 import (
 	"errors"
+	"github.com/aws/aws-sdk-go/aws"
 	"log"
 
 	"github.com/aws/aws-sdk-go/service/ec2"
@@ -13,15 +14,22 @@ func dataSourceAwsDedicatedHost() *schema.Resource {
 		Read: dataSourceAwsAwsDedicatedHostRead,
 
 		Schema: map[string]*schema.Schema{
+			"filter": dataSourceFiltersSchema(),
+			"tags":   tagsSchemaComputed(),
+			"host_id": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+			},
 
 			"availability_zone": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
 				ForceNew: true,
 			},
 			"instance_type": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
 				ForceNew: true,
 			},
 			"host_recovery": {
@@ -40,9 +48,14 @@ func dataSourceAwsDedicatedHost() *schema.Resource {
 
 func dataSourceAwsAwsDedicatedHostRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
+	hostID, hostIDOk := d.GetOk("host_id")
+
 	filters, filtersOk := d.GetOk("filter")
 
 	params := &ec2.DescribeHostsInput{}
+	if hostIDOk {
+		params.HostIds = []*string{aws.String(hostID.(string))}
+	}
 	if filtersOk {
 		params.Filter = buildAwsDataSourceFilters(filters.(*schema.Set))
 	}
@@ -51,7 +64,7 @@ func dataSourceAwsAwsDedicatedHostRead(d *schema.ResourceData, meta interface{})
 		return err
 	}
 	// If no hosts were returned, return
-	if len(resp.Hosts) == 0 {
+	if resp.Hosts == nil || len(resp.Hosts) == 0 {
 		return errors.New("Your query returned no results. Please change your search criteria and try again.")
 	}
 
