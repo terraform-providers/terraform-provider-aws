@@ -21,14 +21,14 @@ provider "aws" {
 }
 
 resource "aws_dedicated_host" "test" {
-	instance_type = "c5.18xlarge"
-	availability_zone = "us-west-1a"
-	host_recovery = "on"
-	auto_placement = "on"
+  instance_type     = "c5.18xlarge"
+  availability_zone = "us-west-1a"
+  host_recovery     = "on"
+  auto_placement    = "on"
 }
 
 data "aws_dedicated_host" "test_data" {
-	host_id="${aws_dedicated_host.test.id}"
+  host_id = "${aws_dedicated_host.test.id}"
 }
 ```
 
