@@ -491,8 +491,6 @@ func (c *Neptune) CopyDBClusterSnapshotRequest(input *CopyDBClusterSnapshotInput
 // To copy a DB cluster snapshot from a shared manual DB cluster snapshot, SourceDBClusterSnapshotIdentifier
 // must be the Amazon Resource Name (ARN) of the shared DB cluster snapshot.
 //
-// You can't copy from one AWS Region to another.
-//
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
 // the error.
@@ -675,6 +673,11 @@ func (c *Neptune) CreateDBClusterRequest(input *CreateDBClusterInput) (req *requ
 //
 // You can use the ReplicationSourceIdentifier parameter to create the DB cluster
 // as a Read Replica of another DB cluster or Amazon Neptune DB instance.
+//
+// Note that when you create a new cluster using CreateDBCluster directly, deletion
+// protection is disabled by default (when you create a new production cluster
+// in the console, deletion protection is enabled by default). You can only
+// delete a DB cluster if its DeletionProtection field is set to false.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1459,6 +1462,9 @@ func (c *Neptune) DeleteDBClusterRequest(input *DeleteDBClusterInput) (req *requ
 // and can't be recovered. Manual DB cluster snapshots of the specified DB cluster
 // are not deleted.
 //
+// Note that the DB Cluster cannot be deleted if deletion protection is enabled.
+// To delete it, you must first set its DeletionProtection field to False.
+//
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
 // the error.
@@ -1733,7 +1739,8 @@ func (c *Neptune) DeleteDBInstanceRequest(input *DeleteDBInstanceInput) (req *re
 // incompatible-restore, or incompatible-network, you can only delete it when
 // the SkipFinalSnapshot parameter is set to true.
 //
-// You can't delete a DB instance if it is the only instance in the DB cluster.
+// You can't delete a DB instance if it is the only instance in the DB cluster,
+// or if it has deletion protection enabled.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -2411,7 +2418,10 @@ func (c *Neptune) DescribeDBClustersRequest(input *DescribeDBClustersInput) (req
 
 // DescribeDBClusters API operation for Amazon Neptune.
 //
-// Returns information about provisioned DB clusters. This API supports pagination.
+// Returns information about provisioned DB clusters, and supports pagination.
+//
+// This operation can also return information for Amazon RDS clusters and Amazon
+// DocDB clusters.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -2569,10 +2579,12 @@ func (c *Neptune) DescribeDBEngineVersionsPagesWithContext(ctx aws.Context, inpu
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*DescribeDBEngineVersionsOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*DescribeDBEngineVersionsOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -2626,7 +2638,10 @@ func (c *Neptune) DescribeDBInstancesRequest(input *DescribeDBInstancesInput) (r
 
 // DescribeDBInstances API operation for Amazon Neptune.
 //
-// Returns information about provisioned instances. This API supports pagination.
+// Returns information about provisioned instances, and supports pagination.
+//
+// This operation can also return information for Amazon RDS instances and Amazon
+// DocDB instances.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -2704,10 +2719,12 @@ func (c *Neptune) DescribeDBInstancesPagesWithContext(ctx aws.Context, input *De
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*DescribeDBInstancesOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*DescribeDBInstancesOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -2841,10 +2858,12 @@ func (c *Neptune) DescribeDBParameterGroupsPagesWithContext(ctx aws.Context, inp
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*DescribeDBParameterGroupsOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*DescribeDBParameterGroupsOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -2976,10 +2995,12 @@ func (c *Neptune) DescribeDBParametersPagesWithContext(ctx aws.Context, input *D
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*DescribeDBParametersOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*DescribeDBParametersOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -3114,10 +3135,12 @@ func (c *Neptune) DescribeDBSubnetGroupsPagesWithContext(ctx aws.Context, input 
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*DescribeDBSubnetGroupsOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*DescribeDBSubnetGroupsOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -3320,10 +3343,12 @@ func (c *Neptune) DescribeEngineDefaultParametersPagesWithContext(ctx aws.Contex
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*DescribeEngineDefaultParametersOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*DescribeEngineDefaultParametersOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -3534,10 +3559,12 @@ func (c *Neptune) DescribeEventSubscriptionsPagesWithContext(ctx aws.Context, in
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*DescribeEventSubscriptionsOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*DescribeEventSubscriptionsOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -3668,10 +3695,12 @@ func (c *Neptune) DescribeEventsPagesWithContext(ctx aws.Context, input *Describ
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*DescribeEventsOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*DescribeEventsOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -3798,10 +3827,12 @@ func (c *Neptune) DescribeOrderableDBInstanceOptionsPagesWithContext(ctx aws.Con
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*DescribeOrderableDBInstanceOptionsOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*DescribeOrderableDBInstanceOptionsOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -5796,6 +5827,181 @@ func (c *Neptune) RestoreDBClusterToPointInTimeWithContext(ctx aws.Context, inpu
 	return out, req.Send()
 }
 
+const opStartDBCluster = "StartDBCluster"
+
+// StartDBClusterRequest generates a "aws/request.Request" representing the
+// client's request for the StartDBCluster operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See StartDBCluster for more information on using the StartDBCluster
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the StartDBClusterRequest method.
+//    req, resp := client.StartDBClusterRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/neptune-2014-10-31/StartDBCluster
+func (c *Neptune) StartDBClusterRequest(input *StartDBClusterInput) (req *request.Request, output *StartDBClusterOutput) {
+	op := &request.Operation{
+		Name:       opStartDBCluster,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &StartDBClusterInput{}
+	}
+
+	output = &StartDBClusterOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// StartDBCluster API operation for Amazon Neptune.
+//
+// Starts an Amazon Neptune DB cluster that was stopped using the AWS console,
+// the AWS CLI stop-db-cluster command, or the StopDBCluster API.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Neptune's
+// API operation StartDBCluster for usage and error information.
+//
+// Returned Error Codes:
+//   * ErrCodeDBClusterNotFoundFault "DBClusterNotFoundFault"
+//   DBClusterIdentifier does not refer to an existing DB cluster.
+//
+//   * ErrCodeInvalidDBClusterStateFault "InvalidDBClusterStateFault"
+//   The DB cluster is not in a valid state.
+//
+//   * ErrCodeInvalidDBInstanceStateFault "InvalidDBInstanceState"
+//   The specified DB instance is not in the available state.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/neptune-2014-10-31/StartDBCluster
+func (c *Neptune) StartDBCluster(input *StartDBClusterInput) (*StartDBClusterOutput, error) {
+	req, out := c.StartDBClusterRequest(input)
+	return out, req.Send()
+}
+
+// StartDBClusterWithContext is the same as StartDBCluster with the addition of
+// the ability to pass a context and additional request options.
+//
+// See StartDBCluster for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Neptune) StartDBClusterWithContext(ctx aws.Context, input *StartDBClusterInput, opts ...request.Option) (*StartDBClusterOutput, error) {
+	req, out := c.StartDBClusterRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opStopDBCluster = "StopDBCluster"
+
+// StopDBClusterRequest generates a "aws/request.Request" representing the
+// client's request for the StopDBCluster operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See StopDBCluster for more information on using the StopDBCluster
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the StopDBClusterRequest method.
+//    req, resp := client.StopDBClusterRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/neptune-2014-10-31/StopDBCluster
+func (c *Neptune) StopDBClusterRequest(input *StopDBClusterInput) (req *request.Request, output *StopDBClusterOutput) {
+	op := &request.Operation{
+		Name:       opStopDBCluster,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &StopDBClusterInput{}
+	}
+
+	output = &StopDBClusterOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// StopDBCluster API operation for Amazon Neptune.
+//
+// Stops an Amazon Neptune DB cluster. When you stop a DB cluster, Neptune retains
+// the DB cluster's metadata, including its endpoints and DB parameter groups.
+//
+// Neptune also retains the transaction logs so you can do a point-in-time restore
+// if necessary.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Neptune's
+// API operation StopDBCluster for usage and error information.
+//
+// Returned Error Codes:
+//   * ErrCodeDBClusterNotFoundFault "DBClusterNotFoundFault"
+//   DBClusterIdentifier does not refer to an existing DB cluster.
+//
+//   * ErrCodeInvalidDBClusterStateFault "InvalidDBClusterStateFault"
+//   The DB cluster is not in a valid state.
+//
+//   * ErrCodeInvalidDBInstanceStateFault "InvalidDBInstanceState"
+//   The specified DB instance is not in the available state.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/neptune-2014-10-31/StopDBCluster
+func (c *Neptune) StopDBCluster(input *StopDBClusterInput) (*StopDBClusterOutput, error) {
+	req, out := c.StopDBClusterRequest(input)
+	return out, req.Send()
+}
+
+// StopDBClusterWithContext is the same as StopDBCluster with the addition of
+// the ability to pass a context and additional request options.
+//
+// See StopDBCluster for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Neptune) StopDBClusterWithContext(ctx aws.Context, input *StopDBClusterInput, opts ...request.Option) (*StopDBClusterOutput, error) {
+	req, out := c.StopDBClusterRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 type AddRoleToDBClusterInput struct {
 	_ struct{} `type:"structure"`
 
@@ -6356,10 +6562,6 @@ type CopyDBClusterSnapshotInput struct {
 	// ID is the Amazon Resource Name (ARN), KMS key identifier, or the KMS key
 	// alias for the KMS encryption key.
 	//
-	// If you copy an unencrypted DB cluster snapshot and specify a value for the
-	// KmsKeyId parameter, Amazon Neptune encrypts the target DB cluster snapshot
-	// using the specified KMS encryption key.
-	//
 	// If you copy an encrypted DB cluster snapshot from your AWS account, you can
 	// specify a value for KmsKeyId to encrypt the copy with a new KMS encryption
 	// key. If you don't specify a value for KmsKeyId, then the copy of the DB cluster
@@ -6371,6 +6573,10 @@ type CopyDBClusterSnapshotInput struct {
 	// KMS encryption keys are specific to the AWS Region that they are created
 	// in, and you can't use encryption keys from one AWS Region in another AWS
 	// Region.
+	//
+	// You cannot encrypt an unencrypted DB cluster snapshot when you copy it. If
+	// you try to copy an unencrypted DB cluster snapshot and specify a value for
+	// the KmsKeyId parameter, an error is returned.
 	KmsKeyId *string `type:"string"`
 
 	// Not currently supported.
@@ -6638,8 +6844,7 @@ type CreateDBClusterInput struct {
 	//    * Must be a value from 1 to 35
 	BackupRetentionPeriod *int64 `type:"integer"`
 
-	// A value that indicates that the DB cluster should be associated with the
-	// specified CharacterSet.
+	// (Not supported by Neptune)
 	CharacterSetName *string `type:"string"`
 
 	// The DB cluster identifier. This parameter is stored as a lowercase string.
@@ -6678,6 +6883,11 @@ type CreateDBClusterInput struct {
 	// you are creating.
 	DatabaseName *string `type:"string"`
 
+	// A value that indicates whether the DB cluster has deletion protection enabled.
+	// The database can't be deleted when deletion protection is enabled. By default,
+	// deletion protection is enabled.
+	DeletionProtection *bool `type:"boolean"`
+
 	// The list of log types that need to be enabled for exporting to CloudWatch
 	// Logs.
 	EnableCloudwatchLogsExports []*string `type:"list"`
@@ -6695,7 +6905,8 @@ type CreateDBClusterInput struct {
 	// Engine is a required field
 	Engine *string `type:"string" required:"true"`
 
-	// The version number of the database engine to use.
+	// The version number of the database engine to use. Currently, setting this
+	// parameter has no effect.
 	//
 	// Example: 1.0.1
 	EngineVersion *string `type:"string"`
@@ -6742,11 +6953,7 @@ type CreateDBClusterInput struct {
 	//    * Cannot be a reserved word for the chosen database engine.
 	MasterUsername *string `type:"string"`
 
-	// A value that indicates that the DB cluster should be associated with the
-	// specified option group.
-	//
-	// Permanent options can't be removed from an option group. The option group
-	// can't be removed from a DB cluster once it is associated with a DB cluster.
+	// (Not supported by Neptune)
 	OptionGroupName *string `type:"string"`
 
 	// The port number on which the instances in the DB cluster accept connections.
@@ -6871,6 +7078,12 @@ func (s *CreateDBClusterInput) SetDBSubnetGroupName(v string) *CreateDBClusterIn
 // SetDatabaseName sets the DatabaseName field's value.
 func (s *CreateDBClusterInput) SetDatabaseName(v string) *CreateDBClusterInput {
 	s.DatabaseName = &v
+	return s
+}
+
+// SetDeletionProtection sets the DeletionProtection field's value.
+func (s *CreateDBClusterInput) SetDeletionProtection(v bool) *CreateDBClusterInput {
+	s.DeletionProtection = &v
 	return s
 }
 
@@ -7254,10 +7467,7 @@ type CreateDBInstanceInput struct {
 	//    * Cannot be set to 0 if the DB instance is a source to Read Replicas
 	BackupRetentionPeriod *int64 `type:"integer"`
 
-	// Indicates that the DB instance should be associated with the specified CharacterSet.
-	//
-	// Not applicable. The character set is managed by the DB cluster. For more
-	// information, see CreateDBCluster.
+	// (Not supported by Neptune)
 	CharacterSetName *string `type:"string"`
 
 	// True to copy all tags from the DB instance to snapshots of the DB instance,
@@ -7318,6 +7528,14 @@ type CreateDBInstanceInput struct {
 	// If there is no DB subnet group, then it is a non-VPC DB instance.
 	DBSubnetGroupName *string `type:"string"`
 
+	// A value that indicates whether the DB instance has deletion protection enabled.
+	// The database can't be deleted when deletion protection is enabled. By default,
+	// deletion protection is disabled. See Deleting a DB Instance (https://docs.aws.amazon.com/neptune/latest/userguide/manage-console-instances-delete.html).
+	//
+	// DB instances in a DB cluster can be deleted even when deletion protection
+	// is enabled in their parent DB cluster.
+	DeletionProtection *bool `type:"boolean"`
+
 	// Specify the Active Directory Domain to create the instance in.
 	Domain *string `type:"string"`
 
@@ -7335,7 +7553,7 @@ type CreateDBInstanceInput struct {
 	// Default: false
 	EnableIAMDatabaseAuthentication *bool `type:"boolean"`
 
-	// True to enable Performance Insights for the DB instance, and otherwise false.
+	// (Not supported by Neptune)
 	EnablePerformanceInsights *bool `type:"boolean"`
 
 	// The name of the database engine to be used for this instance.
@@ -7345,7 +7563,8 @@ type CreateDBInstanceInput struct {
 	// Engine is a required field
 	Engine *string `type:"string" required:"true"`
 
-	// The version number of the database engine to use.
+	// The version number of the database engine to use. Currently, setting this
+	// parameter has no effect.
 	EngineVersion *string `type:"string"`
 
 	// The amount of Provisioned IOPS (input/output operations per second) to be
@@ -7403,17 +7622,10 @@ type CreateDBInstanceInput struct {
 	// AvailabilityZone parameter if the MultiAZ parameter is set to true.
 	MultiAZ *bool `type:"boolean"`
 
-	// Indicates that the DB instance should be associated with the specified option
-	// group.
-	//
-	// Permanent options, such as the TDE option for Oracle Advanced Security TDE,
-	// can't be removed from an option group, and that option group can't be removed
-	// from a DB instance once it is associated with a DB instance
+	// (Not supported by Neptune)
 	OptionGroupName *string `type:"string"`
 
-	// The AWS KMS key identifier for encryption of Performance Insights data. The
-	// KMS key ID is the Amazon Resource Name (ARN), KMS key identifier, or the
-	// KMS key alias for the KMS encryption key.
+	// (Not supported by Neptune)
 	PerformanceInsightsKMSKeyId *string `type:"string"`
 
 	// The port number on which the database accepts connections.
@@ -7597,6 +7809,12 @@ func (s *CreateDBInstanceInput) SetDBSecurityGroups(v []*string) *CreateDBInstan
 // SetDBSubnetGroupName sets the DBSubnetGroupName field's value.
 func (s *CreateDBInstanceInput) SetDBSubnetGroupName(v string) *CreateDBInstanceInput {
 	s.DBSubnetGroupName = &v
+	return s
+}
+
+// SetDeletionProtection sets the DeletionProtection field's value.
+func (s *CreateDBInstanceInput) SetDeletionProtection(v bool) *CreateDBInstanceInput {
+	s.DeletionProtection = &v
 	return s
 }
 
@@ -8194,8 +8412,7 @@ type DBCluster struct {
 	// Specifies the number of days for which automatic DB snapshots are retained.
 	BackupRetentionPeriod *int64 `type:"integer"`
 
-	// If present, specifies the name of the character set that this cluster is
-	// associated with.
+	// (Not supported by Neptune)
 	CharacterSetName *string `type:"string"`
 
 	// Identifies the clone group to which the DB cluster is associated.
@@ -8215,7 +8432,7 @@ type DBCluster struct {
 	// Provides the list of instances that make up the DB cluster.
 	DBClusterMembers []*DBClusterMember `locationNameList:"DBClusterMember" type:"list"`
 
-	// Provides the list of option group memberships for this DB cluster.
+	// (Not supported by Neptune)
 	DBClusterOptionGroupMemberships []*DBClusterOptionGroupStatus `locationNameList:"DBClusterOptionGroup" type:"list"`
 
 	// Specifies the name of the DB cluster parameter group for the DB cluster.
@@ -8234,6 +8451,10 @@ type DBCluster struct {
 	// is found in AWS CloudTrail log entries whenever the AWS KMS key for the DB
 	// cluster is accessed.
 	DbClusterResourceId *string `type:"string"`
+
+	// Indicates whether or not the DB cluster has deletion protection enabled.
+	// The database can't be deleted when deletion protection is enabled.
+	DeletionProtection *bool `type:"boolean"`
 
 	// Specifies the earliest time to which a database can be restored with point-in-time
 	// restore.
@@ -8414,6 +8635,12 @@ func (s *DBCluster) SetDatabaseName(v string) *DBCluster {
 // SetDbClusterResourceId sets the DbClusterResourceId field's value.
 func (s *DBCluster) SetDbClusterResourceId(v string) *DBCluster {
 	s.DbClusterResourceId = &v
+	return s
+}
+
+// SetDeletionProtection sets the DeletionProtection field's value.
+func (s *DBCluster) SetDeletionProtection(v bool) *DBCluster {
+	s.DeletionProtection = &v
 	return s
 }
 
@@ -8756,7 +8983,20 @@ type DBClusterSnapshot struct {
 	// The Amazon Resource Name (ARN) for the DB cluster snapshot.
 	DBClusterSnapshotArn *string `type:"string"`
 
-	// Specifies the identifier for the DB cluster snapshot.
+	// Specifies the identifier for a DB cluster snapshot. Must match the identifier
+	// of an existing snapshot.
+	//
+	// After you restore a DB cluster using a DBClusterSnapshotIdentifier, you must
+	// specify the same DBClusterSnapshotIdentifier for any future updates to the
+	// DB cluster. When you specify this property for an update, the DB cluster
+	// is not restored from the snapshot again, and the data in the database is
+	// not changed.
+	//
+	// However, if you don't specify the DBClusterSnapshotIdentifier, an empty DB
+	// cluster is created, and the original DB cluster is deleted. If you specify
+	// a property that is different from the previous snapshot restore property,
+	// the DB cluster is restored from the snapshot specified by the DBClusterSnapshotIdentifier,
+	// and the original DB cluster is deleted.
 	DBClusterSnapshotIdentifier *string `type:"string"`
 
 	// Specifies the name of the database engine.
@@ -9037,8 +9277,7 @@ type DBEngineVersion struct {
 	// The name of the DB parameter group family for the database engine.
 	DBParameterGroupFamily *string `type:"string"`
 
-	// The default character set for new instances of this engine version, if the
-	// CharacterSetName parameter of the CreateDBInstance API is not specified.
+	// (Not supported by Neptune)
 	DefaultCharacterSet *CharacterSet `type:"structure"`
 
 	// The name of the database engine.
@@ -9051,8 +9290,7 @@ type DBEngineVersion struct {
 	// Logs.
 	ExportableLogTypes []*string `type:"list"`
 
-	// A list of the character sets supported by this engine for the CharacterSetName
-	// parameter of the CreateDBInstance action.
+	// (Not supported by Neptune)
 	SupportedCharacterSets []*CharacterSet `locationNameList:"CharacterSet" type:"list"`
 
 	// A list of the time zones supported by this engine for the Timezone parameter
@@ -9174,8 +9412,7 @@ type DBInstance struct {
 	// The identifier of the CA certificate for this DB instance.
 	CACertificateIdentifier *string `type:"string"`
 
-	// If present, specifies the name of the character set that this instance is
-	// associated with.
+	// (Not supported by Neptune)
 	CharacterSetName *string `type:"string"`
 
 	// Specifies whether tags are copied from the DB instance to snapshots of the
@@ -9221,6 +9458,11 @@ type DBInstance struct {
 	// is found in AWS CloudTrail log entries whenever the AWS KMS key for the DB
 	// instance is accessed.
 	DbiResourceId *string `type:"string"`
+
+	// Indicates whether or not the DB instance has deletion protection enabled.
+	// The instance can't be deleted when deletion protection is enabled. See Deleting
+	// a DB Instance (https://docs.aws.amazon.com/neptune/latest/userguide/manage-console-instances-delete.html).
+	DeletionProtection *bool `type:"boolean"`
 
 	// Not supported
 	DomainMemberships []*DomainMembership `locationNameList:"DomainMembership" type:"list"`
@@ -9276,20 +9518,17 @@ type DBInstance struct {
 	// Specifies if the DB instance is a Multi-AZ deployment.
 	MultiAZ *bool `type:"boolean"`
 
-	// Provides the list of option group memberships for this DB instance.
+	// (Not supported by Neptune)
 	OptionGroupMemberships []*OptionGroupMembership `locationNameList:"OptionGroupMembership" type:"list"`
 
 	// Specifies that changes to the DB instance are pending. This element is only
 	// included when changes are pending. Specific changes are identified by subelements.
 	PendingModifiedValues *PendingModifiedValues `type:"structure"`
 
-	// True if Performance Insights is enabled for the DB instance, and otherwise
-	// false.
+	// (Not supported by Neptune)
 	PerformanceInsightsEnabled *bool `type:"boolean"`
 
-	// The AWS KMS key identifier for encryption of Performance Insights data. The
-	// KMS key ID is the Amazon Resource Name (ARN), KMS key identifier, or the
-	// KMS key alias for the KMS encryption key.
+	// (Not supported by Neptune)
 	PerformanceInsightsKMSKeyId *string `type:"string"`
 
 	// Specifies the daily time range during which automated backups are created
@@ -9462,6 +9701,12 @@ func (s *DBInstance) SetDbInstancePort(v int64) *DBInstance {
 // SetDbiResourceId sets the DbiResourceId field's value.
 func (s *DBInstance) SetDbiResourceId(v string) *DBInstance {
 	s.DbiResourceId = &v
+	return s
+}
+
+// SetDeletionProtection sets the DeletionProtection field's value.
+func (s *DBInstance) SetDeletionProtection(v bool) *DBInstance {
+	s.DeletionProtection = &v
 	return s
 }
 
@@ -10983,6 +11228,12 @@ type DescribeDBClustersInput struct {
 	//    * db-cluster-id - Accepts DB cluster identifiers and DB cluster Amazon
 	//    Resource Names (ARNs). The results list will only include information
 	//    about the DB clusters identified by these ARNs.
+	//
+	//    * engine - Accepts an engine name (such as neptune), and restricts the
+	//    results list to DB clusters created by that engine.
+	//
+	// For example, to invoke this API from the AWS CLI and filter so that only
+	// Neptune DB clusters are returned, you could use the following command:
 	Filters []*Filter `locationNameList:"Filter" type:"list"`
 
 	// An optional pagination token provided by a previous DescribeDBClusters request.
@@ -11274,9 +11525,11 @@ type DescribeDBInstancesInput struct {
 	//    about the DB instances associated with the DB clusters identified by these
 	//    ARNs.
 	//
-	//    * db-instance-id - Accepts DB instance identifiers and DB instance Amazon
-	//    Resource Names (ARNs). The results list will only include information
-	//    about the DB instances identified by these ARNs.
+	//    * engine - Accepts an engine name (such as neptune), and restricts the
+	//    results list to DB instances created by that engine.
+	//
+	// For example, to invoke this API from the AWS CLI and filter so that only
+	// Neptune DB instances are returned, you could use the following command:
 	Filters []*Filter `locationNameList:"Filter" type:"list"`
 
 	// An optional pagination token provided by a previous DescribeDBInstances request.
@@ -13317,15 +13570,20 @@ type ModifyDBClusterInput struct {
 	// The name of the DB cluster parameter group to use for the DB cluster.
 	DBClusterParameterGroupName *string `type:"string"`
 
+	// A value that indicates whether the DB cluster has deletion protection enabled.
+	// The database can't be deleted when deletion protection is enabled. By default,
+	// deletion protection is disabled.
+	DeletionProtection *bool `type:"boolean"`
+
 	// True to enable mapping of AWS Identity and Access Management (IAM) accounts
 	// to database accounts, and otherwise false.
 	//
 	// Default: false
 	EnableIAMDatabaseAuthentication *bool `type:"boolean"`
 
-	// The version number of the database engine to which you want to upgrade. Changing
-	// this parameter results in an outage. The change is applied during the next
-	// maintenance window unless the ApplyImmediately parameter is set to true.
+	// The version number of the database engine. Currently, setting this parameter
+	// has no effect. To upgrade your database engine to the most recent release,
+	// use the ApplyPendingMaintenanceAction API.
 	//
 	// For a list of valid engine versions, see CreateDBInstance, or call DescribeDBEngineVersions.
 	EngineVersion *string `type:"string"`
@@ -13350,16 +13608,7 @@ type ModifyDBClusterInput struct {
 	// Example: my-cluster2
 	NewDBClusterIdentifier *string `type:"string"`
 
-	// A value that indicates that the DB cluster should be associated with the
-	// specified option group. Changing this parameter doesn't result in an outage
-	// except in the following case, and the change is applied during the next maintenance
-	// window unless the ApplyImmediately parameter is set to true for this request.
-	// If the parameter change results in an option group that enables OEM, this
-	// change can cause a brief (sub-second) period during which new connections
-	// are rejected but existing connections are not interrupted.
-	//
-	// Permanent options can't be removed from an option group. The option group
-	// can't be removed from a DB cluster once it is associated with a DB cluster.
+	// (Not supported by Neptune)
 	OptionGroupName *string `type:"string"`
 
 	// The port number on which the DB cluster accepts connections.
@@ -13453,6 +13702,12 @@ func (s *ModifyDBClusterInput) SetDBClusterIdentifier(v string) *ModifyDBCluster
 // SetDBClusterParameterGroupName sets the DBClusterParameterGroupName field's value.
 func (s *ModifyDBClusterInput) SetDBClusterParameterGroupName(v string) *ModifyDBClusterInput {
 	s.DBClusterParameterGroupName = &v
+	return s
+}
+
+// SetDeletionProtection sets the DeletionProtection field's value.
+func (s *ModifyDBClusterInput) SetDeletionProtection(v bool) *ModifyDBClusterInput {
+	s.DeletionProtection = &v
 	return s
 }
 
@@ -13714,10 +13969,6 @@ type ModifyDBInstanceInput struct {
 	// Indicates that major version upgrades are allowed. Changing this parameter
 	// doesn't result in an outage and the change is asynchronously applied as soon
 	// as possible.
-	//
-	// Constraints: This parameter must be set to true when specifying a value for
-	// the EngineVersion parameter that is a different major version than the DB
-	// instance's current version.
 	AllowMajorVersionUpgrade *bool `type:"boolean"`
 
 	// Specifies whether the modifications in this request and any pending modifications
@@ -13821,6 +14072,11 @@ type ModifyDBInstanceInput struct {
 	// Example: mySubnetGroup
 	DBSubnetGroupName *string `type:"string"`
 
+	// A value that indicates whether the DB instance has deletion protection enabled.
+	// The database can't be deleted when deletion protection is enabled. By default,
+	// deletion protection is disabled. See Deleting a DB Instance (https://docs.aws.amazon.com/neptune/latest/userguide/manage-console-instances-delete.html).
+	DeletionProtection *bool `type:"boolean"`
+
 	// Not supported.
 	Domain *string `type:"string"`
 
@@ -13838,17 +14094,12 @@ type ModifyDBInstanceInput struct {
 	// Default: false
 	EnableIAMDatabaseAuthentication *bool `type:"boolean"`
 
-	// Not supported.
+	// (Not supported by Neptune)
 	EnablePerformanceInsights *bool `type:"boolean"`
 
-	// The version number of the database engine to upgrade to. Changing this parameter
-	// results in an outage and the change is applied during the next maintenance
-	// window unless the ApplyImmediately parameter is set to true for this request.
-	//
-	// For major version upgrades, if a nondefault DB parameter group is currently
-	// in use, a new DB parameter group in the DB parameter group family for the
-	// new engine version must be specified. The new DB parameter group can be the
-	// default for that DB parameter group family.
+	// The version number of the database engine to upgrade to. Currently, setting
+	// this parameter has no effect. To upgrade your database engine to the most
+	// recent release, use the ApplyPendingMaintenanceAction API.
 	EngineVersion *string `type:"string"`
 
 	// The new Provisioned IOPS (I/O operations per second) value for the instance.
@@ -13905,20 +14156,10 @@ type ModifyDBInstanceInput struct {
 	// Example: mydbinstance
 	NewDBInstanceIdentifier *string `type:"string"`
 
-	// Indicates that the DB instance should be associated with the specified option
-	// group. Changing this parameter doesn't result in an outage except in the
-	// following case and the change is applied during the next maintenance window
-	// unless the ApplyImmediately parameter is set to true for this request. If
-	// the parameter change results in an option group that enables OEM, this change
-	// can cause a brief (sub-second) period during which new connections are rejected
-	// but existing connections are not interrupted.
-	//
-	// Permanent options, such as the TDE option for Oracle Advanced Security TDE,
-	// can't be removed from an option group, and that option group can't be removed
-	// from a DB instance once it is associated with a DB instance
+	// (Not supported by Neptune)
 	OptionGroupName *string `type:"string"`
 
-	// Not supported.
+	// (Not supported by Neptune)
 	PerformanceInsightsKMSKeyId *string `type:"string"`
 
 	// The daily time range during which automated backups are created if automated
@@ -14095,6 +14336,12 @@ func (s *ModifyDBInstanceInput) SetDBSecurityGroups(v []*string) *ModifyDBInstan
 // SetDBSubnetGroupName sets the DBSubnetGroupName field's value.
 func (s *ModifyDBInstanceInput) SetDBSubnetGroupName(v string) *ModifyDBInstanceInput {
 	s.DBSubnetGroupName = &v
+	return s
+}
+
+// SetDeletionProtection sets the DeletionProtection field's value.
+func (s *ModifyDBInstanceInput) SetDeletionProtection(v bool) *ModifyDBInstanceInput {
+	s.DeletionProtection = &v
 	return s
 }
 
@@ -14613,7 +14860,7 @@ type OrderableDBInstanceOption struct {
 	// Indicates whether a DB instance supports provisioned IOPS.
 	SupportsIops *bool `type:"boolean"`
 
-	// True if a DB instance supports Performance Insights, otherwise false.
+	// (Not supported by Neptune)
 	SupportsPerformanceInsights *bool `type:"boolean"`
 
 	// Indicates whether a DB instance supports encrypted storage.
@@ -15019,7 +15266,8 @@ type PendingModifiedValues struct {
 	// Indicates that the Single-AZ DB instance is to change to a Multi-AZ deployment.
 	MultiAZ *bool `type:"boolean"`
 
-	// Specifies the CloudWatch logs to be exported.
+	// This PendingCloudwatchLogsExports structure specifies pending changes to
+	// which CloudWatch logs are enabled and which are disabled.
 	PendingCloudwatchLogsExports *PendingCloudwatchLogsExports `type:"structure"`
 
 	// Specifies the pending port for the DB instance.
@@ -15781,6 +16029,11 @@ type RestoreDBClusterFromSnapshotInput struct {
 	// Not supported.
 	DatabaseName *string `type:"string"`
 
+	// A value that indicates whether the DB cluster has deletion protection enabled.
+	// The database can't be deleted when deletion protection is enabled. By default,
+	// deletion protection is disabled.
+	DeletionProtection *bool `type:"boolean"`
+
 	// The list of logs that the restored DB cluster is to export to Amazon CloudWatch
 	// Logs.
 	EnableCloudwatchLogsExports []*string `type:"list"`
@@ -15822,7 +16075,7 @@ type RestoreDBClusterFromSnapshotInput struct {
 	//    encrypted, then the restored DB cluster is not encrypted.
 	KmsKeyId *string `type:"string"`
 
-	// The name of the option group to use for the restored DB cluster.
+	// (Not supported by Neptune)
 	OptionGroupName *string `type:"string"`
 
 	// The port number on which the new DB cluster accepts connections.
@@ -15908,6 +16161,12 @@ func (s *RestoreDBClusterFromSnapshotInput) SetDBSubnetGroupName(v string) *Rest
 // SetDatabaseName sets the DatabaseName field's value.
 func (s *RestoreDBClusterFromSnapshotInput) SetDatabaseName(v string) *RestoreDBClusterFromSnapshotInput {
 	s.DatabaseName = &v
+	return s
+}
+
+// SetDeletionProtection sets the DeletionProtection field's value.
+func (s *RestoreDBClusterFromSnapshotInput) SetDeletionProtection(v bool) *RestoreDBClusterFromSnapshotInput {
+	s.DeletionProtection = &v
 	return s
 }
 
@@ -16026,6 +16285,11 @@ type RestoreDBClusterToPointInTimeInput struct {
 	// Example: mySubnetgroup
 	DBSubnetGroupName *string `type:"string"`
 
+	// A value that indicates whether the DB cluster has deletion protection enabled.
+	// The database can't be deleted when deletion protection is enabled. By default,
+	// deletion protection is disabled.
+	DeletionProtection *bool `type:"boolean"`
+
 	// The list of logs that the restored DB cluster is to export to CloudWatch
 	// Logs.
 	EnableCloudwatchLogsExports []*string `type:"list"`
@@ -16062,7 +16326,7 @@ type RestoreDBClusterToPointInTimeInput struct {
 	// the restore request is rejected.
 	KmsKeyId *string `type:"string"`
 
-	// The name of the option group for the new DB cluster.
+	// (Not supported by Neptune)
 	OptionGroupName *string `type:"string"`
 
 	// The port number on which the new DB cluster accepts connections.
@@ -16170,6 +16434,12 @@ func (s *RestoreDBClusterToPointInTimeInput) SetDBSubnetGroupName(v string) *Res
 	return s
 }
 
+// SetDeletionProtection sets the DeletionProtection field's value.
+func (s *RestoreDBClusterToPointInTimeInput) SetDeletionProtection(v bool) *RestoreDBClusterToPointInTimeInput {
+	s.DeletionProtection = &v
+	return s
+}
+
 // SetEnableCloudwatchLogsExports sets the EnableCloudwatchLogsExports field's value.
 func (s *RestoreDBClusterToPointInTimeInput) SetEnableCloudwatchLogsExports(v []*string) *RestoreDBClusterToPointInTimeInput {
 	s.EnableCloudwatchLogsExports = v
@@ -16257,6 +16527,134 @@ func (s RestoreDBClusterToPointInTimeOutput) GoString() string {
 
 // SetDBCluster sets the DBCluster field's value.
 func (s *RestoreDBClusterToPointInTimeOutput) SetDBCluster(v *DBCluster) *RestoreDBClusterToPointInTimeOutput {
+	s.DBCluster = v
+	return s
+}
+
+type StartDBClusterInput struct {
+	_ struct{} `type:"structure"`
+
+	// The DB cluster identifier of the Neptune DB cluster to be started. This parameter
+	// is stored as a lowercase string.
+	//
+	// DBClusterIdentifier is a required field
+	DBClusterIdentifier *string `type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s StartDBClusterInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s StartDBClusterInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *StartDBClusterInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "StartDBClusterInput"}
+	if s.DBClusterIdentifier == nil {
+		invalidParams.Add(request.NewErrParamRequired("DBClusterIdentifier"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetDBClusterIdentifier sets the DBClusterIdentifier field's value.
+func (s *StartDBClusterInput) SetDBClusterIdentifier(v string) *StartDBClusterInput {
+	s.DBClusterIdentifier = &v
+	return s
+}
+
+type StartDBClusterOutput struct {
+	_ struct{} `type:"structure"`
+
+	// Contains the details of an Amazon Neptune DB cluster.
+	//
+	// This data type is used as a response element in the DescribeDBClusters action.
+	DBCluster *DBCluster `type:"structure"`
+}
+
+// String returns the string representation
+func (s StartDBClusterOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s StartDBClusterOutput) GoString() string {
+	return s.String()
+}
+
+// SetDBCluster sets the DBCluster field's value.
+func (s *StartDBClusterOutput) SetDBCluster(v *DBCluster) *StartDBClusterOutput {
+	s.DBCluster = v
+	return s
+}
+
+type StopDBClusterInput struct {
+	_ struct{} `type:"structure"`
+
+	// The DB cluster identifier of the Neptune DB cluster to be stopped. This parameter
+	// is stored as a lowercase string.
+	//
+	// DBClusterIdentifier is a required field
+	DBClusterIdentifier *string `type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s StopDBClusterInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s StopDBClusterInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *StopDBClusterInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "StopDBClusterInput"}
+	if s.DBClusterIdentifier == nil {
+		invalidParams.Add(request.NewErrParamRequired("DBClusterIdentifier"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetDBClusterIdentifier sets the DBClusterIdentifier field's value.
+func (s *StopDBClusterInput) SetDBClusterIdentifier(v string) *StopDBClusterInput {
+	s.DBClusterIdentifier = &v
+	return s
+}
+
+type StopDBClusterOutput struct {
+	_ struct{} `type:"structure"`
+
+	// Contains the details of an Amazon Neptune DB cluster.
+	//
+	// This data type is used as a response element in the DescribeDBClusters action.
+	DBCluster *DBCluster `type:"structure"`
+}
+
+// String returns the string representation
+func (s StopDBClusterOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s StopDBClusterOutput) GoString() string {
+	return s.String()
+}
+
+// SetDBCluster sets the DBCluster field's value.
+func (s *StopDBClusterOutput) SetDBCluster(v *DBCluster) *StopDBClusterOutput {
 	s.DBCluster = v
 	return s
 }

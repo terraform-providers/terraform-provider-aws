@@ -1,0 +1,24 @@
+name: CHANGELOG Checks
+on:
+  pull_request:
+    paths:
+      - CHANGELOG.md
+
+jobs:
+  PRCheck:
+    name: PR Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: PR Comment
+        uses: unsplash/comment-on-pr@v1.2.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          msg: |-
+            Thank you for your contribution! :rocket:
+            
+            Please note that the `CHANGELOG.md` file contents are handled by the maintainers during merge. This is to prevent pull request merge conflicts, especially for contributions which may not be merged immediately. Please see the [Contributing Guide](https://github.com/terraform-providers/terraform-provider-aws/blob/master/.github/CONTRIBUTING.md) for additional pull request review items.
+
+            Remove any changes to the `CHANGELOG.md` file and commit them in this pull request to prevent delays with reviewing and potentially merging this pull request.
+      - name: Fail the check
+        run: exit 1

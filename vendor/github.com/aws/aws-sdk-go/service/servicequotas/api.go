@@ -3,6 +3,7 @@
 package servicequotas
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -71,33 +72,33 @@ func (c *ServiceQuotas) AssociateServiceQuotaTemplateRequest(input *AssociateSer
 // See the AWS API reference guide for Service Quotas's
 // API operation AssociateServiceQuotaTemplate for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeDependencyAccessDeniedException "DependencyAccessDeniedException"
+// Returned Error Types:
+//   * DependencyAccessDeniedException
 //   You can't perform this action because a dependency does not have access.
 //
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+//   * AccessDeniedException
 //   You do not have sufficient access to perform this action.
 //
-//   * ErrCodeServiceException "ServiceException"
+//   * ServiceException
 //   Something went wrong.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   Due to throttling, the request was denied. Slow down the rate of request
 //   calls, or request an increase for this quota.
 //
-//   * ErrCodeAWSServiceAccessNotEnabledException "AWSServiceAccessNotEnabledException"
+//   * AWSServiceAccessNotEnabledException
 //   The action you attempted is not allowed unless Service Access with Service
 //   Quotas is enabled in your organization. To enable, call AssociateServiceQuotaTemplate.
 //
-//   * ErrCodeOrganizationNotInAllFeaturesModeException "OrganizationNotInAllFeaturesModeException"
+//   * OrganizationNotInAllFeaturesModeException
 //   The organization that your account belongs to, is not in All Features mode.
 //   To enable all features mode, see EnableAllFeatures (https://docs.aws.amazon.com/organizations/latest/APIReference/API_EnableAllFeatures.html).
 //
-//   * ErrCodeTemplatesNotAvailableInRegionException "TemplatesNotAvailableInRegionException"
+//   * TemplatesNotAvailableInRegionException
 //   The Service Quotas template is not available in the Region where you are
 //   making the request. Please make the request in us-east-1.
 //
-//   * ErrCodeNoAvailableOrganizationException "NoAvailableOrganizationException"
+//   * NoAvailableOrganizationException
 //   The account making this call is not a member of an organization.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/service-quotas-2019-06-24/AssociateServiceQuotaTemplate
@@ -176,35 +177,35 @@ func (c *ServiceQuotas) DeleteServiceQuotaIncreaseRequestFromTemplateRequest(inp
 // See the AWS API reference guide for Service Quotas's
 // API operation DeleteServiceQuotaIncreaseRequestFromTemplate for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+// Returned Error Types:
+//   * AccessDeniedException
 //   You do not have sufficient access to perform this action.
 //
-//   * ErrCodeServiceException "ServiceException"
+//   * ServiceException
 //   Something went wrong.
 //
-//   * ErrCodeDependencyAccessDeniedException "DependencyAccessDeniedException"
+//   * DependencyAccessDeniedException
 //   You can't perform this action because a dependency does not have access.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   Due to throttling, the request was denied. Slow down the rate of request
 //   calls, or request an increase for this quota.
 //
-//   * ErrCodeNoSuchResourceException "NoSuchResourceException"
+//   * NoSuchResourceException
 //   The specified resource does not exist.
 //
-//   * ErrCodeIllegalArgumentException "IllegalArgumentException"
+//   * IllegalArgumentException
 //   Invalid input was provided.
 //
-//   * ErrCodeAWSServiceAccessNotEnabledException "AWSServiceAccessNotEnabledException"
+//   * AWSServiceAccessNotEnabledException
 //   The action you attempted is not allowed unless Service Access with Service
 //   Quotas is enabled in your organization. To enable, call AssociateServiceQuotaTemplate.
 //
-//   * ErrCodeTemplatesNotAvailableInRegionException "TemplatesNotAvailableInRegionException"
+//   * TemplatesNotAvailableInRegionException
 //   The Service Quotas template is not available in the Region where you are
 //   making the request. Please make the request in us-east-1.
 //
-//   * ErrCodeNoAvailableOrganizationException "NoAvailableOrganizationException"
+//   * NoAvailableOrganizationException
 //   The account making this call is not a member of an organization.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/service-quotas-2019-06-24/DeleteServiceQuotaIncreaseRequestFromTemplate
@@ -291,34 +292,34 @@ func (c *ServiceQuotas) DisassociateServiceQuotaTemplateRequest(input *Disassoci
 // See the AWS API reference guide for Service Quotas's
 // API operation DisassociateServiceQuotaTemplate for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeDependencyAccessDeniedException "DependencyAccessDeniedException"
+// Returned Error Types:
+//   * DependencyAccessDeniedException
 //   You can't perform this action because a dependency does not have access.
 //
-//   * ErrCodeServiceQuotaTemplateNotInUseException "ServiceQuotaTemplateNotInUseException"
+//   * ServiceQuotaTemplateNotInUseException
 //   The quota request template is not associated with your organization.
 //
 //   To use the template, call AssociateServiceQuotaTemplate.
 //
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+//   * AccessDeniedException
 //   You do not have sufficient access to perform this action.
 //
-//   * ErrCodeServiceException "ServiceException"
+//   * ServiceException
 //   Something went wrong.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   Due to throttling, the request was denied. Slow down the rate of request
 //   calls, or request an increase for this quota.
 //
-//   * ErrCodeAWSServiceAccessNotEnabledException "AWSServiceAccessNotEnabledException"
+//   * AWSServiceAccessNotEnabledException
 //   The action you attempted is not allowed unless Service Access with Service
 //   Quotas is enabled in your organization. To enable, call AssociateServiceQuotaTemplate.
 //
-//   * ErrCodeTemplatesNotAvailableInRegionException "TemplatesNotAvailableInRegionException"
+//   * TemplatesNotAvailableInRegionException
 //   The Service Quotas template is not available in the Region where you are
 //   making the request. Please make the request in us-east-1.
 //
-//   * ErrCodeNoAvailableOrganizationException "NoAvailableOrganizationException"
+//   * NoAvailableOrganizationException
 //   The account making this call is not a member of an organization.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/service-quotas-2019-06-24/DisassociateServiceQuotaTemplate
@@ -397,20 +398,20 @@ func (c *ServiceQuotas) GetAWSDefaultServiceQuotaRequest(input *GetAWSDefaultSer
 // See the AWS API reference guide for Service Quotas's
 // API operation GetAWSDefaultServiceQuota for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+// Returned Error Types:
+//   * AccessDeniedException
 //   You do not have sufficient access to perform this action.
 //
-//   * ErrCodeNoSuchResourceException "NoSuchResourceException"
+//   * NoSuchResourceException
 //   The specified resource does not exist.
 //
-//   * ErrCodeIllegalArgumentException "IllegalArgumentException"
+//   * IllegalArgumentException
 //   Invalid input was provided.
 //
-//   * ErrCodeServiceException "ServiceException"
+//   * ServiceException
 //   Something went wrong.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   Due to throttling, the request was denied. Slow down the rate of request
 //   calls, or request an increase for this quota.
 //
@@ -491,34 +492,34 @@ func (c *ServiceQuotas) GetAssociationForServiceQuotaTemplateRequest(input *GetA
 // See the AWS API reference guide for Service Quotas's
 // API operation GetAssociationForServiceQuotaTemplate for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeDependencyAccessDeniedException "DependencyAccessDeniedException"
+// Returned Error Types:
+//   * DependencyAccessDeniedException
 //   You can't perform this action because a dependency does not have access.
 //
-//   * ErrCodeServiceQuotaTemplateNotInUseException "ServiceQuotaTemplateNotInUseException"
+//   * ServiceQuotaTemplateNotInUseException
 //   The quota request template is not associated with your organization.
 //
 //   To use the template, call AssociateServiceQuotaTemplate.
 //
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+//   * AccessDeniedException
 //   You do not have sufficient access to perform this action.
 //
-//   * ErrCodeServiceException "ServiceException"
+//   * ServiceException
 //   Something went wrong.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   Due to throttling, the request was denied. Slow down the rate of request
 //   calls, or request an increase for this quota.
 //
-//   * ErrCodeAWSServiceAccessNotEnabledException "AWSServiceAccessNotEnabledException"
+//   * AWSServiceAccessNotEnabledException
 //   The action you attempted is not allowed unless Service Access with Service
 //   Quotas is enabled in your organization. To enable, call AssociateServiceQuotaTemplate.
 //
-//   * ErrCodeTemplatesNotAvailableInRegionException "TemplatesNotAvailableInRegionException"
+//   * TemplatesNotAvailableInRegionException
 //   The Service Quotas template is not available in the Region where you are
 //   making the request. Please make the request in us-east-1.
 //
-//   * ErrCodeNoAvailableOrganizationException "NoAvailableOrganizationException"
+//   * NoAvailableOrganizationException
 //   The account making this call is not a member of an organization.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/service-quotas-2019-06-24/GetAssociationForServiceQuotaTemplate
@@ -596,20 +597,20 @@ func (c *ServiceQuotas) GetRequestedServiceQuotaChangeRequest(input *GetRequeste
 // See the AWS API reference guide for Service Quotas's
 // API operation GetRequestedServiceQuotaChange for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+// Returned Error Types:
+//   * AccessDeniedException
 //   You do not have sufficient access to perform this action.
 //
-//   * ErrCodeNoSuchResourceException "NoSuchResourceException"
+//   * NoSuchResourceException
 //   The specified resource does not exist.
 //
-//   * ErrCodeIllegalArgumentException "IllegalArgumentException"
+//   * IllegalArgumentException
 //   Invalid input was provided.
 //
-//   * ErrCodeServiceException "ServiceException"
+//   * ServiceException
 //   Something went wrong.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   Due to throttling, the request was denied. Slow down the rate of request
 //   calls, or request an increase for this quota.
 //
@@ -691,20 +692,20 @@ func (c *ServiceQuotas) GetServiceQuotaRequest(input *GetServiceQuotaInput) (req
 // See the AWS API reference guide for Service Quotas's
 // API operation GetServiceQuota for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+// Returned Error Types:
+//   * AccessDeniedException
 //   You do not have sufficient access to perform this action.
 //
-//   * ErrCodeNoSuchResourceException "NoSuchResourceException"
+//   * NoSuchResourceException
 //   The specified resource does not exist.
 //
-//   * ErrCodeIllegalArgumentException "IllegalArgumentException"
+//   * IllegalArgumentException
 //   Invalid input was provided.
 //
-//   * ErrCodeServiceException "ServiceException"
+//   * ServiceException
 //   Something went wrong.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   Due to throttling, the request was denied. Slow down the rate of request
 //   calls, or request an increase for this quota.
 //
@@ -783,35 +784,35 @@ func (c *ServiceQuotas) GetServiceQuotaIncreaseRequestFromTemplateRequest(input 
 // See the AWS API reference guide for Service Quotas's
 // API operation GetServiceQuotaIncreaseRequestFromTemplate for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+// Returned Error Types:
+//   * AccessDeniedException
 //   You do not have sufficient access to perform this action.
 //
-//   * ErrCodeDependencyAccessDeniedException "DependencyAccessDeniedException"
+//   * DependencyAccessDeniedException
 //   You can't perform this action because a dependency does not have access.
 //
-//   * ErrCodeServiceException "ServiceException"
+//   * ServiceException
 //   Something went wrong.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   Due to throttling, the request was denied. Slow down the rate of request
 //   calls, or request an increase for this quota.
 //
-//   * ErrCodeNoSuchResourceException "NoSuchResourceException"
+//   * NoSuchResourceException
 //   The specified resource does not exist.
 //
-//   * ErrCodeIllegalArgumentException "IllegalArgumentException"
+//   * IllegalArgumentException
 //   Invalid input was provided.
 //
-//   * ErrCodeAWSServiceAccessNotEnabledException "AWSServiceAccessNotEnabledException"
+//   * AWSServiceAccessNotEnabledException
 //   The action you attempted is not allowed unless Service Access with Service
 //   Quotas is enabled in your organization. To enable, call AssociateServiceQuotaTemplate.
 //
-//   * ErrCodeTemplatesNotAvailableInRegionException "TemplatesNotAvailableInRegionException"
+//   * TemplatesNotAvailableInRegionException
 //   The Service Quotas template is not available in the Region where you are
 //   making the request. Please make the request in us-east-1.
 //
-//   * ErrCodeNoAvailableOrganizationException "NoAvailableOrganizationException"
+//   * NoAvailableOrganizationException
 //   The account making this call is not a member of an organization.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/service-quotas-2019-06-24/GetServiceQuotaIncreaseRequestFromTemplate
@@ -906,23 +907,23 @@ func (c *ServiceQuotas) ListAWSDefaultServiceQuotasRequest(input *ListAWSDefault
 // See the AWS API reference guide for Service Quotas's
 // API operation ListAWSDefaultServiceQuotas for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+// Returned Error Types:
+//   * AccessDeniedException
 //   You do not have sufficient access to perform this action.
 //
-//   * ErrCodeNoSuchResourceException "NoSuchResourceException"
+//   * NoSuchResourceException
 //   The specified resource does not exist.
 //
-//   * ErrCodeIllegalArgumentException "IllegalArgumentException"
+//   * IllegalArgumentException
 //   Invalid input was provided.
 //
-//   * ErrCodeInvalidPaginationTokenException "InvalidPaginationTokenException"
+//   * InvalidPaginationTokenException
 //   Invalid input was provided.
 //
-//   * ErrCodeServiceException "ServiceException"
+//   * ServiceException
 //   Something went wrong.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   Due to throttling, the request was denied. Slow down the rate of request
 //   calls, or request an increase for this quota.
 //
@@ -991,10 +992,12 @@ func (c *ServiceQuotas) ListAWSDefaultServiceQuotasPagesWithContext(ctx aws.Cont
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListAWSDefaultServiceQuotasOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListAWSDefaultServiceQuotasOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -1057,23 +1060,23 @@ func (c *ServiceQuotas) ListRequestedServiceQuotaChangeHistoryRequest(input *Lis
 // See the AWS API reference guide for Service Quotas's
 // API operation ListRequestedServiceQuotaChangeHistory for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+// Returned Error Types:
+//   * AccessDeniedException
 //   You do not have sufficient access to perform this action.
 //
-//   * ErrCodeNoSuchResourceException "NoSuchResourceException"
+//   * NoSuchResourceException
 //   The specified resource does not exist.
 //
-//   * ErrCodeIllegalArgumentException "IllegalArgumentException"
+//   * IllegalArgumentException
 //   Invalid input was provided.
 //
-//   * ErrCodeInvalidPaginationTokenException "InvalidPaginationTokenException"
+//   * InvalidPaginationTokenException
 //   Invalid input was provided.
 //
-//   * ErrCodeServiceException "ServiceException"
+//   * ServiceException
 //   Something went wrong.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   Due to throttling, the request was denied. Slow down the rate of request
 //   calls, or request an increase for this quota.
 //
@@ -1142,10 +1145,12 @@ func (c *ServiceQuotas) ListRequestedServiceQuotaChangeHistoryPagesWithContext(c
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListRequestedServiceQuotaChangeHistoryOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListRequestedServiceQuotaChangeHistoryOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -1211,23 +1216,23 @@ func (c *ServiceQuotas) ListRequestedServiceQuotaChangeHistoryByQuotaRequest(inp
 // See the AWS API reference guide for Service Quotas's
 // API operation ListRequestedServiceQuotaChangeHistoryByQuota for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+// Returned Error Types:
+//   * AccessDeniedException
 //   You do not have sufficient access to perform this action.
 //
-//   * ErrCodeNoSuchResourceException "NoSuchResourceException"
+//   * NoSuchResourceException
 //   The specified resource does not exist.
 //
-//   * ErrCodeIllegalArgumentException "IllegalArgumentException"
+//   * IllegalArgumentException
 //   Invalid input was provided.
 //
-//   * ErrCodeInvalidPaginationTokenException "InvalidPaginationTokenException"
+//   * InvalidPaginationTokenException
 //   Invalid input was provided.
 //
-//   * ErrCodeServiceException "ServiceException"
+//   * ServiceException
 //   Something went wrong.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   Due to throttling, the request was denied. Slow down the rate of request
 //   calls, or request an increase for this quota.
 //
@@ -1296,10 +1301,12 @@ func (c *ServiceQuotas) ListRequestedServiceQuotaChangeHistoryByQuotaPagesWithCo
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListRequestedServiceQuotaChangeHistoryByQuotaOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListRequestedServiceQuotaChangeHistoryByQuotaOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -1362,32 +1369,32 @@ func (c *ServiceQuotas) ListServiceQuotaIncreaseRequestsInTemplateRequest(input 
 // See the AWS API reference guide for Service Quotas's
 // API operation ListServiceQuotaIncreaseRequestsInTemplate for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+// Returned Error Types:
+//   * AccessDeniedException
 //   You do not have sufficient access to perform this action.
 //
-//   * ErrCodeDependencyAccessDeniedException "DependencyAccessDeniedException"
+//   * DependencyAccessDeniedException
 //   You can't perform this action because a dependency does not have access.
 //
-//   * ErrCodeServiceException "ServiceException"
+//   * ServiceException
 //   Something went wrong.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   Due to throttling, the request was denied. Slow down the rate of request
 //   calls, or request an increase for this quota.
 //
-//   * ErrCodeIllegalArgumentException "IllegalArgumentException"
+//   * IllegalArgumentException
 //   Invalid input was provided.
 //
-//   * ErrCodeAWSServiceAccessNotEnabledException "AWSServiceAccessNotEnabledException"
+//   * AWSServiceAccessNotEnabledException
 //   The action you attempted is not allowed unless Service Access with Service
 //   Quotas is enabled in your organization. To enable, call AssociateServiceQuotaTemplate.
 //
-//   * ErrCodeTemplatesNotAvailableInRegionException "TemplatesNotAvailableInRegionException"
+//   * TemplatesNotAvailableInRegionException
 //   The Service Quotas template is not available in the Region where you are
 //   making the request. Please make the request in us-east-1.
 //
-//   * ErrCodeNoAvailableOrganizationException "NoAvailableOrganizationException"
+//   * NoAvailableOrganizationException
 //   The account making this call is not a member of an organization.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/service-quotas-2019-06-24/ListServiceQuotaIncreaseRequestsInTemplate
@@ -1455,10 +1462,12 @@ func (c *ServiceQuotas) ListServiceQuotaIncreaseRequestsInTemplatePagesWithConte
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListServiceQuotaIncreaseRequestsInTemplateOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListServiceQuotaIncreaseRequestsInTemplateOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -1529,23 +1538,23 @@ func (c *ServiceQuotas) ListServiceQuotasRequest(input *ListServiceQuotasInput) 
 // See the AWS API reference guide for Service Quotas's
 // API operation ListServiceQuotas for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+// Returned Error Types:
+//   * AccessDeniedException
 //   You do not have sufficient access to perform this action.
 //
-//   * ErrCodeNoSuchResourceException "NoSuchResourceException"
+//   * NoSuchResourceException
 //   The specified resource does not exist.
 //
-//   * ErrCodeIllegalArgumentException "IllegalArgumentException"
+//   * IllegalArgumentException
 //   Invalid input was provided.
 //
-//   * ErrCodeInvalidPaginationTokenException "InvalidPaginationTokenException"
+//   * InvalidPaginationTokenException
 //   Invalid input was provided.
 //
-//   * ErrCodeServiceException "ServiceException"
+//   * ServiceException
 //   Something went wrong.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   Due to throttling, the request was denied. Slow down the rate of request
 //   calls, or request an increase for this quota.
 //
@@ -1614,10 +1623,12 @@ func (c *ServiceQuotas) ListServiceQuotasPagesWithContext(ctx aws.Context, input
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListServiceQuotasOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListServiceQuotasOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -1682,20 +1693,20 @@ func (c *ServiceQuotas) ListServicesRequest(input *ListServicesInput) (req *requ
 // See the AWS API reference guide for Service Quotas's
 // API operation ListServices for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+// Returned Error Types:
+//   * AccessDeniedException
 //   You do not have sufficient access to perform this action.
 //
-//   * ErrCodeIllegalArgumentException "IllegalArgumentException"
+//   * IllegalArgumentException
 //   Invalid input was provided.
 //
-//   * ErrCodeInvalidPaginationTokenException "InvalidPaginationTokenException"
+//   * InvalidPaginationTokenException
 //   Invalid input was provided.
 //
-//   * ErrCodeServiceException "ServiceException"
+//   * ServiceException
 //   Something went wrong.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   Due to throttling, the request was denied. Slow down the rate of request
 //   calls, or request an increase for this quota.
 //
@@ -1764,10 +1775,12 @@ func (c *ServiceQuotas) ListServicesPagesWithContext(ctx aws.Context, input *Lis
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListServicesOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListServicesOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -1827,40 +1840,40 @@ func (c *ServiceQuotas) PutServiceQuotaIncreaseRequestIntoTemplateRequest(input 
 // See the AWS API reference guide for Service Quotas's
 // API operation PutServiceQuotaIncreaseRequestIntoTemplate for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+// Returned Error Types:
+//   * AccessDeniedException
 //   You do not have sufficient access to perform this action.
 //
-//   * ErrCodeDependencyAccessDeniedException "DependencyAccessDeniedException"
+//   * DependencyAccessDeniedException
 //   You can't perform this action because a dependency does not have access.
 //
-//   * ErrCodeServiceException "ServiceException"
+//   * ServiceException
 //   Something went wrong.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   Due to throttling, the request was denied. Slow down the rate of request
 //   calls, or request an increase for this quota.
 //
-//   * ErrCodeIllegalArgumentException "IllegalArgumentException"
+//   * IllegalArgumentException
 //   Invalid input was provided.
 //
-//   * ErrCodeQuotaExceededException "QuotaExceededException"
+//   * QuotaExceededException
 //   You have exceeded your service quota. To perform the requested action, remove
 //   some of the relevant resources, or use Service Quotas to request a service
 //   quota increase.
 //
-//   * ErrCodeNoSuchResourceException "NoSuchResourceException"
+//   * NoSuchResourceException
 //   The specified resource does not exist.
 //
-//   * ErrCodeAWSServiceAccessNotEnabledException "AWSServiceAccessNotEnabledException"
+//   * AWSServiceAccessNotEnabledException
 //   The action you attempted is not allowed unless Service Access with Service
 //   Quotas is enabled in your organization. To enable, call AssociateServiceQuotaTemplate.
 //
-//   * ErrCodeTemplatesNotAvailableInRegionException "TemplatesNotAvailableInRegionException"
+//   * TemplatesNotAvailableInRegionException
 //   The Service Quotas template is not available in the Region where you are
 //   making the request. Please make the request in us-east-1.
 //
-//   * ErrCodeNoAvailableOrganizationException "NoAvailableOrganizationException"
+//   * NoAvailableOrganizationException
 //   The account making this call is not a member of an organization.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/service-quotas-2019-06-24/PutServiceQuotaIncreaseRequestIntoTemplate
@@ -1939,34 +1952,34 @@ func (c *ServiceQuotas) RequestServiceQuotaIncreaseRequest(input *RequestService
 // See the AWS API reference guide for Service Quotas's
 // API operation RequestServiceQuotaIncrease for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeDependencyAccessDeniedException "DependencyAccessDeniedException"
+// Returned Error Types:
+//   * DependencyAccessDeniedException
 //   You can't perform this action because a dependency does not have access.
 //
-//   * ErrCodeQuotaExceededException "QuotaExceededException"
+//   * QuotaExceededException
 //   You have exceeded your service quota. To perform the requested action, remove
 //   some of the relevant resources, or use Service Quotas to request a service
 //   quota increase.
 //
-//   * ErrCodeResourceAlreadyExistsException "ResourceAlreadyExistsException"
+//   * ResourceAlreadyExistsException
 //   The specified resource already exists.
 //
-//   * ErrCodeAccessDeniedException "AccessDeniedException"
+//   * AccessDeniedException
 //   You do not have sufficient access to perform this action.
 //
-//   * ErrCodeNoSuchResourceException "NoSuchResourceException"
+//   * NoSuchResourceException
 //   The specified resource does not exist.
 //
-//   * ErrCodeIllegalArgumentException "IllegalArgumentException"
+//   * IllegalArgumentException
 //   Invalid input was provided.
 //
-//   * ErrCodeInvalidResourceStateException "InvalidResourceStateException"
+//   * InvalidResourceStateException
 //   Invalid input was provided for the .
 //
-//   * ErrCodeServiceException "ServiceException"
+//   * ServiceException
 //   Something went wrong.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   Due to throttling, the request was denied. Slow down the rate of request
 //   calls, or request an increase for this quota.
 //
@@ -1990,6 +2003,119 @@ func (c *ServiceQuotas) RequestServiceQuotaIncreaseWithContext(ctx aws.Context, 
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
+}
+
+// The action you attempted is not allowed unless Service Access with Service
+// Quotas is enabled in your organization. To enable, call AssociateServiceQuotaTemplate.
+type AWSServiceAccessNotEnabledException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s AWSServiceAccessNotEnabledException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AWSServiceAccessNotEnabledException) GoString() string {
+	return s.String()
+}
+
+func newErrorAWSServiceAccessNotEnabledException(v protocol.ResponseMetadata) error {
+	return &AWSServiceAccessNotEnabledException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *AWSServiceAccessNotEnabledException) Code() string {
+	return "AWSServiceAccessNotEnabledException"
+}
+
+// Message returns the exception's message.
+func (s *AWSServiceAccessNotEnabledException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *AWSServiceAccessNotEnabledException) OrigErr() error {
+	return nil
+}
+
+func (s *AWSServiceAccessNotEnabledException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *AWSServiceAccessNotEnabledException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *AWSServiceAccessNotEnabledException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// You do not have sufficient access to perform this action.
+type AccessDeniedException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s AccessDeniedException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AccessDeniedException) GoString() string {
+	return s.String()
+}
+
+func newErrorAccessDeniedException(v protocol.ResponseMetadata) error {
+	return &AccessDeniedException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *AccessDeniedException) Code() string {
+	return "AccessDeniedException"
+}
+
+// Message returns the exception's message.
+func (s *AccessDeniedException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *AccessDeniedException) OrigErr() error {
+	return nil
+}
+
+func (s *AccessDeniedException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *AccessDeniedException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *AccessDeniedException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 type AssociateServiceQuotaTemplateInput struct {
@@ -2107,6 +2233,62 @@ func (s DeleteServiceQuotaIncreaseRequestFromTemplateOutput) String() string {
 // GoString returns the string representation
 func (s DeleteServiceQuotaIncreaseRequestFromTemplateOutput) GoString() string {
 	return s.String()
+}
+
+// You can't perform this action because a dependency does not have access.
+type DependencyAccessDeniedException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s DependencyAccessDeniedException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DependencyAccessDeniedException) GoString() string {
+	return s.String()
+}
+
+func newErrorDependencyAccessDeniedException(v protocol.ResponseMetadata) error {
+	return &DependencyAccessDeniedException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *DependencyAccessDeniedException) Code() string {
+	return "DependencyAccessDeniedException"
+}
+
+// Message returns the exception's message.
+func (s *DependencyAccessDeniedException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *DependencyAccessDeniedException) OrigErr() error {
+	return nil
+}
+
+func (s *DependencyAccessDeniedException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *DependencyAccessDeniedException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *DependencyAccessDeniedException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 type DisassociateServiceQuotaTemplateInput struct {
@@ -2545,6 +2727,174 @@ func (s GetServiceQuotaOutput) GoString() string {
 func (s *GetServiceQuotaOutput) SetQuota(v *ServiceQuota) *GetServiceQuotaOutput {
 	s.Quota = v
 	return s
+}
+
+// Invalid input was provided.
+type IllegalArgumentException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s IllegalArgumentException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s IllegalArgumentException) GoString() string {
+	return s.String()
+}
+
+func newErrorIllegalArgumentException(v protocol.ResponseMetadata) error {
+	return &IllegalArgumentException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *IllegalArgumentException) Code() string {
+	return "IllegalArgumentException"
+}
+
+// Message returns the exception's message.
+func (s *IllegalArgumentException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *IllegalArgumentException) OrigErr() error {
+	return nil
+}
+
+func (s *IllegalArgumentException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *IllegalArgumentException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *IllegalArgumentException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// Invalid input was provided.
+type InvalidPaginationTokenException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidPaginationTokenException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidPaginationTokenException) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidPaginationTokenException(v protocol.ResponseMetadata) error {
+	return &InvalidPaginationTokenException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *InvalidPaginationTokenException) Code() string {
+	return "InvalidPaginationTokenException"
+}
+
+// Message returns the exception's message.
+func (s *InvalidPaginationTokenException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *InvalidPaginationTokenException) OrigErr() error {
+	return nil
+}
+
+func (s *InvalidPaginationTokenException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *InvalidPaginationTokenException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *InvalidPaginationTokenException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// Invalid input was provided for the .
+type InvalidResourceStateException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidResourceStateException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidResourceStateException) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidResourceStateException(v protocol.ResponseMetadata) error {
+	return &InvalidResourceStateException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *InvalidResourceStateException) Code() string {
+	return "InvalidResourceStateException"
+}
+
+// Message returns the exception's message.
+func (s *InvalidResourceStateException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *InvalidResourceStateException) OrigErr() error {
+	return nil
+}
+
+func (s *InvalidResourceStateException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *InvalidResourceStateException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *InvalidResourceStateException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 type ListAWSDefaultServiceQuotasInput struct {
@@ -3286,6 +3636,175 @@ func (s *MetricInfo) SetMetricStatisticRecommendation(v string) *MetricInfo {
 	return s
 }
 
+// The account making this call is not a member of an organization.
+type NoAvailableOrganizationException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s NoAvailableOrganizationException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s NoAvailableOrganizationException) GoString() string {
+	return s.String()
+}
+
+func newErrorNoAvailableOrganizationException(v protocol.ResponseMetadata) error {
+	return &NoAvailableOrganizationException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *NoAvailableOrganizationException) Code() string {
+	return "NoAvailableOrganizationException"
+}
+
+// Message returns the exception's message.
+func (s *NoAvailableOrganizationException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *NoAvailableOrganizationException) OrigErr() error {
+	return nil
+}
+
+func (s *NoAvailableOrganizationException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *NoAvailableOrganizationException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *NoAvailableOrganizationException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// The specified resource does not exist.
+type NoSuchResourceException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s NoSuchResourceException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s NoSuchResourceException) GoString() string {
+	return s.String()
+}
+
+func newErrorNoSuchResourceException(v protocol.ResponseMetadata) error {
+	return &NoSuchResourceException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *NoSuchResourceException) Code() string {
+	return "NoSuchResourceException"
+}
+
+// Message returns the exception's message.
+func (s *NoSuchResourceException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *NoSuchResourceException) OrigErr() error {
+	return nil
+}
+
+func (s *NoSuchResourceException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *NoSuchResourceException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *NoSuchResourceException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// The organization that your account belongs to, is not in All Features mode.
+// To enable all features mode, see EnableAllFeatures (https://docs.aws.amazon.com/organizations/latest/APIReference/API_EnableAllFeatures.html).
+type OrganizationNotInAllFeaturesModeException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s OrganizationNotInAllFeaturesModeException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s OrganizationNotInAllFeaturesModeException) GoString() string {
+	return s.String()
+}
+
+func newErrorOrganizationNotInAllFeaturesModeException(v protocol.ResponseMetadata) error {
+	return &OrganizationNotInAllFeaturesModeException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *OrganizationNotInAllFeaturesModeException) Code() string {
+	return "OrganizationNotInAllFeaturesModeException"
+}
+
+// Message returns the exception's message.
+func (s *OrganizationNotInAllFeaturesModeException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *OrganizationNotInAllFeaturesModeException) OrigErr() error {
+	return nil
+}
+
+func (s *OrganizationNotInAllFeaturesModeException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *OrganizationNotInAllFeaturesModeException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *OrganizationNotInAllFeaturesModeException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
 type PutServiceQuotaIncreaseRequestIntoTemplateInput struct {
 	_ struct{} `type:"structure"`
 
@@ -3396,6 +3915,64 @@ func (s PutServiceQuotaIncreaseRequestIntoTemplateOutput) GoString() string {
 func (s *PutServiceQuotaIncreaseRequestIntoTemplateOutput) SetServiceQuotaIncreaseRequestInTemplate(v *ServiceQuotaIncreaseRequestInTemplate) *PutServiceQuotaIncreaseRequestIntoTemplateOutput {
 	s.ServiceQuotaIncreaseRequestInTemplate = v
 	return s
+}
+
+// You have exceeded your service quota. To perform the requested action, remove
+// some of the relevant resources, or use Service Quotas to request a service
+// quota increase.
+type QuotaExceededException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s QuotaExceededException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s QuotaExceededException) GoString() string {
+	return s.String()
+}
+
+func newErrorQuotaExceededException(v protocol.ResponseMetadata) error {
+	return &QuotaExceededException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *QuotaExceededException) Code() string {
+	return "QuotaExceededException"
+}
+
+// Message returns the exception's message.
+func (s *QuotaExceededException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *QuotaExceededException) OrigErr() error {
+	return nil
+}
+
+func (s *QuotaExceededException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *QuotaExceededException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *QuotaExceededException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // A structure that contains information about the quota period.
@@ -3669,6 +4246,118 @@ func (s *RequestedServiceQuotaChange) SetUnit(v string) *RequestedServiceQuotaCh
 	return s
 }
 
+// The specified resource already exists.
+type ResourceAlreadyExistsException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s ResourceAlreadyExistsException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResourceAlreadyExistsException) GoString() string {
+	return s.String()
+}
+
+func newErrorResourceAlreadyExistsException(v protocol.ResponseMetadata) error {
+	return &ResourceAlreadyExistsException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *ResourceAlreadyExistsException) Code() string {
+	return "ResourceAlreadyExistsException"
+}
+
+// Message returns the exception's message.
+func (s *ResourceAlreadyExistsException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *ResourceAlreadyExistsException) OrigErr() error {
+	return nil
+}
+
+func (s *ResourceAlreadyExistsException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *ResourceAlreadyExistsException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *ResourceAlreadyExistsException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// Something went wrong.
+type ServiceException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s ServiceException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ServiceException) GoString() string {
+	return s.String()
+}
+
+func newErrorServiceException(v protocol.ResponseMetadata) error {
+	return &ServiceException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *ServiceException) Code() string {
+	return "ServiceException"
+}
+
+// Message returns the exception's message.
+func (s *ServiceException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *ServiceException) OrigErr() error {
+	return nil
+}
+
+func (s *ServiceException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *ServiceException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *ServiceException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
 // A structure that contains the ServiceName and ServiceCode. It does not include
 // all details of the service quota. To get those values, use the ListServiceQuotas
 // operation.
@@ -3914,6 +4603,178 @@ func (s *ServiceQuotaIncreaseRequestInTemplate) SetServiceName(v string) *Servic
 func (s *ServiceQuotaIncreaseRequestInTemplate) SetUnit(v string) *ServiceQuotaIncreaseRequestInTemplate {
 	s.Unit = &v
 	return s
+}
+
+// The quota request template is not associated with your organization.
+//
+// To use the template, call AssociateServiceQuotaTemplate.
+type ServiceQuotaTemplateNotInUseException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s ServiceQuotaTemplateNotInUseException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ServiceQuotaTemplateNotInUseException) GoString() string {
+	return s.String()
+}
+
+func newErrorServiceQuotaTemplateNotInUseException(v protocol.ResponseMetadata) error {
+	return &ServiceQuotaTemplateNotInUseException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *ServiceQuotaTemplateNotInUseException) Code() string {
+	return "ServiceQuotaTemplateNotInUseException"
+}
+
+// Message returns the exception's message.
+func (s *ServiceQuotaTemplateNotInUseException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *ServiceQuotaTemplateNotInUseException) OrigErr() error {
+	return nil
+}
+
+func (s *ServiceQuotaTemplateNotInUseException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *ServiceQuotaTemplateNotInUseException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *ServiceQuotaTemplateNotInUseException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// The Service Quotas template is not available in the Region where you are
+// making the request. Please make the request in us-east-1.
+type TemplatesNotAvailableInRegionException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s TemplatesNotAvailableInRegionException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s TemplatesNotAvailableInRegionException) GoString() string {
+	return s.String()
+}
+
+func newErrorTemplatesNotAvailableInRegionException(v protocol.ResponseMetadata) error {
+	return &TemplatesNotAvailableInRegionException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *TemplatesNotAvailableInRegionException) Code() string {
+	return "TemplatesNotAvailableInRegionException"
+}
+
+// Message returns the exception's message.
+func (s *TemplatesNotAvailableInRegionException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *TemplatesNotAvailableInRegionException) OrigErr() error {
+	return nil
+}
+
+func (s *TemplatesNotAvailableInRegionException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *TemplatesNotAvailableInRegionException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *TemplatesNotAvailableInRegionException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// Due to throttling, the request was denied. Slow down the rate of request
+// calls, or request an increase for this quota.
+type TooManyRequestsException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s TooManyRequestsException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s TooManyRequestsException) GoString() string {
+	return s.String()
+}
+
+func newErrorTooManyRequestsException(v protocol.ResponseMetadata) error {
+	return &TooManyRequestsException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *TooManyRequestsException) Code() string {
+	return "TooManyRequestsException"
+}
+
+// Message returns the exception's message.
+func (s *TooManyRequestsException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *TooManyRequestsException) OrigErr() error {
+	return nil
+}
+
+func (s *TooManyRequestsException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *TooManyRequestsException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *TooManyRequestsException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 const (

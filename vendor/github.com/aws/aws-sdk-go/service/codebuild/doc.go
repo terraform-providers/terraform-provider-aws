@@ -11,11 +11,14 @@
 // Maven, Gradle, and more. You can also fully customize build environments
 // in AWS CodeBuild to use your own build tools. AWS CodeBuild scales automatically
 // to meet peak build requests. You pay only for the build time you consume.
-// For more information about AWS CodeBuild, see the AWS CodeBuild User Guide.
+// For more information about AWS CodeBuild, see the AWS CodeBuild User Guide
+// (https://docs.aws.amazon.com/codebuild/latest/userguide/welcome.html).
 //
 // AWS CodeBuild supports these operations:
 //
 //    * BatchDeleteBuilds: Deletes one or more builds.
+//
+//    * BatchGetBuilds: Gets information about one or more builds.
 //
 //    * BatchGetProjects: Gets information about one or more build projects.
 //    A build project defines how AWS CodeBuild runs a build. This includes
@@ -25,28 +28,48 @@
 //    language runtime, and tools that AWS CodeBuild uses to run a build. You
 //    can add tags to build projects to help manage your resources and costs.
 //
+//    * BatchGetReportGroups: Returns an array of report groups.
+//
+//    * BatchGetReports: Returns an array of reports.
+//
 //    * CreateProject: Creates a build project.
+//
+//    * CreateReportGroup: Creates a report group. A report group contains a
+//    collection of reports.
 //
 //    * CreateWebhook: For an existing AWS CodeBuild build project that has
 //    its source code stored in a GitHub or Bitbucket repository, enables AWS
 //    CodeBuild to start rebuilding the source code every time a code change
 //    is pushed to the repository.
 //
-//    * UpdateWebhook: Changes the settings of an existing webhook.
-//
 //    * DeleteProject: Deletes a build project.
+//
+//    * DeleteReport: Deletes a report.
+//
+//    * DeleteReportGroup: Deletes a report group.
+//
+//    * DeleteResourcePolicy: Deletes a resource policy that is identified by
+//    its resource ARN.
+//
+//    * DeleteSourceCredentials: Deletes a set of GitHub, GitHub Enterprise,
+//    or Bitbucket source credentials.
 //
 //    * DeleteWebhook: For an existing AWS CodeBuild build project that has
 //    its source code stored in a GitHub or Bitbucket repository, stops AWS
 //    CodeBuild from rebuilding the source code every time a code change is
 //    pushed to the repository.
 //
-//    * ListProjects: Gets a list of build project names, with each build project
-//    name representing a single build project.
+//    * DescribeTestCases: Returns a list of details about test cases for a
+//    report.
 //
-//    * UpdateProject: Changes the settings of an existing build project.
+//    * GetResourcePolicy: Gets a resource policy that is identified by its
+//    resource ARN.
 //
-//    * BatchGetBuilds: Gets information about one or more builds.
+//    * ImportSourceCredentials: Imports the source repository credentials for
+//    an AWS CodeBuild project that has its source code stored in a GitHub,
+//    GitHub Enterprise, or Bitbucket repository.
+//
+//    * InvalidateProjectCache: Resets the cache for a project.
 //
 //    * ListBuilds: Gets a list of build IDs, with each build ID representing
 //    a single build.
@@ -54,23 +77,42 @@
 //    * ListBuildsForProject: Gets a list of build IDs for the specified build
 //    project, with each build ID representing a single build.
 //
-//    * StartBuild: Starts running a build.
-//
-//    * StopBuild: Attempts to stop running a build.
-//
 //    * ListCuratedEnvironmentImages: Gets information about Docker images that
 //    are managed by AWS CodeBuild.
 //
-//    * DeleteSourceCredentials: Deletes a set of GitHub, GitHub Enterprise,
-//    or Bitbucket source credentials.
+//    * ListProjects: Gets a list of build project names, with each build project
+//    name representing a single build project.
 //
-//    * ImportSourceCredentials: Imports the source repository credentials for
-//    an AWS CodeBuild project that has its source code stored in a GitHub,
-//    GitHub Enterprise, or Bitbucket repository.
+//    * ListReportGroups: Gets a list ARNs for the report groups in the current
+//    AWS account.
+//
+//    * ListReports: Gets a list ARNs for the reports in the current AWS account.
+//
+//    * ListReportsForReportGroup: Returns a list of ARNs for the reports that
+//    belong to a ReportGroup.
+//
+//    * ListSharedProjects: Gets a list of ARNs associated with projects shared
+//    with the current AWS account or user.
+//
+//    * ListSharedReportGroups: Gets a list of ARNs associated with report groups
+//    shared with the current AWS account or user
 //
 //    * ListSourceCredentials: Returns a list of SourceCredentialsInfo objects.
 //    Each SourceCredentialsInfo object includes the authentication type, token
 //    ARN, and type of source provider for one set of credentials.
+//
+//    * PutResourcePolicy: Stores a resource policy for the ARN of a Project
+//    or ReportGroup object.
+//
+//    * StartBuild: Starts running a build.
+//
+//    * StopBuild: Attempts to stop running a build.
+//
+//    * UpdateProject: Changes the settings of an existing build project.
+//
+//    * UpdateReportGroup: Changes a report group.
+//
+//    * UpdateWebhook: Changes the settings of an existing webhook.
 //
 // See https://docs.aws.amazon.com/goto/WebAPI/codebuild-2016-10-06 for more information on this service.
 //

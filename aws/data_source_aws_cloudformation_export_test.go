@@ -2,7 +2,6 @@ package aws
 
 import (
 	"fmt"
-	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
@@ -11,31 +10,48 @@ import (
 
 func TestAccAWSCloudformationExportDataSource_basic(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
+	dataSourceName := "data.aws_cloudformation_export.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config:                    testAccCheckAwsCloudformationExportConfig(rName),
+				Config:                    testAccCheckAwsCloudformationExportConfigStaticValue(rName),
 				PreventPostDestroyRefresh: true,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.aws_cloudformation_export.waiter", "value", "waiter"),
-					resource.TestMatchResourceAttr("data.aws_cloudformation_export.vpc", "value",
-						regexp.MustCompile("^vpc-[a-z0-9]{8,}$")),
-					resource.TestMatchResourceAttr("data.aws_cloudformation_export.vpc", "exporting_stack_id",
-						regexp.MustCompile("^arn:aws:cloudformation")),
+					resource.TestCheckResourceAttr(dataSourceName, "value", "waiter"),
 				),
 			},
 		},
 	})
 }
 
-func testAccCheckAwsCloudformationExportConfig(rName string) string {
+func TestAccAWSCloudformationExportDataSource_ResourceReference(t *testing.T) {
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	dataSourceName := "data.aws_cloudformation_export.test"
+	resourceName := "aws_cloudformation_stack.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config:                    testAccCheckAwsCloudformationExportConfigResourceReference(rName),
+				PreventPostDestroyRefresh: true,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrPair(dataSourceName, "exporting_stack_id", resourceName, "id"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "value", resourceName, "outputs.MyVpcId"),
+				),
+			},
+		},
+	})
+}
+
+func testAccCheckAwsCloudformationExportConfigStaticValue(rName string) string {
 	return fmt.Sprintf(`
-resource "aws_cloudformation_stack" "cfs" {
-  name               = "%s1"
-  timeout_in_minutes = 6
+resource "aws_cloudformation_stack" "test" {
+  name = %[1]q
 
   template_body = <<STACK
 {
@@ -50,7 +66,7 @@ resource "aws_cloudformation_stack" "cfs" {
       "Value": "waiter" ,
       "Description": "VPC ID",
       "Export": {
-        "Name": "waiter" 
+        "Name": %[1]q
       }
     }
   }
@@ -58,13 +74,21 @@ resource "aws_cloudformation_stack" "cfs" {
 STACK
 
   tags = {
-    TestExport = "waiter"
+    TestExport = %[1]q
     Second     = "meh"
   }
 }
 
-resource "aws_cloudformation_stack" "yaml" {
-  name = "%s2"
+data "aws_cloudformation_export" "test" {
+  name = aws_cloudformation_stack.test.tags["TestExport"]
+}
+`, rName)
+}
+
+func testAccCheckAwsCloudformationExportConfigResourceReference(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_cloudformation_stack" "test" {
+  name = %[1]q
 
   parameters = {
     CIDR = "10.10.10.0/24"
@@ -92,21 +116,17 @@ Outputs:
     Value: !Ref myvpc
     Description: VPC ID
     Export:
-      Name: MyVpcId
+      Name: %[1]q
 STACK
 
   tags = {
-    TestExport = "MyVpcId"
+    TestExport = %[1]q
     Second     = "meh"
   }
 }
 
-data "aws_cloudformation_export" "vpc" {
-  name = "${aws_cloudformation_stack.yaml.tags["TestExport"]}"
+data "aws_cloudformation_export" "test" {
+  name = aws_cloudformation_stack.test.tags["TestExport"]
 }
-
-data "aws_cloudformation_export" "waiter" {
-  name = "${aws_cloudformation_stack.cfs.tags["TestExport"]}"
-}
-`, rName, rName)
+`, rName)
 }

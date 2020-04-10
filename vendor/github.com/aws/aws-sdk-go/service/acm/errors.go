@@ -2,6 +2,10 @@
 
 package acm
 
+import (
+	"github.com/aws/aws-sdk-go/private/protocol"
+)
+
 const (
 
 	// ErrCodeInvalidArgsException for service response error code
@@ -22,6 +26,12 @@ const (
 	// One or more values in the DomainValidationOption structure is incorrect.
 	ErrCodeInvalidDomainValidationOptionsException = "InvalidDomainValidationOptionsException"
 
+	// ErrCodeInvalidParameterException for service response error code
+	// "InvalidParameterException".
+	//
+	// An input parameter was invalid.
+	ErrCodeInvalidParameterException = "InvalidParameterException"
+
 	// ErrCodeInvalidStateException for service response error code
 	// "InvalidStateException".
 	//
@@ -38,7 +48,7 @@ const (
 	// ErrCodeLimitExceededException for service response error code
 	// "LimitExceededException".
 	//
-	// An ACM limit has been exceeded.
+	// An ACM quota has been exceeded.
 	ErrCodeLimitExceededException = "LimitExceededException"
 
 	// ErrCodeRequestInProgressException for service response error code
@@ -62,9 +72,30 @@ const (
 	// caller's account cannot be found.
 	ErrCodeResourceNotFoundException = "ResourceNotFoundException"
 
+	// ErrCodeTagPolicyException for service response error code
+	// "TagPolicyException".
+	//
+	// A specified tag did not comply with an existing tag policy and was rejected.
+	ErrCodeTagPolicyException = "TagPolicyException"
+
 	// ErrCodeTooManyTagsException for service response error code
 	// "TooManyTagsException".
 	//
 	// The request contains too many tags. Try the request again with fewer tags.
 	ErrCodeTooManyTagsException = "TooManyTagsException"
 )
+
+var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
+	"InvalidArgsException":                    newErrorInvalidArgsException,
+	"InvalidArnException":                     newErrorInvalidArnException,
+	"InvalidDomainValidationOptionsException": newErrorInvalidDomainValidationOptionsException,
+	"InvalidParameterException":               newErrorInvalidParameterException,
+	"InvalidStateException":                   newErrorInvalidStateException,
+	"InvalidTagException":                     newErrorInvalidTagException,
+	"LimitExceededException":                  newErrorLimitExceededException,
+	"RequestInProgressException":              newErrorRequestInProgressException,
+	"ResourceInUseException":                  newErrorResourceInUseException,
+	"ResourceNotFoundException":               newErrorResourceNotFoundException,
+	"TagPolicyException":                      newErrorTagPolicyException,
+	"TooManyTagsException":                    newErrorTooManyTagsException,
+}

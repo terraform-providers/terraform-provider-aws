@@ -27,10 +27,6 @@ func init() {
 	SemVer = version.Must(version.NewVersion(Version))
 }
 
-// Header is the header name used to send the current terraform version
-// in http requests.
-const Header = "Terraform-Version"
-
 // String returns the complete version string, including prerelease
 func String() string {
 	if Prerelease != "" {

@@ -142,30 +142,9 @@ func resourceAwsSubnetCreate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
-		// Handle EC2 eventual consistency on creation
-		err := resource.Retry(5*time.Minute, func() *resource.RetryError {
-			err := keyvaluetags.Ec2UpdateTags(conn, d.Id(), nil, v)
-
-			if isAWSErr(err, "InvalidSubnetID.NotFound", "") {
-				return resource.RetryableError(err)
-			}
-
-			if err != nil {
-				return resource.NonRetryableError(err)
-			}
-
-			return nil
-		})
-
-		if isResourceTimeoutError(err) {
-			err = keyvaluetags.Ec2UpdateTags(conn, d.Id(), nil, v)
-		}
-
-		if err != nil {
+		if err := keyvaluetags.Ec2CreateTags(conn, d.Id(), v); err != nil {
 			return fmt.Errorf("error adding tags: %s", err)
 		}
-
-		d.SetPartial("tags")
 	}
 
 	// You cannot modify multiple subnet attributes in the same request.
@@ -182,8 +161,6 @@ func resourceAwsSubnetCreate(d *schema.ResourceData, meta interface{}) error {
 		if _, err := conn.ModifySubnetAttribute(input); err != nil {
 			return fmt.Errorf("error enabling EC2 Subnet (%s) assign IPv6 address on creation: %s", d.Id(), err)
 		}
-
-		d.SetPartial("assign_ipv6_address_on_creation")
 	}
 
 	if d.Get("map_public_ip_on_launch").(bool) {
@@ -197,19 +174,14 @@ func resourceAwsSubnetCreate(d *schema.ResourceData, meta interface{}) error {
 		if _, err := conn.ModifySubnetAttribute(input); err != nil {
 			return fmt.Errorf("error enabling EC2 Subnet (%s) map public IP on launch: %s", d.Id(), err)
 		}
-
-		d.SetPartial("map_public_ip_on_launch")
 	}
-
-	d.Partial(false)
 
 	return resourceAwsSubnetRead(d, meta)
 }
 
 func resourceAwsSubnetRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
-	ignoreTags := meta.(*AWSClient).ignoreTags
-	ignoreTagPrefixes := meta.(*AWSClient).ignoreTagPrefixes
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	resp, err := conn.DescribeSubnets(&ec2.DescribeSubnetsInput{
 		SubnetIds: []*string{aws.String(d.Id())},
@@ -250,7 +222,7 @@ func resourceAwsSubnetRead(d *schema.ResourceData, meta interface{}) error {
 
 	d.Set("arn", subnet.SubnetArn)
 
-	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(subnet.Tags).IgnoreAws().IgnorePrefixes(ignoreTagPrefixes).Ignore(ignoreTags).Map()); err != nil {
+	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(subnet.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
@@ -262,16 +234,12 @@ func resourceAwsSubnetRead(d *schema.ResourceData, meta interface{}) error {
 func resourceAwsSubnetUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
 
-	d.Partial(true)
-
 	if d.HasChange("tags") {
 		o, n := d.GetChange("tags")
 
 		if err := keyvaluetags.Ec2UpdateTags(conn, d.Id(), o, n); err != nil {
 			return fmt.Errorf("error updating EC2 Subnet (%s) tags: %s", d.Id(), err)
 		}
-
-		d.SetPartial("tags")
 	}
 
 	if d.HasChange("map_public_ip_on_launch") {
@@ -288,8 +256,6 @@ func resourceAwsSubnetUpdate(d *schema.ResourceData, meta interface{}) error {
 
 		if err != nil {
 			return err
-		} else {
-			d.SetPartial("map_public_ip_on_launch")
 		}
 	}
 
@@ -357,8 +323,6 @@ func resourceAwsSubnetUpdate(d *schema.ResourceData, meta interface{}) error {
 				"Error waiting for IPv6 CIDR (%s) to become associated: %s",
 				d.Id(), err)
 		}
-
-		d.SetPartial("ipv6_cidr_block")
 	}
 
 	if d.HasChange("assign_ipv6_address_on_creation") {
@@ -375,12 +339,8 @@ func resourceAwsSubnetUpdate(d *schema.ResourceData, meta interface{}) error {
 
 		if err != nil {
 			return err
-		} else {
-			d.SetPartial("assign_ipv6_address_on_creation")
 		}
 	}
-
-	d.Partial(false)
 
 	return resourceAwsSubnetRead(d, meta)
 }

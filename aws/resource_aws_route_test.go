@@ -548,7 +548,14 @@ resource "aws_vpc" "examplevpc" {
   }
 }
 
-data "aws_availability_zones" "available" {}
+data "aws_availability_zones" "available" {
+  state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
 
 resource "aws_internet_gateway" "internet" {
   vpc_id = "${aws_vpc.examplevpc.id}"
@@ -657,7 +664,14 @@ resource "aws_vpc" "examplevpc" {
   }
 }
 
-data "aws_availability_zones" "available" {}
+data "aws_availability_zones" "available" {
+  state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
 
 resource "aws_internet_gateway" "internet" {
   vpc_id = "${aws_vpc.examplevpc.id}"
@@ -959,6 +973,11 @@ data "aws_availability_zones" "available" {
   # IncorrectState: Transit Gateway is not available in availability zone us-west-2d
   blacklisted_zone_ids = ["usw2-az4"]
   state                = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
 }
 
 resource "aws_vpc" "test" {

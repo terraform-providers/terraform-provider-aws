@@ -34,12 +34,14 @@ The following arguments are supported:
 * `key_name` - (Optional) The name for the key pair.
 * `key_name_prefix` - (Optional) Creates a unique name beginning with the specified prefix. Conflicts with `key_name`.
 * `public_key` - (Required) The public key material.
+* `tags` - (Optional) Key-value mapping of resource tags
 
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
 * `key_name` - The key pair name.
+* `key_pair_id` - The key pair ID.
 * `fingerprint` - The MD5 public key fingerprint as specified in section 4 of RFC 4716.
 
 ## Import

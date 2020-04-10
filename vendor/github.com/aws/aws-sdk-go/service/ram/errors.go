@@ -2,6 +2,10 @@
 
 package ram
 
+import (
+	"github.com/aws/aws-sdk-go/private/protocol"
+)
+
 const (
 
 	// ErrCodeIdempotentParameterMismatchException for service response error code
@@ -132,3 +136,27 @@ const (
 	// A specified resource was not found.
 	ErrCodeUnknownResourceException = "UnknownResourceException"
 )
+
+var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
+	"IdempotentParameterMismatchException":            newErrorIdempotentParameterMismatchException,
+	"InvalidClientTokenException":                     newErrorInvalidClientTokenException,
+	"InvalidMaxResultsException":                      newErrorInvalidMaxResultsException,
+	"InvalidNextTokenException":                       newErrorInvalidNextTokenException,
+	"InvalidParameterException":                       newErrorInvalidParameterException,
+	"InvalidResourceTypeException":                    newErrorInvalidResourceTypeException,
+	"InvalidStateTransitionException":                 newErrorInvalidStateTransitionException,
+	"MalformedArnException":                           newErrorMalformedArnException,
+	"MissingRequiredParameterException":               newErrorMissingRequiredParameterException,
+	"OperationNotPermittedException":                  newErrorOperationNotPermittedException,
+	"ResourceArnNotFoundException":                    newErrorResourceArnNotFoundException,
+	"ResourceShareInvitationAlreadyAcceptedException": newErrorResourceShareInvitationAlreadyAcceptedException,
+	"ResourceShareInvitationAlreadyRejectedException": newErrorResourceShareInvitationAlreadyRejectedException,
+	"ResourceShareInvitationArnNotFoundException":     newErrorResourceShareInvitationArnNotFoundException,
+	"ResourceShareInvitationExpiredException":         newErrorResourceShareInvitationExpiredException,
+	"ResourceShareLimitExceededException":             newErrorResourceShareLimitExceededException,
+	"ServerInternalException":                         newErrorServerInternalException,
+	"ServiceUnavailableException":                     newErrorServiceUnavailableException,
+	"TagLimitExceededException":                       newErrorTagLimitExceededException,
+	"TagPolicyViolationException":                     newErrorTagPolicyViolationException,
+	"UnknownResourceException":                        newErrorUnknownResourceException,
+}

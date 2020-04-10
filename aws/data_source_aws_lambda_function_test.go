@@ -221,7 +221,7 @@ resource "aws_lambda_function" "test" {
   function_name = %[1]q
   handler       = "exports.example"
   role          = "${aws_iam_role.lambda.arn}"
-  runtime       = "nodejs8.10"
+  runtime       = "nodejs12.x"
 }
 
 data "aws_lambda_function" "test" {
@@ -238,7 +238,7 @@ resource "aws_lambda_function" "test" {
   handler       = "exports.example"
   publish       = true
   role          = "${aws_iam_role.lambda.arn}"
-  runtime       = "nodejs8.10"
+  runtime       = "nodejs12.x"
 }
 
 data "aws_lambda_function" "test" {
@@ -256,7 +256,7 @@ resource "aws_lambda_function" "test" {
   handler       = "exports.example"
   publish       = true
   role          = "${aws_iam_role.lambda.arn}"
-  runtime       = "nodejs8.10"
+  runtime       = "nodejs12.x"
 }
 
 resource "aws_lambda_alias" "test" {
@@ -277,7 +277,7 @@ func testAccDataSourceAWSLambdaFunctionConfigLayers(rName string) string {
 resource "aws_lambda_layer_version" "test" {
   filename            = "test-fixtures/lambdatest.zip"
   layer_name          = %[1]q
-  compatible_runtimes = ["nodejs8.10"]
+  compatible_runtimes = ["nodejs12.x"]
 }
 
 resource "aws_lambda_function" "test" {
@@ -286,7 +286,7 @@ resource "aws_lambda_function" "test" {
   handler       = "exports.example"
   layers        = ["${aws_lambda_layer_version.test.arn}"]
   role          = "${aws_iam_role.lambda.arn}"
-  runtime       = "nodejs8.10"
+  runtime       = "nodejs12.x"
 }
 
 data "aws_lambda_function" "test" {
@@ -299,11 +299,19 @@ func testAccDataSourceAWSLambdaFunctionConfigVPC(rName string) string {
 	return testAccDataSourceAWSLambdaFunctionConfigBase(rName) + fmt.Sprintf(`
 resource "aws_vpc" "test" {
   cidr_block = "10.0.0.0/16"
+
+  tags = {
+	Name = %[1]q
+  }
 }
 
 resource "aws_subnet" "test" {
   vpc_id     = "${aws_vpc.test.id}"
   cidr_block = "10.0.1.0/24"
+
+  tags = {
+	Name = %[1]q
+  }
 }
 
 resource "aws_security_group" "test" {
@@ -331,7 +339,7 @@ resource "aws_lambda_function" "test" {
   function_name = %[1]q
   handler       = "exports.example"
   role          = "${aws_iam_role.lambda.arn}"
-  runtime       = "nodejs8.10"
+  runtime       = "nodejs12.x"
 
   vpc_config {
     security_group_ids = ["${aws_security_group.test.id}"]
@@ -352,7 +360,7 @@ resource "aws_lambda_function" "test" {
   function_name = %[1]q
   handler       = "exports.example"
   role          = "${aws_iam_role.lambda.arn}"
-  runtime       = "nodejs8.10"
+  runtime       = "nodejs12.x"
 
   environment {
     variables = {

@@ -95,7 +95,7 @@ The following arguments are supported:
 
 * `deployment_config_name` - (Required) The name of the deployment config.
 * `compute_platform` - (Optional) The compute platform can be `Server`, `Lambda`, or `ECS`. Default is `Server`.
-* `minimum_healthy_hosts` - (Optional) A minimum_healthy_hosts block. Minimum Healthy Hosts are documented below.
+* `minimum_healthy_hosts` - (Optional) A minimum_healthy_hosts block. Required for `Server` compute platform. Minimum Healthy Hosts are documented below.
 * `traffic_routing_config` - (Optional) A traffic_routing_config block. Traffic Routing Config is documented below.
 
 The `minimum_healthy_hosts` block supports the following:

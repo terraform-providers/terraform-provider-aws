@@ -8,6 +8,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/route53resolver"
+	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
@@ -17,6 +18,9 @@ func init() {
 	resource.AddTestSweepers("aws_route53_resolver_endpoint", &resource.Sweeper{
 		Name: "aws_route53_resolver_endpoint",
 		F:    testSweepRoute53ResolverEndpoints,
+		Dependencies: []string{
+			"aws_route53_resolver_rule",
+		},
 	})
 }
 
@@ -27,6 +31,7 @@ func testSweepRoute53ResolverEndpoints(region string) error {
 	}
 	conn := client.(*AWSClient).route53resolverconn
 
+	var errors error
 	err = conn.ListResolverEndpointsPages(&route53resolver.ListResolverEndpointsInput{}, func(page *route53resolver.ListResolverEndpointsOutput, isLast bool) bool {
 		if page == nil {
 			return !isLast
@@ -43,7 +48,7 @@ func testSweepRoute53ResolverEndpoints(region string) error {
 				continue
 			}
 			if err != nil {
-				log.Printf("[ERROR] Error deleting Route53 Resolver endpoint (%s): %s", id, err)
+				errors = multierror.Append(errors, fmt.Errorf("error deleting Route53 Resolver endpoint (%s): %w", id, err))
 				continue
 			}
 
@@ -51,7 +56,8 @@ func testSweepRoute53ResolverEndpoints(region string) error {
 				[]string{route53resolver.ResolverEndpointStatusDeleting},
 				[]string{route53ResolverEndpointStatusDeleted})
 			if err != nil {
-				log.Printf("[ERROR] %s", err)
+				errors = multierror.Append(errors, err)
+				continue
 			}
 		}
 
@@ -62,10 +68,10 @@ func testSweepRoute53ResolverEndpoints(region string) error {
 			log.Printf("[WARN] Skipping Route53 Resolver endpoint sweep for %s: %s", region, err)
 			return nil
 		}
-		return fmt.Errorf("error retrievingRoute53 Resolver endpoints: %s", err)
+		errors = multierror.Append(errors, fmt.Errorf("error retrievingRoute53 Resolver endpoints: %w", err))
 	}
 
-	return nil
+	return errors
 }
 
 func TestAccAwsRoute53ResolverEndpoint_basicInbound(t *testing.T) {
@@ -215,7 +221,14 @@ resource "aws_vpc" "foo" {
   }
 }
 
-data "aws_availability_zones" "available" {}
+data "aws_availability_zones" "available" {
+  state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
 
 resource "aws_subnet" "sn1" {
   vpc_id            = "${aws_vpc.foo.id}"

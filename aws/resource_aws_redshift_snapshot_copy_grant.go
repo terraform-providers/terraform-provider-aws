@@ -10,17 +10,20 @@ import (
 	"github.com/aws/aws-sdk-go/service/redshift"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsRedshiftSnapshotCopyGrant() *schema.Resource {
 	return &schema.Resource{
-		// There is no API for updating/modifying grants, hence no Update
-		// Instead changes to most fields will force a new resource
 		Create: resourceAwsRedshiftSnapshotCopyGrantCreate,
 		Read:   resourceAwsRedshiftSnapshotCopyGrantRead,
 		Update: resourceAwsRedshiftSnapshotCopyGrantUpdate,
 		Delete: resourceAwsRedshiftSnapshotCopyGrantDelete,
 		Exists: resourceAwsRedshiftSnapshotCopyGrantExists,
+
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 
 		Schema: map[string]*schema.Schema{
 			"arn": {
@@ -56,7 +59,7 @@ func resourceAwsRedshiftSnapshotCopyGrantCreate(d *schema.ResourceData, meta int
 		input.KmsKeyId = aws.String(v.(string))
 	}
 
-	input.Tags = tagsFromMapRedshift(d.Get("tags").(map[string]interface{}))
+	input.Tags = keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().RedshiftTags()
 
 	log.Printf("[DEBUG]: Adding new Redshift SnapshotCopyGrant: %s", input)
 
@@ -104,8 +107,8 @@ func resourceAwsRedshiftSnapshotCopyGrantRead(d *schema.ResourceData, meta inter
 
 	d.Set("kms_key_id", grant.KmsKeyId)
 	d.Set("snapshot_copy_grant_name", grant.SnapshotCopyGrantName)
-	if err := d.Set("tags", tagsToMapRedshift(grant.Tags)); err != nil {
-		return fmt.Errorf("Error setting Redshift Snapshot Copy Grant Tags: %#v", err)
+	if err := d.Set("tags", keyvaluetags.RedshiftKeyValueTags(grant.Tags).IgnoreAws().Map()); err != nil {
+		return fmt.Errorf("error setting tags: %s", err)
 	}
 
 	return nil
@@ -114,15 +117,13 @@ func resourceAwsRedshiftSnapshotCopyGrantRead(d *schema.ResourceData, meta inter
 func resourceAwsRedshiftSnapshotCopyGrantUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).redshiftconn
 
-	d.Partial(true)
+	if d.HasChange("tags") {
+		o, n := d.GetChange("tags")
 
-	if tagErr := setTagsRedshift(conn, d); tagErr != nil {
-		return tagErr
-	} else {
-		d.SetPartial("tags")
+		if err := keyvaluetags.RedshiftUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
+			return fmt.Errorf("error updating Redshift Snapshot Copy Grant (%s) tags: %s", d.Get("arn").(string), err)
+		}
 	}
-
-	d.Partial(false)
 
 	return resourceAwsRedshiftSnapshotCopyGrantRead(d, meta)
 }
@@ -262,27 +263,13 @@ func findAwsRedshiftSnapshotCopyGrant(conn *redshift.Redshift, grantName string,
 		input.SnapshotCopyGrantName = aws.String(grantName)
 	}
 
-	var out *redshift.DescribeSnapshotCopyGrantsOutput
-	var err error
-	var grant *redshift.SnapshotCopyGrant
+	out, err := conn.DescribeSnapshotCopyGrants(&input)
 
-	err = resource.Retry(3*time.Minute, func() *resource.RetryError {
-		out, err = conn.DescribeSnapshotCopyGrants(&input)
-
-		if err != nil {
-			return resource.NonRetryableError(err)
-		}
-
-		return nil
-	})
-	if isResourceTimeoutError(err) {
-		out, err = conn.DescribeSnapshotCopyGrants(&input)
-	}
 	if err != nil {
 		return nil, err
 	}
 
-	grant = getAwsRedshiftSnapshotCopyGrant(out.SnapshotCopyGrants, grantName)
+	grant := getAwsRedshiftSnapshotCopyGrant(out.SnapshotCopyGrants, grantName)
 	if grant != nil {
 		return grant, nil
 	} else if out.Marker != nil {

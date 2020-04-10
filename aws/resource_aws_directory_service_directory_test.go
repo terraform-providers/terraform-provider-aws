@@ -3,7 +3,6 @@ package aws
 import (
 	"fmt"
 	"log"
-	"reflect"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -18,7 +17,7 @@ func init() {
 	resource.AddTestSweepers("aws_directory_service_directory", &resource.Sweeper{
 		Name:         "aws_directory_service_directory",
 		F:            testSweepDirectoryServiceDirectories,
-		Dependencies: []string{"aws_fsx_windows_file_system"},
+		Dependencies: []string{"aws_fsx_windows_file_system", "aws_workspaces_directory"},
 	})
 }
 
@@ -70,57 +69,6 @@ func testSweepDirectoryServiceDirectories(region string) error {
 	}
 
 	return nil
-}
-
-func TestDiffTagsDirectoryService(t *testing.T) {
-	cases := []struct {
-		Old, New       map[string]interface{}
-		Create, Remove map[string]string
-	}{
-		// Basic add/remove
-		{
-			Old: map[string]interface{}{
-				"foo": "test",
-			},
-			New: map[string]interface{}{
-				"test": "baz",
-			},
-			Create: map[string]string{
-				"test": "baz",
-			},
-			Remove: map[string]string{
-				"foo": "test",
-			},
-		},
-
-		// Modify
-		{
-			Old: map[string]interface{}{
-				"foo": "test",
-			},
-			New: map[string]interface{}{
-				"foo": "baz",
-			},
-			Create: map[string]string{
-				"foo": "baz",
-			},
-			Remove: map[string]string{
-				"foo": "test",
-			},
-		},
-	}
-
-	for i, tc := range cases {
-		c, r := diffTagsDS(tagsFromMapDS(tc.Old), tagsFromMapDS(tc.New))
-		cm := tagsToMapDS(c)
-		rm := tagsToMapDS(r)
-		if !reflect.DeepEqual(cm, tc.Create) {
-			t.Fatalf("%d: bad create: %#v", i, cm)
-		}
-		if !reflect.DeepEqual(rm, tc.Remove) {
-			t.Fatalf("%d: bad remove: %#v", i, rm)
-		}
-	}
 }
 
 func TestAccAWSDirectoryServiceDirectory_basic(t *testing.T) {
@@ -501,6 +449,11 @@ func testAccPreCheckAWSDirectoryServiceSimpleDirectory(t *testing.T) {
 const testAccDirectoryServiceDirectoryConfig = `
 data "aws_availability_zones" "available" {
   state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
 }
 
 resource "aws_directory_service_directory" "test" {
@@ -542,6 +495,11 @@ resource "aws_subnet" "test" {
 const testAccDirectoryServiceDirectoryTagsConfig = `
 data "aws_availability_zones" "available" {
   state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
 }
 
 resource "aws_directory_service_directory" "test" {
@@ -588,6 +546,11 @@ resource "aws_subnet" "test" {
 const testAccDirectoryServiceDirectoryUpdateTagsConfig = `
 data "aws_availability_zones" "available" {
   state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
 }
 
 resource "aws_directory_service_directory" "test" {
@@ -635,6 +598,11 @@ resource "aws_subnet" "test" {
 const testAccDirectoryServiceDirectoryRemoveTagsConfig = `
 data "aws_availability_zones" "available" {
   state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
 }
 
 resource "aws_directory_service_directory" "test" {
@@ -680,6 +648,11 @@ resource "aws_subnet" "test" {
 const testAccDirectoryServiceDirectoryConfig_connector = `
 data "aws_availability_zones" "available" {
   state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
 }
 
 resource "aws_directory_service_directory" "test" {
@@ -735,6 +708,11 @@ resource "aws_subnet" "test" {
 const testAccDirectoryServiceDirectoryConfig_microsoft = `
 data "aws_availability_zones" "available" {
   state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
 }
 
 resource "aws_directory_service_directory" "test" {
@@ -776,6 +754,11 @@ resource "aws_subnet" "test" {
 const testAccDirectoryServiceDirectoryConfig_microsoftStandard = `
 data "aws_availability_zones" "available" {
   state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
 }
 
 resource "aws_directory_service_directory" "test" {
@@ -819,6 +802,11 @@ func testAccDirectoryServiceDirectoryConfig_withAlias(alias string) string {
 	return fmt.Sprintf(`
 data "aws_availability_zones" "available" {
   state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
 }
 
 resource "aws_directory_service_directory" "test2" {
@@ -863,6 +851,11 @@ func testAccDirectoryServiceDirectoryConfig_withSso(alias string) string {
 	return fmt.Sprintf(`
 data "aws_availability_zones" "available" {
   state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
 }
 
 resource "aws_directory_service_directory" "test2" {
@@ -908,6 +901,11 @@ func testAccDirectoryServiceDirectoryConfig_withSso_modified(alias string) strin
 	return fmt.Sprintf(`
 data "aws_availability_zones" "available" {
   state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
 }
 
 resource "aws_directory_service_directory" "test2" {

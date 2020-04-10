@@ -3,6 +3,7 @@ package aws
 import (
 	"fmt"
 	"log"
+	"strconv"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -18,13 +19,24 @@ func testAccAwsOrganizationsPolicyAttachment_Account(t *testing.T) {
 	policyIdResourceName := "aws_organizations_policy.test"
 	targetIdResourceName := "aws_organizations_organization.test"
 
+	serviceControlPolicyContent := `{"Version": "2012-10-17", "Statement": { "Effect": "Allow", "Action": "*", "Resource": "*"}}`
+	tagPolicyContent := `{ "tags": { "Product": { "tag_key": { "@@assign": "Product" }, "enforced_for": { "@@assign": [ "ec2:instance" ] } } } }`
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccOrganizationsAccountPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsOrganizationsPolicyAttachmentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAwsOrganizationsPolicyAttachmentConfig_Account(rName),
+				Config: testAccAwsOrganizationsPolicyAttachmentConfig_Account(rName, organizations.PolicyTypeServiceControlPolicy, serviceControlPolicyContent),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsOrganizationsPolicyAttachmentExists(resourceName),
+					resource.TestCheckResourceAttrPair(resourceName, "policy_id", policyIdResourceName, "id"),
+					resource.TestCheckResourceAttrPair(resourceName, "target_id", targetIdResourceName, "master_account_id"),
+				),
+			},
+			{
+				Config: testAccAwsOrganizationsPolicyAttachmentConfig_Account(rName, organizations.PolicyTypeTagPolicy, tagPolicyContent),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsOrganizationsPolicyAttachmentExists(resourceName),
 					resource.TestCheckResourceAttrPair(resourceName, "policy_id", policyIdResourceName, "id"),
@@ -163,16 +175,15 @@ func testAccCheckAwsOrganizationsPolicyAttachmentExists(resourceName string) res
 			return err
 		}
 
-		input := &organizations.ListPoliciesForTargetInput{
-			Filter:   aws.String(organizations.PolicyTypeServiceControlPolicy),
-			TargetId: aws.String(targetID),
+		input := &organizations.ListTargetsForPolicyInput{
+			PolicyId: aws.String(policyID),
 		}
 
 		log.Printf("[DEBUG] Listing Organizations Policies for Target: %s", input)
-		var output *organizations.PolicySummary
-		err = conn.ListPoliciesForTargetPages(input, func(page *organizations.ListPoliciesForTargetOutput, lastPage bool) bool {
-			for _, policySummary := range page.Policies {
-				if aws.StringValue(policySummary.Id) == policyID {
+		var output *organizations.PolicyTargetSummary
+		err = conn.ListTargetsForPolicyPages(input, func(page *organizations.ListTargetsForPolicyOutput, lastPage bool) bool {
+			for _, policySummary := range page.Targets {
+				if aws.StringValue(policySummary.TargetId) == targetID {
 					output = policySummary
 					return true
 				}
@@ -192,24 +203,25 @@ func testAccCheckAwsOrganizationsPolicyAttachmentExists(resourceName string) res
 	}
 }
 
-func testAccAwsOrganizationsPolicyAttachmentConfig_Account(rName string) string {
+func testAccAwsOrganizationsPolicyAttachmentConfig_Account(rName, policyType, policyContent string) string {
 	return fmt.Sprintf(`
 resource "aws_organizations_organization" "test" {
-  enabled_policy_types = ["SERVICE_CONTROL_POLICY"]
+  enabled_policy_types = ["SERVICE_CONTROL_POLICY", "TAG_POLICY"]
 }
 
 resource "aws_organizations_policy" "test" {
   depends_on = ["aws_organizations_organization.test"]
 
-  content = "{\"Version\": \"2012-10-17\", \"Statement\": { \"Effect\": \"Allow\", \"Action\": \"*\", \"Resource\": \"*\"}}"
   name    = "%s"
+  type = "%s"
+  content = %s
 }
 
 resource "aws_organizations_policy_attachment" "test" {
   policy_id = "${aws_organizations_policy.test.id}"
   target_id = "${aws_organizations_organization.test.master_account_id}"
 }
-`, rName)
+`, rName, policyType, strconv.Quote(policyContent))
 }
 
 func testAccAwsOrganizationsPolicyAttachmentConfig_OrganizationalUnit(rName string) string {

@@ -2,7 +2,18 @@
 
 package sagemaker
 
+import (
+	"github.com/aws/aws-sdk-go/private/protocol"
+)
+
 const (
+
+	// ErrCodeConflictException for service response error code
+	// "ConflictException".
+	//
+	// There was a conflict when you attempted to modify an experiment, trial, or
+	// trial component.
+	ErrCodeConflictException = "ConflictException"
 
 	// ErrCodeResourceInUse for service response error code
 	// "ResourceInUse".
@@ -23,3 +34,10 @@ const (
 	// Resource being access is not found.
 	ErrCodeResourceNotFound = "ResourceNotFound"
 )
+
+var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
+	"ConflictException":     newErrorConflictException,
+	"ResourceInUse":         newErrorResourceInUse,
+	"ResourceLimitExceeded": newErrorResourceLimitExceeded,
+	"ResourceNotFound":      newErrorResourceNotFound,
+}

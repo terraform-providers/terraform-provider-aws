@@ -9,10 +9,10 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/rds"
-
 	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsDbOptionGroup() *schema.Resource {
@@ -124,7 +124,7 @@ func resourceAwsDbOptionGroup() *schema.Resource {
 
 func resourceAwsDbOptionGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	rdsconn := meta.(*AWSClient).rdsconn
-	tags := tagsFromMapRDS(d.Get("tags").(map[string]interface{}))
+	tags := keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().RdsTags()
 
 	var groupName string
 	if v, ok := d.GetOk("name"); ok {
@@ -201,15 +201,13 @@ func resourceAwsDbOptionGroupRead(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("error setting option: %s", err)
 	}
 
-	resp, err := rdsconn.ListTagsForResource(&rds.ListTagsForResourceInput{
-		ResourceName: option.OptionGroupArn,
-	})
+	tags, err := keyvaluetags.RdsListTags(rdsconn, d.Get("arn").(string))
 
 	if err != nil {
-		return fmt.Errorf("error listing tags for RDS Option Group (%s): %s", d.Id(), err)
+		return fmt.Errorf("error listing tags for RDS Option Group (%s): %s", d.Get("arn").(string), err)
 	}
 
-	if err := d.Set("tags", tagsToMapRDS(resp.TagList)); err != nil {
+	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
@@ -287,14 +285,15 @@ func resourceAwsDbOptionGroupUpdate(d *schema.ResourceData, meta interface{}) er
 			if err != nil {
 				return fmt.Errorf("Error modifying DB Option Group: %s", err)
 			}
-			d.SetPartial("option")
 		}
 	}
 
-	if err := setTagsRDS(rdsconn, d, d.Get("arn").(string)); err != nil {
-		return err
-	} else {
-		d.SetPartial("tags")
+	if d.HasChange("tags") {
+		o, n := d.GetChange("tags")
+
+		if err := keyvaluetags.RdsUpdateTags(rdsconn, d.Get("arn").(string), o, n); err != nil {
+			return fmt.Errorf("error updating RDS Option Group (%s) tags: %s", d.Get("arn").(string), err)
+		}
 	}
 
 	return resourceAwsDbOptionGroupRead(d, meta)
@@ -312,7 +311,7 @@ func resourceAwsDbOptionGroupDelete(d *schema.ResourceData, meta interface{}) er
 		_, err := rdsconn.DeleteOptionGroup(deleteOpts)
 		if err != nil {
 			if isAWSErr(err, rds.ErrCodeInvalidOptionGroupStateFault, "") {
-				log.Printf("[DEBUG] AWS believes the RDS Option Group is still in use, retrying")
+				log.Printf(`[DEBUG] AWS believes the RDS Option Group is still in use, this could be because of a internal snapshot create by AWS, see github issue #4597 for more info. retrying...`)
 				return resource.RetryableError(err)
 			}
 			return resource.NonRetryableError(err)

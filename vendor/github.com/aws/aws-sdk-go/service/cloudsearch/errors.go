@@ -41,4 +41,10 @@ const (
 	// The request was rejected because it attempted to reference a resource that
 	// does not exist.
 	ErrCodeResourceNotFoundException = "ResourceNotFound"
+
+	// ErrCodeValidationException for service response error code
+	// "ValidationException".
+	//
+	// The request was rejected because it has invalid parameters.
+	ErrCodeValidationException = "ValidationException"
 )

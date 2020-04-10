@@ -66,22 +66,22 @@ func (c *ServerlessApplicationRepository) CreateApplicationRequest(input *Create
 // See the AWS API reference guide for AWSServerlessApplicationRepository's
 // API operation CreateApplication for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+// Returned Error Types:
+//   * TooManyRequestsException
 //   The client is sending more than the allowed number of requests per unit of
 //   time.
 //
-//   * ErrCodeBadRequestException "BadRequestException"
+//   * BadRequestException
 //   One of the parameters in the request is invalid.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   The AWS Serverless Application Repository service encountered an internal
 //   error.
 //
-//   * ErrCodeConflictException "ConflictException"
+//   * ConflictException
 //   The resource already exists.
 //
-//   * ErrCodeForbiddenException "ForbiddenException"
+//   * ForbiddenException
 //   The client is not authenticated.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/serverlessrepo-2017-09-08/CreateApplication
@@ -159,22 +159,22 @@ func (c *ServerlessApplicationRepository) CreateApplicationVersionRequest(input 
 // See the AWS API reference guide for AWSServerlessApplicationRepository's
 // API operation CreateApplicationVersion for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+// Returned Error Types:
+//   * TooManyRequestsException
 //   The client is sending more than the allowed number of requests per unit of
 //   time.
 //
-//   * ErrCodeBadRequestException "BadRequestException"
+//   * BadRequestException
 //   One of the parameters in the request is invalid.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   The AWS Serverless Application Repository service encountered an internal
 //   error.
 //
-//   * ErrCodeConflictException "ConflictException"
+//   * ConflictException
 //   The resource already exists.
 //
-//   * ErrCodeForbiddenException "ForbiddenException"
+//   * ForbiddenException
 //   The client is not authenticated.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/serverlessrepo-2017-09-08/CreateApplicationVersion
@@ -252,19 +252,19 @@ func (c *ServerlessApplicationRepository) CreateCloudFormationChangeSetRequest(i
 // See the AWS API reference guide for AWSServerlessApplicationRepository's
 // API operation CreateCloudFormationChangeSet for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+// Returned Error Types:
+//   * TooManyRequestsException
 //   The client is sending more than the allowed number of requests per unit of
 //   time.
 //
-//   * ErrCodeBadRequestException "BadRequestException"
+//   * BadRequestException
 //   One of the parameters in the request is invalid.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   The AWS Serverless Application Repository service encountered an internal
 //   error.
 //
-//   * ErrCodeForbiddenException "ForbiddenException"
+//   * ForbiddenException
 //   The client is not authenticated.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/serverlessrepo-2017-09-08/CreateCloudFormationChangeSet
@@ -342,23 +342,23 @@ func (c *ServerlessApplicationRepository) CreateCloudFormationTemplateRequest(in
 // See the AWS API reference guide for AWSServerlessApplicationRepository's
 // API operation CreateCloudFormationTemplate for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeNotFoundException "NotFoundException"
+// Returned Error Types:
+//   * NotFoundException
 //   The resource (for example, an access policy statement) specified in the request
 //   doesn't exist.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   The client is sending more than the allowed number of requests per unit of
 //   time.
 //
-//   * ErrCodeBadRequestException "BadRequestException"
+//   * BadRequestException
 //   One of the parameters in the request is invalid.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   The AWS Serverless Application Repository service encountered an internal
 //   error.
 //
-//   * ErrCodeForbiddenException "ForbiddenException"
+//   * ForbiddenException
 //   The client is not authenticated.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/serverlessrepo-2017-09-08/CreateCloudFormationTemplate
@@ -437,26 +437,26 @@ func (c *ServerlessApplicationRepository) DeleteApplicationRequest(input *Delete
 // See the AWS API reference guide for AWSServerlessApplicationRepository's
 // API operation DeleteApplication for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //   One of the parameters in the request is invalid.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   The AWS Serverless Application Repository service encountered an internal
 //   error.
 //
-//   * ErrCodeForbiddenException "ForbiddenException"
+//   * ForbiddenException
 //   The client is not authenticated.
 //
-//   * ErrCodeNotFoundException "NotFoundException"
+//   * NotFoundException
 //   The resource (for example, an access policy statement) specified in the request
 //   doesn't exist.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   The client is sending more than the allowed number of requests per unit of
 //   time.
 //
-//   * ErrCodeConflictException "ConflictException"
+//   * ConflictException
 //   The resource already exists.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/serverlessrepo-2017-09-08/DeleteApplication
@@ -534,23 +534,23 @@ func (c *ServerlessApplicationRepository) GetApplicationRequest(input *GetApplic
 // See the AWS API reference guide for AWSServerlessApplicationRepository's
 // API operation GetApplication for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeNotFoundException "NotFoundException"
+// Returned Error Types:
+//   * NotFoundException
 //   The resource (for example, an access policy statement) specified in the request
 //   doesn't exist.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   The client is sending more than the allowed number of requests per unit of
 //   time.
 //
-//   * ErrCodeBadRequestException "BadRequestException"
+//   * BadRequestException
 //   One of the parameters in the request is invalid.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   The AWS Serverless Application Repository service encountered an internal
 //   error.
 //
-//   * ErrCodeForbiddenException "ForbiddenException"
+//   * ForbiddenException
 //   The client is not authenticated.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/serverlessrepo-2017-09-08/GetApplication
@@ -628,23 +628,23 @@ func (c *ServerlessApplicationRepository) GetApplicationPolicyRequest(input *Get
 // See the AWS API reference guide for AWSServerlessApplicationRepository's
 // API operation GetApplicationPolicy for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeNotFoundException "NotFoundException"
+// Returned Error Types:
+//   * NotFoundException
 //   The resource (for example, an access policy statement) specified in the request
 //   doesn't exist.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   The client is sending more than the allowed number of requests per unit of
 //   time.
 //
-//   * ErrCodeBadRequestException "BadRequestException"
+//   * BadRequestException
 //   One of the parameters in the request is invalid.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   The AWS Serverless Application Repository service encountered an internal
 //   error.
 //
-//   * ErrCodeForbiddenException "ForbiddenException"
+//   * ForbiddenException
 //   The client is not authenticated.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/serverlessrepo-2017-09-08/GetApplicationPolicy
@@ -722,23 +722,23 @@ func (c *ServerlessApplicationRepository) GetCloudFormationTemplateRequest(input
 // See the AWS API reference guide for AWSServerlessApplicationRepository's
 // API operation GetCloudFormationTemplate for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeNotFoundException "NotFoundException"
+// Returned Error Types:
+//   * NotFoundException
 //   The resource (for example, an access policy statement) specified in the request
 //   doesn't exist.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   The client is sending more than the allowed number of requests per unit of
 //   time.
 //
-//   * ErrCodeBadRequestException "BadRequestException"
+//   * BadRequestException
 //   One of the parameters in the request is invalid.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   The AWS Serverless Application Repository service encountered an internal
 //   error.
 //
-//   * ErrCodeForbiddenException "ForbiddenException"
+//   * ForbiddenException
 //   The client is not authenticated.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/serverlessrepo-2017-09-08/GetCloudFormationTemplate
@@ -822,23 +822,23 @@ func (c *ServerlessApplicationRepository) ListApplicationDependenciesRequest(inp
 // See the AWS API reference guide for AWSServerlessApplicationRepository's
 // API operation ListApplicationDependencies for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeNotFoundException "NotFoundException"
+// Returned Error Types:
+//   * NotFoundException
 //   The resource (for example, an access policy statement) specified in the request
 //   doesn't exist.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   The client is sending more than the allowed number of requests per unit of
 //   time.
 //
-//   * ErrCodeBadRequestException "BadRequestException"
+//   * BadRequestException
 //   One of the parameters in the request is invalid.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   The AWS Serverless Application Repository service encountered an internal
 //   error.
 //
-//   * ErrCodeForbiddenException "ForbiddenException"
+//   * ForbiddenException
 //   The client is not authenticated.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/serverlessrepo-2017-09-08/ListApplicationDependencies
@@ -906,10 +906,12 @@ func (c *ServerlessApplicationRepository) ListApplicationDependenciesPagesWithCo
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListApplicationDependenciesOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListApplicationDependenciesOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -972,23 +974,23 @@ func (c *ServerlessApplicationRepository) ListApplicationVersionsRequest(input *
 // See the AWS API reference guide for AWSServerlessApplicationRepository's
 // API operation ListApplicationVersions for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeNotFoundException "NotFoundException"
+// Returned Error Types:
+//   * NotFoundException
 //   The resource (for example, an access policy statement) specified in the request
 //   doesn't exist.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   The client is sending more than the allowed number of requests per unit of
 //   time.
 //
-//   * ErrCodeBadRequestException "BadRequestException"
+//   * BadRequestException
 //   One of the parameters in the request is invalid.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   The AWS Serverless Application Repository service encountered an internal
 //   error.
 //
-//   * ErrCodeForbiddenException "ForbiddenException"
+//   * ForbiddenException
 //   The client is not authenticated.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/serverlessrepo-2017-09-08/ListApplicationVersions
@@ -1056,10 +1058,12 @@ func (c *ServerlessApplicationRepository) ListApplicationVersionsPagesWithContex
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListApplicationVersionsOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListApplicationVersionsOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -1122,19 +1126,19 @@ func (c *ServerlessApplicationRepository) ListApplicationsRequest(input *ListApp
 // See the AWS API reference guide for AWSServerlessApplicationRepository's
 // API operation ListApplications for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeNotFoundException "NotFoundException"
+// Returned Error Types:
+//   * NotFoundException
 //   The resource (for example, an access policy statement) specified in the request
 //   doesn't exist.
 //
-//   * ErrCodeBadRequestException "BadRequestException"
+//   * BadRequestException
 //   One of the parameters in the request is invalid.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   The AWS Serverless Application Repository service encountered an internal
 //   error.
 //
-//   * ErrCodeForbiddenException "ForbiddenException"
+//   * ForbiddenException
 //   The client is not authenticated.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/serverlessrepo-2017-09-08/ListApplications
@@ -1202,10 +1206,12 @@ func (c *ServerlessApplicationRepository) ListApplicationsPagesWithContext(ctx a
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListApplicationsOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListApplicationsOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -1263,23 +1269,23 @@ func (c *ServerlessApplicationRepository) PutApplicationPolicyRequest(input *Put
 // See the AWS API reference guide for AWSServerlessApplicationRepository's
 // API operation PutApplicationPolicy for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeNotFoundException "NotFoundException"
+// Returned Error Types:
+//   * NotFoundException
 //   The resource (for example, an access policy statement) specified in the request
 //   doesn't exist.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   The client is sending more than the allowed number of requests per unit of
 //   time.
 //
-//   * ErrCodeBadRequestException "BadRequestException"
+//   * BadRequestException
 //   One of the parameters in the request is invalid.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   The AWS Serverless Application Repository service encountered an internal
 //   error.
 //
-//   * ErrCodeForbiddenException "ForbiddenException"
+//   * ForbiddenException
 //   The client is not authenticated.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/serverlessrepo-2017-09-08/PutApplicationPolicy
@@ -1299,6 +1305,103 @@ func (c *ServerlessApplicationRepository) PutApplicationPolicy(input *PutApplica
 // for more information on using Contexts.
 func (c *ServerlessApplicationRepository) PutApplicationPolicyWithContext(ctx aws.Context, input *PutApplicationPolicyInput, opts ...request.Option) (*PutApplicationPolicyOutput, error) {
 	req, out := c.PutApplicationPolicyRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opUnshareApplication = "UnshareApplication"
+
+// UnshareApplicationRequest generates a "aws/request.Request" representing the
+// client's request for the UnshareApplication operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See UnshareApplication for more information on using the UnshareApplication
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the UnshareApplicationRequest method.
+//    req, resp := client.UnshareApplicationRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/serverlessrepo-2017-09-08/UnshareApplication
+func (c *ServerlessApplicationRepository) UnshareApplicationRequest(input *UnshareApplicationInput) (req *request.Request, output *UnshareApplicationOutput) {
+	op := &request.Operation{
+		Name:       opUnshareApplication,
+		HTTPMethod: "POST",
+		HTTPPath:   "/applications/{applicationId}/unshare",
+	}
+
+	if input == nil {
+		input = &UnshareApplicationInput{}
+	}
+
+	output = &UnshareApplicationOutput{}
+	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(restjson.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
+	return
+}
+
+// UnshareApplication API operation for AWSServerlessApplicationRepository.
+//
+// Unshares an application from an AWS Organization.
+//
+// This operation can be called only from the organization's master account.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWSServerlessApplicationRepository's
+// API operation UnshareApplication for usage and error information.
+//
+// Returned Error Types:
+//   * NotFoundException
+//   The resource (for example, an access policy statement) specified in the request
+//   doesn't exist.
+//
+//   * TooManyRequestsException
+//   The client is sending more than the allowed number of requests per unit of
+//   time.
+//
+//   * BadRequestException
+//   One of the parameters in the request is invalid.
+//
+//   * InternalServerErrorException
+//   The AWS Serverless Application Repository service encountered an internal
+//   error.
+//
+//   * ForbiddenException
+//   The client is not authenticated.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/serverlessrepo-2017-09-08/UnshareApplication
+func (c *ServerlessApplicationRepository) UnshareApplication(input *UnshareApplicationInput) (*UnshareApplicationOutput, error) {
+	req, out := c.UnshareApplicationRequest(input)
+	return out, req.Send()
+}
+
+// UnshareApplicationWithContext is the same as UnshareApplication with the addition of
+// the ability to pass a context and additional request options.
+//
+// See UnshareApplication for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *ServerlessApplicationRepository) UnshareApplicationWithContext(ctx aws.Context, input *UnshareApplicationInput, opts ...request.Option) (*UnshareApplicationOutput, error) {
+	req, out := c.UnshareApplicationRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -1357,26 +1460,26 @@ func (c *ServerlessApplicationRepository) UpdateApplicationRequest(input *Update
 // See the AWS API reference guide for AWSServerlessApplicationRepository's
 // API operation UpdateApplication for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //   One of the parameters in the request is invalid.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   The AWS Serverless Application Repository service encountered an internal
 //   error.
 //
-//   * ErrCodeForbiddenException "ForbiddenException"
+//   * ForbiddenException
 //   The client is not authenticated.
 //
-//   * ErrCodeNotFoundException "NotFoundException"
+//   * NotFoundException
 //   The resource (for example, an access policy statement) specified in the request
 //   doesn't exist.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   The client is sending more than the allowed number of requests per unit of
 //   time.
 //
-//   * ErrCodeConflictException "ConflictException"
+//   * ConflictException
 //   The resource already exists.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/serverlessrepo-2017-09-08/UpdateApplication
@@ -1448,6 +1551,11 @@ type ApplicationPolicyStatement struct {
 	// Actions is a required field
 	Actions []*string `locationName:"actions" type:"list" required:"true"`
 
+	// An array of PrinciplalOrgIDs, which corresponds to AWS IAM aws:PrincipalOrgID
+	// (https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_condition-keys.html#principal-org-id)
+	// global condition key.
+	PrincipalOrgIDs []*string `locationName:"principalOrgIDs" type:"list"`
+
 	// An array of AWS account IDs, or * to make the application public.
 	//
 	// Principals is a required field
@@ -1486,6 +1594,12 @@ func (s *ApplicationPolicyStatement) Validate() error {
 // SetActions sets the Actions field's value.
 func (s *ApplicationPolicyStatement) SetActions(v []*string) *ApplicationPolicyStatement {
 	s.Actions = v
+	return s
+}
+
+// SetPrincipalOrgIDs sets the PrincipalOrgIDs field's value.
+func (s *ApplicationPolicyStatement) SetPrincipalOrgIDs(v []*string) *ApplicationPolicyStatement {
+	s.PrincipalOrgIDs = v
 	return s
 }
 
@@ -1611,6 +1725,126 @@ func (s *ApplicationSummary) SetSpdxLicenseId(v string) *ApplicationSummary {
 	return s
 }
 
+// One of the parameters in the request is invalid.
+type BadRequestException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// 400
+	ErrorCode *string `locationName:"errorCode" type:"string"`
+
+	// One of the parameters in the request is invalid.
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s BadRequestException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s BadRequestException) GoString() string {
+	return s.String()
+}
+
+func newErrorBadRequestException(v protocol.ResponseMetadata) error {
+	return &BadRequestException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *BadRequestException) Code() string {
+	return "BadRequestException"
+}
+
+// Message returns the exception's message.
+func (s *BadRequestException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *BadRequestException) OrigErr() error {
+	return nil
+}
+
+func (s *BadRequestException) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *BadRequestException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *BadRequestException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// The resource already exists.
+type ConflictException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// 409
+	ErrorCode *string `locationName:"errorCode" type:"string"`
+
+	// The resource already exists.
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s ConflictException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ConflictException) GoString() string {
+	return s.String()
+}
+
+func newErrorConflictException(v protocol.ResponseMetadata) error {
+	return &ConflictException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *ConflictException) Code() string {
+	return "ConflictException"
+}
+
+// Message returns the exception's message.
+func (s *ConflictException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *ConflictException) OrigErr() error {
+	return nil
+}
+
+func (s *ConflictException) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *ConflictException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *ConflictException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
 type CreateApplicationOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -1624,6 +1858,8 @@ type CreateApplicationOutput struct {
 
 	HomePageUrl *string `locationName:"homePageUrl" type:"string"`
 
+	IsVerifiedAuthor *bool `locationName:"isVerifiedAuthor" type:"boolean"`
+
 	Labels []*string `locationName:"labels" type:"list"`
 
 	LicenseUrl *string `locationName:"licenseUrl" type:"string"`
@@ -1633,6 +1869,8 @@ type CreateApplicationOutput struct {
 	ReadmeUrl *string `locationName:"readmeUrl" type:"string"`
 
 	SpdxLicenseId *string `locationName:"spdxLicenseId" type:"string"`
+
+	VerifiedAuthorUrl *string `locationName:"verifiedAuthorUrl" type:"string"`
 
 	// Application version details.
 	Version *Version `locationName:"version" type:"structure"`
@@ -1678,6 +1916,12 @@ func (s *CreateApplicationOutput) SetHomePageUrl(v string) *CreateApplicationOut
 	return s
 }
 
+// SetIsVerifiedAuthor sets the IsVerifiedAuthor field's value.
+func (s *CreateApplicationOutput) SetIsVerifiedAuthor(v bool) *CreateApplicationOutput {
+	s.IsVerifiedAuthor = &v
+	return s
+}
+
 // SetLabels sets the Labels field's value.
 func (s *CreateApplicationOutput) SetLabels(v []*string) *CreateApplicationOutput {
 	s.Labels = v
@@ -1705,6 +1949,12 @@ func (s *CreateApplicationOutput) SetReadmeUrl(v string) *CreateApplicationOutpu
 // SetSpdxLicenseId sets the SpdxLicenseId field's value.
 func (s *CreateApplicationOutput) SetSpdxLicenseId(v string) *CreateApplicationOutput {
 	s.SpdxLicenseId = &v
+	return s
+}
+
+// SetVerifiedAuthorUrl sets the VerifiedAuthorUrl field's value.
+func (s *CreateApplicationOutput) SetVerifiedAuthorUrl(v string) *CreateApplicationOutput {
+	s.VerifiedAuthorUrl = &v
 	return s
 }
 
@@ -2425,6 +2675,66 @@ func (s DeleteApplicationOutput) GoString() string {
 	return s.String()
 }
 
+// The client is not authenticated.
+type ForbiddenException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// 403
+	ErrorCode *string `locationName:"errorCode" type:"string"`
+
+	// The client is not authenticated.
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s ForbiddenException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ForbiddenException) GoString() string {
+	return s.String()
+}
+
+func newErrorForbiddenException(v protocol.ResponseMetadata) error {
+	return &ForbiddenException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *ForbiddenException) Code() string {
+	return "ForbiddenException"
+}
+
+// Message returns the exception's message.
+func (s *ForbiddenException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *ForbiddenException) OrigErr() error {
+	return nil
+}
+
+func (s *ForbiddenException) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *ForbiddenException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *ForbiddenException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
 type GetApplicationInput struct {
 	_ struct{} `type:"structure"`
 
@@ -2485,6 +2795,8 @@ type GetApplicationOutput struct {
 
 	HomePageUrl *string `locationName:"homePageUrl" type:"string"`
 
+	IsVerifiedAuthor *bool `locationName:"isVerifiedAuthor" type:"boolean"`
+
 	Labels []*string `locationName:"labels" type:"list"`
 
 	LicenseUrl *string `locationName:"licenseUrl" type:"string"`
@@ -2494,6 +2806,8 @@ type GetApplicationOutput struct {
 	ReadmeUrl *string `locationName:"readmeUrl" type:"string"`
 
 	SpdxLicenseId *string `locationName:"spdxLicenseId" type:"string"`
+
+	VerifiedAuthorUrl *string `locationName:"verifiedAuthorUrl" type:"string"`
 
 	// Application version details.
 	Version *Version `locationName:"version" type:"structure"`
@@ -2539,6 +2853,12 @@ func (s *GetApplicationOutput) SetHomePageUrl(v string) *GetApplicationOutput {
 	return s
 }
 
+// SetIsVerifiedAuthor sets the IsVerifiedAuthor field's value.
+func (s *GetApplicationOutput) SetIsVerifiedAuthor(v bool) *GetApplicationOutput {
+	s.IsVerifiedAuthor = &v
+	return s
+}
+
 // SetLabels sets the Labels field's value.
 func (s *GetApplicationOutput) SetLabels(v []*string) *GetApplicationOutput {
 	s.Labels = v
@@ -2566,6 +2886,12 @@ func (s *GetApplicationOutput) SetReadmeUrl(v string) *GetApplicationOutput {
 // SetSpdxLicenseId sets the SpdxLicenseId field's value.
 func (s *GetApplicationOutput) SetSpdxLicenseId(v string) *GetApplicationOutput {
 	s.SpdxLicenseId = &v
+	return s
+}
+
+// SetVerifiedAuthorUrl sets the VerifiedAuthorUrl field's value.
+func (s *GetApplicationOutput) SetVerifiedAuthorUrl(v string) *GetApplicationOutput {
+	s.VerifiedAuthorUrl = &v
 	return s
 }
 
@@ -2758,6 +3084,68 @@ func (s *GetCloudFormationTemplateOutput) SetTemplateId(v string) *GetCloudForma
 func (s *GetCloudFormationTemplateOutput) SetTemplateUrl(v string) *GetCloudFormationTemplateOutput {
 	s.TemplateUrl = &v
 	return s
+}
+
+// The AWS Serverless Application Repository service encountered an internal
+// error.
+type InternalServerErrorException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// 500
+	ErrorCode *string `locationName:"errorCode" type:"string"`
+
+	// The AWS Serverless Application Repository service encountered an internal
+	// error.
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s InternalServerErrorException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InternalServerErrorException) GoString() string {
+	return s.String()
+}
+
+func newErrorInternalServerErrorException(v protocol.ResponseMetadata) error {
+	return &InternalServerErrorException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *InternalServerErrorException) Code() string {
+	return "InternalServerErrorException"
+}
+
+// Message returns the exception's message.
+func (s *InternalServerErrorException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *InternalServerErrorException) OrigErr() error {
+	return nil
+}
+
+func (s *InternalServerErrorException) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *InternalServerErrorException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *InternalServerErrorException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 type ListApplicationDependenciesInput struct {
@@ -3015,6 +3403,68 @@ func (s *ListApplicationsOutput) SetApplications(v []*ApplicationSummary) *ListA
 func (s *ListApplicationsOutput) SetNextToken(v string) *ListApplicationsOutput {
 	s.NextToken = &v
 	return s
+}
+
+// The resource (for example, an access policy statement) specified in the request
+// doesn't exist.
+type NotFoundException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// 404
+	ErrorCode *string `locationName:"errorCode" type:"string"`
+
+	// The resource (for example, an access policy statement) specified in the request
+	// doesn't exist.
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s NotFoundException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s NotFoundException) GoString() string {
+	return s.String()
+}
+
+func newErrorNotFoundException(v protocol.ResponseMetadata) error {
+	return &NotFoundException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *NotFoundException) Code() string {
+	return "NotFoundException"
+}
+
+// Message returns the exception's message.
+func (s *NotFoundException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *NotFoundException) OrigErr() error {
+	return nil
+}
+
+func (s *NotFoundException) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *NotFoundException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *NotFoundException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Parameters supported by the application.
@@ -3513,6 +3963,133 @@ func (s *Tag) SetValue(v string) *Tag {
 	return s
 }
 
+// The client is sending more than the allowed number of requests per unit of
+// time.
+type TooManyRequestsException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// 429
+	ErrorCode *string `locationName:"errorCode" type:"string"`
+
+	// The client is sending more than the allowed number of requests per unit of
+	// time.
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s TooManyRequestsException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s TooManyRequestsException) GoString() string {
+	return s.String()
+}
+
+func newErrorTooManyRequestsException(v protocol.ResponseMetadata) error {
+	return &TooManyRequestsException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *TooManyRequestsException) Code() string {
+	return "TooManyRequestsException"
+}
+
+// Message returns the exception's message.
+func (s *TooManyRequestsException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *TooManyRequestsException) OrigErr() error {
+	return nil
+}
+
+func (s *TooManyRequestsException) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *TooManyRequestsException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *TooManyRequestsException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+type UnshareApplicationInput struct {
+	_ struct{} `type:"structure"`
+
+	// ApplicationId is a required field
+	ApplicationId *string `location:"uri" locationName:"applicationId" type:"string" required:"true"`
+
+	// OrganizationId is a required field
+	OrganizationId *string `locationName:"organizationId" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s UnshareApplicationInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UnshareApplicationInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *UnshareApplicationInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "UnshareApplicationInput"}
+	if s.ApplicationId == nil {
+		invalidParams.Add(request.NewErrParamRequired("ApplicationId"))
+	}
+	if s.ApplicationId != nil && len(*s.ApplicationId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ApplicationId", 1))
+	}
+	if s.OrganizationId == nil {
+		invalidParams.Add(request.NewErrParamRequired("OrganizationId"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetApplicationId sets the ApplicationId field's value.
+func (s *UnshareApplicationInput) SetApplicationId(v string) *UnshareApplicationInput {
+	s.ApplicationId = &v
+	return s
+}
+
+// SetOrganizationId sets the OrganizationId field's value.
+func (s *UnshareApplicationInput) SetOrganizationId(v string) *UnshareApplicationInput {
+	s.OrganizationId = &v
+	return s
+}
+
+type UnshareApplicationOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s UnshareApplicationOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UnshareApplicationOutput) GoString() string {
+	return s.String()
+}
+
 type UpdateApplicationOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -3526,6 +4103,8 @@ type UpdateApplicationOutput struct {
 
 	HomePageUrl *string `locationName:"homePageUrl" type:"string"`
 
+	IsVerifiedAuthor *bool `locationName:"isVerifiedAuthor" type:"boolean"`
+
 	Labels []*string `locationName:"labels" type:"list"`
 
 	LicenseUrl *string `locationName:"licenseUrl" type:"string"`
@@ -3535,6 +4114,8 @@ type UpdateApplicationOutput struct {
 	ReadmeUrl *string `locationName:"readmeUrl" type:"string"`
 
 	SpdxLicenseId *string `locationName:"spdxLicenseId" type:"string"`
+
+	VerifiedAuthorUrl *string `locationName:"verifiedAuthorUrl" type:"string"`
 
 	// Application version details.
 	Version *Version `locationName:"version" type:"structure"`
@@ -3580,6 +4161,12 @@ func (s *UpdateApplicationOutput) SetHomePageUrl(v string) *UpdateApplicationOut
 	return s
 }
 
+// SetIsVerifiedAuthor sets the IsVerifiedAuthor field's value.
+func (s *UpdateApplicationOutput) SetIsVerifiedAuthor(v bool) *UpdateApplicationOutput {
+	s.IsVerifiedAuthor = &v
+	return s
+}
+
 // SetLabels sets the Labels field's value.
 func (s *UpdateApplicationOutput) SetLabels(v []*string) *UpdateApplicationOutput {
 	s.Labels = v
@@ -3607,6 +4194,12 @@ func (s *UpdateApplicationOutput) SetReadmeUrl(v string) *UpdateApplicationOutpu
 // SetSpdxLicenseId sets the SpdxLicenseId field's value.
 func (s *UpdateApplicationOutput) SetSpdxLicenseId(v string) *UpdateApplicationOutput {
 	s.SpdxLicenseId = &v
+	return s
+}
+
+// SetVerifiedAuthorUrl sets the VerifiedAuthorUrl field's value.
+func (s *UpdateApplicationOutput) SetVerifiedAuthorUrl(v string) *UpdateApplicationOutput {
+	s.VerifiedAuthorUrl = &v
 	return s
 }
 

@@ -88,12 +88,6 @@ func (i *ResourceInstance) HasDeposed(key DeposedKey) bool {
 	return i != nil && i.Deposed[key] != nil
 }
 
-// HasAnyDeposed returns true if this resource instance has one or more
-// deposed objects.
-func (i *ResourceInstance) HasAnyDeposed() bool {
-	return i != nil && len(i.Deposed) > 0
-}
-
 // HasObjects returns true if this resource has any objects at all, whether
 // current or deposed.
 func (i *ResourceInstance) HasObjects() bool {

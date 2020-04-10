@@ -2,6 +2,10 @@
 
 package cognitoidentityprovider
 
+import (
+	"github.com/aws/aws-sdk-go/private/protocol"
+)
+
 const (
 
 	// ErrCodeAliasExistsException for service response error code
@@ -251,3 +255,43 @@ const (
 	// already exists in the user pool.
 	ErrCodeUsernameExistsException = "UsernameExistsException"
 )
+
+var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
+	"AliasExistsException":                     newErrorAliasExistsException,
+	"CodeDeliveryFailureException":             newErrorCodeDeliveryFailureException,
+	"CodeMismatchException":                    newErrorCodeMismatchException,
+	"ConcurrentModificationException":          newErrorConcurrentModificationException,
+	"DuplicateProviderException":               newErrorDuplicateProviderException,
+	"EnableSoftwareTokenMFAException":          newErrorEnableSoftwareTokenMFAException,
+	"ExpiredCodeException":                     newErrorExpiredCodeException,
+	"GroupExistsException":                     newErrorGroupExistsException,
+	"InternalErrorException":                   newErrorInternalErrorException,
+	"InvalidEmailRoleAccessPolicyException":    newErrorInvalidEmailRoleAccessPolicyException,
+	"InvalidLambdaResponseException":           newErrorInvalidLambdaResponseException,
+	"InvalidOAuthFlowException":                newErrorInvalidOAuthFlowException,
+	"InvalidParameterException":                newErrorInvalidParameterException,
+	"InvalidPasswordException":                 newErrorInvalidPasswordException,
+	"InvalidSmsRoleAccessPolicyException":      newErrorInvalidSmsRoleAccessPolicyException,
+	"InvalidSmsRoleTrustRelationshipException": newErrorInvalidSmsRoleTrustRelationshipException,
+	"InvalidUserPoolConfigurationException":    newErrorInvalidUserPoolConfigurationException,
+	"LimitExceededException":                   newErrorLimitExceededException,
+	"MFAMethodNotFoundException":               newErrorMFAMethodNotFoundException,
+	"NotAuthorizedException":                   newErrorNotAuthorizedException,
+	"PasswordResetRequiredException":           newErrorPasswordResetRequiredException,
+	"PreconditionNotMetException":              newErrorPreconditionNotMetException,
+	"ResourceNotFoundException":                newErrorResourceNotFoundException,
+	"ScopeDoesNotExistException":               newErrorScopeDoesNotExistException,
+	"SoftwareTokenMFANotFoundException":        newErrorSoftwareTokenMFANotFoundException,
+	"TooManyFailedAttemptsException":           newErrorTooManyFailedAttemptsException,
+	"TooManyRequestsException":                 newErrorTooManyRequestsException,
+	"UnexpectedLambdaException":                newErrorUnexpectedLambdaException,
+	"UnsupportedIdentityProviderException":     newErrorUnsupportedIdentityProviderException,
+	"UnsupportedUserStateException":            newErrorUnsupportedUserStateException,
+	"UserImportInProgressException":            newErrorUserImportInProgressException,
+	"UserLambdaValidationException":            newErrorUserLambdaValidationException,
+	"UserNotConfirmedException":                newErrorUserNotConfirmedException,
+	"UserNotFoundException":                    newErrorUserNotFoundException,
+	"UserPoolAddOnNotEnabledException":         newErrorUserPoolAddOnNotEnabledException,
+	"UserPoolTaggingException":                 newErrorUserPoolTaggingException,
+	"UsernameExistsException":                  newErrorUsernameExistsException,
+}

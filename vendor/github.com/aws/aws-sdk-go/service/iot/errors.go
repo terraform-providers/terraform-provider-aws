@@ -2,6 +2,10 @@
 
 package iot
 
+import (
+	"github.com/aws/aws-sdk-go/private/protocol"
+)
+
 const (
 
 	// ErrCodeCertificateConflictException for service response error code
@@ -187,3 +191,35 @@ const (
 	// The number of policy versions exceeds the limit.
 	ErrCodeVersionsLimitExceededException = "VersionsLimitExceededException"
 )
+
+var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
+	"CertificateConflictException":         newErrorCertificateConflictException,
+	"CertificateStateException":            newErrorCertificateStateException,
+	"CertificateValidationException":       newErrorCertificateValidationException,
+	"ConflictingResourceUpdateException":   newErrorConflictingResourceUpdateException,
+	"DeleteConflictException":              newErrorDeleteConflictException,
+	"IndexNotReadyException":               newErrorIndexNotReadyException,
+	"InternalException":                    newErrorInternalException,
+	"InternalFailureException":             newErrorInternalFailureException,
+	"InvalidAggregationException":          newErrorInvalidAggregationException,
+	"InvalidQueryException":                newErrorInvalidQueryException,
+	"InvalidRequestException":              newErrorInvalidRequestException,
+	"InvalidResponseException":             newErrorInvalidResponseException,
+	"InvalidStateTransitionException":      newErrorInvalidStateTransitionException,
+	"LimitExceededException":               newErrorLimitExceededException,
+	"MalformedPolicyException":             newErrorMalformedPolicyException,
+	"NotConfiguredException":               newErrorNotConfiguredException,
+	"RegistrationCodeValidationException":  newErrorRegistrationCodeValidationException,
+	"ResourceAlreadyExistsException":       newErrorResourceAlreadyExistsException,
+	"ResourceNotFoundException":            newErrorResourceNotFoundException,
+	"ResourceRegistrationFailureException": newErrorResourceRegistrationFailureException,
+	"ServiceUnavailableException":          newErrorServiceUnavailableException,
+	"SqlParseException":                    newErrorSqlParseException,
+	"TaskAlreadyExistsException":           newErrorTaskAlreadyExistsException,
+	"ThrottlingException":                  newErrorThrottlingException,
+	"TransferAlreadyCompletedException":    newErrorTransferAlreadyCompletedException,
+	"TransferConflictException":            newErrorTransferConflictException,
+	"UnauthorizedException":                newErrorUnauthorizedException,
+	"VersionConflictException":             newErrorVersionConflictException,
+	"VersionsLimitExceededException":       newErrorVersionsLimitExceededException,
+}

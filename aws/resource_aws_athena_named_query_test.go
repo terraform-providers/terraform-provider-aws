@@ -103,7 +103,7 @@ func testAccCheckAWSAthenaNamedQueryExists(name string) resource.TestCheckFunc {
 func testAccAthenaNamedQueryConfig(rInt int, rName string) string {
 	return fmt.Sprintf(`
 resource "aws_s3_bucket" "test" {
-  bucket        = "tf-athena-db-%s-%d"
+  bucket        = "tf-test-athena-db-%s-%d"
   force_destroy = true
 }
 
@@ -124,7 +124,7 @@ resource "aws_athena_named_query" "test" {
 func testAccAthenaNamedWorkGroupQueryConfig(rInt int, rName string) string {
 	return fmt.Sprintf(`
 resource "aws_s3_bucket" "test" {
-  bucket        = "tf-athena-db-%s-%d"
+  bucket        = "tf-test-athena-db-%s-%d"
   force_destroy = true
 }
 

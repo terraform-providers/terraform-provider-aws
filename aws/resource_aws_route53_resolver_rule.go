@@ -6,13 +6,13 @@ import (
 	"log"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/route53resolver"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/route53resolver"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 const (
@@ -75,7 +75,7 @@ func resourceAwsRoute53ResolverRule() *schema.Resource {
 						"ip": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validation.SingleIP(),
+							ValidateFunc: validation.IsIPAddress,
 						},
 						"port": {
 							Type:         schema.TypeInt,
@@ -126,7 +126,7 @@ func resourceAwsRoute53ResolverRuleCreate(d *schema.ResourceData, meta interface
 		req.TargetIps = expandRoute53ResolverRuleTargetIps(v.(*schema.Set))
 	}
 	if v, ok := d.GetOk("tags"); ok && len(v.(map[string]interface{})) > 0 {
-		req.Tags = tagsFromMapRoute53Resolver(v.(map[string]interface{}))
+		req.Tags = keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().Route53resolverTags()
 	}
 
 	log.Printf("[DEBUG] Creating Route 53 Resolver rule: %s", req)
@@ -172,9 +172,14 @@ func resourceAwsRoute53ResolverRuleRead(d *schema.ResourceData, meta interface{}
 		return err
 	}
 
-	err = getTagsRoute53Resolver(conn, d)
+	tags, err := keyvaluetags.Route53resolverListTags(conn, d.Get("arn").(string))
+
 	if err != nil {
-		return fmt.Errorf("Error reading Route 53 Resolver rule tags %s: %s", d.Id(), err)
+		return fmt.Errorf("error listing tags for Route53 Resolver rule (%s): %s", d.Get("arn").(string), err)
+	}
+
+	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+		return fmt.Errorf("error setting tags: %s", err)
 	}
 
 	return nil
@@ -183,7 +188,6 @@ func resourceAwsRoute53ResolverRuleRead(d *schema.ResourceData, meta interface{}
 func resourceAwsRoute53ResolverRuleUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).route53resolverconn
 
-	d.Partial(true)
 	if d.HasChange("name") || d.HasChange("resolver_endpoint_id") || d.HasChange("target_ip") {
 		req := &route53resolver.UpdateResolverRuleInput{
 			ResolverRuleId: aws.String(d.Id()),
@@ -211,18 +215,15 @@ func resourceAwsRoute53ResolverRuleUpdate(d *schema.ResourceData, meta interface
 		if err != nil {
 			return err
 		}
-
-		d.SetPartial("name")
-		d.SetPartial("resolver_endpoint_id")
-		d.SetPartial("target_ip")
 	}
 
-	if err := setTagsRoute53Resolver(conn, d); err != nil {
-		return fmt.Errorf("error setting Route53 Resolver rule (%s) tags: %s", d.Id(), err)
+	if d.HasChange("tags") {
+		o, n := d.GetChange("tags")
+		if err := keyvaluetags.Route53resolverUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
+			return fmt.Errorf("error updating Route53 Resolver rule (%s) tags: %s", d.Get("arn").(string), err)
+		}
 	}
-	d.SetPartial("tags")
 
-	d.Partial(false)
 	return resourceAwsRoute53ResolverRuleRead(d, meta)
 }
 

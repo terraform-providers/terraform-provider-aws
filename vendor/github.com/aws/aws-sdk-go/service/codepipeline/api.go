@@ -67,14 +67,14 @@ func (c *CodePipeline) AcknowledgeJobRequest(input *AcknowledgeJobInput) (req *r
 // See the AWS API reference guide for AWS CodePipeline's
 // API operation AcknowledgeJob for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeValidationException "ValidationException"
+// Returned Error Types:
+//   * ValidationException
 //   The validation was specified in an invalid format.
 //
-//   * ErrCodeInvalidNonceException "InvalidNonceException"
+//   * InvalidNonceException
 //   The nonce was specified in an invalid format.
 //
-//   * ErrCodeJobNotFoundException "JobNotFoundException"
+//   * JobNotFoundException
 //   The job was specified in an invalid format or cannot be found.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/codepipeline-2015-07-09/AcknowledgeJob
@@ -153,17 +153,17 @@ func (c *CodePipeline) AcknowledgeThirdPartyJobRequest(input *AcknowledgeThirdPa
 // See the AWS API reference guide for AWS CodePipeline's
 // API operation AcknowledgeThirdPartyJob for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeValidationException "ValidationException"
+// Returned Error Types:
+//   * ValidationException
 //   The validation was specified in an invalid format.
 //
-//   * ErrCodeInvalidNonceException "InvalidNonceException"
+//   * InvalidNonceException
 //   The nonce was specified in an invalid format.
 //
-//   * ErrCodeJobNotFoundException "JobNotFoundException"
+//   * JobNotFoundException
 //   The job was specified in an invalid format or cannot be found.
 //
-//   * ErrCodeInvalidClientTokenException "InvalidClientTokenException"
+//   * InvalidClientTokenException
 //   The client token was specified in an invalid format
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/codepipeline-2015-07-09/AcknowledgeThirdPartyJob
@@ -242,21 +242,21 @@ func (c *CodePipeline) CreateCustomActionTypeRequest(input *CreateCustomActionTy
 // See the AWS API reference guide for AWS CodePipeline's
 // API operation CreateCustomActionType for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeValidationException "ValidationException"
+// Returned Error Types:
+//   * ValidationException
 //   The validation was specified in an invalid format.
 //
-//   * ErrCodeLimitExceededException "LimitExceededException"
+//   * LimitExceededException
 //   The number of pipelines associated with the AWS account has exceeded the
 //   limit allowed for the account.
 //
-//   * ErrCodeTooManyTagsException "TooManyTagsException"
+//   * TooManyTagsException
 //   The tags limit for a resource has been exceeded.
 //
-//   * ErrCodeInvalidTagsException "InvalidTagsException"
+//   * InvalidTagsException
 //   The specified resource tags are invalid.
 //
-//   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
+//   * ConcurrentModificationException
 //   Unable to modify the tag due to a simultaneous update request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/codepipeline-2015-07-09/CreateCustomActionType
@@ -338,36 +338,36 @@ func (c *CodePipeline) CreatePipelineRequest(input *CreatePipelineInput) (req *r
 // See the AWS API reference guide for AWS CodePipeline's
 // API operation CreatePipeline for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeValidationException "ValidationException"
+// Returned Error Types:
+//   * ValidationException
 //   The validation was specified in an invalid format.
 //
-//   * ErrCodePipelineNameInUseException "PipelineNameInUseException"
+//   * PipelineNameInUseException
 //   The specified pipeline name is already in use.
 //
-//   * ErrCodeInvalidStageDeclarationException "InvalidStageDeclarationException"
+//   * InvalidStageDeclarationException
 //   The stage declaration was specified in an invalid format.
 //
-//   * ErrCodeInvalidActionDeclarationException "InvalidActionDeclarationException"
+//   * InvalidActionDeclarationException
 //   The action declaration was specified in an invalid format.
 //
-//   * ErrCodeInvalidBlockerDeclarationException "InvalidBlockerDeclarationException"
+//   * InvalidBlockerDeclarationException
 //   Reserved for future use.
 //
-//   * ErrCodeInvalidStructureException "InvalidStructureException"
+//   * InvalidStructureException
 //   The structure was specified in an invalid format.
 //
-//   * ErrCodeLimitExceededException "LimitExceededException"
+//   * LimitExceededException
 //   The number of pipelines associated with the AWS account has exceeded the
 //   limit allowed for the account.
 //
-//   * ErrCodeTooManyTagsException "TooManyTagsException"
+//   * TooManyTagsException
 //   The tags limit for a resource has been exceeded.
 //
-//   * ErrCodeInvalidTagsException "InvalidTagsException"
+//   * InvalidTagsException
 //   The specified resource tags are invalid.
 //
-//   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
+//   * ConcurrentModificationException
 //   Unable to modify the tag due to a simultaneous update request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/codepipeline-2015-07-09/CreatePipeline
@@ -453,11 +453,11 @@ func (c *CodePipeline) DeleteCustomActionTypeRequest(input *DeleteCustomActionTy
 // See the AWS API reference guide for AWS CodePipeline's
 // API operation DeleteCustomActionType for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeValidationException "ValidationException"
+// Returned Error Types:
+//   * ValidationException
 //   The validation was specified in an invalid format.
 //
-//   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
+//   * ConcurrentModificationException
 //   Unable to modify the tag due to a simultaneous update request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/codepipeline-2015-07-09/DeleteCustomActionType
@@ -536,11 +536,11 @@ func (c *CodePipeline) DeletePipelineRequest(input *DeletePipelineInput) (req *r
 // See the AWS API reference guide for AWS CodePipeline's
 // API operation DeletePipeline for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeValidationException "ValidationException"
+// Returned Error Types:
+//   * ValidationException
 //   The validation was specified in an invalid format.
 //
-//   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
+//   * ConcurrentModificationException
 //   Unable to modify the tag due to a simultaneous update request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/codepipeline-2015-07-09/DeletePipeline
@@ -623,11 +623,11 @@ func (c *CodePipeline) DeleteWebhookRequest(input *DeleteWebhookInput) (req *req
 // See the AWS API reference guide for AWS CodePipeline's
 // API operation DeleteWebhook for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeValidationException "ValidationException"
+// Returned Error Types:
+//   * ValidationException
 //   The validation was specified in an invalid format.
 //
-//   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
+//   * ConcurrentModificationException
 //   Unable to modify the tag due to a simultaneous update request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/codepipeline-2015-07-09/DeleteWebhook
@@ -708,11 +708,11 @@ func (c *CodePipeline) DeregisterWebhookWithThirdPartyRequest(input *DeregisterW
 // See the AWS API reference guide for AWS CodePipeline's
 // API operation DeregisterWebhookWithThirdParty for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeValidationException "ValidationException"
+// Returned Error Types:
+//   * ValidationException
 //   The validation was specified in an invalid format.
 //
-//   * ErrCodeWebhookNotFoundException "WebhookNotFoundException"
+//   * WebhookNotFoundException
 //   The specified webhook was entered in an invalid format or cannot be found.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/codepipeline-2015-07-09/DeregisterWebhookWithThirdParty
@@ -792,14 +792,14 @@ func (c *CodePipeline) DisableStageTransitionRequest(input *DisableStageTransiti
 // See the AWS API reference guide for AWS CodePipeline's
 // API operation DisableStageTransition for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeValidationException "ValidationException"
+// Returned Error Types:
+//   * ValidationException
 //   The validation was specified in an invalid format.
 //
-//   * ErrCodePipelineNotFoundException "PipelineNotFoundException"
+//   * PipelineNotFoundException
 //   The pipeline was specified in an invalid format or cannot be found.
 //
-//   * ErrCodeStageNotFoundException "StageNotFoundException"
+//   * StageNotFoundException
 //   The stage was specified in an invalid format or cannot be found.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/codepipeline-2015-07-09/DisableStageTransition
@@ -878,14 +878,14 @@ func (c *CodePipeline) EnableStageTransitionRequest(input *EnableStageTransition
 // See the AWS API reference guide for AWS CodePipeline's
 // API operation EnableStageTransition for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeValidationException "ValidationException"
+// Returned Error Types:
+//   * ValidationException
 //   The validation was specified in an invalid format.
 //
-//   * ErrCodePipelineNotFoundException "PipelineNotFoundException"
+//   * PipelineNotFoundException
 //   The pipeline was specified in an invalid format or cannot be found.
 //
-//   * ErrCodeStageNotFoundException "StageNotFoundException"
+//   * StageNotFoundException
 //   The stage was specified in an invalid format or cannot be found.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/codepipeline-2015-07-09/EnableStageTransition
@@ -957,9 +957,9 @@ func (c *CodePipeline) GetJobDetailsRequest(input *GetJobDetailsInput) (req *req
 // Returns information about a job. Used for custom actions only.
 //
 // When this API is called, AWS CodePipeline returns temporary credentials for
-// the Amazon S3 bucket used to store artifacts for the pipeline, if the action
-// requires access to that Amazon S3 bucket for input or output artifacts. This
-// API also returns any secret values defined for the action.
+// the S3 bucket used to store artifacts for the pipeline, if the action requires
+// access to that S3 bucket for input or output artifacts. This API also returns
+// any secret values defined for the action.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -968,11 +968,11 @@ func (c *CodePipeline) GetJobDetailsRequest(input *GetJobDetailsInput) (req *req
 // See the AWS API reference guide for AWS CodePipeline's
 // API operation GetJobDetails for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeValidationException "ValidationException"
+// Returned Error Types:
+//   * ValidationException
 //   The validation was specified in an invalid format.
 //
-//   * ErrCodeJobNotFoundException "JobNotFoundException"
+//   * JobNotFoundException
 //   The job was specified in an invalid format or cannot be found.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/codepipeline-2015-07-09/GetJobDetails
@@ -1052,14 +1052,14 @@ func (c *CodePipeline) GetPipelineRequest(input *GetPipelineInput) (req *request
 // See the AWS API reference guide for AWS CodePipeline's
 // API operation GetPipeline for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeValidationException "ValidationException"
+// Returned Error Types:
+//   * ValidationException
 //   The validation was specified in an invalid format.
 //
-//   * ErrCodePipelineNotFoundException "PipelineNotFoundException"
+//   * PipelineNotFoundException
 //   The pipeline was specified in an invalid format or cannot be found.
 //
-//   * ErrCodePipelineVersionNotFoundException "PipelineVersionNotFoundException"
+//   * PipelineVersionNotFoundException
 //   The pipeline version was specified in an invalid format or cannot be found.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/codepipeline-2015-07-09/GetPipeline
@@ -1139,14 +1139,14 @@ func (c *CodePipeline) GetPipelineExecutionRequest(input *GetPipelineExecutionIn
 // See the AWS API reference guide for AWS CodePipeline's
 // API operation GetPipelineExecution for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeValidationException "ValidationException"
+// Returned Error Types:
+//   * ValidationException
 //   The validation was specified in an invalid format.
 //
-//   * ErrCodePipelineNotFoundException "PipelineNotFoundException"
+//   * PipelineNotFoundException
 //   The pipeline was specified in an invalid format or cannot be found.
 //
-//   * ErrCodePipelineExecutionNotFoundException "PipelineExecutionNotFoundException"
+//   * PipelineExecutionNotFoundException
 //   The pipeline execution was specified in an invalid format or cannot be found,
 //   or an execution ID does not belong to the specified pipeline.
 //
@@ -1229,11 +1229,11 @@ func (c *CodePipeline) GetPipelineStateRequest(input *GetPipelineStateInput) (re
 // See the AWS API reference guide for AWS CodePipeline's
 // API operation GetPipelineState for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeValidationException "ValidationException"
+// Returned Error Types:
+//   * ValidationException
 //   The validation was specified in an invalid format.
 //
-//   * ErrCodePipelineNotFoundException "PipelineNotFoundException"
+//   * PipelineNotFoundException
 //   The pipeline was specified in an invalid format or cannot be found.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/codepipeline-2015-07-09/GetPipelineState
@@ -1306,9 +1306,9 @@ func (c *CodePipeline) GetThirdPartyJobDetailsRequest(input *GetThirdPartyJobDet
 // actions only.
 //
 // When this API is called, AWS CodePipeline returns temporary credentials for
-// the Amazon S3 bucket used to store artifacts for the pipeline, if the action
-// requires access to that Amazon S3 bucket for input or output artifacts. This
-// API also returns any secret values defined for the action.
+// the S3 bucket used to store artifacts for the pipeline, if the action requires
+// access to that S3 bucket for input or output artifacts. This API also returns
+// any secret values defined for the action.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1317,17 +1317,17 @@ func (c *CodePipeline) GetThirdPartyJobDetailsRequest(input *GetThirdPartyJobDet
 // See the AWS API reference guide for AWS CodePipeline's
 // API operation GetThirdPartyJobDetails for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeJobNotFoundException "JobNotFoundException"
+// Returned Error Types:
+//   * JobNotFoundException
 //   The job was specified in an invalid format or cannot be found.
 //
-//   * ErrCodeValidationException "ValidationException"
+//   * ValidationException
 //   The validation was specified in an invalid format.
 //
-//   * ErrCodeInvalidClientTokenException "InvalidClientTokenException"
+//   * InvalidClientTokenException
 //   The client token was specified in an invalid format
 //
-//   * ErrCodeInvalidJobException "InvalidJobException"
+//   * InvalidJobException
 //   The job was specified in an invalid format or cannot be found.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/codepipeline-2015-07-09/GetThirdPartyJobDetails
@@ -1411,18 +1411,18 @@ func (c *CodePipeline) ListActionExecutionsRequest(input *ListActionExecutionsIn
 // See the AWS API reference guide for AWS CodePipeline's
 // API operation ListActionExecutions for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeValidationException "ValidationException"
+// Returned Error Types:
+//   * ValidationException
 //   The validation was specified in an invalid format.
 //
-//   * ErrCodePipelineNotFoundException "PipelineNotFoundException"
+//   * PipelineNotFoundException
 //   The pipeline was specified in an invalid format or cannot be found.
 //
-//   * ErrCodeInvalidNextTokenException "InvalidNextTokenException"
+//   * InvalidNextTokenException
 //   The next token was specified in an invalid format. Make sure that the next
 //   token you provide is the token returned by a previous call.
 //
-//   * ErrCodePipelineExecutionNotFoundException "PipelineExecutionNotFoundException"
+//   * PipelineExecutionNotFoundException
 //   The pipeline execution was specified in an invalid format or cannot be found,
 //   or an execution ID does not belong to the specified pipeline.
 //
@@ -1491,10 +1491,12 @@ func (c *CodePipeline) ListActionExecutionsPagesWithContext(ctx aws.Context, inp
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListActionExecutionsOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListActionExecutionsOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -1558,11 +1560,11 @@ func (c *CodePipeline) ListActionTypesRequest(input *ListActionTypesInput) (req 
 // See the AWS API reference guide for AWS CodePipeline's
 // API operation ListActionTypes for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeValidationException "ValidationException"
+// Returned Error Types:
+//   * ValidationException
 //   The validation was specified in an invalid format.
 //
-//   * ErrCodeInvalidNextTokenException "InvalidNextTokenException"
+//   * InvalidNextTokenException
 //   The next token was specified in an invalid format. Make sure that the next
 //   token you provide is the token returned by a previous call.
 //
@@ -1631,10 +1633,12 @@ func (c *CodePipeline) ListActionTypesPagesWithContext(ctx aws.Context, input *L
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListActionTypesOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListActionTypesOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -1697,14 +1701,14 @@ func (c *CodePipeline) ListPipelineExecutionsRequest(input *ListPipelineExecutio
 // See the AWS API reference guide for AWS CodePipeline's
 // API operation ListPipelineExecutions for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeValidationException "ValidationException"
+// Returned Error Types:
+//   * ValidationException
 //   The validation was specified in an invalid format.
 //
-//   * ErrCodePipelineNotFoundException "PipelineNotFoundException"
+//   * PipelineNotFoundException
 //   The pipeline was specified in an invalid format or cannot be found.
 //
-//   * ErrCodeInvalidNextTokenException "InvalidNextTokenException"
+//   * InvalidNextTokenException
 //   The next token was specified in an invalid format. Make sure that the next
 //   token you provide is the token returned by a previous call.
 //
@@ -1773,10 +1777,12 @@ func (c *CodePipeline) ListPipelineExecutionsPagesWithContext(ctx aws.Context, i
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListPipelineExecutionsOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListPipelineExecutionsOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -1839,11 +1845,11 @@ func (c *CodePipeline) ListPipelinesRequest(input *ListPipelinesInput) (req *req
 // See the AWS API reference guide for AWS CodePipeline's
 // API operation ListPipelines for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeValidationException "ValidationException"
+// Returned Error Types:
+//   * ValidationException
 //   The validation was specified in an invalid format.
 //
-//   * ErrCodeInvalidNextTokenException "InvalidNextTokenException"
+//   * InvalidNextTokenException
 //   The next token was specified in an invalid format. Make sure that the next
 //   token you provide is the token returned by a previous call.
 //
@@ -1912,10 +1918,12 @@ func (c *CodePipeline) ListPipelinesPagesWithContext(ctx aws.Context, input *Lis
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListPipelinesOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListPipelinesOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -1978,18 +1986,18 @@ func (c *CodePipeline) ListTagsForResourceRequest(input *ListTagsForResourceInpu
 // See the AWS API reference guide for AWS CodePipeline's
 // API operation ListTagsForResource for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeValidationException "ValidationException"
+// Returned Error Types:
+//   * ValidationException
 //   The validation was specified in an invalid format.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The resource was specified in an invalid format.
 //
-//   * ErrCodeInvalidNextTokenException "InvalidNextTokenException"
+//   * InvalidNextTokenException
 //   The next token was specified in an invalid format. Make sure that the next
 //   token you provide is the token returned by a previous call.
 //
-//   * ErrCodeInvalidArnException "InvalidArnException"
+//   * InvalidArnException
 //   The specified resource ARN is invalid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/codepipeline-2015-07-09/ListTagsForResource
@@ -2057,10 +2065,12 @@ func (c *CodePipeline) ListTagsForResourcePagesWithContext(ctx aws.Context, inpu
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListTagsForResourceOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListTagsForResourceOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -2125,11 +2135,11 @@ func (c *CodePipeline) ListWebhooksRequest(input *ListWebhooksInput) (req *reque
 // See the AWS API reference guide for AWS CodePipeline's
 // API operation ListWebhooks for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeValidationException "ValidationException"
+// Returned Error Types:
+//   * ValidationException
 //   The validation was specified in an invalid format.
 //
-//   * ErrCodeInvalidNextTokenException "InvalidNextTokenException"
+//   * InvalidNextTokenException
 //   The next token was specified in an invalid format. Make sure that the next
 //   token you provide is the token returned by a previous call.
 //
@@ -2198,10 +2208,12 @@ func (c *CodePipeline) ListWebhooksPagesWithContext(ctx aws.Context, input *List
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListWebhooksOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListWebhooksOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -2255,9 +2267,9 @@ func (c *CodePipeline) PollForJobsRequest(input *PollForJobsInput) (req *request
 // returns an error.
 //
 // When this API is called, AWS CodePipeline returns temporary credentials for
-// the Amazon S3 bucket used to store artifacts for the pipeline, if the action
-// requires access to that Amazon S3 bucket for input or output artifacts. This
-// API also returns any secret values defined for the action.
+// the S3 bucket used to store artifacts for the pipeline, if the action requires
+// access to that S3 bucket for input or output artifacts. This API also returns
+// any secret values defined for the action.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -2266,11 +2278,11 @@ func (c *CodePipeline) PollForJobsRequest(input *PollForJobsInput) (req *request
 // See the AWS API reference guide for AWS CodePipeline's
 // API operation PollForJobs for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeValidationException "ValidationException"
+// Returned Error Types:
+//   * ValidationException
 //   The validation was specified in an invalid format.
 //
-//   * ErrCodeActionTypeNotFoundException "ActionTypeNotFoundException"
+//   * ActionTypeNotFoundException
 //   The specified action type cannot be found.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/codepipeline-2015-07-09/PollForJobs
@@ -2343,8 +2355,8 @@ func (c *CodePipeline) PollForThirdPartyJobsRequest(input *PollForThirdPartyJobs
 // on. Used for partner actions only.
 //
 // When this API is called, AWS CodePipeline returns temporary credentials for
-// the Amazon S3 bucket used to store artifacts for the pipeline, if the action
-// requires access to that Amazon S3 bucket for input or output artifacts.
+// the S3 bucket used to store artifacts for the pipeline, if the action requires
+// access to that S3 bucket for input or output artifacts.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -2353,11 +2365,11 @@ func (c *CodePipeline) PollForThirdPartyJobsRequest(input *PollForThirdPartyJobs
 // See the AWS API reference guide for AWS CodePipeline's
 // API operation PollForThirdPartyJobs for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeActionTypeNotFoundException "ActionTypeNotFoundException"
+// Returned Error Types:
+//   * ActionTypeNotFoundException
 //   The specified action type cannot be found.
 //
-//   * ErrCodeValidationException "ValidationException"
+//   * ValidationException
 //   The validation was specified in an invalid format.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/codepipeline-2015-07-09/PollForThirdPartyJobs
@@ -2435,17 +2447,17 @@ func (c *CodePipeline) PutActionRevisionRequest(input *PutActionRevisionInput) (
 // See the AWS API reference guide for AWS CodePipeline's
 // API operation PutActionRevision for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodePipelineNotFoundException "PipelineNotFoundException"
+// Returned Error Types:
+//   * PipelineNotFoundException
 //   The pipeline was specified in an invalid format or cannot be found.
 //
-//   * ErrCodeStageNotFoundException "StageNotFoundException"
+//   * StageNotFoundException
 //   The stage was specified in an invalid format or cannot be found.
 //
-//   * ErrCodeActionNotFoundException "ActionNotFoundException"
+//   * ActionNotFoundException
 //   The specified action cannot be found.
 //
-//   * ErrCodeValidationException "ValidationException"
+//   * ValidationException
 //   The validation was specified in an invalid format.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/codepipeline-2015-07-09/PutActionRevision
@@ -2524,23 +2536,23 @@ func (c *CodePipeline) PutApprovalResultRequest(input *PutApprovalResultInput) (
 // See the AWS API reference guide for AWS CodePipeline's
 // API operation PutApprovalResult for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidApprovalTokenException "InvalidApprovalTokenException"
+// Returned Error Types:
+//   * InvalidApprovalTokenException
 //   The approval request already received a response or has expired.
 //
-//   * ErrCodeApprovalAlreadyCompletedException "ApprovalAlreadyCompletedException"
+//   * ApprovalAlreadyCompletedException
 //   The approval action has already been approved or rejected.
 //
-//   * ErrCodePipelineNotFoundException "PipelineNotFoundException"
+//   * PipelineNotFoundException
 //   The pipeline was specified in an invalid format or cannot be found.
 //
-//   * ErrCodeStageNotFoundException "StageNotFoundException"
+//   * StageNotFoundException
 //   The stage was specified in an invalid format or cannot be found.
 //
-//   * ErrCodeActionNotFoundException "ActionNotFoundException"
+//   * ActionNotFoundException
 //   The specified action cannot be found.
 //
-//   * ErrCodeValidationException "ValidationException"
+//   * ValidationException
 //   The validation was specified in an invalid format.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/codepipeline-2015-07-09/PutApprovalResult
@@ -2620,14 +2632,14 @@ func (c *CodePipeline) PutJobFailureResultRequest(input *PutJobFailureResultInpu
 // See the AWS API reference guide for AWS CodePipeline's
 // API operation PutJobFailureResult for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeValidationException "ValidationException"
+// Returned Error Types:
+//   * ValidationException
 //   The validation was specified in an invalid format.
 //
-//   * ErrCodeJobNotFoundException "JobNotFoundException"
+//   * JobNotFoundException
 //   The job was specified in an invalid format or cannot be found.
 //
-//   * ErrCodeInvalidJobStateException "InvalidJobStateException"
+//   * InvalidJobStateException
 //   The job state was specified in an invalid format.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/codepipeline-2015-07-09/PutJobFailureResult
@@ -2707,15 +2719,18 @@ func (c *CodePipeline) PutJobSuccessResultRequest(input *PutJobSuccessResultInpu
 // See the AWS API reference guide for AWS CodePipeline's
 // API operation PutJobSuccessResult for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeValidationException "ValidationException"
+// Returned Error Types:
+//   * ValidationException
 //   The validation was specified in an invalid format.
 //
-//   * ErrCodeJobNotFoundException "JobNotFoundException"
+//   * JobNotFoundException
 //   The job was specified in an invalid format or cannot be found.
 //
-//   * ErrCodeInvalidJobStateException "InvalidJobStateException"
+//   * InvalidJobStateException
 //   The job state was specified in an invalid format.
+//
+//   * OutputVariablesSizeExceededException
+//   Exceeded the total size limit for all variables in the pipeline.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/codepipeline-2015-07-09/PutJobSuccessResult
 func (c *CodePipeline) PutJobSuccessResult(input *PutJobSuccessResultInput) (*PutJobSuccessResultOutput, error) {
@@ -2794,17 +2809,17 @@ func (c *CodePipeline) PutThirdPartyJobFailureResultRequest(input *PutThirdParty
 // See the AWS API reference guide for AWS CodePipeline's
 // API operation PutThirdPartyJobFailureResult for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeValidationException "ValidationException"
+// Returned Error Types:
+//   * ValidationException
 //   The validation was specified in an invalid format.
 //
-//   * ErrCodeJobNotFoundException "JobNotFoundException"
+//   * JobNotFoundException
 //   The job was specified in an invalid format or cannot be found.
 //
-//   * ErrCodeInvalidJobStateException "InvalidJobStateException"
+//   * InvalidJobStateException
 //   The job state was specified in an invalid format.
 //
-//   * ErrCodeInvalidClientTokenException "InvalidClientTokenException"
+//   * InvalidClientTokenException
 //   The client token was specified in an invalid format
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/codepipeline-2015-07-09/PutThirdPartyJobFailureResult
@@ -2884,17 +2899,17 @@ func (c *CodePipeline) PutThirdPartyJobSuccessResultRequest(input *PutThirdParty
 // See the AWS API reference guide for AWS CodePipeline's
 // API operation PutThirdPartyJobSuccessResult for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeValidationException "ValidationException"
+// Returned Error Types:
+//   * ValidationException
 //   The validation was specified in an invalid format.
 //
-//   * ErrCodeJobNotFoundException "JobNotFoundException"
+//   * JobNotFoundException
 //   The job was specified in an invalid format or cannot be found.
 //
-//   * ErrCodeInvalidJobStateException "InvalidJobStateException"
+//   * InvalidJobStateException
 //   The job state was specified in an invalid format.
 //
-//   * ErrCodeInvalidClientTokenException "InvalidClientTokenException"
+//   * InvalidClientTokenException
 //   The client token was specified in an invalid format
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/codepipeline-2015-07-09/PutThirdPartyJobSuccessResult
@@ -2979,30 +2994,30 @@ func (c *CodePipeline) PutWebhookRequest(input *PutWebhookInput) (req *request.R
 // See the AWS API reference guide for AWS CodePipeline's
 // API operation PutWebhook for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeValidationException "ValidationException"
+// Returned Error Types:
+//   * ValidationException
 //   The validation was specified in an invalid format.
 //
-//   * ErrCodeLimitExceededException "LimitExceededException"
+//   * LimitExceededException
 //   The number of pipelines associated with the AWS account has exceeded the
 //   limit allowed for the account.
 //
-//   * ErrCodeInvalidWebhookFilterPatternException "InvalidWebhookFilterPatternException"
+//   * InvalidWebhookFilterPatternException
 //   The specified event filter rule is in an invalid format.
 //
-//   * ErrCodeInvalidWebhookAuthenticationParametersException "InvalidWebhookAuthenticationParametersException"
+//   * InvalidWebhookAuthenticationParametersException
 //   The specified authentication type is in an invalid format.
 //
-//   * ErrCodePipelineNotFoundException "PipelineNotFoundException"
+//   * PipelineNotFoundException
 //   The pipeline was specified in an invalid format or cannot be found.
 //
-//   * ErrCodeTooManyTagsException "TooManyTagsException"
+//   * TooManyTagsException
 //   The tags limit for a resource has been exceeded.
 //
-//   * ErrCodeInvalidTagsException "InvalidTagsException"
+//   * InvalidTagsException
 //   The specified resource tags are invalid.
 //
-//   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
+//   * ConcurrentModificationException
 //   Unable to modify the tag due to a simultaneous update request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/codepipeline-2015-07-09/PutWebhook
@@ -3082,11 +3097,11 @@ func (c *CodePipeline) RegisterWebhookWithThirdPartyRequest(input *RegisterWebho
 // See the AWS API reference guide for AWS CodePipeline's
 // API operation RegisterWebhookWithThirdParty for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeValidationException "ValidationException"
+// Returned Error Types:
+//   * ValidationException
 //   The validation was specified in an invalid format.
 //
-//   * ErrCodeWebhookNotFoundException "WebhookNotFoundException"
+//   * WebhookNotFoundException
 //   The specified webhook was entered in an invalid format or cannot be found.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/codepipeline-2015-07-09/RegisterWebhookWithThirdParty
@@ -3167,21 +3182,21 @@ func (c *CodePipeline) RetryStageExecutionRequest(input *RetryStageExecutionInpu
 // See the AWS API reference guide for AWS CodePipeline's
 // API operation RetryStageExecution for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeValidationException "ValidationException"
+// Returned Error Types:
+//   * ValidationException
 //   The validation was specified in an invalid format.
 //
-//   * ErrCodePipelineNotFoundException "PipelineNotFoundException"
+//   * PipelineNotFoundException
 //   The pipeline was specified in an invalid format or cannot be found.
 //
-//   * ErrCodeStageNotFoundException "StageNotFoundException"
+//   * StageNotFoundException
 //   The stage was specified in an invalid format or cannot be found.
 //
-//   * ErrCodeStageNotRetryableException "StageNotRetryableException"
+//   * StageNotRetryableException
 //   Unable to retry. The pipeline structure or stage state might have changed
 //   while actions awaited retry, or the stage contains no failed actions.
 //
-//   * ErrCodeNotLatestPipelineExecutionException "NotLatestPipelineExecutionException"
+//   * NotLatestPipelineExecutionException
 //   The stage has failed in a later run of the pipeline and the pipelineExecutionId
 //   associated with the request is out of date.
 //
@@ -3261,11 +3276,11 @@ func (c *CodePipeline) StartPipelineExecutionRequest(input *StartPipelineExecuti
 // See the AWS API reference guide for AWS CodePipeline's
 // API operation StartPipelineExecution for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeValidationException "ValidationException"
+// Returned Error Types:
+//   * ValidationException
 //   The validation was specified in an invalid format.
 //
-//   * ErrCodePipelineNotFoundException "PipelineNotFoundException"
+//   * PipelineNotFoundException
 //   The pipeline was specified in an invalid format or cannot be found.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/codepipeline-2015-07-09/StartPipelineExecution
@@ -3285,6 +3300,104 @@ func (c *CodePipeline) StartPipelineExecution(input *StartPipelineExecutionInput
 // for more information on using Contexts.
 func (c *CodePipeline) StartPipelineExecutionWithContext(ctx aws.Context, input *StartPipelineExecutionInput, opts ...request.Option) (*StartPipelineExecutionOutput, error) {
 	req, out := c.StartPipelineExecutionRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opStopPipelineExecution = "StopPipelineExecution"
+
+// StopPipelineExecutionRequest generates a "aws/request.Request" representing the
+// client's request for the StopPipelineExecution operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See StopPipelineExecution for more information on using the StopPipelineExecution
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the StopPipelineExecutionRequest method.
+//    req, resp := client.StopPipelineExecutionRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/codepipeline-2015-07-09/StopPipelineExecution
+func (c *CodePipeline) StopPipelineExecutionRequest(input *StopPipelineExecutionInput) (req *request.Request, output *StopPipelineExecutionOutput) {
+	op := &request.Operation{
+		Name:       opStopPipelineExecution,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &StopPipelineExecutionInput{}
+	}
+
+	output = &StopPipelineExecutionOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// StopPipelineExecution API operation for AWS CodePipeline.
+//
+// Stops the specified pipeline execution. You choose to either stop the pipeline
+// execution by completing in-progress actions without starting subsequent actions,
+// or by abandoning in-progress actions. While completing or abandoning in-progress
+// actions, the pipeline execution is in a Stopping state. After all in-progress
+// actions are completed or abandoned, the pipeline execution is in a Stopped
+// state.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS CodePipeline's
+// API operation StopPipelineExecution for usage and error information.
+//
+// Returned Error Types:
+//   * ValidationException
+//   The validation was specified in an invalid format.
+//
+//   * PipelineNotFoundException
+//   The pipeline was specified in an invalid format or cannot be found.
+//
+//   * PipelineExecutionNotStoppableException
+//   Unable to stop the pipeline execution. The execution might already be in
+//   a Stopped state, or it might no longer be in progress.
+//
+//   * DuplicatedStopRequestException
+//   The pipeline execution is already in a Stopping state. If you already chose
+//   to stop and wait, you cannot make that request again. You can choose to stop
+//   and abandon now, but be aware that this option can lead to failed tasks or
+//   out of sequence tasks. If you already chose to stop and abandon, you cannot
+//   make that request again.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/codepipeline-2015-07-09/StopPipelineExecution
+func (c *CodePipeline) StopPipelineExecution(input *StopPipelineExecutionInput) (*StopPipelineExecutionOutput, error) {
+	req, out := c.StopPipelineExecutionRequest(input)
+	return out, req.Send()
+}
+
+// StopPipelineExecutionWithContext is the same as StopPipelineExecution with the addition of
+// the ability to pass a context and additional request options.
+//
+// See StopPipelineExecution for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *CodePipeline) StopPipelineExecutionWithContext(ctx aws.Context, input *StopPipelineExecutionInput, opts ...request.Option) (*StopPipelineExecutionOutput, error) {
+	req, out := c.StopPipelineExecutionRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -3345,23 +3458,23 @@ func (c *CodePipeline) TagResourceRequest(input *TagResourceInput) (req *request
 // See the AWS API reference guide for AWS CodePipeline's
 // API operation TagResource for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeValidationException "ValidationException"
+// Returned Error Types:
+//   * ValidationException
 //   The validation was specified in an invalid format.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The resource was specified in an invalid format.
 //
-//   * ErrCodeInvalidArnException "InvalidArnException"
+//   * InvalidArnException
 //   The specified resource ARN is invalid.
 //
-//   * ErrCodeTooManyTagsException "TooManyTagsException"
+//   * TooManyTagsException
 //   The tags limit for a resource has been exceeded.
 //
-//   * ErrCodeInvalidTagsException "InvalidTagsException"
+//   * InvalidTagsException
 //   The specified resource tags are invalid.
 //
-//   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
+//   * ConcurrentModificationException
 //   Unable to modify the tag due to a simultaneous update request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/codepipeline-2015-07-09/TagResource
@@ -3440,20 +3553,20 @@ func (c *CodePipeline) UntagResourceRequest(input *UntagResourceInput) (req *req
 // See the AWS API reference guide for AWS CodePipeline's
 // API operation UntagResource for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeValidationException "ValidationException"
+// Returned Error Types:
+//   * ValidationException
 //   The validation was specified in an invalid format.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The resource was specified in an invalid format.
 //
-//   * ErrCodeInvalidArnException "InvalidArnException"
+//   * InvalidArnException
 //   The specified resource ARN is invalid.
 //
-//   * ErrCodeInvalidTagsException "InvalidTagsException"
+//   * InvalidTagsException
 //   The specified resource tags are invalid.
 //
-//   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
+//   * ConcurrentModificationException
 //   Unable to modify the tag due to a simultaneous update request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/codepipeline-2015-07-09/UntagResource
@@ -3534,23 +3647,23 @@ func (c *CodePipeline) UpdatePipelineRequest(input *UpdatePipelineInput) (req *r
 // See the AWS API reference guide for AWS CodePipeline's
 // API operation UpdatePipeline for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeValidationException "ValidationException"
+// Returned Error Types:
+//   * ValidationException
 //   The validation was specified in an invalid format.
 //
-//   * ErrCodeInvalidStageDeclarationException "InvalidStageDeclarationException"
+//   * InvalidStageDeclarationException
 //   The stage declaration was specified in an invalid format.
 //
-//   * ErrCodeInvalidActionDeclarationException "InvalidActionDeclarationException"
+//   * InvalidActionDeclarationException
 //   The action declaration was specified in an invalid format.
 //
-//   * ErrCodeInvalidBlockerDeclarationException "InvalidBlockerDeclarationException"
+//   * InvalidBlockerDeclarationException
 //   Reserved for future use.
 //
-//   * ErrCodeInvalidStructureException "InvalidStructureException"
+//   * InvalidStructureException
 //   The structure was specified in an invalid format.
 //
-//   * ErrCodeLimitExceededException "LimitExceededException"
+//   * LimitExceededException
 //   The number of pipelines associated with the AWS account has exceeded the
 //   limit allowed for the account.
 //
@@ -3578,8 +3691,8 @@ func (c *CodePipeline) UpdatePipelineWithContext(ctx aws.Context, input *UpdateP
 
 // Represents an AWS session credentials object. These credentials are temporary
 // credentials that are issued by AWS Secure Token Service (STS). They can be
-// used to access input and output artifacts in the Amazon S3 bucket used to
-// store artifact for the pipeline in AWS CodePipeline.
+// used to access input and output artifacts in the S3 bucket used to store
+// artifact for the pipeline in AWS CodePipeline.
 type AWSSessionCredentials struct {
 	_ struct{} `type:"structure" sensitive:"true"`
 
@@ -4032,6 +4145,10 @@ type ActionDeclaration struct {
 	// Name is a required field
 	Name *string `locationName:"name" min:"1" type:"string" required:"true"`
 
+	// The variable namespace associated with the action. All variables produced
+	// as output by this action fall under this namespace.
+	Namespace *string `locationName:"namespace" min:"1" type:"string"`
+
 	// The name or ID of the result of the action declaration, such as a test or
 	// build artifact.
 	OutputArtifacts []*OutputArtifact `locationName:"outputArtifacts" type:"list"`
@@ -4068,6 +4185,9 @@ func (s *ActionDeclaration) Validate() error {
 	}
 	if s.Name != nil && len(*s.Name) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("Name", 1))
+	}
+	if s.Namespace != nil && len(*s.Namespace) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Namespace", 1))
 	}
 	if s.Region != nil && len(*s.Region) < 4 {
 		invalidParams.Add(request.NewErrParamMinLen("Region", 4))
@@ -4128,6 +4248,12 @@ func (s *ActionDeclaration) SetInputArtifacts(v []*InputArtifact) *ActionDeclara
 // SetName sets the Name field's value.
 func (s *ActionDeclaration) SetName(v string) *ActionDeclaration {
 	s.Name = &v
+	return s
+}
+
+// SetNamespace sets the Namespace field's value.
+func (s *ActionDeclaration) SetNamespace(v string) *ActionDeclaration {
+	s.Namespace = &v
 	return s
 }
 
@@ -4401,8 +4527,16 @@ type ActionExecutionInput struct {
 	// Details of input artifacts of the action that correspond to the action execution.
 	InputArtifacts []*ArtifactDetail `locationName:"inputArtifacts" type:"list"`
 
+	// The variable namespace associated with the action. All variables produced
+	// as output by this action fall under this namespace.
+	Namespace *string `locationName:"namespace" min:"1" type:"string"`
+
 	// The AWS Region for the action, such as us-east-1.
 	Region *string `locationName:"region" min:"4" type:"string"`
+
+	// Configuration data for an action execution with all variable references replaced
+	// with their real values for the execution.
+	ResolvedConfiguration map[string]*string `locationName:"resolvedConfiguration" type:"map"`
 
 	// The ARN of the IAM service role that performs the declared action. This is
 	// assumed through the roleArn for the pipeline.
@@ -4437,9 +4571,21 @@ func (s *ActionExecutionInput) SetInputArtifacts(v []*ArtifactDetail) *ActionExe
 	return s
 }
 
+// SetNamespace sets the Namespace field's value.
+func (s *ActionExecutionInput) SetNamespace(v string) *ActionExecutionInput {
+	s.Namespace = &v
+	return s
+}
+
 // SetRegion sets the Region field's value.
 func (s *ActionExecutionInput) SetRegion(v string) *ActionExecutionInput {
 	s.Region = &v
+	return s
+}
+
+// SetResolvedConfiguration sets the ResolvedConfiguration field's value.
+func (s *ActionExecutionInput) SetResolvedConfiguration(v map[string]*string) *ActionExecutionInput {
+	s.ResolvedConfiguration = v
 	return s
 }
 
@@ -4459,6 +4605,10 @@ type ActionExecutionOutput struct {
 
 	// Details of output artifacts of the action that correspond to the action execution.
 	OutputArtifacts []*ArtifactDetail `locationName:"outputArtifacts" type:"list"`
+
+	// The outputVariables field shows the key-value pairs that were output as part
+	// of that execution.
+	OutputVariables map[string]*string `locationName:"outputVariables" type:"map"`
 }
 
 // String returns the string representation
@@ -4480,6 +4630,12 @@ func (s *ActionExecutionOutput) SetExecutionResult(v *ActionExecutionResult) *Ac
 // SetOutputArtifacts sets the OutputArtifacts field's value.
 func (s *ActionExecutionOutput) SetOutputArtifacts(v []*ArtifactDetail) *ActionExecutionOutput {
 	s.OutputArtifacts = v
+	return s
+}
+
+// SetOutputVariables sets the OutputVariables field's value.
+func (s *ActionExecutionOutput) SetOutputVariables(v map[string]*string) *ActionExecutionOutput {
+	s.OutputVariables = v
 	return s
 }
 
@@ -4524,6 +4680,62 @@ func (s *ActionExecutionResult) SetExternalExecutionSummary(v string) *ActionExe
 func (s *ActionExecutionResult) SetExternalExecutionUrl(v string) *ActionExecutionResult {
 	s.ExternalExecutionUrl = &v
 	return s
+}
+
+// The specified action cannot be found.
+type ActionNotFoundException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s ActionNotFoundException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ActionNotFoundException) GoString() string {
+	return s.String()
+}
+
+func newErrorActionNotFoundException(v protocol.ResponseMetadata) error {
+	return &ActionNotFoundException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *ActionNotFoundException) Code() string {
+	return "ActionNotFoundException"
+}
+
+// Message returns the exception's message.
+func (s *ActionNotFoundException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *ActionNotFoundException) OrigErr() error {
+	return nil
+}
+
+func (s *ActionNotFoundException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *ActionNotFoundException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *ActionNotFoundException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Represents information about the version (or revision) of an action.
@@ -4823,6 +5035,62 @@ func (s *ActionTypeId) SetVersion(v string) *ActionTypeId {
 	return s
 }
 
+// The specified action type cannot be found.
+type ActionTypeNotFoundException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s ActionTypeNotFoundException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ActionTypeNotFoundException) GoString() string {
+	return s.String()
+}
+
+func newErrorActionTypeNotFoundException(v protocol.ResponseMetadata) error {
+	return &ActionTypeNotFoundException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *ActionTypeNotFoundException) Code() string {
+	return "ActionTypeNotFoundException"
+}
+
+// Message returns the exception's message.
+func (s *ActionTypeNotFoundException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *ActionTypeNotFoundException) OrigErr() error {
+	return nil
+}
+
+func (s *ActionTypeNotFoundException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *ActionTypeNotFoundException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *ActionTypeNotFoundException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
 // Returns information about the settings for an action type.
 type ActionTypeSettings struct {
 	_ struct{} `type:"structure"`
@@ -4904,6 +5172,62 @@ func (s *ActionTypeSettings) SetRevisionUrlTemplate(v string) *ActionTypeSetting
 func (s *ActionTypeSettings) SetThirdPartyConfigurationUrl(v string) *ActionTypeSettings {
 	s.ThirdPartyConfigurationUrl = &v
 	return s
+}
+
+// The approval action has already been approved or rejected.
+type ApprovalAlreadyCompletedException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s ApprovalAlreadyCompletedException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ApprovalAlreadyCompletedException) GoString() string {
+	return s.String()
+}
+
+func newErrorApprovalAlreadyCompletedException(v protocol.ResponseMetadata) error {
+	return &ApprovalAlreadyCompletedException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *ApprovalAlreadyCompletedException) Code() string {
+	return "ApprovalAlreadyCompletedException"
+}
+
+// Message returns the exception's message.
+func (s *ApprovalAlreadyCompletedException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *ApprovalAlreadyCompletedException) OrigErr() error {
+	return nil
+}
+
+func (s *ApprovalAlreadyCompletedException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *ApprovalAlreadyCompletedException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *ApprovalAlreadyCompletedException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Represents information about the result of an approval request.
@@ -5093,7 +5417,7 @@ func (s *ArtifactDetails) SetMinimumCount(v int64) *ArtifactDetails {
 type ArtifactLocation struct {
 	_ struct{} `type:"structure"`
 
-	// The Amazon S3 bucket that contains the artifact.
+	// The S3 bucket that contains the artifact.
 	S3Location *S3ArtifactLocation `locationName:"s3Location" type:"structure"`
 
 	// The type of artifact in the location.
@@ -5199,7 +5523,7 @@ func (s *ArtifactRevision) SetRevisionUrl(v string) *ArtifactRevision {
 	return s
 }
 
-// The Amazon S3 bucket where artifacts for the pipeline are stored.
+// The S3 bucket where artifacts for the pipeline are stored.
 //
 // You must include either artifactStore or artifactStores in your pipeline,
 // but you cannot use both. If you create a cross-region action in your pipeline,
@@ -5212,11 +5536,11 @@ type ArtifactStore struct {
 	// key for Amazon S3 is used.
 	EncryptionKey *EncryptionKey `locationName:"encryptionKey" type:"structure"`
 
-	// The Amazon S3 bucket used for storing the artifacts for a pipeline. You can
-	// specify the name of an S3 bucket but not a folder in the bucket. A folder
-	// to contain the pipeline artifacts is created for you based on the name of
-	// the pipeline. You can use any Amazon S3 bucket in the same AWS Region as
-	// the pipeline to store your pipeline artifacts.
+	// The S3 bucket used for storing the artifacts for a pipeline. You can specify
+	// the name of an S3 bucket but not a folder in the bucket. A folder to contain
+	// the pipeline artifacts is created for you based on the name of the pipeline.
+	// You can use any S3 bucket in the same AWS Region as the pipeline to store
+	// your pipeline artifacts.
 	//
 	// Location is a required field
 	Location *string `locationName:"location" min:"3" type:"string" required:"true"`
@@ -5333,6 +5657,62 @@ func (s *BlockerDeclaration) SetName(v string) *BlockerDeclaration {
 func (s *BlockerDeclaration) SetType(v string) *BlockerDeclaration {
 	s.Type = &v
 	return s
+}
+
+// Unable to modify the tag due to a simultaneous update request.
+type ConcurrentModificationException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s ConcurrentModificationException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ConcurrentModificationException) GoString() string {
+	return s.String()
+}
+
+func newErrorConcurrentModificationException(v protocol.ResponseMetadata) error {
+	return &ConcurrentModificationException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *ConcurrentModificationException) Code() string {
+	return "ConcurrentModificationException"
+}
+
+// Message returns the exception's message.
+func (s *ConcurrentModificationException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *ConcurrentModificationException) OrigErr() error {
+	return nil
+}
+
+func (s *ConcurrentModificationException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *ConcurrentModificationException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *ConcurrentModificationException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Represents the input of a CreateCustomActionType operation.
@@ -6077,6 +6457,66 @@ func (s DisableStageTransitionOutput) String() string {
 // GoString returns the string representation
 func (s DisableStageTransitionOutput) GoString() string {
 	return s.String()
+}
+
+// The pipeline execution is already in a Stopping state. If you already chose
+// to stop and wait, you cannot make that request again. You can choose to stop
+// and abandon now, but be aware that this option can lead to failed tasks or
+// out of sequence tasks. If you already chose to stop and abandon, you cannot
+// make that request again.
+type DuplicatedStopRequestException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s DuplicatedStopRequestException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DuplicatedStopRequestException) GoString() string {
+	return s.String()
+}
+
+func newErrorDuplicatedStopRequestException(v protocol.ResponseMetadata) error {
+	return &DuplicatedStopRequestException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *DuplicatedStopRequestException) Code() string {
+	return "DuplicatedStopRequestException"
+}
+
+// Message returns the exception's message.
+func (s *DuplicatedStopRequestException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *DuplicatedStopRequestException) OrigErr() error {
+	return nil
+}
+
+func (s *DuplicatedStopRequestException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *DuplicatedStopRequestException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *DuplicatedStopRequestException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Represents the input of an EnableStageTransition action.
@@ -6905,6 +7345,791 @@ func (s *InputArtifact) SetName(v string) *InputArtifact {
 	return s
 }
 
+// The action declaration was specified in an invalid format.
+type InvalidActionDeclarationException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidActionDeclarationException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidActionDeclarationException) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidActionDeclarationException(v protocol.ResponseMetadata) error {
+	return &InvalidActionDeclarationException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *InvalidActionDeclarationException) Code() string {
+	return "InvalidActionDeclarationException"
+}
+
+// Message returns the exception's message.
+func (s *InvalidActionDeclarationException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *InvalidActionDeclarationException) OrigErr() error {
+	return nil
+}
+
+func (s *InvalidActionDeclarationException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *InvalidActionDeclarationException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *InvalidActionDeclarationException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// The approval request already received a response or has expired.
+type InvalidApprovalTokenException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidApprovalTokenException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidApprovalTokenException) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidApprovalTokenException(v protocol.ResponseMetadata) error {
+	return &InvalidApprovalTokenException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *InvalidApprovalTokenException) Code() string {
+	return "InvalidApprovalTokenException"
+}
+
+// Message returns the exception's message.
+func (s *InvalidApprovalTokenException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *InvalidApprovalTokenException) OrigErr() error {
+	return nil
+}
+
+func (s *InvalidApprovalTokenException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *InvalidApprovalTokenException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *InvalidApprovalTokenException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// The specified resource ARN is invalid.
+type InvalidArnException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidArnException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidArnException) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidArnException(v protocol.ResponseMetadata) error {
+	return &InvalidArnException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *InvalidArnException) Code() string {
+	return "InvalidArnException"
+}
+
+// Message returns the exception's message.
+func (s *InvalidArnException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *InvalidArnException) OrigErr() error {
+	return nil
+}
+
+func (s *InvalidArnException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *InvalidArnException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *InvalidArnException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// Reserved for future use.
+type InvalidBlockerDeclarationException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidBlockerDeclarationException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidBlockerDeclarationException) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidBlockerDeclarationException(v protocol.ResponseMetadata) error {
+	return &InvalidBlockerDeclarationException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *InvalidBlockerDeclarationException) Code() string {
+	return "InvalidBlockerDeclarationException"
+}
+
+// Message returns the exception's message.
+func (s *InvalidBlockerDeclarationException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *InvalidBlockerDeclarationException) OrigErr() error {
+	return nil
+}
+
+func (s *InvalidBlockerDeclarationException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *InvalidBlockerDeclarationException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *InvalidBlockerDeclarationException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// The client token was specified in an invalid format
+type InvalidClientTokenException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidClientTokenException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidClientTokenException) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidClientTokenException(v protocol.ResponseMetadata) error {
+	return &InvalidClientTokenException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *InvalidClientTokenException) Code() string {
+	return "InvalidClientTokenException"
+}
+
+// Message returns the exception's message.
+func (s *InvalidClientTokenException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *InvalidClientTokenException) OrigErr() error {
+	return nil
+}
+
+func (s *InvalidClientTokenException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *InvalidClientTokenException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *InvalidClientTokenException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// The job was specified in an invalid format or cannot be found.
+type InvalidJobException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidJobException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidJobException) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidJobException(v protocol.ResponseMetadata) error {
+	return &InvalidJobException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *InvalidJobException) Code() string {
+	return "InvalidJobException"
+}
+
+// Message returns the exception's message.
+func (s *InvalidJobException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *InvalidJobException) OrigErr() error {
+	return nil
+}
+
+func (s *InvalidJobException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *InvalidJobException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *InvalidJobException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// The job state was specified in an invalid format.
+type InvalidJobStateException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidJobStateException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidJobStateException) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidJobStateException(v protocol.ResponseMetadata) error {
+	return &InvalidJobStateException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *InvalidJobStateException) Code() string {
+	return "InvalidJobStateException"
+}
+
+// Message returns the exception's message.
+func (s *InvalidJobStateException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *InvalidJobStateException) OrigErr() error {
+	return nil
+}
+
+func (s *InvalidJobStateException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *InvalidJobStateException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *InvalidJobStateException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// The next token was specified in an invalid format. Make sure that the next
+// token you provide is the token returned by a previous call.
+type InvalidNextTokenException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidNextTokenException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidNextTokenException) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidNextTokenException(v protocol.ResponseMetadata) error {
+	return &InvalidNextTokenException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *InvalidNextTokenException) Code() string {
+	return "InvalidNextTokenException"
+}
+
+// Message returns the exception's message.
+func (s *InvalidNextTokenException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *InvalidNextTokenException) OrigErr() error {
+	return nil
+}
+
+func (s *InvalidNextTokenException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *InvalidNextTokenException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *InvalidNextTokenException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// The nonce was specified in an invalid format.
+type InvalidNonceException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidNonceException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidNonceException) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidNonceException(v protocol.ResponseMetadata) error {
+	return &InvalidNonceException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *InvalidNonceException) Code() string {
+	return "InvalidNonceException"
+}
+
+// Message returns the exception's message.
+func (s *InvalidNonceException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *InvalidNonceException) OrigErr() error {
+	return nil
+}
+
+func (s *InvalidNonceException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *InvalidNonceException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *InvalidNonceException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// The stage declaration was specified in an invalid format.
+type InvalidStageDeclarationException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidStageDeclarationException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidStageDeclarationException) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidStageDeclarationException(v protocol.ResponseMetadata) error {
+	return &InvalidStageDeclarationException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *InvalidStageDeclarationException) Code() string {
+	return "InvalidStageDeclarationException"
+}
+
+// Message returns the exception's message.
+func (s *InvalidStageDeclarationException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *InvalidStageDeclarationException) OrigErr() error {
+	return nil
+}
+
+func (s *InvalidStageDeclarationException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *InvalidStageDeclarationException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *InvalidStageDeclarationException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// The structure was specified in an invalid format.
+type InvalidStructureException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidStructureException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidStructureException) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidStructureException(v protocol.ResponseMetadata) error {
+	return &InvalidStructureException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *InvalidStructureException) Code() string {
+	return "InvalidStructureException"
+}
+
+// Message returns the exception's message.
+func (s *InvalidStructureException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *InvalidStructureException) OrigErr() error {
+	return nil
+}
+
+func (s *InvalidStructureException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *InvalidStructureException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *InvalidStructureException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// The specified resource tags are invalid.
+type InvalidTagsException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidTagsException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidTagsException) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidTagsException(v protocol.ResponseMetadata) error {
+	return &InvalidTagsException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *InvalidTagsException) Code() string {
+	return "InvalidTagsException"
+}
+
+// Message returns the exception's message.
+func (s *InvalidTagsException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *InvalidTagsException) OrigErr() error {
+	return nil
+}
+
+func (s *InvalidTagsException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *InvalidTagsException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *InvalidTagsException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// The specified authentication type is in an invalid format.
+type InvalidWebhookAuthenticationParametersException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidWebhookAuthenticationParametersException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidWebhookAuthenticationParametersException) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidWebhookAuthenticationParametersException(v protocol.ResponseMetadata) error {
+	return &InvalidWebhookAuthenticationParametersException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *InvalidWebhookAuthenticationParametersException) Code() string {
+	return "InvalidWebhookAuthenticationParametersException"
+}
+
+// Message returns the exception's message.
+func (s *InvalidWebhookAuthenticationParametersException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *InvalidWebhookAuthenticationParametersException) OrigErr() error {
+	return nil
+}
+
+func (s *InvalidWebhookAuthenticationParametersException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *InvalidWebhookAuthenticationParametersException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *InvalidWebhookAuthenticationParametersException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// The specified event filter rule is in an invalid format.
+type InvalidWebhookFilterPatternException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidWebhookFilterPatternException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidWebhookFilterPatternException) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidWebhookFilterPatternException(v protocol.ResponseMetadata) error {
+	return &InvalidWebhookFilterPatternException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *InvalidWebhookFilterPatternException) Code() string {
+	return "InvalidWebhookFilterPatternException"
+}
+
+// Message returns the exception's message.
+func (s *InvalidWebhookFilterPatternException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *InvalidWebhookFilterPatternException) OrigErr() error {
+	return nil
+}
+
+func (s *InvalidWebhookFilterPatternException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *InvalidWebhookFilterPatternException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *InvalidWebhookFilterPatternException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
 // Represents information about a job.
 type Job struct {
 	_ struct{} `type:"structure"`
@@ -6971,8 +8196,8 @@ type JobData struct {
 
 	// Represents an AWS session credentials object. These credentials are temporary
 	// credentials that are issued by AWS Secure Token Service (STS). They can be
-	// used to access input and output artifacts in the Amazon S3 bucket used to
-	// store artifacts for the pipeline in AWS CodePipeline.
+	// used to access input and output artifacts in the S3 bucket used to store
+	// artifacts for the pipeline in AWS CodePipeline.
 	ArtifactCredentials *AWSSessionCredentials `locationName:"artifactCredentials" type:"structure" sensitive:"true"`
 
 	// A system-generated token, such as a AWS CodeDeploy deployment ID, required
@@ -7094,6 +8319,119 @@ func (s *JobDetails) SetData(v *JobData) *JobDetails {
 func (s *JobDetails) SetId(v string) *JobDetails {
 	s.Id = &v
 	return s
+}
+
+// The job was specified in an invalid format or cannot be found.
+type JobNotFoundException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s JobNotFoundException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s JobNotFoundException) GoString() string {
+	return s.String()
+}
+
+func newErrorJobNotFoundException(v protocol.ResponseMetadata) error {
+	return &JobNotFoundException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *JobNotFoundException) Code() string {
+	return "JobNotFoundException"
+}
+
+// Message returns the exception's message.
+func (s *JobNotFoundException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *JobNotFoundException) OrigErr() error {
+	return nil
+}
+
+func (s *JobNotFoundException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *JobNotFoundException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *JobNotFoundException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// The number of pipelines associated with the AWS account has exceeded the
+// limit allowed for the account.
+type LimitExceededException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s LimitExceededException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s LimitExceededException) GoString() string {
+	return s.String()
+}
+
+func newErrorLimitExceededException(v protocol.ResponseMetadata) error {
+	return &LimitExceededException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *LimitExceededException) Code() string {
+	return "LimitExceededException"
+}
+
+// Message returns the exception's message.
+func (s *LimitExceededException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *LimitExceededException) OrigErr() error {
+	return nil
+}
+
+func (s *LimitExceededException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *LimitExceededException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *LimitExceededException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 type ListActionExecutionsInput struct {
@@ -7745,6 +9083,63 @@ func (s *ListWebhooksOutput) SetWebhooks(v []*ListWebhookItem) *ListWebhooksOutp
 	return s
 }
 
+// The stage has failed in a later run of the pipeline and the pipelineExecutionId
+// associated with the request is out of date.
+type NotLatestPipelineExecutionException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s NotLatestPipelineExecutionException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s NotLatestPipelineExecutionException) GoString() string {
+	return s.String()
+}
+
+func newErrorNotLatestPipelineExecutionException(v protocol.ResponseMetadata) error {
+	return &NotLatestPipelineExecutionException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *NotLatestPipelineExecutionException) Code() string {
+	return "NotLatestPipelineExecutionException"
+}
+
+// Message returns the exception's message.
+func (s *NotLatestPipelineExecutionException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *NotLatestPipelineExecutionException) OrigErr() error {
+	return nil
+}
+
+func (s *NotLatestPipelineExecutionException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *NotLatestPipelineExecutionException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *NotLatestPipelineExecutionException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
 // Represents information about the output of an action.
 type OutputArtifact struct {
 	_ struct{} `type:"structure"`
@@ -7793,6 +9188,62 @@ func (s *OutputArtifact) Validate() error {
 func (s *OutputArtifact) SetName(v string) *OutputArtifact {
 	s.Name = &v
 	return s
+}
+
+// Exceeded the total size limit for all variables in the pipeline.
+type OutputVariablesSizeExceededException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s OutputVariablesSizeExceededException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s OutputVariablesSizeExceededException) GoString() string {
+	return s.String()
+}
+
+func newErrorOutputVariablesSizeExceededException(v protocol.ResponseMetadata) error {
+	return &OutputVariablesSizeExceededException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *OutputVariablesSizeExceededException) Code() string {
+	return "OutputVariablesSizeExceededException"
+}
+
+// Message returns the exception's message.
+func (s *OutputVariablesSizeExceededException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *OutputVariablesSizeExceededException) OrigErr() error {
+	return nil
+}
+
+func (s *OutputVariablesSizeExceededException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *OutputVariablesSizeExceededException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *OutputVariablesSizeExceededException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Represents information about a pipeline to a job worker.
@@ -7864,8 +9315,8 @@ func (s *PipelineContext) SetStage(v *StageContext) *PipelineContext {
 type PipelineDeclaration struct {
 	_ struct{} `type:"structure"`
 
-	// Represents information about the Amazon S3 bucket where artifacts are stored
-	// for the pipeline.
+	// Represents information about the S3 bucket where artifacts are stored for
+	// the pipeline.
 	//
 	// You must include either artifactStore or artifactStores in your pipeline,
 	// but you cannot use both. If you create a cross-region action in your pipeline,
@@ -8009,21 +9460,30 @@ type PipelineExecution struct {
 	// The ID of the pipeline execution.
 	PipelineExecutionId *string `locationName:"pipelineExecutionId" type:"string"`
 
-	// The name of the pipeline that was executed.
+	// The name of the pipeline with the specified pipeline execution.
 	PipelineName *string `locationName:"pipelineName" min:"1" type:"string"`
 
-	// The version number of the pipeline that was executed.
+	// The version number of the pipeline with the specified pipeline execution.
 	PipelineVersion *int64 `locationName:"pipelineVersion" min:"1" type:"integer"`
 
 	// The status of the pipeline execution.
 	//
 	//    * InProgress: The pipeline execution is currently running.
 	//
+	//    * Stopped: The pipeline execution was manually stopped. For more information,
+	//    see Stopped Executions (https://docs.aws.amazon.com/codepipeline/latest/userguide/concepts.html#concepts-executions-stopped).
+	//
+	//    * Stopping: The pipeline execution received a request to be manually stopped.
+	//    Depending on the selected stop mode, the execution is either completing
+	//    or abandoning in-progress actions. For more information, see Stopped Executions
+	//    (https://docs.aws.amazon.com/codepipeline/latest/userguide/concepts.html#concepts-executions-stopped).
+	//
 	//    * Succeeded: The pipeline execution was completed successfully.
 	//
 	//    * Superseded: While this pipeline execution was waiting for the next stage
 	//    to be completed, a newer pipeline execution advanced and continued through
-	//    the pipeline instead.
+	//    the pipeline instead. For more information, see Superseded Executions
+	//    (https://docs.aws.amazon.com/codepipeline/latest/userguide/concepts.html#concepts-superseded).
 	//
 	//    * Failed: The pipeline execution was not completed successfully.
 	Status *string `locationName:"status" type:"string" enum:"PipelineExecutionStatus"`
@@ -8069,6 +9529,120 @@ func (s *PipelineExecution) SetStatus(v string) *PipelineExecution {
 	return s
 }
 
+// The pipeline execution was specified in an invalid format or cannot be found,
+// or an execution ID does not belong to the specified pipeline.
+type PipelineExecutionNotFoundException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s PipelineExecutionNotFoundException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s PipelineExecutionNotFoundException) GoString() string {
+	return s.String()
+}
+
+func newErrorPipelineExecutionNotFoundException(v protocol.ResponseMetadata) error {
+	return &PipelineExecutionNotFoundException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *PipelineExecutionNotFoundException) Code() string {
+	return "PipelineExecutionNotFoundException"
+}
+
+// Message returns the exception's message.
+func (s *PipelineExecutionNotFoundException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *PipelineExecutionNotFoundException) OrigErr() error {
+	return nil
+}
+
+func (s *PipelineExecutionNotFoundException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *PipelineExecutionNotFoundException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *PipelineExecutionNotFoundException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// Unable to stop the pipeline execution. The execution might already be in
+// a Stopped state, or it might no longer be in progress.
+type PipelineExecutionNotStoppableException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s PipelineExecutionNotStoppableException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s PipelineExecutionNotStoppableException) GoString() string {
+	return s.String()
+}
+
+func newErrorPipelineExecutionNotStoppableException(v protocol.ResponseMetadata) error {
+	return &PipelineExecutionNotStoppableException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *PipelineExecutionNotStoppableException) Code() string {
+	return "PipelineExecutionNotStoppableException"
+}
+
+// Message returns the exception's message.
+func (s *PipelineExecutionNotStoppableException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *PipelineExecutionNotStoppableException) OrigErr() error {
+	return nil
+}
+
+func (s *PipelineExecutionNotStoppableException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *PipelineExecutionNotStoppableException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *PipelineExecutionNotStoppableException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
 // Summary information about a pipeline execution.
 type PipelineExecutionSummary struct {
 	_ struct{} `type:"structure"`
@@ -8090,14 +9664,26 @@ type PipelineExecutionSummary struct {
 	//
 	//    * InProgress: The pipeline execution is currently running.
 	//
+	//    * Stopped: The pipeline execution was manually stopped. For more information,
+	//    see Stopped Executions (https://docs.aws.amazon.com/codepipeline/latest/userguide/concepts.html#concepts-executions-stopped).
+	//
+	//    * Stopping: The pipeline execution received a request to be manually stopped.
+	//    Depending on the selected stop mode, the execution is either completing
+	//    or abandoning in-progress actions. For more information, see Stopped Executions
+	//    (https://docs.aws.amazon.com/codepipeline/latest/userguide/concepts.html#concepts-executions-stopped).
+	//
 	//    * Succeeded: The pipeline execution was completed successfully.
 	//
 	//    * Superseded: While this pipeline execution was waiting for the next stage
 	//    to be completed, a newer pipeline execution advanced and continued through
-	//    the pipeline instead.
+	//    the pipeline instead. For more information, see Superseded Executions
+	//    (https://docs.aws.amazon.com/codepipeline/latest/userguide/concepts.html#concepts-superseded).
 	//
 	//    * Failed: The pipeline execution was not completed successfully.
 	Status *string `locationName:"status" type:"string" enum:"PipelineExecutionStatus"`
+
+	// The interaction that stopped a pipeline execution.
+	StopTrigger *StopExecutionTrigger `locationName:"stopTrigger" type:"structure"`
 
 	// The interaction or event that started a pipeline execution, such as automated
 	// change detection or a StartPipelineExecution API call.
@@ -8141,6 +9727,12 @@ func (s *PipelineExecutionSummary) SetStartTime(v time.Time) *PipelineExecutionS
 // SetStatus sets the Status field's value.
 func (s *PipelineExecutionSummary) SetStatus(v string) *PipelineExecutionSummary {
 	s.Status = &v
+	return s
+}
+
+// SetStopTrigger sets the StopTrigger field's value.
+func (s *PipelineExecutionSummary) SetStopTrigger(v *StopExecutionTrigger) *PipelineExecutionSummary {
+	s.StopTrigger = v
 	return s
 }
 
@@ -8192,6 +9784,118 @@ func (s *PipelineMetadata) SetUpdated(v time.Time) *PipelineMetadata {
 	return s
 }
 
+// The specified pipeline name is already in use.
+type PipelineNameInUseException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s PipelineNameInUseException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s PipelineNameInUseException) GoString() string {
+	return s.String()
+}
+
+func newErrorPipelineNameInUseException(v protocol.ResponseMetadata) error {
+	return &PipelineNameInUseException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *PipelineNameInUseException) Code() string {
+	return "PipelineNameInUseException"
+}
+
+// Message returns the exception's message.
+func (s *PipelineNameInUseException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *PipelineNameInUseException) OrigErr() error {
+	return nil
+}
+
+func (s *PipelineNameInUseException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *PipelineNameInUseException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *PipelineNameInUseException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// The pipeline was specified in an invalid format or cannot be found.
+type PipelineNotFoundException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s PipelineNotFoundException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s PipelineNotFoundException) GoString() string {
+	return s.String()
+}
+
+func newErrorPipelineNotFoundException(v protocol.ResponseMetadata) error {
+	return &PipelineNotFoundException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *PipelineNotFoundException) Code() string {
+	return "PipelineNotFoundException"
+}
+
+// Message returns the exception's message.
+func (s *PipelineNotFoundException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *PipelineNotFoundException) OrigErr() error {
+	return nil
+}
+
+func (s *PipelineNotFoundException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *PipelineNotFoundException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *PipelineNotFoundException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
 // Returns a summary of a pipeline.
 type PipelineSummary struct {
 	_ struct{} `type:"structure"`
@@ -8241,6 +9945,62 @@ func (s *PipelineSummary) SetUpdated(v time.Time) *PipelineSummary {
 func (s *PipelineSummary) SetVersion(v int64) *PipelineSummary {
 	s.Version = &v
 	return s
+}
+
+// The pipeline version was specified in an invalid format or cannot be found.
+type PipelineVersionNotFoundException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s PipelineVersionNotFoundException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s PipelineVersionNotFoundException) GoString() string {
+	return s.String()
+}
+
+func newErrorPipelineVersionNotFoundException(v protocol.ResponseMetadata) error {
+	return &PipelineVersionNotFoundException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *PipelineVersionNotFoundException) Code() string {
+	return "PipelineVersionNotFoundException"
+}
+
+// Message returns the exception's message.
+func (s *PipelineVersionNotFoundException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *PipelineVersionNotFoundException) OrigErr() error {
+	return nil
+}
+
+func (s *PipelineVersionNotFoundException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *PipelineVersionNotFoundException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *PipelineVersionNotFoundException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Represents the input of a PollForJobs action.
@@ -8777,6 +10537,11 @@ type PutJobSuccessResultInput struct {
 	//
 	// JobId is a required field
 	JobId *string `locationName:"jobId" type:"string" required:"true"`
+
+	// Key-value pairs produced as output by a job worker that can be made available
+	// to a downstream action configuration. outputVariables can be included only
+	// when there is no continuation token on the request.
+	OutputVariables map[string]*string `locationName:"outputVariables" type:"map"`
 }
 
 // String returns the string representation
@@ -8836,6 +10601,12 @@ func (s *PutJobSuccessResultInput) SetExecutionDetails(v *ExecutionDetails) *Put
 // SetJobId sets the JobId field's value.
 func (s *PutJobSuccessResultInput) SetJobId(v string) *PutJobSuccessResultInput {
 	s.JobId = &v
+	return s
+}
+
+// SetOutputVariables sets the OutputVariables field's value.
+func (s *PutJobSuccessResultInput) SetOutputVariables(v map[string]*string) *PutJobSuccessResultInput {
+	s.OutputVariables = v
 	return s
 }
 
@@ -9207,6 +10978,62 @@ func (s RegisterWebhookWithThirdPartyOutput) GoString() string {
 	return s.String()
 }
 
+// The resource was specified in an invalid format.
+type ResourceNotFoundException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s ResourceNotFoundException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResourceNotFoundException) GoString() string {
+	return s.String()
+}
+
+func newErrorResourceNotFoundException(v protocol.ResponseMetadata) error {
+	return &ResourceNotFoundException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *ResourceNotFoundException) Code() string {
+	return "ResourceNotFoundException"
+}
+
+// Message returns the exception's message.
+func (s *ResourceNotFoundException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *ResourceNotFoundException) OrigErr() error {
+	return nil
+}
+
+func (s *ResourceNotFoundException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *ResourceNotFoundException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *ResourceNotFoundException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
 // Represents the input of a RetryStageExecution action.
 type RetryStageExecutionInput struct {
 	_ struct{} `type:"structure"`
@@ -9320,17 +11147,17 @@ func (s *RetryStageExecutionOutput) SetPipelineExecutionId(v string) *RetryStage
 	return s
 }
 
-// The location of the Amazon S3 bucket that contains a revision.
+// The location of the S3 bucket that contains a revision.
 type S3ArtifactLocation struct {
 	_ struct{} `type:"structure"`
 
-	// The name of the Amazon S3 bucket.
+	// The name of the S3 bucket.
 	//
 	// BucketName is a required field
 	BucketName *string `locationName:"bucketName" type:"string" required:"true"`
 
-	// The key of the object in the Amazon S3 bucket, which uniquely identifies
-	// the object in the bucket.
+	// The key of the object in the S3 bucket, which uniquely identifies the object
+	// in the bucket.
 	//
 	// ObjectKey is a required field
 	ObjectKey *string `locationName:"objectKey" type:"string" required:"true"`
@@ -9598,6 +11425,119 @@ func (s *StageExecution) SetStatus(v string) *StageExecution {
 	return s
 }
 
+// The stage was specified in an invalid format or cannot be found.
+type StageNotFoundException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s StageNotFoundException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s StageNotFoundException) GoString() string {
+	return s.String()
+}
+
+func newErrorStageNotFoundException(v protocol.ResponseMetadata) error {
+	return &StageNotFoundException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *StageNotFoundException) Code() string {
+	return "StageNotFoundException"
+}
+
+// Message returns the exception's message.
+func (s *StageNotFoundException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *StageNotFoundException) OrigErr() error {
+	return nil
+}
+
+func (s *StageNotFoundException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *StageNotFoundException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *StageNotFoundException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// Unable to retry. The pipeline structure or stage state might have changed
+// while actions awaited retry, or the stage contains no failed actions.
+type StageNotRetryableException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s StageNotRetryableException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s StageNotRetryableException) GoString() string {
+	return s.String()
+}
+
+func newErrorStageNotRetryableException(v protocol.ResponseMetadata) error {
+	return &StageNotRetryableException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *StageNotRetryableException) Code() string {
+	return "StageNotRetryableException"
+}
+
+// Message returns the exception's message.
+func (s *StageNotRetryableException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *StageNotRetryableException) OrigErr() error {
+	return nil
+}
+
+func (s *StageNotRetryableException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *StageNotRetryableException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *StageNotRetryableException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
 // Represents information about the state of the stage.
 type StageState struct {
 	_ struct{} `type:"structure"`
@@ -9724,6 +11664,130 @@ func (s StartPipelineExecutionOutput) GoString() string {
 
 // SetPipelineExecutionId sets the PipelineExecutionId field's value.
 func (s *StartPipelineExecutionOutput) SetPipelineExecutionId(v string) *StartPipelineExecutionOutput {
+	s.PipelineExecutionId = &v
+	return s
+}
+
+// The interaction that stopped a pipeline execution.
+type StopExecutionTrigger struct {
+	_ struct{} `type:"structure"`
+
+	// The user-specified reason the pipeline was stopped.
+	Reason *string `locationName:"reason" type:"string"`
+}
+
+// String returns the string representation
+func (s StopExecutionTrigger) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s StopExecutionTrigger) GoString() string {
+	return s.String()
+}
+
+// SetReason sets the Reason field's value.
+func (s *StopExecutionTrigger) SetReason(v string) *StopExecutionTrigger {
+	s.Reason = &v
+	return s
+}
+
+type StopPipelineExecutionInput struct {
+	_ struct{} `type:"structure"`
+
+	// Use this option to stop the pipeline execution by abandoning, rather than
+	// finishing, in-progress actions.
+	//
+	// This option can lead to failed or out-of-sequence tasks.
+	Abandon *bool `locationName:"abandon" type:"boolean"`
+
+	// The ID of the pipeline execution to be stopped in the current stage. Use
+	// the GetPipelineState action to retrieve the current pipelineExecutionId.
+	//
+	// PipelineExecutionId is a required field
+	PipelineExecutionId *string `locationName:"pipelineExecutionId" type:"string" required:"true"`
+
+	// The name of the pipeline to stop.
+	//
+	// PipelineName is a required field
+	PipelineName *string `locationName:"pipelineName" min:"1" type:"string" required:"true"`
+
+	// Use this option to enter comments, such as the reason the pipeline was stopped.
+	Reason *string `locationName:"reason" type:"string"`
+}
+
+// String returns the string representation
+func (s StopPipelineExecutionInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s StopPipelineExecutionInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *StopPipelineExecutionInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "StopPipelineExecutionInput"}
+	if s.PipelineExecutionId == nil {
+		invalidParams.Add(request.NewErrParamRequired("PipelineExecutionId"))
+	}
+	if s.PipelineName == nil {
+		invalidParams.Add(request.NewErrParamRequired("PipelineName"))
+	}
+	if s.PipelineName != nil && len(*s.PipelineName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("PipelineName", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetAbandon sets the Abandon field's value.
+func (s *StopPipelineExecutionInput) SetAbandon(v bool) *StopPipelineExecutionInput {
+	s.Abandon = &v
+	return s
+}
+
+// SetPipelineExecutionId sets the PipelineExecutionId field's value.
+func (s *StopPipelineExecutionInput) SetPipelineExecutionId(v string) *StopPipelineExecutionInput {
+	s.PipelineExecutionId = &v
+	return s
+}
+
+// SetPipelineName sets the PipelineName field's value.
+func (s *StopPipelineExecutionInput) SetPipelineName(v string) *StopPipelineExecutionInput {
+	s.PipelineName = &v
+	return s
+}
+
+// SetReason sets the Reason field's value.
+func (s *StopPipelineExecutionInput) SetReason(v string) *StopPipelineExecutionInput {
+	s.Reason = &v
+	return s
+}
+
+type StopPipelineExecutionOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The unique system-generated ID of the pipeline execution that was stopped.
+	PipelineExecutionId *string `locationName:"pipelineExecutionId" type:"string"`
+}
+
+// String returns the string representation
+func (s StopPipelineExecutionOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s StopPipelineExecutionOutput) GoString() string {
+	return s.String()
+}
+
+// SetPipelineExecutionId sets the PipelineExecutionId field's value.
+func (s *StopPipelineExecutionOutput) SetPipelineExecutionId(v string) *StopPipelineExecutionOutput {
 	s.PipelineExecutionId = &v
 	return s
 }
@@ -9907,8 +11971,8 @@ type ThirdPartyJobData struct {
 
 	// Represents an AWS session credentials object. These credentials are temporary
 	// credentials that are issued by AWS Secure Token Service (STS). They can be
-	// used to access input and output artifacts in the Amazon S3 bucket used to
-	// store artifact for the pipeline in AWS CodePipeline.
+	// used to access input and output artifacts in the S3 bucket used to store
+	// artifact for the pipeline in AWS CodePipeline.
 	ArtifactCredentials *AWSSessionCredentials `locationName:"artifactCredentials" type:"structure" sensitive:"true"`
 
 	// A system-generated token, such as a AWS CodeDeploy deployment ID, that a
@@ -10038,6 +12102,62 @@ func (s *ThirdPartyJobDetails) SetId(v string) *ThirdPartyJobDetails {
 func (s *ThirdPartyJobDetails) SetNonce(v string) *ThirdPartyJobDetails {
 	s.Nonce = &v
 	return s
+}
+
+// The tags limit for a resource has been exceeded.
+type TooManyTagsException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s TooManyTagsException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s TooManyTagsException) GoString() string {
+	return s.String()
+}
+
+func newErrorTooManyTagsException(v protocol.ResponseMetadata) error {
+	return &TooManyTagsException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *TooManyTagsException) Code() string {
+	return "TooManyTagsException"
+}
+
+// Message returns the exception's message.
+func (s *TooManyTagsException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *TooManyTagsException) OrigErr() error {
+	return nil
+}
+
+func (s *TooManyTagsException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *TooManyTagsException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *TooManyTagsException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Represents information about the state of transitions between one stage and
@@ -10225,6 +12345,62 @@ func (s UpdatePipelineOutput) GoString() string {
 func (s *UpdatePipelineOutput) SetPipeline(v *PipelineDeclaration) *UpdatePipelineOutput {
 	s.Pipeline = v
 	return s
+}
+
+// The validation was specified in an invalid format.
+type ValidationException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s ValidationException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ValidationException) GoString() string {
+	return s.String()
+}
+
+func newErrorValidationException(v protocol.ResponseMetadata) error {
+	return &ValidationException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *ValidationException) Code() string {
+	return "ValidationException"
+}
+
+// Message returns the exception's message.
+func (s *ValidationException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *ValidationException) OrigErr() error {
+	return nil
+}
+
+func (s *ValidationException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *ValidationException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *ValidationException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The authentication applied to incoming webhook trigger requests.
@@ -10495,6 +12671,62 @@ func (s *WebhookFilterRule) SetMatchEquals(v string) *WebhookFilterRule {
 	return s
 }
 
+// The specified webhook was entered in an invalid format or cannot be found.
+type WebhookNotFoundException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s WebhookNotFoundException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s WebhookNotFoundException) GoString() string {
+	return s.String()
+}
+
+func newErrorWebhookNotFoundException(v protocol.ResponseMetadata) error {
+	return &WebhookNotFoundException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *WebhookNotFoundException) Code() string {
+	return "WebhookNotFoundException"
+}
+
+// Message returns the exception's message.
+func (s *WebhookNotFoundException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *WebhookNotFoundException) OrigErr() error {
+	return nil
+}
+
+func (s *WebhookNotFoundException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *WebhookNotFoundException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *WebhookNotFoundException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
 const (
 	// ActionCategorySource is a ActionCategory enum value
 	ActionCategorySource = "Source"
@@ -10529,6 +12761,9 @@ const (
 const (
 	// ActionExecutionStatusInProgress is a ActionExecutionStatus enum value
 	ActionExecutionStatusInProgress = "InProgress"
+
+	// ActionExecutionStatusAbandoned is a ActionExecutionStatus enum value
+	ActionExecutionStatusAbandoned = "Abandoned"
 
 	// ActionExecutionStatusSucceeded is a ActionExecutionStatus enum value
 	ActionExecutionStatusSucceeded = "Succeeded"
@@ -10623,6 +12858,12 @@ const (
 	// PipelineExecutionStatusInProgress is a PipelineExecutionStatus enum value
 	PipelineExecutionStatusInProgress = "InProgress"
 
+	// PipelineExecutionStatusStopped is a PipelineExecutionStatus enum value
+	PipelineExecutionStatusStopped = "Stopped"
+
+	// PipelineExecutionStatusStopping is a PipelineExecutionStatus enum value
+	PipelineExecutionStatusStopping = "Stopping"
+
 	// PipelineExecutionStatusSucceeded is a PipelineExecutionStatus enum value
 	PipelineExecutionStatusSucceeded = "Succeeded"
 
@@ -10639,6 +12880,12 @@ const (
 
 	// StageExecutionStatusFailed is a StageExecutionStatus enum value
 	StageExecutionStatusFailed = "Failed"
+
+	// StageExecutionStatusStopped is a StageExecutionStatus enum value
+	StageExecutionStatusStopped = "Stopped"
+
+	// StageExecutionStatusStopping is a StageExecutionStatus enum value
+	StageExecutionStatusStopping = "Stopping"
 
 	// StageExecutionStatusSucceeded is a StageExecutionStatus enum value
 	StageExecutionStatusSucceeded = "Succeeded"

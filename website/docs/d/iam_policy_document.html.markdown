@@ -14,7 +14,7 @@ This is a data source which can be used to construct a JSON representation of
 an IAM policy document, for use with resources which expect policy documents,
 such as the `aws_iam_policy` resource.
 
--> For more information about building AWS IAM policy documents with Terraform, see the [AWS IAM Policy Document Guide](/docs/providers/aws/guides/iam-policy-documents.html).
+-> For more information about building AWS IAM policy documents with Terraform, see the [AWS IAM Policy Document Guide](https://learn.hashicorp.com/terraform/aws/iam-policy).
 
 ```hcl
 data "aws_iam_policy_document" "example" {

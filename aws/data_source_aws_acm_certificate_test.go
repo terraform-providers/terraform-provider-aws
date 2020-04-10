@@ -41,36 +41,42 @@ func TestAccAWSAcmCertificateDataSource_singleIssued(t *testing.T) {
 			{
 				Config: testAccCheckAwsAcmCertificateDataSourceConfig(domain),
 				Check: resource.ComposeTestCheckFunc(
+					//lintignore:AWSAT001
 					resource.TestMatchResourceAttr(resourceName, "arn", arnRe),
 				),
 			},
 			{
 				Config: testAccCheckAwsAcmCertificateDataSourceConfigWithStatus(domain, acm.CertificateStatusIssued),
 				Check: resource.ComposeTestCheckFunc(
+					//lintignore:AWSAT001
 					resource.TestMatchResourceAttr(resourceName, "arn", arnRe),
 				),
 			},
 			{
 				Config: testAccCheckAwsAcmCertificateDataSourceConfigWithTypes(domain, acm.CertificateTypeAmazonIssued),
 				Check: resource.ComposeTestCheckFunc(
+					//lintignore:AWSAT001
 					resource.TestMatchResourceAttr(resourceName, "arn", arnRe),
 				),
 			},
 			{
 				Config: testAccCheckAwsAcmCertificateDataSourceConfigWithMostRecent(domain, true),
 				Check: resource.ComposeTestCheckFunc(
+					//lintignore:AWSAT001
 					resource.TestMatchResourceAttr(resourceName, "arn", arnRe),
 				),
 			},
 			{
 				Config: testAccCheckAwsAcmCertificateDataSourceConfigWithMostRecentAndStatus(domain, acm.CertificateStatusIssued, true),
 				Check: resource.ComposeTestCheckFunc(
+					//lintignore:AWSAT001
 					resource.TestMatchResourceAttr(resourceName, "arn", arnRe),
 				),
 			},
 			{
 				Config: testAccCheckAwsAcmCertificateDataSourceConfigWithMostRecentAndTypes(domain, acm.CertificateTypeAmazonIssued, true),
 				Check: resource.ComposeTestCheckFunc(
+					//lintignore:AWSAT001
 					resource.TestMatchResourceAttr(resourceName, "arn", arnRe),
 				),
 			},
@@ -119,18 +125,21 @@ func TestAccAWSAcmCertificateDataSource_multipleIssued(t *testing.T) {
 			{
 				Config: testAccCheckAwsAcmCertificateDataSourceConfigWithMostRecent(domain, true),
 				Check: resource.ComposeTestCheckFunc(
+					//lintignore:AWSAT001
 					resource.TestMatchResourceAttr(resourceName, "arn", arnRe),
 				),
 			},
 			{
 				Config: testAccCheckAwsAcmCertificateDataSourceConfigWithMostRecentAndStatus(domain, acm.CertificateStatusIssued, true),
 				Check: resource.ComposeTestCheckFunc(
+					//lintignore:AWSAT001
 					resource.TestMatchResourceAttr(resourceName, "arn", arnRe),
 				),
 			},
 			{
 				Config: testAccCheckAwsAcmCertificateDataSourceConfigWithMostRecentAndTypes(domain, acm.CertificateTypeAmazonIssued, true),
 				Check: resource.ComposeTestCheckFunc(
+					//lintignore:AWSAT001
 					resource.TestMatchResourceAttr(resourceName, "arn", arnRe),
 				),
 			},

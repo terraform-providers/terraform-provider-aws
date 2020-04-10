@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awsutil"
 	"github.com/aws/aws-sdk-go/aws/request"
+	"github.com/aws/aws-sdk-go/private/protocol"
 )
 
 const opCreateGroup = "CreateGroup"
@@ -63,21 +64,21 @@ func (c *ResourceGroups) CreateGroupRequest(input *CreateGroupInput) (req *reque
 // See the AWS API reference guide for AWS Resource Groups's
 // API operation CreateGroup for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //   The request does not comply with validation rules that are defined for the
 //   request parameters.
 //
-//   * ErrCodeForbiddenException "ForbiddenException"
+//   * ForbiddenException
 //   The caller is not authorized to make the request.
 //
-//   * ErrCodeMethodNotAllowedException "MethodNotAllowedException"
+//   * MethodNotAllowedException
 //   The request uses an HTTP method which is not allowed for the specified resource.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   The caller has exceeded throttling limits.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   An internal error occurred while processing the request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/resource-groups-2017-11-27/CreateGroup
@@ -156,24 +157,24 @@ func (c *ResourceGroups) DeleteGroupRequest(input *DeleteGroupInput) (req *reque
 // See the AWS API reference guide for AWS Resource Groups's
 // API operation DeleteGroup for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //   The request does not comply with validation rules that are defined for the
 //   request parameters.
 //
-//   * ErrCodeForbiddenException "ForbiddenException"
+//   * ForbiddenException
 //   The caller is not authorized to make the request.
 //
-//   * ErrCodeNotFoundException "NotFoundException"
+//   * NotFoundException
 //   One or more resources specified in the request do not exist.
 //
-//   * ErrCodeMethodNotAllowedException "MethodNotAllowedException"
+//   * MethodNotAllowedException
 //   The request uses an HTTP method which is not allowed for the specified resource.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   The caller has exceeded throttling limits.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   An internal error occurred while processing the request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/resource-groups-2017-11-27/DeleteGroup
@@ -251,24 +252,24 @@ func (c *ResourceGroups) GetGroupRequest(input *GetGroupInput) (req *request.Req
 // See the AWS API reference guide for AWS Resource Groups's
 // API operation GetGroup for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //   The request does not comply with validation rules that are defined for the
 //   request parameters.
 //
-//   * ErrCodeForbiddenException "ForbiddenException"
+//   * ForbiddenException
 //   The caller is not authorized to make the request.
 //
-//   * ErrCodeNotFoundException "NotFoundException"
+//   * NotFoundException
 //   One or more resources specified in the request do not exist.
 //
-//   * ErrCodeMethodNotAllowedException "MethodNotAllowedException"
+//   * MethodNotAllowedException
 //   The request uses an HTTP method which is not allowed for the specified resource.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   The caller has exceeded throttling limits.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   An internal error occurred while processing the request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/resource-groups-2017-11-27/GetGroup
@@ -346,24 +347,24 @@ func (c *ResourceGroups) GetGroupQueryRequest(input *GetGroupQueryInput) (req *r
 // See the AWS API reference guide for AWS Resource Groups's
 // API operation GetGroupQuery for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //   The request does not comply with validation rules that are defined for the
 //   request parameters.
 //
-//   * ErrCodeForbiddenException "ForbiddenException"
+//   * ForbiddenException
 //   The caller is not authorized to make the request.
 //
-//   * ErrCodeNotFoundException "NotFoundException"
+//   * NotFoundException
 //   One or more resources specified in the request do not exist.
 //
-//   * ErrCodeMethodNotAllowedException "MethodNotAllowedException"
+//   * MethodNotAllowedException
 //   The request uses an HTTP method which is not allowed for the specified resource.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   The caller has exceeded throttling limits.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   An internal error occurred while processing the request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/resource-groups-2017-11-27/GetGroupQuery
@@ -442,24 +443,24 @@ func (c *ResourceGroups) GetTagsRequest(input *GetTagsInput) (req *request.Reque
 // See the AWS API reference guide for AWS Resource Groups's
 // API operation GetTags for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //   The request does not comply with validation rules that are defined for the
 //   request parameters.
 //
-//   * ErrCodeForbiddenException "ForbiddenException"
+//   * ForbiddenException
 //   The caller is not authorized to make the request.
 //
-//   * ErrCodeNotFoundException "NotFoundException"
+//   * NotFoundException
 //   One or more resources specified in the request do not exist.
 //
-//   * ErrCodeMethodNotAllowedException "MethodNotAllowedException"
+//   * MethodNotAllowedException
 //   The request uses an HTTP method which is not allowed for the specified resource.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   The caller has exceeded throttling limits.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   An internal error occurred while processing the request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/resource-groups-2017-11-27/GetTags
@@ -544,28 +545,28 @@ func (c *ResourceGroups) ListGroupResourcesRequest(input *ListGroupResourcesInpu
 // See the AWS API reference guide for AWS Resource Groups's
 // API operation ListGroupResources for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeUnauthorizedException "UnauthorizedException"
+// Returned Error Types:
+//   * UnauthorizedException
 //   The request has not been applied because it lacks valid authentication credentials
 //   for the target resource.
 //
-//   * ErrCodeBadRequestException "BadRequestException"
+//   * BadRequestException
 //   The request does not comply with validation rules that are defined for the
 //   request parameters.
 //
-//   * ErrCodeForbiddenException "ForbiddenException"
+//   * ForbiddenException
 //   The caller is not authorized to make the request.
 //
-//   * ErrCodeNotFoundException "NotFoundException"
+//   * NotFoundException
 //   One or more resources specified in the request do not exist.
 //
-//   * ErrCodeMethodNotAllowedException "MethodNotAllowedException"
+//   * MethodNotAllowedException
 //   The request uses an HTTP method which is not allowed for the specified resource.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   The caller has exceeded throttling limits.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   An internal error occurred while processing the request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/resource-groups-2017-11-27/ListGroupResources
@@ -633,10 +634,12 @@ func (c *ResourceGroups) ListGroupResourcesPagesWithContext(ctx aws.Context, inp
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListGroupResourcesOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListGroupResourcesOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -699,21 +702,21 @@ func (c *ResourceGroups) ListGroupsRequest(input *ListGroupsInput) (req *request
 // See the AWS API reference guide for AWS Resource Groups's
 // API operation ListGroups for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //   The request does not comply with validation rules that are defined for the
 //   request parameters.
 //
-//   * ErrCodeForbiddenException "ForbiddenException"
+//   * ForbiddenException
 //   The caller is not authorized to make the request.
 //
-//   * ErrCodeMethodNotAllowedException "MethodNotAllowedException"
+//   * MethodNotAllowedException
 //   The request uses an HTTP method which is not allowed for the specified resource.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   The caller has exceeded throttling limits.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   An internal error occurred while processing the request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/resource-groups-2017-11-27/ListGroups
@@ -781,10 +784,12 @@ func (c *ResourceGroups) ListGroupsPagesWithContext(ctx aws.Context, input *List
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListGroupsOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListGroupsOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -849,25 +854,25 @@ func (c *ResourceGroups) SearchResourcesRequest(input *SearchResourcesInput) (re
 // See the AWS API reference guide for AWS Resource Groups's
 // API operation SearchResources for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeUnauthorizedException "UnauthorizedException"
+// Returned Error Types:
+//   * UnauthorizedException
 //   The request has not been applied because it lacks valid authentication credentials
 //   for the target resource.
 //
-//   * ErrCodeBadRequestException "BadRequestException"
+//   * BadRequestException
 //   The request does not comply with validation rules that are defined for the
 //   request parameters.
 //
-//   * ErrCodeForbiddenException "ForbiddenException"
+//   * ForbiddenException
 //   The caller is not authorized to make the request.
 //
-//   * ErrCodeMethodNotAllowedException "MethodNotAllowedException"
+//   * MethodNotAllowedException
 //   The request uses an HTTP method which is not allowed for the specified resource.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   The caller has exceeded throttling limits.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   An internal error occurred while processing the request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/resource-groups-2017-11-27/SearchResources
@@ -935,10 +940,12 @@ func (c *ResourceGroups) SearchResourcesPagesWithContext(ctx aws.Context, input 
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*SearchResourcesOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*SearchResourcesOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -996,24 +1003,24 @@ func (c *ResourceGroups) TagRequest(input *TagInput) (req *request.Request, outp
 // See the AWS API reference guide for AWS Resource Groups's
 // API operation Tag for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //   The request does not comply with validation rules that are defined for the
 //   request parameters.
 //
-//   * ErrCodeForbiddenException "ForbiddenException"
+//   * ForbiddenException
 //   The caller is not authorized to make the request.
 //
-//   * ErrCodeNotFoundException "NotFoundException"
+//   * NotFoundException
 //   One or more resources specified in the request do not exist.
 //
-//   * ErrCodeMethodNotAllowedException "MethodNotAllowedException"
+//   * MethodNotAllowedException
 //   The request uses an HTTP method which is not allowed for the specified resource.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   The caller has exceeded throttling limits.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   An internal error occurred while processing the request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/resource-groups-2017-11-27/Tag
@@ -1091,24 +1098,24 @@ func (c *ResourceGroups) UntagRequest(input *UntagInput) (req *request.Request, 
 // See the AWS API reference guide for AWS Resource Groups's
 // API operation Untag for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //   The request does not comply with validation rules that are defined for the
 //   request parameters.
 //
-//   * ErrCodeForbiddenException "ForbiddenException"
+//   * ForbiddenException
 //   The caller is not authorized to make the request.
 //
-//   * ErrCodeNotFoundException "NotFoundException"
+//   * NotFoundException
 //   One or more resources specified in the request do not exist.
 //
-//   * ErrCodeMethodNotAllowedException "MethodNotAllowedException"
+//   * MethodNotAllowedException
 //   The request uses an HTTP method which is not allowed for the specified resource.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   The caller has exceeded throttling limits.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   An internal error occurred while processing the request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/resource-groups-2017-11-27/Untag
@@ -1187,24 +1194,24 @@ func (c *ResourceGroups) UpdateGroupRequest(input *UpdateGroupInput) (req *reque
 // See the AWS API reference guide for AWS Resource Groups's
 // API operation UpdateGroup for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //   The request does not comply with validation rules that are defined for the
 //   request parameters.
 //
-//   * ErrCodeForbiddenException "ForbiddenException"
+//   * ForbiddenException
 //   The caller is not authorized to make the request.
 //
-//   * ErrCodeNotFoundException "NotFoundException"
+//   * NotFoundException
 //   One or more resources specified in the request do not exist.
 //
-//   * ErrCodeMethodNotAllowedException "MethodNotAllowedException"
+//   * MethodNotAllowedException
 //   The request uses an HTTP method which is not allowed for the specified resource.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   The caller has exceeded throttling limits.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   An internal error occurred while processing the request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/resource-groups-2017-11-27/UpdateGroup
@@ -1282,24 +1289,24 @@ func (c *ResourceGroups) UpdateGroupQueryRequest(input *UpdateGroupQueryInput) (
 // See the AWS API reference guide for AWS Resource Groups's
 // API operation UpdateGroupQuery for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequestException "BadRequestException"
+// Returned Error Types:
+//   * BadRequestException
 //   The request does not comply with validation rules that are defined for the
 //   request parameters.
 //
-//   * ErrCodeForbiddenException "ForbiddenException"
+//   * ForbiddenException
 //   The caller is not authorized to make the request.
 //
-//   * ErrCodeNotFoundException "NotFoundException"
+//   * NotFoundException
 //   One or more resources specified in the request do not exist.
 //
-//   * ErrCodeMethodNotAllowedException "MethodNotAllowedException"
+//   * MethodNotAllowedException
 //   The request uses an HTTP method which is not allowed for the specified resource.
 //
-//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//   * TooManyRequestsException
 //   The caller has exceeded throttling limits.
 //
-//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//   * InternalServerErrorException
 //   An internal error occurred while processing the request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/resource-groups-2017-11-27/UpdateGroupQuery
@@ -1322,6 +1329,63 @@ func (c *ResourceGroups) UpdateGroupQueryWithContext(ctx aws.Context, input *Upd
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
+}
+
+// The request does not comply with validation rules that are defined for the
+// request parameters.
+type BadRequestException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"Message" min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s BadRequestException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s BadRequestException) GoString() string {
+	return s.String()
+}
+
+func newErrorBadRequestException(v protocol.ResponseMetadata) error {
+	return &BadRequestException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *BadRequestException) Code() string {
+	return "BadRequestException"
+}
+
+// Message returns the exception's message.
+func (s *BadRequestException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *BadRequestException) OrigErr() error {
+	return nil
+}
+
+func (s *BadRequestException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *BadRequestException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *BadRequestException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 type CreateGroupInput struct {
@@ -1514,6 +1578,62 @@ func (s DeleteGroupOutput) GoString() string {
 func (s *DeleteGroupOutput) SetGroup(v *Group) *DeleteGroupOutput {
 	s.Group = v
 	return s
+}
+
+// The caller is not authorized to make the request.
+type ForbiddenException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"Message" min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s ForbiddenException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ForbiddenException) GoString() string {
+	return s.String()
+}
+
+func newErrorForbiddenException(v protocol.ResponseMetadata) error {
+	return &ForbiddenException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *ForbiddenException) Code() string {
+	return "ForbiddenException"
+}
+
+// Message returns the exception's message.
+func (s *ForbiddenException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *ForbiddenException) OrigErr() error {
+	return nil
+}
+
+func (s *ForbiddenException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *ForbiddenException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *ForbiddenException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 type GetGroupInput struct {
@@ -1895,6 +2015,62 @@ func (s *GroupQuery) SetResourceQuery(v *ResourceQuery) *GroupQuery {
 	return s
 }
 
+// An internal error occurred while processing the request.
+type InternalServerErrorException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"Message" min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s InternalServerErrorException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InternalServerErrorException) GoString() string {
+	return s.String()
+}
+
+func newErrorInternalServerErrorException(v protocol.ResponseMetadata) error {
+	return &InternalServerErrorException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *InternalServerErrorException) Code() string {
+	return "InternalServerErrorException"
+}
+
+// Message returns the exception's message.
+func (s *InternalServerErrorException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *InternalServerErrorException) OrigErr() error {
+	return nil
+}
+
+func (s *InternalServerErrorException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *InternalServerErrorException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *InternalServerErrorException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
 type ListGroupResourcesInput struct {
 	_ struct{} `type:"structure"`
 
@@ -2144,6 +2320,118 @@ func (s *ListGroupsOutput) SetGroups(v []*Group) *ListGroupsOutput {
 func (s *ListGroupsOutput) SetNextToken(v string) *ListGroupsOutput {
 	s.NextToken = &v
 	return s
+}
+
+// The request uses an HTTP method which is not allowed for the specified resource.
+type MethodNotAllowedException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"Message" min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s MethodNotAllowedException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s MethodNotAllowedException) GoString() string {
+	return s.String()
+}
+
+func newErrorMethodNotAllowedException(v protocol.ResponseMetadata) error {
+	return &MethodNotAllowedException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *MethodNotAllowedException) Code() string {
+	return "MethodNotAllowedException"
+}
+
+// Message returns the exception's message.
+func (s *MethodNotAllowedException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *MethodNotAllowedException) OrigErr() error {
+	return nil
+}
+
+func (s *MethodNotAllowedException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *MethodNotAllowedException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *MethodNotAllowedException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// One or more resources specified in the request do not exist.
+type NotFoundException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"Message" min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s NotFoundException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s NotFoundException) GoString() string {
+	return s.String()
+}
+
+func newErrorNotFoundException(v protocol.ResponseMetadata) error {
+	return &NotFoundException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *NotFoundException) Code() string {
+	return "NotFoundException"
+}
+
+// Message returns the exception's message.
+func (s *NotFoundException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *NotFoundException) OrigErr() error {
+	return nil
+}
+
+func (s *NotFoundException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *NotFoundException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *NotFoundException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // A two-part error structure that can occur in ListGroupResources or SearchResources
@@ -2567,6 +2855,119 @@ func (s *TagOutput) SetArn(v string) *TagOutput {
 func (s *TagOutput) SetTags(v map[string]*string) *TagOutput {
 	s.Tags = v
 	return s
+}
+
+// The caller has exceeded throttling limits.
+type TooManyRequestsException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"Message" min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s TooManyRequestsException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s TooManyRequestsException) GoString() string {
+	return s.String()
+}
+
+func newErrorTooManyRequestsException(v protocol.ResponseMetadata) error {
+	return &TooManyRequestsException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *TooManyRequestsException) Code() string {
+	return "TooManyRequestsException"
+}
+
+// Message returns the exception's message.
+func (s *TooManyRequestsException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *TooManyRequestsException) OrigErr() error {
+	return nil
+}
+
+func (s *TooManyRequestsException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *TooManyRequestsException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *TooManyRequestsException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// The request has not been applied because it lacks valid authentication credentials
+// for the target resource.
+type UnauthorizedException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"Message" min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s UnauthorizedException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UnauthorizedException) GoString() string {
+	return s.String()
+}
+
+func newErrorUnauthorizedException(v protocol.ResponseMetadata) error {
+	return &UnauthorizedException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *UnauthorizedException) Code() string {
+	return "UnauthorizedException"
+}
+
+// Message returns the exception's message.
+func (s *UnauthorizedException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *UnauthorizedException) OrigErr() error {
+	return nil
+}
+
+func (s *UnauthorizedException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *UnauthorizedException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *UnauthorizedException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 type UntagInput struct {

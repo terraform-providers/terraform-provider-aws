@@ -3,6 +3,7 @@
 package applicationinsights
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -65,18 +66,21 @@ func (c *ApplicationInsights) CreateApplicationRequest(input *CreateApplicationI
 // See the AWS API reference guide for Amazon CloudWatch Application Insights's
 // API operation CreateApplication for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceInUseException "ResourceInUseException"
+// Returned Error Types:
+//   * ResourceInUseException
 //   The resource is already created or in use.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The resource does not exist in the customer account.
 //
-//   * ErrCodeValidationException "ValidationException"
+//   * ValidationException
 //   The parameter is not valid.
 //
-//   * ErrCodeInternalServerException "InternalServerException"
+//   * InternalServerException
 //   The server encountered an internal error and is unable to complete the request.
+//
+//   * TagsAlreadyExistException
+//   Tags are already registered for the specified application ARN.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/application-insights-2018-11-25/CreateApplication
 func (c *ApplicationInsights) CreateApplication(input *CreateApplicationInput) (*CreateApplicationOutput, error) {
@@ -154,17 +158,17 @@ func (c *ApplicationInsights) CreateComponentRequest(input *CreateComponentInput
 // See the AWS API reference guide for Amazon CloudWatch Application Insights's
 // API operation CreateComponent for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceInUseException "ResourceInUseException"
+// Returned Error Types:
+//   * ResourceInUseException
 //   The resource is already created or in use.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The resource does not exist in the customer account.
 //
-//   * ErrCodeValidationException "ValidationException"
+//   * ValidationException
 //   The parameter is not valid.
 //
-//   * ErrCodeInternalServerException "InternalServerException"
+//   * InternalServerException
 //   The server encountered an internal error and is unable to complete the request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/application-insights-2018-11-25/CreateComponent
@@ -184,6 +188,94 @@ func (c *ApplicationInsights) CreateComponent(input *CreateComponentInput) (*Cre
 // for more information on using Contexts.
 func (c *ApplicationInsights) CreateComponentWithContext(ctx aws.Context, input *CreateComponentInput, opts ...request.Option) (*CreateComponentOutput, error) {
 	req, out := c.CreateComponentRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opCreateLogPattern = "CreateLogPattern"
+
+// CreateLogPatternRequest generates a "aws/request.Request" representing the
+// client's request for the CreateLogPattern operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See CreateLogPattern for more information on using the CreateLogPattern
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the CreateLogPatternRequest method.
+//    req, resp := client.CreateLogPatternRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/application-insights-2018-11-25/CreateLogPattern
+func (c *ApplicationInsights) CreateLogPatternRequest(input *CreateLogPatternInput) (req *request.Request, output *CreateLogPatternOutput) {
+	op := &request.Operation{
+		Name:       opCreateLogPattern,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &CreateLogPatternInput{}
+	}
+
+	output = &CreateLogPatternOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// CreateLogPattern API operation for Amazon CloudWatch Application Insights.
+//
+// Adds an log pattern to a LogPatternSet.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon CloudWatch Application Insights's
+// API operation CreateLogPattern for usage and error information.
+//
+// Returned Error Types:
+//   * ResourceInUseException
+//   The resource is already created or in use.
+//
+//   * ResourceNotFoundException
+//   The resource does not exist in the customer account.
+//
+//   * ValidationException
+//   The parameter is not valid.
+//
+//   * InternalServerException
+//   The server encountered an internal error and is unable to complete the request.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/application-insights-2018-11-25/CreateLogPattern
+func (c *ApplicationInsights) CreateLogPattern(input *CreateLogPatternInput) (*CreateLogPatternOutput, error) {
+	req, out := c.CreateLogPatternRequest(input)
+	return out, req.Send()
+}
+
+// CreateLogPatternWithContext is the same as CreateLogPattern with the addition of
+// the ability to pass a context and additional request options.
+//
+// See CreateLogPattern for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *ApplicationInsights) CreateLogPatternWithContext(ctx aws.Context, input *CreateLogPatternInput, opts ...request.Option) (*CreateLogPatternOutput, error) {
+	req, out := c.CreateLogPatternRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -243,17 +335,17 @@ func (c *ApplicationInsights) DeleteApplicationRequest(input *DeleteApplicationI
 // See the AWS API reference guide for Amazon CloudWatch Application Insights's
 // API operation DeleteApplication for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   The resource does not exist in the customer account.
 //
-//   * ErrCodeValidationException "ValidationException"
+//   * ValidationException
 //   The parameter is not valid.
 //
-//   * ErrCodeBadRequestException "BadRequestException"
+//   * BadRequestException
 //   The request is not understood by the server.
 //
-//   * ErrCodeInternalServerException "InternalServerException"
+//   * InternalServerException
 //   The server encountered an internal error and is unable to complete the request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/application-insights-2018-11-25/DeleteApplication
@@ -334,14 +426,14 @@ func (c *ApplicationInsights) DeleteComponentRequest(input *DeleteComponentInput
 // See the AWS API reference guide for Amazon CloudWatch Application Insights's
 // API operation DeleteComponent for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   The resource does not exist in the customer account.
 //
-//   * ErrCodeValidationException "ValidationException"
+//   * ValidationException
 //   The parameter is not valid.
 //
-//   * ErrCodeInternalServerException "InternalServerException"
+//   * InternalServerException
 //   The server encountered an internal error and is unable to complete the request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/application-insights-2018-11-25/DeleteComponent
@@ -361,6 +453,95 @@ func (c *ApplicationInsights) DeleteComponent(input *DeleteComponentInput) (*Del
 // for more information on using Contexts.
 func (c *ApplicationInsights) DeleteComponentWithContext(ctx aws.Context, input *DeleteComponentInput, opts ...request.Option) (*DeleteComponentOutput, error) {
 	req, out := c.DeleteComponentRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opDeleteLogPattern = "DeleteLogPattern"
+
+// DeleteLogPatternRequest generates a "aws/request.Request" representing the
+// client's request for the DeleteLogPattern operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DeleteLogPattern for more information on using the DeleteLogPattern
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the DeleteLogPatternRequest method.
+//    req, resp := client.DeleteLogPatternRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/application-insights-2018-11-25/DeleteLogPattern
+func (c *ApplicationInsights) DeleteLogPatternRequest(input *DeleteLogPatternInput) (req *request.Request, output *DeleteLogPatternOutput) {
+	op := &request.Operation{
+		Name:       opDeleteLogPattern,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &DeleteLogPatternInput{}
+	}
+
+	output = &DeleteLogPatternOutput{}
+	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
+	return
+}
+
+// DeleteLogPattern API operation for Amazon CloudWatch Application Insights.
+//
+// Removes the specified log pattern from a LogPatternSet.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon CloudWatch Application Insights's
+// API operation DeleteLogPattern for usage and error information.
+//
+// Returned Error Types:
+//   * ResourceNotFoundException
+//   The resource does not exist in the customer account.
+//
+//   * ValidationException
+//   The parameter is not valid.
+//
+//   * BadRequestException
+//   The request is not understood by the server.
+//
+//   * InternalServerException
+//   The server encountered an internal error and is unable to complete the request.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/application-insights-2018-11-25/DeleteLogPattern
+func (c *ApplicationInsights) DeleteLogPattern(input *DeleteLogPatternInput) (*DeleteLogPatternOutput, error) {
+	req, out := c.DeleteLogPatternRequest(input)
+	return out, req.Send()
+}
+
+// DeleteLogPatternWithContext is the same as DeleteLogPattern with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DeleteLogPattern for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *ApplicationInsights) DeleteLogPatternWithContext(ctx aws.Context, input *DeleteLogPatternInput, opts ...request.Option) (*DeleteLogPatternOutput, error) {
+	req, out := c.DeleteLogPatternRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -419,14 +600,14 @@ func (c *ApplicationInsights) DescribeApplicationRequest(input *DescribeApplicat
 // See the AWS API reference guide for Amazon CloudWatch Application Insights's
 // API operation DescribeApplication for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   The resource does not exist in the customer account.
 //
-//   * ErrCodeValidationException "ValidationException"
+//   * ValidationException
 //   The parameter is not valid.
 //
-//   * ErrCodeInternalServerException "InternalServerException"
+//   * InternalServerException
 //   The server encountered an internal error and is unable to complete the request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/application-insights-2018-11-25/DescribeApplication
@@ -505,14 +686,14 @@ func (c *ApplicationInsights) DescribeComponentRequest(input *DescribeComponentI
 // See the AWS API reference guide for Amazon CloudWatch Application Insights's
 // API operation DescribeComponent for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   The resource does not exist in the customer account.
 //
-//   * ErrCodeValidationException "ValidationException"
+//   * ValidationException
 //   The parameter is not valid.
 //
-//   * ErrCodeInternalServerException "InternalServerException"
+//   * InternalServerException
 //   The server encountered an internal error and is unable to complete the request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/application-insights-2018-11-25/DescribeComponent
@@ -590,14 +771,14 @@ func (c *ApplicationInsights) DescribeComponentConfigurationRequest(input *Descr
 // See the AWS API reference guide for Amazon CloudWatch Application Insights's
 // API operation DescribeComponentConfiguration for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   The resource does not exist in the customer account.
 //
-//   * ErrCodeValidationException "ValidationException"
+//   * ValidationException
 //   The parameter is not valid.
 //
-//   * ErrCodeInternalServerException "InternalServerException"
+//   * InternalServerException
 //   The server encountered an internal error and is unable to complete the request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/application-insights-2018-11-25/DescribeComponentConfiguration
@@ -675,14 +856,14 @@ func (c *ApplicationInsights) DescribeComponentConfigurationRecommendationReques
 // See the AWS API reference guide for Amazon CloudWatch Application Insights's
 // API operation DescribeComponentConfigurationRecommendation for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   The resource does not exist in the customer account.
 //
-//   * ErrCodeValidationException "ValidationException"
+//   * ValidationException
 //   The parameter is not valid.
 //
-//   * ErrCodeInternalServerException "InternalServerException"
+//   * InternalServerException
 //   The server encountered an internal error and is unable to complete the request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/application-insights-2018-11-25/DescribeComponentConfigurationRecommendation
@@ -702,6 +883,91 @@ func (c *ApplicationInsights) DescribeComponentConfigurationRecommendation(input
 // for more information on using Contexts.
 func (c *ApplicationInsights) DescribeComponentConfigurationRecommendationWithContext(ctx aws.Context, input *DescribeComponentConfigurationRecommendationInput, opts ...request.Option) (*DescribeComponentConfigurationRecommendationOutput, error) {
 	req, out := c.DescribeComponentConfigurationRecommendationRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opDescribeLogPattern = "DescribeLogPattern"
+
+// DescribeLogPatternRequest generates a "aws/request.Request" representing the
+// client's request for the DescribeLogPattern operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DescribeLogPattern for more information on using the DescribeLogPattern
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the DescribeLogPatternRequest method.
+//    req, resp := client.DescribeLogPatternRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/application-insights-2018-11-25/DescribeLogPattern
+func (c *ApplicationInsights) DescribeLogPatternRequest(input *DescribeLogPatternInput) (req *request.Request, output *DescribeLogPatternOutput) {
+	op := &request.Operation{
+		Name:       opDescribeLogPattern,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &DescribeLogPatternInput{}
+	}
+
+	output = &DescribeLogPatternOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// DescribeLogPattern API operation for Amazon CloudWatch Application Insights.
+//
+// Describe a specific log pattern from a LogPatternSet.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon CloudWatch Application Insights's
+// API operation DescribeLogPattern for usage and error information.
+//
+// Returned Error Types:
+//   * ResourceNotFoundException
+//   The resource does not exist in the customer account.
+//
+//   * ValidationException
+//   The parameter is not valid.
+//
+//   * InternalServerException
+//   The server encountered an internal error and is unable to complete the request.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/application-insights-2018-11-25/DescribeLogPattern
+func (c *ApplicationInsights) DescribeLogPattern(input *DescribeLogPatternInput) (*DescribeLogPatternOutput, error) {
+	req, out := c.DescribeLogPatternRequest(input)
+	return out, req.Send()
+}
+
+// DescribeLogPatternWithContext is the same as DescribeLogPattern with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DescribeLogPattern for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *ApplicationInsights) DescribeLogPatternWithContext(ctx aws.Context, input *DescribeLogPatternInput, opts ...request.Option) (*DescribeLogPatternOutput, error) {
+	req, out := c.DescribeLogPatternRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -760,14 +1026,14 @@ func (c *ApplicationInsights) DescribeObservationRequest(input *DescribeObservat
 // See the AWS API reference guide for Amazon CloudWatch Application Insights's
 // API operation DescribeObservation for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInternalServerException "InternalServerException"
+// Returned Error Types:
+//   * InternalServerException
 //   The server encountered an internal error and is unable to complete the request.
 //
-//   * ErrCodeValidationException "ValidationException"
+//   * ValidationException
 //   The parameter is not valid.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The resource does not exist in the customer account.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/application-insights-2018-11-25/DescribeObservation
@@ -845,14 +1111,14 @@ func (c *ApplicationInsights) DescribeProblemRequest(input *DescribeProblemInput
 // See the AWS API reference guide for Amazon CloudWatch Application Insights's
 // API operation DescribeProblem for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInternalServerException "InternalServerException"
+// Returned Error Types:
+//   * InternalServerException
 //   The server encountered an internal error and is unable to complete the request.
 //
-//   * ErrCodeValidationException "ValidationException"
+//   * ValidationException
 //   The parameter is not valid.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The resource does not exist in the customer account.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/application-insights-2018-11-25/DescribeProblem
@@ -930,14 +1196,14 @@ func (c *ApplicationInsights) DescribeProblemObservationsRequest(input *Describe
 // See the AWS API reference guide for Amazon CloudWatch Application Insights's
 // API operation DescribeProblemObservations for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInternalServerException "InternalServerException"
+// Returned Error Types:
+//   * InternalServerException
 //   The server encountered an internal error and is unable to complete the request.
 //
-//   * ErrCodeValidationException "ValidationException"
+//   * ValidationException
 //   The parameter is not valid.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The resource does not exist in the customer account.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/application-insights-2018-11-25/DescribeProblemObservations
@@ -1021,11 +1287,11 @@ func (c *ApplicationInsights) ListApplicationsRequest(input *ListApplicationsInp
 // See the AWS API reference guide for Amazon CloudWatch Application Insights's
 // API operation ListApplications for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeValidationException "ValidationException"
+// Returned Error Types:
+//   * ValidationException
 //   The parameter is not valid.
 //
-//   * ErrCodeInternalServerException "InternalServerException"
+//   * InternalServerException
 //   The server encountered an internal error and is unable to complete the request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/application-insights-2018-11-25/ListApplications
@@ -1093,10 +1359,12 @@ func (c *ApplicationInsights) ListApplicationsPagesWithContext(ctx aws.Context, 
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListApplicationsOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListApplicationsOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -1159,14 +1427,14 @@ func (c *ApplicationInsights) ListComponentsRequest(input *ListComponentsInput) 
 // See the AWS API reference guide for Amazon CloudWatch Application Insights's
 // API operation ListComponents for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   The resource does not exist in the customer account.
 //
-//   * ErrCodeValidationException "ValidationException"
+//   * ValidationException
 //   The parameter is not valid.
 //
-//   * ErrCodeInternalServerException "InternalServerException"
+//   * InternalServerException
 //   The server encountered an internal error and is unable to complete the request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/application-insights-2018-11-25/ListComponents
@@ -1234,10 +1502,449 @@ func (c *ApplicationInsights) ListComponentsPagesWithContext(ctx aws.Context, in
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListComponentsOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListComponentsOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
+	return p.Err()
+}
+
+const opListConfigurationHistory = "ListConfigurationHistory"
+
+// ListConfigurationHistoryRequest generates a "aws/request.Request" representing the
+// client's request for the ListConfigurationHistory operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See ListConfigurationHistory for more information on using the ListConfigurationHistory
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the ListConfigurationHistoryRequest method.
+//    req, resp := client.ListConfigurationHistoryRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/application-insights-2018-11-25/ListConfigurationHistory
+func (c *ApplicationInsights) ListConfigurationHistoryRequest(input *ListConfigurationHistoryInput) (req *request.Request, output *ListConfigurationHistoryOutput) {
+	op := &request.Operation{
+		Name:       opListConfigurationHistory,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"NextToken"},
+			OutputTokens:    []string{"NextToken"},
+			LimitToken:      "MaxResults",
+			TruncationToken: "",
+		},
+	}
+
+	if input == nil {
+		input = &ListConfigurationHistoryInput{}
+	}
+
+	output = &ListConfigurationHistoryOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// ListConfigurationHistory API operation for Amazon CloudWatch Application Insights.
+//
+// Lists the INFO, WARN, and ERROR events for periodic configuration updates
+// performed by Application Insights. Examples of events represented are:
+//
+//    * INFO: creating a new alarm or updating an alarm threshold.
+//
+//    * WARN: alarm not created due to insufficient data points used to predict
+//    thresholds.
+//
+//    * ERROR: alarm not created due to permission errors or exceeding quotas.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon CloudWatch Application Insights's
+// API operation ListConfigurationHistory for usage and error information.
+//
+// Returned Error Types:
+//   * ValidationException
+//   The parameter is not valid.
+//
+//   * ResourceNotFoundException
+//   The resource does not exist in the customer account.
+//
+//   * InternalServerException
+//   The server encountered an internal error and is unable to complete the request.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/application-insights-2018-11-25/ListConfigurationHistory
+func (c *ApplicationInsights) ListConfigurationHistory(input *ListConfigurationHistoryInput) (*ListConfigurationHistoryOutput, error) {
+	req, out := c.ListConfigurationHistoryRequest(input)
+	return out, req.Send()
+}
+
+// ListConfigurationHistoryWithContext is the same as ListConfigurationHistory with the addition of
+// the ability to pass a context and additional request options.
+//
+// See ListConfigurationHistory for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *ApplicationInsights) ListConfigurationHistoryWithContext(ctx aws.Context, input *ListConfigurationHistoryInput, opts ...request.Option) (*ListConfigurationHistoryOutput, error) {
+	req, out := c.ListConfigurationHistoryRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+// ListConfigurationHistoryPages iterates over the pages of a ListConfigurationHistory operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListConfigurationHistory method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListConfigurationHistory operation.
+//    pageNum := 0
+//    err := client.ListConfigurationHistoryPages(params,
+//        func(page *applicationinsights.ListConfigurationHistoryOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *ApplicationInsights) ListConfigurationHistoryPages(input *ListConfigurationHistoryInput, fn func(*ListConfigurationHistoryOutput, bool) bool) error {
+	return c.ListConfigurationHistoryPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListConfigurationHistoryPagesWithContext same as ListConfigurationHistoryPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *ApplicationInsights) ListConfigurationHistoryPagesWithContext(ctx aws.Context, input *ListConfigurationHistoryInput, fn func(*ListConfigurationHistoryOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListConfigurationHistoryInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListConfigurationHistoryRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*ListConfigurationHistoryOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
+}
+
+const opListLogPatternSets = "ListLogPatternSets"
+
+// ListLogPatternSetsRequest generates a "aws/request.Request" representing the
+// client's request for the ListLogPatternSets operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See ListLogPatternSets for more information on using the ListLogPatternSets
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the ListLogPatternSetsRequest method.
+//    req, resp := client.ListLogPatternSetsRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/application-insights-2018-11-25/ListLogPatternSets
+func (c *ApplicationInsights) ListLogPatternSetsRequest(input *ListLogPatternSetsInput) (req *request.Request, output *ListLogPatternSetsOutput) {
+	op := &request.Operation{
+		Name:       opListLogPatternSets,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"NextToken"},
+			OutputTokens:    []string{"NextToken"},
+			LimitToken:      "MaxResults",
+			TruncationToken: "",
+		},
+	}
+
+	if input == nil {
+		input = &ListLogPatternSetsInput{}
+	}
+
+	output = &ListLogPatternSetsOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// ListLogPatternSets API operation for Amazon CloudWatch Application Insights.
+//
+// Lists the log pattern sets in the specific application.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon CloudWatch Application Insights's
+// API operation ListLogPatternSets for usage and error information.
+//
+// Returned Error Types:
+//   * ResourceNotFoundException
+//   The resource does not exist in the customer account.
+//
+//   * ValidationException
+//   The parameter is not valid.
+//
+//   * InternalServerException
+//   The server encountered an internal error and is unable to complete the request.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/application-insights-2018-11-25/ListLogPatternSets
+func (c *ApplicationInsights) ListLogPatternSets(input *ListLogPatternSetsInput) (*ListLogPatternSetsOutput, error) {
+	req, out := c.ListLogPatternSetsRequest(input)
+	return out, req.Send()
+}
+
+// ListLogPatternSetsWithContext is the same as ListLogPatternSets with the addition of
+// the ability to pass a context and additional request options.
+//
+// See ListLogPatternSets for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *ApplicationInsights) ListLogPatternSetsWithContext(ctx aws.Context, input *ListLogPatternSetsInput, opts ...request.Option) (*ListLogPatternSetsOutput, error) {
+	req, out := c.ListLogPatternSetsRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+// ListLogPatternSetsPages iterates over the pages of a ListLogPatternSets operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListLogPatternSets method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListLogPatternSets operation.
+//    pageNum := 0
+//    err := client.ListLogPatternSetsPages(params,
+//        func(page *applicationinsights.ListLogPatternSetsOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *ApplicationInsights) ListLogPatternSetsPages(input *ListLogPatternSetsInput, fn func(*ListLogPatternSetsOutput, bool) bool) error {
+	return c.ListLogPatternSetsPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListLogPatternSetsPagesWithContext same as ListLogPatternSetsPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *ApplicationInsights) ListLogPatternSetsPagesWithContext(ctx aws.Context, input *ListLogPatternSetsInput, fn func(*ListLogPatternSetsOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListLogPatternSetsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListLogPatternSetsRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*ListLogPatternSetsOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
+}
+
+const opListLogPatterns = "ListLogPatterns"
+
+// ListLogPatternsRequest generates a "aws/request.Request" representing the
+// client's request for the ListLogPatterns operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See ListLogPatterns for more information on using the ListLogPatterns
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the ListLogPatternsRequest method.
+//    req, resp := client.ListLogPatternsRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/application-insights-2018-11-25/ListLogPatterns
+func (c *ApplicationInsights) ListLogPatternsRequest(input *ListLogPatternsInput) (req *request.Request, output *ListLogPatternsOutput) {
+	op := &request.Operation{
+		Name:       opListLogPatterns,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"NextToken"},
+			OutputTokens:    []string{"NextToken"},
+			LimitToken:      "MaxResults",
+			TruncationToken: "",
+		},
+	}
+
+	if input == nil {
+		input = &ListLogPatternsInput{}
+	}
+
+	output = &ListLogPatternsOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// ListLogPatterns API operation for Amazon CloudWatch Application Insights.
+//
+// Lists the log patterns in the specific log LogPatternSet.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon CloudWatch Application Insights's
+// API operation ListLogPatterns for usage and error information.
+//
+// Returned Error Types:
+//   * ResourceNotFoundException
+//   The resource does not exist in the customer account.
+//
+//   * ValidationException
+//   The parameter is not valid.
+//
+//   * InternalServerException
+//   The server encountered an internal error and is unable to complete the request.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/application-insights-2018-11-25/ListLogPatterns
+func (c *ApplicationInsights) ListLogPatterns(input *ListLogPatternsInput) (*ListLogPatternsOutput, error) {
+	req, out := c.ListLogPatternsRequest(input)
+	return out, req.Send()
+}
+
+// ListLogPatternsWithContext is the same as ListLogPatterns with the addition of
+// the ability to pass a context and additional request options.
+//
+// See ListLogPatterns for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *ApplicationInsights) ListLogPatternsWithContext(ctx aws.Context, input *ListLogPatternsInput, opts ...request.Option) (*ListLogPatternsOutput, error) {
+	req, out := c.ListLogPatternsRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+// ListLogPatternsPages iterates over the pages of a ListLogPatterns operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListLogPatterns method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListLogPatterns operation.
+//    pageNum := 0
+//    err := client.ListLogPatternsPages(params,
+//        func(page *applicationinsights.ListLogPatternsOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *ApplicationInsights) ListLogPatternsPages(input *ListLogPatternsInput, fn func(*ListLogPatternsOutput, bool) bool) error {
+	return c.ListLogPatternsPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListLogPatternsPagesWithContext same as ListLogPatternsPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *ApplicationInsights) ListLogPatternsPagesWithContext(ctx aws.Context, input *ListLogPatternsInput, fn func(*ListLogPatternsOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListLogPatternsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListLogPatternsRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*ListLogPatternsOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
 	return p.Err()
 }
 
@@ -1300,14 +2007,14 @@ func (c *ApplicationInsights) ListProblemsRequest(input *ListProblemsInput) (req
 // See the AWS API reference guide for Amazon CloudWatch Application Insights's
 // API operation ListProblems for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeValidationException "ValidationException"
+// Returned Error Types:
+//   * ValidationException
 //   The parameter is not valid.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The resource does not exist in the customer account.
 //
-//   * ErrCodeInternalServerException "InternalServerException"
+//   * InternalServerException
 //   The server encountered an internal error and is unable to complete the request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/application-insights-2018-11-25/ListProblems
@@ -1375,11 +2082,278 @@ func (c *ApplicationInsights) ListProblemsPagesWithContext(ctx aws.Context, inpu
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListProblemsOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListProblemsOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
+}
+
+const opListTagsForResource = "ListTagsForResource"
+
+// ListTagsForResourceRequest generates a "aws/request.Request" representing the
+// client's request for the ListTagsForResource operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See ListTagsForResource for more information on using the ListTagsForResource
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the ListTagsForResourceRequest method.
+//    req, resp := client.ListTagsForResourceRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/application-insights-2018-11-25/ListTagsForResource
+func (c *ApplicationInsights) ListTagsForResourceRequest(input *ListTagsForResourceInput) (req *request.Request, output *ListTagsForResourceOutput) {
+	op := &request.Operation{
+		Name:       opListTagsForResource,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &ListTagsForResourceInput{}
+	}
+
+	output = &ListTagsForResourceOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// ListTagsForResource API operation for Amazon CloudWatch Application Insights.
+//
+// Retrieve a list of the tags (keys and values) that are associated with a
+// specified application. A tag is a label that you optionally define and associate
+// with an application. Each tag consists of a required tag key and an optional
+// associated tag value. A tag key is a general label that acts as a category
+// for more specific tag values. A tag value acts as a descriptor within a tag
+// key.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon CloudWatch Application Insights's
+// API operation ListTagsForResource for usage and error information.
+//
+// Returned Error Types:
+//   * ResourceNotFoundException
+//   The resource does not exist in the customer account.
+//
+//   * ValidationException
+//   The parameter is not valid.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/application-insights-2018-11-25/ListTagsForResource
+func (c *ApplicationInsights) ListTagsForResource(input *ListTagsForResourceInput) (*ListTagsForResourceOutput, error) {
+	req, out := c.ListTagsForResourceRequest(input)
+	return out, req.Send()
+}
+
+// ListTagsForResourceWithContext is the same as ListTagsForResource with the addition of
+// the ability to pass a context and additional request options.
+//
+// See ListTagsForResource for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *ApplicationInsights) ListTagsForResourceWithContext(ctx aws.Context, input *ListTagsForResourceInput, opts ...request.Option) (*ListTagsForResourceOutput, error) {
+	req, out := c.ListTagsForResourceRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opTagResource = "TagResource"
+
+// TagResourceRequest generates a "aws/request.Request" representing the
+// client's request for the TagResource operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See TagResource for more information on using the TagResource
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the TagResourceRequest method.
+//    req, resp := client.TagResourceRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/application-insights-2018-11-25/TagResource
+func (c *ApplicationInsights) TagResourceRequest(input *TagResourceInput) (req *request.Request, output *TagResourceOutput) {
+	op := &request.Operation{
+		Name:       opTagResource,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &TagResourceInput{}
+	}
+
+	output = &TagResourceOutput{}
+	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
+	return
+}
+
+// TagResource API operation for Amazon CloudWatch Application Insights.
+//
+// Add one or more tags (keys and values) to a specified application. A tag
+// is a label that you optionally define and associate with an application.
+// Tags can help you categorize and manage application in different ways, such
+// as by purpose, owner, environment, or other criteria.
+//
+// Each tag consists of a required tag key and an associated tag value, both
+// of which you define. A tag key is a general label that acts as a category
+// for more specific tag values. A tag value acts as a descriptor within a tag
+// key.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon CloudWatch Application Insights's
+// API operation TagResource for usage and error information.
+//
+// Returned Error Types:
+//   * ResourceNotFoundException
+//   The resource does not exist in the customer account.
+//
+//   * TooManyTagsException
+//   The number of the provided tags is beyond the limit, or the number of total
+//   tags you are trying to attach to the specified resource exceeds the limit.
+//
+//   * ValidationException
+//   The parameter is not valid.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/application-insights-2018-11-25/TagResource
+func (c *ApplicationInsights) TagResource(input *TagResourceInput) (*TagResourceOutput, error) {
+	req, out := c.TagResourceRequest(input)
+	return out, req.Send()
+}
+
+// TagResourceWithContext is the same as TagResource with the addition of
+// the ability to pass a context and additional request options.
+//
+// See TagResource for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *ApplicationInsights) TagResourceWithContext(ctx aws.Context, input *TagResourceInput, opts ...request.Option) (*TagResourceOutput, error) {
+	req, out := c.TagResourceRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opUntagResource = "UntagResource"
+
+// UntagResourceRequest generates a "aws/request.Request" representing the
+// client's request for the UntagResource operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See UntagResource for more information on using the UntagResource
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the UntagResourceRequest method.
+//    req, resp := client.UntagResourceRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/application-insights-2018-11-25/UntagResource
+func (c *ApplicationInsights) UntagResourceRequest(input *UntagResourceInput) (req *request.Request, output *UntagResourceOutput) {
+	op := &request.Operation{
+		Name:       opUntagResource,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &UntagResourceInput{}
+	}
+
+	output = &UntagResourceOutput{}
+	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
+	return
+}
+
+// UntagResource API operation for Amazon CloudWatch Application Insights.
+//
+// Remove one or more tags (keys and values) from a specified application.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon CloudWatch Application Insights's
+// API operation UntagResource for usage and error information.
+//
+// Returned Error Types:
+//   * ResourceNotFoundException
+//   The resource does not exist in the customer account.
+//
+//   * ValidationException
+//   The parameter is not valid.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/application-insights-2018-11-25/UntagResource
+func (c *ApplicationInsights) UntagResource(input *UntagResourceInput) (*UntagResourceOutput, error) {
+	req, out := c.UntagResourceRequest(input)
+	return out, req.Send()
+}
+
+// UntagResourceWithContext is the same as UntagResource with the addition of
+// the ability to pass a context and additional request options.
+//
+// See UntagResource for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *ApplicationInsights) UntagResourceWithContext(ctx aws.Context, input *UntagResourceInput, opts ...request.Option) (*UntagResourceOutput, error) {
+	req, out := c.UntagResourceRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
 }
 
 const opUpdateApplication = "UpdateApplication"
@@ -1435,14 +2409,14 @@ func (c *ApplicationInsights) UpdateApplicationRequest(input *UpdateApplicationI
 // See the AWS API reference guide for Amazon CloudWatch Application Insights's
 // API operation UpdateApplication for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInternalServerException "InternalServerException"
+// Returned Error Types:
+//   * InternalServerException
 //   The server encountered an internal error and is unable to complete the request.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The resource does not exist in the customer account.
 //
-//   * ErrCodeValidationException "ValidationException"
+//   * ValidationException
 //   The parameter is not valid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/application-insights-2018-11-25/UpdateApplication
@@ -1522,17 +2496,17 @@ func (c *ApplicationInsights) UpdateComponentRequest(input *UpdateComponentInput
 // See the AWS API reference guide for Amazon CloudWatch Application Insights's
 // API operation UpdateComponent for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceInUseException "ResourceInUseException"
+// Returned Error Types:
+//   * ResourceInUseException
 //   The resource is already created or in use.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The resource does not exist in the customer account.
 //
-//   * ErrCodeValidationException "ValidationException"
+//   * ValidationException
 //   The parameter is not valid.
 //
-//   * ErrCodeInternalServerException "InternalServerException"
+//   * InternalServerException
 //   The server encountered an internal error and is unable to complete the request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/application-insights-2018-11-25/UpdateComponent
@@ -1613,14 +2587,14 @@ func (c *ApplicationInsights) UpdateComponentConfigurationRequest(input *UpdateC
 // See the AWS API reference guide for Amazon CloudWatch Application Insights's
 // API operation UpdateComponentConfiguration for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   The resource does not exist in the customer account.
 //
-//   * ErrCodeValidationException "ValidationException"
+//   * ValidationException
 //   The parameter is not valid.
 //
-//   * ErrCodeInternalServerException "InternalServerException"
+//   * InternalServerException
 //   The server encountered an internal error and is unable to complete the request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/application-insights-2018-11-25/UpdateComponentConfiguration
@@ -1645,6 +2619,94 @@ func (c *ApplicationInsights) UpdateComponentConfigurationWithContext(ctx aws.Co
 	return out, req.Send()
 }
 
+const opUpdateLogPattern = "UpdateLogPattern"
+
+// UpdateLogPatternRequest generates a "aws/request.Request" representing the
+// client's request for the UpdateLogPattern operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See UpdateLogPattern for more information on using the UpdateLogPattern
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the UpdateLogPatternRequest method.
+//    req, resp := client.UpdateLogPatternRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/application-insights-2018-11-25/UpdateLogPattern
+func (c *ApplicationInsights) UpdateLogPatternRequest(input *UpdateLogPatternInput) (req *request.Request, output *UpdateLogPatternOutput) {
+	op := &request.Operation{
+		Name:       opUpdateLogPattern,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &UpdateLogPatternInput{}
+	}
+
+	output = &UpdateLogPatternOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// UpdateLogPattern API operation for Amazon CloudWatch Application Insights.
+//
+// Adds a log pattern to a LogPatternSet.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon CloudWatch Application Insights's
+// API operation UpdateLogPattern for usage and error information.
+//
+// Returned Error Types:
+//   * ResourceInUseException
+//   The resource is already created or in use.
+//
+//   * ResourceNotFoundException
+//   The resource does not exist in the customer account.
+//
+//   * ValidationException
+//   The parameter is not valid.
+//
+//   * InternalServerException
+//   The server encountered an internal error and is unable to complete the request.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/application-insights-2018-11-25/UpdateLogPattern
+func (c *ApplicationInsights) UpdateLogPattern(input *UpdateLogPatternInput) (*UpdateLogPatternOutput, error) {
+	req, out := c.UpdateLogPatternRequest(input)
+	return out, req.Send()
+}
+
+// UpdateLogPatternWithContext is the same as UpdateLogPattern with the addition of
+// the ability to pass a context and additional request options.
+//
+// See UpdateLogPattern for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *ApplicationInsights) UpdateLogPatternWithContext(ctx aws.Context, input *UpdateLogPatternInput, opts ...request.Option) (*UpdateLogPatternOutput, error) {
+	req, out := c.UpdateLogPatternRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 // Describes a standalone resource or similarly grouped resources that the application
 // is made up of.
 type ApplicationComponent struct {
@@ -1661,7 +2723,7 @@ type ApplicationComponent struct {
 	ResourceType *string `type:"string"`
 
 	// The stack tier of the application component.
-	Tier *string `type:"string"`
+	Tier *string `min:"1" type:"string" enum:"Tier"`
 }
 
 // String returns the string representation
@@ -1702,6 +2764,11 @@ func (s *ApplicationComponent) SetTier(v string) *ApplicationComponent {
 type ApplicationInfo struct {
 	_ struct{} `type:"structure"`
 
+	// Indicates whether Application Insights can listen to CloudWatch events for
+	// the application resources, such as instance terminated, failed deployment,
+	// and others.
+	CWEMonitorEnabled *bool `type:"boolean"`
+
 	// The lifecycle of the application.
 	LifeCycle *string `type:"string"`
 
@@ -1711,14 +2778,18 @@ type ApplicationInfo struct {
 
 	// The SNS topic provided to Application Insights that is associated to the
 	// created opsItems to receive SNS notifications for opsItem updates.
-	OpsItemSNSTopicArn *string `type:"string"`
+	OpsItemSNSTopicArn *string `min:"20" type:"string"`
 
 	// The issues on the user side that block Application Insights from successfully
-	// monitoring an application.
+	// monitoring an application. Example remarks include:
+	//
+	//    * “Configuring application, detected 1 Errors, 3 Warnings”
+	//
+	//    * “Configuring application, detected 1 Unconfigured Components”
 	Remarks *string `type:"string"`
 
 	// The name of the resource group used for the application.
-	ResourceGroupName *string `type:"string"`
+	ResourceGroupName *string `min:"1" type:"string"`
 }
 
 // String returns the string representation
@@ -1729,6 +2800,12 @@ func (s ApplicationInfo) String() string {
 // GoString returns the string representation
 func (s ApplicationInfo) GoString() string {
 	return s.String()
+}
+
+// SetCWEMonitorEnabled sets the CWEMonitorEnabled field's value.
+func (s *ApplicationInfo) SetCWEMonitorEnabled(v bool) *ApplicationInfo {
+	s.CWEMonitorEnabled = &v
+	return s
 }
 
 // SetLifeCycle sets the LifeCycle field's value.
@@ -1761,20 +2838,157 @@ func (s *ApplicationInfo) SetResourceGroupName(v string) *ApplicationInfo {
 	return s
 }
 
+// The request is not understood by the server.
+type BadRequestException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s BadRequestException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s BadRequestException) GoString() string {
+	return s.String()
+}
+
+func newErrorBadRequestException(v protocol.ResponseMetadata) error {
+	return &BadRequestException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *BadRequestException) Code() string {
+	return "BadRequestException"
+}
+
+// Message returns the exception's message.
+func (s *BadRequestException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *BadRequestException) OrigErr() error {
+	return nil
+}
+
+func (s *BadRequestException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *BadRequestException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *BadRequestException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// The event information.
+type ConfigurationEvent struct {
+	_ struct{} `type:"structure"`
+
+	// The details of the event in plain text.
+	EventDetail *string `type:"string"`
+
+	// The name of the resource Application Insights attempted to configure.
+	EventResourceName *string `type:"string"`
+
+	// The resource type that Application Insights attempted to configure, for example,
+	// CLOUDWATCH_ALARM.
+	EventResourceType *string `type:"string" enum:"ConfigurationEventResourceType"`
+
+	// The status of the configuration update event. Possible values include INFO,
+	// WARN, and ERROR.
+	EventStatus *string `type:"string" enum:"ConfigurationEventStatus"`
+
+	// The timestamp of the event.
+	EventTime *time.Time `type:"timestamp"`
+
+	// The resource monitored by Application Insights.
+	MonitoredResourceARN *string `type:"string"`
+}
+
+// String returns the string representation
+func (s ConfigurationEvent) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ConfigurationEvent) GoString() string {
+	return s.String()
+}
+
+// SetEventDetail sets the EventDetail field's value.
+func (s *ConfigurationEvent) SetEventDetail(v string) *ConfigurationEvent {
+	s.EventDetail = &v
+	return s
+}
+
+// SetEventResourceName sets the EventResourceName field's value.
+func (s *ConfigurationEvent) SetEventResourceName(v string) *ConfigurationEvent {
+	s.EventResourceName = &v
+	return s
+}
+
+// SetEventResourceType sets the EventResourceType field's value.
+func (s *ConfigurationEvent) SetEventResourceType(v string) *ConfigurationEvent {
+	s.EventResourceType = &v
+	return s
+}
+
+// SetEventStatus sets the EventStatus field's value.
+func (s *ConfigurationEvent) SetEventStatus(v string) *ConfigurationEvent {
+	s.EventStatus = &v
+	return s
+}
+
+// SetEventTime sets the EventTime field's value.
+func (s *ConfigurationEvent) SetEventTime(v time.Time) *ConfigurationEvent {
+	s.EventTime = &v
+	return s
+}
+
+// SetMonitoredResourceARN sets the MonitoredResourceARN field's value.
+func (s *ConfigurationEvent) SetMonitoredResourceARN(v string) *ConfigurationEvent {
+	s.MonitoredResourceARN = &v
+	return s
+}
+
 type CreateApplicationInput struct {
 	_ struct{} `type:"structure"`
+
+	// Indicates whether Application Insights can listen to CloudWatch events for
+	// the application resources, such as instance terminated, failed deployment,
+	// and others.
+	CWEMonitorEnabled *bool `type:"boolean"`
 
 	// When set to true, creates opsItems for any problems detected on an application.
 	OpsCenterEnabled *bool `type:"boolean"`
 
 	// The SNS topic provided to Application Insights that is associated to the
 	// created opsItem. Allows you to receive notifications for updates to the opsItem.
-	OpsItemSNSTopicArn *string `type:"string"`
+	OpsItemSNSTopicArn *string `min:"20" type:"string"`
 
 	// The name of the resource group.
 	//
 	// ResourceGroupName is a required field
-	ResourceGroupName *string `type:"string" required:"true"`
+	ResourceGroupName *string `min:"1" type:"string" required:"true"`
+
+	// List of tags to add to the application. tag key (Key) and an associated tag
+	// value (Value). The maximum length of a tag key is 128 characters. The maximum
+	// length of a tag value is 256 characters.
+	Tags []*Tag `type:"list"`
 }
 
 // String returns the string representation
@@ -1790,14 +3004,36 @@ func (s CreateApplicationInput) GoString() string {
 // Validate inspects the fields of the type to determine if they are valid.
 func (s *CreateApplicationInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "CreateApplicationInput"}
+	if s.OpsItemSNSTopicArn != nil && len(*s.OpsItemSNSTopicArn) < 20 {
+		invalidParams.Add(request.NewErrParamMinLen("OpsItemSNSTopicArn", 20))
+	}
 	if s.ResourceGroupName == nil {
 		invalidParams.Add(request.NewErrParamRequired("ResourceGroupName"))
+	}
+	if s.ResourceGroupName != nil && len(*s.ResourceGroupName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ResourceGroupName", 1))
+	}
+	if s.Tags != nil {
+		for i, v := range s.Tags {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Tags", i), err.(request.ErrInvalidParams))
+			}
+		}
 	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
 	}
 	return nil
+}
+
+// SetCWEMonitorEnabled sets the CWEMonitorEnabled field's value.
+func (s *CreateApplicationInput) SetCWEMonitorEnabled(v bool) *CreateApplicationInput {
+	s.CWEMonitorEnabled = &v
+	return s
 }
 
 // SetOpsCenterEnabled sets the OpsCenterEnabled field's value.
@@ -1815,6 +3051,12 @@ func (s *CreateApplicationInput) SetOpsItemSNSTopicArn(v string) *CreateApplicat
 // SetResourceGroupName sets the ResourceGroupName field's value.
 func (s *CreateApplicationInput) SetResourceGroupName(v string) *CreateApplicationInput {
 	s.ResourceGroupName = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *CreateApplicationInput) SetTags(v []*Tag) *CreateApplicationInput {
+	s.Tags = v
 	return s
 }
 
@@ -1852,7 +3094,7 @@ type CreateComponentInput struct {
 	// The name of the resource group.
 	//
 	// ResourceGroupName is a required field
-	ResourceGroupName *string `type:"string" required:"true"`
+	ResourceGroupName *string `min:"1" type:"string" required:"true"`
 
 	// The list of resource ARNs that belong to the component.
 	//
@@ -1878,6 +3120,9 @@ func (s *CreateComponentInput) Validate() error {
 	}
 	if s.ResourceGroupName == nil {
 		invalidParams.Add(request.NewErrParamRequired("ResourceGroupName"))
+	}
+	if s.ResourceGroupName != nil && len(*s.ResourceGroupName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ResourceGroupName", 1))
 	}
 	if s.ResourceList == nil {
 		invalidParams.Add(request.NewErrParamRequired("ResourceList"))
@@ -1921,13 +3166,151 @@ func (s CreateComponentOutput) GoString() string {
 	return s.String()
 }
 
+type CreateLogPatternInput struct {
+	_ struct{} `type:"structure"`
+
+	// The log pattern.
+	//
+	// Pattern is a required field
+	Pattern *string `min:"1" type:"string" required:"true"`
+
+	// The name of the log pattern.
+	//
+	// PatternName is a required field
+	PatternName *string `min:"1" type:"string" required:"true"`
+
+	// The name of the log pattern set.
+	//
+	// PatternSetName is a required field
+	PatternSetName *string `min:"1" type:"string" required:"true"`
+
+	// Rank of the log pattern.
+	//
+	// Rank is a required field
+	Rank *int64 `type:"integer" required:"true"`
+
+	// The name of the resource group.
+	//
+	// ResourceGroupName is a required field
+	ResourceGroupName *string `min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s CreateLogPatternInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateLogPatternInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *CreateLogPatternInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "CreateLogPatternInput"}
+	if s.Pattern == nil {
+		invalidParams.Add(request.NewErrParamRequired("Pattern"))
+	}
+	if s.Pattern != nil && len(*s.Pattern) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Pattern", 1))
+	}
+	if s.PatternName == nil {
+		invalidParams.Add(request.NewErrParamRequired("PatternName"))
+	}
+	if s.PatternName != nil && len(*s.PatternName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("PatternName", 1))
+	}
+	if s.PatternSetName == nil {
+		invalidParams.Add(request.NewErrParamRequired("PatternSetName"))
+	}
+	if s.PatternSetName != nil && len(*s.PatternSetName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("PatternSetName", 1))
+	}
+	if s.Rank == nil {
+		invalidParams.Add(request.NewErrParamRequired("Rank"))
+	}
+	if s.ResourceGroupName == nil {
+		invalidParams.Add(request.NewErrParamRequired("ResourceGroupName"))
+	}
+	if s.ResourceGroupName != nil && len(*s.ResourceGroupName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ResourceGroupName", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetPattern sets the Pattern field's value.
+func (s *CreateLogPatternInput) SetPattern(v string) *CreateLogPatternInput {
+	s.Pattern = &v
+	return s
+}
+
+// SetPatternName sets the PatternName field's value.
+func (s *CreateLogPatternInput) SetPatternName(v string) *CreateLogPatternInput {
+	s.PatternName = &v
+	return s
+}
+
+// SetPatternSetName sets the PatternSetName field's value.
+func (s *CreateLogPatternInput) SetPatternSetName(v string) *CreateLogPatternInput {
+	s.PatternSetName = &v
+	return s
+}
+
+// SetRank sets the Rank field's value.
+func (s *CreateLogPatternInput) SetRank(v int64) *CreateLogPatternInput {
+	s.Rank = &v
+	return s
+}
+
+// SetResourceGroupName sets the ResourceGroupName field's value.
+func (s *CreateLogPatternInput) SetResourceGroupName(v string) *CreateLogPatternInput {
+	s.ResourceGroupName = &v
+	return s
+}
+
+type CreateLogPatternOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The successfully created log pattern.
+	LogPattern *LogPattern `type:"structure"`
+
+	// The name of the resource group.
+	ResourceGroupName *string `min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s CreateLogPatternOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateLogPatternOutput) GoString() string {
+	return s.String()
+}
+
+// SetLogPattern sets the LogPattern field's value.
+func (s *CreateLogPatternOutput) SetLogPattern(v *LogPattern) *CreateLogPatternOutput {
+	s.LogPattern = v
+	return s
+}
+
+// SetResourceGroupName sets the ResourceGroupName field's value.
+func (s *CreateLogPatternOutput) SetResourceGroupName(v string) *CreateLogPatternOutput {
+	s.ResourceGroupName = &v
+	return s
+}
+
 type DeleteApplicationInput struct {
 	_ struct{} `type:"structure"`
 
 	// The name of the resource group.
 	//
 	// ResourceGroupName is a required field
-	ResourceGroupName *string `type:"string" required:"true"`
+	ResourceGroupName *string `min:"1" type:"string" required:"true"`
 }
 
 // String returns the string representation
@@ -1945,6 +3328,9 @@ func (s *DeleteApplicationInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "DeleteApplicationInput"}
 	if s.ResourceGroupName == nil {
 		invalidParams.Add(request.NewErrParamRequired("ResourceGroupName"))
+	}
+	if s.ResourceGroupName != nil && len(*s.ResourceGroupName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ResourceGroupName", 1))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -1984,7 +3370,7 @@ type DeleteComponentInput struct {
 	// The name of the resource group.
 	//
 	// ResourceGroupName is a required field
-	ResourceGroupName *string `type:"string" required:"true"`
+	ResourceGroupName *string `min:"1" type:"string" required:"true"`
 }
 
 // String returns the string representation
@@ -2005,6 +3391,9 @@ func (s *DeleteComponentInput) Validate() error {
 	}
 	if s.ResourceGroupName == nil {
 		invalidParams.Add(request.NewErrParamRequired("ResourceGroupName"))
+	}
+	if s.ResourceGroupName != nil && len(*s.ResourceGroupName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ResourceGroupName", 1))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -2039,13 +3428,102 @@ func (s DeleteComponentOutput) GoString() string {
 	return s.String()
 }
 
+type DeleteLogPatternInput struct {
+	_ struct{} `type:"structure"`
+
+	// The name of the log pattern.
+	//
+	// PatternName is a required field
+	PatternName *string `min:"1" type:"string" required:"true"`
+
+	// The name of the log pattern set.
+	//
+	// PatternSetName is a required field
+	PatternSetName *string `min:"1" type:"string" required:"true"`
+
+	// The name of the resource group.
+	//
+	// ResourceGroupName is a required field
+	ResourceGroupName *string `min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s DeleteLogPatternInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteLogPatternInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DeleteLogPatternInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DeleteLogPatternInput"}
+	if s.PatternName == nil {
+		invalidParams.Add(request.NewErrParamRequired("PatternName"))
+	}
+	if s.PatternName != nil && len(*s.PatternName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("PatternName", 1))
+	}
+	if s.PatternSetName == nil {
+		invalidParams.Add(request.NewErrParamRequired("PatternSetName"))
+	}
+	if s.PatternSetName != nil && len(*s.PatternSetName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("PatternSetName", 1))
+	}
+	if s.ResourceGroupName == nil {
+		invalidParams.Add(request.NewErrParamRequired("ResourceGroupName"))
+	}
+	if s.ResourceGroupName != nil && len(*s.ResourceGroupName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ResourceGroupName", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetPatternName sets the PatternName field's value.
+func (s *DeleteLogPatternInput) SetPatternName(v string) *DeleteLogPatternInput {
+	s.PatternName = &v
+	return s
+}
+
+// SetPatternSetName sets the PatternSetName field's value.
+func (s *DeleteLogPatternInput) SetPatternSetName(v string) *DeleteLogPatternInput {
+	s.PatternSetName = &v
+	return s
+}
+
+// SetResourceGroupName sets the ResourceGroupName field's value.
+func (s *DeleteLogPatternInput) SetResourceGroupName(v string) *DeleteLogPatternInput {
+	s.ResourceGroupName = &v
+	return s
+}
+
+type DeleteLogPatternOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s DeleteLogPatternOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteLogPatternOutput) GoString() string {
+	return s.String()
+}
+
 type DescribeApplicationInput struct {
 	_ struct{} `type:"structure"`
 
 	// The name of the resource group.
 	//
 	// ResourceGroupName is a required field
-	ResourceGroupName *string `type:"string" required:"true"`
+	ResourceGroupName *string `min:"1" type:"string" required:"true"`
 }
 
 // String returns the string representation
@@ -2063,6 +3541,9 @@ func (s *DescribeApplicationInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "DescribeApplicationInput"}
 	if s.ResourceGroupName == nil {
 		invalidParams.Add(request.NewErrParamRequired("ResourceGroupName"))
+	}
+	if s.ResourceGroupName != nil && len(*s.ResourceGroupName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ResourceGroupName", 1))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -2111,7 +3592,7 @@ type DescribeComponentConfigurationInput struct {
 	// The name of the resource group.
 	//
 	// ResourceGroupName is a required field
-	ResourceGroupName *string `type:"string" required:"true"`
+	ResourceGroupName *string `min:"1" type:"string" required:"true"`
 }
 
 // String returns the string representation
@@ -2132,6 +3613,9 @@ func (s *DescribeComponentConfigurationInput) Validate() error {
 	}
 	if s.ResourceGroupName == nil {
 		invalidParams.Add(request.NewErrParamRequired("ResourceGroupName"))
+	}
+	if s.ResourceGroupName != nil && len(*s.ResourceGroupName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ResourceGroupName", 1))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -2157,14 +3641,14 @@ type DescribeComponentConfigurationOutput struct {
 
 	// The configuration settings of the component. The value is the escaped JSON
 	// of the configuration.
-	ComponentConfiguration *string `type:"string"`
+	ComponentConfiguration *string `min:"1" type:"string"`
 
 	// Indicates whether the application component is monitored.
 	Monitor *bool `type:"boolean"`
 
-	// The tier of the application component. Supported tiers include DOT_NET_WORKER,
-	// DOT_NET_WEB, SQL_SERVER, and DEFAULT
-	Tier *string `type:"string"`
+	// The tier of the application component. Supported tiers include DOT_NET_CORE,
+	// DOT_NET_WORKER, DOT_NET_WEB, SQL_SERVER, and DEFAULT
+	Tier *string `min:"1" type:"string" enum:"Tier"`
 }
 
 // String returns the string representation
@@ -2206,13 +3690,13 @@ type DescribeComponentConfigurationRecommendationInput struct {
 	// The name of the resource group.
 	//
 	// ResourceGroupName is a required field
-	ResourceGroupName *string `type:"string" required:"true"`
+	ResourceGroupName *string `min:"1" type:"string" required:"true"`
 
-	// The tier of the application component. Supported tiers include DOT_NET_WORKER,
-	// DOT_NET_WEB, SQL_SERVER, and DEFAULT.
+	// The tier of the application component. Supported tiers include DOT_NET_CORE,
+	// DOT_NET_WORKER, DOT_NET_WEB, SQL_SERVER, and DEFAULT.
 	//
 	// Tier is a required field
-	Tier *string `type:"string" required:"true"`
+	Tier *string `min:"1" type:"string" required:"true" enum:"Tier"`
 }
 
 // String returns the string representation
@@ -2234,8 +3718,14 @@ func (s *DescribeComponentConfigurationRecommendationInput) Validate() error {
 	if s.ResourceGroupName == nil {
 		invalidParams.Add(request.NewErrParamRequired("ResourceGroupName"))
 	}
+	if s.ResourceGroupName != nil && len(*s.ResourceGroupName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ResourceGroupName", 1))
+	}
 	if s.Tier == nil {
 		invalidParams.Add(request.NewErrParamRequired("Tier"))
+	}
+	if s.Tier != nil && len(*s.Tier) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Tier", 1))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -2267,7 +3757,7 @@ type DescribeComponentConfigurationRecommendationOutput struct {
 
 	// The recommended configuration settings of the component. The value is the
 	// escaped JSON of the configuration.
-	ComponentConfiguration *string `type:"string"`
+	ComponentConfiguration *string `min:"1" type:"string"`
 }
 
 // String returns the string representation
@@ -2297,7 +3787,7 @@ type DescribeComponentInput struct {
 	// The name of the resource group.
 	//
 	// ResourceGroupName is a required field
-	ResourceGroupName *string `type:"string" required:"true"`
+	ResourceGroupName *string `min:"1" type:"string" required:"true"`
 }
 
 // String returns the string representation
@@ -2318,6 +3808,9 @@ func (s *DescribeComponentInput) Validate() error {
 	}
 	if s.ResourceGroupName == nil {
 		invalidParams.Add(request.NewErrParamRequired("ResourceGroupName"))
+	}
+	if s.ResourceGroupName != nil && len(*s.ResourceGroupName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ResourceGroupName", 1))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -2371,13 +3864,120 @@ func (s *DescribeComponentOutput) SetResourceList(v []*string) *DescribeComponen
 	return s
 }
 
+type DescribeLogPatternInput struct {
+	_ struct{} `type:"structure"`
+
+	// The name of the log pattern.
+	//
+	// PatternName is a required field
+	PatternName *string `min:"1" type:"string" required:"true"`
+
+	// The name of the log pattern set.
+	//
+	// PatternSetName is a required field
+	PatternSetName *string `min:"1" type:"string" required:"true"`
+
+	// The name of the resource group.
+	//
+	// ResourceGroupName is a required field
+	ResourceGroupName *string `min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s DescribeLogPatternInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeLogPatternInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DescribeLogPatternInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DescribeLogPatternInput"}
+	if s.PatternName == nil {
+		invalidParams.Add(request.NewErrParamRequired("PatternName"))
+	}
+	if s.PatternName != nil && len(*s.PatternName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("PatternName", 1))
+	}
+	if s.PatternSetName == nil {
+		invalidParams.Add(request.NewErrParamRequired("PatternSetName"))
+	}
+	if s.PatternSetName != nil && len(*s.PatternSetName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("PatternSetName", 1))
+	}
+	if s.ResourceGroupName == nil {
+		invalidParams.Add(request.NewErrParamRequired("ResourceGroupName"))
+	}
+	if s.ResourceGroupName != nil && len(*s.ResourceGroupName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ResourceGroupName", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetPatternName sets the PatternName field's value.
+func (s *DescribeLogPatternInput) SetPatternName(v string) *DescribeLogPatternInput {
+	s.PatternName = &v
+	return s
+}
+
+// SetPatternSetName sets the PatternSetName field's value.
+func (s *DescribeLogPatternInput) SetPatternSetName(v string) *DescribeLogPatternInput {
+	s.PatternSetName = &v
+	return s
+}
+
+// SetResourceGroupName sets the ResourceGroupName field's value.
+func (s *DescribeLogPatternInput) SetResourceGroupName(v string) *DescribeLogPatternInput {
+	s.ResourceGroupName = &v
+	return s
+}
+
+type DescribeLogPatternOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The successfully created log pattern.
+	LogPattern *LogPattern `type:"structure"`
+
+	// The name of the resource group.
+	ResourceGroupName *string `min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s DescribeLogPatternOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeLogPatternOutput) GoString() string {
+	return s.String()
+}
+
+// SetLogPattern sets the LogPattern field's value.
+func (s *DescribeLogPatternOutput) SetLogPattern(v *LogPattern) *DescribeLogPatternOutput {
+	s.LogPattern = v
+	return s
+}
+
+// SetResourceGroupName sets the ResourceGroupName field's value.
+func (s *DescribeLogPatternOutput) SetResourceGroupName(v string) *DescribeLogPatternOutput {
+	s.ResourceGroupName = &v
+	return s
+}
+
 type DescribeObservationInput struct {
 	_ struct{} `type:"structure"`
 
 	// The ID of the observation.
 	//
 	// ObservationId is a required field
-	ObservationId *string `type:"string" required:"true"`
+	ObservationId *string `min:"38" type:"string" required:"true"`
 }
 
 // String returns the string representation
@@ -2395,6 +3995,9 @@ func (s *DescribeObservationInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "DescribeObservationInput"}
 	if s.ObservationId == nil {
 		invalidParams.Add(request.NewErrParamRequired("ObservationId"))
+	}
+	if s.ObservationId != nil && len(*s.ObservationId) < 38 {
+		invalidParams.Add(request.NewErrParamMinLen("ObservationId", 38))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -2438,7 +4041,7 @@ type DescribeProblemInput struct {
 	// The ID of the problem.
 	//
 	// ProblemId is a required field
-	ProblemId *string `type:"string" required:"true"`
+	ProblemId *string `min:"38" type:"string" required:"true"`
 }
 
 // String returns the string representation
@@ -2456,6 +4059,9 @@ func (s *DescribeProblemInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "DescribeProblemInput"}
 	if s.ProblemId == nil {
 		invalidParams.Add(request.NewErrParamRequired("ProblemId"))
+	}
+	if s.ProblemId != nil && len(*s.ProblemId) < 38 {
+		invalidParams.Add(request.NewErrParamMinLen("ProblemId", 38))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -2476,7 +4082,7 @@ type DescribeProblemObservationsInput struct {
 	// The ID of the problem.
 	//
 	// ProblemId is a required field
-	ProblemId *string `type:"string" required:"true"`
+	ProblemId *string `min:"38" type:"string" required:"true"`
 }
 
 // String returns the string representation
@@ -2494,6 +4100,9 @@ func (s *DescribeProblemObservationsInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "DescribeProblemObservationsInput"}
 	if s.ProblemId == nil {
 		invalidParams.Add(request.NewErrParamRequired("ProblemId"))
+	}
+	if s.ProblemId != nil && len(*s.ProblemId) < 38 {
+		invalidParams.Add(request.NewErrParamMinLen("ProblemId", 38))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -2552,6 +4161,62 @@ func (s DescribeProblemOutput) GoString() string {
 func (s *DescribeProblemOutput) SetProblem(v *Problem) *DescribeProblemOutput {
 	s.Problem = v
 	return s
+}
+
+// The server encountered an internal error and is unable to complete the request.
+type InternalServerException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s InternalServerException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InternalServerException) GoString() string {
+	return s.String()
+}
+
+func newErrorInternalServerException(v protocol.ResponseMetadata) error {
+	return &InternalServerException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *InternalServerException) Code() string {
+	return "InternalServerException"
+}
+
+// Message returns the exception's message.
+func (s *InternalServerException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *InternalServerException) OrigErr() error {
+	return nil
+}
+
+func (s *InternalServerException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *InternalServerException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *InternalServerException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 type ListApplicationsInput struct {
@@ -2646,7 +4311,7 @@ type ListComponentsInput struct {
 	// The name of the resource group.
 	//
 	// ResourceGroupName is a required field
-	ResourceGroupName *string `type:"string" required:"true"`
+	ResourceGroupName *string `min:"1" type:"string" required:"true"`
 }
 
 // String returns the string representation
@@ -2667,6 +4332,9 @@ func (s *ListComponentsInput) Validate() error {
 	}
 	if s.ResourceGroupName == nil {
 		invalidParams.Add(request.NewErrParamRequired("ResourceGroupName"))
+	}
+	if s.ResourceGroupName != nil && len(*s.ResourceGroupName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ResourceGroupName", 1))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -2725,6 +4393,357 @@ func (s *ListComponentsOutput) SetNextToken(v string) *ListComponentsOutput {
 	return s
 }
 
+type ListConfigurationHistoryInput struct {
+	_ struct{} `type:"structure"`
+
+	// The end time of the event.
+	EndTime *time.Time `type:"timestamp"`
+
+	// The status of the configuration update event. Possible values include INFO,
+	// WARN, and ERROR.
+	EventStatus *string `type:"string" enum:"ConfigurationEventStatus"`
+
+	// The maximum number of results returned by ListConfigurationHistory in paginated
+	// output. When this parameter is used, ListConfigurationHistory returns only
+	// MaxResults in a single page along with a NextToken response element. The
+	// remaining results of the initial request can be seen by sending another ListConfigurationHistory
+	// request with the returned NextToken value. If this parameter is not used,
+	// then ListConfigurationHistory returns all results.
+	MaxResults *int64 `min:"1" type:"integer"`
+
+	// The NextToken value returned from a previous paginated ListConfigurationHistory
+	// request where MaxResults was used and the results exceeded the value of that
+	// parameter. Pagination continues from the end of the previous results that
+	// returned the NextToken value. This value is null when there are no more results
+	// to return.
+	NextToken *string `type:"string"`
+
+	// Resource group to which the application belongs.
+	ResourceGroupName *string `min:"1" type:"string"`
+
+	// The start time of the event.
+	StartTime *time.Time `type:"timestamp"`
+}
+
+// String returns the string representation
+func (s ListConfigurationHistoryInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListConfigurationHistoryInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ListConfigurationHistoryInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ListConfigurationHistoryInput"}
+	if s.MaxResults != nil && *s.MaxResults < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("MaxResults", 1))
+	}
+	if s.ResourceGroupName != nil && len(*s.ResourceGroupName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ResourceGroupName", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetEndTime sets the EndTime field's value.
+func (s *ListConfigurationHistoryInput) SetEndTime(v time.Time) *ListConfigurationHistoryInput {
+	s.EndTime = &v
+	return s
+}
+
+// SetEventStatus sets the EventStatus field's value.
+func (s *ListConfigurationHistoryInput) SetEventStatus(v string) *ListConfigurationHistoryInput {
+	s.EventStatus = &v
+	return s
+}
+
+// SetMaxResults sets the MaxResults field's value.
+func (s *ListConfigurationHistoryInput) SetMaxResults(v int64) *ListConfigurationHistoryInput {
+	s.MaxResults = &v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListConfigurationHistoryInput) SetNextToken(v string) *ListConfigurationHistoryInput {
+	s.NextToken = &v
+	return s
+}
+
+// SetResourceGroupName sets the ResourceGroupName field's value.
+func (s *ListConfigurationHistoryInput) SetResourceGroupName(v string) *ListConfigurationHistoryInput {
+	s.ResourceGroupName = &v
+	return s
+}
+
+// SetStartTime sets the StartTime field's value.
+func (s *ListConfigurationHistoryInput) SetStartTime(v time.Time) *ListConfigurationHistoryInput {
+	s.StartTime = &v
+	return s
+}
+
+type ListConfigurationHistoryOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The list of configuration events and their corresponding details.
+	EventList []*ConfigurationEvent `type:"list"`
+
+	// The NextToken value to include in a future ListConfigurationHistory request.
+	// When the results of a ListConfigurationHistory request exceed MaxResults,
+	// this value can be used to retrieve the next page of results. This value is
+	// null when there are no more results to return.
+	NextToken *string `type:"string"`
+}
+
+// String returns the string representation
+func (s ListConfigurationHistoryOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListConfigurationHistoryOutput) GoString() string {
+	return s.String()
+}
+
+// SetEventList sets the EventList field's value.
+func (s *ListConfigurationHistoryOutput) SetEventList(v []*ConfigurationEvent) *ListConfigurationHistoryOutput {
+	s.EventList = v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListConfigurationHistoryOutput) SetNextToken(v string) *ListConfigurationHistoryOutput {
+	s.NextToken = &v
+	return s
+}
+
+type ListLogPatternSetsInput struct {
+	_ struct{} `type:"structure"`
+
+	// The maximum number of results to return in a single call. To retrieve the
+	// remaining results, make another call with the returned NextToken value.
+	MaxResults *int64 `min:"1" type:"integer"`
+
+	// The token to request the next page of results.
+	NextToken *string `type:"string"`
+
+	// The name of the resource group.
+	//
+	// ResourceGroupName is a required field
+	ResourceGroupName *string `min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s ListLogPatternSetsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListLogPatternSetsInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ListLogPatternSetsInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ListLogPatternSetsInput"}
+	if s.MaxResults != nil && *s.MaxResults < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("MaxResults", 1))
+	}
+	if s.ResourceGroupName == nil {
+		invalidParams.Add(request.NewErrParamRequired("ResourceGroupName"))
+	}
+	if s.ResourceGroupName != nil && len(*s.ResourceGroupName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ResourceGroupName", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetMaxResults sets the MaxResults field's value.
+func (s *ListLogPatternSetsInput) SetMaxResults(v int64) *ListLogPatternSetsInput {
+	s.MaxResults = &v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListLogPatternSetsInput) SetNextToken(v string) *ListLogPatternSetsInput {
+	s.NextToken = &v
+	return s
+}
+
+// SetResourceGroupName sets the ResourceGroupName field's value.
+func (s *ListLogPatternSetsInput) SetResourceGroupName(v string) *ListLogPatternSetsInput {
+	s.ResourceGroupName = &v
+	return s
+}
+
+type ListLogPatternSetsOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The list of log pattern sets.
+	LogPatternSets []*string `type:"list"`
+
+	// The token used to retrieve the next page of results. This value is null when
+	// there are no more results to return.
+	NextToken *string `type:"string"`
+
+	// The name of the resource group.
+	ResourceGroupName *string `min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s ListLogPatternSetsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListLogPatternSetsOutput) GoString() string {
+	return s.String()
+}
+
+// SetLogPatternSets sets the LogPatternSets field's value.
+func (s *ListLogPatternSetsOutput) SetLogPatternSets(v []*string) *ListLogPatternSetsOutput {
+	s.LogPatternSets = v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListLogPatternSetsOutput) SetNextToken(v string) *ListLogPatternSetsOutput {
+	s.NextToken = &v
+	return s
+}
+
+// SetResourceGroupName sets the ResourceGroupName field's value.
+func (s *ListLogPatternSetsOutput) SetResourceGroupName(v string) *ListLogPatternSetsOutput {
+	s.ResourceGroupName = &v
+	return s
+}
+
+type ListLogPatternsInput struct {
+	_ struct{} `type:"structure"`
+
+	// The maximum number of results to return in a single call. To retrieve the
+	// remaining results, make another call with the returned NextToken value.
+	MaxResults *int64 `min:"1" type:"integer"`
+
+	// The token to request the next page of results.
+	NextToken *string `type:"string"`
+
+	// The name of the log pattern set.
+	PatternSetName *string `min:"1" type:"string"`
+
+	// The name of the resource group.
+	//
+	// ResourceGroupName is a required field
+	ResourceGroupName *string `min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s ListLogPatternsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListLogPatternsInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ListLogPatternsInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ListLogPatternsInput"}
+	if s.MaxResults != nil && *s.MaxResults < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("MaxResults", 1))
+	}
+	if s.PatternSetName != nil && len(*s.PatternSetName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("PatternSetName", 1))
+	}
+	if s.ResourceGroupName == nil {
+		invalidParams.Add(request.NewErrParamRequired("ResourceGroupName"))
+	}
+	if s.ResourceGroupName != nil && len(*s.ResourceGroupName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ResourceGroupName", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetMaxResults sets the MaxResults field's value.
+func (s *ListLogPatternsInput) SetMaxResults(v int64) *ListLogPatternsInput {
+	s.MaxResults = &v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListLogPatternsInput) SetNextToken(v string) *ListLogPatternsInput {
+	s.NextToken = &v
+	return s
+}
+
+// SetPatternSetName sets the PatternSetName field's value.
+func (s *ListLogPatternsInput) SetPatternSetName(v string) *ListLogPatternsInput {
+	s.PatternSetName = &v
+	return s
+}
+
+// SetResourceGroupName sets the ResourceGroupName field's value.
+func (s *ListLogPatternsInput) SetResourceGroupName(v string) *ListLogPatternsInput {
+	s.ResourceGroupName = &v
+	return s
+}
+
+type ListLogPatternsOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The list of log patterns.
+	LogPatterns []*LogPattern `type:"list"`
+
+	// The token used to retrieve the next page of results. This value is null when
+	// there are no more results to return.
+	NextToken *string `type:"string"`
+
+	// The name of the resource group.
+	ResourceGroupName *string `min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s ListLogPatternsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListLogPatternsOutput) GoString() string {
+	return s.String()
+}
+
+// SetLogPatterns sets the LogPatterns field's value.
+func (s *ListLogPatternsOutput) SetLogPatterns(v []*LogPattern) *ListLogPatternsOutput {
+	s.LogPatterns = v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListLogPatternsOutput) SetNextToken(v string) *ListLogPatternsOutput {
+	s.NextToken = &v
+	return s
+}
+
+// SetResourceGroupName sets the ResourceGroupName field's value.
+func (s *ListLogPatternsOutput) SetResourceGroupName(v string) *ListLogPatternsOutput {
+	s.ResourceGroupName = &v
+	return s
+}
+
 type ListProblemsInput struct {
 	_ struct{} `type:"structure"`
 
@@ -2740,7 +4759,7 @@ type ListProblemsInput struct {
 	NextToken *string `type:"string"`
 
 	// The name of the resource group.
-	ResourceGroupName *string `type:"string"`
+	ResourceGroupName *string `min:"1" type:"string"`
 
 	// The time when the problem was detected, in epoch seconds. If you don't specify
 	// a time frame for the request, problems within the past seven days are returned.
@@ -2762,6 +4781,9 @@ func (s *ListProblemsInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "ListProblemsInput"}
 	if s.MaxResults != nil && *s.MaxResults < 1 {
 		invalidParams.Add(request.NewErrParamMinValue("MaxResults", 1))
+	}
+	if s.ResourceGroupName != nil && len(*s.ResourceGroupName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ResourceGroupName", 1))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -2833,15 +4855,184 @@ func (s *ListProblemsOutput) SetProblemList(v []*Problem) *ListProblemsOutput {
 	return s
 }
 
+type ListTagsForResourceInput struct {
+	_ struct{} `type:"structure"`
+
+	// The Amazon Resource Name (ARN) of the application that you want to retrieve
+	// tag information for.
+	//
+	// ResourceARN is a required field
+	ResourceARN *string `min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s ListTagsForResourceInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListTagsForResourceInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ListTagsForResourceInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ListTagsForResourceInput"}
+	if s.ResourceARN == nil {
+		invalidParams.Add(request.NewErrParamRequired("ResourceARN"))
+	}
+	if s.ResourceARN != nil && len(*s.ResourceARN) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ResourceARN", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetResourceARN sets the ResourceARN field's value.
+func (s *ListTagsForResourceInput) SetResourceARN(v string) *ListTagsForResourceInput {
+	s.ResourceARN = &v
+	return s
+}
+
+type ListTagsForResourceOutput struct {
+	_ struct{} `type:"structure"`
+
+	// An array that lists all the tags that are associated with the application.
+	// Each tag consists of a required tag key (Key) and an associated tag value
+	// (Value).
+	Tags []*Tag `type:"list"`
+}
+
+// String returns the string representation
+func (s ListTagsForResourceOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListTagsForResourceOutput) GoString() string {
+	return s.String()
+}
+
+// SetTags sets the Tags field's value.
+func (s *ListTagsForResourceOutput) SetTags(v []*Tag) *ListTagsForResourceOutput {
+	s.Tags = v
+	return s
+}
+
+// An object that defines the log patterns that belongs to a LogPatternSet.
+type LogPattern struct {
+	_ struct{} `type:"structure"`
+
+	// A regular expression that defines the log pattern. A log pattern can contains
+	// at many as 50 characters, and it cannot be empty.
+	Pattern *string `min:"1" type:"string"`
+
+	// The name of the log pattern. A log pattern name can contains at many as 50
+	// characters, and it cannot be empty. The characters can be Unicode letters,
+	// digits or one of the following symbols: period, dash, underscore.
+	PatternName *string `min:"1" type:"string"`
+
+	// The name of the log pattern. A log pattern name can contains at many as 30
+	// characters, and it cannot be empty. The characters can be Unicode letters,
+	// digits or one of the following symbols: period, dash, underscore.
+	PatternSetName *string `min:"1" type:"string"`
+
+	// Rank of the log pattern.
+	Rank *int64 `type:"integer"`
+}
+
+// String returns the string representation
+func (s LogPattern) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s LogPattern) GoString() string {
+	return s.String()
+}
+
+// SetPattern sets the Pattern field's value.
+func (s *LogPattern) SetPattern(v string) *LogPattern {
+	s.Pattern = &v
+	return s
+}
+
+// SetPatternName sets the PatternName field's value.
+func (s *LogPattern) SetPatternName(v string) *LogPattern {
+	s.PatternName = &v
+	return s
+}
+
+// SetPatternSetName sets the PatternSetName field's value.
+func (s *LogPattern) SetPatternSetName(v string) *LogPattern {
+	s.PatternSetName = &v
+	return s
+}
+
+// SetRank sets the Rank field's value.
+func (s *LogPattern) SetRank(v int64) *LogPattern {
+	s.Rank = &v
+	return s
+}
+
 // Describes an anomaly or error with the application.
 type Observation struct {
 	_ struct{} `type:"structure"`
 
+	// The detail type of the CloudWatch Event-based observation, for example, EC2
+	// Instance State-change Notification.
+	CloudWatchEventDetailType *string `type:"string"`
+
+	// The ID of the CloudWatch Event-based observation related to the detected
+	// problem.
+	CloudWatchEventId *string `type:"string"`
+
+	// The source of the CloudWatch Event.
+	CloudWatchEventSource *string `type:"string" enum:"CloudWatchEventSource"`
+
+	// The CodeDeploy application to which the deployment belongs.
+	CodeDeployApplication *string `type:"string"`
+
+	// The deployment group to which the CodeDeploy deployment belongs.
+	CodeDeployDeploymentGroup *string `type:"string"`
+
+	// The deployment ID of the CodeDeploy-based observation related to the detected
+	// problem.
+	CodeDeployDeploymentId *string `type:"string"`
+
+	// The instance group to which the CodeDeploy instance belongs.
+	CodeDeployInstanceGroupId *string `type:"string"`
+
+	// The status of the CodeDeploy deployment, for example SUCCESS or FAILURE.
+	CodeDeployState *string `type:"string"`
+
+	// The state of the instance, such as STOPPING or TERMINATING.
+	Ec2State *string `type:"string"`
+
 	// The time when the observation ended, in epoch seconds.
 	EndTime *time.Time `type:"timestamp"`
 
+	// The Amazon Resource Name (ARN) of the AWS Health Event-based observation.
+	HealthEventArn *string `type:"string"`
+
+	// The description of the AWS Health event provided by the service, such as
+	// Amazon EC2.
+	HealthEventDescription *string `type:"string"`
+
+	// The category of the AWS Health event, such as issue.
+	HealthEventTypeCategory *string `type:"string"`
+
+	// The type of the AWS Health event, for example, AWS_EC2_POWER_CONNECTIVITY_ISSUE.
+	HealthEventTypeCode *string `type:"string"`
+
+	// The service to which the AWS Health Event belongs, such as EC2.
+	HealthService *string `type:"string"`
+
 	// The ID of the observation type.
-	Id *string `type:"string"`
+	Id *string `min:"38" type:"string"`
 
 	// The timestamp in the CloudWatch Logs that specifies when the matched line
 	// occurred.
@@ -2876,6 +5067,27 @@ type Observation struct {
 
 	// The value of the source observation metric.
 	Value *float64 `type:"double"`
+
+	// The X-Ray request error percentage for this node.
+	XRayErrorPercent *int64 `type:"integer"`
+
+	// The X-Ray request fault percentage for this node.
+	XRayFaultPercent *int64 `type:"integer"`
+
+	// The name of the X-Ray node.
+	XRayNodeName *string `type:"string"`
+
+	// The type of the X-Ray node.
+	XRayNodeType *string `type:"string"`
+
+	// The X-Ray node request average latency for this node.
+	XRayRequestAverageLatency *int64 `type:"long"`
+
+	// The X-Ray request count for this node.
+	XRayRequestCount *int64 `type:"integer"`
+
+	// The X-Ray request throttle percentage for this node.
+	XRayThrottlePercent *int64 `type:"integer"`
 }
 
 // String returns the string representation
@@ -2888,9 +5100,93 @@ func (s Observation) GoString() string {
 	return s.String()
 }
 
+// SetCloudWatchEventDetailType sets the CloudWatchEventDetailType field's value.
+func (s *Observation) SetCloudWatchEventDetailType(v string) *Observation {
+	s.CloudWatchEventDetailType = &v
+	return s
+}
+
+// SetCloudWatchEventId sets the CloudWatchEventId field's value.
+func (s *Observation) SetCloudWatchEventId(v string) *Observation {
+	s.CloudWatchEventId = &v
+	return s
+}
+
+// SetCloudWatchEventSource sets the CloudWatchEventSource field's value.
+func (s *Observation) SetCloudWatchEventSource(v string) *Observation {
+	s.CloudWatchEventSource = &v
+	return s
+}
+
+// SetCodeDeployApplication sets the CodeDeployApplication field's value.
+func (s *Observation) SetCodeDeployApplication(v string) *Observation {
+	s.CodeDeployApplication = &v
+	return s
+}
+
+// SetCodeDeployDeploymentGroup sets the CodeDeployDeploymentGroup field's value.
+func (s *Observation) SetCodeDeployDeploymentGroup(v string) *Observation {
+	s.CodeDeployDeploymentGroup = &v
+	return s
+}
+
+// SetCodeDeployDeploymentId sets the CodeDeployDeploymentId field's value.
+func (s *Observation) SetCodeDeployDeploymentId(v string) *Observation {
+	s.CodeDeployDeploymentId = &v
+	return s
+}
+
+// SetCodeDeployInstanceGroupId sets the CodeDeployInstanceGroupId field's value.
+func (s *Observation) SetCodeDeployInstanceGroupId(v string) *Observation {
+	s.CodeDeployInstanceGroupId = &v
+	return s
+}
+
+// SetCodeDeployState sets the CodeDeployState field's value.
+func (s *Observation) SetCodeDeployState(v string) *Observation {
+	s.CodeDeployState = &v
+	return s
+}
+
+// SetEc2State sets the Ec2State field's value.
+func (s *Observation) SetEc2State(v string) *Observation {
+	s.Ec2State = &v
+	return s
+}
+
 // SetEndTime sets the EndTime field's value.
 func (s *Observation) SetEndTime(v time.Time) *Observation {
 	s.EndTime = &v
+	return s
+}
+
+// SetHealthEventArn sets the HealthEventArn field's value.
+func (s *Observation) SetHealthEventArn(v string) *Observation {
+	s.HealthEventArn = &v
+	return s
+}
+
+// SetHealthEventDescription sets the HealthEventDescription field's value.
+func (s *Observation) SetHealthEventDescription(v string) *Observation {
+	s.HealthEventDescription = &v
+	return s
+}
+
+// SetHealthEventTypeCategory sets the HealthEventTypeCategory field's value.
+func (s *Observation) SetHealthEventTypeCategory(v string) *Observation {
+	s.HealthEventTypeCategory = &v
+	return s
+}
+
+// SetHealthEventTypeCode sets the HealthEventTypeCode field's value.
+func (s *Observation) SetHealthEventTypeCode(v string) *Observation {
+	s.HealthEventTypeCode = &v
+	return s
+}
+
+// SetHealthService sets the HealthService field's value.
+func (s *Observation) SetHealthService(v string) *Observation {
+	s.HealthService = &v
 	return s
 }
 
@@ -2966,6 +5262,48 @@ func (s *Observation) SetValue(v float64) *Observation {
 	return s
 }
 
+// SetXRayErrorPercent sets the XRayErrorPercent field's value.
+func (s *Observation) SetXRayErrorPercent(v int64) *Observation {
+	s.XRayErrorPercent = &v
+	return s
+}
+
+// SetXRayFaultPercent sets the XRayFaultPercent field's value.
+func (s *Observation) SetXRayFaultPercent(v int64) *Observation {
+	s.XRayFaultPercent = &v
+	return s
+}
+
+// SetXRayNodeName sets the XRayNodeName field's value.
+func (s *Observation) SetXRayNodeName(v string) *Observation {
+	s.XRayNodeName = &v
+	return s
+}
+
+// SetXRayNodeType sets the XRayNodeType field's value.
+func (s *Observation) SetXRayNodeType(v string) *Observation {
+	s.XRayNodeType = &v
+	return s
+}
+
+// SetXRayRequestAverageLatency sets the XRayRequestAverageLatency field's value.
+func (s *Observation) SetXRayRequestAverageLatency(v int64) *Observation {
+	s.XRayRequestAverageLatency = &v
+	return s
+}
+
+// SetXRayRequestCount sets the XRayRequestCount field's value.
+func (s *Observation) SetXRayRequestCount(v int64) *Observation {
+	s.XRayRequestCount = &v
+	return s
+}
+
+// SetXRayThrottlePercent sets the XRayThrottlePercent field's value.
+func (s *Observation) SetXRayThrottlePercent(v int64) *Observation {
+	s.XRayThrottlePercent = &v
+	return s
+}
+
 // Describes a problem that is detected by correlating observations.
 type Problem struct {
 	_ struct{} `type:"structure"`
@@ -2980,13 +5318,13 @@ type Problem struct {
 	Feedback map[string]*string `type:"map"`
 
 	// The ID of the problem.
-	Id *string `type:"string"`
+	Id *string `min:"38" type:"string"`
 
 	// A detailed analysis of the problem using machine learning.
 	Insights *string `type:"string"`
 
 	// The name of the resource group affected by the problem.
-	ResourceGroupName *string `type:"string"`
+	ResourceGroupName *string `min:"1" type:"string"`
 
 	// A measure of the level of impact of the problem.
 	SeverityLevel *string `type:"string" enum:"SeverityLevel"`
@@ -3095,15 +5433,484 @@ func (s *RelatedObservations) SetObservationList(v []*Observation) *RelatedObser
 	return s
 }
 
+// The resource is already created or in use.
+type ResourceInUseException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s ResourceInUseException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResourceInUseException) GoString() string {
+	return s.String()
+}
+
+func newErrorResourceInUseException(v protocol.ResponseMetadata) error {
+	return &ResourceInUseException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *ResourceInUseException) Code() string {
+	return "ResourceInUseException"
+}
+
+// Message returns the exception's message.
+func (s *ResourceInUseException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *ResourceInUseException) OrigErr() error {
+	return nil
+}
+
+func (s *ResourceInUseException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *ResourceInUseException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *ResourceInUseException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// The resource does not exist in the customer account.
+type ResourceNotFoundException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s ResourceNotFoundException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResourceNotFoundException) GoString() string {
+	return s.String()
+}
+
+func newErrorResourceNotFoundException(v protocol.ResponseMetadata) error {
+	return &ResourceNotFoundException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *ResourceNotFoundException) Code() string {
+	return "ResourceNotFoundException"
+}
+
+// Message returns the exception's message.
+func (s *ResourceNotFoundException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *ResourceNotFoundException) OrigErr() error {
+	return nil
+}
+
+func (s *ResourceNotFoundException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *ResourceNotFoundException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *ResourceNotFoundException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// An object that defines the tags associated with an application. A tag is
+// a label that you optionally define and associate with an application. Tags
+// can help you categorize and manage resources in different ways, such as by
+// purpose, owner, environment, or other criteria.
+//
+// Each tag consists of a required tag key and an associated tag value, both
+// of which you define. A tag key is a general label that acts as a category
+// for a more specific tag value. A tag value acts as a descriptor within a
+// tag key. A tag key can contain as many as 128 characters. A tag value can
+// contain as many as 256 characters. The characters can be Unicode letters,
+// digits, white space, or one of the following symbols: _ . : / = + -. The
+// following additional restrictions apply to tags:
+//
+//    * Tag keys and values are case sensitive.
+//
+//    * For each associated resource, each tag key must be unique and it can
+//    have only one value.
+//
+//    * The aws: prefix is reserved for use by AWS; you can’t use it in any
+//    tag keys or values that you define. In addition, you can't edit or remove
+//    tag keys or values that use this prefix.
+type Tag struct {
+	_ struct{} `type:"structure"`
+
+	// One part of a key-value pair that defines a tag. The maximum length of a
+	// tag key is 128 characters. The minimum length is 1 character.
+	//
+	// Key is a required field
+	Key *string `min:"1" type:"string" required:"true"`
+
+	// The optional part of a key-value pair that defines a tag. The maximum length
+	// of a tag value is 256 characters. The minimum length is 0 characters. If
+	// you don't want an application to have a specific tag value, don't specify
+	// a value for this parameter.
+	//
+	// Value is a required field
+	Value *string `type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s Tag) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s Tag) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *Tag) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "Tag"}
+	if s.Key == nil {
+		invalidParams.Add(request.NewErrParamRequired("Key"))
+	}
+	if s.Key != nil && len(*s.Key) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Key", 1))
+	}
+	if s.Value == nil {
+		invalidParams.Add(request.NewErrParamRequired("Value"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetKey sets the Key field's value.
+func (s *Tag) SetKey(v string) *Tag {
+	s.Key = &v
+	return s
+}
+
+// SetValue sets the Value field's value.
+func (s *Tag) SetValue(v string) *Tag {
+	s.Value = &v
+	return s
+}
+
+type TagResourceInput struct {
+	_ struct{} `type:"structure"`
+
+	// The Amazon Resource Name (ARN) of the application that you want to add one
+	// or more tags to.
+	//
+	// ResourceARN is a required field
+	ResourceARN *string `min:"1" type:"string" required:"true"`
+
+	// A list of tags that to add to the application. A tag consists of a required
+	// tag key (Key) and an associated tag value (Value). The maximum length of
+	// a tag key is 128 characters. The maximum length of a tag value is 256 characters.
+	//
+	// Tags is a required field
+	Tags []*Tag `type:"list" required:"true"`
+}
+
+// String returns the string representation
+func (s TagResourceInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s TagResourceInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *TagResourceInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "TagResourceInput"}
+	if s.ResourceARN == nil {
+		invalidParams.Add(request.NewErrParamRequired("ResourceARN"))
+	}
+	if s.ResourceARN != nil && len(*s.ResourceARN) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ResourceARN", 1))
+	}
+	if s.Tags == nil {
+		invalidParams.Add(request.NewErrParamRequired("Tags"))
+	}
+	if s.Tags != nil {
+		for i, v := range s.Tags {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Tags", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetResourceARN sets the ResourceARN field's value.
+func (s *TagResourceInput) SetResourceARN(v string) *TagResourceInput {
+	s.ResourceARN = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *TagResourceInput) SetTags(v []*Tag) *TagResourceInput {
+	s.Tags = v
+	return s
+}
+
+type TagResourceOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s TagResourceOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s TagResourceOutput) GoString() string {
+	return s.String()
+}
+
+// Tags are already registered for the specified application ARN.
+type TagsAlreadyExistException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s TagsAlreadyExistException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s TagsAlreadyExistException) GoString() string {
+	return s.String()
+}
+
+func newErrorTagsAlreadyExistException(v protocol.ResponseMetadata) error {
+	return &TagsAlreadyExistException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *TagsAlreadyExistException) Code() string {
+	return "TagsAlreadyExistException"
+}
+
+// Message returns the exception's message.
+func (s *TagsAlreadyExistException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *TagsAlreadyExistException) OrigErr() error {
+	return nil
+}
+
+func (s *TagsAlreadyExistException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *TagsAlreadyExistException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *TagsAlreadyExistException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// The number of the provided tags is beyond the limit, or the number of total
+// tags you are trying to attach to the specified resource exceeds the limit.
+type TooManyTagsException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+
+	// The name of the resource with too many tags.
+	ResourceName *string `min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s TooManyTagsException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s TooManyTagsException) GoString() string {
+	return s.String()
+}
+
+func newErrorTooManyTagsException(v protocol.ResponseMetadata) error {
+	return &TooManyTagsException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *TooManyTagsException) Code() string {
+	return "TooManyTagsException"
+}
+
+// Message returns the exception's message.
+func (s *TooManyTagsException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *TooManyTagsException) OrigErr() error {
+	return nil
+}
+
+func (s *TooManyTagsException) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *TooManyTagsException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *TooManyTagsException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+type UntagResourceInput struct {
+	_ struct{} `type:"structure"`
+
+	// The Amazon Resource Name (ARN) of the application that you want to remove
+	// one or more tags from.
+	//
+	// ResourceARN is a required field
+	ResourceARN *string `min:"1" type:"string" required:"true"`
+
+	// The tags (tag keys) that you want to remove from the resource. When you specify
+	// a tag key, the action removes both that key and its associated tag value.
+	//
+	// To remove more than one tag from the application, append the TagKeys parameter
+	// and argument for each additional tag to remove, separated by an ampersand.
+	//
+	// TagKeys is a required field
+	TagKeys []*string `type:"list" required:"true"`
+}
+
+// String returns the string representation
+func (s UntagResourceInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UntagResourceInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *UntagResourceInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "UntagResourceInput"}
+	if s.ResourceARN == nil {
+		invalidParams.Add(request.NewErrParamRequired("ResourceARN"))
+	}
+	if s.ResourceARN != nil && len(*s.ResourceARN) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ResourceARN", 1))
+	}
+	if s.TagKeys == nil {
+		invalidParams.Add(request.NewErrParamRequired("TagKeys"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetResourceARN sets the ResourceARN field's value.
+func (s *UntagResourceInput) SetResourceARN(v string) *UntagResourceInput {
+	s.ResourceARN = &v
+	return s
+}
+
+// SetTagKeys sets the TagKeys field's value.
+func (s *UntagResourceInput) SetTagKeys(v []*string) *UntagResourceInput {
+	s.TagKeys = v
+	return s
+}
+
+type UntagResourceOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s UntagResourceOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UntagResourceOutput) GoString() string {
+	return s.String()
+}
+
 type UpdateApplicationInput struct {
 	_ struct{} `type:"structure"`
+
+	// Indicates whether Application Insights can listen to CloudWatch events for
+	// the application resources, such as instance terminated, failed deployment,
+	// and others.
+	CWEMonitorEnabled *bool `type:"boolean"`
 
 	// When set to true, creates opsItems for any problems detected on an application.
 	OpsCenterEnabled *bool `type:"boolean"`
 
 	// The SNS topic provided to Application Insights that is associated to the
 	// created opsItem. Allows you to receive notifications for updates to the opsItem.
-	OpsItemSNSTopicArn *string `type:"string"`
+	OpsItemSNSTopicArn *string `min:"20" type:"string"`
 
 	// Disassociates the SNS topic from the opsItem created for detected problems.
 	RemoveSNSTopic *bool `type:"boolean"`
@@ -3111,7 +5918,7 @@ type UpdateApplicationInput struct {
 	// The name of the resource group.
 	//
 	// ResourceGroupName is a required field
-	ResourceGroupName *string `type:"string" required:"true"`
+	ResourceGroupName *string `min:"1" type:"string" required:"true"`
 }
 
 // String returns the string representation
@@ -3127,14 +5934,26 @@ func (s UpdateApplicationInput) GoString() string {
 // Validate inspects the fields of the type to determine if they are valid.
 func (s *UpdateApplicationInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "UpdateApplicationInput"}
+	if s.OpsItemSNSTopicArn != nil && len(*s.OpsItemSNSTopicArn) < 20 {
+		invalidParams.Add(request.NewErrParamMinLen("OpsItemSNSTopicArn", 20))
+	}
 	if s.ResourceGroupName == nil {
 		invalidParams.Add(request.NewErrParamRequired("ResourceGroupName"))
+	}
+	if s.ResourceGroupName != nil && len(*s.ResourceGroupName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ResourceGroupName", 1))
 	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
 	}
 	return nil
+}
+
+// SetCWEMonitorEnabled sets the CWEMonitorEnabled field's value.
+func (s *UpdateApplicationInput) SetCWEMonitorEnabled(v bool) *UpdateApplicationInput {
+	s.CWEMonitorEnabled = &v
+	return s
 }
 
 // SetOpsCenterEnabled sets the OpsCenterEnabled field's value.
@@ -3191,8 +6010,9 @@ type UpdateComponentConfigurationInput struct {
 	// of the configuration. For more information about the JSON format, see Working
 	// with JSON (https://docs.aws.amazon.com/sdk-for-javascript/v2/developer-guide/working-with-json.html).
 	// You can send a request to DescribeComponentConfigurationRecommendation to
-	// see the recommended configuration for a component.
-	ComponentConfiguration *string `type:"string"`
+	// see the recommended configuration for a component. For the complete format
+	// of the component configuration file, see Component Configuration (https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/component-config.html).
+	ComponentConfiguration *string `min:"1" type:"string"`
 
 	// The name of the component.
 	//
@@ -3205,11 +6025,11 @@ type UpdateComponentConfigurationInput struct {
 	// The name of the resource group.
 	//
 	// ResourceGroupName is a required field
-	ResourceGroupName *string `type:"string" required:"true"`
+	ResourceGroupName *string `min:"1" type:"string" required:"true"`
 
 	// The tier of the application component. Supported tiers include DOT_NET_WORKER,
-	// DOT_NET_WEB, SQL_SERVER, and DEFAULT.
-	Tier *string `type:"string"`
+	// DOT_NET_WEB, DOT_NET_CORE, SQL_SERVER, and DEFAULT.
+	Tier *string `min:"1" type:"string" enum:"Tier"`
 }
 
 // String returns the string representation
@@ -3225,11 +6045,20 @@ func (s UpdateComponentConfigurationInput) GoString() string {
 // Validate inspects the fields of the type to determine if they are valid.
 func (s *UpdateComponentConfigurationInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "UpdateComponentConfigurationInput"}
+	if s.ComponentConfiguration != nil && len(*s.ComponentConfiguration) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ComponentConfiguration", 1))
+	}
 	if s.ComponentName == nil {
 		invalidParams.Add(request.NewErrParamRequired("ComponentName"))
 	}
 	if s.ResourceGroupName == nil {
 		invalidParams.Add(request.NewErrParamRequired("ResourceGroupName"))
+	}
+	if s.ResourceGroupName != nil && len(*s.ResourceGroupName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ResourceGroupName", 1))
+	}
+	if s.Tier != nil && len(*s.Tier) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Tier", 1))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -3296,7 +6125,7 @@ type UpdateComponentInput struct {
 	// The name of the resource group.
 	//
 	// ResourceGroupName is a required field
-	ResourceGroupName *string `type:"string" required:"true"`
+	ResourceGroupName *string `min:"1" type:"string" required:"true"`
 
 	// The list of resource ARNs that belong to the component.
 	ResourceList []*string `type:"list"`
@@ -3320,6 +6149,9 @@ func (s *UpdateComponentInput) Validate() error {
 	}
 	if s.ResourceGroupName == nil {
 		invalidParams.Add(request.NewErrParamRequired("ResourceGroupName"))
+	}
+	if s.ResourceGroupName != nil && len(*s.ResourceGroupName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ResourceGroupName", 1))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -3366,6 +6198,223 @@ func (s UpdateComponentOutput) GoString() string {
 	return s.String()
 }
 
+type UpdateLogPatternInput struct {
+	_ struct{} `type:"structure"`
+
+	// The log pattern.
+	Pattern *string `min:"1" type:"string"`
+
+	// The name of the log pattern.
+	//
+	// PatternName is a required field
+	PatternName *string `min:"1" type:"string" required:"true"`
+
+	// The name of the log pattern set.
+	//
+	// PatternSetName is a required field
+	PatternSetName *string `min:"1" type:"string" required:"true"`
+
+	// Rank of the log pattern.
+	Rank *int64 `type:"integer"`
+
+	// The name of the resource group.
+	//
+	// ResourceGroupName is a required field
+	ResourceGroupName *string `min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s UpdateLogPatternInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateLogPatternInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *UpdateLogPatternInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "UpdateLogPatternInput"}
+	if s.Pattern != nil && len(*s.Pattern) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Pattern", 1))
+	}
+	if s.PatternName == nil {
+		invalidParams.Add(request.NewErrParamRequired("PatternName"))
+	}
+	if s.PatternName != nil && len(*s.PatternName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("PatternName", 1))
+	}
+	if s.PatternSetName == nil {
+		invalidParams.Add(request.NewErrParamRequired("PatternSetName"))
+	}
+	if s.PatternSetName != nil && len(*s.PatternSetName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("PatternSetName", 1))
+	}
+	if s.ResourceGroupName == nil {
+		invalidParams.Add(request.NewErrParamRequired("ResourceGroupName"))
+	}
+	if s.ResourceGroupName != nil && len(*s.ResourceGroupName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ResourceGroupName", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetPattern sets the Pattern field's value.
+func (s *UpdateLogPatternInput) SetPattern(v string) *UpdateLogPatternInput {
+	s.Pattern = &v
+	return s
+}
+
+// SetPatternName sets the PatternName field's value.
+func (s *UpdateLogPatternInput) SetPatternName(v string) *UpdateLogPatternInput {
+	s.PatternName = &v
+	return s
+}
+
+// SetPatternSetName sets the PatternSetName field's value.
+func (s *UpdateLogPatternInput) SetPatternSetName(v string) *UpdateLogPatternInput {
+	s.PatternSetName = &v
+	return s
+}
+
+// SetRank sets the Rank field's value.
+func (s *UpdateLogPatternInput) SetRank(v int64) *UpdateLogPatternInput {
+	s.Rank = &v
+	return s
+}
+
+// SetResourceGroupName sets the ResourceGroupName field's value.
+func (s *UpdateLogPatternInput) SetResourceGroupName(v string) *UpdateLogPatternInput {
+	s.ResourceGroupName = &v
+	return s
+}
+
+type UpdateLogPatternOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The successfully created log pattern.
+	LogPattern *LogPattern `type:"structure"`
+
+	// The name of the resource group.
+	ResourceGroupName *string `min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s UpdateLogPatternOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateLogPatternOutput) GoString() string {
+	return s.String()
+}
+
+// SetLogPattern sets the LogPattern field's value.
+func (s *UpdateLogPatternOutput) SetLogPattern(v *LogPattern) *UpdateLogPatternOutput {
+	s.LogPattern = v
+	return s
+}
+
+// SetResourceGroupName sets the ResourceGroupName field's value.
+func (s *UpdateLogPatternOutput) SetResourceGroupName(v string) *UpdateLogPatternOutput {
+	s.ResourceGroupName = &v
+	return s
+}
+
+// The parameter is not valid.
+type ValidationException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s ValidationException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ValidationException) GoString() string {
+	return s.String()
+}
+
+func newErrorValidationException(v protocol.ResponseMetadata) error {
+	return &ValidationException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *ValidationException) Code() string {
+	return "ValidationException"
+}
+
+// Message returns the exception's message.
+func (s *ValidationException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *ValidationException) OrigErr() error {
+	return nil
+}
+
+func (s *ValidationException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *ValidationException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *ValidationException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+const (
+	// CloudWatchEventSourceEc2 is a CloudWatchEventSource enum value
+	CloudWatchEventSourceEc2 = "EC2"
+
+	// CloudWatchEventSourceCodeDeploy is a CloudWatchEventSource enum value
+	CloudWatchEventSourceCodeDeploy = "CODE_DEPLOY"
+
+	// CloudWatchEventSourceHealth is a CloudWatchEventSource enum value
+	CloudWatchEventSourceHealth = "HEALTH"
+)
+
+const (
+	// ConfigurationEventResourceTypeCloudwatchAlarm is a ConfigurationEventResourceType enum value
+	ConfigurationEventResourceTypeCloudwatchAlarm = "CLOUDWATCH_ALARM"
+
+	// ConfigurationEventResourceTypeCloudformation is a ConfigurationEventResourceType enum value
+	ConfigurationEventResourceTypeCloudformation = "CLOUDFORMATION"
+
+	// ConfigurationEventResourceTypeSsmAssociation is a ConfigurationEventResourceType enum value
+	ConfigurationEventResourceTypeSsmAssociation = "SSM_ASSOCIATION"
+)
+
+const (
+	// ConfigurationEventStatusInfo is a ConfigurationEventStatus enum value
+	ConfigurationEventStatusInfo = "INFO"
+
+	// ConfigurationEventStatusWarn is a ConfigurationEventStatus enum value
+	ConfigurationEventStatusWarn = "WARN"
+
+	// ConfigurationEventStatusError is a ConfigurationEventStatus enum value
+	ConfigurationEventStatusError = "ERROR"
+)
+
 const (
 	// FeedbackKeyInsightsFeedback is a FeedbackKey enum value
 	FeedbackKeyInsightsFeedback = "INSIGHTS_FEEDBACK"
@@ -3395,13 +6444,13 @@ const (
 
 const (
 	// SeverityLevelLow is a SeverityLevel enum value
-	SeverityLevelLow = "LOW"
+	SeverityLevelLow = "Low"
 
 	// SeverityLevelMedium is a SeverityLevel enum value
-	SeverityLevelMedium = "MEDIUM"
+	SeverityLevelMedium = "Medium"
 
 	// SeverityLevelHigh is a SeverityLevel enum value
-	SeverityLevelHigh = "HIGH"
+	SeverityLevelHigh = "High"
 )
 
 const (
@@ -3413,4 +6462,21 @@ const (
 
 	// StatusPending is a Status enum value
 	StatusPending = "PENDING"
+)
+
+const (
+	// TierDefault is a Tier enum value
+	TierDefault = "DEFAULT"
+
+	// TierDotNetCore is a Tier enum value
+	TierDotNetCore = "DOT_NET_CORE"
+
+	// TierDotNetWorker is a Tier enum value
+	TierDotNetWorker = "DOT_NET_WORKER"
+
+	// TierDotNetWeb is a Tier enum value
+	TierDotNetWeb = "DOT_NET_WEB"
+
+	// TierSqlServer is a Tier enum value
+	TierSqlServer = "SQL_SERVER"
 )

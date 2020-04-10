@@ -45,13 +45,13 @@ resource "aws_vpc" "mainvpc" {
 }
 
 resource "aws_default_network_acl" "default" {
-  default_network_acl_id = "${aws_vpc.mainvpc.default_network_acl_id}"
+  default_network_acl_id = aws_vpc.mainvpc.default_network_acl_id
 
   ingress {
     protocol   = -1
     rule_no    = 100
     action     = "allow"
-    cidr_block = # set a CIDR block here
+    cidr_block = aws_vpc.mainvpc.cidr_block
     from_port  = 0
     to_port    = 0
   }
@@ -78,20 +78,20 @@ resource "aws_vpc" "mainvpc" {
 }
 
 resource "aws_default_network_acl" "default" {
-  default_network_acl_id = "${aws_vpc.mainvpc.default_network_acl_id}"
+  default_network_acl_id = aws_vpc.mainvpc.default_network_acl_id
 
   ingress {
     protocol   = -1
     rule_no    = 100
     action     = "allow"
-    cidr_block = # set a CIDR block here
+    cidr_block = aws_vpc.mainvpc.cidr_block
     from_port  = 0
     to_port    = 0
   }
 }
 ```
 
-## Example config to deny all traffic to any Subnet in the Default Network ACL:
+## Example config to deny all traffic to any Subnet in the Default Network ACL
 
 This config denies all traffic in the Default ACL. This can be useful if you
 want a locked down default to force all resources in the VPC to assign a
@@ -164,7 +164,7 @@ As an alternative to the above, you can also specify the following lifecycle con
 
 ```hcl
 lifecycle {
-  ignore_changes = ["subnet_ids"]
+  ignore_changes = [subnet_ids]
 }
 ```
 

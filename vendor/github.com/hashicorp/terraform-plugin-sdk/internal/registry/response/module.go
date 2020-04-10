@@ -1,52 +1,5 @@
 package response
 
-import (
-	"time"
-)
-
-// Module is the response structure with the data for a single module version.
-type Module struct {
-	ID string `json:"id"`
-
-	//---------------------------------------------------------------
-	// Metadata about the overall module.
-
-	Owner       string    `json:"owner"`
-	Namespace   string    `json:"namespace"`
-	Name        string    `json:"name"`
-	Version     string    `json:"version"`
-	Provider    string    `json:"provider"`
-	Description string    `json:"description"`
-	Source      string    `json:"source"`
-	PublishedAt time.Time `json:"published_at"`
-	Downloads   int       `json:"downloads"`
-	Verified    bool      `json:"verified"`
-}
-
-// ModuleDetail represents a module in full detail.
-type ModuleDetail struct {
-	Module
-
-	//---------------------------------------------------------------
-	// Metadata about the overall module. This is only available when
-	// requesting the specific module (not in list responses).
-
-	// Root is the root module.
-	Root *ModuleSubmodule `json:"root"`
-
-	// Submodules are the other submodules that are available within
-	// this module.
-	Submodules []*ModuleSubmodule `json:"submodules"`
-
-	//---------------------------------------------------------------
-	// The fields below are only set when requesting this specific
-	// module. They are available to easily know all available versions
-	// and providers without multiple API calls.
-
-	Providers []string `json:"providers"` // All available providers
-	Versions  []string `json:"versions"`  // All versions
-}
-
 // ModuleSubmodule is the metadata about a specific submodule within
 // a module. This includes the root module as a special case.
 type ModuleSubmodule struct {

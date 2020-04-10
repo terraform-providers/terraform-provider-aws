@@ -2,6 +2,10 @@
 
 package devicefarm
 
+import (
+	"github.com/aws/aws-sdk-go/private/protocol"
+)
+
 const (
 
 	// ErrCodeArgumentException for service response error code
@@ -10,11 +14,24 @@ const (
 	// An invalid argument was specified.
 	ErrCodeArgumentException = "ArgumentException"
 
+	// ErrCodeCannotDeleteException for service response error code
+	// "CannotDeleteException".
+	//
+	// The requested object could not be deleted.
+	ErrCodeCannotDeleteException = "CannotDeleteException"
+
 	// ErrCodeIdempotencyException for service response error code
 	// "IdempotencyException".
 	//
 	// An entity with the same name already exists.
 	ErrCodeIdempotencyException = "IdempotencyException"
+
+	// ErrCodeInternalServiceException for service response error code
+	// "InternalServiceException".
+	//
+	// An internal exception was raised in the service. Contact aws-devicefarm-support@amazon.com
+	// (mailto:aws-devicefarm-support@amazon.com) if you see this error.
+	ErrCodeInternalServiceException = "InternalServiceException"
 
 	// ErrCodeInvalidOperationException for service response error code
 	// "InvalidOperationException".
@@ -68,3 +85,18 @@ const (
 	// of tags that can be applied to a repository is 50.
 	ErrCodeTooManyTagsException = "TooManyTagsException"
 )
+
+var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
+	"ArgumentException":         newErrorArgumentException,
+	"CannotDeleteException":     newErrorCannotDeleteException,
+	"IdempotencyException":      newErrorIdempotencyException,
+	"InternalServiceException":  newErrorInternalServiceException,
+	"InvalidOperationException": newErrorInvalidOperationException,
+	"LimitExceededException":    newErrorLimitExceededException,
+	"NotEligibleException":      newErrorNotEligibleException,
+	"NotFoundException":         newErrorNotFoundException,
+	"ServiceAccountException":   newErrorServiceAccountException,
+	"TagOperationException":     newErrorTagOperationException,
+	"TagPolicyException":        newErrorTagPolicyException,
+	"TooManyTagsException":      newErrorTooManyTagsException,
+}

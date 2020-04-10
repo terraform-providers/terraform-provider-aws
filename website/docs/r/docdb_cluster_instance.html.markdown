@@ -24,7 +24,7 @@ resource "aws_docdb_cluster_instance" "cluster_instances" {
   count              = 2
   identifier         = "docdb-cluster-demo-${count.index}"
   cluster_identifier = "${aws_docdb_cluster.default.id}"
-  instance_class     = "db.r4.large"
+  instance_class     = "db.r5.large"
 }
 
 resource "aws_docdb_cluster" "default" {
@@ -77,6 +77,7 @@ In addition to all arguments above, the following attributes are exported:
 * `preferred_backup_window` - The daily time range during which automated backups are created if automated backups are enabled.
 * `storage_encrypted` - Specifies whether the DB cluster is encrypted.
 * `writer` – Boolean indicating if this instance is writable. `False` indicates this instance is a read replica.
+* `ca_cert_identifier` - (Optional) The identifier of the CA certificate for the DB instance.
 
 [1]: /docs/providers/aws/r/docdb_cluster.html
 [2]: https://docs.aws.amazon.com/documentdb/latest/developerguide/db-cluster-manage-performance.html#db-cluster-manage-scaling-instance

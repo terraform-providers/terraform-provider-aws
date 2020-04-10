@@ -25,8 +25,16 @@ func resourceAwsRouteTableAssociation() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"subnet_id": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ExactlyOneOf: []string{"subnet_id", "gateway_id"},
+				ForceNew:     true,
+			},
+			"gateway_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ExactlyOneOf: []string{"subnet_id", "gateway_id"},
+				ForceNew:     true,
 			},
 
 			"route_table_id": {
@@ -40,14 +48,21 @@ func resourceAwsRouteTableAssociation() *schema.Resource {
 func resourceAwsRouteTableAssociationCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
 
-	log.Printf(
-		"[INFO] Creating route table association: %s => %s",
-		d.Get("subnet_id").(string),
-		d.Get("route_table_id").(string))
-
 	associationOpts := ec2.AssociateRouteTableInput{
 		RouteTableId: aws.String(d.Get("route_table_id").(string)),
-		SubnetId:     aws.String(d.Get("subnet_id").(string)),
+	}
+	if len(d.Get("subnet_id").(string)) > 0 {
+		log.Printf(
+			"[INFO] Creating route table association: %s => %s",
+			d.Get("subnet_id").(string),
+			d.Get("route_table_id").(string))
+		associationOpts.SubnetId = aws.String(d.Get("subnet_id").(string))
+	} else if len(d.Get("gateway_id").(string)) > 0 {
+		log.Printf(
+			"[INFO] Creating route table association: %s => %s",
+			d.Get("gateway_id").(string),
+			d.Get("route_table_id").(string))
+		associationOpts.GatewayId = aws.String(d.Get("gateway_id").(string))
 	}
 
 	var associationID string
@@ -99,7 +114,12 @@ func resourceAwsRouteTableAssociationRead(d *schema.ResourceData, meta interface
 	for _, a := range rt.Associations {
 		if *a.RouteTableAssociationId == d.Id() {
 			found = true
-			d.Set("subnet_id", *a.SubnetId)
+			if a.SubnetId != nil {
+				d.Set("subnet_id", a.SubnetId)
+			}
+			if a.GatewayId != nil {
+				d.Set("gateway_id", a.GatewayId)
+			}
 			break
 		}
 	}
@@ -165,44 +185,57 @@ func resourceAwsRouteTableAssociationDelete(d *schema.ResourceData, meta interfa
 func resourceAwsRouteTableAssociationImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	parts := strings.Split(d.Id(), "/")
 	if len(parts) != 2 {
-		return []*schema.ResourceData{}, fmt.Errorf("Wrong format for import: %s. Use 'subnet ID/route table ID'", d.Id())
+		return []*schema.ResourceData{}, fmt.Errorf("Unexpected format for import: %s. Use 'subnet ID/route table ID' or 'gateway ID/route table ID", d.Id())
 	}
 
-	subnetID := parts[0]
+	targetID := parts[0]
 	routeTableID := parts[1]
 
-	log.Printf("[DEBUG] Importing route table association, subnet: %s, route table: %s", subnetID, routeTableID)
+	log.Printf("[DEBUG] Importing route table association, target: %s, route table: %s", targetID, routeTableID)
 
 	conn := meta.(*AWSClient).ec2conn
 
 	input := &ec2.DescribeRouteTablesInput{}
 	input.Filters = buildEC2AttributeFilterList(
 		map[string]string{
-			"association.subnet-id":      subnetID,
 			"association.route-table-id": routeTableID,
 		},
 	)
 
 	output, err := conn.DescribeRouteTables(input)
-	if err != nil || len(output.RouteTables) == 0 {
-		return nil, fmt.Errorf("Error finding route table: %v", err)
+	if err != nil {
+		return nil, fmt.Errorf("Error finding route table: %s", err)
+	}
+	if len(output.RouteTables) == 0 {
+		return nil, fmt.Errorf("No route table found with ID %s", routeTableID)
 	}
 
 	rt := output.RouteTables[0]
 
+	var targetType string
 	var associationID string
 	for _, a := range rt.Associations {
-		if aws.StringValue(a.SubnetId) == subnetID {
+		if aws.StringValue(a.SubnetId) == targetID {
+			targetType = "subnet"
+			associationID = aws.StringValue(a.RouteTableAssociationId)
+			break
+		}
+		if aws.StringValue(a.SubnetId) == targetID || aws.StringValue(a.GatewayId) == targetID {
+			targetType = "gateway"
 			associationID = aws.StringValue(a.RouteTableAssociationId)
 			break
 		}
 	}
 	if associationID == "" {
-		return nil, fmt.Errorf("Error finding route table, ID: %v", *rt.RouteTableId)
+		return nil, fmt.Errorf("No association found between route table ID %s and target ID %s", routeTableID, targetID)
 	}
 
 	d.SetId(associationID)
-	d.Set("subnet_id", subnetID)
+	if targetType == "subnet" {
+		d.Set("subnet_id", targetID)
+	} else if targetType == "gateway" {
+		d.Set("gateway_id", targetID)
+	}
 	d.Set("route_table_id", routeTableID)
 
 	return []*schema.ResourceData{d}, nil

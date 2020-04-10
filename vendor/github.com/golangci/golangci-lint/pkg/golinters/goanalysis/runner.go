@@ -28,8 +28,6 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/golangci/golangci-lint/pkg/timeutils"
-
 	"github.com/pkg/errors"
 	"golang.org/x/tools/go/analysis"
 	"golang.org/x/tools/go/gcexportdata"
@@ -40,6 +38,7 @@ import (
 	"github.com/golangci/golangci-lint/internal/pkgcache"
 	"github.com/golangci/golangci-lint/pkg/golinters/goanalysis/load"
 	"github.com/golangci/golangci-lint/pkg/logutils"
+	"github.com/golangci/golangci-lint/pkg/timeutils"
 )
 
 var (
@@ -313,7 +312,7 @@ func (r *runner) analyze(pkgs []*packages.Package, analyzers []*analysis.Analyze
 	debugf("There are %d initial and %d total packages", len(initialPkgs), len(loadingPackages))
 	for _, lp := range loadingPackages {
 		if lp.isInitial {
-			wg.Add(1)
+			wg.Add(1) //nolint:gomnd
 			go func(lp *loadingPackage) {
 				lp.analyzeRecursive(r.loadMode, loadSem)
 				wg.Done()

@@ -17,7 +17,12 @@ matrix:
       script: make lint
     - go: "1.13.x"
       name: "Code UnitTest"
-      script: make test
+      script:
+        - make test
+        - make gencheck
+    - go: "1.13.x"
+      name: "Dependencies"
+      script: make depscheck
     - go: "1.13.x"
       name: "Website"
       script:

@@ -2,6 +2,7 @@ package aws
 
 import (
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -128,6 +129,12 @@ func resourceAwsServiceQuotasServiceQuotaRead(d *schema.ResourceData, meta inter
 	}
 
 	output, err := conn.GetServiceQuota(input)
+
+	if isAWSErr(err, servicequotas.ErrCodeNoSuchResourceException, "") {
+		log.Printf("[WARN] Service Quotas Service Quota (%s) not found, removing from state", d.Id())
+		d.SetId("")
+		return nil
+	}
 
 	if err != nil {
 		return fmt.Errorf("error getting Service Quotas Service Quota (%s): %s", d.Id(), err)

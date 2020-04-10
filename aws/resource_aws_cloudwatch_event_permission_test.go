@@ -251,7 +251,7 @@ func TestAccAWSCloudWatchEventPermission_Multiple(t *testing.T) {
 func TestAccAWSCloudWatchEventPermission_Disappears(t *testing.T) {
 	resourceName := "aws_cloudwatch_event_permission.test1"
 	principal := "111111111111"
-	statementID := acctest.RandomWithPrefix(t.Name())[:64]
+	statementID := fmt.Sprintf("tf-acc-test-%s", acctest.RandStringFromCharSet(52, acctest.CharSetAlphaNum)) // len = 64
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },

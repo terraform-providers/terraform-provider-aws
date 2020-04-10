@@ -3,7 +3,7 @@ subcategory: "VPC"
 layout: "aws"
 page_title: "AWS: aws_egress_only_internet_gateway"
 description: |-
-  Provides a resource to create a VPC Egress Only Internet Gateway.
+  Provides a resource to create an egress-only Internet gateway.
 ---
 
 # Resource: aws_egress_only_internet_gateway
@@ -16,13 +16,17 @@ outside of your VPC from initiating an IPv6 connection with your instance.
 ## Example Usage
 
 ```hcl
-resource "aws_vpc" "foo" {
+resource "aws_vpc" "example" {
   cidr_block                       = "10.1.0.0/16"
   assign_generated_ipv6_cidr_block = true
 }
 
-resource "aws_egress_only_internet_gateway" "foo" {
-  vpc_id = "${aws_vpc.foo.id}"
+resource "aws_egress_only_internet_gateway" "example" {
+  vpc_id = "${aws_vpc.example.id}"
+
+  tags = {
+    Name = "main"
+  }
 }
 ```
 
@@ -31,9 +35,18 @@ resource "aws_egress_only_internet_gateway" "foo" {
 The following arguments are supported:
 
 * `vpc_id` - (Required) The VPC ID to create in.
+* `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
-* `id` - The ID of the Egress Only Internet Gateway.
+* `id` - The ID of the egress-only Internet gateway.
+
+## Import
+
+Egress-only Internet gateways can be imported using the `id`, e.g.
+
+```
+$ terraform import aws_egress_only_internet_gateway.example eigw-015e0e244e24dfe8a
+```

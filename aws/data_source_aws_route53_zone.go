@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/route53"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func dataSourceAwsRoute53Zone() *schema.Resource {
@@ -72,7 +73,8 @@ func dataSourceAwsRoute53ZoneRead(d *schema.ResourceData, meta interface{}) erro
 	name = hostedZoneName(name.(string))
 	id, idExists := d.GetOk("zone_id")
 	vpcId, vpcIdExists := d.GetOk("vpc_id")
-	tags := tagsFromMap(d.Get("tags").(map[string]interface{}))
+	tags := keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws()
+
 	if nameExists && idExists {
 		return fmt.Errorf("zone_id and name arguments can't be used together")
 	}
@@ -125,27 +127,12 @@ func dataSourceAwsRoute53ZoneRead(d *schema.ResourceData, meta interface{}) erro
 				// we check if tags match
 				matchingTags := true
 				if len(tags) > 0 {
-					reqListTags := &route53.ListTagsForResourceInput{}
-					reqListTags.ResourceId = aws.String(hostedZoneId)
-					reqListTags.ResourceType = aws.String("hostedzone")
-					respListTags, errListTags := conn.ListTagsForResource(reqListTags)
+					listTags, err := keyvaluetags.Route53ListTags(conn, hostedZoneId, route53.TagResourceTypeHostedzone)
 
-					if errListTags != nil {
-						return fmt.Errorf("Error finding Route 53 Hosted Zone: %v", errListTags)
+					if err != nil {
+						return fmt.Errorf("Error finding Route 53 Hosted Zone: %v", err)
 					}
-					for _, tag := range tags {
-						found := false
-						for _, tagRequested := range respListTags.ResourceTagSet.Tags {
-							if *tag.Key == *tagRequested.Key && *tag.Value == *tagRequested.Value {
-								found = true
-							}
-						}
-
-						if !found {
-							matchingTags = false
-							break
-						}
-					}
+					matchingTags = listTags.ContainsAll(tags)
 				}
 
 				if matchingTags && matchingVPC {
@@ -185,6 +172,16 @@ func dataSourceAwsRoute53ZoneRead(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("Error finding Route 53 Hosted Zone: %v", err)
 	}
 	d.Set("name_servers", nameServers)
+
+	tags, err = keyvaluetags.Route53ListTags(conn, idHostedZone, route53.TagResourceTypeHostedzone)
+
+	if err != nil {
+		return fmt.Errorf("Error finding Route 53 Hosted Zone: %v", err)
+	}
+
+	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+		return fmt.Errorf("error setting tags: %s", err)
+	}
 
 	return nil
 }

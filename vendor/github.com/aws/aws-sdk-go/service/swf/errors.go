@@ -2,6 +2,10 @@
 
 package swf
 
+import (
+	"github.com/aws/aws-sdk-go/private/protocol"
+)
+
 const (
 
 	// ErrCodeDefaultUndefinedFault for service response error code
@@ -84,3 +88,16 @@ const (
 	// is already running in the specified domain.
 	ErrCodeWorkflowExecutionAlreadyStartedFault = "WorkflowExecutionAlreadyStartedFault"
 )
+
+var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
+	"DefaultUndefinedFault":                newErrorDefaultUndefinedFault,
+	"DomainAlreadyExistsFault":             newErrorDomainAlreadyExistsFault,
+	"DomainDeprecatedFault":                newErrorDomainDeprecatedFault,
+	"LimitExceededFault":                   newErrorLimitExceededFault,
+	"OperationNotPermittedFault":           newErrorOperationNotPermittedFault,
+	"TooManyTagsFault":                     newErrorTooManyTagsFault,
+	"TypeAlreadyExistsFault":               newErrorTypeAlreadyExistsFault,
+	"TypeDeprecatedFault":                  newErrorTypeDeprecatedFault,
+	"UnknownResourceFault":                 newErrorUnknownResourceFault,
+	"WorkflowExecutionAlreadyStartedFault": newErrorWorkflowExecutionAlreadyStartedFault,
+}

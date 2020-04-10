@@ -29,6 +29,7 @@ The following arguments are supported:
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the launch configuration.
+* `arn` - The Amazon Resource Name of the launch configuration.
 * `name` - The Name of the launch configuration.
 * `image_id` - The EC2 Image ID of the instance.
 * `instance_type` - The Instance Type of the instance to launch.

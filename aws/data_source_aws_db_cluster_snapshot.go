@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/rds"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func dataSourceAwsDbClusterSnapshot() *schema.Resource {
@@ -178,9 +179,14 @@ func dataSourceAwsDbClusterSnapshotRead(d *schema.ResourceData, meta interface{}
 	d.Set("storage_encrypted", snapshot.StorageEncrypted)
 	d.Set("vpc_id", snapshot.VpcId)
 
-	// Fetch and save tags
-	if err := saveTagsRDS(conn, d, aws.StringValue(snapshot.DBClusterSnapshotArn)); err != nil {
-		log.Printf("[WARN] Failed to save tags for RDS DB Cluster Snapshot (%s): %s", aws.StringValue(snapshot.DBClusterSnapshotArn), err)
+	tags, err := keyvaluetags.RdsListTags(conn, d.Get("db_cluster_snapshot_arn").(string))
+
+	if err != nil {
+		return fmt.Errorf("error listing tags for RDS DB Cluster Snapshot (%s): %s", d.Get("db_cluster_snapshot_arn").(string), err)
+	}
+
+	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+		return fmt.Errorf("error setting tags: %s", err)
 	}
 
 	return nil

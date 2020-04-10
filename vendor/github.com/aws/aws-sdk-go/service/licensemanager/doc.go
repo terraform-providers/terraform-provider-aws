@@ -3,14 +3,8 @@
 // Package licensemanager provides the client and types for making API
 // requests to AWS License Manager.
 //
-// This is the AWS License Manager API Reference. It provides descriptions,
-// syntax, and usage examples for each of the actions and data types for License
-// Manager. The topic for each action shows the Query API request parameters
-// and the XML response. You can also view the XML request elements in the WSDL.
-//
-// Alternatively, you can use one of the AWS SDKs to access an API that's tailored
-// to the programming language or platform that you're using. For more information,
-// see AWS SDKs (http://aws.amazon.com/tools/#SDKs).
+// AWS License Manager makes it easier to manage licenses from software vendors
+// across multiple AWS accounts and on-premises servers.
 //
 // See https://docs.aws.amazon.com/goto/WebAPI/license-manager-2018-08-01 for more information on this service.
 //

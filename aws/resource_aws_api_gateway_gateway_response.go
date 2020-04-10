@@ -66,7 +66,7 @@ func resourceAwsApiGatewayGatewayResponse() *schema.Resource {
 }
 
 func resourceAwsApiGatewayGatewayResponsePut(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	conn := meta.(*AWSClient).apigatewayconn
 
 	templates := make(map[string]string)
 	if kv, ok := d.GetOk("response_templates"); ok {
@@ -107,7 +107,7 @@ func resourceAwsApiGatewayGatewayResponsePut(d *schema.ResourceData, meta interf
 }
 
 func resourceAwsApiGatewayGatewayResponseRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	conn := meta.(*AWSClient).apigatewayconn
 
 	log.Printf("[DEBUG] Reading API Gateway Gateway Response %s", d.Id())
 	gatewayResponse, err := conn.GetGatewayResponse(&apigateway.GetGatewayResponseInput{
@@ -134,7 +134,7 @@ func resourceAwsApiGatewayGatewayResponseRead(d *schema.ResourceData, meta inter
 }
 
 func resourceAwsApiGatewayGatewayResponseDelete(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	conn := meta.(*AWSClient).apigatewayconn
 	log.Printf("[DEBUG] Deleting API Gateway Gateway Response: %s", d.Id())
 
 	_, err := conn.DeleteGatewayResponse(&apigateway.DeleteGatewayResponseInput{

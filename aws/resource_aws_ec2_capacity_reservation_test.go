@@ -466,7 +466,14 @@ func testAccPreCheckAWSEc2CapacityReservation(t *testing.T) {
 }
 
 const testAccEc2CapacityReservationConfig = `
-data "aws_availability_zones" "available" {}
+data "aws_availability_zones" "available" {
+  state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
 
 resource "aws_ec2_capacity_reservation" "test" {
   availability_zone = "${data.aws_availability_zones.available.names[0]}"
@@ -478,7 +485,14 @@ resource "aws_ec2_capacity_reservation" "test" {
 
 func testAccEc2CapacityReservationConfig_ebsOptimized(ebsOptimized bool) string {
 	return fmt.Sprintf(`
-data "aws_availability_zones" "available" {}
+data "aws_availability_zones" "available" {
+  state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
 
 resource "aws_ec2_capacity_reservation" "test" {
   availability_zone = "${data.aws_availability_zones.available.names[0]}"
@@ -492,7 +506,14 @@ resource "aws_ec2_capacity_reservation" "test" {
 
 func testAccEc2CapacityReservationConfig_endDate(endDate string) string {
 	return fmt.Sprintf(`
-data "aws_availability_zones" "available" {}
+data "aws_availability_zones" "available" {
+  state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
 
 resource "aws_ec2_capacity_reservation" "test" {
   availability_zone = "${data.aws_availability_zones.available.names[0]}"
@@ -507,7 +528,14 @@ resource "aws_ec2_capacity_reservation" "test" {
 
 func testAccEc2CapacityReservationConfig_endDateType(endDateType string) string {
 	return fmt.Sprintf(`
-data "aws_availability_zones" "available" {}
+data "aws_availability_zones" "available" {
+  state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
 
 resource "aws_ec2_capacity_reservation" "test" {
   availability_zone = "${data.aws_availability_zones.available.names[0]}"
@@ -521,7 +549,14 @@ resource "aws_ec2_capacity_reservation" "test" {
 
 func testAccEc2CapacityReservationConfig_ephemeralStorage(ephemeralStorage bool) string {
 	return fmt.Sprintf(`
-data "aws_availability_zones" "available" {}
+data "aws_availability_zones" "available" {
+  state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
 
 resource "aws_ec2_capacity_reservation" "test" {
   availability_zone = "${data.aws_availability_zones.available.names[0]}"
@@ -535,7 +570,14 @@ resource "aws_ec2_capacity_reservation" "test" {
 
 func testAccEc2CapacityReservationConfig_instanceCount(instanceCount int) string {
 	return fmt.Sprintf(`
-data "aws_availability_zones" "available" {}
+data "aws_availability_zones" "available" {
+  state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
 
 resource "aws_ec2_capacity_reservation" "test" {
   availability_zone = "${data.aws_availability_zones.available.names[0]}"
@@ -548,7 +590,14 @@ resource "aws_ec2_capacity_reservation" "test" {
 
 func testAccEc2CapacityReservationConfig_instanceMatchCriteria(instanceMatchCriteria string) string {
 	return fmt.Sprintf(`
-data "aws_availability_zones" "available" {}
+data "aws_availability_zones" "available" {
+  state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
 
 resource "aws_ec2_capacity_reservation" "test" {
   availability_zone       = "${data.aws_availability_zones.available.names[0]}"
@@ -562,7 +611,14 @@ resource "aws_ec2_capacity_reservation" "test" {
 
 func testAccEc2CapacityReservationConfig_instanceType(instanceType string) string {
 	return fmt.Sprintf(`
-data "aws_availability_zones" "available" {}
+data "aws_availability_zones" "available" {
+  state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
 
 resource "aws_ec2_capacity_reservation" "test" {
   availability_zone = "${data.aws_availability_zones.available.names[0]}"
@@ -575,7 +631,14 @@ resource "aws_ec2_capacity_reservation" "test" {
 
 func testAccEc2CapacityReservationConfig_tags_single(tag1Key, tag1Value string) string {
 	return fmt.Sprintf(`
-data "aws_availability_zones" "available" {}
+data "aws_availability_zones" "available" {
+  state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
 
 resource "aws_ec2_capacity_reservation" "test" {
   availability_zone = "${data.aws_availability_zones.available.names[0]}"
@@ -592,7 +655,14 @@ resource "aws_ec2_capacity_reservation" "test" {
 
 func testAccEc2CapacityReservationConfig_tags_multiple(tag1Key, tag1Value, tag2Key, tag2Value string) string {
 	return fmt.Sprintf(`
-data "aws_availability_zones" "available" {}
+data "aws_availability_zones" "available" {
+  state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
 
 resource "aws_ec2_capacity_reservation" "test" {
   availability_zone = "${data.aws_availability_zones.available.names[0]}"
@@ -610,7 +680,14 @@ resource "aws_ec2_capacity_reservation" "test" {
 
 func testAccEc2CapacityReservationConfig_tenancy(tenancy string) string {
 	return fmt.Sprintf(`
-data "aws_availability_zones" "available" {}
+data "aws_availability_zones" "available" {
+  state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
 
 resource "aws_ec2_capacity_reservation" "test" {
   availability_zone = "${data.aws_availability_zones.available.names[0]}"

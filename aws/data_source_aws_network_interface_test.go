@@ -34,7 +34,14 @@ func TestAccDataSourceAwsNetworkInterface_basic(t *testing.T) {
 
 func testAccDataSourceAwsNetworkInterface_basic(rName string) string {
 	return fmt.Sprintf(`
-data "aws_availability_zones" "available" {}
+data "aws_availability_zones" "available" {
+  state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
 
 resource "aws_vpc" "test" {
   cidr_block = "10.0.0.0/16"
@@ -90,7 +97,14 @@ func TestAccDataSourceAwsNetworkInterface_filters(t *testing.T) {
 
 func testAccDataSourceAwsNetworkInterface_filters(rName string) string {
 	return fmt.Sprintf(`
-data "aws_availability_zones" "available" {}
+data "aws_availability_zones" "available" {
+  state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
 
 resource "aws_vpc" "test" {
   cidr_block = "10.0.0.0/16"

@@ -84,18 +84,18 @@ func (c *Glacier) AbortMultipartUploadRequest(input *AbortMultipartUploadInput) 
 // See the AWS API reference guide for Amazon Glacier's
 // API operation AbortMultipartUpload for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   Returned if the specified resource (such as a vault, upload ID, or job ID)
 //   doesn't exist.
 //
-//   * ErrCodeInvalidParameterValueException "InvalidParameterValueException"
+//   * InvalidParameterValueException
 //   Returned if a parameter of the request is incorrectly specified.
 //
-//   * ErrCodeMissingParameterValueException "MissingParameterValueException"
+//   * MissingParameterValueException
 //   Returned if a required header or parameter is missing from the request.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   Returned if the service cannot complete the request.
 //
 func (c *Glacier) AbortMultipartUpload(input *AbortMultipartUploadInput) (*AbortMultipartUploadOutput, error) {
@@ -186,18 +186,18 @@ func (c *Glacier) AbortVaultLockRequest(input *AbortVaultLockInput) (req *reques
 // See the AWS API reference guide for Amazon Glacier's
 // API operation AbortVaultLock for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   Returned if the specified resource (such as a vault, upload ID, or job ID)
 //   doesn't exist.
 //
-//   * ErrCodeInvalidParameterValueException "InvalidParameterValueException"
+//   * InvalidParameterValueException
 //   Returned if a parameter of the request is incorrectly specified.
 //
-//   * ErrCodeMissingParameterValueException "MissingParameterValueException"
+//   * MissingParameterValueException
 //   Returned if a required header or parameter is missing from the request.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   Returned if the service cannot complete the request.
 //
 func (c *Glacier) AbortVaultLock(input *AbortVaultLockInput) (*AbortVaultLockOutput, error) {
@@ -278,21 +278,21 @@ func (c *Glacier) AddTagsToVaultRequest(input *AddTagsToVaultInput) (req *reques
 // See the AWS API reference guide for Amazon Glacier's
 // API operation AddTagsToVault for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidParameterValueException "InvalidParameterValueException"
+// Returned Error Types:
+//   * InvalidParameterValueException
 //   Returned if a parameter of the request is incorrectly specified.
 //
-//   * ErrCodeMissingParameterValueException "MissingParameterValueException"
+//   * MissingParameterValueException
 //   Returned if a required header or parameter is missing from the request.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   Returned if the specified resource (such as a vault, upload ID, or job ID)
 //   doesn't exist.
 //
-//   * ErrCodeLimitExceededException "LimitExceededException"
+//   * LimitExceededException
 //   Returned if the request results in a vault or account limit being exceeded.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   Returned if the service cannot complete the request.
 //
 func (c *Glacier) AddTagsToVault(input *AddTagsToVaultInput) (*AddTagsToVaultOutput, error) {
@@ -410,18 +410,18 @@ func (c *Glacier) CompleteMultipartUploadRequest(input *CompleteMultipartUploadI
 // See the AWS API reference guide for Amazon Glacier's
 // API operation CompleteMultipartUpload for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   Returned if the specified resource (such as a vault, upload ID, or job ID)
 //   doesn't exist.
 //
-//   * ErrCodeInvalidParameterValueException "InvalidParameterValueException"
+//   * InvalidParameterValueException
 //   Returned if a parameter of the request is incorrectly specified.
 //
-//   * ErrCodeMissingParameterValueException "MissingParameterValueException"
+//   * MissingParameterValueException
 //   Returned if a required header or parameter is missing from the request.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   Returned if the service cannot complete the request.
 //
 func (c *Glacier) CompleteMultipartUpload(input *CompleteMultipartUploadInput) (*ArchiveCreationOutput, error) {
@@ -511,18 +511,18 @@ func (c *Glacier) CompleteVaultLockRequest(input *CompleteVaultLockInput) (req *
 // See the AWS API reference guide for Amazon Glacier's
 // API operation CompleteVaultLock for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   Returned if the specified resource (such as a vault, upload ID, or job ID)
 //   doesn't exist.
 //
-//   * ErrCodeInvalidParameterValueException "InvalidParameterValueException"
+//   * InvalidParameterValueException
 //   Returned if a parameter of the request is incorrectly specified.
 //
-//   * ErrCodeMissingParameterValueException "MissingParameterValueException"
+//   * MissingParameterValueException
 //   Returned if a required header or parameter is missing from the request.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   Returned if the service cannot complete the request.
 //
 func (c *Glacier) CompleteVaultLock(input *CompleteVaultLockInput) (*CompleteVaultLockOutput, error) {
@@ -620,17 +620,17 @@ func (c *Glacier) CreateVaultRequest(input *CreateVaultInput) (req *request.Requ
 // See the AWS API reference guide for Amazon Glacier's
 // API operation CreateVault for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidParameterValueException "InvalidParameterValueException"
+// Returned Error Types:
+//   * InvalidParameterValueException
 //   Returned if a parameter of the request is incorrectly specified.
 //
-//   * ErrCodeMissingParameterValueException "MissingParameterValueException"
+//   * MissingParameterValueException
 //   Returned if a required header or parameter is missing from the request.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   Returned if the service cannot complete the request.
 //
-//   * ErrCodeLimitExceededException "LimitExceededException"
+//   * LimitExceededException
 //   Returned if the request results in a vault or account limit being exceeded.
 //
 func (c *Glacier) CreateVault(input *CreateVaultInput) (*CreateVaultOutput, error) {
@@ -730,18 +730,18 @@ func (c *Glacier) DeleteArchiveRequest(input *DeleteArchiveInput) (req *request.
 // See the AWS API reference guide for Amazon Glacier's
 // API operation DeleteArchive for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   Returned if the specified resource (such as a vault, upload ID, or job ID)
 //   doesn't exist.
 //
-//   * ErrCodeInvalidParameterValueException "InvalidParameterValueException"
+//   * InvalidParameterValueException
 //   Returned if a parameter of the request is incorrectly specified.
 //
-//   * ErrCodeMissingParameterValueException "MissingParameterValueException"
+//   * MissingParameterValueException
 //   Returned if a required header or parameter is missing from the request.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   Returned if the service cannot complete the request.
 //
 func (c *Glacier) DeleteArchive(input *DeleteArchiveInput) (*DeleteArchiveOutput, error) {
@@ -839,18 +839,18 @@ func (c *Glacier) DeleteVaultRequest(input *DeleteVaultInput) (req *request.Requ
 // See the AWS API reference guide for Amazon Glacier's
 // API operation DeleteVault for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   Returned if the specified resource (such as a vault, upload ID, or job ID)
 //   doesn't exist.
 //
-//   * ErrCodeInvalidParameterValueException "InvalidParameterValueException"
+//   * InvalidParameterValueException
 //   Returned if a parameter of the request is incorrectly specified.
 //
-//   * ErrCodeMissingParameterValueException "MissingParameterValueException"
+//   * MissingParameterValueException
 //   Returned if a required header or parameter is missing from the request.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   Returned if the service cannot complete the request.
 //
 func (c *Glacier) DeleteVault(input *DeleteVaultInput) (*DeleteVaultOutput, error) {
@@ -935,18 +935,18 @@ func (c *Glacier) DeleteVaultAccessPolicyRequest(input *DeleteVaultAccessPolicyI
 // See the AWS API reference guide for Amazon Glacier's
 // API operation DeleteVaultAccessPolicy for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   Returned if the specified resource (such as a vault, upload ID, or job ID)
 //   doesn't exist.
 //
-//   * ErrCodeInvalidParameterValueException "InvalidParameterValueException"
+//   * InvalidParameterValueException
 //   Returned if a parameter of the request is incorrectly specified.
 //
-//   * ErrCodeMissingParameterValueException "MissingParameterValueException"
+//   * MissingParameterValueException
 //   Returned if a required header or parameter is missing from the request.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   Returned if the service cannot complete the request.
 //
 func (c *Glacier) DeleteVaultAccessPolicy(input *DeleteVaultAccessPolicyInput) (*DeleteVaultAccessPolicyOutput, error) {
@@ -1036,18 +1036,18 @@ func (c *Glacier) DeleteVaultNotificationsRequest(input *DeleteVaultNotification
 // See the AWS API reference guide for Amazon Glacier's
 // API operation DeleteVaultNotifications for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   Returned if the specified resource (such as a vault, upload ID, or job ID)
 //   doesn't exist.
 //
-//   * ErrCodeInvalidParameterValueException "InvalidParameterValueException"
+//   * InvalidParameterValueException
 //   Returned if a parameter of the request is incorrectly specified.
 //
-//   * ErrCodeMissingParameterValueException "MissingParameterValueException"
+//   * MissingParameterValueException
 //   Returned if a required header or parameter is missing from the request.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   Returned if the service cannot complete the request.
 //
 func (c *Glacier) DeleteVaultNotifications(input *DeleteVaultNotificationsInput) (*DeleteVaultNotificationsOutput, error) {
@@ -1144,18 +1144,18 @@ func (c *Glacier) DescribeJobRequest(input *DescribeJobInput) (req *request.Requ
 // See the AWS API reference guide for Amazon Glacier's
 // API operation DescribeJob for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   Returned if the specified resource (such as a vault, upload ID, or job ID)
 //   doesn't exist.
 //
-//   * ErrCodeInvalidParameterValueException "InvalidParameterValueException"
+//   * InvalidParameterValueException
 //   Returned if a parameter of the request is incorrectly specified.
 //
-//   * ErrCodeMissingParameterValueException "MissingParameterValueException"
+//   * MissingParameterValueException
 //   Returned if a required header or parameter is missing from the request.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   Returned if the service cannot complete the request.
 //
 func (c *Glacier) DescribeJob(input *DescribeJobInput) (*JobDescription, error) {
@@ -1249,18 +1249,18 @@ func (c *Glacier) DescribeVaultRequest(input *DescribeVaultInput) (req *request.
 // See the AWS API reference guide for Amazon Glacier's
 // API operation DescribeVault for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   Returned if the specified resource (such as a vault, upload ID, or job ID)
 //   doesn't exist.
 //
-//   * ErrCodeInvalidParameterValueException "InvalidParameterValueException"
+//   * InvalidParameterValueException
 //   Returned if a parameter of the request is incorrectly specified.
 //
-//   * ErrCodeMissingParameterValueException "MissingParameterValueException"
+//   * MissingParameterValueException
 //   Returned if a required header or parameter is missing from the request.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   Returned if the service cannot complete the request.
 //
 func (c *Glacier) DescribeVault(input *DescribeVaultInput) (*DescribeVaultOutput, error) {
@@ -1337,14 +1337,14 @@ func (c *Glacier) GetDataRetrievalPolicyRequest(input *GetDataRetrievalPolicyInp
 // See the AWS API reference guide for Amazon Glacier's
 // API operation GetDataRetrievalPolicy for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidParameterValueException "InvalidParameterValueException"
+// Returned Error Types:
+//   * InvalidParameterValueException
 //   Returned if a parameter of the request is incorrectly specified.
 //
-//   * ErrCodeMissingParameterValueException "MissingParameterValueException"
+//   * MissingParameterValueException
 //   Returned if a required header or parameter is missing from the request.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   Returned if the service cannot complete the request.
 //
 func (c *Glacier) GetDataRetrievalPolicy(input *GetDataRetrievalPolicyInput) (*GetDataRetrievalPolicyOutput, error) {
@@ -1462,18 +1462,18 @@ func (c *Glacier) GetJobOutputRequest(input *GetJobOutputInput) (req *request.Re
 // See the AWS API reference guide for Amazon Glacier's
 // API operation GetJobOutput for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   Returned if the specified resource (such as a vault, upload ID, or job ID)
 //   doesn't exist.
 //
-//   * ErrCodeInvalidParameterValueException "InvalidParameterValueException"
+//   * InvalidParameterValueException
 //   Returned if a parameter of the request is incorrectly specified.
 //
-//   * ErrCodeMissingParameterValueException "MissingParameterValueException"
+//   * MissingParameterValueException
 //   Returned if a required header or parameter is missing from the request.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   Returned if the service cannot complete the request.
 //
 func (c *Glacier) GetJobOutput(input *GetJobOutputInput) (*GetJobOutputOutput, error) {
@@ -1553,18 +1553,18 @@ func (c *Glacier) GetVaultAccessPolicyRequest(input *GetVaultAccessPolicyInput) 
 // See the AWS API reference guide for Amazon Glacier's
 // API operation GetVaultAccessPolicy for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   Returned if the specified resource (such as a vault, upload ID, or job ID)
 //   doesn't exist.
 //
-//   * ErrCodeInvalidParameterValueException "InvalidParameterValueException"
+//   * InvalidParameterValueException
 //   Returned if a parameter of the request is incorrectly specified.
 //
-//   * ErrCodeMissingParameterValueException "MissingParameterValueException"
+//   * MissingParameterValueException
 //   Returned if a required header or parameter is missing from the request.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   Returned if the service cannot complete the request.
 //
 func (c *Glacier) GetVaultAccessPolicy(input *GetVaultAccessPolicyInput) (*GetVaultAccessPolicyOutput, error) {
@@ -1658,18 +1658,18 @@ func (c *Glacier) GetVaultLockRequest(input *GetVaultLockInput) (req *request.Re
 // See the AWS API reference guide for Amazon Glacier's
 // API operation GetVaultLock for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   Returned if the specified resource (such as a vault, upload ID, or job ID)
 //   doesn't exist.
 //
-//   * ErrCodeInvalidParameterValueException "InvalidParameterValueException"
+//   * InvalidParameterValueException
 //   Returned if a parameter of the request is incorrectly specified.
 //
-//   * ErrCodeMissingParameterValueException "MissingParameterValueException"
+//   * MissingParameterValueException
 //   Returned if a required header or parameter is missing from the request.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   Returned if the service cannot complete the request.
 //
 func (c *Glacier) GetVaultLock(input *GetVaultLockInput) (*GetVaultLockOutput, error) {
@@ -1762,18 +1762,18 @@ func (c *Glacier) GetVaultNotificationsRequest(input *GetVaultNotificationsInput
 // See the AWS API reference guide for Amazon Glacier's
 // API operation GetVaultNotifications for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   Returned if the specified resource (such as a vault, upload ID, or job ID)
 //   doesn't exist.
 //
-//   * ErrCodeInvalidParameterValueException "InvalidParameterValueException"
+//   * InvalidParameterValueException
 //   Returned if a parameter of the request is incorrectly specified.
 //
-//   * ErrCodeMissingParameterValueException "MissingParameterValueException"
+//   * MissingParameterValueException
 //   Returned if a required header or parameter is missing from the request.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   Returned if the service cannot complete the request.
 //
 func (c *Glacier) GetVaultNotifications(input *GetVaultNotificationsInput) (*GetVaultNotificationsOutput, error) {
@@ -1851,27 +1851,27 @@ func (c *Glacier) InitiateJobRequest(input *InitiateJobInput) (req *request.Requ
 // See the AWS API reference guide for Amazon Glacier's
 // API operation InitiateJob for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   Returned if the specified resource (such as a vault, upload ID, or job ID)
 //   doesn't exist.
 //
-//   * ErrCodePolicyEnforcedException "PolicyEnforcedException"
+//   * PolicyEnforcedException
 //   Returned if a retrieval job would exceed the current data policy's retrieval
 //   rate limit. For more information about data retrieval policies,
 //
-//   * ErrCodeInvalidParameterValueException "InvalidParameterValueException"
+//   * InvalidParameterValueException
 //   Returned if a parameter of the request is incorrectly specified.
 //
-//   * ErrCodeMissingParameterValueException "MissingParameterValueException"
+//   * MissingParameterValueException
 //   Returned if a required header or parameter is missing from the request.
 //
-//   * ErrCodeInsufficientCapacityException "InsufficientCapacityException"
+//   * InsufficientCapacityException
 //   Returned if there is insufficient capacity to process this expedited request.
 //   This error only applies to expedited retrievals and not to standard or bulk
 //   retrievals.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   Returned if the service cannot complete the request.
 //
 func (c *Glacier) InitiateJob(input *InitiateJobInput) (*InitiateJobOutput, error) {
@@ -1981,18 +1981,18 @@ func (c *Glacier) InitiateMultipartUploadRequest(input *InitiateMultipartUploadI
 // See the AWS API reference guide for Amazon Glacier's
 // API operation InitiateMultipartUpload for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   Returned if the specified resource (such as a vault, upload ID, or job ID)
 //   doesn't exist.
 //
-//   * ErrCodeInvalidParameterValueException "InvalidParameterValueException"
+//   * InvalidParameterValueException
 //   Returned if a parameter of the request is incorrectly specified.
 //
-//   * ErrCodeMissingParameterValueException "MissingParameterValueException"
+//   * MissingParameterValueException
 //   Returned if a required header or parameter is missing from the request.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   Returned if the service cannot complete the request.
 //
 func (c *Glacier) InitiateMultipartUpload(input *InitiateMultipartUploadInput) (*InitiateMultipartUploadOutput, error) {
@@ -2095,18 +2095,18 @@ func (c *Glacier) InitiateVaultLockRequest(input *InitiateVaultLockInput) (req *
 // See the AWS API reference guide for Amazon Glacier's
 // API operation InitiateVaultLock for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   Returned if the specified resource (such as a vault, upload ID, or job ID)
 //   doesn't exist.
 //
-//   * ErrCodeInvalidParameterValueException "InvalidParameterValueException"
+//   * InvalidParameterValueException
 //   Returned if a parameter of the request is incorrectly specified.
 //
-//   * ErrCodeMissingParameterValueException "MissingParameterValueException"
+//   * MissingParameterValueException
 //   Returned if a required header or parameter is missing from the request.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   Returned if the service cannot complete the request.
 //
 func (c *Glacier) InitiateVaultLock(input *InitiateVaultLockInput) (*InitiateVaultLockOutput, error) {
@@ -2222,18 +2222,18 @@ func (c *Glacier) ListJobsRequest(input *ListJobsInput) (req *request.Request, o
 // See the AWS API reference guide for Amazon Glacier's
 // API operation ListJobs for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   Returned if the specified resource (such as a vault, upload ID, or job ID)
 //   doesn't exist.
 //
-//   * ErrCodeInvalidParameterValueException "InvalidParameterValueException"
+//   * InvalidParameterValueException
 //   Returned if a parameter of the request is incorrectly specified.
 //
-//   * ErrCodeMissingParameterValueException "MissingParameterValueException"
+//   * MissingParameterValueException
 //   Returned if a required header or parameter is missing from the request.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   Returned if the service cannot complete the request.
 //
 func (c *Glacier) ListJobs(input *ListJobsInput) (*ListJobsOutput, error) {
@@ -2300,10 +2300,12 @@ func (c *Glacier) ListJobsPagesWithContext(ctx aws.Context, input *ListJobsInput
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListJobsOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListJobsOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -2393,18 +2395,18 @@ func (c *Glacier) ListMultipartUploadsRequest(input *ListMultipartUploadsInput) 
 // See the AWS API reference guide for Amazon Glacier's
 // API operation ListMultipartUploads for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   Returned if the specified resource (such as a vault, upload ID, or job ID)
 //   doesn't exist.
 //
-//   * ErrCodeInvalidParameterValueException "InvalidParameterValueException"
+//   * InvalidParameterValueException
 //   Returned if a parameter of the request is incorrectly specified.
 //
-//   * ErrCodeMissingParameterValueException "MissingParameterValueException"
+//   * MissingParameterValueException
 //   Returned if a required header or parameter is missing from the request.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   Returned if the service cannot complete the request.
 //
 func (c *Glacier) ListMultipartUploads(input *ListMultipartUploadsInput) (*ListMultipartUploadsOutput, error) {
@@ -2471,10 +2473,12 @@ func (c *Glacier) ListMultipartUploadsPagesWithContext(ctx aws.Context, input *L
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListMultipartUploadsOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListMultipartUploadsOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -2558,18 +2562,18 @@ func (c *Glacier) ListPartsRequest(input *ListPartsInput) (req *request.Request,
 // See the AWS API reference guide for Amazon Glacier's
 // API operation ListParts for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   Returned if the specified resource (such as a vault, upload ID, or job ID)
 //   doesn't exist.
 //
-//   * ErrCodeInvalidParameterValueException "InvalidParameterValueException"
+//   * InvalidParameterValueException
 //   Returned if a parameter of the request is incorrectly specified.
 //
-//   * ErrCodeMissingParameterValueException "MissingParameterValueException"
+//   * MissingParameterValueException
 //   Returned if a required header or parameter is missing from the request.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   Returned if the service cannot complete the request.
 //
 func (c *Glacier) ListParts(input *ListPartsInput) (*ListPartsOutput, error) {
@@ -2636,10 +2640,12 @@ func (c *Glacier) ListPartsPagesWithContext(ctx aws.Context, input *ListPartsInp
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListPartsOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListPartsOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -2695,14 +2701,14 @@ func (c *Glacier) ListProvisionedCapacityRequest(input *ListProvisionedCapacityI
 // See the AWS API reference guide for Amazon Glacier's
 // API operation ListProvisionedCapacity for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidParameterValueException "InvalidParameterValueException"
+// Returned Error Types:
+//   * InvalidParameterValueException
 //   Returned if a parameter of the request is incorrectly specified.
 //
-//   * ErrCodeMissingParameterValueException "MissingParameterValueException"
+//   * MissingParameterValueException
 //   Returned if a required header or parameter is missing from the request.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   Returned if the service cannot complete the request.
 //
 func (c *Glacier) ListProvisionedCapacity(input *ListProvisionedCapacityInput) (*ListProvisionedCapacityOutput, error) {
@@ -2779,18 +2785,18 @@ func (c *Glacier) ListTagsForVaultRequest(input *ListTagsForVaultInput) (req *re
 // See the AWS API reference guide for Amazon Glacier's
 // API operation ListTagsForVault for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidParameterValueException "InvalidParameterValueException"
+// Returned Error Types:
+//   * InvalidParameterValueException
 //   Returned if a parameter of the request is incorrectly specified.
 //
-//   * ErrCodeMissingParameterValueException "MissingParameterValueException"
+//   * MissingParameterValueException
 //   Returned if a required header or parameter is missing from the request.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   Returned if the specified resource (such as a vault, upload ID, or job ID)
 //   doesn't exist.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   Returned if the service cannot complete the request.
 //
 func (c *Glacier) ListTagsForVault(input *ListTagsForVaultInput) (*ListTagsForVaultOutput, error) {
@@ -2891,18 +2897,18 @@ func (c *Glacier) ListVaultsRequest(input *ListVaultsInput) (req *request.Reques
 // See the AWS API reference guide for Amazon Glacier's
 // API operation ListVaults for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   Returned if the specified resource (such as a vault, upload ID, or job ID)
 //   doesn't exist.
 //
-//   * ErrCodeInvalidParameterValueException "InvalidParameterValueException"
+//   * InvalidParameterValueException
 //   Returned if a parameter of the request is incorrectly specified.
 //
-//   * ErrCodeMissingParameterValueException "MissingParameterValueException"
+//   * MissingParameterValueException
 //   Returned if a required header or parameter is missing from the request.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   Returned if the service cannot complete the request.
 //
 func (c *Glacier) ListVaults(input *ListVaultsInput) (*ListVaultsOutput, error) {
@@ -2969,10 +2975,12 @@ func (c *Glacier) ListVaultsPagesWithContext(ctx aws.Context, input *ListVaultsI
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*ListVaultsOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*ListVaultsOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -3027,17 +3035,17 @@ func (c *Glacier) PurchaseProvisionedCapacityRequest(input *PurchaseProvisionedC
 // See the AWS API reference guide for Amazon Glacier's
 // API operation PurchaseProvisionedCapacity for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidParameterValueException "InvalidParameterValueException"
+// Returned Error Types:
+//   * InvalidParameterValueException
 //   Returned if a parameter of the request is incorrectly specified.
 //
-//   * ErrCodeMissingParameterValueException "MissingParameterValueException"
+//   * MissingParameterValueException
 //   Returned if a required header or parameter is missing from the request.
 //
-//   * ErrCodeLimitExceededException "LimitExceededException"
+//   * LimitExceededException
 //   Returned if the request results in a vault or account limit being exceeded.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   Returned if the service cannot complete the request.
 //
 func (c *Glacier) PurchaseProvisionedCapacity(input *PurchaseProvisionedCapacityInput) (*PurchaseProvisionedCapacityOutput, error) {
@@ -3117,18 +3125,18 @@ func (c *Glacier) RemoveTagsFromVaultRequest(input *RemoveTagsFromVaultInput) (r
 // See the AWS API reference guide for Amazon Glacier's
 // API operation RemoveTagsFromVault for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidParameterValueException "InvalidParameterValueException"
+// Returned Error Types:
+//   * InvalidParameterValueException
 //   Returned if a parameter of the request is incorrectly specified.
 //
-//   * ErrCodeMissingParameterValueException "MissingParameterValueException"
+//   * MissingParameterValueException
 //   Returned if a required header or parameter is missing from the request.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   Returned if the specified resource (such as a vault, upload ID, or job ID)
 //   doesn't exist.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   Returned if the service cannot complete the request.
 //
 func (c *Glacier) RemoveTagsFromVault(input *RemoveTagsFromVaultInput) (*RemoveTagsFromVaultOutput, error) {
@@ -3210,14 +3218,14 @@ func (c *Glacier) SetDataRetrievalPolicyRequest(input *SetDataRetrievalPolicyInp
 // See the AWS API reference guide for Amazon Glacier's
 // API operation SetDataRetrievalPolicy for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidParameterValueException "InvalidParameterValueException"
+// Returned Error Types:
+//   * InvalidParameterValueException
 //   Returned if a parameter of the request is incorrectly specified.
 //
-//   * ErrCodeMissingParameterValueException "MissingParameterValueException"
+//   * MissingParameterValueException
 //   Returned if a required header or parameter is missing from the request.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   Returned if the service cannot complete the request.
 //
 func (c *Glacier) SetDataRetrievalPolicy(input *SetDataRetrievalPolicyInput) (*SetDataRetrievalPolicyOutput, error) {
@@ -3299,18 +3307,18 @@ func (c *Glacier) SetVaultAccessPolicyRequest(input *SetVaultAccessPolicyInput) 
 // See the AWS API reference guide for Amazon Glacier's
 // API operation SetVaultAccessPolicy for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   Returned if the specified resource (such as a vault, upload ID, or job ID)
 //   doesn't exist.
 //
-//   * ErrCodeInvalidParameterValueException "InvalidParameterValueException"
+//   * InvalidParameterValueException
 //   Returned if a parameter of the request is incorrectly specified.
 //
-//   * ErrCodeMissingParameterValueException "MissingParameterValueException"
+//   * MissingParameterValueException
 //   Returned if a required header or parameter is missing from the request.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   Returned if the service cannot complete the request.
 //
 func (c *Glacier) SetVaultAccessPolicy(input *SetVaultAccessPolicyInput) (*SetVaultAccessPolicyOutput, error) {
@@ -3417,18 +3425,18 @@ func (c *Glacier) SetVaultNotificationsRequest(input *SetVaultNotificationsInput
 // See the AWS API reference guide for Amazon Glacier's
 // API operation SetVaultNotifications for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   Returned if the specified resource (such as a vault, upload ID, or job ID)
 //   doesn't exist.
 //
-//   * ErrCodeInvalidParameterValueException "InvalidParameterValueException"
+//   * InvalidParameterValueException
 //   Returned if a parameter of the request is incorrectly specified.
 //
-//   * ErrCodeMissingParameterValueException "MissingParameterValueException"
+//   * MissingParameterValueException
 //   Returned if a required header or parameter is missing from the request.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   Returned if the service cannot complete the request.
 //
 func (c *Glacier) SetVaultNotifications(input *SetVaultNotificationsInput) (*SetVaultNotificationsOutput, error) {
@@ -3538,22 +3546,22 @@ func (c *Glacier) UploadArchiveRequest(input *UploadArchiveInput) (req *request.
 // See the AWS API reference guide for Amazon Glacier's
 // API operation UploadArchive for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   Returned if the specified resource (such as a vault, upload ID, or job ID)
 //   doesn't exist.
 //
-//   * ErrCodeInvalidParameterValueException "InvalidParameterValueException"
+//   * InvalidParameterValueException
 //   Returned if a parameter of the request is incorrectly specified.
 //
-//   * ErrCodeMissingParameterValueException "MissingParameterValueException"
+//   * MissingParameterValueException
 //   Returned if a required header or parameter is missing from the request.
 //
-//   * ErrCodeRequestTimeoutException "RequestTimeoutException"
+//   * RequestTimeoutException
 //   Returned if, when uploading an archive, Amazon S3 Glacier times out while
 //   receiving the upload.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   Returned if the service cannot complete the request.
 //
 func (c *Glacier) UploadArchive(input *UploadArchiveInput) (*ArchiveCreationOutput, error) {
@@ -3670,22 +3678,22 @@ func (c *Glacier) UploadMultipartPartRequest(input *UploadMultipartPartInput) (r
 // See the AWS API reference guide for Amazon Glacier's
 // API operation UploadMultipartPart for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   Returned if the specified resource (such as a vault, upload ID, or job ID)
 //   doesn't exist.
 //
-//   * ErrCodeInvalidParameterValueException "InvalidParameterValueException"
+//   * InvalidParameterValueException
 //   Returned if a parameter of the request is incorrectly specified.
 //
-//   * ErrCodeMissingParameterValueException "MissingParameterValueException"
+//   * MissingParameterValueException
 //   Returned if a required header or parameter is missing from the request.
 //
-//   * ErrCodeRequestTimeoutException "RequestTimeoutException"
+//   * RequestTimeoutException
 //   Returned if, when uploading an archive, Amazon S3 Glacier times out while
 //   receiving the upload.
 //
-//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   * ServiceUnavailableException
 //   Returned if the service cannot complete the request.
 //
 func (c *Glacier) UploadMultipartPart(input *UploadMultipartPartInput) (*UploadMultipartPartOutput, error) {
@@ -6167,6 +6175,131 @@ func (s *InputSerialization) SetCsv(v *CSVInput) *InputSerialization {
 	return s
 }
 
+// Returned if there is insufficient capacity to process this expedited request.
+// This error only applies to expedited retrievals and not to standard or bulk
+// retrievals.
+type InsufficientCapacityException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Code_ *string `locationName:"code" type:"string"`
+
+	Message_ *string `locationName:"message" type:"string"`
+
+	Type *string `locationName:"type" type:"string"`
+}
+
+// String returns the string representation
+func (s InsufficientCapacityException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InsufficientCapacityException) GoString() string {
+	return s.String()
+}
+
+func newErrorInsufficientCapacityException(v protocol.ResponseMetadata) error {
+	return &InsufficientCapacityException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *InsufficientCapacityException) Code() string {
+	return "InsufficientCapacityException"
+}
+
+// Message returns the exception's message.
+func (s *InsufficientCapacityException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *InsufficientCapacityException) OrigErr() error {
+	return nil
+}
+
+func (s *InsufficientCapacityException) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *InsufficientCapacityException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *InsufficientCapacityException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// Returned if a parameter of the request is incorrectly specified.
+type InvalidParameterValueException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// 400 Bad Request
+	Code_ *string `locationName:"code" type:"string"`
+
+	// Returned if a parameter of the request is incorrectly specified.
+	Message_ *string `locationName:"message" type:"string"`
+
+	// Client
+	Type *string `locationName:"type" type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidParameterValueException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidParameterValueException) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidParameterValueException(v protocol.ResponseMetadata) error {
+	return &InvalidParameterValueException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *InvalidParameterValueException) Code() string {
+	return "InvalidParameterValueException"
+}
+
+// Message returns the exception's message.
+func (s *InvalidParameterValueException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *InvalidParameterValueException) OrigErr() error {
+	return nil
+}
+
+func (s *InvalidParameterValueException) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *InvalidParameterValueException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *InvalidParameterValueException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
 // Describes the options for a range inventory retrieval job.
 type InventoryRetrievalJobDescription struct {
 	_ struct{} `type:"structure"`
@@ -6678,6 +6811,69 @@ func (s *JobParameters) SetTier(v string) *JobParameters {
 func (s *JobParameters) SetType(v string) *JobParameters {
 	s.Type = &v
 	return s
+}
+
+// Returned if the request results in a vault or account limit being exceeded.
+type LimitExceededException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// 400 Bad Request
+	Code_ *string `locationName:"code" type:"string"`
+
+	// Returned if the request results in a vault limit or tags limit being exceeded.
+	Message_ *string `locationName:"message" type:"string"`
+
+	// Client
+	Type *string `locationName:"type" type:"string"`
+}
+
+// String returns the string representation
+func (s LimitExceededException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s LimitExceededException) GoString() string {
+	return s.String()
+}
+
+func newErrorLimitExceededException(v protocol.ResponseMetadata) error {
+	return &LimitExceededException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *LimitExceededException) Code() string {
+	return "LimitExceededException"
+}
+
+// Message returns the exception's message.
+func (s *LimitExceededException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *LimitExceededException) OrigErr() error {
+	return nil
+}
+
+func (s *LimitExceededException) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *LimitExceededException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *LimitExceededException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Provides options for retrieving a job list for an Amazon S3 Glacier vault.
@@ -7390,6 +7586,69 @@ func (s *ListVaultsOutput) SetVaultList(v []*DescribeVaultOutput) *ListVaultsOut
 	return s
 }
 
+// Returned if a required header or parameter is missing from the request.
+type MissingParameterValueException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// 400 Bad Request
+	Code_ *string `locationName:"code" type:"string"`
+
+	// Returned if no authentication data is found for the request.
+	Message_ *string `locationName:"message" type:"string"`
+
+	// Client.
+	Type *string `locationName:"type" type:"string"`
+}
+
+// String returns the string representation
+func (s MissingParameterValueException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s MissingParameterValueException) GoString() string {
+	return s.String()
+}
+
+func newErrorMissingParameterValueException(v protocol.ResponseMetadata) error {
+	return &MissingParameterValueException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *MissingParameterValueException) Code() string {
+	return "MissingParameterValueException"
+}
+
+// Message returns the exception's message.
+func (s *MissingParameterValueException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *MissingParameterValueException) OrigErr() error {
+	return nil
+}
+
+func (s *MissingParameterValueException) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *MissingParameterValueException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *MissingParameterValueException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
 // Contains information about the location where the select job results are
 // stored.
 type OutputLocation struct {
@@ -7486,6 +7745,70 @@ func (s *PartListElement) SetRangeInBytes(v string) *PartListElement {
 func (s *PartListElement) SetSHA256TreeHash(v string) *PartListElement {
 	s.SHA256TreeHash = &v
 	return s
+}
+
+// Returned if a retrieval job would exceed the current data policy's retrieval
+// rate limit. For more information about data retrieval policies,
+type PolicyEnforcedException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// PolicyEnforcedException
+	Code_ *string `locationName:"code" type:"string"`
+
+	// InitiateJob request denied by current data retrieval policy.
+	Message_ *string `locationName:"message" type:"string"`
+
+	// Client
+	Type *string `locationName:"type" type:"string"`
+}
+
+// String returns the string representation
+func (s PolicyEnforcedException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s PolicyEnforcedException) GoString() string {
+	return s.String()
+}
+
+func newErrorPolicyEnforcedException(v protocol.ResponseMetadata) error {
+	return &PolicyEnforcedException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *PolicyEnforcedException) Code() string {
+	return "PolicyEnforcedException"
+}
+
+// Message returns the exception's message.
+func (s *PolicyEnforcedException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *PolicyEnforcedException) OrigErr() error {
+	return nil
+}
+
+func (s *PolicyEnforcedException) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *PolicyEnforcedException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *PolicyEnforcedException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The definition for a provisioned capacity unit.
@@ -7686,6 +8009,136 @@ func (s RemoveTagsFromVaultOutput) GoString() string {
 	return s.String()
 }
 
+// Returned if, when uploading an archive, Amazon S3 Glacier times out while
+// receiving the upload.
+type RequestTimeoutException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// 408 Request Timeout
+	Code_ *string `locationName:"code" type:"string"`
+
+	// Returned if, when uploading an archive, Amazon S3 Glacier times out while
+	// receiving the upload.
+	Message_ *string `locationName:"message" type:"string"`
+
+	// Client
+	Type *string `locationName:"type" type:"string"`
+}
+
+// String returns the string representation
+func (s RequestTimeoutException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s RequestTimeoutException) GoString() string {
+	return s.String()
+}
+
+func newErrorRequestTimeoutException(v protocol.ResponseMetadata) error {
+	return &RequestTimeoutException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *RequestTimeoutException) Code() string {
+	return "RequestTimeoutException"
+}
+
+// Message returns the exception's message.
+func (s *RequestTimeoutException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *RequestTimeoutException) OrigErr() error {
+	return nil
+}
+
+func (s *RequestTimeoutException) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *RequestTimeoutException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *RequestTimeoutException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// Returned if the specified resource (such as a vault, upload ID, or job ID)
+// doesn't exist.
+type ResourceNotFoundException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// 404 Not Found
+	Code_ *string `locationName:"code" type:"string"`
+
+	// Returned if the specified resource (such as a vault, upload ID, or job ID)
+	// doesn't exist.
+	Message_ *string `locationName:"message" type:"string"`
+
+	// Client
+	Type *string `locationName:"type" type:"string"`
+}
+
+// String returns the string representation
+func (s ResourceNotFoundException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResourceNotFoundException) GoString() string {
+	return s.String()
+}
+
+func newErrorResourceNotFoundException(v protocol.ResponseMetadata) error {
+	return &ResourceNotFoundException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *ResourceNotFoundException) Code() string {
+	return "ResourceNotFoundException"
+}
+
+// Message returns the exception's message.
+func (s *ResourceNotFoundException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *ResourceNotFoundException) OrigErr() error {
+	return nil
+}
+
+func (s *ResourceNotFoundException) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *ResourceNotFoundException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *ResourceNotFoundException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
 // Contains information about the location in Amazon S3 where the select job
 // results are stored.
 type S3Location struct {
@@ -7844,6 +8297,69 @@ func (s *SelectParameters) SetInputSerialization(v *InputSerialization) *SelectP
 func (s *SelectParameters) SetOutputSerialization(v *OutputSerialization) *SelectParameters {
 	s.OutputSerialization = v
 	return s
+}
+
+// Returned if the service cannot complete the request.
+type ServiceUnavailableException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// 500 Internal Server Error
+	Code_ *string `locationName:"code" type:"string"`
+
+	// Returned if the service cannot complete the request.
+	Message_ *string `locationName:"message" type:"string"`
+
+	// Server
+	Type *string `locationName:"type" type:"string"`
+}
+
+// String returns the string representation
+func (s ServiceUnavailableException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ServiceUnavailableException) GoString() string {
+	return s.String()
+}
+
+func newErrorServiceUnavailableException(v protocol.ResponseMetadata) error {
+	return &ServiceUnavailableException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *ServiceUnavailableException) Code() string {
+	return "ServiceUnavailableException"
+}
+
+// Message returns the exception's message.
+func (s *ServiceUnavailableException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *ServiceUnavailableException) OrigErr() error {
+	return nil
+}
+
+func (s *ServiceUnavailableException) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *ServiceUnavailableException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *ServiceUnavailableException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // SetDataRetrievalPolicy input.

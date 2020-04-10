@@ -2,6 +2,10 @@
 
 package codepipeline
 
+import (
+	"github.com/aws/aws-sdk-go/private/protocol"
+)
+
 const (
 
 	// ErrCodeActionNotFoundException for service response error code
@@ -27,6 +31,16 @@ const (
 	//
 	// Unable to modify the tag due to a simultaneous update request.
 	ErrCodeConcurrentModificationException = "ConcurrentModificationException"
+
+	// ErrCodeDuplicatedStopRequestException for service response error code
+	// "DuplicatedStopRequestException".
+	//
+	// The pipeline execution is already in a Stopping state. If you already chose
+	// to stop and wait, you cannot make that request again. You can choose to stop
+	// and abandon now, but be aware that this option can lead to failed tasks or
+	// out of sequence tasks. If you already chose to stop and abandon, you cannot
+	// make that request again.
+	ErrCodeDuplicatedStopRequestException = "DuplicatedStopRequestException"
 
 	// ErrCodeInvalidActionDeclarationException for service response error code
 	// "InvalidActionDeclarationException".
@@ -133,12 +147,25 @@ const (
 	// associated with the request is out of date.
 	ErrCodeNotLatestPipelineExecutionException = "NotLatestPipelineExecutionException"
 
+	// ErrCodeOutputVariablesSizeExceededException for service response error code
+	// "OutputVariablesSizeExceededException".
+	//
+	// Exceeded the total size limit for all variables in the pipeline.
+	ErrCodeOutputVariablesSizeExceededException = "OutputVariablesSizeExceededException"
+
 	// ErrCodePipelineExecutionNotFoundException for service response error code
 	// "PipelineExecutionNotFoundException".
 	//
 	// The pipeline execution was specified in an invalid format or cannot be found,
 	// or an execution ID does not belong to the specified pipeline.
 	ErrCodePipelineExecutionNotFoundException = "PipelineExecutionNotFoundException"
+
+	// ErrCodePipelineExecutionNotStoppableException for service response error code
+	// "PipelineExecutionNotStoppableException".
+	//
+	// Unable to stop the pipeline execution. The execution might already be in
+	// a Stopped state, or it might no longer be in progress.
+	ErrCodePipelineExecutionNotStoppableException = "PipelineExecutionNotStoppableException"
 
 	// ErrCodePipelineNameInUseException for service response error code
 	// "PipelineNameInUseException".
@@ -195,3 +222,40 @@ const (
 	// The specified webhook was entered in an invalid format or cannot be found.
 	ErrCodeWebhookNotFoundException = "WebhookNotFoundException"
 )
+
+var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
+	"ActionNotFoundException":                         newErrorActionNotFoundException,
+	"ActionTypeNotFoundException":                     newErrorActionTypeNotFoundException,
+	"ApprovalAlreadyCompletedException":               newErrorApprovalAlreadyCompletedException,
+	"ConcurrentModificationException":                 newErrorConcurrentModificationException,
+	"DuplicatedStopRequestException":                  newErrorDuplicatedStopRequestException,
+	"InvalidActionDeclarationException":               newErrorInvalidActionDeclarationException,
+	"InvalidApprovalTokenException":                   newErrorInvalidApprovalTokenException,
+	"InvalidArnException":                             newErrorInvalidArnException,
+	"InvalidBlockerDeclarationException":              newErrorInvalidBlockerDeclarationException,
+	"InvalidClientTokenException":                     newErrorInvalidClientTokenException,
+	"InvalidJobException":                             newErrorInvalidJobException,
+	"InvalidJobStateException":                        newErrorInvalidJobStateException,
+	"InvalidNextTokenException":                       newErrorInvalidNextTokenException,
+	"InvalidNonceException":                           newErrorInvalidNonceException,
+	"InvalidStageDeclarationException":                newErrorInvalidStageDeclarationException,
+	"InvalidStructureException":                       newErrorInvalidStructureException,
+	"InvalidTagsException":                            newErrorInvalidTagsException,
+	"InvalidWebhookAuthenticationParametersException": newErrorInvalidWebhookAuthenticationParametersException,
+	"InvalidWebhookFilterPatternException":            newErrorInvalidWebhookFilterPatternException,
+	"JobNotFoundException":                            newErrorJobNotFoundException,
+	"LimitExceededException":                          newErrorLimitExceededException,
+	"NotLatestPipelineExecutionException":             newErrorNotLatestPipelineExecutionException,
+	"OutputVariablesSizeExceededException":            newErrorOutputVariablesSizeExceededException,
+	"PipelineExecutionNotFoundException":              newErrorPipelineExecutionNotFoundException,
+	"PipelineExecutionNotStoppableException":          newErrorPipelineExecutionNotStoppableException,
+	"PipelineNameInUseException":                      newErrorPipelineNameInUseException,
+	"PipelineNotFoundException":                       newErrorPipelineNotFoundException,
+	"PipelineVersionNotFoundException":                newErrorPipelineVersionNotFoundException,
+	"ResourceNotFoundException":                       newErrorResourceNotFoundException,
+	"StageNotFoundException":                          newErrorStageNotFoundException,
+	"StageNotRetryableException":                      newErrorStageNotRetryableException,
+	"TooManyTagsException":                            newErrorTooManyTagsException,
+	"ValidationException":                             newErrorValidationException,
+	"WebhookNotFoundException":                        newErrorWebhookNotFoundException,
+}

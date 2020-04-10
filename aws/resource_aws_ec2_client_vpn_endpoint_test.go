@@ -86,6 +86,7 @@ func TestAccAwsEc2ClientVpnEndpoint_basic(t *testing.T) {
 					testAccCheckAwsEc2ClientVpnEndpointExists("aws_ec2_client_vpn_endpoint.test"),
 					resource.TestCheckResourceAttr("aws_ec2_client_vpn_endpoint.test", "authentication_options.#", "1"),
 					resource.TestCheckResourceAttr("aws_ec2_client_vpn_endpoint.test", "authentication_options.0.type", "certificate-authentication"),
+					resource.TestCheckResourceAttr("aws_ec2_client_vpn_endpoint.test", "status", ec2.ClientVpnEndpointStatusCodePendingAssociate),
 				),
 			},
 
@@ -198,10 +199,9 @@ func TestAccAwsEc2ClientVpnEndpoint_withDNSServers(t *testing.T) {
 			},
 
 			{
-				ResourceName:            "aws_ec2_client_vpn_endpoint.test",
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"dns_servers"},
+				ResourceName:      "aws_ec2_client_vpn_endpoint.test",
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -411,7 +411,14 @@ resource "aws_ec2_client_vpn_endpoint" "test" {
 
 func testAccEc2ClientVpnEndpointConfigWithMicrosoftAD(rName string) string {
 	return testAccEc2ClientVpnEndpointConfigAcmCertificateBase() + fmt.Sprintf(`
-data "aws_availability_zones" "available" {}
+data "aws_availability_zones" "available" {
+  state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
 
 resource "aws_vpc" "test" {
   cidr_block = "10.0.0.0/16"

@@ -5,12 +5,12 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/datasync"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsDataSyncTask() *schema.Resource {
@@ -99,7 +99,6 @@ func resourceAwsDataSyncTask() *schema.Resource {
 							Optional: true,
 							Default:  datasync.PosixPermissionsPreserve,
 							ValidateFunc: validation.StringInSlice([]string{
-								datasync.PosixPermissionsBestEffort,
 								datasync.PosixPermissionsNone,
 								datasync.PosixPermissionsPreserve,
 							}, false),
@@ -151,11 +150,7 @@ func resourceAwsDataSyncTask() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: validation.NoZeroValues,
 			},
-			"tags": {
-				Type:     schema.TypeMap,
-				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-			},
+			"tags": tagsSchema(),
 		},
 	}
 }
@@ -167,7 +162,7 @@ func resourceAwsDataSyncTaskCreate(d *schema.ResourceData, meta interface{}) err
 		DestinationLocationArn: aws.String(d.Get("destination_location_arn").(string)),
 		Options:                expandDataSyncOptions(d.Get("options").([]interface{})),
 		SourceLocationArn:      aws.String(d.Get("source_location_arn").(string)),
-		Tags:                   expandDataSyncTagListEntry(d.Get("tags").(map[string]interface{})),
+		Tags:                   keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().DatasyncTags(),
 	}
 
 	if v, ok := d.GetOk("cloudwatch_log_group_arn"); ok {
@@ -254,17 +249,6 @@ func resourceAwsDataSyncTaskRead(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("error reading DataSync Task (%s): %s", d.Id(), err)
 	}
 
-	tagsInput := &datasync.ListTagsForResourceInput{
-		ResourceArn: output.TaskArn,
-	}
-
-	log.Printf("[DEBUG] Reading DataSync Task tags: %s", tagsInput)
-	tagsOutput, err := conn.ListTagsForResource(tagsInput)
-
-	if err != nil {
-		return fmt.Errorf("error reading DataSync Task (%s) tags: %s", d.Id(), err)
-	}
-
 	d.Set("arn", output.TaskArn)
 	d.Set("cloudwatch_log_group_arn", output.CloudWatchLogGroupArn)
 	d.Set("destination_location_arn", output.DestinationLocationArn)
@@ -276,7 +260,13 @@ func resourceAwsDataSyncTaskRead(d *schema.ResourceData, meta interface{}) error
 
 	d.Set("source_location_arn", output.SourceLocationArn)
 
-	if err := d.Set("tags", flattenDataSyncTagListEntry(tagsOutput.Tags)); err != nil {
+	tags, err := keyvaluetags.DatasyncListTags(conn, d.Id())
+
+	if err != nil {
+		return fmt.Errorf("error listing tags for DataSync Task (%s): %s", d.Id(), err)
+	}
+
+	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
@@ -300,31 +290,10 @@ func resourceAwsDataSyncTaskUpdate(d *schema.ResourceData, meta interface{}) err
 	}
 
 	if d.HasChange("tags") {
-		oldRaw, newRaw := d.GetChange("tags")
-		createTags, removeTags := dataSyncTagsDiff(expandDataSyncTagListEntry(oldRaw.(map[string]interface{})), expandDataSyncTagListEntry(newRaw.(map[string]interface{})))
+		o, n := d.GetChange("tags")
 
-		if len(removeTags) > 0 {
-			input := &datasync.UntagResourceInput{
-				Keys:        dataSyncTagsKeys(removeTags),
-				ResourceArn: aws.String(d.Id()),
-			}
-
-			log.Printf("[DEBUG] Untagging DataSync Task: %s", input)
-			if _, err := conn.UntagResource(input); err != nil {
-				return fmt.Errorf("error untagging DataSync Task (%s): %s", d.Id(), err)
-			}
-		}
-
-		if len(createTags) > 0 {
-			input := &datasync.TagResourceInput{
-				ResourceArn: aws.String(d.Id()),
-				Tags:        createTags,
-			}
-
-			log.Printf("[DEBUG] Tagging DataSync Task: %s", input)
-			if _, err := conn.TagResource(input); err != nil {
-				return fmt.Errorf("error tagging DataSync Task (%s): %s", d.Id(), err)
-			}
+		if err := keyvaluetags.DatasyncUpdateTags(conn, d.Id(), o, n); err != nil {
+			return fmt.Errorf("error updating DataSync Task (%s) tags: %s", d.Id(), err)
 		}
 	}
 

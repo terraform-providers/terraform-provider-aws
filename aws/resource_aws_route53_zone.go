@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsRoute53Zone() *schema.Resource {
@@ -145,8 +146,8 @@ func resourceAwsRoute53ZoneCreate(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("error waiting for Route53 Hosted Zone (%s) creation: %s", d.Id(), err)
 	}
 
-	if err := setTagsR53(conn, d, route53.TagResourceTypeHostedzone); err != nil {
-		return fmt.Errorf("error setting tags for Route53 Hosted Zone (%s): %s", d.Id(), err)
+	if err := keyvaluetags.Route53UpdateTags(conn, d.Id(), route53.TagResourceTypeHostedzone, map[string]interface{}{}, d.Get("tags").(map[string]interface{})); err != nil {
+		return fmt.Errorf("error setting Route53 Zone (%s) tags: %s", d.Id(), err)
 	}
 
 	// Associate additional VPCs beyond the first
@@ -224,26 +225,14 @@ func resourceAwsRoute53ZoneRead(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("error setting vpc: %s", err)
 	}
 
-	// get tags
-	req := &route53.ListTagsForResourceInput{
-		ResourceId:   aws.String(d.Id()),
-		ResourceType: aws.String(route53.TagResourceTypeHostedzone),
-	}
-
-	log.Printf("[DEBUG] Listing tags for Route53 Hosted Zone: %s", req)
-	resp, err := conn.ListTagsForResource(req)
+	tags, err := keyvaluetags.Route53ListTags(conn, d.Id(), route53.TagResourceTypeHostedzone)
 
 	if err != nil {
 		return fmt.Errorf("error listing tags for Route53 Hosted Zone (%s): %s", d.Id(), err)
 	}
 
-	var tags []*route53.Tag
-	if resp.ResourceTagSet != nil {
-		tags = resp.ResourceTagSet.Tags
-	}
-
-	if err := d.Set("tags", tagsToMapR53(tags)); err != nil {
-		return err
+	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+		return fmt.Errorf("error setting tags: %s", err)
 	}
 
 	return nil
@@ -252,8 +241,6 @@ func resourceAwsRoute53ZoneRead(d *schema.ResourceData, meta interface{}) error 
 func resourceAwsRoute53ZoneUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).r53conn
 	region := meta.(*AWSClient).region
-
-	d.Partial(true)
 
 	if d.HasChange("comment") {
 		input := route53.UpdateHostedZoneCommentInput{
@@ -266,16 +253,14 @@ func resourceAwsRoute53ZoneUpdate(d *schema.ResourceData, meta interface{}) erro
 		if err != nil {
 			return fmt.Errorf("error updating Route53 Hosted Zone (%s) comment: %s", d.Id(), err)
 		}
-
-		d.SetPartial("comment")
 	}
 
 	if d.HasChange("tags") {
-		if err := setTagsR53(conn, d, route53.TagResourceTypeHostedzone); err != nil {
-			return err
-		}
+		o, n := d.GetChange("tags")
 
-		d.SetPartial("tags")
+		if err := keyvaluetags.Route53UpdateTags(conn, d.Id(), route53.TagResourceTypeHostedzone, o, n); err != nil {
+			return fmt.Errorf("error updating Route53 Zone (%s) tags: %s", d.Id(), err)
+		}
 	}
 
 	if d.HasChange("vpc") {
@@ -309,11 +294,7 @@ func resourceAwsRoute53ZoneUpdate(d *schema.ResourceData, meta interface{}) erro
 				return err
 			}
 		}
-
-		d.SetPartial("vpc")
 	}
-
-	d.Partial(false)
 
 	return resourceAwsRoute53ZoneRead(d, meta)
 }

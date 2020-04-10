@@ -54,6 +54,26 @@ func TestAccAWSNetworkAclRule_disappears(t *testing.T) {
 	})
 }
 
+func TestAccAWSNetworkAclRule_ingressEgressSameNumberDisappears(t *testing.T) {
+	var networkAcl ec2.NetworkAcl
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSNetworkAclRuleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSNetworkAclRuleIngressEgressSameNumberMissing,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSNetworkAclRuleExists("aws_network_acl_rule.baz", &networkAcl),
+					testAccCheckAWSNetworkAclRuleDelete("aws_network_acl_rule.baz"),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
 func TestAccAWSNetworkAclRule_disappears_NetworkAcl(t *testing.T) {
 	var networkAcl ec2.NetworkAcl
 	resourceName := "aws_network_acl.bar"
@@ -550,6 +570,44 @@ resource "aws_network_acl_rule" "baz" {
 	protocol = "tcp"
 	rule_action = "allow"
 	ipv6_cidr_block = "::/0"
+	from_port = 22
+	to_port = 22
+}
+`
+
+const testAccAWSNetworkAclRuleIngressEgressSameNumberMissing = `
+resource "aws_vpc" "foo" {
+	cidr_block = "10.3.0.0/16"
+	tags = {
+		Name = "terraform-testacc-network-acl-rule-ingress-egress-same-number-missing"
+	}
+}
+
+resource "aws_network_acl" "bar" {
+	vpc_id = "${aws_vpc.foo.id}"
+	tags = {
+		Name = "tf-acc-acl-rule-basic"
+	}
+}
+
+resource "aws_network_acl_rule" "baz" {
+	network_acl_id = "${aws_network_acl.bar.id}"
+	rule_number = 100
+	egress = false
+	protocol = "tcp"
+	rule_action = "allow"
+	cidr_block = "0.0.0.0/0"
+	from_port = 22
+	to_port = 22
+}
+
+resource "aws_network_acl_rule" "qux" {
+	network_acl_id = "${aws_network_acl.bar.id}"
+	rule_number = 100
+	egress = true
+	protocol = "tcp"
+	rule_action = "allow"
+	cidr_block = "0.0.0.0/0"
 	from_port = 22
 	to_port = 22
 }

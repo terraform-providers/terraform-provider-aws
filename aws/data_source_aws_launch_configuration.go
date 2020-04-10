@@ -14,6 +14,10 @@ func dataSourceAwsLaunchConfiguration() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceAwsLaunchConfigurationRead,
 		Schema: map[string]*schema.Schema{
+			"arn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -214,6 +218,7 @@ func dataSourceAwsLaunchConfigurationRead(d *schema.ResourceData, meta interface
 	d.Set("key_name", lc.KeyName)
 	d.Set("image_id", lc.ImageId)
 	d.Set("instance_type", lc.InstanceType)
+	d.Set("arn", lc.LaunchConfigurationARN)
 	d.Set("name", lc.LaunchConfigurationName)
 	d.Set("user_data", lc.UserData)
 	d.Set("iam_instance_profile", lc.IamInstanceProfile)

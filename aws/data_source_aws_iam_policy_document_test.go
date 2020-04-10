@@ -144,6 +144,42 @@ func TestAccAWSDataSourceIAMPolicyDocument_duplicateSid(t *testing.T) {
 	})
 }
 
+// Reference: https://github.com/terraform-providers/terraform-provider-aws/issues/10777
+func TestAccAWSDataSourceIAMPolicyDocument_Statement_Principal_Identifiers_StringAndSlice(t *testing.T) {
+	dataSourceName := "data.aws_iam_policy_document.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSIAMPolicyDocumentConfigStatementPrincipalIdentifiersStringAndSlice,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(dataSourceName, "json", testAccAWSIAMPolicyDocumentExpectedJSONStatementPrincipalIdentifiersStringAndSlice),
+				),
+			},
+		},
+	})
+}
+
+// Reference: https://github.com/terraform-providers/terraform-provider-aws/issues/10777
+func TestAccAWSDataSourceIAMPolicyDocument_Statement_Principal_Identifiers_MultiplePrincipals(t *testing.T) {
+	dataSourceName := "data.aws_iam_policy_document.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSIAMPolicyDocumentConfigStatementPrincipalIdentifiersMultiplePrincipals,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(dataSourceName, "json", testAccAWSIAMPolicyDocumentExpectedJSONStatementPrincipalIdentifiersMultiplePrincipals),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAWSDataSourceIAMPolicyDocument_Version_20081017(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
@@ -806,3 +842,93 @@ data "aws_iam_policy_document" "test" {
   }
 }
 `
+
+var testAccAWSIAMPolicyDocumentConfigStatementPrincipalIdentifiersStringAndSlice = `
+data "aws_iam_policy_document" "test" {
+  statement {
+    actions   = ["*"]
+    resources = ["*"]
+    sid       = "StatementPrincipalIdentifiersStringAndSlice"
+
+    principals {
+      identifiers = ["arn:aws:iam::111111111111:root"]
+      type        = "AWS"
+    }
+
+    principals {
+      identifiers = ["arn:aws:iam::222222222222:root", "arn:aws:iam::333333333333:root"]
+      type        = "AWS"
+    }
+  }
+}
+`
+
+var testAccAWSIAMPolicyDocumentExpectedJSONStatementPrincipalIdentifiersStringAndSlice = `{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "StatementPrincipalIdentifiersStringAndSlice",
+      "Effect": "Allow",
+      "Action": "*",
+      "Resource": "*",
+      "Principal": {
+        "AWS": [
+          "arn:aws:iam::111111111111:root",
+          "arn:aws:iam::333333333333:root",
+          "arn:aws:iam::222222222222:root"
+        ]
+      }
+    }
+  ]
+}`
+
+var testAccAWSIAMPolicyDocumentConfigStatementPrincipalIdentifiersMultiplePrincipals = `
+data "aws_iam_policy_document" "test" {
+  statement {
+    actions   = ["*"]
+    resources = ["*"]
+    sid       = "StatementPrincipalIdentifiersStringAndSlice"
+
+    principals {
+      identifiers = [
+        "arn:aws:iam::111111111111:root",
+        "arn:aws:iam::222222222222:root",
+      ]
+      type = "AWS"
+    }
+    principals {
+      identifiers = [
+        "arn:aws:iam::333333333333:root",
+      ]
+      type = "AWS"
+    }
+    principals {
+      identifiers = [
+        "arn:aws:iam::444444444444:root",
+      ]
+      type = "AWS"
+    }
+
+  }
+}
+`
+
+var testAccAWSIAMPolicyDocumentExpectedJSONStatementPrincipalIdentifiersMultiplePrincipals = `{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "StatementPrincipalIdentifiersStringAndSlice",
+      "Effect": "Allow",
+      "Action": "*",
+      "Resource": "*",
+      "Principal": {
+        "AWS": [
+          "arn:aws:iam::333333333333:root",
+          "arn:aws:iam::444444444444:root",
+          "arn:aws:iam::222222222222:root",
+          "arn:aws:iam::111111111111:root"
+        ]
+      }
+    }
+  ]
+}`

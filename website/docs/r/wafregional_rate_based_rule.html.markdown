@@ -47,6 +47,7 @@ The following arguments are supported:
 * `rate_key` - (Required) Valid value is IP.
 * `rate_limit` - (Required) The maximum number of requests, which have an identical value in the field specified by the RateKey, allowed in a five-minute period. Minimum value is 100.
 * `predicate` - (Optional) The objects to include in a rule (documented below).
+* `tags` - (Optional) Key-value mapping of resource tags
 
 ## Nested Blocks
 
@@ -67,7 +68,8 @@ See the [WAF Documentation](https://docs.aws.amazon.com/waf/latest/APIReference/
 
 In addition to all arguments above, the following attributes are exported:
 
-* `id` - The ID of the WAF Regional rate based rule.
+* `id` - The ID of the WAF Regional Rate Based Rule.
+* `arn` - The ARN of the WAF Regional Rate Based Rule.
 
 ## Import
 

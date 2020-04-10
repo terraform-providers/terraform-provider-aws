@@ -41,6 +41,31 @@ func TestAccAWSAPIGatewayDeployment_basic(t *testing.T) {
 	})
 }
 
+func TestAccAWSAPIGatewayDeployment_disappears_RestApi(t *testing.T) {
+	var deployment apigateway.Deployment
+	var restApi apigateway.RestApi
+	resourceName := "aws_api_gateway_deployment.test"
+	restApiResourceName := "aws_api_gateway_rest_api.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test-deployment")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAPIGatewayDeploymentDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSAPIGatewayDeploymentConfigStageName(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAPIGatewayDeploymentExists(resourceName, &deployment),
+					testAccCheckAWSAPIGatewayRestAPIExists(restApiResourceName, &restApi),
+					testAccCheckAWSAPIGatewayRestAPIDisappears(&restApi),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
 func TestAccAWSAPIGatewayDeployment_createBeforeDestoryUpdate(t *testing.T) {
 	var deployment apigateway.Deployment
 	var stage apigateway.Stage
@@ -163,7 +188,7 @@ func TestAccAWSAPIGatewayDeployment_StageName_EmptyString(t *testing.T) {
 				Config: testAccAWSAPIGatewayDeploymentConfigStageName(""),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSAPIGatewayDeploymentExists(resourceName, &deployment),
-					resource.TestCheckNoResourceAttr(resourceName, "stage_name"),
+					resource.TestCheckResourceAttr(resourceName, "stage_name", ""),
 				),
 			},
 		},
@@ -202,7 +227,7 @@ func testAccCheckAWSAPIGatewayDeploymentExists(n string, res *apigateway.Deploym
 			return fmt.Errorf("No API Gateway Deployment ID is set")
 		}
 
-		conn := testAccProvider.Meta().(*AWSClient).apigateway
+		conn := testAccProvider.Meta().(*AWSClient).apigatewayconn
 
 		req := &apigateway.GetDeploymentInput{
 			DeploymentId: aws.String(rs.Primary.ID),
@@ -225,7 +250,7 @@ func testAccCheckAWSAPIGatewayDeploymentExists(n string, res *apigateway.Deploym
 
 func testAccCheckAWSAPIGatewayDeploymentStageExists(resourceName string, res *apigateway.Stage) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*AWSClient).apigateway
+		conn := testAccProvider.Meta().(*AWSClient).apigatewayconn
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -248,7 +273,7 @@ func testAccCheckAWSAPIGatewayDeploymentStageExists(resourceName string, res *ap
 }
 
 func testAccCheckAWSAPIGatewayDeploymentDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*AWSClient).apigateway
+	conn := testAccProvider.Meta().(*AWSClient).apigatewayconn
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "aws_api_gateway_deployment" {

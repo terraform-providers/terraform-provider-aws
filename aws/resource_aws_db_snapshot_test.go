@@ -2,14 +2,77 @@ package aws
 
 import (
 	"fmt"
+	"log"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/rds"
+	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
+
+func init() {
+	resource.AddTestSweepers("aws_db_snapshot", &resource.Sweeper{
+		Name: "aws_db_snapshot",
+		F:    testSweepDbSnapshots,
+	})
+}
+
+func testSweepDbSnapshots(region string) error {
+	client, err := sharedClientForRegion(region)
+
+	if err != nil {
+		return fmt.Errorf("error getting client: %s", err)
+	}
+
+	conn := client.(*AWSClient).rdsconn
+	input := &rds.DescribeDBSnapshotsInput{}
+	var sweeperErrs error
+
+	err = conn.DescribeDBSnapshotsPages(input, func(out *rds.DescribeDBSnapshotsOutput, lastPage bool) bool {
+		if out == nil {
+			return !lastPage
+		}
+
+		for _, dbSnapshot := range out.DBSnapshots {
+			if dbSnapshot == nil {
+				continue
+			}
+
+			id := aws.StringValue(dbSnapshot.DBSnapshotIdentifier)
+			input := &rds.DeleteDBSnapshotInput{
+				DBSnapshotIdentifier: dbSnapshot.DBSnapshotIdentifier,
+			}
+
+			log.Printf("[INFO] Deleting RDS DB Snapshot: %s", id)
+			_, err := conn.DeleteDBSnapshot(input)
+
+			if isAWSErr(err, rds.ErrCodeDBSnapshotNotFoundFault, "") {
+				continue
+			}
+
+			if err != nil {
+				sweeperErr := fmt.Errorf("error deleting RDS DB Snapshot (%s): %w", id, err)
+				log.Printf("[ERROR] %s", sweeperErr)
+				sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
+			}
+		}
+		return !lastPage
+	})
+
+	if testSweepSkipSweepError(err) {
+		log.Printf("[WARN] Skipping RDS DB Snapshot sweep for %s: %s", region, err)
+		return nil
+	}
+
+	if err != nil {
+		return fmt.Errorf("error describing RDS DB Snapshots: %s", err)
+	}
+
+	return sweeperErrs
+}
 
 func TestAccAWSDBSnapshot_basic(t *testing.T) {
 	var v rds.DBSnapshot

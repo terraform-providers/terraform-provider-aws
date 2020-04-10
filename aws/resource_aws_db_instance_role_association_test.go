@@ -179,7 +179,7 @@ resource "aws_db_instance" "test" {
   allocated_storage   = 10
   engine              = "oracle-se"
   identifier          = %[1]q
-  instance_class      = "db.t2.micro"
+  instance_class      = "db.t3.micro"
   password            = "avoid-plaintext-passwords"
   username            = "tfacctest"
   skip_final_snapshot = true

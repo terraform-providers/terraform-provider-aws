@@ -245,7 +245,7 @@ The following arguments are supported:
 * `kerberos_attributes` - (Optional) Kerberos configuration for the cluster. Defined below
 * `ebs_root_volume_size` - (Optional) Size in GiB of the EBS root device volume of the Linux AMI that is used for each EC2 instance. Available in Amazon EMR version 4.x and later.
 * `custom_ami_id` - (Optional) A custom Amazon Linux AMI for the cluster (instead of an EMR-owned AMI). Available in Amazon EMR version 5.7.0 and later.
-* `bootstrap_action` - (Optional) List of bootstrap actions that will be run before Hadoop is started on the cluster nodes. Defined below
+* `bootstrap_action` - (Optional) Ordered list of bootstrap actions that will be run before Hadoop is started on the cluster nodes. Defined below.
 * `configurations` - (Optional) List of configurations supplied for the EMR cluster you are creating
 * `configurations_json` - (Optional) A JSON string for supplying list of configurations for the EMR cluster.
 
@@ -274,6 +274,7 @@ EOF
 * `visible_to_all_users` - (Optional) Whether the job flow is visible to all IAM users of the AWS account associated with the job flow. Default `true`
 * `autoscaling_role` - (Optional) An IAM role for automatic scaling policies. The IAM role provides permissions that the automatic scaling feature requires to launch and terminate EC2 instances in an instance group.
 * `step` - (Optional) List of steps to run when creating the cluster. Defined below. It is highly recommended to utilize the [lifecycle configuration block](/docs/configuration/resources.html) with `ignore_changes` if other steps are being managed outside of Terraform. This argument is processed in [attribute-as-blocks mode](/docs/configuration/attr-as-blocks.html).
+* `step_concurrency_level` - (Optional) The number of steps that can be executed concurrently. You can specify a maximum of 256 steps. Only valid for EMR clusters with `release_label` 5.28.0 or greater. (default is 1)
 * `tags` - (Optional) list of tags to apply to the EMR Cluster
 
 ## core_instance_group Configuration Block
@@ -383,6 +384,7 @@ Attributes for Hadoop job step configuration
 
 In addition to all arguments above, the following attributes are exported:
 
+* `arn`- The ARN of the cluster.
 * `id` - The ID of the EMR Cluster
 * `name` - The name of the cluster.
 * `release_label` - The release label for the Amazon EMR release.
@@ -405,10 +407,6 @@ boot an example EMR Cluster. It is not meant to display best practices. Please
 use at your own risk.
 
 ```hcl
-provider "aws" {
-  region = "us-west-2"
-}
-
 resource "aws_emr_cluster" "cluster" {
   name          = "emr-test-arn"
   release_label = "emr-4.6.0"
@@ -476,13 +474,10 @@ resource "aws_security_group" "allow_access" {
   vpc_id      = "${aws_vpc.main.id}"
 
   ingress {
-    # these ports should be locked down
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-
-    # we do not recommend opening your cluster to 0.0.0.0/0
-    cidr_blocks = # add your IP address here
+    cidr_blocks = aws_vpc.main.cidr_block
   }
 
   egress {

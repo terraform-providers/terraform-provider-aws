@@ -46,6 +46,28 @@ func TestAccAWSAMI_basic(t *testing.T) {
 	})
 }
 
+func TestAccAWSAMI_disappears(t *testing.T) {
+	var ami ec2.Image
+	resourceName := "aws_ami.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAmiDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAmiConfig_basic(rName, 8),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAmiExists(resourceName, &ami),
+					testAccCheckAmiDisappears(&ami),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
 func TestAccAWSAMI_tags(t *testing.T) {
 	var ami ec2.Image
 	resourceName := "aws_ami.test"
@@ -164,6 +186,20 @@ func testAccCheckAmiDestroy(s *terraform.State) error {
 	return nil
 }
 
+func testAccCheckAmiDisappears(image *ec2.Image) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		conn := testAccProvider.Meta().(*AWSClient).ec2conn
+
+		input := &ec2.DeregisterImageInput{
+			ImageId: image.ImageId,
+		}
+
+		_, err := conn.DeregisterImage(input)
+
+		return err
+	}
+}
+
 func testAccCheckAmiExists(n string, ami *ec2.Image) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
@@ -267,7 +303,14 @@ func testAccCheckAmiEbsBlockDevice(bd *ec2.BlockDeviceMapping, ed *ec2.EbsBlockD
 
 func testAccAmiConfig_base(rName string, size int) string {
 	return fmt.Sprintf(`
-data "aws_availability_zones" "available" {}
+data "aws_availability_zones" "available" {
+  state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
 
 resource "aws_ebs_volume" "foo" {
   availability_zone = "${data.aws_availability_zones.available.names[0]}"

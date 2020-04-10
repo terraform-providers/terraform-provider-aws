@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func dataSourceAwsVpcEndpoint() *schema.Resource {
@@ -127,7 +128,7 @@ func dataSourceAwsVpcEndpointRead(d *schema.ResourceData, meta interface{}) erro
 		},
 	)
 	req.Filters = append(req.Filters, buildEC2TagFilterList(
-		tagsFromMap(d.Get("tags").(map[string]interface{})),
+		keyvaluetags.New(d.Get("tags").(map[string]interface{})).Ec2Tags(),
 	)...)
 	req.Filters = append(req.Filters, buildEC2CustomFilterList(
 		d.Get("filter").(*schema.Set),
@@ -207,7 +208,7 @@ func dataSourceAwsVpcEndpointRead(d *schema.ResourceData, meta interface{}) erro
 	if err != nil {
 		return fmt.Errorf("error setting subnet_ids: %s", err)
 	}
-	err = d.Set("tags", tagsToMap(vpce.Tags))
+	err = d.Set("tags", keyvaluetags.Ec2KeyValueTags(vpce.Tags).IgnoreAws().Map())
 	if err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}

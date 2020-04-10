@@ -20,7 +20,7 @@ func TestAccDataSourceAwsWorkspaceBundle_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(dataSourceName, "bundle_id", "wsb-b0s22j3d7"),
 					resource.TestCheckResourceAttr(dataSourceName, "compute_type.#", "1"),
 					resource.TestCheckResourceAttr(dataSourceName, "compute_type.0.name", "PERFORMANCE"),
-					resource.TestCheckResourceAttr(dataSourceName, "description", "Windows 7 Experience provided by Windows Server 2008 R2, 2 vCPU, 7.5GiB Memory, 100GB Storage"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "description"),
 					resource.TestCheckResourceAttr(dataSourceName, "name", "Performance with Windows 7"),
 					resource.TestCheckResourceAttr(dataSourceName, "owner", "Amazon"),
 					resource.TestCheckResourceAttr(dataSourceName, "root_storage.#", "1"),

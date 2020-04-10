@@ -25,3 +25,15 @@ fail schema validation.
     Type: schema.TypeString,
 }
 ```
+
+## Ignoring Reports
+
+Singular reports can be ignored by adding the a `//lintignore:S017` Go code comment at the end of the offending line or on the line immediately proceding, e.g.
+
+```go
+//lintignore:S017
+&schema.Schema{
+    MaxItems: 1,
+    Type:     schema.TypeString,
+}
+```

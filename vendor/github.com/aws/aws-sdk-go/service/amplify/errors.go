@@ -2,6 +2,10 @@
 
 package amplify
 
+import (
+	"github.com/aws/aws-sdk-go/private/protocol"
+)
+
 const (
 
 	// ErrCodeBadRequestException for service response error code
@@ -49,3 +53,13 @@ const (
 	// Exception thrown when an operation fails due to a lack of access.
 	ErrCodeUnauthorizedException = "UnauthorizedException"
 )
+
+var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
+	"BadRequestException":              newErrorBadRequestException,
+	"DependentServiceFailureException": newErrorDependentServiceFailureException,
+	"InternalFailureException":         newErrorInternalFailureException,
+	"LimitExceededException":           newErrorLimitExceededException,
+	"NotFoundException":                newErrorNotFoundException,
+	"ResourceNotFoundException":        newErrorResourceNotFoundException,
+	"UnauthorizedException":            newErrorUnauthorizedException,
+}

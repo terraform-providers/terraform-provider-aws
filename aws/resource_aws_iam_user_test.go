@@ -11,6 +11,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iam"
+	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
@@ -100,9 +101,44 @@ func testSweepIamUsers(region string) error {
 		return nil
 	}
 
+	var sweeperErrs *multierror.Error
 	for _, user := range users {
 		username := aws.StringValue(user.UserName)
 		log.Printf("[DEBUG] Deleting IAM User: %s", username)
+
+		listUserPoliciesInput := &iam.ListUserPoliciesInput{
+			UserName: user.UserName,
+		}
+		listUserPoliciesOutput, err := conn.ListUserPolicies(listUserPoliciesInput)
+
+		if isAWSErr(err, iam.ErrCodeNoSuchEntityException, "") {
+			continue
+		}
+		if err != nil {
+			sweeperErr := fmt.Errorf("error listing IAM User (%s) inline policies: %s", username, err)
+			log.Printf("[ERROR] %s", sweeperErr)
+			sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
+			continue
+		}
+
+		for _, inlinePolicyName := range listUserPoliciesOutput.PolicyNames {
+			log.Printf("[DEBUG] Deleting IAM User (%s) inline policy %q", username, *inlinePolicyName)
+
+			input := &iam.DeleteUserPolicyInput{
+				PolicyName: inlinePolicyName,
+				UserName:   user.UserName,
+			}
+
+			if _, err := conn.DeleteUserPolicy(input); err != nil {
+				if isAWSErr(err, iam.ErrCodeNoSuchEntityException, "") {
+					continue
+				}
+				sweeperErr := fmt.Errorf("error deleting IAM User (%s) inline policy %q: %s", username, *inlinePolicyName, err)
+				log.Printf("[ERROR] %s", sweeperErr)
+				sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
+				continue
+			}
+		}
 
 		listAttachedUserPoliciesInput := &iam.ListAttachedUserPoliciesInput{
 			UserName: user.UserName,
@@ -112,9 +148,11 @@ func testSweepIamUsers(region string) error {
 		if isAWSErr(err, iam.ErrCodeNoSuchEntityException, "") {
 			continue
 		}
-
 		if err != nil {
-			return fmt.Errorf("error listing IAM User (%s) attached policies: %s", username, err)
+			sweeperErr := fmt.Errorf("error listing IAM User (%s) attached policies: %s", username, err)
+			log.Printf("[ERROR] %s", sweeperErr)
+			sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
+			continue
 		}
 
 		for _, attachedPolicy := range listAttachedUserPoliciesOutput.AttachedPolicies {
@@ -123,28 +161,53 @@ func testSweepIamUsers(region string) error {
 			log.Printf("[DEBUG] Detaching IAM User (%s) attached policy: %s", username, policyARN)
 
 			if err := detachPolicyFromUser(conn, username, policyARN); err != nil {
-				return fmt.Errorf("error detaching IAM User (%s) attached policy (%s): %s", username, policyARN, err)
+				sweeperErr := fmt.Errorf("error detaching IAM User (%s) attached policy (%s): %s", username, policyARN, err)
+				log.Printf("[ERROR] %s", sweeperErr)
+				sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
+				continue
 			}
 		}
 
 		if err := deleteAwsIamUserGroupMemberships(conn, username); err != nil {
-			return fmt.Errorf("error removing IAM User (%s) group memberships: %s", username, err)
+			sweeperErr := fmt.Errorf("error removing IAM User (%s) group memberships: %s", username, err)
+			log.Printf("[ERROR] %s", sweeperErr)
+			sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
+			continue
 		}
 
 		if err := deleteAwsIamUserAccessKeys(conn, username); err != nil {
-			return fmt.Errorf("error removing IAM User (%s) access keys: %s", username, err)
+			sweeperErr := fmt.Errorf("error removing IAM User (%s) access keys: %s", username, err)
+			log.Printf("[ERROR] %s", sweeperErr)
+			sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
+			continue
 		}
 
 		if err := deleteAwsIamUserSSHKeys(conn, username); err != nil {
-			return fmt.Errorf("error removing IAM User (%s) SSH keys: %s", username, err)
+			sweeperErr := fmt.Errorf("error removing IAM User (%s) SSH keys: %s", username, err)
+			log.Printf("[ERROR] %s", sweeperErr)
+			sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
+			continue
 		}
 
-		if err := deleteAwsIamUserMFADevices(conn, username); err != nil {
-			return fmt.Errorf("error removing IAM User (%s) MFA devices: %s", username, err)
+		if err := deleteAwsIamUserVirtualMFADevices(conn, username); err != nil {
+			sweeperErr := fmt.Errorf("error removing IAM User (%s) virtual MFA devices: %s", username, err)
+			log.Printf("[ERROR] %s", sweeperErr)
+			sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
+			continue
+		}
+
+		if err := deactivateAwsIamUserMFADevices(conn, username); err != nil {
+			sweeperErr := fmt.Errorf("error removing IAM User (%s) MFA devices: %s", username, err)
+			log.Printf("[ERROR] %s", sweeperErr)
+			sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
+			continue
 		}
 
 		if err := deleteAwsIamUserLoginProfile(conn, username); err != nil {
-			return fmt.Errorf("error removing IAM User (%s) login profile: %s", username, err)
+			sweeperErr := fmt.Errorf("error removing IAM User (%s) login profile: %s", username, err)
+			log.Printf("[ERROR] %s", sweeperErr)
+			sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
+			continue
 		}
 
 		input := &iam.DeleteUserInput{
@@ -156,13 +219,15 @@ func testSweepIamUsers(region string) error {
 		if isAWSErr(err, iam.ErrCodeNoSuchEntityException, "") {
 			continue
 		}
-
 		if err != nil {
-			return fmt.Errorf("Error deleting IAM User (%s): %s", username, err)
+			sweeperErr := fmt.Errorf("error deleting IAM User (%s): %s", username, err)
+			log.Printf("[ERROR] %s", sweeperErr)
+			sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
+			continue
 		}
 	}
 
-	return nil
+	return sweeperErrs.ErrorOrNil()
 }
 
 func TestAccAWSUser_basic(t *testing.T) {

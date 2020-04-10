@@ -2,7 +2,6 @@ package aws
 
 import (
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/service/pinpoint"
@@ -13,21 +12,17 @@ import (
 )
 
 func TestAccAWSPinpointEmailChannel_basic(t *testing.T) {
-	oldDefaultRegion := os.Getenv("AWS_DEFAULT_REGION")
-	os.Setenv("AWS_DEFAULT_REGION", "us-east-1")
-	defer os.Setenv("AWS_DEFAULT_REGION", oldDefaultRegion)
-
 	var channel pinpoint.EmailChannelResponse
 	resourceName := "aws_pinpoint_email_channel.test_email_channel"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
+		PreCheck:      func() { testAccPreCheck(t); testAccPreCheckAWSPinpointApp(t) },
 		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSPinpointEmailChannelDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSPinpointEmailChannelConfig_basic,
+				Config: testAccAWSPinpointEmailChannelConfig_FromAddress("user@example.com"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSPinpointEmailChannelExists(resourceName, &channel),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "false"),
@@ -40,7 +35,7 @@ func TestAccAWSPinpointEmailChannel_basic(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAWSPinpointEmailChannelConfig_update,
+				Config: testAccAWSPinpointEmailChannelConfig_FromAddress("userupdated@example.com"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSPinpointEmailChannelExists(resourceName, &channel),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "false"),
@@ -80,17 +75,14 @@ func testAccCheckAWSPinpointEmailChannelExists(n string, channel *pinpoint.Email
 	}
 }
 
-const testAccAWSPinpointEmailChannelConfig_basic = `
-provider "aws" {
-  region = "us-east-1"
-}
-
+func testAccAWSPinpointEmailChannelConfig_FromAddress(fromAddress string) string {
+	return fmt.Sprintf(`
 resource "aws_pinpoint_app" "test_app" {}
 
 resource "aws_pinpoint_email_channel" "test_email_channel" {
   application_id = "${aws_pinpoint_app.test_app.application_id}"
   enabled        = "false"
-  from_address   = "user@example.com"
+  from_address   = %[1]q
   identity       = "${aws_ses_domain_identity.test_identity.arn}"
   role_arn       = "${aws_iam_role.test_role.arn}"
 }
@@ -136,65 +128,8 @@ resource "aws_iam_role_policy" "test_role_policy" {
 }
 EOF
 }
-`
-
-const testAccAWSPinpointEmailChannelConfig_update = `
-provider "aws" {
-  region = "us-east-1"
+`, fromAddress)
 }
-
-resource "aws_pinpoint_app" "test_app" {}
-
-resource "aws_pinpoint_email_channel" "test_email_channel" {
-  application_id = "${aws_pinpoint_app.test_app.application_id}"
-  enabled        = "false"
-  from_address   = "userupdate@example.com"
-  identity       = "${aws_ses_domain_identity.test_identity.arn}"
-  role_arn       = "${aws_iam_role.test_role.arn}"
-}
-
-resource "aws_ses_domain_identity" "test_identity" {
-  domain = "example.com"
-}
-
-resource "aws_iam_role" "test_role" {
-  assume_role_policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Action": "sts:AssumeRole",
-      "Principal": {
-        "Service": "pinpoint.amazonaws.com"
-      },
-      "Effect": "Allow",
-      "Sid": ""
-    }
-  ]
-}
-EOF
-}
-
-resource "aws_iam_role_policy" "test_role_policy" {
-  name   = "test_policy"
-  role   = "${aws_iam_role.test_role.id}"
-  policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": {
-    "Action": [
-      "mobileanalytics:PutEvents",
-      "mobileanalytics:PutItems"
-    ],
-    "Effect": "Allow",
-    "Resource": [
-      "*"
-    ]
-  }
-}
-EOF
-}
-`
 
 func testAccCheckAWSPinpointEmailChannelDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*AWSClient).pinpointconn

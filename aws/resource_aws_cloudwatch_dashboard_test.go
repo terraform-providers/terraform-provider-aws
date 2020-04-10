@@ -75,6 +75,37 @@ func TestAccAWSCloudWatchDashboard_update(t *testing.T) {
 	})
 }
 
+func TestAccAWSCloudWatchDashboard_updateName(t *testing.T) {
+	var dashboard cloudwatch.GetDashboardOutput
+	resourceName := "aws_cloudwatch_dashboard.test"
+	rInt := acctest.RandInt()
+	rInt2 := acctest.RandInt()
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSCloudWatchDashboardDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSCloudWatchDashboardConfig(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudWatchDashboardExists(resourceName, &dashboard),
+					testAccCloudWatchCheckDashboardBodyIsExpected(resourceName, basicWidget),
+					resource.TestCheckResourceAttr(resourceName, "dashboard_name", testAccAWSCloudWatchDashboardName(rInt)),
+				),
+			},
+			{
+				Config: testAccAWSCloudWatchDashboardConfig(rInt2),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudWatchDashboardExists(resourceName, &dashboard),
+					testAccCloudWatchCheckDashboardBodyIsExpected(resourceName, basicWidget),
+					resource.TestCheckResourceAttr(resourceName, "dashboard_name", testAccAWSCloudWatchDashboardName(rInt2)),
+					testAccCheckAWSCloudWatchDashboardDestroyPrevious(testAccAWSCloudWatchDashboardName(rInt)),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckCloudWatchDashboardExists(n string, dashboard *cloudwatch.GetDashboardOutput) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
@@ -120,6 +151,28 @@ func testAccCheckAWSCloudWatchDashboardDestroy(s *terraform.State) error {
 	}
 
 	return nil
+}
+
+func testAccCheckAWSCloudWatchDashboardDestroyPrevious(dashboardName string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		conn := testAccProvider.Meta().(*AWSClient).cloudwatchconn
+
+		params := cloudwatch.GetDashboardInput{
+			DashboardName: aws.String(dashboardName),
+		}
+
+		_, err := conn.GetDashboard(&params)
+
+		if err == nil {
+			return fmt.Errorf("Dashboard still exists: %s", dashboardName)
+		}
+
+		if !isCloudWatchDashboardNotFoundErr(err) {
+			return err
+		}
+
+		return nil
+	}
 }
 
 const (

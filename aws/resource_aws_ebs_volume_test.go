@@ -372,7 +372,14 @@ func testAccCheckVolumeExists(n string, v *ec2.Volume) resource.TestCheckFunc {
 }
 
 const testAccAwsEbsVolumeConfig = `
-data "aws_availability_zones" "available" {}
+data "aws_availability_zones" "available" {
+  state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
 
 resource "aws_ebs_volume" "test" {
   availability_zone = "${data.aws_availability_zones.available.names[0]}"
@@ -423,7 +430,14 @@ resource "aws_instance" "test" {
   }
 }
 
-data "aws_availability_zones" "available" {}
+data "aws_availability_zones" "available" {
+  state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
 
 resource "aws_ebs_volume" "test" {
   depends_on = ["aws_instance.test"]
@@ -498,7 +512,14 @@ resource "aws_volume_attachment" "test" {
 `
 
 const testAccAwsEbsVolumeConfigUpdateSize = `
-data "aws_availability_zones" "available" {}
+data "aws_availability_zones" "available" {
+  state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
 
 resource "aws_ebs_volume" "test" {
   availability_zone = "${data.aws_availability_zones.available.names[0]}"
@@ -511,7 +532,14 @@ resource "aws_ebs_volume" "test" {
 `
 
 const testAccAwsEbsVolumeConfigUpdateType = `
-data "aws_availability_zones" "available" {}
+data "aws_availability_zones" "available" {
+  state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
 
 resource "aws_ebs_volume" "test" {
   availability_zone = "${data.aws_availability_zones.available.names[0]}"
@@ -524,7 +552,14 @@ resource "aws_ebs_volume" "test" {
 `
 
 const testAccAwsEbsVolumeConfigWithIops = `
-data "aws_availability_zones" "available" {}
+data "aws_availability_zones" "available" {
+  state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
 
 resource "aws_ebs_volume" "test" {
   availability_zone = "${data.aws_availability_zones.available.names[0]}"
@@ -538,7 +573,14 @@ resource "aws_ebs_volume" "test" {
 `
 
 const testAccAwsEbsVolumeConfigWithIopsUpdated = `
-data "aws_availability_zones" "available" {}
+data "aws_availability_zones" "available" {
+  state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
 
 resource "aws_ebs_volume" "test" {
   availability_zone = "${data.aws_availability_zones.available.names[0]}"
@@ -573,7 +615,14 @@ resource "aws_kms_key" "test" {
 POLICY
 }
 
-data "aws_availability_zones" "available" {}
+data "aws_availability_zones" "available" {
+  state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
 
 resource "aws_ebs_volume" "test" {
   availability_zone = "${data.aws_availability_zones.available.names[0]}"
@@ -584,7 +633,14 @@ resource "aws_ebs_volume" "test" {
 `
 
 const testAccAwsEbsVolumeConfigWithTags = `
-data "aws_availability_zones" "available" {}
+data "aws_availability_zones" "available" {
+  state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
 
 resource "aws_ebs_volume" "test" {
   availability_zone = "${data.aws_availability_zones.available.names[0]}"
@@ -596,7 +652,14 @@ resource "aws_ebs_volume" "test" {
 `
 
 const testAccAwsEbsVolumeConfigWithNoIops = `
-data "aws_availability_zones" "available" {}
+data "aws_availability_zones" "available" {
+  state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
 
 resource "aws_ebs_volume" "test" {
   availability_zone = "${data.aws_availability_zones.available.names[0]}"

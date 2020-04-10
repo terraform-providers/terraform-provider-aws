@@ -6,19 +6,18 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"net/url"
 	"os"
 	"strings"
 	"time"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/mitchellh/go-homedir"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/kms"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/mitchellh/go-homedir"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsS3BucketObject() *schema.Resource {
@@ -191,7 +190,7 @@ func resourceAwsS3BucketObject() *schema.Resource {
 			"object_lock_retain_until_date": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validation.ValidateRFC3339TimeString,
+				ValidateFunc: validation.IsRFC3339Time,
 			},
 		},
 	}
@@ -281,13 +280,9 @@ func resourceAwsS3BucketObjectPut(d *schema.ResourceData, meta interface{}) erro
 		putInput.ServerSideEncryption = aws.String(s3.ServerSideEncryptionAwsKms)
 	}
 
-	if v, ok := d.GetOk("tags"); ok {
+	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
 		// The tag-set must be encoded as URL Query parameters.
-		values := url.Values{}
-		for k, v := range v.(map[string]interface{}) {
-			values.Add(k, v.(string))
-		}
-		putInput.Tagging = aws.String(values.Encode())
+		putInput.Tagging = aws.String(keyvaluetags.New(v).IgnoreAws().UrlEncode())
 	}
 
 	if v, ok := d.GetOk("website_redirect"); ok {
@@ -390,8 +385,17 @@ func resourceAwsS3BucketObjectRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("storage_class", resp.StorageClass)
 	}
 
-	if err := getTagsS3Object(s3conn, d); err != nil {
-		return fmt.Errorf("error getting S3 object tags (bucket: %s, key: %s): %s", bucket, key, err)
+	// Retry due to S3 eventual consistency
+	tags, err := retryOnAwsCode(s3.ErrCodeNoSuchBucket, func() (interface{}, error) {
+		return keyvaluetags.S3ObjectListTags(s3conn, bucket, key)
+	})
+
+	if err != nil {
+		return fmt.Errorf("error listing tags for S3 Bucket (%s) Object (%s): %s", bucket, key, err)
+	}
+
+	if err := d.Set("tags", tags.(keyvaluetags.KeyValueTags).IgnoreAws().Map()); err != nil {
+		return fmt.Errorf("error setting tags: %s", err)
 	}
 
 	return nil
@@ -422,10 +426,13 @@ func resourceAwsS3BucketObjectUpdate(d *schema.ResourceData, meta interface{}) e
 
 	conn := meta.(*AWSClient).s3conn
 
+	bucket := d.Get("bucket").(string)
+	key := d.Get("key").(string)
+
 	if d.HasChange("acl") {
 		_, err := conn.PutObjectAcl(&s3.PutObjectAclInput{
-			Bucket: aws.String(d.Get("bucket").(string)),
-			Key:    aws.String(d.Get("key").(string)),
+			Bucket: aws.String(bucket),
+			Key:    aws.String(key),
 			ACL:    aws.String(d.Get("acl").(string)),
 		})
 		if err != nil {
@@ -435,8 +442,8 @@ func resourceAwsS3BucketObjectUpdate(d *schema.ResourceData, meta interface{}) e
 
 	if d.HasChange("object_lock_legal_hold_status") {
 		_, err := conn.PutObjectLegalHold(&s3.PutObjectLegalHoldInput{
-			Bucket: aws.String(d.Get("bucket").(string)),
-			Key:    aws.String(d.Get("key").(string)),
+			Bucket: aws.String(bucket),
+			Key:    aws.String(key),
 			LegalHold: &s3.ObjectLockLegalHold{
 				Status: aws.String(d.Get("object_lock_legal_hold_status").(string)),
 			},
@@ -448,8 +455,8 @@ func resourceAwsS3BucketObjectUpdate(d *schema.ResourceData, meta interface{}) e
 
 	if d.HasChange("object_lock_mode") || d.HasChange("object_lock_retain_until_date") {
 		req := &s3.PutObjectRetentionInput{
-			Bucket: aws.String(d.Get("bucket").(string)),
-			Key:    aws.String(d.Get("key").(string)),
+			Bucket: aws.String(bucket),
+			Key:    aws.String(key),
 			Retention: &s3.ObjectLockRetention{
 				Mode:            aws.String(d.Get("object_lock_mode").(string)),
 				RetainUntilDate: expandS3ObjectLockRetainUntilDate(d.Get("object_lock_retain_until_date").(string)),
@@ -472,8 +479,12 @@ func resourceAwsS3BucketObjectUpdate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
-	if err := setTagsS3Object(conn, d); err != nil {
-		return fmt.Errorf("error setting S3 object tags: %s", err)
+	if d.HasChange("tags") {
+		o, n := d.GetChange("tags")
+
+		if err := keyvaluetags.S3ObjectUpdateTags(conn, bucket, key, o, n); err != nil {
+			return fmt.Errorf("error updating tags: %s", err)
+		}
 	}
 
 	return resourceAwsS3BucketObjectRead(d, meta)

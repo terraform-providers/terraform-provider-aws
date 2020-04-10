@@ -256,7 +256,7 @@ func TestAccAWSRedshiftCluster_loggingEnabled(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"aws_redshift_cluster.default", "logging.0.enable", "true"),
 					resource.TestCheckResourceAttr(
-						"aws_redshift_cluster.default", "logging.0.bucket_name", fmt.Sprintf("tf-redshift-logging-%d", rInt)),
+						"aws_redshift_cluster.default", "logging.0.bucket_name", fmt.Sprintf("tf-test-redshift-logging-%d", rInt)),
 				),
 			},
 			{
@@ -1153,7 +1153,7 @@ func testAccAWSRedshiftClusterConfig_loggingEnabled(rInt int) string {
 data "aws_redshift_service_account" "main" {}
 
 resource "aws_s3_bucket" "bucket" {
-  bucket        = "tf-redshift-logging-%d"
+  bucket        = "tf-test-redshift-logging-%d"
   force_destroy = true
 
   policy = <<EOF
@@ -1167,7 +1167,7 @@ resource "aws_s3_bucket" "bucket" {
 			 "AWS": "${data.aws_redshift_service_account.main.arn}"
 		 },
 		 "Action": "s3:PutObject",
-		 "Resource": "arn:aws:s3:::tf-redshift-logging-%d/*"
+		 "Resource": "arn:aws:s3:::tf-test-redshift-logging-%d/*"
 	 },
 	 {
 		 "Sid": "Stmt137652664067",
@@ -1176,7 +1176,7 @@ resource "aws_s3_bucket" "bucket" {
 			 "AWS": "${data.aws_redshift_service_account.main.arn}"
 		 },
 		 "Action": "s3:GetBucketAcl",
-		 "Resource": "arn:aws:s3:::tf-redshift-logging-%d"
+		 "Resource": "arn:aws:s3:::tf-test-redshift-logging-%d"
 	 }
  ]
 }

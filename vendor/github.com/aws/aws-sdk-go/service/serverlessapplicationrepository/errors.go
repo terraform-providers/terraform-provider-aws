@@ -2,6 +2,10 @@
 
 package serverlessapplicationrepository
 
+import (
+	"github.com/aws/aws-sdk-go/private/protocol"
+)
+
 const (
 
 	// ErrCodeBadRequestException for service response error code
@@ -43,3 +47,12 @@ const (
 	// time.
 	ErrCodeTooManyRequestsException = "TooManyRequestsException"
 )
+
+var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
+	"BadRequestException":          newErrorBadRequestException,
+	"ConflictException":            newErrorConflictException,
+	"ForbiddenException":           newErrorForbiddenException,
+	"InternalServerErrorException": newErrorInternalServerErrorException,
+	"NotFoundException":            newErrorNotFoundException,
+	"TooManyRequestsException":     newErrorTooManyRequestsException,
+}

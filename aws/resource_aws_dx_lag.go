@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/directconnect"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsDxLag() *schema.Resource {
@@ -77,6 +78,10 @@ func resourceAwsDxLagCreate(d *schema.ResourceData, meta interface{}) error {
 		NumberOfConnections:  aws.Int64(int64(1)),
 	}
 
+	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
+		req.Tags = keyvaluetags.New(v).IgnoreAws().DirectconnectTags()
+	}
+
 	log.Printf("[DEBUG] Creating Direct Connect LAG: %#v", req)
 	resp, err := conn.CreateLag(req)
 	if err != nil {
@@ -96,7 +101,7 @@ func resourceAwsDxLagCreate(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("error deleting newly created and unmanaged Direct Connect LAG (%s) Connection (%s): %s", d.Id(), connectionID, err)
 	}
 
-	return resourceAwsDxLagUpdate(d, meta)
+	return resourceAwsDxLagRead(d, meta)
 }
 
 func resourceAwsDxLagRead(d *schema.ResourceData, meta interface{}) error {
@@ -147,14 +152,21 @@ func resourceAwsDxLagRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("jumbo_frame_capable", lag.JumboFrameCapable)
 	d.Set("has_logical_redundancy", lag.HasLogicalRedundancy)
 
-	err1 := getTagsDX(conn, d, arn)
-	return err1
+	tags, err := keyvaluetags.DirectconnectListTags(conn, arn)
+
+	if err != nil {
+		return fmt.Errorf("error listing tags for Direct Connect LAG (%s): %s", arn, err)
+	}
+
+	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+		return fmt.Errorf("error setting tags: %s", err)
+	}
+
+	return nil
 }
 
 func resourceAwsDxLagUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).dxconn
-
-	d.Partial(true)
 
 	if d.HasChange("name") {
 		req := &directconnect.UpdateLagInput{
@@ -165,26 +177,18 @@ func resourceAwsDxLagUpdate(d *schema.ResourceData, meta interface{}) error {
 		log.Printf("[DEBUG] Updating Direct Connect LAG: %#v", req)
 		_, err := conn.UpdateLag(req)
 		if err != nil {
-			return err
-		} else {
-			d.SetPartial("name")
+			return fmt.Errorf("error updating Direct Connect LAG (%s): %s", d.Id(), err)
 		}
 	}
 
-	arn := arn.ARN{
-		Partition: meta.(*AWSClient).partition,
-		Region:    meta.(*AWSClient).region,
-		Service:   "directconnect",
-		AccountID: meta.(*AWSClient).accountid,
-		Resource:  fmt.Sprintf("dxlag/%s", d.Id()),
-	}.String()
-	if err := setTagsDX(conn, d, arn); err != nil {
-		return err
-	} else {
-		d.SetPartial("tags")
-	}
+	arn := d.Get("arn").(string)
+	if d.HasChange("tags") {
+		o, n := d.GetChange("tags")
 
-	d.Partial(false)
+		if err := keyvaluetags.DirectconnectUpdateTags(conn, arn, o, n); err != nil {
+			return fmt.Errorf("error updating Direct Connect LAG (%s) tags: %s", arn, err)
+		}
+	}
 
 	return resourceAwsDxLagRead(d, meta)
 }

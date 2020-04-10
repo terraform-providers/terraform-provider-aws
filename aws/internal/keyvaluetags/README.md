@@ -12,6 +12,8 @@ Some AWS Go SDK services that have common tag listing functionality (such as `Li
 
 Some AWS Go SDK services that have common tagging update functionality (such as `TagResource` and `UntagResource` API calls), also have auto-generated update functions. For more information about this code generation, see the [`generators/updatetags` README](generators/updatetags/README.md).
 
+Any tagging functions that cannot be generated should be hand implemented in a service-specific source file (e.g. `iam_tags.go`) and follow the format of similar generated code wherever possible. The first line of the source file should be `// +build !generate`. This prevents the file's inclusion during the code generation phase.
+
 ## Code Structure
 
 ```text
@@ -20,9 +22,11 @@ aws/internal/keyvaluetags
 │   ├── listtags (generates list_tags_gen.go)
 │   ├── servicetags (generates service_tags_gen.go)
 │   └── updatetags (generates update_tags_gen.go)
+├── key_value_tags_test.go (unit tests for core logic)
 ├── key_value_tags.go (core logic)
 ├── list_tags_gen.go (generated AWS Go SDK service list tag functions)
 ├── service_generation_customizations.go (shared AWS Go SDK service customizations for generators)
 ├── service_tags_gen.go (generated AWS Go SDK service conversion functions)
-└── update_tags_gen.go (generated AWS Go SDK service tagging update functions)
+├── update_tags_gen.go (generated AWS Go SDK service tagging update functions)
+└── <service name>_tags.go (any service-specific functions that cannot be generated)
 ```

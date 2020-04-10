@@ -2,6 +2,10 @@
 
 package medialive
 
+import (
+	"github.com/aws/aws-sdk-go/private/protocol"
+)
+
 const (
 
 	// ErrCodeBadGatewayException for service response error code
@@ -40,3 +44,15 @@ const (
 	// "UnprocessableEntityException".
 	ErrCodeUnprocessableEntityException = "UnprocessableEntityException"
 )
+
+var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
+	"BadGatewayException":          newErrorBadGatewayException,
+	"BadRequestException":          newErrorBadRequestException,
+	"ConflictException":            newErrorConflictException,
+	"ForbiddenException":           newErrorForbiddenException,
+	"GatewayTimeoutException":      newErrorGatewayTimeoutException,
+	"InternalServerErrorException": newErrorInternalServerErrorException,
+	"NotFoundException":            newErrorNotFoundException,
+	"TooManyRequestsException":     newErrorTooManyRequestsException,
+	"UnprocessableEntityException": newErrorUnprocessableEntityException,
+}

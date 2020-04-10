@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/neptune"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsNeptuneEventSubscription() *schema.Resource {
@@ -93,7 +94,7 @@ func resourceAwsNeptuneEventSubscriptionCreate(d *schema.ResourceData, meta inte
 		d.Set("name", resource.PrefixedUniqueId("tf-"))
 	}
 
-	tags := tagsFromMapNeptune(d.Get("tags").(map[string]interface{}))
+	tags := keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().NeptuneTags()
 
 	request := &neptune.CreateEventSubscriptionInput{
 		SubscriptionName: aws.String(d.Get("name").(string)),
@@ -189,8 +190,14 @@ func resourceAwsNeptuneEventSubscriptionRead(d *schema.ResourceData, meta interf
 		}
 	}
 
-	if err := saveTagsNeptune(conn, d, aws.StringValue(sub.EventSubscriptionArn)); err != nil {
-		return fmt.Errorf("Error saving tags for Neptune Event Subscription (%s): %s", d.Id(), err)
+	tags, err := keyvaluetags.NeptuneListTags(conn, d.Get("arn").(string))
+
+	if err != nil {
+		return fmt.Errorf("error listing tags for Neptune Event Subscription (%s): %s", d.Get("arn").(string), err)
+	}
+
+	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+		return fmt.Errorf("error setting tags: %s", err)
 	}
 
 	return nil
@@ -199,7 +206,6 @@ func resourceAwsNeptuneEventSubscriptionRead(d *schema.ResourceData, meta interf
 func resourceAwsNeptuneEventSubscriptionUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).neptuneconn
 
-	d.Partial(true)
 	requestUpdate := false
 
 	req := &neptune.ModifyEventSubscriptionInput{
@@ -255,16 +261,14 @@ func resourceAwsNeptuneEventSubscriptionUpdate(d *schema.ResourceData, meta inte
 		if err != nil {
 			return err
 		}
-		d.SetPartial("event_categories")
-		d.SetPartial("enabled")
-		d.SetPartial("sns_topic_arn")
-		d.SetPartial("source_type")
 	}
 
-	if err := setTagsNeptune(conn, d, d.Get("arn").(string)); err != nil {
-		return err
-	} else {
-		d.SetPartial("tags")
+	if d.HasChange("tags") {
+		o, n := d.GetChange("tags")
+
+		if err := keyvaluetags.NeptuneUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
+			return fmt.Errorf("error updating Neptune Cluster Event Subscription (%s) tags: %s", d.Get("arn").(string), err)
+		}
 	}
 
 	if d.HasChange("source_ids") {
@@ -306,10 +310,7 @@ func resourceAwsNeptuneEventSubscriptionUpdate(d *schema.ResourceData, meta inte
 				}
 			}
 		}
-		d.SetPartial("source_ids")
 	}
-
-	d.Partial(false)
 
 	return resourceAwsNeptuneEventSubscriptionRead(d, meta)
 }

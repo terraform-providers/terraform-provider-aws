@@ -12,32 +12,6 @@ import (
 	"github.com/keybase/go-crypto/openpgp"
 )
 
-// PubKeyFileFlag implements flag.Value and command.Example to receive exactly
-// one PGP or keybase key via a flag.
-type PubKeyFileFlag string
-
-func (p *PubKeyFileFlag) String() string { return string(*p) }
-
-func (p *PubKeyFileFlag) Set(val string) error {
-	if p != nil && *p != "" {
-		return errors.New("can only be specified once")
-	}
-
-	keys, err := ParsePGPKeys(strings.Split(val, ","))
-	if err != nil {
-		return err
-	}
-
-	if len(keys) > 1 {
-		return errors.New("can only specify one pgp key")
-	}
-
-	*p = PubKeyFileFlag(keys[0])
-	return nil
-}
-
-func (p *PubKeyFileFlag) Example() string { return "keybase:user" }
-
 // PGPPubKeyFiles implements the flag.Value interface and allows parsing and
 // reading a list of PGP public key files.
 type PubKeyFilesFlag []string
@@ -59,8 +33,6 @@ func (p *PubKeyFilesFlag) Set(val string) error {
 	*p = PubKeyFilesFlag(keys)
 	return nil
 }
-
-func (p *PubKeyFilesFlag) Example() string { return "keybase:user1, keybase:user2, ..." }
 
 // ParsePGPKeys takes a list of PGP keys and parses them either using keybase
 // or reading them from disk and returns the "expanded" list of pgp keys in

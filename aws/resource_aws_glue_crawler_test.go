@@ -89,6 +89,7 @@ func TestAccAWSGlueCrawler_DynamodbTarget(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "schema_change_policy.0.delete_behavior", "DEPRECATE_IN_DATABASE"),
 					resource.TestCheckResourceAttr(resourceName, "schema_change_policy.0.update_behavior", "UPDATE_IN_DATABASE"),
 					resource.TestCheckResourceAttr(resourceName, "table_prefix", ""),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 				),
 			},
 			{
@@ -111,6 +112,7 @@ func TestAccAWSGlueCrawler_DynamodbTarget(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "schema_change_policy.0.delete_behavior", "DEPRECATE_IN_DATABASE"),
 					resource.TestCheckResourceAttr(resourceName, "schema_change_policy.0.update_behavior", "UPDATE_IN_DATABASE"),
 					resource.TestCheckResourceAttr(resourceName, "table_prefix", ""),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 				),
 			},
 			{
@@ -154,6 +156,7 @@ func TestAccAWSGlueCrawler_JdbcTarget(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "schema_change_policy.0.delete_behavior", "DEPRECATE_IN_DATABASE"),
 					resource.TestCheckResourceAttr(resourceName, "schema_change_policy.0.update_behavior", "UPDATE_IN_DATABASE"),
 					resource.TestCheckResourceAttr(resourceName, "table_prefix", ""),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 				),
 			},
 			{
@@ -178,6 +181,7 @@ func TestAccAWSGlueCrawler_JdbcTarget(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "schema_change_policy.0.delete_behavior", "DEPRECATE_IN_DATABASE"),
 					resource.TestCheckResourceAttr(resourceName, "schema_change_policy.0.update_behavior", "UPDATE_IN_DATABASE"),
 					resource.TestCheckResourceAttr(resourceName, "table_prefix", ""),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 				),
 			},
 			{
@@ -318,6 +322,7 @@ func TestAccAWSGlueCrawler_S3Target(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "schema_change_policy.0.delete_behavior", "DEPRECATE_IN_DATABASE"),
 					resource.TestCheckResourceAttr(resourceName, "schema_change_policy.0.update_behavior", "UPDATE_IN_DATABASE"),
 					resource.TestCheckResourceAttr(resourceName, "table_prefix", ""),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 				),
 			},
 			{
@@ -341,6 +346,7 @@ func TestAccAWSGlueCrawler_S3Target(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "schema_change_policy.0.delete_behavior", "DEPRECATE_IN_DATABASE"),
 					resource.TestCheckResourceAttr(resourceName, "schema_change_policy.0.update_behavior", "UPDATE_IN_DATABASE"),
 					resource.TestCheckResourceAttr(resourceName, "table_prefix", ""),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 				),
 			},
 			{
@@ -477,6 +483,7 @@ func TestAccAWSGlueCrawler_CatalogTarget(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "schema_change_policy.0.delete_behavior", "LOG"),
 					resource.TestCheckResourceAttr(resourceName, "schema_change_policy.0.update_behavior", "UPDATE_IN_DATABASE"),
 					resource.TestCheckResourceAttr(resourceName, "table_prefix", ""),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 					resource.TestCheckResourceAttr(resourceName, "configuration", "{\"Version\":1.0,\"Grouping\":{\"TableGroupingPolicy\":\"CombineCompatibleSchemas\"}}"),
 				),
 			},
@@ -503,6 +510,7 @@ func TestAccAWSGlueCrawler_CatalogTarget(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "schema_change_policy.0.delete_behavior", "LOG"),
 					resource.TestCheckResourceAttr(resourceName, "schema_change_policy.0.update_behavior", "UPDATE_IN_DATABASE"),
 					resource.TestCheckResourceAttr(resourceName, "table_prefix", ""),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 					resource.TestCheckResourceAttr(resourceName, "configuration", "{\"Version\":1.0,\"Grouping\":{\"TableGroupingPolicy\":\"CombineCompatibleSchemas\"}}"),
 				),
 			},
@@ -895,6 +903,50 @@ func TestAccAWSGlueCrawler_TablePrefix(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSGlueCrawler_Tags(t *testing.T) {
+	var crawler1, crawler2, crawler3 glue.Crawler
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_glue_crawler.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSGlueCrawlerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccGlueCrawlerConfigTags1(rName, "key1", "value1"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSGlueCrawlerExists(resourceName, &crawler1),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccGlueCrawlerConfigTags2(rName, "key1", "value1updated", "key2", "value2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSGlueCrawlerExists(resourceName, &crawler2),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1updated"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
+				),
+			},
+			{
+				Config: testAccGlueCrawlerConfigTags1(rName, "key2", "value2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSGlueCrawlerExists(resourceName, &crawler3),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
+				),
 			},
 		},
 	})
@@ -1688,6 +1740,57 @@ resource "aws_glue_crawler" "test" {
   }
 }
 `, rName, rName, tablePrefix)
+}
+
+func testAccGlueCrawlerConfigTags1(rName, tagKey1, tagValue1 string) string {
+	return testAccGlueCrawlerConfig_Base(rName) + fmt.Sprintf(`
+resource "aws_glue_catalog_database" "test" {
+  name = %[1]q
+}
+
+resource "aws_glue_crawler" "test" {
+  depends_on = ["aws_iam_role_policy_attachment.test-AWSGlueServiceRole"]
+
+  database_name = "${aws_glue_catalog_database.test.name}"
+  name          = %[1]q
+  role          = "${aws_iam_role.test.name}"
+  table_prefix  = %[1]q
+
+  s3_target {
+    path = "s3://bucket-name"
+  }
+
+  tags = {
+    %[2]q = %[3]q
+  }
+}
+`, rName, tagKey1, tagValue1)
+}
+
+func testAccGlueCrawlerConfigTags2(rName, tagKey1, tagValue1, tagKey2, tagValue2 string) string {
+	return testAccGlueCrawlerConfig_Base(rName) + fmt.Sprintf(`
+resource "aws_glue_catalog_database" "test" {
+  name = %[1]q
+}
+
+resource "aws_glue_crawler" "test" {
+  depends_on = ["aws_iam_role_policy_attachment.test-AWSGlueServiceRole"]
+
+  database_name = "${aws_glue_catalog_database.test.name}"
+  name          = %[1]q
+  role          = "${aws_iam_role.test.name}"
+  table_prefix  = %[1]q
+
+  s3_target {
+    path = "s3://bucket-name"
+  }
+
+  tags = {
+    %[2]q = %[3]q
+    %[4]q = %[5]q
+  }
+}
+`, rName, tagKey1, tagValue1, tagKey2, tagValue2)
 }
 
 func testAccGlueCrawlerConfig_SecurityConfiguration(rName, securityConfiguration string) string {

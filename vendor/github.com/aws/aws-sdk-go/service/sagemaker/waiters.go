@@ -269,6 +269,67 @@ func (c *SageMaker) WaitUntilNotebookInstanceStoppedWithContext(ctx aws.Context,
 	return w.WaitWithContext(ctx)
 }
 
+// WaitUntilProcessingJobCompletedOrStopped uses the SageMaker API operation
+// DescribeProcessingJob to wait for a condition to be met before returning.
+// If the condition is not met within the max attempt window, an error will
+// be returned.
+func (c *SageMaker) WaitUntilProcessingJobCompletedOrStopped(input *DescribeProcessingJobInput) error {
+	return c.WaitUntilProcessingJobCompletedOrStoppedWithContext(aws.BackgroundContext(), input)
+}
+
+// WaitUntilProcessingJobCompletedOrStoppedWithContext is an extended version of WaitUntilProcessingJobCompletedOrStopped.
+// With the support for passing in a context and options to configure the
+// Waiter and the underlying request options.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *SageMaker) WaitUntilProcessingJobCompletedOrStoppedWithContext(ctx aws.Context, input *DescribeProcessingJobInput, opts ...request.WaiterOption) error {
+	w := request.Waiter{
+		Name:        "WaitUntilProcessingJobCompletedOrStopped",
+		MaxAttempts: 60,
+		Delay:       request.ConstantWaiterDelay(60 * time.Second),
+		Acceptors: []request.WaiterAcceptor{
+			{
+				State:   request.SuccessWaiterState,
+				Matcher: request.PathWaiterMatch, Argument: "ProcessingJobStatus",
+				Expected: "Completed",
+			},
+			{
+				State:   request.SuccessWaiterState,
+				Matcher: request.PathWaiterMatch, Argument: "ProcessingJobStatus",
+				Expected: "Stopped",
+			},
+			{
+				State:   request.FailureWaiterState,
+				Matcher: request.PathWaiterMatch, Argument: "ProcessingJobStatus",
+				Expected: "Failed",
+			},
+			{
+				State:    request.FailureWaiterState,
+				Matcher:  request.ErrorWaiterMatch,
+				Expected: "ValidationException",
+			},
+		},
+		Logger: c.Config.Logger,
+		NewRequest: func(opts []request.Option) (*request.Request, error) {
+			var inCpy *DescribeProcessingJobInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.DescribeProcessingJobRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+	w.ApplyOptions(opts...)
+
+	return w.WaitWithContext(ctx)
+}
+
 // WaitUntilTrainingJobCompletedOrStopped uses the SageMaker API operation
 // DescribeTrainingJob to wait for a condition to be met before returning.
 // If the condition is not met within the max attempt window, an error will

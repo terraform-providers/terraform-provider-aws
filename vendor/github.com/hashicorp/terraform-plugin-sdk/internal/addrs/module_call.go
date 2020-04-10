@@ -18,15 +18,6 @@ func (c ModuleCall) String() string {
 	return "module." + c.Name
 }
 
-// Instance returns the address of an instance of the receiver identified by
-// the given key.
-func (c ModuleCall) Instance(key InstanceKey) ModuleCallInstance {
-	return ModuleCallInstance{
-		Call: c,
-		Key:  key,
-	}
-}
-
 // ModuleCallInstance is the address of one instance of a module created from
 // a module call, which might create multiple instances using "count" or
 // "for_each" arguments.
@@ -49,15 +40,6 @@ func (c ModuleCallInstance) String() string {
 // call instance creates.
 func (c ModuleCallInstance) ModuleInstance(caller ModuleInstance) ModuleInstance {
 	return caller.Child(c.Call.Name, c.Key)
-}
-
-// Output returns the address of an output of the receiver identified by its
-// name.
-func (c ModuleCallInstance) Output(name string) ModuleCallOutput {
-	return ModuleCallOutput{
-		Call: c,
-		Name: name,
-	}
 }
 
 // ModuleCallOutput is the address of a particular named output produced by

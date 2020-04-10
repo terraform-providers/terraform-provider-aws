@@ -67,24 +67,24 @@ func (c *AppStream) AssociateFleetRequest(input *AssociateFleetInput) (req *requ
 // See the AWS API reference guide for Amazon AppStream's
 // API operation AssociateFleet for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeLimitExceededException "LimitExceededException"
+// Returned Error Types:
+//   * LimitExceededException
 //   The requested limit exceeds the permitted limit for an account.
 //
-//   * ErrCodeInvalidAccountStatusException "InvalidAccountStatusException"
+//   * InvalidAccountStatusException
 //   The resource cannot be created because your AWS account is suspended. For
 //   assistance, contact AWS Support.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The specified resource was not found.
 //
-//   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
+//   * ConcurrentModificationException
 //   An API error occurred. Wait a few minutes and try again.
 //
-//   * ErrCodeIncompatibleImageException "IncompatibleImageException"
+//   * IncompatibleImageException
 //   The image does not support storage connectors.
 //
-//   * ErrCodeOperationNotPermittedException "OperationNotPermittedException"
+//   * OperationNotPermittedException
 //   The attempted operation is not permitted.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/appstream-2016-12-01/AssociateFleet
@@ -164,8 +164,8 @@ func (c *AppStream) BatchAssociateUserStackRequest(input *BatchAssociateUserStac
 // See the AWS API reference guide for Amazon AppStream's
 // API operation BatchAssociateUserStack for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeOperationNotPermittedException "OperationNotPermittedException"
+// Returned Error Types:
+//   * OperationNotPermittedException
 //   The attempted operation is not permitted.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/appstream-2016-12-01/BatchAssociateUserStack
@@ -318,24 +318,24 @@ func (c *AppStream) CopyImageRequest(input *CopyImageInput) (req *request.Reques
 // See the AWS API reference guide for Amazon AppStream's
 // API operation CopyImage for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceAlreadyExistsException "ResourceAlreadyExistsException"
+// Returned Error Types:
+//   * ResourceAlreadyExistsException
 //   The specified resource already exists.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The specified resource was not found.
 //
-//   * ErrCodeResourceNotAvailableException "ResourceNotAvailableException"
+//   * ResourceNotAvailableException
 //   The specified resource exists and is not in use, but isn't available.
 //
-//   * ErrCodeLimitExceededException "LimitExceededException"
+//   * LimitExceededException
 //   The requested limit exceeds the permitted limit for an account.
 //
-//   * ErrCodeInvalidAccountStatusException "InvalidAccountStatusException"
+//   * InvalidAccountStatusException
 //   The resource cannot be created because your AWS account is suspended. For
 //   assistance, contact AWS Support.
 //
-//   * ErrCodeIncompatibleImageException "IncompatibleImageException"
+//   * IncompatibleImageException
 //   The image does not support storage connectors.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/appstream-2016-12-01/CopyImage
@@ -415,14 +415,14 @@ func (c *AppStream) CreateDirectoryConfigRequest(input *CreateDirectoryConfigInp
 // See the AWS API reference guide for Amazon AppStream's
 // API operation CreateDirectoryConfig for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceAlreadyExistsException "ResourceAlreadyExistsException"
+// Returned Error Types:
+//   * ResourceAlreadyExistsException
 //   The specified resource already exists.
 //
-//   * ErrCodeLimitExceededException "LimitExceededException"
+//   * LimitExceededException
 //   The requested limit exceeds the permitted limit for an account.
 //
-//   * ErrCodeInvalidAccountStatusException "InvalidAccountStatusException"
+//   * InvalidAccountStatusException
 //   The resource cannot be created because your AWS account is suspended. For
 //   assistance, contact AWS Support.
 //
@@ -502,36 +502,36 @@ func (c *AppStream) CreateFleetRequest(input *CreateFleetInput) (req *request.Re
 // See the AWS API reference guide for Amazon AppStream's
 // API operation CreateFleet for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceAlreadyExistsException "ResourceAlreadyExistsException"
+// Returned Error Types:
+//   * ResourceAlreadyExistsException
 //   The specified resource already exists.
 //
-//   * ErrCodeResourceNotAvailableException "ResourceNotAvailableException"
+//   * ResourceNotAvailableException
 //   The specified resource exists and is not in use, but isn't available.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The specified resource was not found.
 //
-//   * ErrCodeLimitExceededException "LimitExceededException"
+//   * LimitExceededException
 //   The requested limit exceeds the permitted limit for an account.
 //
-//   * ErrCodeInvalidAccountStatusException "InvalidAccountStatusException"
+//   * InvalidAccountStatusException
 //   The resource cannot be created because your AWS account is suspended. For
 //   assistance, contact AWS Support.
 //
-//   * ErrCodeInvalidRoleException "InvalidRoleException"
+//   * InvalidRoleException
 //   The specified role is invalid.
 //
-//   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
+//   * ConcurrentModificationException
 //   An API error occurred. Wait a few minutes and try again.
 //
-//   * ErrCodeInvalidParameterCombinationException "InvalidParameterCombinationException"
+//   * InvalidParameterCombinationException
 //   Indicates an incorrect combination of parameters, or a missing parameter.
 //
-//   * ErrCodeIncompatibleImageException "IncompatibleImageException"
+//   * IncompatibleImageException
 //   The image does not support storage connectors.
 //
-//   * ErrCodeOperationNotPermittedException "OperationNotPermittedException"
+//   * OperationNotPermittedException
 //   The attempted operation is not permitted.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/appstream-2016-12-01/CreateFleet
@@ -613,36 +613,36 @@ func (c *AppStream) CreateImageBuilderRequest(input *CreateImageBuilderInput) (r
 // See the AWS API reference guide for Amazon AppStream's
 // API operation CreateImageBuilder for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeLimitExceededException "LimitExceededException"
+// Returned Error Types:
+//   * LimitExceededException
 //   The requested limit exceeds the permitted limit for an account.
 //
-//   * ErrCodeInvalidAccountStatusException "InvalidAccountStatusException"
+//   * InvalidAccountStatusException
 //   The resource cannot be created because your AWS account is suspended. For
 //   assistance, contact AWS Support.
 //
-//   * ErrCodeResourceAlreadyExistsException "ResourceAlreadyExistsException"
+//   * ResourceAlreadyExistsException
 //   The specified resource already exists.
 //
-//   * ErrCodeResourceNotAvailableException "ResourceNotAvailableException"
+//   * ResourceNotAvailableException
 //   The specified resource exists and is not in use, but isn't available.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The specified resource was not found.
 //
-//   * ErrCodeInvalidRoleException "InvalidRoleException"
+//   * InvalidRoleException
 //   The specified role is invalid.
 //
-//   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
+//   * ConcurrentModificationException
 //   An API error occurred. Wait a few minutes and try again.
 //
-//   * ErrCodeInvalidParameterCombinationException "InvalidParameterCombinationException"
+//   * InvalidParameterCombinationException
 //   Indicates an incorrect combination of parameters, or a missing parameter.
 //
-//   * ErrCodeIncompatibleImageException "IncompatibleImageException"
+//   * IncompatibleImageException
 //   The image does not support storage connectors.
 //
-//   * ErrCodeOperationNotPermittedException "OperationNotPermittedException"
+//   * OperationNotPermittedException
 //   The attempted operation is not permitted.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/appstream-2016-12-01/CreateImageBuilder
@@ -720,11 +720,11 @@ func (c *AppStream) CreateImageBuilderStreamingURLRequest(input *CreateImageBuil
 // See the AWS API reference guide for Amazon AppStream's
 // API operation CreateImageBuilderStreamingURL for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeOperationNotPermittedException "OperationNotPermittedException"
+// Returned Error Types:
+//   * OperationNotPermittedException
 //   The attempted operation is not permitted.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The specified resource was not found.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/appstream-2016-12-01/CreateImageBuilderStreamingURL
@@ -803,27 +803,27 @@ func (c *AppStream) CreateStackRequest(input *CreateStackInput) (req *request.Re
 // See the AWS API reference guide for Amazon AppStream's
 // API operation CreateStack for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeLimitExceededException "LimitExceededException"
+// Returned Error Types:
+//   * LimitExceededException
 //   The requested limit exceeds the permitted limit for an account.
 //
-//   * ErrCodeInvalidAccountStatusException "InvalidAccountStatusException"
+//   * InvalidAccountStatusException
 //   The resource cannot be created because your AWS account is suspended. For
 //   assistance, contact AWS Support.
 //
-//   * ErrCodeResourceAlreadyExistsException "ResourceAlreadyExistsException"
+//   * ResourceAlreadyExistsException
 //   The specified resource already exists.
 //
-//   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
+//   * ConcurrentModificationException
 //   An API error occurred. Wait a few minutes and try again.
 //
-//   * ErrCodeInvalidRoleException "InvalidRoleException"
+//   * InvalidRoleException
 //   The specified role is invalid.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The specified resource was not found.
 //
-//   * ErrCodeInvalidParameterCombinationException "InvalidParameterCombinationException"
+//   * InvalidParameterCombinationException
 //   Indicates an incorrect combination of parameters, or a missing parameter.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/appstream-2016-12-01/CreateStack
@@ -903,17 +903,17 @@ func (c *AppStream) CreateStreamingURLRequest(input *CreateStreamingURLInput) (r
 // See the AWS API reference guide for Amazon AppStream's
 // API operation CreateStreamingURL for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   The specified resource was not found.
 //
-//   * ErrCodeResourceNotAvailableException "ResourceNotAvailableException"
+//   * ResourceNotAvailableException
 //   The specified resource exists and is not in use, but isn't available.
 //
-//   * ErrCodeOperationNotPermittedException "OperationNotPermittedException"
+//   * OperationNotPermittedException
 //   The attempted operation is not permitted.
 //
-//   * ErrCodeInvalidParameterCombinationException "InvalidParameterCombinationException"
+//   * InvalidParameterCombinationException
 //   Indicates an incorrect combination of parameters, or a missing parameter.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/appstream-2016-12-01/CreateStreamingURL
@@ -991,15 +991,15 @@ func (c *AppStream) CreateUsageReportSubscriptionRequest(input *CreateUsageRepor
 // See the AWS API reference guide for Amazon AppStream's
 // API operation CreateUsageReportSubscription for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidRoleException "InvalidRoleException"
+// Returned Error Types:
+//   * InvalidRoleException
 //   The specified role is invalid.
 //
-//   * ErrCodeInvalidAccountStatusException "InvalidAccountStatusException"
+//   * InvalidAccountStatusException
 //   The resource cannot be created because your AWS account is suspended. For
 //   assistance, contact AWS Support.
 //
-//   * ErrCodeLimitExceededException "LimitExceededException"
+//   * LimitExceededException
 //   The requested limit exceeds the permitted limit for an account.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/appstream-2016-12-01/CreateUsageReportSubscription
@@ -1078,21 +1078,21 @@ func (c *AppStream) CreateUserRequest(input *CreateUserInput) (req *request.Requ
 // See the AWS API reference guide for Amazon AppStream's
 // API operation CreateUser for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceAlreadyExistsException "ResourceAlreadyExistsException"
+// Returned Error Types:
+//   * ResourceAlreadyExistsException
 //   The specified resource already exists.
 //
-//   * ErrCodeInvalidAccountStatusException "InvalidAccountStatusException"
+//   * InvalidAccountStatusException
 //   The resource cannot be created because your AWS account is suspended. For
 //   assistance, contact AWS Support.
 //
-//   * ErrCodeInvalidParameterCombinationException "InvalidParameterCombinationException"
+//   * InvalidParameterCombinationException
 //   Indicates an incorrect combination of parameters, or a missing parameter.
 //
-//   * ErrCodeLimitExceededException "LimitExceededException"
+//   * LimitExceededException
 //   The requested limit exceeds the permitted limit for an account.
 //
-//   * ErrCodeOperationNotPermittedException "OperationNotPermittedException"
+//   * OperationNotPermittedException
 //   The attempted operation is not permitted.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/appstream-2016-12-01/CreateUser
@@ -1173,11 +1173,11 @@ func (c *AppStream) DeleteDirectoryConfigRequest(input *DeleteDirectoryConfigInp
 // See the AWS API reference guide for Amazon AppStream's
 // API operation DeleteDirectoryConfig for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceInUseException "ResourceInUseException"
+// Returned Error Types:
+//   * ResourceInUseException
 //   The specified resource is in use.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The specified resource was not found.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/appstream-2016-12-01/DeleteDirectoryConfig
@@ -1256,14 +1256,14 @@ func (c *AppStream) DeleteFleetRequest(input *DeleteFleetInput) (req *request.Re
 // See the AWS API reference guide for Amazon AppStream's
 // API operation DeleteFleet for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceInUseException "ResourceInUseException"
+// Returned Error Types:
+//   * ResourceInUseException
 //   The specified resource is in use.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The specified resource was not found.
 //
-//   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
+//   * ConcurrentModificationException
 //   An API error occurred. Wait a few minutes and try again.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/appstream-2016-12-01/DeleteFleet
@@ -1342,17 +1342,17 @@ func (c *AppStream) DeleteImageRequest(input *DeleteImageInput) (req *request.Re
 // See the AWS API reference guide for Amazon AppStream's
 // API operation DeleteImage for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceInUseException "ResourceInUseException"
+// Returned Error Types:
+//   * ResourceInUseException
 //   The specified resource is in use.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The specified resource was not found.
 //
-//   * ErrCodeOperationNotPermittedException "OperationNotPermittedException"
+//   * OperationNotPermittedException
 //   The attempted operation is not permitted.
 //
-//   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
+//   * ConcurrentModificationException
 //   An API error occurred. Wait a few minutes and try again.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/appstream-2016-12-01/DeleteImage
@@ -1430,14 +1430,14 @@ func (c *AppStream) DeleteImageBuilderRequest(input *DeleteImageBuilderInput) (r
 // See the AWS API reference guide for Amazon AppStream's
 // API operation DeleteImageBuilder for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   The specified resource was not found.
 //
-//   * ErrCodeOperationNotPermittedException "OperationNotPermittedException"
+//   * OperationNotPermittedException
 //   The attempted operation is not permitted.
 //
-//   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
+//   * ConcurrentModificationException
 //   An API error occurred. Wait a few minutes and try again.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/appstream-2016-12-01/DeleteImageBuilder
@@ -1518,11 +1518,11 @@ func (c *AppStream) DeleteImagePermissionsRequest(input *DeleteImagePermissionsI
 // See the AWS API reference guide for Amazon AppStream's
 // API operation DeleteImagePermissions for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotAvailableException "ResourceNotAvailableException"
+// Returned Error Types:
+//   * ResourceNotAvailableException
 //   The specified resource exists and is not in use, but isn't available.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The specified resource was not found.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/appstream-2016-12-01/DeleteImagePermissions
@@ -1604,14 +1604,14 @@ func (c *AppStream) DeleteStackRequest(input *DeleteStackInput) (req *request.Re
 // See the AWS API reference guide for Amazon AppStream's
 // API operation DeleteStack for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceInUseException "ResourceInUseException"
+// Returned Error Types:
+//   * ResourceInUseException
 //   The specified resource is in use.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The specified resource was not found.
 //
-//   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
+//   * ConcurrentModificationException
 //   An API error occurred. Wait a few minutes and try again.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/appstream-2016-12-01/DeleteStack
@@ -1690,12 +1690,12 @@ func (c *AppStream) DeleteUsageReportSubscriptionRequest(input *DeleteUsageRepor
 // See the AWS API reference guide for Amazon AppStream's
 // API operation DeleteUsageReportSubscription for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidAccountStatusException "InvalidAccountStatusException"
+// Returned Error Types:
+//   * InvalidAccountStatusException
 //   The resource cannot be created because your AWS account is suspended. For
 //   assistance, contact AWS Support.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The specified resource was not found.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/appstream-2016-12-01/DeleteUsageReportSubscription
@@ -1774,8 +1774,8 @@ func (c *AppStream) DeleteUserRequest(input *DeleteUserInput) (req *request.Requ
 // See the AWS API reference guide for Amazon AppStream's
 // API operation DeleteUser for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   The specified resource was not found.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/appstream-2016-12-01/DeleteUser
@@ -1860,8 +1860,8 @@ func (c *AppStream) DescribeDirectoryConfigsRequest(input *DescribeDirectoryConf
 // See the AWS API reference guide for Amazon AppStream's
 // API operation DescribeDirectoryConfigs for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   The specified resource was not found.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/appstream-2016-12-01/DescribeDirectoryConfigs
@@ -1940,8 +1940,8 @@ func (c *AppStream) DescribeFleetsRequest(input *DescribeFleetsInput) (req *requ
 // See the AWS API reference guide for Amazon AppStream's
 // API operation DescribeFleets for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   The specified resource was not found.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/appstream-2016-12-01/DescribeFleets
@@ -2021,8 +2021,8 @@ func (c *AppStream) DescribeImageBuildersRequest(input *DescribeImageBuildersInp
 // See the AWS API reference guide for Amazon AppStream's
 // API operation DescribeImageBuilders for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   The specified resource was not found.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/appstream-2016-12-01/DescribeImageBuilders
@@ -2107,8 +2107,8 @@ func (c *AppStream) DescribeImagePermissionsRequest(input *DescribeImagePermissi
 // See the AWS API reference guide for Amazon AppStream's
 // API operation DescribeImagePermissions for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   The specified resource was not found.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/appstream-2016-12-01/DescribeImagePermissions
@@ -2176,10 +2176,12 @@ func (c *AppStream) DescribeImagePermissionsPagesWithContext(ctx aws.Context, in
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*DescribeImagePermissionsOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*DescribeImagePermissionsOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -2244,11 +2246,11 @@ func (c *AppStream) DescribeImagesRequest(input *DescribeImagesInput) (req *requ
 // See the AWS API reference guide for Amazon AppStream's
 // API operation DescribeImages for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidParameterCombinationException "InvalidParameterCombinationException"
+// Returned Error Types:
+//   * InvalidParameterCombinationException
 //   Indicates an incorrect combination of parameters, or a missing parameter.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The specified resource was not found.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/appstream-2016-12-01/DescribeImages
@@ -2316,10 +2318,12 @@ func (c *AppStream) DescribeImagesPagesWithContext(ctx aws.Context, input *Descr
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*DescribeImagesOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*DescribeImagesOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -2379,8 +2383,8 @@ func (c *AppStream) DescribeSessionsRequest(input *DescribeSessionsInput) (req *
 // See the AWS API reference guide for Amazon AppStream's
 // API operation DescribeSessions for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidParameterCombinationException "InvalidParameterCombinationException"
+// Returned Error Types:
+//   * InvalidParameterCombinationException
 //   Indicates an incorrect combination of parameters, or a missing parameter.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/appstream-2016-12-01/DescribeSessions
@@ -2459,8 +2463,8 @@ func (c *AppStream) DescribeStacksRequest(input *DescribeStacksInput) (req *requ
 // See the AWS API reference guide for Amazon AppStream's
 // API operation DescribeStacks for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   The specified resource was not found.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/appstream-2016-12-01/DescribeStacks
@@ -2538,11 +2542,11 @@ func (c *AppStream) DescribeUsageReportSubscriptionsRequest(input *DescribeUsage
 // See the AWS API reference guide for Amazon AppStream's
 // API operation DescribeUsageReportSubscriptions for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   The specified resource was not found.
 //
-//   * ErrCodeInvalidAccountStatusException "InvalidAccountStatusException"
+//   * InvalidAccountStatusException
 //   The resource cannot be created because your AWS account is suspended. For
 //   assistance, contact AWS Support.
 //
@@ -2627,8 +2631,8 @@ func (c *AppStream) DescribeUserStackAssociationsRequest(input *DescribeUserStac
 // See the AWS API reference guide for Amazon AppStream's
 // API operation DescribeUserStackAssociations for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidParameterCombinationException "InvalidParameterCombinationException"
+// Returned Error Types:
+//   * InvalidParameterCombinationException
 //   Indicates an incorrect combination of parameters, or a missing parameter.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/appstream-2016-12-01/DescribeUserStackAssociations
@@ -2706,11 +2710,11 @@ func (c *AppStream) DescribeUsersRequest(input *DescribeUsersInput) (req *reques
 // See the AWS API reference guide for Amazon AppStream's
 // API operation DescribeUsers for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   The specified resource was not found.
 //
-//   * ErrCodeInvalidParameterCombinationException "InvalidParameterCombinationException"
+//   * InvalidParameterCombinationException
 //   Indicates an incorrect combination of parameters, or a missing parameter.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/appstream-2016-12-01/DescribeUsers
@@ -2790,8 +2794,8 @@ func (c *AppStream) DisableUserRequest(input *DisableUserInput) (req *request.Re
 // See the AWS API reference guide for Amazon AppStream's
 // API operation DisableUser for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   The specified resource was not found.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/appstream-2016-12-01/DisableUser
@@ -2870,14 +2874,14 @@ func (c *AppStream) DisassociateFleetRequest(input *DisassociateFleetInput) (req
 // See the AWS API reference guide for Amazon AppStream's
 // API operation DisassociateFleet for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceInUseException "ResourceInUseException"
+// Returned Error Types:
+//   * ResourceInUseException
 //   The specified resource is in use.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The specified resource was not found.
 //
-//   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
+//   * ConcurrentModificationException
 //   An API error occurred. Wait a few minutes and try again.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/appstream-2016-12-01/DisassociateFleet
@@ -2957,11 +2961,11 @@ func (c *AppStream) EnableUserRequest(input *EnableUserInput) (req *request.Requ
 // See the AWS API reference guide for Amazon AppStream's
 // API operation EnableUser for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   The specified resource was not found.
 //
-//   * ErrCodeInvalidAccountStatusException "InvalidAccountStatusException"
+//   * InvalidAccountStatusException
 //   The resource cannot be created because your AWS account is suspended. For
 //   assistance, contact AWS Support.
 //
@@ -3267,8 +3271,8 @@ func (c *AppStream) ListTagsForResourceRequest(input *ListTagsForResourceInput) 
 // See the AWS API reference guide for Amazon AppStream's
 // API operation ListTagsForResource for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   The specified resource was not found.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/appstream-2016-12-01/ListTagsForResource
@@ -3347,27 +3351,27 @@ func (c *AppStream) StartFleetRequest(input *StartFleetInput) (req *request.Requ
 // See the AWS API reference guide for Amazon AppStream's
 // API operation StartFleet for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   The specified resource was not found.
 //
-//   * ErrCodeOperationNotPermittedException "OperationNotPermittedException"
+//   * OperationNotPermittedException
 //   The attempted operation is not permitted.
 //
-//   * ErrCodeLimitExceededException "LimitExceededException"
+//   * LimitExceededException
 //   The requested limit exceeds the permitted limit for an account.
 //
-//   * ErrCodeInvalidAccountStatusException "InvalidAccountStatusException"
+//   * InvalidAccountStatusException
 //   The resource cannot be created because your AWS account is suspended. For
 //   assistance, contact AWS Support.
 //
-//   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
+//   * ConcurrentModificationException
 //   An API error occurred. Wait a few minutes and try again.
 //
-//   * ErrCodeResourceNotAvailableException "ResourceNotAvailableException"
+//   * ResourceNotAvailableException
 //   The specified resource exists and is not in use, but isn't available.
 //
-//   * ErrCodeInvalidRoleException "InvalidRoleException"
+//   * InvalidRoleException
 //   The specified role is invalid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/appstream-2016-12-01/StartFleet
@@ -3445,21 +3449,21 @@ func (c *AppStream) StartImageBuilderRequest(input *StartImageBuilderInput) (req
 // See the AWS API reference guide for Amazon AppStream's
 // API operation StartImageBuilder for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotAvailableException "ResourceNotAvailableException"
+// Returned Error Types:
+//   * ResourceNotAvailableException
 //   The specified resource exists and is not in use, but isn't available.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The specified resource was not found.
 //
-//   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
+//   * ConcurrentModificationException
 //   An API error occurred. Wait a few minutes and try again.
 //
-//   * ErrCodeInvalidAccountStatusException "InvalidAccountStatusException"
+//   * InvalidAccountStatusException
 //   The resource cannot be created because your AWS account is suspended. For
 //   assistance, contact AWS Support.
 //
-//   * ErrCodeIncompatibleImageException "IncompatibleImageException"
+//   * IncompatibleImageException
 //   The image does not support storage connectors.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/appstream-2016-12-01/StartImageBuilder
@@ -3538,11 +3542,11 @@ func (c *AppStream) StopFleetRequest(input *StopFleetInput) (req *request.Reques
 // See the AWS API reference guide for Amazon AppStream's
 // API operation StopFleet for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   The specified resource was not found.
 //
-//   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
+//   * ConcurrentModificationException
 //   An API error occurred. Wait a few minutes and try again.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/appstream-2016-12-01/StopFleet
@@ -3620,14 +3624,14 @@ func (c *AppStream) StopImageBuilderRequest(input *StopImageBuilderInput) (req *
 // See the AWS API reference guide for Amazon AppStream's
 // API operation StopImageBuilder for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   The specified resource was not found.
 //
-//   * ErrCodeOperationNotPermittedException "OperationNotPermittedException"
+//   * OperationNotPermittedException
 //   The attempted operation is not permitted.
 //
-//   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
+//   * ConcurrentModificationException
 //   An API error occurred. Wait a few minutes and try again.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/appstream-2016-12-01/StopImageBuilder
@@ -3716,15 +3720,15 @@ func (c *AppStream) TagResourceRequest(input *TagResourceInput) (req *request.Re
 // See the AWS API reference guide for Amazon AppStream's
 // API operation TagResource for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeLimitExceededException "LimitExceededException"
+// Returned Error Types:
+//   * LimitExceededException
 //   The requested limit exceeds the permitted limit for an account.
 //
-//   * ErrCodeInvalidAccountStatusException "InvalidAccountStatusException"
+//   * InvalidAccountStatusException
 //   The resource cannot be created because your AWS account is suspended. For
 //   assistance, contact AWS Support.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The specified resource was not found.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/appstream-2016-12-01/TagResource
@@ -3809,8 +3813,8 @@ func (c *AppStream) UntagResourceRequest(input *UntagResourceInput) (req *reques
 // See the AWS API reference guide for Amazon AppStream's
 // API operation UntagResource for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   The specified resource was not found.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/appstream-2016-12-01/UntagResource
@@ -3890,14 +3894,14 @@ func (c *AppStream) UpdateDirectoryConfigRequest(input *UpdateDirectoryConfigInp
 // See the AWS API reference guide for Amazon AppStream's
 // API operation UpdateDirectoryConfig for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceInUseException "ResourceInUseException"
+// Returned Error Types:
+//   * ResourceInUseException
 //   The specified resource is in use.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The specified resource was not found.
 //
-//   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
+//   * ConcurrentModificationException
 //   An API error occurred. Wait a few minutes and try again.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/appstream-2016-12-01/UpdateDirectoryConfig
@@ -3981,36 +3985,36 @@ func (c *AppStream) UpdateFleetRequest(input *UpdateFleetInput) (req *request.Re
 // See the AWS API reference guide for Amazon AppStream's
 // API operation UpdateFleet for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceInUseException "ResourceInUseException"
+// Returned Error Types:
+//   * ResourceInUseException
 //   The specified resource is in use.
 //
-//   * ErrCodeLimitExceededException "LimitExceededException"
+//   * LimitExceededException
 //   The requested limit exceeds the permitted limit for an account.
 //
-//   * ErrCodeInvalidAccountStatusException "InvalidAccountStatusException"
+//   * InvalidAccountStatusException
 //   The resource cannot be created because your AWS account is suspended. For
 //   assistance, contact AWS Support.
 //
-//   * ErrCodeInvalidRoleException "InvalidRoleException"
+//   * InvalidRoleException
 //   The specified role is invalid.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The specified resource was not found.
 //
-//   * ErrCodeResourceNotAvailableException "ResourceNotAvailableException"
+//   * ResourceNotAvailableException
 //   The specified resource exists and is not in use, but isn't available.
 //
-//   * ErrCodeInvalidParameterCombinationException "InvalidParameterCombinationException"
+//   * InvalidParameterCombinationException
 //   Indicates an incorrect combination of parameters, or a missing parameter.
 //
-//   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
+//   * ConcurrentModificationException
 //   An API error occurred. Wait a few minutes and try again.
 //
-//   * ErrCodeIncompatibleImageException "IncompatibleImageException"
+//   * IncompatibleImageException
 //   The image does not support storage connectors.
 //
-//   * ErrCodeOperationNotPermittedException "OperationNotPermittedException"
+//   * OperationNotPermittedException
 //   The attempted operation is not permitted.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/appstream-2016-12-01/UpdateFleet
@@ -4089,14 +4093,14 @@ func (c *AppStream) UpdateImagePermissionsRequest(input *UpdateImagePermissionsI
 // See the AWS API reference guide for Amazon AppStream's
 // API operation UpdateImagePermissions for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   The specified resource was not found.
 //
-//   * ErrCodeResourceNotAvailableException "ResourceNotAvailableException"
+//   * ResourceNotAvailableException
 //   The specified resource exists and is not in use, but isn't available.
 //
-//   * ErrCodeLimitExceededException "LimitExceededException"
+//   * LimitExceededException
 //   The requested limit exceeds the permitted limit for an account.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/appstream-2016-12-01/UpdateImagePermissions
@@ -4174,33 +4178,33 @@ func (c *AppStream) UpdateStackRequest(input *UpdateStackInput) (req *request.Re
 // See the AWS API reference guide for Amazon AppStream's
 // API operation UpdateStack for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+// Returned Error Types:
+//   * ResourceNotFoundException
 //   The specified resource was not found.
 //
-//   * ErrCodeResourceInUseException "ResourceInUseException"
+//   * ResourceInUseException
 //   The specified resource is in use.
 //
-//   * ErrCodeInvalidRoleException "InvalidRoleException"
+//   * InvalidRoleException
 //   The specified role is invalid.
 //
-//   * ErrCodeInvalidParameterCombinationException "InvalidParameterCombinationException"
+//   * InvalidParameterCombinationException
 //   Indicates an incorrect combination of parameters, or a missing parameter.
 //
-//   * ErrCodeLimitExceededException "LimitExceededException"
+//   * LimitExceededException
 //   The requested limit exceeds the permitted limit for an account.
 //
-//   * ErrCodeInvalidAccountStatusException "InvalidAccountStatusException"
+//   * InvalidAccountStatusException
 //   The resource cannot be created because your AWS account is suspended. For
 //   assistance, contact AWS Support.
 //
-//   * ErrCodeIncompatibleImageException "IncompatibleImageException"
+//   * IncompatibleImageException
 //   The image does not support storage connectors.
 //
-//   * ErrCodeOperationNotPermittedException "OperationNotPermittedException"
+//   * OperationNotPermittedException
 //   The attempted operation is not permitted.
 //
-//   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
+//   * ConcurrentModificationException
 //   An API error occurred. Wait a few minutes and try again.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/appstream-2016-12-01/UpdateStack
@@ -4768,6 +4772,63 @@ func (s *ComputeCapacityStatus) SetInUse(v int64) *ComputeCapacityStatus {
 func (s *ComputeCapacityStatus) SetRunning(v int64) *ComputeCapacityStatus {
 	s.Running = &v
 	return s
+}
+
+// An API error occurred. Wait a few minutes and try again.
+type ConcurrentModificationException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// The error message in the exception.
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s ConcurrentModificationException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ConcurrentModificationException) GoString() string {
+	return s.String()
+}
+
+func newErrorConcurrentModificationException(v protocol.ResponseMetadata) error {
+	return &ConcurrentModificationException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *ConcurrentModificationException) Code() string {
+	return "ConcurrentModificationException"
+}
+
+// Message returns the exception's message.
+func (s *ConcurrentModificationException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *ConcurrentModificationException) OrigErr() error {
+	return nil
+}
+
+func (s *ConcurrentModificationException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *ConcurrentModificationException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *ConcurrentModificationException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 type CopyImageInput struct {
@@ -8776,6 +8837,235 @@ func (s *ImageStateChangeReason) SetMessage(v string) *ImageStateChangeReason {
 	return s
 }
 
+// The image does not support storage connectors.
+type IncompatibleImageException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// The error message in the exception.
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s IncompatibleImageException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s IncompatibleImageException) GoString() string {
+	return s.String()
+}
+
+func newErrorIncompatibleImageException(v protocol.ResponseMetadata) error {
+	return &IncompatibleImageException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *IncompatibleImageException) Code() string {
+	return "IncompatibleImageException"
+}
+
+// Message returns the exception's message.
+func (s *IncompatibleImageException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *IncompatibleImageException) OrigErr() error {
+	return nil
+}
+
+func (s *IncompatibleImageException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *IncompatibleImageException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *IncompatibleImageException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// The resource cannot be created because your AWS account is suspended. For
+// assistance, contact AWS Support.
+type InvalidAccountStatusException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// The error message in the exception.
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidAccountStatusException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidAccountStatusException) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidAccountStatusException(v protocol.ResponseMetadata) error {
+	return &InvalidAccountStatusException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *InvalidAccountStatusException) Code() string {
+	return "InvalidAccountStatusException"
+}
+
+// Message returns the exception's message.
+func (s *InvalidAccountStatusException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *InvalidAccountStatusException) OrigErr() error {
+	return nil
+}
+
+func (s *InvalidAccountStatusException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *InvalidAccountStatusException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *InvalidAccountStatusException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// Indicates an incorrect combination of parameters, or a missing parameter.
+type InvalidParameterCombinationException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// The error message in the exception.
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidParameterCombinationException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidParameterCombinationException) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidParameterCombinationException(v protocol.ResponseMetadata) error {
+	return &InvalidParameterCombinationException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *InvalidParameterCombinationException) Code() string {
+	return "InvalidParameterCombinationException"
+}
+
+// Message returns the exception's message.
+func (s *InvalidParameterCombinationException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *InvalidParameterCombinationException) OrigErr() error {
+	return nil
+}
+
+func (s *InvalidParameterCombinationException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *InvalidParameterCombinationException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *InvalidParameterCombinationException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// The specified role is invalid.
+type InvalidRoleException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// The error message in the exception.
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidRoleException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidRoleException) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidRoleException(v protocol.ResponseMetadata) error {
+	return &InvalidRoleException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *InvalidRoleException) Code() string {
+	return "InvalidRoleException"
+}
+
+// Message returns the exception's message.
+func (s *InvalidRoleException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *InvalidRoleException) OrigErr() error {
+	return nil
+}
+
+func (s *InvalidRoleException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *InvalidRoleException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *InvalidRoleException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
 // Describes the error that is returned when a usage report can't be generated.
 type LastReportGenerationExecutionError struct {
 	_ struct{} `type:"structure"`
@@ -8809,6 +9099,63 @@ func (s *LastReportGenerationExecutionError) SetErrorCode(v string) *LastReportG
 func (s *LastReportGenerationExecutionError) SetErrorMessage(v string) *LastReportGenerationExecutionError {
 	s.ErrorMessage = &v
 	return s
+}
+
+// The requested limit exceeds the permitted limit for an account.
+type LimitExceededException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// The error message in the exception.
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s LimitExceededException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s LimitExceededException) GoString() string {
+	return s.String()
+}
+
+func newErrorLimitExceededException(v protocol.ResponseMetadata) error {
+	return &LimitExceededException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *LimitExceededException) Code() string {
+	return "LimitExceededException"
+}
+
+// Message returns the exception's message.
+func (s *LimitExceededException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *LimitExceededException) OrigErr() error {
+	return nil
+}
+
+func (s *LimitExceededException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *LimitExceededException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *LimitExceededException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 type ListAssociatedFleetsInput struct {
@@ -9082,6 +9429,120 @@ func (s *NetworkAccessConfiguration) SetEniPrivateIpAddress(v string) *NetworkAc
 	return s
 }
 
+// The attempted operation is not permitted.
+type OperationNotPermittedException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// The error message in the exception.
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s OperationNotPermittedException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s OperationNotPermittedException) GoString() string {
+	return s.String()
+}
+
+func newErrorOperationNotPermittedException(v protocol.ResponseMetadata) error {
+	return &OperationNotPermittedException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *OperationNotPermittedException) Code() string {
+	return "OperationNotPermittedException"
+}
+
+// Message returns the exception's message.
+func (s *OperationNotPermittedException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *OperationNotPermittedException) OrigErr() error {
+	return nil
+}
+
+func (s *OperationNotPermittedException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *OperationNotPermittedException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *OperationNotPermittedException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// The specified resource already exists.
+type ResourceAlreadyExistsException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// The error message in the exception.
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s ResourceAlreadyExistsException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResourceAlreadyExistsException) GoString() string {
+	return s.String()
+}
+
+func newErrorResourceAlreadyExistsException(v protocol.ResponseMetadata) error {
+	return &ResourceAlreadyExistsException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *ResourceAlreadyExistsException) Code() string {
+	return "ResourceAlreadyExistsException"
+}
+
+// Message returns the exception's message.
+func (s *ResourceAlreadyExistsException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *ResourceAlreadyExistsException) OrigErr() error {
+	return nil
+}
+
+func (s *ResourceAlreadyExistsException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *ResourceAlreadyExistsException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *ResourceAlreadyExistsException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
 // Describes a resource error.
 type ResourceError struct {
 	_ struct{} `type:"structure"`
@@ -9122,6 +9583,177 @@ func (s *ResourceError) SetErrorMessage(v string) *ResourceError {
 func (s *ResourceError) SetErrorTimestamp(v time.Time) *ResourceError {
 	s.ErrorTimestamp = &v
 	return s
+}
+
+// The specified resource is in use.
+type ResourceInUseException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// The error message in the exception.
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s ResourceInUseException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResourceInUseException) GoString() string {
+	return s.String()
+}
+
+func newErrorResourceInUseException(v protocol.ResponseMetadata) error {
+	return &ResourceInUseException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *ResourceInUseException) Code() string {
+	return "ResourceInUseException"
+}
+
+// Message returns the exception's message.
+func (s *ResourceInUseException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *ResourceInUseException) OrigErr() error {
+	return nil
+}
+
+func (s *ResourceInUseException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *ResourceInUseException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *ResourceInUseException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// The specified resource exists and is not in use, but isn't available.
+type ResourceNotAvailableException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// The error message in the exception.
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s ResourceNotAvailableException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResourceNotAvailableException) GoString() string {
+	return s.String()
+}
+
+func newErrorResourceNotAvailableException(v protocol.ResponseMetadata) error {
+	return &ResourceNotAvailableException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *ResourceNotAvailableException) Code() string {
+	return "ResourceNotAvailableException"
+}
+
+// Message returns the exception's message.
+func (s *ResourceNotAvailableException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *ResourceNotAvailableException) OrigErr() error {
+	return nil
+}
+
+func (s *ResourceNotAvailableException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *ResourceNotAvailableException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *ResourceNotAvailableException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// The specified resource was not found.
+type ResourceNotFoundException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// The error message in the exception.
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s ResourceNotFoundException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResourceNotFoundException) GoString() string {
+	return s.String()
+}
+
+func newErrorResourceNotFoundException(v protocol.ResponseMetadata) error {
+	return &ResourceNotFoundException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *ResourceNotFoundException) Code() string {
+	return "ResourceNotFoundException"
+}
+
+// Message returns the exception's message.
+func (s *ResourceNotFoundException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *ResourceNotFoundException) OrigErr() error {
+	return nil
+}
+
+func (s *ResourceNotFoundException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *ResourceNotFoundException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *ResourceNotFoundException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Describes the credentials for the service account used by the fleet or image

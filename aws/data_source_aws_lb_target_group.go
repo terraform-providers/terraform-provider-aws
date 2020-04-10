@@ -73,7 +73,6 @@ func dataSourceAwsLbTargetGroup() *schema.Resource {
 			"stickiness": {
 				Type:     schema.TypeList,
 				Computed: true,
-				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"enabled": {
@@ -95,7 +94,6 @@ func dataSourceAwsLbTargetGroup() *schema.Resource {
 			"health_check": {
 				Type:     schema.TypeList,
 				Computed: true,
-				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"enabled": {

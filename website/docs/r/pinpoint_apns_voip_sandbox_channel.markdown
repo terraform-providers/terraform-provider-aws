@@ -41,10 +41,12 @@ The following arguments are supported:
 One of the following sets of credentials is also required.
 
 If you choose to use __Certificate credentials__ you will have to provide:
+
 * `certificate` - (Required) The pem encoded TLS Certificate from Apple.
 * `private_key` - (Required) The Certificate Private Key file (ie. `.key` file).
 
 If you choose to use __Key credentials__ you will have to provide:
+
 * `bundle_id` - (Required) The ID assigned to your iOS app. To find this value, choose Certificates, IDs & Profiles, choose App IDs in the Identifiers section, and choose your app.
 * `team_id` - (Required) The ID assigned to your Apple developer account team. This value is provided on the Membership page.
 * `token_key` - (Required) The `.p8` file that you download from your Apple developer account when you create an authentication key. 

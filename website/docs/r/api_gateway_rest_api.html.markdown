@@ -1,5 +1,5 @@
 ---
-subcategory: "API Gateway"
+subcategory: "API Gateway (REST APIs)"
 layout: "aws"
 page_title: "AWS: aws_api_gateway_rest_api"
 description: |-
@@ -9,6 +9,8 @@ description: |-
 # Resource: aws_api_gateway_rest_api
 
 Provides an API Gateway REST API.
+
+-> **Note:** Amazon API Gateway Version 1 resources are used for creating and deploying REST APIs. To create and deploy WebSocket and HTTP APIs, use Amazon API Gateway Version 2 [resources](https://www.terraform.io/docs/providers/aws/r/apigatewayv2_api.html).
 
 ## Example Usage
 
@@ -43,8 +45,9 @@ The following arguments are supported:
 * `binary_media_types` - (Optional) The list of binary media types supported by the RestApi. By default, the RestApi supports only UTF-8-encoded text payloads.
 * `minimum_compression_size` - (Optional) Minimum response size to compress for the REST API. Integer between -1 and 10485760 (10MB). Setting a value greater than -1 will enable compression, -1 disables compression (default).
 * `body` - (Optional) An OpenAPI specification that defines the set of routes and integrations to create as part of the REST API.
-* `policy` - (Optional) JSON formatted policy document that controls access to the API Gateway. For more information about building AWS IAM policy documents with Terraform, see the [AWS IAM Policy Document Guide](/docs/providers/aws/guides/iam-policy-documents.html)
+* `policy` - (Optional) JSON formatted policy document that controls access to the API Gateway. For more information about building AWS IAM policy documents with Terraform, see the [AWS IAM Policy Document Guide](https://learn.hashicorp.com/terraform/aws/iam-policy)
 * `api_key_source` - (Optional) The source of the API key for requests. Valid values are HEADER (default) and AUTHORIZER.
+* `tags` - (Optional) Key-value mapping of resource tags
 
 __Note__: If the `body` argument is provided, the OpenAPI specification will be used to configure the resources, methods and integrations for the Rest API. If this argument is provided, the following resources should not be managed as separate ones, as updates may cause manual resource updates to be overwritten:
 
@@ -60,6 +63,7 @@ __Note__: If the `body` argument is provided, the OpenAPI specification will be 
 ### endpoint_configuration
 
 * `types` - (Required) A list of endpoint types. This resource currently only supports managing a single value. Valid values: `EDGE`, `REGIONAL` or `PRIVATE`. If unspecified, defaults to `EDGE`. Must be declared as `REGIONAL` in non-Commercial partitions. Refer to the [documentation](https://docs.aws.amazon.com/apigateway/latest/developerguide/create-regional-api.html) for more information on the difference between edge-optimized and regional APIs.
+* `vpc_endpoint_ids` - (Optional) A list of VPC Endpoint Ids. It is only supported for PRIVATE endpoint type.
 
 ## Attributes Reference
 
@@ -71,6 +75,7 @@ In addition to all arguments above, the following attributes are exported:
 * `execution_arn` - The execution ARN part to be used in [`lambda_permission`](/docs/providers/aws/r/lambda_permission.html)'s `source_arn`
   when allowing API Gateway to invoke a Lambda function,
   e.g. `arn:aws:execute-api:eu-west-2:123456789012:z4675bid1j`, which can be concatenated with allowed stage, method and resource path.
+* `arn` - Amazon Resource Name (ARN)
 
 ## Import
 

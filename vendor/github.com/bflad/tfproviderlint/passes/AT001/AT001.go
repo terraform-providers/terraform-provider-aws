@@ -7,10 +7,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"golang.org/x/tools/go/analysis"
-
-	"github.com/bflad/tfproviderlint/passes/acctestcase"
+	"github.com/bflad/tfproviderlint/helper/terraformtype/helper/resource"
 	"github.com/bflad/tfproviderlint/passes/commentignore"
+	"github.com/bflad/tfproviderlint/passes/helper/resource/testcaseinfo"
+	"golang.org/x/tools/go/analysis"
 )
 
 const Doc = `check for TestCase missing CheckDestroy
@@ -29,43 +29,31 @@ var Analyzer = &analysis.Analyzer{
 	Name: analyzerName,
 	Doc:  Doc,
 	Requires: []*analysis.Analyzer{
-		acctestcase.Analyzer,
 		commentignore.Analyzer,
+		testcaseinfo.Analyzer,
 	},
 	Run: run,
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
 	ignorer := pass.ResultOf[commentignore.Analyzer].(*commentignore.Ignorer)
-	testCases := pass.ResultOf[acctestcase.Analyzer].([]*ast.CompositeLit)
+	testCases := pass.ResultOf[testcaseinfo.Analyzer].([]*resource.TestCaseInfo)
 	for _, testCase := range testCases {
-		fileName := filepath.Base(pass.Fset.File(testCase.Pos()).Name())
+		fileName := filepath.Base(pass.Fset.File(testCase.AstCompositeLit.Pos()).Name())
 
 		if strings.HasPrefix(fileName, "data_source_") {
 			continue
 		}
 
-		if ignorer.ShouldIgnore(analyzerName, testCase) {
+		if ignorer.ShouldIgnore(analyzerName, testCase.AstCompositeLit) {
 			continue
 		}
 
-		var found bool
-
-		for _, elt := range testCase.Elts {
-			switch v := elt.(type) {
-			default:
-				continue
-			case *ast.KeyValueExpr:
-				if v.Key.(*ast.Ident).Name == "CheckDestroy" {
-					found = true
-					break
-				}
-			}
+		if testCase.DeclaresField(resource.TestCaseFieldCheckDestroy) {
+			continue
 		}
 
-		if !found {
-			pass.Reportf(testCase.Type.(*ast.SelectorExpr).Sel.Pos(), "%s: missing CheckDestroy", analyzerName)
-		}
+		pass.Reportf(testCase.AstCompositeLit.Type.(*ast.SelectorExpr).Sel.Pos(), "%s: missing CheckDestroy", analyzerName)
 	}
 
 	return nil, nil

@@ -13,6 +13,107 @@ import (
 	"github.com/aws/aws-sdk-go/private/protocol/jsonrpc"
 )
 
+const opCancelDataRepositoryTask = "CancelDataRepositoryTask"
+
+// CancelDataRepositoryTaskRequest generates a "aws/request.Request" representing the
+// client's request for the CancelDataRepositoryTask operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See CancelDataRepositoryTask for more information on using the CancelDataRepositoryTask
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the CancelDataRepositoryTaskRequest method.
+//    req, resp := client.CancelDataRepositoryTaskRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/fsx-2018-03-01/CancelDataRepositoryTask
+func (c *FSx) CancelDataRepositoryTaskRequest(input *CancelDataRepositoryTaskInput) (req *request.Request, output *CancelDataRepositoryTaskOutput) {
+	op := &request.Operation{
+		Name:       opCancelDataRepositoryTask,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &CancelDataRepositoryTaskInput{}
+	}
+
+	output = &CancelDataRepositoryTaskOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// CancelDataRepositoryTask API operation for Amazon FSx.
+//
+// Cancels an existing Amazon FSx for Lustre data repository task if that task
+// is in either the PENDING or EXECUTING state. When you cancel a task, Amazon
+// FSx does the following.
+//
+//    * Any files that FSx has already exported are not reverted.
+//
+//    * FSx continues to export any files that are "in-flight" when the cancel
+//    operation is received.
+//
+//    * FSx does not export any files that have not yet been exported.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon FSx's
+// API operation CancelDataRepositoryTask for usage and error information.
+//
+// Returned Error Types:
+//   * BadRequest
+//   A generic error indicating a failure with a client request.
+//
+//   * UnsupportedOperation
+//   The requested operation is not supported for this resource or API.
+//
+//   * DataRepositoryTaskNotFound
+//   The data repository task or tasks you specified could not be found.
+//
+//   * DataRepositoryTaskEnded
+//   The data repository task could not be canceled because the task has already
+//   ended.
+//
+//   * InternalServerError
+//   A generic error indicating a server-side failure.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/fsx-2018-03-01/CancelDataRepositoryTask
+func (c *FSx) CancelDataRepositoryTask(input *CancelDataRepositoryTaskInput) (*CancelDataRepositoryTaskOutput, error) {
+	req, out := c.CancelDataRepositoryTaskRequest(input)
+	return out, req.Send()
+}
+
+// CancelDataRepositoryTaskWithContext is the same as CancelDataRepositoryTask with the addition of
+// the ability to pass a context and additional request options.
+//
+// See CancelDataRepositoryTask for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *FSx) CancelDataRepositoryTaskWithContext(ctx aws.Context, input *CancelDataRepositoryTaskInput, opts ...request.Option) (*CancelDataRepositoryTaskOutput, error) {
+	req, out := c.CancelDataRepositoryTaskRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opCreateBackup = "CreateBackup"
 
 // CreateBackupRequest generates a "aws/request.Request" representing the
@@ -92,30 +193,30 @@ func (c *FSx) CreateBackupRequest(input *CreateBackupInput) (req *request.Reques
 // See the AWS API reference guide for Amazon FSx's
 // API operation CreateBackup for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequest "BadRequest"
+// Returned Error Types:
+//   * BadRequest
 //   A generic error indicating a failure with a client request.
 //
-//   * ErrCodeUnsupportedOperation "UnsupportedOperation"
-//   An error occured.
+//   * UnsupportedOperation
+//   The requested operation is not supported for this resource or API.
 //
-//   * ErrCodeFileSystemNotFound "FileSystemNotFound"
+//   * FileSystemNotFound
 //   No Amazon FSx file systems were found based upon supplied parameters.
 //
-//   * ErrCodeBackupInProgress "BackupInProgress"
+//   * BackupInProgress
 //   Another backup is already under way. Wait for completion before initiating
 //   additional backups of this file system.
 //
-//   * ErrCodeIncompatibleParameterError "IncompatibleParameterError"
+//   * IncompatibleParameterError
 //   The error returned when a second request is received with the same client
 //   request token but different parameters settings. A client request token should
 //   always uniquely identify a single request.
 //
-//   * ErrCodeServiceLimitExceeded "ServiceLimitExceeded"
+//   * ServiceLimitExceeded
 //   An error indicating that a particular service limit was exceeded. You can
 //   increase some service limits by contacting AWS Support.
 //
-//   * ErrCodeInternalServerError "InternalServerError"
+//   * InternalServerError
 //   A generic error indicating a server-side failure.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/fsx-2018-03-01/CreateBackup
@@ -135,6 +236,116 @@ func (c *FSx) CreateBackup(input *CreateBackupInput) (*CreateBackupOutput, error
 // for more information on using Contexts.
 func (c *FSx) CreateBackupWithContext(ctx aws.Context, input *CreateBackupInput, opts ...request.Option) (*CreateBackupOutput, error) {
 	req, out := c.CreateBackupRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opCreateDataRepositoryTask = "CreateDataRepositoryTask"
+
+// CreateDataRepositoryTaskRequest generates a "aws/request.Request" representing the
+// client's request for the CreateDataRepositoryTask operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See CreateDataRepositoryTask for more information on using the CreateDataRepositoryTask
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the CreateDataRepositoryTaskRequest method.
+//    req, resp := client.CreateDataRepositoryTaskRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/fsx-2018-03-01/CreateDataRepositoryTask
+func (c *FSx) CreateDataRepositoryTaskRequest(input *CreateDataRepositoryTaskInput) (req *request.Request, output *CreateDataRepositoryTaskOutput) {
+	op := &request.Operation{
+		Name:       opCreateDataRepositoryTask,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &CreateDataRepositoryTaskInput{}
+	}
+
+	output = &CreateDataRepositoryTaskOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// CreateDataRepositoryTask API operation for Amazon FSx.
+//
+// Creates an Amazon FSx for Lustre data repository task. You use data repository
+// tasks to perform bulk operations between your Amazon FSx file system and
+// its linked data repository. An example of a data repository task is exporting
+// any data and metadata changes, including POSIX metadata, to files, directories,
+// and symbolic links (symlinks) from your FSx file system to its linked data
+// repository. A CreateDataRepositoryTask operation will fail if a data repository
+// is not linked to the FSx file system. To learn more about data repository
+// tasks, see Using Data Repository Tasks (https://docs.aws.amazon.com/fsx/latest/LustreGuide/data-repository-tasks.html).
+// To learn more about linking a data repository to your file system, see Setting
+// the Export Prefix (https://docs.aws.amazon.com/fsx/latest/LustreGuide/export-data-repository.html#export-prefix).
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon FSx's
+// API operation CreateDataRepositoryTask for usage and error information.
+//
+// Returned Error Types:
+//   * BadRequest
+//   A generic error indicating a failure with a client request.
+//
+//   * UnsupportedOperation
+//   The requested operation is not supported for this resource or API.
+//
+//   * FileSystemNotFound
+//   No Amazon FSx file systems were found based upon supplied parameters.
+//
+//   * IncompatibleParameterError
+//   The error returned when a second request is received with the same client
+//   request token but different parameters settings. A client request token should
+//   always uniquely identify a single request.
+//
+//   * ServiceLimitExceeded
+//   An error indicating that a particular service limit was exceeded. You can
+//   increase some service limits by contacting AWS Support.
+//
+//   * InternalServerError
+//   A generic error indicating a server-side failure.
+//
+//   * DataRepositoryTaskExecuting
+//   An existing data repository task is currently executing on the file system.
+//   Wait until the existing task has completed, then create the new task.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/fsx-2018-03-01/CreateDataRepositoryTask
+func (c *FSx) CreateDataRepositoryTask(input *CreateDataRepositoryTaskInput) (*CreateDataRepositoryTaskOutput, error) {
+	req, out := c.CreateDataRepositoryTaskRequest(input)
+	return out, req.Send()
+}
+
+// CreateDataRepositoryTaskWithContext is the same as CreateDataRepositoryTask with the addition of
+// the ability to pass a context and additional request options.
+//
+// See CreateDataRepositoryTask for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *FSx) CreateDataRepositoryTaskWithContext(ctx aws.Context, input *CreateDataRepositoryTaskInput, opts ...request.Option) (*CreateDataRepositoryTaskOutput, error) {
+	req, out := c.CreateDataRepositoryTaskRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -221,25 +432,25 @@ func (c *FSx) CreateFileSystemRequest(input *CreateFileSystemInput) (req *reques
 // See the AWS API reference guide for Amazon FSx's
 // API operation CreateFileSystem for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequest "BadRequest"
+// Returned Error Types:
+//   * BadRequest
 //   A generic error indicating a failure with a client request.
 //
-//   * ErrCodeActiveDirectoryError "ActiveDirectoryError"
+//   * ActiveDirectoryError
 //   An Active Directory error.
 //
-//   * ErrCodeIncompatibleParameterError "IncompatibleParameterError"
+//   * IncompatibleParameterError
 //   The error returned when a second request is received with the same client
 //   request token but different parameters settings. A client request token should
 //   always uniquely identify a single request.
 //
-//   * ErrCodeInvalidImportPath "InvalidImportPath"
+//   * InvalidImportPath
 //   The path provided for data repository import isn't valid.
 //
-//   * ErrCodeInvalidExportPath "InvalidExportPath"
+//   * InvalidExportPath
 //   The path provided for data repository export isn't valid.
 //
-//   * ErrCodeInvalidNetworkSettings "InvalidNetworkSettings"
+//   * InvalidNetworkSettings
 //   One or more network settings specified in the request are invalid. InvalidVpcId
 //   means that the ID passed for the virtual private cloud (VPC) is invalid.
 //   InvalidSubnetIds returns the list of IDs for subnets that are either invalid
@@ -247,15 +458,19 @@ func (c *FSx) CreateFileSystemRequest(input *CreateFileSystemInput) (req *reques
 //   of IDs for security groups that are either invalid or not part of the VPC
 //   specified.
 //
-//   * ErrCodeServiceLimitExceeded "ServiceLimitExceeded"
+//   * InvalidPerUnitStorageThroughput
+//   An invalid value for PerUnitStorageThroughput was provided. Please create
+//   your file system again, using a valid value.
+//
+//   * ServiceLimitExceeded
 //   An error indicating that a particular service limit was exceeded. You can
 //   increase some service limits by contacting AWS Support.
 //
-//   * ErrCodeInternalServerError "InternalServerError"
+//   * InternalServerError
 //   A generic error indicating a server-side failure.
 //
-//   * ErrCodeMissingFileSystemConfiguration "MissingFileSystemConfiguration"
-//   File system configuration is required for this operation.
+//   * MissingFileSystemConfiguration
+//   A file system configuration is required for this operation.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/fsx-2018-03-01/CreateFileSystem
 func (c *FSx) CreateFileSystem(input *CreateFileSystemInput) (*CreateFileSystemOutput, error) {
@@ -362,19 +577,19 @@ func (c *FSx) CreateFileSystemFromBackupRequest(input *CreateFileSystemFromBacku
 // See the AWS API reference guide for Amazon FSx's
 // API operation CreateFileSystemFromBackup for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequest "BadRequest"
+// Returned Error Types:
+//   * BadRequest
 //   A generic error indicating a failure with a client request.
 //
-//   * ErrCodeActiveDirectoryError "ActiveDirectoryError"
+//   * ActiveDirectoryError
 //   An Active Directory error.
 //
-//   * ErrCodeIncompatibleParameterError "IncompatibleParameterError"
+//   * IncompatibleParameterError
 //   The error returned when a second request is received with the same client
 //   request token but different parameters settings. A client request token should
 //   always uniquely identify a single request.
 //
-//   * ErrCodeInvalidNetworkSettings "InvalidNetworkSettings"
+//   * InvalidNetworkSettings
 //   One or more network settings specified in the request are invalid. InvalidVpcId
 //   means that the ID passed for the virtual private cloud (VPC) is invalid.
 //   InvalidSubnetIds returns the list of IDs for subnets that are either invalid
@@ -382,18 +597,18 @@ func (c *FSx) CreateFileSystemFromBackupRequest(input *CreateFileSystemFromBacku
 //   of IDs for security groups that are either invalid or not part of the VPC
 //   specified.
 //
-//   * ErrCodeServiceLimitExceeded "ServiceLimitExceeded"
+//   * ServiceLimitExceeded
 //   An error indicating that a particular service limit was exceeded. You can
 //   increase some service limits by contacting AWS Support.
 //
-//   * ErrCodeBackupNotFound "BackupNotFound"
+//   * BackupNotFound
 //   No Amazon FSx backups were found based upon the supplied parameters.
 //
-//   * ErrCodeInternalServerError "InternalServerError"
+//   * InternalServerError
 //   A generic error indicating a server-side failure.
 //
-//   * ErrCodeMissingFileSystemConfiguration "MissingFileSystemConfiguration"
-//   File system configuration is required for this operation.
+//   * MissingFileSystemConfiguration
+//   A file system configuration is required for this operation.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/fsx-2018-03-01/CreateFileSystemFromBackup
 func (c *FSx) CreateFileSystemFromBackup(input *CreateFileSystemFromBackupInput) (*CreateFileSystemFromBackupOutput, error) {
@@ -477,26 +692,26 @@ func (c *FSx) DeleteBackupRequest(input *DeleteBackupInput) (req *request.Reques
 // See the AWS API reference guide for Amazon FSx's
 // API operation DeleteBackup for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequest "BadRequest"
+// Returned Error Types:
+//   * BadRequest
 //   A generic error indicating a failure with a client request.
 //
-//   * ErrCodeBackupInProgress "BackupInProgress"
+//   * BackupInProgress
 //   Another backup is already under way. Wait for completion before initiating
 //   additional backups of this file system.
 //
-//   * ErrCodeBackupNotFound "BackupNotFound"
+//   * BackupNotFound
 //   No Amazon FSx backups were found based upon the supplied parameters.
 //
-//   * ErrCodeBackupRestoring "BackupRestoring"
+//   * BackupRestoring
 //   You can't delete a backup while it's being used to restore a file system.
 //
-//   * ErrCodeIncompatibleParameterError "IncompatibleParameterError"
+//   * IncompatibleParameterError
 //   The error returned when a second request is received with the same client
 //   request token but different parameters settings. A client request token should
 //   always uniquely identify a single request.
 //
-//   * ErrCodeInternalServerError "InternalServerError"
+//   * InternalServerError
 //   A generic error indicating a server-side failure.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/fsx-2018-03-01/DeleteBackup
@@ -579,6 +794,9 @@ func (c *FSx) DeleteFileSystemRequest(input *DeleteFileSystemInput) (req *reques
 // the file system ID for a deleted file system, the DescribeFileSystems returns
 // a FileSystemNotFound error.
 //
+// Deleting an Amazon FSx for Lustre file system will fail with a 400 BadRequest
+// if a data repository task is in a PENDING or EXECUTING state.
+//
 // The data in a deleted file system is also deleted and can't be recovered
 // by any means.
 //
@@ -589,23 +807,23 @@ func (c *FSx) DeleteFileSystemRequest(input *DeleteFileSystemInput) (req *reques
 // See the AWS API reference guide for Amazon FSx's
 // API operation DeleteFileSystem for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequest "BadRequest"
+// Returned Error Types:
+//   * BadRequest
 //   A generic error indicating a failure with a client request.
 //
-//   * ErrCodeIncompatibleParameterError "IncompatibleParameterError"
+//   * IncompatibleParameterError
 //   The error returned when a second request is received with the same client
 //   request token but different parameters settings. A client request token should
 //   always uniquely identify a single request.
 //
-//   * ErrCodeFileSystemNotFound "FileSystemNotFound"
+//   * FileSystemNotFound
 //   No Amazon FSx file systems were found based upon supplied parameters.
 //
-//   * ErrCodeServiceLimitExceeded "ServiceLimitExceeded"
+//   * ServiceLimitExceeded
 //   An error indicating that a particular service limit was exceeded. You can
 //   increase some service limits by contacting AWS Support.
 //
-//   * ErrCodeInternalServerError "InternalServerError"
+//   * InternalServerError
 //   A generic error indicating a server-side failure.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/fsx-2018-03-01/DeleteFileSystem
@@ -712,17 +930,17 @@ func (c *FSx) DescribeBackupsRequest(input *DescribeBackupsInput) (req *request.
 // See the AWS API reference guide for Amazon FSx's
 // API operation DescribeBackups for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequest "BadRequest"
+// Returned Error Types:
+//   * BadRequest
 //   A generic error indicating a failure with a client request.
 //
-//   * ErrCodeFileSystemNotFound "FileSystemNotFound"
+//   * FileSystemNotFound
 //   No Amazon FSx file systems were found based upon supplied parameters.
 //
-//   * ErrCodeBackupNotFound "BackupNotFound"
+//   * BackupNotFound
 //   No Amazon FSx backups were found based upon the supplied parameters.
 //
-//   * ErrCodeInternalServerError "InternalServerError"
+//   * InternalServerError
 //   A generic error indicating a server-side failure.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/fsx-2018-03-01/DescribeBackups
@@ -790,10 +1008,169 @@ func (c *FSx) DescribeBackupsPagesWithContext(ctx aws.Context, input *DescribeBa
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*DescribeBackupsOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*DescribeBackupsOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
+	return p.Err()
+}
+
+const opDescribeDataRepositoryTasks = "DescribeDataRepositoryTasks"
+
+// DescribeDataRepositoryTasksRequest generates a "aws/request.Request" representing the
+// client's request for the DescribeDataRepositoryTasks operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DescribeDataRepositoryTasks for more information on using the DescribeDataRepositoryTasks
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the DescribeDataRepositoryTasksRequest method.
+//    req, resp := client.DescribeDataRepositoryTasksRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/fsx-2018-03-01/DescribeDataRepositoryTasks
+func (c *FSx) DescribeDataRepositoryTasksRequest(input *DescribeDataRepositoryTasksInput) (req *request.Request, output *DescribeDataRepositoryTasksOutput) {
+	op := &request.Operation{
+		Name:       opDescribeDataRepositoryTasks,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"NextToken"},
+			OutputTokens:    []string{"NextToken"},
+			LimitToken:      "MaxResults",
+			TruncationToken: "",
+		},
+	}
+
+	if input == nil {
+		input = &DescribeDataRepositoryTasksInput{}
+	}
+
+	output = &DescribeDataRepositoryTasksOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// DescribeDataRepositoryTasks API operation for Amazon FSx.
+//
+// Returns the description of specific Amazon FSx for Lustre data repository
+// tasks, if one or more TaskIds values are provided in the request, or if filters
+// are used in the request. You can use filters to narrow the response to include
+// just tasks for specific file systems, or tasks in a specific lifecycle state.
+// Otherwise, it returns all data repository tasks owned by your AWS account
+// in the AWS Region of the endpoint that you're calling.
+//
+// When retrieving all tasks, you can paginate the response by using the optional
+// MaxResults parameter to limit the number of tasks returned in a response.
+// If more tasks remain, Amazon FSx returns a NextToken value in the response.
+// In this case, send a later request with the NextToken request parameter set
+// to the value of NextToken from the last response.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon FSx's
+// API operation DescribeDataRepositoryTasks for usage and error information.
+//
+// Returned Error Types:
+//   * BadRequest
+//   A generic error indicating a failure with a client request.
+//
+//   * FileSystemNotFound
+//   No Amazon FSx file systems were found based upon supplied parameters.
+//
+//   * DataRepositoryTaskNotFound
+//   The data repository task or tasks you specified could not be found.
+//
+//   * InternalServerError
+//   A generic error indicating a server-side failure.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/fsx-2018-03-01/DescribeDataRepositoryTasks
+func (c *FSx) DescribeDataRepositoryTasks(input *DescribeDataRepositoryTasksInput) (*DescribeDataRepositoryTasksOutput, error) {
+	req, out := c.DescribeDataRepositoryTasksRequest(input)
+	return out, req.Send()
+}
+
+// DescribeDataRepositoryTasksWithContext is the same as DescribeDataRepositoryTasks with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DescribeDataRepositoryTasks for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *FSx) DescribeDataRepositoryTasksWithContext(ctx aws.Context, input *DescribeDataRepositoryTasksInput, opts ...request.Option) (*DescribeDataRepositoryTasksOutput, error) {
+	req, out := c.DescribeDataRepositoryTasksRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+// DescribeDataRepositoryTasksPages iterates over the pages of a DescribeDataRepositoryTasks operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See DescribeDataRepositoryTasks method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a DescribeDataRepositoryTasks operation.
+//    pageNum := 0
+//    err := client.DescribeDataRepositoryTasksPages(params,
+//        func(page *fsx.DescribeDataRepositoryTasksOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *FSx) DescribeDataRepositoryTasksPages(input *DescribeDataRepositoryTasksInput, fn func(*DescribeDataRepositoryTasksOutput, bool) bool) error {
+	return c.DescribeDataRepositoryTasksPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// DescribeDataRepositoryTasksPagesWithContext same as DescribeDataRepositoryTasksPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *FSx) DescribeDataRepositoryTasksPagesWithContext(ctx aws.Context, input *DescribeDataRepositoryTasksInput, fn func(*DescribeDataRepositoryTasksOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *DescribeDataRepositoryTasksInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.DescribeDataRepositoryTasksRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*DescribeDataRepositoryTasksOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
 	return p.Err()
 }
 
@@ -879,14 +1256,14 @@ func (c *FSx) DescribeFileSystemsRequest(input *DescribeFileSystemsInput) (req *
 // See the AWS API reference guide for Amazon FSx's
 // API operation DescribeFileSystems for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequest "BadRequest"
+// Returned Error Types:
+//   * BadRequest
 //   A generic error indicating a failure with a client request.
 //
-//   * ErrCodeFileSystemNotFound "FileSystemNotFound"
+//   * FileSystemNotFound
 //   No Amazon FSx file systems were found based upon supplied parameters.
 //
-//   * ErrCodeInternalServerError "InternalServerError"
+//   * InternalServerError
 //   A generic error indicating a server-side failure.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/fsx-2018-03-01/DescribeFileSystems
@@ -954,10 +1331,12 @@ func (c *FSx) DescribeFileSystemsPagesWithContext(ctx aws.Context, input *Descri
 		},
 	}
 
-	cont := true
-	for p.Next() && cont {
-		cont = fn(p.Page().(*DescribeFileSystemsOutput), !p.HasNextPage())
+	for p.Next() {
+		if !fn(p.Page().(*DescribeFileSystemsOutput), !p.HasNextPage()) {
+			break
+		}
 	}
+
 	return p.Err()
 }
 
@@ -1035,21 +1414,21 @@ func (c *FSx) ListTagsForResourceRequest(input *ListTagsForResourceInput) (req *
 // See the AWS API reference guide for Amazon FSx's
 // API operation ListTagsForResource for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequest "BadRequest"
+// Returned Error Types:
+//   * BadRequest
 //   A generic error indicating a failure with a client request.
 //
-//   * ErrCodeInternalServerError "InternalServerError"
+//   * InternalServerError
 //   A generic error indicating a server-side failure.
 //
-//   * ErrCodeResourceNotFound "ResourceNotFound"
+//   * ResourceNotFound
 //   The resource specified by the Amazon Resource Name (ARN) can't be found.
 //
-//   * ErrCodeNotServiceResourceError "NotServiceResourceError"
+//   * NotServiceResourceError
 //   The resource specified for the tagging operation is not a resource type owned
 //   by Amazon FSx. Use the API of the relevant service to perform the operation.
 //
-//   * ErrCodeResourceDoesNotSupportTagging "ResourceDoesNotSupportTagging"
+//   * ResourceDoesNotSupportTagging
 //   The resource specified does not support tagging.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/fsx-2018-03-01/ListTagsForResource
@@ -1128,21 +1507,21 @@ func (c *FSx) TagResourceRequest(input *TagResourceInput) (req *request.Request,
 // See the AWS API reference guide for Amazon FSx's
 // API operation TagResource for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequest "BadRequest"
+// Returned Error Types:
+//   * BadRequest
 //   A generic error indicating a failure with a client request.
 //
-//   * ErrCodeInternalServerError "InternalServerError"
+//   * InternalServerError
 //   A generic error indicating a server-side failure.
 //
-//   * ErrCodeResourceNotFound "ResourceNotFound"
+//   * ResourceNotFound
 //   The resource specified by the Amazon Resource Name (ARN) can't be found.
 //
-//   * ErrCodeNotServiceResourceError "NotServiceResourceError"
+//   * NotServiceResourceError
 //   The resource specified for the tagging operation is not a resource type owned
 //   by Amazon FSx. Use the API of the relevant service to perform the operation.
 //
-//   * ErrCodeResourceDoesNotSupportTagging "ResourceDoesNotSupportTagging"
+//   * ResourceDoesNotSupportTagging
 //   The resource specified does not support tagging.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/fsx-2018-03-01/TagResource
@@ -1221,21 +1600,21 @@ func (c *FSx) UntagResourceRequest(input *UntagResourceInput) (req *request.Requ
 // See the AWS API reference guide for Amazon FSx's
 // API operation UntagResource for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequest "BadRequest"
+// Returned Error Types:
+//   * BadRequest
 //   A generic error indicating a failure with a client request.
 //
-//   * ErrCodeInternalServerError "InternalServerError"
+//   * InternalServerError
 //   A generic error indicating a server-side failure.
 //
-//   * ErrCodeResourceNotFound "ResourceNotFound"
+//   * ResourceNotFound
 //   The resource specified by the Amazon Resource Name (ARN) can't be found.
 //
-//   * ErrCodeNotServiceResourceError "NotServiceResourceError"
+//   * NotServiceResourceError
 //   The resource specified for the tagging operation is not a resource type owned
 //   by Amazon FSx. Use the API of the relevant service to perform the operation.
 //
-//   * ErrCodeResourceDoesNotSupportTagging "ResourceDoesNotSupportTagging"
+//   * ResourceDoesNotSupportTagging
 //   The resource specified does not support tagging.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/fsx-2018-03-01/UntagResource
@@ -1313,26 +1692,26 @@ func (c *FSx) UpdateFileSystemRequest(input *UpdateFileSystemInput) (req *reques
 // See the AWS API reference guide for Amazon FSx's
 // API operation UpdateFileSystem for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeBadRequest "BadRequest"
+// Returned Error Types:
+//   * BadRequest
 //   A generic error indicating a failure with a client request.
 //
-//   * ErrCodeUnsupportedOperation "UnsupportedOperation"
-//   An error occured.
+//   * UnsupportedOperation
+//   The requested operation is not supported for this resource or API.
 //
-//   * ErrCodeIncompatibleParameterError "IncompatibleParameterError"
+//   * IncompatibleParameterError
 //   The error returned when a second request is received with the same client
 //   request token but different parameters settings. A client request token should
 //   always uniquely identify a single request.
 //
-//   * ErrCodeInternalServerError "InternalServerError"
+//   * InternalServerError
 //   A generic error indicating a server-side failure.
 //
-//   * ErrCodeFileSystemNotFound "FileSystemNotFound"
+//   * FileSystemNotFound
 //   No Amazon FSx file systems were found based upon supplied parameters.
 //
-//   * ErrCodeMissingFileSystemConfiguration "MissingFileSystemConfiguration"
-//   File system configuration is required for this operation.
+//   * MissingFileSystemConfiguration
+//   A file system configuration is required for this operation.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/fsx-2018-03-01/UpdateFileSystem
 func (c *FSx) UpdateFileSystem(input *UpdateFileSystemInput) (*UpdateFileSystemOutput, error) {
@@ -1366,7 +1745,7 @@ type ActiveDirectoryBackupAttributes struct {
 	ActiveDirectoryId *string `min:"12" type:"string"`
 
 	// The fully qualified domain name of the self-managed AD directory.
-	DomainName *string `type:"string"`
+	DomainName *string `min:"1" type:"string"`
 }
 
 // String returns the string representation
@@ -1389,6 +1768,71 @@ func (s *ActiveDirectoryBackupAttributes) SetActiveDirectoryId(v string) *Active
 func (s *ActiveDirectoryBackupAttributes) SetDomainName(v string) *ActiveDirectoryBackupAttributes {
 	s.DomainName = &v
 	return s
+}
+
+// An Active Directory error.
+type ActiveDirectoryError struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// The directory ID of the directory that an error pertains to.
+	//
+	// ActiveDirectoryId is a required field
+	ActiveDirectoryId *string `min:"12" type:"string" required:"true"`
+
+	// A detailed error message.
+	Message_ *string `locationName:"Message" min:"1" type:"string"`
+
+	// The type of Active Directory error.
+	Type *string `type:"string" enum:"ActiveDirectoryErrorType"`
+}
+
+// String returns the string representation
+func (s ActiveDirectoryError) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ActiveDirectoryError) GoString() string {
+	return s.String()
+}
+
+func newErrorActiveDirectoryError(v protocol.ResponseMetadata) error {
+	return &ActiveDirectoryError{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *ActiveDirectoryError) Code() string {
+	return "ActiveDirectoryError"
+}
+
+// Message returns the exception's message.
+func (s *ActiveDirectoryError) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *ActiveDirectoryError) OrigErr() error {
+	return nil
+}
+
+func (s *ActiveDirectoryError) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *ActiveDirectoryError) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *ActiveDirectoryError) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // A backup of an Amazon FSx for Windows File Server file system. You can create
@@ -1420,7 +1864,8 @@ type Backup struct {
 	FileSystem *FileSystem `type:"structure" required:"true"`
 
 	// The ID of the AWS Key Management Service (AWS KMS) key used to encrypt this
-	// backup's data.
+	// backup of the Amazon FSx for Windows file system's data at rest. Amazon FSx
+	// for Lustre does not support KMS encryption.
 	KmsKeyId *string `min:"1" type:"string"`
 
 	// The lifecycle status of the backup.
@@ -1543,6 +1988,415 @@ func (s *BackupFailureDetails) SetMessage(v string) *BackupFailureDetails {
 	return s
 }
 
+// Another backup is already under way. Wait for completion before initiating
+// additional backups of this file system.
+type BackupInProgress struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// A detailed error message.
+	Message_ *string `locationName:"Message" min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s BackupInProgress) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s BackupInProgress) GoString() string {
+	return s.String()
+}
+
+func newErrorBackupInProgress(v protocol.ResponseMetadata) error {
+	return &BackupInProgress{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *BackupInProgress) Code() string {
+	return "BackupInProgress"
+}
+
+// Message returns the exception's message.
+func (s *BackupInProgress) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *BackupInProgress) OrigErr() error {
+	return nil
+}
+
+func (s *BackupInProgress) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *BackupInProgress) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *BackupInProgress) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// No Amazon FSx backups were found based upon the supplied parameters.
+type BackupNotFound struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// A detailed error message.
+	Message_ *string `locationName:"Message" min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s BackupNotFound) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s BackupNotFound) GoString() string {
+	return s.String()
+}
+
+func newErrorBackupNotFound(v protocol.ResponseMetadata) error {
+	return &BackupNotFound{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *BackupNotFound) Code() string {
+	return "BackupNotFound"
+}
+
+// Message returns the exception's message.
+func (s *BackupNotFound) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *BackupNotFound) OrigErr() error {
+	return nil
+}
+
+func (s *BackupNotFound) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *BackupNotFound) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *BackupNotFound) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// You can't delete a backup while it's being used to restore a file system.
+type BackupRestoring struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// The ID of a file system being restored from the backup.
+	FileSystemId *string `min:"11" type:"string"`
+
+	// A detailed error message.
+	Message_ *string `locationName:"Message" min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s BackupRestoring) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s BackupRestoring) GoString() string {
+	return s.String()
+}
+
+func newErrorBackupRestoring(v protocol.ResponseMetadata) error {
+	return &BackupRestoring{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *BackupRestoring) Code() string {
+	return "BackupRestoring"
+}
+
+// Message returns the exception's message.
+func (s *BackupRestoring) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *BackupRestoring) OrigErr() error {
+	return nil
+}
+
+func (s *BackupRestoring) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *BackupRestoring) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *BackupRestoring) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// A generic error indicating a failure with a client request.
+type BadRequest struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// A detailed error message.
+	Message_ *string `locationName:"Message" min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s BadRequest) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s BadRequest) GoString() string {
+	return s.String()
+}
+
+func newErrorBadRequest(v protocol.ResponseMetadata) error {
+	return &BadRequest{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *BadRequest) Code() string {
+	return "BadRequest"
+}
+
+// Message returns the exception's message.
+func (s *BadRequest) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *BadRequest) OrigErr() error {
+	return nil
+}
+
+func (s *BadRequest) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *BadRequest) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *BadRequest) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// Cancels a data repository task.
+type CancelDataRepositoryTaskInput struct {
+	_ struct{} `type:"structure"`
+
+	// Specifies the data repository task to cancel.
+	//
+	// TaskId is a required field
+	TaskId *string `min:"12" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s CancelDataRepositoryTaskInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CancelDataRepositoryTaskInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *CancelDataRepositoryTaskInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "CancelDataRepositoryTaskInput"}
+	if s.TaskId == nil {
+		invalidParams.Add(request.NewErrParamRequired("TaskId"))
+	}
+	if s.TaskId != nil && len(*s.TaskId) < 12 {
+		invalidParams.Add(request.NewErrParamMinLen("TaskId", 12))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetTaskId sets the TaskId field's value.
+func (s *CancelDataRepositoryTaskInput) SetTaskId(v string) *CancelDataRepositoryTaskInput {
+	s.TaskId = &v
+	return s
+}
+
+type CancelDataRepositoryTaskOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The lifecycle status of the data repository task, as follows:
+	//
+	//    * PENDING - Amazon FSx has not started the task.
+	//
+	//    * EXECUTING - Amazon FSx is processing the task.
+	//
+	//    * FAILED - Amazon FSx was not able to complete the task. For example,
+	//    there may be files the task failed to process. The DataRepositoryTaskFailureDetails
+	//    property provides more information about task failures.
+	//
+	//    * SUCCEEDED - FSx completed the task successfully.
+	//
+	//    * CANCELED - Amazon FSx canceled the task and it did not complete.
+	//
+	//    * CANCELING - FSx is in process of canceling the task.
+	Lifecycle *string `type:"string" enum:"DataRepositoryTaskLifecycle"`
+
+	// The ID of the task being canceled.
+	TaskId *string `min:"12" type:"string"`
+}
+
+// String returns the string representation
+func (s CancelDataRepositoryTaskOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CancelDataRepositoryTaskOutput) GoString() string {
+	return s.String()
+}
+
+// SetLifecycle sets the Lifecycle field's value.
+func (s *CancelDataRepositoryTaskOutput) SetLifecycle(v string) *CancelDataRepositoryTaskOutput {
+	s.Lifecycle = &v
+	return s
+}
+
+// SetTaskId sets the TaskId field's value.
+func (s *CancelDataRepositoryTaskOutput) SetTaskId(v string) *CancelDataRepositoryTaskOutput {
+	s.TaskId = &v
+	return s
+}
+
+// Provides a report detailing the data repository task results of the files
+// processed that match the criteria specified in the report Scope parameter.
+// FSx delivers the report to the file system's linked data repository in Amazon
+// S3, using the path specified in the report Path parameter. You can specify
+// whether or not a report gets generated for a task using the Enabled parameter.
+type CompletionReport struct {
+	_ struct{} `type:"structure"`
+
+	// Set Enabled to True to generate a CompletionReport when the task completes.
+	// If set to true, then you need to provide a report Scope, Path, and Format.
+	// Set Enabled to False if you do not want a CompletionReport generated when
+	// the task completes.
+	//
+	// Enabled is a required field
+	Enabled *bool `type:"boolean" required:"true"`
+
+	// Required if Enabled is set to true. Specifies the format of the CompletionReport.
+	// REPORT_CSV_20191124 is the only format currently supported. When Format is
+	// set to REPORT_CSV_20191124, the CompletionReport is provided in CSV format,
+	// and is delivered to {path}/task-{id}/failures.csv.
+	Format *string `type:"string" enum:"ReportFormat"`
+
+	// Required if Enabled is set to true. Specifies the location of the report
+	// on the file system's linked S3 data repository. An absolute path that defines
+	// where the completion report will be stored in the destination location. The
+	// Path you provide must be located within the file system’s ExportPath. An
+	// example Path value is "s3://myBucket/myExportPath/optionalPrefix". The report
+	// provides the following information for each file in the report: FilePath,
+	// FileStatus, and ErrorCode. To learn more about a file system's ExportPath,
+	// see .
+	Path *string `min:"3" type:"string"`
+
+	// Required if Enabled is set to true. Specifies the scope of the CompletionReport;
+	// FAILED_FILES_ONLY is the only scope currently supported. When Scope is set
+	// to FAILED_FILES_ONLY, the CompletionReport only contains information about
+	// files that the data repository task failed to process.
+	Scope *string `type:"string" enum:"ReportScope"`
+}
+
+// String returns the string representation
+func (s CompletionReport) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CompletionReport) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *CompletionReport) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "CompletionReport"}
+	if s.Enabled == nil {
+		invalidParams.Add(request.NewErrParamRequired("Enabled"))
+	}
+	if s.Path != nil && len(*s.Path) < 3 {
+		invalidParams.Add(request.NewErrParamMinLen("Path", 3))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetEnabled sets the Enabled field's value.
+func (s *CompletionReport) SetEnabled(v bool) *CompletionReport {
+	s.Enabled = &v
+	return s
+}
+
+// SetFormat sets the Format field's value.
+func (s *CompletionReport) SetFormat(v string) *CompletionReport {
+	s.Format = &v
+	return s
+}
+
+// SetPath sets the Path field's value.
+func (s *CompletionReport) SetPath(v string) *CompletionReport {
+	s.Path = &v
+	return s
+}
+
+// SetScope sets the Scope field's value.
+func (s *CompletionReport) SetScope(v string) *CompletionReport {
+	s.Scope = &v
+	return s
+}
+
 // The request object for the CreateBackup operation.
 type CreateBackupInput struct {
 	_ struct{} `type:"structure"`
@@ -1646,6 +2500,156 @@ func (s *CreateBackupOutput) SetBackup(v *Backup) *CreateBackupOutput {
 	return s
 }
 
+type CreateDataRepositoryTaskInput struct {
+	_ struct{} `type:"structure"`
+
+	// (Optional) An idempotency token for resource creation, in a string of up
+	// to 64 ASCII characters. This token is automatically filled on your behalf
+	// when you use the AWS Command Line Interface (AWS CLI) or an AWS SDK.
+	ClientRequestToken *string `min:"1" type:"string" idempotencyToken:"true"`
+
+	// The globally unique ID of the file system, assigned by Amazon FSx.
+	//
+	// FileSystemId is a required field
+	FileSystemId *string `min:"11" type:"string" required:"true"`
+
+	// (Optional) The path or paths on the Amazon FSx file system to use when the
+	// data repository task is processed. The default path is the file system root
+	// directory. The paths you provide need to be relative to the mount point of
+	// the file system. If the mount point is /mnt/fsx and /mnt/fsx/path1 is a directory
+	// or file on the file system you want to export, then the path to provide is
+	// path1. If a path that you provide isn't valid, the task fails.
+	Paths []*string `type:"list"`
+
+	// Defines whether or not Amazon FSx provides a CompletionReport once the task
+	// has completed. A CompletionReport provides a detailed report on the files
+	// that Amazon FSx processed that meet the criteria specified by the Scope parameter.
+	// For more information, see Working with Task Completion Reports (https://docs.aws.amazon.com/fsx/latest/LustreGuide/task-completion-report.html).
+	//
+	// Report is a required field
+	Report *CompletionReport `type:"structure" required:"true"`
+
+	// A list of Tag values, with a maximum of 50 elements.
+	Tags []*Tag `min:"1" type:"list"`
+
+	// Specifies the type of data repository task to create.
+	//
+	// Type is a required field
+	Type *string `type:"string" required:"true" enum:"DataRepositoryTaskType"`
+}
+
+// String returns the string representation
+func (s CreateDataRepositoryTaskInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateDataRepositoryTaskInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *CreateDataRepositoryTaskInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "CreateDataRepositoryTaskInput"}
+	if s.ClientRequestToken != nil && len(*s.ClientRequestToken) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ClientRequestToken", 1))
+	}
+	if s.FileSystemId == nil {
+		invalidParams.Add(request.NewErrParamRequired("FileSystemId"))
+	}
+	if s.FileSystemId != nil && len(*s.FileSystemId) < 11 {
+		invalidParams.Add(request.NewErrParamMinLen("FileSystemId", 11))
+	}
+	if s.Report == nil {
+		invalidParams.Add(request.NewErrParamRequired("Report"))
+	}
+	if s.Tags != nil && len(s.Tags) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Tags", 1))
+	}
+	if s.Type == nil {
+		invalidParams.Add(request.NewErrParamRequired("Type"))
+	}
+	if s.Report != nil {
+		if err := s.Report.Validate(); err != nil {
+			invalidParams.AddNested("Report", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.Tags != nil {
+		for i, v := range s.Tags {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Tags", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetClientRequestToken sets the ClientRequestToken field's value.
+func (s *CreateDataRepositoryTaskInput) SetClientRequestToken(v string) *CreateDataRepositoryTaskInput {
+	s.ClientRequestToken = &v
+	return s
+}
+
+// SetFileSystemId sets the FileSystemId field's value.
+func (s *CreateDataRepositoryTaskInput) SetFileSystemId(v string) *CreateDataRepositoryTaskInput {
+	s.FileSystemId = &v
+	return s
+}
+
+// SetPaths sets the Paths field's value.
+func (s *CreateDataRepositoryTaskInput) SetPaths(v []*string) *CreateDataRepositoryTaskInput {
+	s.Paths = v
+	return s
+}
+
+// SetReport sets the Report field's value.
+func (s *CreateDataRepositoryTaskInput) SetReport(v *CompletionReport) *CreateDataRepositoryTaskInput {
+	s.Report = v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *CreateDataRepositoryTaskInput) SetTags(v []*Tag) *CreateDataRepositoryTaskInput {
+	s.Tags = v
+	return s
+}
+
+// SetType sets the Type field's value.
+func (s *CreateDataRepositoryTaskInput) SetType(v string) *CreateDataRepositoryTaskInput {
+	s.Type = &v
+	return s
+}
+
+type CreateDataRepositoryTaskOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The description of the data repository task that you just created.
+	DataRepositoryTask *DataRepositoryTask `type:"structure"`
+}
+
+// String returns the string representation
+func (s CreateDataRepositoryTaskOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateDataRepositoryTaskOutput) GoString() string {
+	return s.String()
+}
+
+// SetDataRepositoryTask sets the DataRepositoryTask field's value.
+func (s *CreateDataRepositoryTaskOutput) SetDataRepositoryTask(v *DataRepositoryTask) *CreateDataRepositoryTaskOutput {
+	s.DataRepositoryTask = v
+	return s
+}
+
 // The request object for the CreateFileSystemFromBackup operation.
 type CreateFileSystemFromBackupInput struct {
 	_ struct{} `type:"structure"`
@@ -1663,12 +2667,37 @@ type CreateFileSystemFromBackupInput struct {
 
 	// A list of IDs for the security groups that apply to the specified network
 	// interfaces created for file system access. These security groups apply to
-	// all network interfaces. This value isn't returned in later describe requests.
+	// all network interfaces. This value isn't returned in later DescribeFileSystem
+	// requests.
 	SecurityGroupIds []*string `type:"list"`
 
-	// A list of IDs for the subnets that the file system will be accessible from.
-	// Currently, you can specify only one subnet. The file server is also launched
-	// in that subnet's Availability Zone.
+	// Sets the storage type for the Windows file system you're creating from a
+	// backup. Valid values are SSD and HDD.
+	//
+	//    * Set to SSD to use solid state drive storage. Supported on all Windows
+	//    deployment types.
+	//
+	//    * Set to HDD to use hard disk drive storage. Supported on SINGLE_AZ_2
+	//    and MULTI_AZ_1 Windows file system deployment types.
+	//
+	// Default value is SSD.
+	//
+	// HDD and SSD storage types have different minimum storage capacity requirements.
+	// A restored file system's storage capacity is tied to the file system that
+	// was backed up. You can create a file system that uses HDD storage from a
+	// backup of a file system that used SSD storage only if the original SSD file
+	// system had a storage capacity of at least 2000 GiB.
+	StorageType *string `type:"string" enum:"StorageType"`
+
+	// Specifies the IDs of the subnets that the file system will be accessible
+	// from. For Windows MULTI_AZ_1 file system deployment types, provide exactly
+	// two subnet IDs, one for the preferred file server and one for the standby
+	// file server. You specify one of these subnets as the preferred subnet using
+	// the WindowsConfiguration > PreferredSubnetID property.
+	//
+	// For Windows SINGLE_AZ_1 and SINGLE_AZ_2 deployment types and Lustre file
+	// systems, provide exactly one subnet ID. The file server is launched in that
+	// subnet's Availability Zone.
 	//
 	// SubnetIds is a required field
 	SubnetIds []*string `type:"list" required:"true"`
@@ -1749,6 +2778,12 @@ func (s *CreateFileSystemFromBackupInput) SetSecurityGroupIds(v []*string) *Crea
 	return s
 }
 
+// SetStorageType sets the StorageType field's value.
+func (s *CreateFileSystemFromBackupInput) SetStorageType(v string) *CreateFileSystemFromBackupInput {
+	s.StorageType = &v
+	return s
+}
+
 // SetSubnetIds sets the SubnetIds field's value.
 func (s *CreateFileSystemFromBackupInput) SetSubnetIds(v []*string) *CreateFileSystemFromBackupInput {
 	s.SubnetIds = v
@@ -1800,19 +2835,21 @@ type CreateFileSystemInput struct {
 	// when you use the AWS Command Line Interface (AWS CLI) or an AWS SDK.
 	ClientRequestToken *string `min:"1" type:"string" idempotencyToken:"true"`
 
-	// The type of Amazon FSx file system to create.
+	// The type of Amazon FSx file system to create, either WINDOWS or LUSTRE.
 	//
 	// FileSystemType is a required field
 	FileSystemType *string `type:"string" required:"true" enum:"FileSystemType"`
 
-	// The ID of your AWS Key Management Service (AWS KMS) key. This ID is used
-	// to encrypt the data in your file system at rest. For more information, see
-	// Encrypt (https://docs.aws.amazon.com/kms/latest/APIReference/API_Encrypt.html)
+	// The ID of the AWS Key Management Service (AWS KMS) key used to encrypt the
+	// file system's data for Amazon FSx for Windows File Server file systems and
+	// Amazon FSx for Lustre PERSISTENT_1 file systems at rest. In either case,
+	// if not specified, the Amazon FSx managed key is used. The Amazon FSx for
+	// Lustre SCRATCH_1 and SCRATCH_2 file systems are always encrypted at rest
+	// using Amazon FSx managed keys. For more information, see Encrypt (https://docs.aws.amazon.com/kms/latest/APIReference/API_Encrypt.html)
 	// in the AWS Key Management Service API Reference.
 	KmsKeyId *string `min:"1" type:"string"`
 
-	// The Lustre configuration for the file system being created. This value is
-	// required if FileSystemType is set to LUSTRE.
+	// The Lustre configuration for the file system being created.
 	LustreConfiguration *CreateFileSystemLustreConfiguration `type:"structure"`
 
 	// A list of IDs specifying the security groups to apply to all network interfaces
@@ -1820,20 +2857,47 @@ type CreateFileSystemInput struct {
 	// to describe the file system.
 	SecurityGroupIds []*string `type:"list"`
 
-	// The storage capacity of the file system being created.
+	// Sets the storage capacity of the file system that you're creating.
 	//
-	// For Windows file systems, the storage capacity has a minimum of 300 GiB,
-	// and a maximum of 65,536 GiB.
+	// For Lustre file systems:
 	//
-	// For Lustre file systems, the storage capacity has a minimum of 3,600 GiB.
-	// Storage capacity is provisioned in increments of 3,600 GiB.
+	//    * For SCRATCH_2 and PERSISTENT_1 deployment types, valid values are 1.2,
+	//    2.4, and increments of 2.4 TiB.
+	//
+	//    * For SCRATCH_1 deployment type, valid values are 1.2, 2.4, and increments
+	//    of 3.6 TiB.
+	//
+	// For Windows file systems:
+	//
+	//    * If StorageType=SSD, valid values are 32 GiB - 65,536 GiB (64 TiB).
+	//
+	//    * If StorageType=HDD, valid values are 2000 GiB - 65,536 GiB (64 TiB).
 	//
 	// StorageCapacity is a required field
-	StorageCapacity *int64 `min:"1" type:"integer" required:"true"`
+	StorageCapacity *int64 `type:"integer" required:"true"`
 
-	// The IDs of the subnets that the file system will be accessible from. File
-	// systems support only one subnet. The file server is also launched in that
-	// subnet's Availability Zone.
+	// Sets the storage type for the Amazon FSx for Windows file system you're creating.
+	// Valid values are SSD and HDD.
+	//
+	//    * Set to SSD to use solid state drive storage. SSD is supported on all
+	//    Windows deployment types.
+	//
+	//    * Set to HDD to use hard disk drive storage. HDD is supported on SINGLE_AZ_2
+	//    and MULTI_AZ_1 Windows file system deployment types.
+	//
+	// Default value is SSD. For more information, see Storage Type Options (https://docs.aws.amazon.com/fsx/latest/WindowsGuide/optimize-fsx-tco.html#saz-maz-storage-type)
+	// in the Amazon FSx for Windows User Guide.
+	StorageType *string `type:"string" enum:"StorageType"`
+
+	// Specifies the IDs of the subnets that the file system will be accessible
+	// from. For Windows MULTI_AZ_1 file system deployment types, provide exactly
+	// two subnet IDs, one for the preferred file server and one for the standby
+	// file server. You specify one of these subnets as the preferred subnet using
+	// the WindowsConfiguration > PreferredSubnetID property.
+	//
+	// For Windows SINGLE_AZ_1 and SINGLE_AZ_2 file system deployment types and
+	// Lustre file systems, provide exactly one subnet ID. The file server is launched
+	// in that subnet's Availability Zone.
 	//
 	// SubnetIds is a required field
 	SubnetIds []*string `type:"list" required:"true"`
@@ -1842,8 +2906,7 @@ type CreateFileSystemInput struct {
 	// Name tag appears in the console as the file system name.
 	Tags []*Tag `min:"1" type:"list"`
 
-	// The Microsoft Windows configuration for the file system being created. This
-	// value is required if FileSystemType is set to WINDOWS.
+	// The Microsoft Windows configuration for the file system being created.
 	WindowsConfiguration *CreateFileSystemWindowsConfiguration `type:"structure"`
 }
 
@@ -1871,9 +2934,6 @@ func (s *CreateFileSystemInput) Validate() error {
 	}
 	if s.StorageCapacity == nil {
 		invalidParams.Add(request.NewErrParamRequired("StorageCapacity"))
-	}
-	if s.StorageCapacity != nil && *s.StorageCapacity < 1 {
-		invalidParams.Add(request.NewErrParamMinValue("StorageCapacity", 1))
 	}
 	if s.SubnetIds == nil {
 		invalidParams.Add(request.NewErrParamRequired("SubnetIds"))
@@ -1944,6 +3004,12 @@ func (s *CreateFileSystemInput) SetStorageCapacity(v int64) *CreateFileSystemInp
 	return s
 }
 
+// SetStorageType sets the StorageType field's value.
+func (s *CreateFileSystemInput) SetStorageType(v string) *CreateFileSystemInput {
+	s.StorageType = &v
+	return s
+}
+
 // SetSubnetIds sets the SubnetIds field's value.
 func (s *CreateFileSystemInput) SetSubnetIds(v []*string) *CreateFileSystemInput {
 	s.SubnetIds = v
@@ -1962,10 +3028,28 @@ func (s *CreateFileSystemInput) SetWindowsConfiguration(v *CreateFileSystemWindo
 	return s
 }
 
-// The Lustre configuration for the file system being created. This value is
-// required if FileSystemType is set to LUSTRE.
+// The Lustre configuration for the file system being created.
 type CreateFileSystemLustreConfiguration struct {
 	_ struct{} `type:"structure"`
+
+	// (Optional) Choose SCRATCH_1 and SCRATCH_2 deployment types when you need
+	// temporary storage and shorter-term processing of data. The SCRATCH_2 deployment
+	// type provides in-transit encryption of data and higher burst throughput capacity
+	// than SCRATCH_1.
+	//
+	// Choose PERSISTENT_1 deployment type for longer-term storage and workloads
+	// and encryption of data in transit. To learn more about deployment types,
+	// see FSx for Lustre Deployment Options (https://docs.aws.amazon.com/fsx/latest/LustreGuide/lustre-deployment-types.html).
+	//
+	// Encryption of data in-transit is automatically enabled when you access a
+	// SCRATCH_2 or PERSISTENT_1 file system from Amazon EC2 instances that support
+	// this feature (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/data- protection.html).
+	// (Default = SCRATCH_1)
+	//
+	// Encryption of data in-transit for SCRATCH_2 and PERSISTENT_1 deployment types
+	// is supported when accessed from supported instance types in supported AWS
+	// Regions. To learn more, Encrypting Data in Transit (https://docs.aws.amazon.com/fsx/latest/LustreGuide/encryption-in-transit-fsxl.html).
+	DeploymentType *string `type:"string" enum:"LustreDeploymentType"`
 
 	// (Optional) The path in Amazon S3 where the root of your Amazon FSx file system
 	// is exported. The path must use the same Amazon S3 bucket as specified in
@@ -1997,9 +3081,19 @@ type CreateFileSystemLustreConfiguration struct {
 	// be striped across is limited by the total number of disks that make up the
 	// file system.
 	//
-	// The chunk size default is 1,024 MiB (1 GiB) and can go as high as 512,000
+	// The default chunk size is 1,024 MiB (1 GiB) and can go as high as 512,000
 	// MiB (500 GiB). Amazon S3 objects have a maximum size of 5 TB.
 	ImportedFileChunkSize *int64 `min:"1" type:"integer"`
+
+	// Required for the PERSISTENT_1 deployment type, describes the amount of read
+	// and write throughput for each 1 tebibyte of storage, in MB/s/TiB. File system
+	// throughput capacity is calculated by multiplying ﬁle system storage capacity
+	// (TiB) by the PerUnitStorageThroughput (MB/s/TiB). For a 2.4 TiB ﬁle system,
+	// provisioning 50 MB/s/TiB of PerUnitStorageThroughput yields 117 MB/s of ﬁle
+	// system throughput. You pay for the amount of throughput that you provision.
+	//
+	// Valid values are 50, 100, 200.
+	PerUnitStorageThroughput *int64 `min:"50" type:"integer"`
 
 	// The preferred time to perform weekly maintenance, in the UTC time zone.
 	WeeklyMaintenanceStartTime *string `min:"7" type:"string"`
@@ -2027,6 +3121,9 @@ func (s *CreateFileSystemLustreConfiguration) Validate() error {
 	if s.ImportedFileChunkSize != nil && *s.ImportedFileChunkSize < 1 {
 		invalidParams.Add(request.NewErrParamMinValue("ImportedFileChunkSize", 1))
 	}
+	if s.PerUnitStorageThroughput != nil && *s.PerUnitStorageThroughput < 50 {
+		invalidParams.Add(request.NewErrParamMinValue("PerUnitStorageThroughput", 50))
+	}
 	if s.WeeklyMaintenanceStartTime != nil && len(*s.WeeklyMaintenanceStartTime) < 7 {
 		invalidParams.Add(request.NewErrParamMinLen("WeeklyMaintenanceStartTime", 7))
 	}
@@ -2035,6 +3132,12 @@ func (s *CreateFileSystemLustreConfiguration) Validate() error {
 		return invalidParams
 	}
 	return nil
+}
+
+// SetDeploymentType sets the DeploymentType field's value.
+func (s *CreateFileSystemLustreConfiguration) SetDeploymentType(v string) *CreateFileSystemLustreConfiguration {
+	s.DeploymentType = &v
+	return s
 }
 
 // SetExportPath sets the ExportPath field's value.
@@ -2052,6 +3155,12 @@ func (s *CreateFileSystemLustreConfiguration) SetImportPath(v string) *CreateFil
 // SetImportedFileChunkSize sets the ImportedFileChunkSize field's value.
 func (s *CreateFileSystemLustreConfiguration) SetImportedFileChunkSize(v int64) *CreateFileSystemLustreConfiguration {
 	s.ImportedFileChunkSize = &v
+	return s
+}
+
+// SetPerUnitStorageThroughput sets the PerUnitStorageThroughput field's value.
+func (s *CreateFileSystemLustreConfiguration) SetPerUnitStorageThroughput(v int64) *CreateFileSystemLustreConfiguration {
+	s.PerUnitStorageThroughput = &v
 	return s
 }
 
@@ -2103,12 +3212,39 @@ type CreateFileSystemWindowsConfiguration struct {
 	// to backups. This value defaults to false. If it's set to true, all tags for
 	// the file system are copied to all automatic and user-initiated backups where
 	// the user doesn't specify tags. If this value is true, and you specify one
-	// or more tags, only the specified tags are copied to backups.
+	// or more tags, only the specified tags are copied to backups. If you specify
+	// one or more tags when creating a user-initiated backup, no tags are copied
+	// from the file system, regardless of this value.
 	CopyTagsToBackups *bool `type:"boolean"`
 
 	// The preferred time to take daily automatic backups, formatted HH:MM in the
 	// UTC time zone.
 	DailyAutomaticBackupStartTime *string `min:"5" type:"string"`
+
+	// Specifies the file system deployment type, valid values are the following:
+	//
+	//    * MULTI_AZ_1 - Deploys a high availability file system that is configured
+	//    for Multi-AZ redundancy to tolerate temporary Availability Zone (AZ) unavailability.
+	//    You can only deploy a Multi-AZ file system in AWS Regions that have a
+	//    minimum of three Availability Zones. Also supports HDD storage type
+	//
+	//    * SINGLE_AZ_1 - (Default) Choose to deploy a file system that is configured
+	//    for single AZ redundancy.
+	//
+	//    * SINGLE_AZ_2 - The latest generation Single AZ file system. Specifies
+	//    a file system that is configured for single AZ redundancy and supports
+	//    HDD storage type.
+	//
+	// For more information, see Availability and Durability: Single-AZ and Multi-AZ
+	// File Systems (https://docs.aws.amazon.com/fsx/latest/WindowsGuide/high-availability-multiAZ.html).
+	DeploymentType *string `type:"string" enum:"WindowsDeploymentType"`
+
+	// Required when DeploymentType is set to MULTI_AZ_1. This specifies the subnet
+	// in which you want the preferred file server to be located. For in-AWS applications,
+	// we recommend that you launch your clients in the same Availability Zone (AZ)
+	// as your preferred file server to reduce cross-AZ data transfer costs and
+	// minimize latency.
+	PreferredSubnetId *string `min:"15" type:"string"`
 
 	// The configuration that Amazon FSx uses to join the Windows File Server instance
 	// to your self-managed (including on-premises) Microsoft Active Directory (AD)
@@ -2144,6 +3280,9 @@ func (s *CreateFileSystemWindowsConfiguration) Validate() error {
 	}
 	if s.DailyAutomaticBackupStartTime != nil && len(*s.DailyAutomaticBackupStartTime) < 5 {
 		invalidParams.Add(request.NewErrParamMinLen("DailyAutomaticBackupStartTime", 5))
+	}
+	if s.PreferredSubnetId != nil && len(*s.PreferredSubnetId) < 15 {
+		invalidParams.Add(request.NewErrParamMinLen("PreferredSubnetId", 15))
 	}
 	if s.ThroughputCapacity == nil {
 		invalidParams.Add(request.NewErrParamRequired("ThroughputCapacity"))
@@ -2187,6 +3326,18 @@ func (s *CreateFileSystemWindowsConfiguration) SetCopyTagsToBackups(v bool) *Cre
 // SetDailyAutomaticBackupStartTime sets the DailyAutomaticBackupStartTime field's value.
 func (s *CreateFileSystemWindowsConfiguration) SetDailyAutomaticBackupStartTime(v string) *CreateFileSystemWindowsConfiguration {
 	s.DailyAutomaticBackupStartTime = &v
+	return s
+}
+
+// SetDeploymentType sets the DeploymentType field's value.
+func (s *CreateFileSystemWindowsConfiguration) SetDeploymentType(v string) *CreateFileSystemWindowsConfiguration {
+	s.DeploymentType = &v
+	return s
+}
+
+// SetPreferredSubnetId sets the PreferredSubnetId field's value.
+func (s *CreateFileSystemWindowsConfiguration) SetPreferredSubnetId(v string) *CreateFileSystemWindowsConfiguration {
+	s.PreferredSubnetId = &v
 	return s
 }
 
@@ -2259,6 +3410,487 @@ func (s *DataRepositoryConfiguration) SetImportPath(v string) *DataRepositoryCon
 // SetImportedFileChunkSize sets the ImportedFileChunkSize field's value.
 func (s *DataRepositoryConfiguration) SetImportedFileChunkSize(v int64) *DataRepositoryConfiguration {
 	s.ImportedFileChunkSize = &v
+	return s
+}
+
+// A description of the data repository task. You use data repository tasks
+// to perform bulk transfer operations between your Amazon FSx file system and
+// its linked data repository.
+type DataRepositoryTask struct {
+	_ struct{} `type:"structure"`
+
+	// The time that the resource was created, in seconds (since 1970-01-01T00:00:00Z),
+	// also known as Unix time.
+	//
+	// CreationTime is a required field
+	CreationTime *time.Time `type:"timestamp" required:"true"`
+
+	// The time that Amazon FSx completed processing the task, populated after the
+	// task is complete.
+	EndTime *time.Time `type:"timestamp"`
+
+	// Failure message describing why the task failed, it is populated only when
+	// Lifecycle is set to FAILED.
+	FailureDetails *DataRepositoryTaskFailureDetails `type:"structure"`
+
+	// The globally unique ID of the file system, assigned by Amazon FSx.
+	//
+	// FileSystemId is a required field
+	FileSystemId *string `min:"11" type:"string" required:"true"`
+
+	// The lifecycle status of the data repository task, as follows:
+	//
+	//    * PENDING - Amazon FSx has not started the task.
+	//
+	//    * EXECUTING - Amazon FSx is processing the task.
+	//
+	//    * FAILED - Amazon FSx was not able to complete the task. For example,
+	//    there may be files the task failed to process. The DataRepositoryTaskFailureDetails
+	//    property provides more information about task failures.
+	//
+	//    * SUCCEEDED - FSx completed the task successfully.
+	//
+	//    * CANCELED - Amazon FSx canceled the task and it did not complete.
+	//
+	//    * CANCELING - FSx is in process of canceling the task.
+	//
+	// You cannot delete an FSx for Lustre file system if there are data repository
+	// tasks for the file system in the PENDING or EXECUTING states. Please retry
+	// when the data repository task is finished (with a status of CANCELED, SUCCEEDED,
+	// or FAILED). You can use the DescribeDataRepositoryTask action to monitor
+	// the task status. Contact the FSx team if you need to delete your file system
+	// immediately.
+	//
+	// Lifecycle is a required field
+	Lifecycle *string `type:"string" required:"true" enum:"DataRepositoryTaskLifecycle"`
+
+	// An array of paths on the Amazon FSx for Lustre file system that specify the
+	// data for the data repository task to process. For example, in an EXPORT_TO_REPOSITORY
+	// task, the paths specify which data to export to the linked data repository.
+	//
+	// (Default) If Paths is not specified, Amazon FSx uses the file system root
+	// directory.
+	Paths []*string `type:"list"`
+
+	// Provides a report detailing the data repository task results of the files
+	// processed that match the criteria specified in the report Scope parameter.
+	// FSx delivers the report to the file system's linked data repository in Amazon
+	// S3, using the path specified in the report Path parameter. You can specify
+	// whether or not a report gets generated for a task using the Enabled parameter.
+	Report *CompletionReport `type:"structure"`
+
+	// The Amazon Resource Name (ARN) for a given resource. ARNs uniquely identify
+	// AWS resources. We require an ARN when you need to specify a resource unambiguously
+	// across all of AWS. For more information, see Amazon Resource Names (ARNs)
+	// and AWS Service Namespaces (https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html)
+	// in the AWS General Reference.
+	ResourceARN *string `min:"8" type:"string"`
+
+	// The time that Amazon FSx began processing the task.
+	StartTime *time.Time `type:"timestamp"`
+
+	// Provides the status of the number of files that the task has processed successfully
+	// and failed to process.
+	Status *DataRepositoryTaskStatus `type:"structure"`
+
+	// A list of Tag values, with a maximum of 50 elements.
+	Tags []*Tag `min:"1" type:"list"`
+
+	// The system-generated, unique 17-digit ID of the data repository task.
+	//
+	// TaskId is a required field
+	TaskId *string `min:"12" type:"string" required:"true"`
+
+	// The type of data repository task; EXPORT_TO_REPOSITORY is the only type currently
+	// supported.
+	//
+	// Type is a required field
+	Type *string `type:"string" required:"true" enum:"DataRepositoryTaskType"`
+}
+
+// String returns the string representation
+func (s DataRepositoryTask) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DataRepositoryTask) GoString() string {
+	return s.String()
+}
+
+// SetCreationTime sets the CreationTime field's value.
+func (s *DataRepositoryTask) SetCreationTime(v time.Time) *DataRepositoryTask {
+	s.CreationTime = &v
+	return s
+}
+
+// SetEndTime sets the EndTime field's value.
+func (s *DataRepositoryTask) SetEndTime(v time.Time) *DataRepositoryTask {
+	s.EndTime = &v
+	return s
+}
+
+// SetFailureDetails sets the FailureDetails field's value.
+func (s *DataRepositoryTask) SetFailureDetails(v *DataRepositoryTaskFailureDetails) *DataRepositoryTask {
+	s.FailureDetails = v
+	return s
+}
+
+// SetFileSystemId sets the FileSystemId field's value.
+func (s *DataRepositoryTask) SetFileSystemId(v string) *DataRepositoryTask {
+	s.FileSystemId = &v
+	return s
+}
+
+// SetLifecycle sets the Lifecycle field's value.
+func (s *DataRepositoryTask) SetLifecycle(v string) *DataRepositoryTask {
+	s.Lifecycle = &v
+	return s
+}
+
+// SetPaths sets the Paths field's value.
+func (s *DataRepositoryTask) SetPaths(v []*string) *DataRepositoryTask {
+	s.Paths = v
+	return s
+}
+
+// SetReport sets the Report field's value.
+func (s *DataRepositoryTask) SetReport(v *CompletionReport) *DataRepositoryTask {
+	s.Report = v
+	return s
+}
+
+// SetResourceARN sets the ResourceARN field's value.
+func (s *DataRepositoryTask) SetResourceARN(v string) *DataRepositoryTask {
+	s.ResourceARN = &v
+	return s
+}
+
+// SetStartTime sets the StartTime field's value.
+func (s *DataRepositoryTask) SetStartTime(v time.Time) *DataRepositoryTask {
+	s.StartTime = &v
+	return s
+}
+
+// SetStatus sets the Status field's value.
+func (s *DataRepositoryTask) SetStatus(v *DataRepositoryTaskStatus) *DataRepositoryTask {
+	s.Status = v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *DataRepositoryTask) SetTags(v []*Tag) *DataRepositoryTask {
+	s.Tags = v
+	return s
+}
+
+// SetTaskId sets the TaskId field's value.
+func (s *DataRepositoryTask) SetTaskId(v string) *DataRepositoryTask {
+	s.TaskId = &v
+	return s
+}
+
+// SetType sets the Type field's value.
+func (s *DataRepositoryTask) SetType(v string) *DataRepositoryTask {
+	s.Type = &v
+	return s
+}
+
+// The data repository task could not be canceled because the task has already
+// ended.
+type DataRepositoryTaskEnded struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// A detailed error message.
+	Message_ *string `locationName:"Message" min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s DataRepositoryTaskEnded) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DataRepositoryTaskEnded) GoString() string {
+	return s.String()
+}
+
+func newErrorDataRepositoryTaskEnded(v protocol.ResponseMetadata) error {
+	return &DataRepositoryTaskEnded{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *DataRepositoryTaskEnded) Code() string {
+	return "DataRepositoryTaskEnded"
+}
+
+// Message returns the exception's message.
+func (s *DataRepositoryTaskEnded) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *DataRepositoryTaskEnded) OrigErr() error {
+	return nil
+}
+
+func (s *DataRepositoryTaskEnded) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *DataRepositoryTaskEnded) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *DataRepositoryTaskEnded) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// An existing data repository task is currently executing on the file system.
+// Wait until the existing task has completed, then create the new task.
+type DataRepositoryTaskExecuting struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// A detailed error message.
+	Message_ *string `locationName:"Message" min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s DataRepositoryTaskExecuting) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DataRepositoryTaskExecuting) GoString() string {
+	return s.String()
+}
+
+func newErrorDataRepositoryTaskExecuting(v protocol.ResponseMetadata) error {
+	return &DataRepositoryTaskExecuting{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *DataRepositoryTaskExecuting) Code() string {
+	return "DataRepositoryTaskExecuting"
+}
+
+// Message returns the exception's message.
+func (s *DataRepositoryTaskExecuting) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *DataRepositoryTaskExecuting) OrigErr() error {
+	return nil
+}
+
+func (s *DataRepositoryTaskExecuting) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *DataRepositoryTaskExecuting) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *DataRepositoryTaskExecuting) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// Provides information about why a data repository task failed. Only populated
+// when the task Lifecycle is set to FAILED.
+type DataRepositoryTaskFailureDetails struct {
+	_ struct{} `type:"structure"`
+
+	// A detailed error message.
+	Message *string `min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s DataRepositoryTaskFailureDetails) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DataRepositoryTaskFailureDetails) GoString() string {
+	return s.String()
+}
+
+// SetMessage sets the Message field's value.
+func (s *DataRepositoryTaskFailureDetails) SetMessage(v string) *DataRepositoryTaskFailureDetails {
+	s.Message = &v
+	return s
+}
+
+// (Optional) An array of filter objects you can use to filter the response
+// of data repository tasks you will see in the the response. You can filter
+// the tasks returned in the response by one or more file system IDs, task lifecycles,
+// and by task type. A filter object consists of a filter Name, and one or more
+// Values for the filter.
+type DataRepositoryTaskFilter struct {
+	_ struct{} `type:"structure"`
+
+	// Name of the task property to use in filtering the tasks returned in the response.
+	//
+	//    * Use file-system-id to retrieve data repository tasks for specific file
+	//    systems.
+	//
+	//    * Use task-lifecycle to retrieve data repository tasks with one or more
+	//    specific lifecycle states, as follows: CANCELED, EXECUTING, FAILED, PENDING,
+	//    and SUCCEEDED.
+	Name *string `type:"string" enum:"DataRepositoryTaskFilterName"`
+
+	// Use Values to include the specific file system IDs and task lifecycle states
+	// for the filters you are using.
+	Values []*string `type:"list"`
+}
+
+// String returns the string representation
+func (s DataRepositoryTaskFilter) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DataRepositoryTaskFilter) GoString() string {
+	return s.String()
+}
+
+// SetName sets the Name field's value.
+func (s *DataRepositoryTaskFilter) SetName(v string) *DataRepositoryTaskFilter {
+	s.Name = &v
+	return s
+}
+
+// SetValues sets the Values field's value.
+func (s *DataRepositoryTaskFilter) SetValues(v []*string) *DataRepositoryTaskFilter {
+	s.Values = v
+	return s
+}
+
+// The data repository task or tasks you specified could not be found.
+type DataRepositoryTaskNotFound struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// A detailed error message.
+	Message_ *string `locationName:"Message" min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s DataRepositoryTaskNotFound) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DataRepositoryTaskNotFound) GoString() string {
+	return s.String()
+}
+
+func newErrorDataRepositoryTaskNotFound(v protocol.ResponseMetadata) error {
+	return &DataRepositoryTaskNotFound{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *DataRepositoryTaskNotFound) Code() string {
+	return "DataRepositoryTaskNotFound"
+}
+
+// Message returns the exception's message.
+func (s *DataRepositoryTaskNotFound) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *DataRepositoryTaskNotFound) OrigErr() error {
+	return nil
+}
+
+func (s *DataRepositoryTaskNotFound) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *DataRepositoryTaskNotFound) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *DataRepositoryTaskNotFound) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// Provides the task status showing a running total of the total number of files
+// to be processed, the number successfully processed, and the number of files
+// the task failed to process.
+type DataRepositoryTaskStatus struct {
+	_ struct{} `type:"structure"`
+
+	// A running total of the number of files that the task failed to process.
+	FailedCount *int64 `type:"long"`
+
+	// The time at which the task status was last updated.
+	LastUpdatedTime *time.Time `type:"timestamp"`
+
+	// A running total of the number of files that the task has successfully processed.
+	SucceededCount *int64 `type:"long"`
+
+	// The total number of files that the task will process. While a task is executing,
+	// the sum of SucceededCount plus FailedCount may not equal TotalCount. When
+	// the task is complete, TotalCount equals the sum of SucceededCount plus FailedCount.
+	TotalCount *int64 `type:"long"`
+}
+
+// String returns the string representation
+func (s DataRepositoryTaskStatus) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DataRepositoryTaskStatus) GoString() string {
+	return s.String()
+}
+
+// SetFailedCount sets the FailedCount field's value.
+func (s *DataRepositoryTaskStatus) SetFailedCount(v int64) *DataRepositoryTaskStatus {
+	s.FailedCount = &v
+	return s
+}
+
+// SetLastUpdatedTime sets the LastUpdatedTime field's value.
+func (s *DataRepositoryTaskStatus) SetLastUpdatedTime(v time.Time) *DataRepositoryTaskStatus {
+	s.LastUpdatedTime = &v
+	return s
+}
+
+// SetSucceededCount sets the SucceededCount field's value.
+func (s *DataRepositoryTaskStatus) SetSucceededCount(v int64) *DataRepositoryTaskStatus {
+	s.SucceededCount = &v
+	return s
+}
+
+// SetTotalCount sets the TotalCount field's value.
+func (s *DataRepositoryTaskStatus) SetTotalCount(v int64) *DataRepositoryTaskStatus {
+	s.TotalCount = &v
 	return s
 }
 
@@ -2666,6 +4298,111 @@ func (s *DescribeBackupsOutput) SetNextToken(v string) *DescribeBackupsOutput {
 	return s
 }
 
+type DescribeDataRepositoryTasksInput struct {
+	_ struct{} `type:"structure"`
+
+	// (Optional) You can use filters to narrow the DescribeDataRepositoryTasks
+	// response to include just tasks for specific file systems, or tasks in a specific
+	// lifecycle state.
+	Filters []*DataRepositoryTaskFilter `type:"list"`
+
+	// The maximum number of resources to return in the response. This value must
+	// be an integer greater than zero.
+	MaxResults *int64 `min:"1" type:"integer"`
+
+	// (Optional) Opaque pagination token returned from a previous operation (String).
+	// If present, this token indicates from what point you can continue processing
+	// the request, where the previous NextToken value left off.
+	NextToken *string `min:"1" type:"string"`
+
+	// (Optional) IDs of the tasks whose descriptions you want to retrieve (String).
+	TaskIds []*string `type:"list"`
+}
+
+// String returns the string representation
+func (s DescribeDataRepositoryTasksInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeDataRepositoryTasksInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DescribeDataRepositoryTasksInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DescribeDataRepositoryTasksInput"}
+	if s.MaxResults != nil && *s.MaxResults < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("MaxResults", 1))
+	}
+	if s.NextToken != nil && len(*s.NextToken) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("NextToken", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetFilters sets the Filters field's value.
+func (s *DescribeDataRepositoryTasksInput) SetFilters(v []*DataRepositoryTaskFilter) *DescribeDataRepositoryTasksInput {
+	s.Filters = v
+	return s
+}
+
+// SetMaxResults sets the MaxResults field's value.
+func (s *DescribeDataRepositoryTasksInput) SetMaxResults(v int64) *DescribeDataRepositoryTasksInput {
+	s.MaxResults = &v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *DescribeDataRepositoryTasksInput) SetNextToken(v string) *DescribeDataRepositoryTasksInput {
+	s.NextToken = &v
+	return s
+}
+
+// SetTaskIds sets the TaskIds field's value.
+func (s *DescribeDataRepositoryTasksInput) SetTaskIds(v []*string) *DescribeDataRepositoryTasksInput {
+	s.TaskIds = v
+	return s
+}
+
+type DescribeDataRepositoryTasksOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The collection of data repository task descriptions returned.
+	DataRepositoryTasks []*DataRepositoryTask `type:"list"`
+
+	// (Optional) Opaque pagination token returned from a previous operation (String).
+	// If present, this token indicates from what point you can continue processing
+	// the request, where the previous NextToken value left off.
+	NextToken *string `min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s DescribeDataRepositoryTasksOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeDataRepositoryTasksOutput) GoString() string {
+	return s.String()
+}
+
+// SetDataRepositoryTasks sets the DataRepositoryTasks field's value.
+func (s *DescribeDataRepositoryTasksOutput) SetDataRepositoryTasks(v []*DataRepositoryTask) *DescribeDataRepositoryTasksOutput {
+	s.DataRepositoryTasks = v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *DescribeDataRepositoryTasksOutput) SetNextToken(v string) *DescribeDataRepositoryTasksOutput {
+	s.NextToken = &v
+	return s
+}
+
 // The request object for DescribeFileSystems operation.
 type DescribeFileSystemsInput struct {
 	_ struct{} `type:"structure"`
@@ -2786,21 +4523,27 @@ type FileSystem struct {
 	FileSystemType *string `type:"string" enum:"FileSystemType"`
 
 	// The ID of the AWS Key Management Service (AWS KMS) key used to encrypt the
-	// file system's data for an Amazon FSx for Windows File Server file system.
+	// file system's data for Amazon FSx for Windows File Server file systems and
+	// persistent Amazon FSx for Lustre file systems at rest. In either case, if
+	// not specified, the Amazon FSx managed key is used. The scratch Amazon FSx
+	// for Lustre file systems are always encrypted at rest using Amazon FSx managed
+	// keys. For more information, see Encrypt (https://docs.aws.amazon.com/kms/latest/APIReference/API_Encrypt.html)
+	// in the AWS Key Management Service API Reference.
 	KmsKeyId *string `min:"1" type:"string"`
 
-	// The lifecycle status of the file system:
+	// The lifecycle status of the file system, following are the possible values
+	// and what they mean:
 	//
-	//    * AVAILABLE indicates that the file system is reachable and available
-	//    for use.
+	//    * AVAILABLE - The file system is in a healthy state, and is reachable
+	//    and available for use.
 	//
-	//    * CREATING indicates that Amazon FSx is in the process of creating the
-	//    new file system.
+	//    * CREATING - Amazon FSx is creating the new file system.
 	//
-	//    * DELETING indicates that Amazon FSx is in the process of deleting the
-	//    file system.
+	//    * DELETING - Amazon FSx is deleting an existing file system.
 	//
-	//    * FAILED indicates that Amazon FSx was not able to create the file system.
+	//    * FAILED - An existing file system has experienced an unrecoverable failure.
+	//    When creating a new file system, Amazon FSx was unable to create the file
+	//    system.
 	//
 	//    * MISCONFIGURED indicates that the file system is in a failed but recoverable
 	//    state.
@@ -2832,11 +4575,23 @@ type FileSystem struct {
 	ResourceARN *string `min:"8" type:"string"`
 
 	// The storage capacity of the file system in gigabytes (GB).
-	StorageCapacity *int64 `min:"1" type:"integer"`
+	StorageCapacity *int64 `type:"integer"`
 
-	// The ID of the subnet to contain the endpoint for the file system. One and
-	// only one is supported. The file system is launched in the Availability Zone
-	// associated with this subnet.
+	// The storage type of the file system. Valid values are SSD and HDD. If set
+	// to SSD, the file system uses solid state drive storage. If set to HDD, the
+	// file system uses hard disk drive storage.
+	StorageType *string `type:"string" enum:"StorageType"`
+
+	// Specifies the IDs of the subnets that the file system is accessible from.
+	// For Windows MULTI_AZ_1 file system deployment type, there are two subnet
+	// IDs, one for the preferred file server and one for the standby file server.
+	// The preferred file server subnet identified in the PreferredSubnetID property.
+	// All other file systems have only one subnet ID.
+	//
+	// For Lustre file systems, and Single-AZ Windows file systems, this is the
+	// ID of the subnet that contains the endpoint for the file system. For MULTI_AZ_1
+	// Windows file systems, the endpoint for the file system is available in the
+	// PreferredSubnetID.
 	SubnetIds []*string `type:"list"`
 
 	// The tags to associate with the file system. For more information, see Tagging
@@ -2933,6 +4688,12 @@ func (s *FileSystem) SetStorageCapacity(v int64) *FileSystem {
 	return s
 }
 
+// SetStorageType sets the StorageType field's value.
+func (s *FileSystem) SetStorageType(v string) *FileSystem {
+	s.StorageType = &v
+	return s
+}
+
 // SetSubnetIds sets the SubnetIds field's value.
 func (s *FileSystem) SetSubnetIds(v []*string) *FileSystem {
 	s.SubnetIds = v
@@ -2982,6 +4743,63 @@ func (s *FileSystemFailureDetails) SetMessage(v string) *FileSystemFailureDetail
 	return s
 }
 
+// No Amazon FSx file systems were found based upon supplied parameters.
+type FileSystemNotFound struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// A detailed error message.
+	Message_ *string `locationName:"Message" min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s FileSystemNotFound) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s FileSystemNotFound) GoString() string {
+	return s.String()
+}
+
+func newErrorFileSystemNotFound(v protocol.ResponseMetadata) error {
+	return &FileSystemNotFound{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *FileSystemNotFound) Code() string {
+	return "FileSystemNotFound"
+}
+
+// Message returns the exception's message.
+func (s *FileSystemNotFound) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *FileSystemNotFound) OrigErr() error {
+	return nil
+}
+
+func (s *FileSystemNotFound) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *FileSystemNotFound) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *FileSystemNotFound) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
 // A filter used to restrict the results of describe calls. You can use multiple
 // filters to return results that meet all applied filter requirements.
 type Filter struct {
@@ -3015,6 +4833,373 @@ func (s *Filter) SetName(v string) *Filter {
 func (s *Filter) SetValues(v []*string) *Filter {
 	s.Values = v
 	return s
+}
+
+// The error returned when a second request is received with the same client
+// request token but different parameters settings. A client request token should
+// always uniquely identify a single request.
+type IncompatibleParameterError struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// A detailed error message.
+	Message_ *string `locationName:"Message" min:"1" type:"string"`
+
+	// A parameter that is incompatible with the earlier request.
+	//
+	// Parameter is a required field
+	Parameter *string `min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s IncompatibleParameterError) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s IncompatibleParameterError) GoString() string {
+	return s.String()
+}
+
+func newErrorIncompatibleParameterError(v protocol.ResponseMetadata) error {
+	return &IncompatibleParameterError{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *IncompatibleParameterError) Code() string {
+	return "IncompatibleParameterError"
+}
+
+// Message returns the exception's message.
+func (s *IncompatibleParameterError) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *IncompatibleParameterError) OrigErr() error {
+	return nil
+}
+
+func (s *IncompatibleParameterError) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *IncompatibleParameterError) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *IncompatibleParameterError) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// A generic error indicating a server-side failure.
+type InternalServerError struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// A detailed error message.
+	Message_ *string `locationName:"Message" min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s InternalServerError) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InternalServerError) GoString() string {
+	return s.String()
+}
+
+func newErrorInternalServerError(v protocol.ResponseMetadata) error {
+	return &InternalServerError{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *InternalServerError) Code() string {
+	return "InternalServerError"
+}
+
+// Message returns the exception's message.
+func (s *InternalServerError) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *InternalServerError) OrigErr() error {
+	return nil
+}
+
+func (s *InternalServerError) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *InternalServerError) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *InternalServerError) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// The path provided for data repository export isn't valid.
+type InvalidExportPath struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// A detailed error message.
+	Message_ *string `locationName:"Message" min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidExportPath) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidExportPath) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidExportPath(v protocol.ResponseMetadata) error {
+	return &InvalidExportPath{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *InvalidExportPath) Code() string {
+	return "InvalidExportPath"
+}
+
+// Message returns the exception's message.
+func (s *InvalidExportPath) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *InvalidExportPath) OrigErr() error {
+	return nil
+}
+
+func (s *InvalidExportPath) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *InvalidExportPath) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *InvalidExportPath) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// The path provided for data repository import isn't valid.
+type InvalidImportPath struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// A detailed error message.
+	Message_ *string `locationName:"Message" min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidImportPath) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidImportPath) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidImportPath(v protocol.ResponseMetadata) error {
+	return &InvalidImportPath{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *InvalidImportPath) Code() string {
+	return "InvalidImportPath"
+}
+
+// Message returns the exception's message.
+func (s *InvalidImportPath) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *InvalidImportPath) OrigErr() error {
+	return nil
+}
+
+func (s *InvalidImportPath) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *InvalidImportPath) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *InvalidImportPath) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// One or more network settings specified in the request are invalid. InvalidVpcId
+// means that the ID passed for the virtual private cloud (VPC) is invalid.
+// InvalidSubnetIds returns the list of IDs for subnets that are either invalid
+// or not part of the VPC specified. InvalidSecurityGroupIds returns the list
+// of IDs for security groups that are either invalid or not part of the VPC
+// specified.
+type InvalidNetworkSettings struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// The ID of your Amazon EC2 security group. This ID is used to control network
+	// access to the endpoint that Amazon FSx creates on your behalf in each subnet.
+	// For more information, see Amazon EC2 Security Groups for Linux Instances
+	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-network-security.html)
+	// in the Amazon EC2 User Guide.
+	InvalidSecurityGroupId *string `min:"11" type:"string"`
+
+	// The ID for a subnet. A subnet is a range of IP addresses in your virtual
+	// private cloud (VPC). For more information, see VPC and Subnets (https://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_Subnets.html)
+	// in the Amazon VPC User Guide.
+	InvalidSubnetId *string `min:"15" type:"string"`
+
+	// A detailed error message.
+	Message_ *string `locationName:"Message" min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidNetworkSettings) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidNetworkSettings) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidNetworkSettings(v protocol.ResponseMetadata) error {
+	return &InvalidNetworkSettings{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *InvalidNetworkSettings) Code() string {
+	return "InvalidNetworkSettings"
+}
+
+// Message returns the exception's message.
+func (s *InvalidNetworkSettings) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *InvalidNetworkSettings) OrigErr() error {
+	return nil
+}
+
+func (s *InvalidNetworkSettings) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *InvalidNetworkSettings) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *InvalidNetworkSettings) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// An invalid value for PerUnitStorageThroughput was provided. Please create
+// your file system again, using a valid value.
+type InvalidPerUnitStorageThroughput struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// A detailed error message.
+	Message_ *string `locationName:"Message" min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidPerUnitStorageThroughput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidPerUnitStorageThroughput) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidPerUnitStorageThroughput(v protocol.ResponseMetadata) error {
+	return &InvalidPerUnitStorageThroughput{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *InvalidPerUnitStorageThroughput) Code() string {
+	return "InvalidPerUnitStorageThroughput"
+}
+
+// Message returns the exception's message.
+func (s *InvalidPerUnitStorageThroughput) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *InvalidPerUnitStorageThroughput) OrigErr() error {
+	return nil
+}
+
+func (s *InvalidPerUnitStorageThroughput) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *InvalidPerUnitStorageThroughput) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *InvalidPerUnitStorageThroughput) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The request object for ListTagsForResource operation.
@@ -3130,6 +5315,23 @@ type LustreFileSystemConfiguration struct {
 	// in the response of the CreateFileSystem operation.
 	DataRepositoryConfiguration *DataRepositoryConfiguration `type:"structure"`
 
+	// The deployment type of the FSX for Lustre file system.
+	DeploymentType *string `type:"string" enum:"LustreDeploymentType"`
+
+	// You use the MountName value when mounting the file system.
+	//
+	// For the SCRATCH_1 deployment type, this value is always "fsx". For SCRATCH_2
+	// and PERSISTENT_1 deployment types, this value is a string that is unique
+	// within an AWS Region.
+	MountName *string `min:"1" type:"string"`
+
+	// Per unit storage throughput represents the megabytes per second of read or
+	// write throughput per 1 tebibyte of storage provisioned. File system throughput
+	// capacity is equal to Storage capacity (TiB) * PerUnitStorageThroughput (MB/s/TiB).
+	// This option is only valid for PERSISTENT_1 deployment types. Valid values
+	// are 50, 100, 200.
+	PerUnitStorageThroughput *int64 `min:"50" type:"integer"`
+
 	// The UTC time that you want to begin your weekly maintenance window.
 	WeeklyMaintenanceStartTime *string `min:"7" type:"string"`
 }
@@ -3150,10 +5352,272 @@ func (s *LustreFileSystemConfiguration) SetDataRepositoryConfiguration(v *DataRe
 	return s
 }
 
+// SetDeploymentType sets the DeploymentType field's value.
+func (s *LustreFileSystemConfiguration) SetDeploymentType(v string) *LustreFileSystemConfiguration {
+	s.DeploymentType = &v
+	return s
+}
+
+// SetMountName sets the MountName field's value.
+func (s *LustreFileSystemConfiguration) SetMountName(v string) *LustreFileSystemConfiguration {
+	s.MountName = &v
+	return s
+}
+
+// SetPerUnitStorageThroughput sets the PerUnitStorageThroughput field's value.
+func (s *LustreFileSystemConfiguration) SetPerUnitStorageThroughput(v int64) *LustreFileSystemConfiguration {
+	s.PerUnitStorageThroughput = &v
+	return s
+}
+
 // SetWeeklyMaintenanceStartTime sets the WeeklyMaintenanceStartTime field's value.
 func (s *LustreFileSystemConfiguration) SetWeeklyMaintenanceStartTime(v string) *LustreFileSystemConfiguration {
 	s.WeeklyMaintenanceStartTime = &v
 	return s
+}
+
+// A file system configuration is required for this operation.
+type MissingFileSystemConfiguration struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// A detailed error message.
+	Message_ *string `locationName:"Message" min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s MissingFileSystemConfiguration) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s MissingFileSystemConfiguration) GoString() string {
+	return s.String()
+}
+
+func newErrorMissingFileSystemConfiguration(v protocol.ResponseMetadata) error {
+	return &MissingFileSystemConfiguration{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *MissingFileSystemConfiguration) Code() string {
+	return "MissingFileSystemConfiguration"
+}
+
+// Message returns the exception's message.
+func (s *MissingFileSystemConfiguration) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *MissingFileSystemConfiguration) OrigErr() error {
+	return nil
+}
+
+func (s *MissingFileSystemConfiguration) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *MissingFileSystemConfiguration) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *MissingFileSystemConfiguration) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// The resource specified for the tagging operation is not a resource type owned
+// by Amazon FSx. Use the API of the relevant service to perform the operation.
+type NotServiceResourceError struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// A detailed error message.
+	Message_ *string `locationName:"Message" min:"1" type:"string"`
+
+	// The Amazon Resource Name (ARN) of the non-Amazon FSx resource.
+	//
+	// ResourceARN is a required field
+	ResourceARN *string `min:"8" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s NotServiceResourceError) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s NotServiceResourceError) GoString() string {
+	return s.String()
+}
+
+func newErrorNotServiceResourceError(v protocol.ResponseMetadata) error {
+	return &NotServiceResourceError{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *NotServiceResourceError) Code() string {
+	return "NotServiceResourceError"
+}
+
+// Message returns the exception's message.
+func (s *NotServiceResourceError) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *NotServiceResourceError) OrigErr() error {
+	return nil
+}
+
+func (s *NotServiceResourceError) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *NotServiceResourceError) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *NotServiceResourceError) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// The resource specified does not support tagging.
+type ResourceDoesNotSupportTagging struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// A detailed error message.
+	Message_ *string `locationName:"Message" min:"1" type:"string"`
+
+	// The Amazon Resource Name (ARN) of the resource that doesn't support tagging.
+	//
+	// ResourceARN is a required field
+	ResourceARN *string `min:"8" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s ResourceDoesNotSupportTagging) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResourceDoesNotSupportTagging) GoString() string {
+	return s.String()
+}
+
+func newErrorResourceDoesNotSupportTagging(v protocol.ResponseMetadata) error {
+	return &ResourceDoesNotSupportTagging{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *ResourceDoesNotSupportTagging) Code() string {
+	return "ResourceDoesNotSupportTagging"
+}
+
+// Message returns the exception's message.
+func (s *ResourceDoesNotSupportTagging) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *ResourceDoesNotSupportTagging) OrigErr() error {
+	return nil
+}
+
+func (s *ResourceDoesNotSupportTagging) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *ResourceDoesNotSupportTagging) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *ResourceDoesNotSupportTagging) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// The resource specified by the Amazon Resource Name (ARN) can't be found.
+type ResourceNotFound struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// A detailed error message.
+	Message_ *string `locationName:"Message" min:"1" type:"string"`
+
+	// The resource ARN of the resource that can't be found.
+	//
+	// ResourceARN is a required field
+	ResourceARN *string `min:"8" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s ResourceNotFound) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResourceNotFound) GoString() string {
+	return s.String()
+}
+
+func newErrorResourceNotFound(v protocol.ResponseMetadata) error {
+	return &ResourceNotFound{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *ResourceNotFound) Code() string {
+	return "ResourceNotFound"
+}
+
+// Message returns the exception's message.
+func (s *ResourceNotFound) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *ResourceNotFound) OrigErr() error {
+	return nil
+}
+
+func (s *ResourceNotFound) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *ResourceNotFound) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *ResourceNotFound) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The configuration of the self-managed Microsoft Active Directory (AD) directory
@@ -3166,7 +5630,7 @@ type SelfManagedActiveDirectoryAttributes struct {
 	DnsIps []*string `min:"1" type:"list"`
 
 	// The fully qualified domain name of the self-managed AD directory.
-	DomainName *string `type:"string"`
+	DomainName *string `min:"1" type:"string"`
 
 	// The name of the domain group whose members have administrative privileges
 	// for the FSx file system.
@@ -3231,7 +5695,7 @@ type SelfManagedActiveDirectoryConfiguration struct {
 	// A list of up to two IP addresses of DNS servers or domain controllers in
 	// the self-managed AD directory. The IP addresses need to be either in the
 	// same VPC CIDR range as the one in which your Amazon FSx file system is being
-	// created, or in the private IP version 4 (Iv4) address ranges, as specified
+	// created, or in the private IP version 4 (IPv4) address ranges, as specified
 	// in RFC 1918 (http://www.faqs.org/rfcs/rfc1918.html):
 	//
 	//    * 10.0.0.0 - 10.255.255.255 (10/8 prefix)
@@ -3247,12 +5711,13 @@ type SelfManagedActiveDirectoryConfiguration struct {
 	// corp.example.com.
 	//
 	// DomainName is a required field
-	DomainName *string `type:"string" required:"true"`
+	DomainName *string `min:"1" type:"string" required:"true"`
 
 	// (Optional) The name of the domain group whose members are granted administrative
 	// privileges for the file system. Administrative privileges include taking
-	// ownership of files and folders, and setting audit controls (audit ACLs) on
-	// files and folders. The group that you specify must already exist in your
+	// ownership of files and folders, setting audit controls (audit ACLs) on files
+	// and folders, and administering the file system remotely by using the FSx
+	// Remote PowerShell. The group that you specify must already exist in your
 	// domain. If you don't provide one, your AD domain's Domain Admins group is
 	// used.
 	FileSystemAdministratorsGroup *string `min:"1" type:"string"`
@@ -3305,6 +5770,9 @@ func (s *SelfManagedActiveDirectoryConfiguration) Validate() error {
 	}
 	if s.DomainName == nil {
 		invalidParams.Add(request.NewErrParamRequired("DomainName"))
+	}
+	if s.DomainName != nil && len(*s.DomainName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("DomainName", 1))
 	}
 	if s.FileSystemAdministratorsGroup != nil && len(*s.FileSystemAdministratorsGroup) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("FileSystemAdministratorsGroup", 1))
@@ -3432,6 +5900,69 @@ func (s *SelfManagedActiveDirectoryConfigurationUpdates) SetPassword(v string) *
 func (s *SelfManagedActiveDirectoryConfigurationUpdates) SetUserName(v string) *SelfManagedActiveDirectoryConfigurationUpdates {
 	s.UserName = &v
 	return s
+}
+
+// An error indicating that a particular service limit was exceeded. You can
+// increase some service limits by contacting AWS Support.
+type ServiceLimitExceeded struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// Enumeration of the service limit that was exceeded.
+	//
+	// Limit is a required field
+	Limit *string `type:"string" required:"true" enum:"ServiceLimit"`
+
+	// A detailed error message.
+	Message_ *string `locationName:"Message" min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s ServiceLimitExceeded) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ServiceLimitExceeded) GoString() string {
+	return s.String()
+}
+
+func newErrorServiceLimitExceeded(v protocol.ResponseMetadata) error {
+	return &ServiceLimitExceeded{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *ServiceLimitExceeded) Code() string {
+	return "ServiceLimitExceeded"
+}
+
+// Message returns the exception's message.
+func (s *ServiceLimitExceeded) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *ServiceLimitExceeded) OrigErr() error {
+	return nil
+}
+
+func (s *ServiceLimitExceeded) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *ServiceLimitExceeded) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *ServiceLimitExceeded) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Specifies a key-value pair for a resource tag.
@@ -3568,6 +6099,63 @@ func (s TagResourceOutput) String() string {
 // GoString returns the string representation
 func (s TagResourceOutput) GoString() string {
 	return s.String()
+}
+
+// The requested operation is not supported for this resource or API.
+type UnsupportedOperation struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// A detailed error message.
+	Message_ *string `locationName:"Message" min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s UnsupportedOperation) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UnsupportedOperation) GoString() string {
+	return s.String()
+}
+
+func newErrorUnsupportedOperation(v protocol.ResponseMetadata) error {
+	return &UnsupportedOperation{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *UnsupportedOperation) Code() string {
+	return "UnsupportedOperation"
+}
+
+// Message returns the exception's message.
+func (s *UnsupportedOperation) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *UnsupportedOperation) OrigErr() error {
+	return nil
+}
+
+func (s *UnsupportedOperation) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *UnsupportedOperation) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *UnsupportedOperation) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The request object for UntagResource action.
@@ -3888,13 +6476,63 @@ type WindowsFileSystemConfiguration struct {
 	// the file system are copied to all automatic backups and any user-initiated
 	// backups where the user doesn't specify any tags. If this value is true, and
 	// you specify one or more tags, only the specified tags are copied to backups.
+	// If you specify one or more tags when creating a user-initiated backup, no
+	// tags are copied from the file system, regardless of this value.
 	CopyTagsToBackups *bool `type:"boolean"`
 
 	// The preferred time to take daily automatic backups, in the UTC time zone.
 	DailyAutomaticBackupStartTime *string `min:"5" type:"string"`
 
+	// Specifies the file system deployment type, valid values are the following:
+	//
+	//    * MULTI_AZ_1 - Specifies a high availability file system that is configured
+	//    for Multi-AZ redundancy to tolerate temporary Availability Zone (AZ) unavailability,
+	//    and supports SSD and HDD storage.
+	//
+	//    * SINGLE_AZ_1 - (Default) Specifies a file system that is configured for
+	//    single AZ redundancy, only supports SSD storage.
+	//
+	//    * SINGLE_AZ_2 - Latest generation Single AZ file system. Specifies a file
+	//    system that is configured for single AZ redundancy and supports SSD and
+	//    HDD storage.
+	//
+	// For more information, see Single-AZ and Multi-AZ File Systems (https://docs.aws.amazon.com/fsx/latest/WindowsGuide/high-availability-multiAZ.html).
+	DeploymentType *string `type:"string" enum:"WindowsDeploymentType"`
+
 	// The list of maintenance operations in progress for this file system.
 	MaintenanceOperationsInProgress []*string `type:"list"`
+
+	// For MULTI_AZ_1 deployment types, the IP address of the primary, or preferred,
+	// file server.
+	//
+	// Use this IP address when mounting the file system on Linux SMB clients or
+	// Windows SMB clients that are not joined to a Microsoft Active Directory.
+	// Applicable for all Windows file system deployment types. This IP address
+	// is temporarily unavailable when the file system is undergoing maintenance.
+	// For Linux and Windows SMB clients that are joined to an Active Directory,
+	// use the file system's DNSName instead. For more information on mapping and
+	// mounting file shares, see Accessing File Shares (https://docs.aws.amazon.com/fsx/latest/WindowsGuide/accessing-file-shares.html).
+	PreferredFileServerIp *string `min:"7" type:"string"`
+
+	// For MULTI_AZ_1 deployment types, it specifies the ID of the subnet where
+	// the preferred file server is located. Must be one of the two subnet IDs specified
+	// in SubnetIds property. Amazon FSx serves traffic from this subnet except
+	// in the event of a failover to the secondary file server.
+	//
+	// For SINGLE_AZ_1 and SINGLE_AZ_2 deployment types, this value is the same
+	// as that for SubnetIDs. For more information, see Availability and Durability:
+	// Single-AZ and Multi-AZ File Systems (https://docs.aws.amazon.com/fsx/latest/WindowsGuide/high-availability-multiAZ.html#single-multi-az-resources)
+	PreferredSubnetId *string `min:"15" type:"string"`
+
+	// For MULTI_AZ_1 deployment types, use this endpoint when performing administrative
+	// tasks on the file system using Amazon FSx Remote PowerShell.
+	//
+	// For SINGLE_AZ_1 and SINGLE_AZ_2 deployment types, this is the DNS name of
+	// the file system.
+	//
+	// This endpoint is temporarily unavailable when the file system is undergoing
+	// maintenance.
+	RemoteAdministrationEndpoint *string `min:"16" type:"string"`
 
 	// The configuration of the self-managed Microsoft Active Directory (AD) directory
 	// to which the Windows File Server instance is joined.
@@ -3941,9 +6579,33 @@ func (s *WindowsFileSystemConfiguration) SetDailyAutomaticBackupStartTime(v stri
 	return s
 }
 
+// SetDeploymentType sets the DeploymentType field's value.
+func (s *WindowsFileSystemConfiguration) SetDeploymentType(v string) *WindowsFileSystemConfiguration {
+	s.DeploymentType = &v
+	return s
+}
+
 // SetMaintenanceOperationsInProgress sets the MaintenanceOperationsInProgress field's value.
 func (s *WindowsFileSystemConfiguration) SetMaintenanceOperationsInProgress(v []*string) *WindowsFileSystemConfiguration {
 	s.MaintenanceOperationsInProgress = v
+	return s
+}
+
+// SetPreferredFileServerIp sets the PreferredFileServerIp field's value.
+func (s *WindowsFileSystemConfiguration) SetPreferredFileServerIp(v string) *WindowsFileSystemConfiguration {
+	s.PreferredFileServerIp = &v
+	return s
+}
+
+// SetPreferredSubnetId sets the PreferredSubnetId field's value.
+func (s *WindowsFileSystemConfiguration) SetPreferredSubnetId(v string) *WindowsFileSystemConfiguration {
+	s.PreferredSubnetId = &v
+	return s
+}
+
+// SetRemoteAdministrationEndpoint sets the RemoteAdministrationEndpoint field's value.
+func (s *WindowsFileSystemConfiguration) SetRemoteAdministrationEndpoint(v string) *WindowsFileSystemConfiguration {
+	s.RemoteAdministrationEndpoint = &v
 	return s
 }
 
@@ -4009,6 +6671,39 @@ const (
 	BackupTypeUserInitiated = "USER_INITIATED"
 )
 
+const (
+	// DataRepositoryTaskFilterNameFileSystemId is a DataRepositoryTaskFilterName enum value
+	DataRepositoryTaskFilterNameFileSystemId = "file-system-id"
+
+	// DataRepositoryTaskFilterNameTaskLifecycle is a DataRepositoryTaskFilterName enum value
+	DataRepositoryTaskFilterNameTaskLifecycle = "task-lifecycle"
+)
+
+const (
+	// DataRepositoryTaskLifecyclePending is a DataRepositoryTaskLifecycle enum value
+	DataRepositoryTaskLifecyclePending = "PENDING"
+
+	// DataRepositoryTaskLifecycleExecuting is a DataRepositoryTaskLifecycle enum value
+	DataRepositoryTaskLifecycleExecuting = "EXECUTING"
+
+	// DataRepositoryTaskLifecycleFailed is a DataRepositoryTaskLifecycle enum value
+	DataRepositoryTaskLifecycleFailed = "FAILED"
+
+	// DataRepositoryTaskLifecycleSucceeded is a DataRepositoryTaskLifecycle enum value
+	DataRepositoryTaskLifecycleSucceeded = "SUCCEEDED"
+
+	// DataRepositoryTaskLifecycleCanceled is a DataRepositoryTaskLifecycle enum value
+	DataRepositoryTaskLifecycleCanceled = "CANCELED"
+
+	// DataRepositoryTaskLifecycleCanceling is a DataRepositoryTaskLifecycle enum value
+	DataRepositoryTaskLifecycleCanceling = "CANCELING"
+)
+
+const (
+	// DataRepositoryTaskTypeExportToRepository is a DataRepositoryTaskType enum value
+	DataRepositoryTaskTypeExportToRepository = "EXPORT_TO_REPOSITORY"
+)
+
 // The lifecycle status of the file system.
 const (
 	// FileSystemLifecycleAvailable is a FileSystemLifecycle enum value
@@ -4057,6 +6752,27 @@ const (
 	FilterNameBackupType = "backup-type"
 )
 
+const (
+	// LustreDeploymentTypeScratch1 is a LustreDeploymentType enum value
+	LustreDeploymentTypeScratch1 = "SCRATCH_1"
+
+	// LustreDeploymentTypeScratch2 is a LustreDeploymentType enum value
+	LustreDeploymentTypeScratch2 = "SCRATCH_2"
+
+	// LustreDeploymentTypePersistent1 is a LustreDeploymentType enum value
+	LustreDeploymentTypePersistent1 = "PERSISTENT_1"
+)
+
+const (
+	// ReportFormatReportCsv20191124 is a ReportFormat enum value
+	ReportFormatReportCsv20191124 = "REPORT_CSV_20191124"
+)
+
+const (
+	// ReportScopeFailedFilesOnly is a ReportScope enum value
+	ReportScopeFailedFilesOnly = "FAILED_FILES_ONLY"
+)
+
 // The types of limits on your service utilization. Limits include file system
 // count, total throughput capacity, total storage, and total user-initiated
 // backups. These limits apply for a specific account in a specific AWS Region.
@@ -4073,4 +6789,24 @@ const (
 
 	// ServiceLimitTotalUserInitiatedBackups is a ServiceLimit enum value
 	ServiceLimitTotalUserInitiatedBackups = "TOTAL_USER_INITIATED_BACKUPS"
+)
+
+// The storage type for your Amazon FSx file system.
+const (
+	// StorageTypeSsd is a StorageType enum value
+	StorageTypeSsd = "SSD"
+
+	// StorageTypeHdd is a StorageType enum value
+	StorageTypeHdd = "HDD"
+)
+
+const (
+	// WindowsDeploymentTypeMultiAz1 is a WindowsDeploymentType enum value
+	WindowsDeploymentTypeMultiAz1 = "MULTI_AZ_1"
+
+	// WindowsDeploymentTypeSingleAz1 is a WindowsDeploymentType enum value
+	WindowsDeploymentTypeSingleAz1 = "SINGLE_AZ_1"
+
+	// WindowsDeploymentTypeSingleAz2 is a WindowsDeploymentType enum value
+	WindowsDeploymentTypeSingleAz2 = "SINGLE_AZ_2"
 )

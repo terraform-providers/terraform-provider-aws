@@ -32,3 +32,12 @@ func TestAccExampleThingAssociation_basic(t *testing.T) { /* ... */ }
 
 func TestAccExampleThingAssociation_SomeAttribute(t *testing.T) { /* ... */ }
 ```
+
+## Ignoring Reports
+
+Singular reports can be ignored by adding the a `//lintignore:AT003` Go code comment at the end of the offending line or on the line immediately proceding, e.g.
+
+```go
+//lintignore:AT003
+func TestAccExampleThing(t *testing.T) { /* ... */ }
+```

@@ -12,6 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsEip() *schema.Resource {
@@ -141,9 +142,9 @@ func resourceAwsEipCreate(d *schema.ResourceData, meta interface{}) error {
 
 	log.Printf("[INFO] EIP ID: %s (domain: %v)", d.Id(), *allocResp.Domain)
 
-	if _, ok := d.GetOk("tags"); ok {
-		if err := setTags(ec2conn, d); err != nil {
-			return fmt.Errorf("Error creating EIP tags: %s", err)
+	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
+		if err := keyvaluetags.Ec2CreateTags(ec2conn, d.Id(), v); err != nil {
+			return fmt.Errorf("error adding tags: %s", err)
 		}
 	}
 
@@ -250,9 +251,9 @@ func resourceAwsEipRead(d *schema.ResourceData, meta interface{}) error {
 		dashIP := strings.Replace(*address.PublicIp, ".", "-", -1)
 
 		if region == "us-east-1" {
-			d.Set("public_dns", fmt.Sprintf("ec2-%s.compute-1.amazonaws.com", dashIP))
+			d.Set("public_dns", meta.(*AWSClient).PartitionHostname(fmt.Sprintf("ec2-%s.compute-1", dashIP)))
 		} else {
-			d.Set("public_dns", fmt.Sprintf("ec2-%s.%s.compute.amazonaws.com", dashIP, region))
+			d.Set("public_dns", meta.(*AWSClient).PartitionHostname(fmt.Sprintf("ec2-%s.%s.compute", dashIP, region)))
 		}
 	}
 	d.Set("public_ipv4_pool", address.PublicIpv4Pool)
@@ -272,7 +273,9 @@ func resourceAwsEipRead(d *schema.ResourceData, meta interface{}) error {
 		d.SetId(*address.AllocationId)
 	}
 
-	d.Set("tags", tagsToMap(address.Tags))
+	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(address.Tags).IgnoreAws().Map()); err != nil {
+		return fmt.Errorf("error setting tags: %s", err)
+	}
 
 	return nil
 }
@@ -355,9 +358,10 @@ func resourceAwsEipUpdate(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
-	if _, ok := d.GetOk("tags"); ok {
-		if err := setTags(ec2conn, d); err != nil {
-			return fmt.Errorf("Error updating EIP tags: %s", err)
+	if d.HasChange("tags") && !d.IsNewResource() {
+		o, n := d.GetChange("tags")
+		if err := keyvaluetags.Ec2UpdateTags(ec2conn, d.Id(), o, n); err != nil {
+			return fmt.Errorf("error updating EIP (%s) tags: %s", d.Id(), err)
 		}
 	}
 

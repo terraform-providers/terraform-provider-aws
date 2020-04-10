@@ -74,9 +74,9 @@ func dataSourceAwsS3BucketRead(d *schema.ResourceData, meta interface{}) error {
 		Resource:  bucket,
 	}.String()
 	d.Set("arn", arn)
-	d.Set("bucket_domain_name", bucketDomainName(bucket))
+	d.Set("bucket_domain_name", meta.(*AWSClient).PartitionHostname(fmt.Sprintf("%s.s3", bucket)))
 
-	err = bucketLocation(d, bucket, conn)
+	err = bucketLocation(meta.(*AWSClient), d, bucket)
 	if err != nil {
 		return fmt.Errorf("error getting S3 Bucket location: %s", err)
 	}
@@ -90,8 +90,8 @@ func dataSourceAwsS3BucketRead(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func bucketLocation(d *schema.ResourceData, bucket string, conn *s3.S3) error {
-	location, err := conn.GetBucketLocation(
+func bucketLocation(client *AWSClient, d *schema.ResourceData, bucket string) error {
+	location, err := client.s3conn.GetBucketLocation(
 		&s3.GetBucketLocationInput{
 			Bucket: aws.String(bucket),
 		},
@@ -115,14 +115,14 @@ func bucketLocation(d *schema.ResourceData, bucket string, conn *s3.S3) error {
 		d.Set("hosted_zone_id", hostedZoneID)
 	}
 
-	_, websiteErr := conn.GetBucketWebsite(
+	_, websiteErr := client.s3conn.GetBucketWebsite(
 		&s3.GetBucketWebsiteInput{
 			Bucket: aws.String(bucket),
 		},
 	)
 
 	if websiteErr == nil {
-		websiteEndpoint := WebsiteEndpoint(bucket, region)
+		websiteEndpoint := WebsiteEndpoint(client, bucket, region)
 		if err := d.Set("website_endpoint", websiteEndpoint.Endpoint); err != nil {
 			return err
 		}

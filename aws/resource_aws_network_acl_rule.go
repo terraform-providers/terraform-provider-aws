@@ -300,6 +300,7 @@ func findNetworkAclRule(d *schema.ResourceData, meta interface{}) (*ec2.NetworkA
 				return i, nil
 			}
 		}
+		return nil, nil
 	}
 	return nil, fmt.Errorf(
 		"Expected the Network ACL to have Entries, got: %#v",

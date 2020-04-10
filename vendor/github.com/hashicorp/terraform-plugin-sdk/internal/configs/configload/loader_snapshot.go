@@ -9,7 +9,7 @@ import (
 	"time"
 
 	version "github.com/hashicorp/go-version"
-	"github.com/hashicorp/hcl2/hcl"
+	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/terraform-plugin-sdk/internal/configs"
 	"github.com/hashicorp/terraform-plugin-sdk/internal/modsdir"
 	"github.com/spf13/afero"
@@ -75,18 +75,6 @@ type Snapshot struct {
 	// names on all supported operating systems) to the snapshot information
 	// about each module.
 	Modules map[string]*SnapshotModule
-}
-
-// NewEmptySnapshot constructs and returns a snapshot containing only an empty
-// root module. This is not useful for anything except placeholders in tests.
-func NewEmptySnapshot() *Snapshot {
-	return &Snapshot{
-		Modules: map[string]*SnapshotModule{
-			"": &SnapshotModule{
-				Files: map[string][]byte{},
-			},
-		},
-	}
 }
 
 // SnapshotModule represents a single module within a Snapshot.

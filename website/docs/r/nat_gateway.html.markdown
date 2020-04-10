@@ -42,16 +42,17 @@ The following arguments are supported:
 
 -> **Note:** It's recommended to denote that the NAT Gateway depends on the Internet Gateway for the VPC in which the NAT Gateway's subnet is located. For example:
 
-    resource "aws_internet_gateway" "gw" {
-      vpc_id = "${aws_vpc.main.id}"
-    }
+```hcl
+resource "aws_internet_gateway" "gw" {
+  vpc_id = "${aws_vpc.main.id}"
+}
 
-    resource "aws_nat_gateway" "gw" {
-      //other arguments
+resource "aws_nat_gateway" "gw" {
+  # ... other arguments ...
 
-      depends_on = ["aws_internet_gateway.gw"]
-    }
-
+  depends_on = ["aws_internet_gateway.gw"]
+}
+```
 
 ## Attributes Reference
 

@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsPinpointApp() *schema.Resource {
@@ -87,20 +88,24 @@ func resourceAwsPinpointApp() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"daily": {
-							Type:     schema.TypeInt,
-							Optional: true,
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(0, 100),
 						},
 						"maximum_duration": {
-							Type:     schema.TypeInt,
-							Optional: true,
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntAtLeast(60),
 						},
 						"messages_per_second": {
-							Type:     schema.TypeInt,
-							Optional: true,
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(50, 20000),
 						},
 						"total": {
-							Type:     schema.TypeInt,
-							Optional: true,
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(0, 100),
 						},
 					},
 				},
@@ -158,8 +163,8 @@ func resourceAwsPinpointAppCreate(d *schema.ResourceData, meta interface{}) erro
 		},
 	}
 
-	if v, ok := d.GetOk("tags"); ok {
-		req.CreateApplicationRequest.Tags = tagsFromMapPinPointApp(v.(map[string]interface{}))
+	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
+		req.CreateApplicationRequest.Tags = keyvaluetags.New(v).IgnoreAws().PinpointTags()
 	}
 
 	output, err := pinpointconn.CreateApp(req)
@@ -167,7 +172,7 @@ func resourceAwsPinpointAppCreate(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("error creating Pinpoint app: %s", err)
 	}
 
-	d.SetId(*output.ApplicationResponse.Id)
+	d.SetId(aws.StringValue(output.ApplicationResponse.Id))
 	d.Set("arn", output.ApplicationResponse.Arn)
 
 	return resourceAwsPinpointAppUpdate(d, meta)
@@ -204,8 +209,15 @@ func resourceAwsPinpointAppUpdate(d *schema.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	if err := setTagsPinPointApp(conn, d); err != nil {
-		return fmt.Errorf("error updating PinPoint Application (%s) tags: %s", d.Id(), err)
+	if !d.IsNewResource() {
+		arn := d.Get("arn").(string)
+		if d.HasChange("tags") {
+			o, n := d.GetChange("tags")
+
+			if err := keyvaluetags.PinpointUpdateTags(conn, arn, o, n); err != nil {
+				return fmt.Errorf("error updating PinPoint Application (%s) tags: %s", arn, err)
+			}
+		}
 	}
 
 	return resourceAwsPinpointAppRead(d, meta)
@@ -242,9 +254,10 @@ func resourceAwsPinpointAppRead(d *schema.ResourceData, meta interface{}) error 
 		return err
 	}
 
+	arn := aws.StringValue(app.ApplicationResponse.Arn)
 	d.Set("name", app.ApplicationResponse.Name)
 	d.Set("application_id", app.ApplicationResponse.Id)
-	d.Set("arn", app.ApplicationResponse.Arn)
+	d.Set("arn", arn)
 
 	if err := d.Set("campaign_hook", flattenPinpointCampaignHook(settings.ApplicationSettingsResource.CampaignHook)); err != nil {
 		return fmt.Errorf("error setting campaign_hook: %s", err)
@@ -256,7 +269,13 @@ func resourceAwsPinpointAppRead(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("error setting quiet_time: %s", err)
 	}
 
-	if err := getTagsPinPointApp(conn, d); err != nil {
+	tags, err := keyvaluetags.PinpointListTags(conn, arn)
+
+	if err != nil {
+		return fmt.Errorf("error listing tags for PinPoint Application (%s): %s", arn, err)
+	}
+
+	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 

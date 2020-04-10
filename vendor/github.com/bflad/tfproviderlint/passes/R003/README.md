@@ -28,3 +28,16 @@ func resourceExampleThingRead(d *schema.ResourceData, meta interface{}) error { 
     /* ... */
 }
 ```
+
+## Ignoring Reports
+
+Singular reports can be ignored by adding the a `//lintignore:R003` Go code comment at the end of the offending line or on the line immediately proceding, e.g.
+
+```go
+&schema.Resource{
+    //lintignore:R003
+    Exists: resourceExampleThingExists,
+    Read:   resourceExampleThingRead,
+    /* ... */
+}
+```

@@ -93,7 +93,7 @@ func TestAccAWSServiceDiscoveryService_public(t *testing.T) {
 }
 
 func TestAccAWSServiceDiscoveryService_http(t *testing.T) {
-	rName := acctest.RandString(5)
+	rName := acctest.RandStringFromCharSet(5, acctest.CharSetAlpha)
 	resourceName := "aws_service_discovery_service.test"
 
 	resource.ParallelTest(t, resource.TestCase{

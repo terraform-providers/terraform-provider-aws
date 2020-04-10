@@ -66,8 +66,8 @@ func (c *CodeBuild) BatchDeleteBuildsRequest(input *BatchDeleteBuildsInput) (req
 // See the AWS API reference guide for AWS CodeBuild's
 // API operation BatchDeleteBuilds for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidInputException "InvalidInputException"
+// Returned Error Types:
+//   * InvalidInputException
 //   The input value that was provided is not valid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/codebuild-2016-10-06/BatchDeleteBuilds
@@ -136,7 +136,7 @@ func (c *CodeBuild) BatchGetBuildsRequest(input *BatchGetBuildsInput) (req *requ
 
 // BatchGetBuilds API operation for AWS CodeBuild.
 //
-// Gets information about builds.
+// Gets information about one or more builds.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -145,8 +145,8 @@ func (c *CodeBuild) BatchGetBuildsRequest(input *BatchGetBuildsInput) (req *requ
 // See the AWS API reference guide for AWS CodeBuild's
 // API operation BatchGetBuilds for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidInputException "InvalidInputException"
+// Returned Error Types:
+//   * InvalidInputException
 //   The input value that was provided is not valid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/codebuild-2016-10-06/BatchGetBuilds
@@ -215,7 +215,7 @@ func (c *CodeBuild) BatchGetProjectsRequest(input *BatchGetProjectsInput) (req *
 
 // BatchGetProjects API operation for AWS CodeBuild.
 //
-// Gets information about build projects.
+// Gets information about one or more build projects.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -224,8 +224,8 @@ func (c *CodeBuild) BatchGetProjectsRequest(input *BatchGetProjectsInput) (req *
 // See the AWS API reference guide for AWS CodeBuild's
 // API operation BatchGetProjects for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidInputException "InvalidInputException"
+// Returned Error Types:
+//   * InvalidInputException
 //   The input value that was provided is not valid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/codebuild-2016-10-06/BatchGetProjects
@@ -245,6 +245,164 @@ func (c *CodeBuild) BatchGetProjects(input *BatchGetProjectsInput) (*BatchGetPro
 // for more information on using Contexts.
 func (c *CodeBuild) BatchGetProjectsWithContext(ctx aws.Context, input *BatchGetProjectsInput, opts ...request.Option) (*BatchGetProjectsOutput, error) {
 	req, out := c.BatchGetProjectsRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opBatchGetReportGroups = "BatchGetReportGroups"
+
+// BatchGetReportGroupsRequest generates a "aws/request.Request" representing the
+// client's request for the BatchGetReportGroups operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See BatchGetReportGroups for more information on using the BatchGetReportGroups
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the BatchGetReportGroupsRequest method.
+//    req, resp := client.BatchGetReportGroupsRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/codebuild-2016-10-06/BatchGetReportGroups
+func (c *CodeBuild) BatchGetReportGroupsRequest(input *BatchGetReportGroupsInput) (req *request.Request, output *BatchGetReportGroupsOutput) {
+	op := &request.Operation{
+		Name:       opBatchGetReportGroups,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &BatchGetReportGroupsInput{}
+	}
+
+	output = &BatchGetReportGroupsOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// BatchGetReportGroups API operation for AWS CodeBuild.
+//
+// Returns an array of report groups.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS CodeBuild's
+// API operation BatchGetReportGroups for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidInputException
+//   The input value that was provided is not valid.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/codebuild-2016-10-06/BatchGetReportGroups
+func (c *CodeBuild) BatchGetReportGroups(input *BatchGetReportGroupsInput) (*BatchGetReportGroupsOutput, error) {
+	req, out := c.BatchGetReportGroupsRequest(input)
+	return out, req.Send()
+}
+
+// BatchGetReportGroupsWithContext is the same as BatchGetReportGroups with the addition of
+// the ability to pass a context and additional request options.
+//
+// See BatchGetReportGroups for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *CodeBuild) BatchGetReportGroupsWithContext(ctx aws.Context, input *BatchGetReportGroupsInput, opts ...request.Option) (*BatchGetReportGroupsOutput, error) {
+	req, out := c.BatchGetReportGroupsRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opBatchGetReports = "BatchGetReports"
+
+// BatchGetReportsRequest generates a "aws/request.Request" representing the
+// client's request for the BatchGetReports operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See BatchGetReports for more information on using the BatchGetReports
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the BatchGetReportsRequest method.
+//    req, resp := client.BatchGetReportsRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/codebuild-2016-10-06/BatchGetReports
+func (c *CodeBuild) BatchGetReportsRequest(input *BatchGetReportsInput) (req *request.Request, output *BatchGetReportsOutput) {
+	op := &request.Operation{
+		Name:       opBatchGetReports,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &BatchGetReportsInput{}
+	}
+
+	output = &BatchGetReportsOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// BatchGetReports API operation for AWS CodeBuild.
+//
+// Returns an array of reports.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS CodeBuild's
+// API operation BatchGetReports for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidInputException
+//   The input value that was provided is not valid.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/codebuild-2016-10-06/BatchGetReports
+func (c *CodeBuild) BatchGetReports(input *BatchGetReportsInput) (*BatchGetReportsOutput, error) {
+	req, out := c.BatchGetReportsRequest(input)
+	return out, req.Send()
+}
+
+// BatchGetReportsWithContext is the same as BatchGetReports with the addition of
+// the ability to pass a context and additional request options.
+//
+// See BatchGetReports for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *CodeBuild) BatchGetReportsWithContext(ctx aws.Context, input *BatchGetReportsInput, opts ...request.Option) (*BatchGetReportsOutput, error) {
+	req, out := c.BatchGetReportsRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -303,15 +461,15 @@ func (c *CodeBuild) CreateProjectRequest(input *CreateProjectInput) (req *reques
 // See the AWS API reference guide for AWS CodeBuild's
 // API operation CreateProject for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidInputException "InvalidInputException"
+// Returned Error Types:
+//   * InvalidInputException
 //   The input value that was provided is not valid.
 //
-//   * ErrCodeResourceAlreadyExistsException "ResourceAlreadyExistsException"
+//   * ResourceAlreadyExistsException
 //   The specified AWS resource cannot be created, because an AWS resource with
 //   the same settings already exists.
 //
-//   * ErrCodeAccountLimitExceededException "AccountLimitExceededException"
+//   * AccountLimitExceededException
 //   An AWS service limit was exceeded for the calling AWS account.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/codebuild-2016-10-06/CreateProject
@@ -331,6 +489,92 @@ func (c *CodeBuild) CreateProject(input *CreateProjectInput) (*CreateProjectOutp
 // for more information on using Contexts.
 func (c *CodeBuild) CreateProjectWithContext(ctx aws.Context, input *CreateProjectInput, opts ...request.Option) (*CreateProjectOutput, error) {
 	req, out := c.CreateProjectRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opCreateReportGroup = "CreateReportGroup"
+
+// CreateReportGroupRequest generates a "aws/request.Request" representing the
+// client's request for the CreateReportGroup operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See CreateReportGroup for more information on using the CreateReportGroup
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the CreateReportGroupRequest method.
+//    req, resp := client.CreateReportGroupRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/codebuild-2016-10-06/CreateReportGroup
+func (c *CodeBuild) CreateReportGroupRequest(input *CreateReportGroupInput) (req *request.Request, output *CreateReportGroupOutput) {
+	op := &request.Operation{
+		Name:       opCreateReportGroup,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &CreateReportGroupInput{}
+	}
+
+	output = &CreateReportGroupOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// CreateReportGroup API operation for AWS CodeBuild.
+//
+// Creates a report group. A report group contains a collection of reports.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS CodeBuild's
+// API operation CreateReportGroup for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidInputException
+//   The input value that was provided is not valid.
+//
+//   * ResourceAlreadyExistsException
+//   The specified AWS resource cannot be created, because an AWS resource with
+//   the same settings already exists.
+//
+//   * AccountLimitExceededException
+//   An AWS service limit was exceeded for the calling AWS account.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/codebuild-2016-10-06/CreateReportGroup
+func (c *CodeBuild) CreateReportGroup(input *CreateReportGroupInput) (*CreateReportGroupOutput, error) {
+	req, out := c.CreateReportGroupRequest(input)
+	return out, req.Send()
+}
+
+// CreateReportGroupWithContext is the same as CreateReportGroup with the addition of
+// the ability to pass a context and additional request options.
+//
+// See CreateReportGroup for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *CodeBuild) CreateReportGroupWithContext(ctx aws.Context, input *CreateReportGroupInput, opts ...request.Option) (*CreateReportGroupOutput, error) {
+	req, out := c.CreateReportGroupRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -400,18 +644,18 @@ func (c *CodeBuild) CreateWebhookRequest(input *CreateWebhookInput) (req *reques
 // See the AWS API reference guide for AWS CodeBuild's
 // API operation CreateWebhook for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidInputException "InvalidInputException"
+// Returned Error Types:
+//   * InvalidInputException
 //   The input value that was provided is not valid.
 //
-//   * ErrCodeOAuthProviderException "OAuthProviderException"
+//   * OAuthProviderException
 //   There was a problem with the underlying OAuth provider.
 //
-//   * ErrCodeResourceAlreadyExistsException "ResourceAlreadyExistsException"
+//   * ResourceAlreadyExistsException
 //   The specified AWS resource cannot be created, because an AWS resource with
 //   the same settings already exists.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The specified AWS resource cannot be found.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/codebuild-2016-10-06/CreateWebhook
@@ -481,7 +725,7 @@ func (c *CodeBuild) DeleteProjectRequest(input *DeleteProjectInput) (req *reques
 
 // DeleteProject API operation for AWS CodeBuild.
 //
-// Deletes a build project.
+// Deletes a build project. When you delete a project, its builds are not deleted.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -490,8 +734,8 @@ func (c *CodeBuild) DeleteProjectRequest(input *DeleteProjectInput) (req *reques
 // See the AWS API reference guide for AWS CodeBuild's
 // API operation DeleteProject for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidInputException "InvalidInputException"
+// Returned Error Types:
+//   * InvalidInputException
 //   The input value that was provided is not valid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/codebuild-2016-10-06/DeleteProject
@@ -511,6 +755,250 @@ func (c *CodeBuild) DeleteProject(input *DeleteProjectInput) (*DeleteProjectOutp
 // for more information on using Contexts.
 func (c *CodeBuild) DeleteProjectWithContext(ctx aws.Context, input *DeleteProjectInput, opts ...request.Option) (*DeleteProjectOutput, error) {
 	req, out := c.DeleteProjectRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opDeleteReport = "DeleteReport"
+
+// DeleteReportRequest generates a "aws/request.Request" representing the
+// client's request for the DeleteReport operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DeleteReport for more information on using the DeleteReport
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the DeleteReportRequest method.
+//    req, resp := client.DeleteReportRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/codebuild-2016-10-06/DeleteReport
+func (c *CodeBuild) DeleteReportRequest(input *DeleteReportInput) (req *request.Request, output *DeleteReportOutput) {
+	op := &request.Operation{
+		Name:       opDeleteReport,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &DeleteReportInput{}
+	}
+
+	output = &DeleteReportOutput{}
+	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
+	return
+}
+
+// DeleteReport API operation for AWS CodeBuild.
+//
+// Deletes a report.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS CodeBuild's
+// API operation DeleteReport for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidInputException
+//   The input value that was provided is not valid.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/codebuild-2016-10-06/DeleteReport
+func (c *CodeBuild) DeleteReport(input *DeleteReportInput) (*DeleteReportOutput, error) {
+	req, out := c.DeleteReportRequest(input)
+	return out, req.Send()
+}
+
+// DeleteReportWithContext is the same as DeleteReport with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DeleteReport for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *CodeBuild) DeleteReportWithContext(ctx aws.Context, input *DeleteReportInput, opts ...request.Option) (*DeleteReportOutput, error) {
+	req, out := c.DeleteReportRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opDeleteReportGroup = "DeleteReportGroup"
+
+// DeleteReportGroupRequest generates a "aws/request.Request" representing the
+// client's request for the DeleteReportGroup operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DeleteReportGroup for more information on using the DeleteReportGroup
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the DeleteReportGroupRequest method.
+//    req, resp := client.DeleteReportGroupRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/codebuild-2016-10-06/DeleteReportGroup
+func (c *CodeBuild) DeleteReportGroupRequest(input *DeleteReportGroupInput) (req *request.Request, output *DeleteReportGroupOutput) {
+	op := &request.Operation{
+		Name:       opDeleteReportGroup,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &DeleteReportGroupInput{}
+	}
+
+	output = &DeleteReportGroupOutput{}
+	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
+	return
+}
+
+// DeleteReportGroup API operation for AWS CodeBuild.
+//
+// DeleteReportGroup: Deletes a report group. Before you delete a report group,
+// you must delete its reports. Use ListReportsForReportGroup (https://docs.aws.amazon.com/codebuild/latest/APIReference/API_ListReportsForReportGroup.html)
+// to get the reports in a report group. Use DeleteReport (https://docs.aws.amazon.com/codebuild/latest/APIReference/API_DeleteReport.html)
+// to delete the reports. If you call DeleteReportGroup for a report group that
+// contains one or more reports, an exception is thrown.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS CodeBuild's
+// API operation DeleteReportGroup for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidInputException
+//   The input value that was provided is not valid.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/codebuild-2016-10-06/DeleteReportGroup
+func (c *CodeBuild) DeleteReportGroup(input *DeleteReportGroupInput) (*DeleteReportGroupOutput, error) {
+	req, out := c.DeleteReportGroupRequest(input)
+	return out, req.Send()
+}
+
+// DeleteReportGroupWithContext is the same as DeleteReportGroup with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DeleteReportGroup for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *CodeBuild) DeleteReportGroupWithContext(ctx aws.Context, input *DeleteReportGroupInput, opts ...request.Option) (*DeleteReportGroupOutput, error) {
+	req, out := c.DeleteReportGroupRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opDeleteResourcePolicy = "DeleteResourcePolicy"
+
+// DeleteResourcePolicyRequest generates a "aws/request.Request" representing the
+// client's request for the DeleteResourcePolicy operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DeleteResourcePolicy for more information on using the DeleteResourcePolicy
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the DeleteResourcePolicyRequest method.
+//    req, resp := client.DeleteResourcePolicyRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/codebuild-2016-10-06/DeleteResourcePolicy
+func (c *CodeBuild) DeleteResourcePolicyRequest(input *DeleteResourcePolicyInput) (req *request.Request, output *DeleteResourcePolicyOutput) {
+	op := &request.Operation{
+		Name:       opDeleteResourcePolicy,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &DeleteResourcePolicyInput{}
+	}
+
+	output = &DeleteResourcePolicyOutput{}
+	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
+	return
+}
+
+// DeleteResourcePolicy API operation for AWS CodeBuild.
+//
+// Deletes a resource policy that is identified by its resource ARN.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS CodeBuild's
+// API operation DeleteResourcePolicy for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidInputException
+//   The input value that was provided is not valid.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/codebuild-2016-10-06/DeleteResourcePolicy
+func (c *CodeBuild) DeleteResourcePolicy(input *DeleteResourcePolicyInput) (*DeleteResourcePolicyOutput, error) {
+	req, out := c.DeleteResourcePolicyRequest(input)
+	return out, req.Send()
+}
+
+// DeleteResourcePolicyWithContext is the same as DeleteResourcePolicy with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DeleteResourcePolicy for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *CodeBuild) DeleteResourcePolicyWithContext(ctx aws.Context, input *DeleteResourcePolicyInput, opts ...request.Option) (*DeleteResourcePolicyOutput, error) {
+	req, out := c.DeleteResourcePolicyRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -569,11 +1057,11 @@ func (c *CodeBuild) DeleteSourceCredentialsRequest(input *DeleteSourceCredential
 // See the AWS API reference guide for AWS CodeBuild's
 // API operation DeleteSourceCredentials for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidInputException "InvalidInputException"
+// Returned Error Types:
+//   * InvalidInputException
 //   The input value that was provided is not valid.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The specified AWS resource cannot be found.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/codebuild-2016-10-06/DeleteSourceCredentials
@@ -654,14 +1142,14 @@ func (c *CodeBuild) DeleteWebhookRequest(input *DeleteWebhookInput) (req *reques
 // See the AWS API reference guide for AWS CodeBuild's
 // API operation DeleteWebhook for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidInputException "InvalidInputException"
+// Returned Error Types:
+//   * InvalidInputException
 //   The input value that was provided is not valid.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The specified AWS resource cannot be found.
 //
-//   * ErrCodeOAuthProviderException "OAuthProviderException"
+//   * OAuthProviderException
 //   There was a problem with the underlying OAuth provider.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/codebuild-2016-10-06/DeleteWebhook
@@ -681,6 +1169,170 @@ func (c *CodeBuild) DeleteWebhook(input *DeleteWebhookInput) (*DeleteWebhookOutp
 // for more information on using Contexts.
 func (c *CodeBuild) DeleteWebhookWithContext(ctx aws.Context, input *DeleteWebhookInput, opts ...request.Option) (*DeleteWebhookOutput, error) {
 	req, out := c.DeleteWebhookRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opDescribeTestCases = "DescribeTestCases"
+
+// DescribeTestCasesRequest generates a "aws/request.Request" representing the
+// client's request for the DescribeTestCases operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DescribeTestCases for more information on using the DescribeTestCases
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the DescribeTestCasesRequest method.
+//    req, resp := client.DescribeTestCasesRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/codebuild-2016-10-06/DescribeTestCases
+func (c *CodeBuild) DescribeTestCasesRequest(input *DescribeTestCasesInput) (req *request.Request, output *DescribeTestCasesOutput) {
+	op := &request.Operation{
+		Name:       opDescribeTestCases,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &DescribeTestCasesInput{}
+	}
+
+	output = &DescribeTestCasesOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// DescribeTestCases API operation for AWS CodeBuild.
+//
+// Returns a list of details about test cases for a report.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS CodeBuild's
+// API operation DescribeTestCases for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidInputException
+//   The input value that was provided is not valid.
+//
+//   * ResourceNotFoundException
+//   The specified AWS resource cannot be found.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/codebuild-2016-10-06/DescribeTestCases
+func (c *CodeBuild) DescribeTestCases(input *DescribeTestCasesInput) (*DescribeTestCasesOutput, error) {
+	req, out := c.DescribeTestCasesRequest(input)
+	return out, req.Send()
+}
+
+// DescribeTestCasesWithContext is the same as DescribeTestCases with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DescribeTestCases for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *CodeBuild) DescribeTestCasesWithContext(ctx aws.Context, input *DescribeTestCasesInput, opts ...request.Option) (*DescribeTestCasesOutput, error) {
+	req, out := c.DescribeTestCasesRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opGetResourcePolicy = "GetResourcePolicy"
+
+// GetResourcePolicyRequest generates a "aws/request.Request" representing the
+// client's request for the GetResourcePolicy operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See GetResourcePolicy for more information on using the GetResourcePolicy
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the GetResourcePolicyRequest method.
+//    req, resp := client.GetResourcePolicyRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/codebuild-2016-10-06/GetResourcePolicy
+func (c *CodeBuild) GetResourcePolicyRequest(input *GetResourcePolicyInput) (req *request.Request, output *GetResourcePolicyOutput) {
+	op := &request.Operation{
+		Name:       opGetResourcePolicy,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &GetResourcePolicyInput{}
+	}
+
+	output = &GetResourcePolicyOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// GetResourcePolicy API operation for AWS CodeBuild.
+//
+// Gets a resource policy that is identified by its resource ARN.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS CodeBuild's
+// API operation GetResourcePolicy for usage and error information.
+//
+// Returned Error Types:
+//   * ResourceNotFoundException
+//   The specified AWS resource cannot be found.
+//
+//   * InvalidInputException
+//   The input value that was provided is not valid.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/codebuild-2016-10-06/GetResourcePolicy
+func (c *CodeBuild) GetResourcePolicy(input *GetResourcePolicyInput) (*GetResourcePolicyOutput, error) {
+	req, out := c.GetResourcePolicyRequest(input)
+	return out, req.Send()
+}
+
+// GetResourcePolicyWithContext is the same as GetResourcePolicy with the addition of
+// the ability to pass a context and additional request options.
+//
+// See GetResourcePolicy for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *CodeBuild) GetResourcePolicyWithContext(ctx aws.Context, input *GetResourcePolicyInput, opts ...request.Option) (*GetResourcePolicyOutput, error) {
+	req, out := c.GetResourcePolicyRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -740,14 +1392,14 @@ func (c *CodeBuild) ImportSourceCredentialsRequest(input *ImportSourceCredential
 // See the AWS API reference guide for AWS CodeBuild's
 // API operation ImportSourceCredentials for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidInputException "InvalidInputException"
+// Returned Error Types:
+//   * InvalidInputException
 //   The input value that was provided is not valid.
 //
-//   * ErrCodeAccountLimitExceededException "AccountLimitExceededException"
+//   * AccountLimitExceededException
 //   An AWS service limit was exceeded for the calling AWS account.
 //
-//   * ErrCodeResourceAlreadyExistsException "ResourceAlreadyExistsException"
+//   * ResourceAlreadyExistsException
 //   The specified AWS resource cannot be created, because an AWS resource with
 //   the same settings already exists.
 //
@@ -827,11 +1479,11 @@ func (c *CodeBuild) InvalidateProjectCacheRequest(input *InvalidateProjectCacheI
 // See the AWS API reference guide for AWS CodeBuild's
 // API operation InvalidateProjectCache for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidInputException "InvalidInputException"
+// Returned Error Types:
+//   * InvalidInputException
 //   The input value that was provided is not valid.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The specified AWS resource cannot be found.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/codebuild-2016-10-06/InvalidateProjectCache
@@ -909,8 +1561,8 @@ func (c *CodeBuild) ListBuildsRequest(input *ListBuildsInput) (req *request.Requ
 // See the AWS API reference guide for AWS CodeBuild's
 // API operation ListBuilds for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidInputException "InvalidInputException"
+// Returned Error Types:
+//   * InvalidInputException
 //   The input value that was provided is not valid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/codebuild-2016-10-06/ListBuilds
@@ -989,11 +1641,11 @@ func (c *CodeBuild) ListBuildsForProjectRequest(input *ListBuildsForProjectInput
 // See the AWS API reference guide for AWS CodeBuild's
 // API operation ListBuildsForProject for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidInputException "InvalidInputException"
+// Returned Error Types:
+//   * InvalidInputException
 //   The input value that was provided is not valid.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The specified AWS resource cannot be found.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/codebuild-2016-10-06/ListBuildsForProject
@@ -1146,8 +1798,8 @@ func (c *CodeBuild) ListProjectsRequest(input *ListProjectsInput) (req *request.
 // See the AWS API reference guide for AWS CodeBuild's
 // API operation ListProjects for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidInputException "InvalidInputException"
+// Returned Error Types:
+//   * InvalidInputException
 //   The input value that was provided is not valid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/codebuild-2016-10-06/ListProjects
@@ -1167,6 +1819,404 @@ func (c *CodeBuild) ListProjects(input *ListProjectsInput) (*ListProjectsOutput,
 // for more information on using Contexts.
 func (c *CodeBuild) ListProjectsWithContext(ctx aws.Context, input *ListProjectsInput, opts ...request.Option) (*ListProjectsOutput, error) {
 	req, out := c.ListProjectsRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opListReportGroups = "ListReportGroups"
+
+// ListReportGroupsRequest generates a "aws/request.Request" representing the
+// client's request for the ListReportGroups operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See ListReportGroups for more information on using the ListReportGroups
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the ListReportGroupsRequest method.
+//    req, resp := client.ListReportGroupsRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/codebuild-2016-10-06/ListReportGroups
+func (c *CodeBuild) ListReportGroupsRequest(input *ListReportGroupsInput) (req *request.Request, output *ListReportGroupsOutput) {
+	op := &request.Operation{
+		Name:       opListReportGroups,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &ListReportGroupsInput{}
+	}
+
+	output = &ListReportGroupsOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// ListReportGroups API operation for AWS CodeBuild.
+//
+// Gets a list ARNs for the report groups in the current AWS account.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS CodeBuild's
+// API operation ListReportGroups for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidInputException
+//   The input value that was provided is not valid.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/codebuild-2016-10-06/ListReportGroups
+func (c *CodeBuild) ListReportGroups(input *ListReportGroupsInput) (*ListReportGroupsOutput, error) {
+	req, out := c.ListReportGroupsRequest(input)
+	return out, req.Send()
+}
+
+// ListReportGroupsWithContext is the same as ListReportGroups with the addition of
+// the ability to pass a context and additional request options.
+//
+// See ListReportGroups for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *CodeBuild) ListReportGroupsWithContext(ctx aws.Context, input *ListReportGroupsInput, opts ...request.Option) (*ListReportGroupsOutput, error) {
+	req, out := c.ListReportGroupsRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opListReports = "ListReports"
+
+// ListReportsRequest generates a "aws/request.Request" representing the
+// client's request for the ListReports operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See ListReports for more information on using the ListReports
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the ListReportsRequest method.
+//    req, resp := client.ListReportsRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/codebuild-2016-10-06/ListReports
+func (c *CodeBuild) ListReportsRequest(input *ListReportsInput) (req *request.Request, output *ListReportsOutput) {
+	op := &request.Operation{
+		Name:       opListReports,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &ListReportsInput{}
+	}
+
+	output = &ListReportsOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// ListReports API operation for AWS CodeBuild.
+//
+// Returns a list of ARNs for the reports in the current AWS account.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS CodeBuild's
+// API operation ListReports for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidInputException
+//   The input value that was provided is not valid.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/codebuild-2016-10-06/ListReports
+func (c *CodeBuild) ListReports(input *ListReportsInput) (*ListReportsOutput, error) {
+	req, out := c.ListReportsRequest(input)
+	return out, req.Send()
+}
+
+// ListReportsWithContext is the same as ListReports with the addition of
+// the ability to pass a context and additional request options.
+//
+// See ListReports for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *CodeBuild) ListReportsWithContext(ctx aws.Context, input *ListReportsInput, opts ...request.Option) (*ListReportsOutput, error) {
+	req, out := c.ListReportsRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opListReportsForReportGroup = "ListReportsForReportGroup"
+
+// ListReportsForReportGroupRequest generates a "aws/request.Request" representing the
+// client's request for the ListReportsForReportGroup operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See ListReportsForReportGroup for more information on using the ListReportsForReportGroup
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the ListReportsForReportGroupRequest method.
+//    req, resp := client.ListReportsForReportGroupRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/codebuild-2016-10-06/ListReportsForReportGroup
+func (c *CodeBuild) ListReportsForReportGroupRequest(input *ListReportsForReportGroupInput) (req *request.Request, output *ListReportsForReportGroupOutput) {
+	op := &request.Operation{
+		Name:       opListReportsForReportGroup,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &ListReportsForReportGroupInput{}
+	}
+
+	output = &ListReportsForReportGroupOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// ListReportsForReportGroup API operation for AWS CodeBuild.
+//
+// Returns a list of ARNs for the reports that belong to a ReportGroup.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS CodeBuild's
+// API operation ListReportsForReportGroup for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidInputException
+//   The input value that was provided is not valid.
+//
+//   * ResourceNotFoundException
+//   The specified AWS resource cannot be found.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/codebuild-2016-10-06/ListReportsForReportGroup
+func (c *CodeBuild) ListReportsForReportGroup(input *ListReportsForReportGroupInput) (*ListReportsForReportGroupOutput, error) {
+	req, out := c.ListReportsForReportGroupRequest(input)
+	return out, req.Send()
+}
+
+// ListReportsForReportGroupWithContext is the same as ListReportsForReportGroup with the addition of
+// the ability to pass a context and additional request options.
+//
+// See ListReportsForReportGroup for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *CodeBuild) ListReportsForReportGroupWithContext(ctx aws.Context, input *ListReportsForReportGroupInput, opts ...request.Option) (*ListReportsForReportGroupOutput, error) {
+	req, out := c.ListReportsForReportGroupRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opListSharedProjects = "ListSharedProjects"
+
+// ListSharedProjectsRequest generates a "aws/request.Request" representing the
+// client's request for the ListSharedProjects operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See ListSharedProjects for more information on using the ListSharedProjects
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the ListSharedProjectsRequest method.
+//    req, resp := client.ListSharedProjectsRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/codebuild-2016-10-06/ListSharedProjects
+func (c *CodeBuild) ListSharedProjectsRequest(input *ListSharedProjectsInput) (req *request.Request, output *ListSharedProjectsOutput) {
+	op := &request.Operation{
+		Name:       opListSharedProjects,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &ListSharedProjectsInput{}
+	}
+
+	output = &ListSharedProjectsOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// ListSharedProjects API operation for AWS CodeBuild.
+//
+// Gets a list of projects that are shared with other AWS accounts or users.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS CodeBuild's
+// API operation ListSharedProjects for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidInputException
+//   The input value that was provided is not valid.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/codebuild-2016-10-06/ListSharedProjects
+func (c *CodeBuild) ListSharedProjects(input *ListSharedProjectsInput) (*ListSharedProjectsOutput, error) {
+	req, out := c.ListSharedProjectsRequest(input)
+	return out, req.Send()
+}
+
+// ListSharedProjectsWithContext is the same as ListSharedProjects with the addition of
+// the ability to pass a context and additional request options.
+//
+// See ListSharedProjects for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *CodeBuild) ListSharedProjectsWithContext(ctx aws.Context, input *ListSharedProjectsInput, opts ...request.Option) (*ListSharedProjectsOutput, error) {
+	req, out := c.ListSharedProjectsRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opListSharedReportGroups = "ListSharedReportGroups"
+
+// ListSharedReportGroupsRequest generates a "aws/request.Request" representing the
+// client's request for the ListSharedReportGroups operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See ListSharedReportGroups for more information on using the ListSharedReportGroups
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the ListSharedReportGroupsRequest method.
+//    req, resp := client.ListSharedReportGroupsRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/codebuild-2016-10-06/ListSharedReportGroups
+func (c *CodeBuild) ListSharedReportGroupsRequest(input *ListSharedReportGroupsInput) (req *request.Request, output *ListSharedReportGroupsOutput) {
+	op := &request.Operation{
+		Name:       opListSharedReportGroups,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &ListSharedReportGroupsInput{}
+	}
+
+	output = &ListSharedReportGroupsOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// ListSharedReportGroups API operation for AWS CodeBuild.
+//
+// Gets a list of report groups that are shared with other AWS accounts or users.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS CodeBuild's
+// API operation ListSharedReportGroups for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidInputException
+//   The input value that was provided is not valid.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/codebuild-2016-10-06/ListSharedReportGroups
+func (c *CodeBuild) ListSharedReportGroups(input *ListSharedReportGroupsInput) (*ListSharedReportGroupsOutput, error) {
+	req, out := c.ListSharedReportGroupsRequest(input)
+	return out, req.Send()
+}
+
+// ListSharedReportGroupsWithContext is the same as ListSharedReportGroups with the addition of
+// the ability to pass a context and additional request options.
+//
+// See ListSharedReportGroups for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *CodeBuild) ListSharedReportGroupsWithContext(ctx aws.Context, input *ListSharedReportGroupsInput, opts ...request.Option) (*ListSharedReportGroupsOutput, error) {
+	req, out := c.ListSharedReportGroupsRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -1246,6 +2296,88 @@ func (c *CodeBuild) ListSourceCredentialsWithContext(ctx aws.Context, input *Lis
 	return out, req.Send()
 }
 
+const opPutResourcePolicy = "PutResourcePolicy"
+
+// PutResourcePolicyRequest generates a "aws/request.Request" representing the
+// client's request for the PutResourcePolicy operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See PutResourcePolicy for more information on using the PutResourcePolicy
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the PutResourcePolicyRequest method.
+//    req, resp := client.PutResourcePolicyRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/codebuild-2016-10-06/PutResourcePolicy
+func (c *CodeBuild) PutResourcePolicyRequest(input *PutResourcePolicyInput) (req *request.Request, output *PutResourcePolicyOutput) {
+	op := &request.Operation{
+		Name:       opPutResourcePolicy,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &PutResourcePolicyInput{}
+	}
+
+	output = &PutResourcePolicyOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// PutResourcePolicy API operation for AWS CodeBuild.
+//
+// Stores a resource policy for the ARN of a Project or ReportGroup object.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS CodeBuild's
+// API operation PutResourcePolicy for usage and error information.
+//
+// Returned Error Types:
+//   * ResourceNotFoundException
+//   The specified AWS resource cannot be found.
+//
+//   * InvalidInputException
+//   The input value that was provided is not valid.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/codebuild-2016-10-06/PutResourcePolicy
+func (c *CodeBuild) PutResourcePolicy(input *PutResourcePolicyInput) (*PutResourcePolicyOutput, error) {
+	req, out := c.PutResourcePolicyRequest(input)
+	return out, req.Send()
+}
+
+// PutResourcePolicyWithContext is the same as PutResourcePolicy with the addition of
+// the ability to pass a context and additional request options.
+//
+// See PutResourcePolicy for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *CodeBuild) PutResourcePolicyWithContext(ctx aws.Context, input *PutResourcePolicyInput, opts ...request.Option) (*PutResourcePolicyOutput, error) {
+	req, out := c.PutResourcePolicyRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opStartBuild = "StartBuild"
 
 // StartBuildRequest generates a "aws/request.Request" representing the
@@ -1299,14 +2431,14 @@ func (c *CodeBuild) StartBuildRequest(input *StartBuildInput) (req *request.Requ
 // See the AWS API reference guide for AWS CodeBuild's
 // API operation StartBuild for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidInputException "InvalidInputException"
+// Returned Error Types:
+//   * InvalidInputException
 //   The input value that was provided is not valid.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The specified AWS resource cannot be found.
 //
-//   * ErrCodeAccountLimitExceededException "AccountLimitExceededException"
+//   * AccountLimitExceededException
 //   An AWS service limit was exceeded for the calling AWS account.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/codebuild-2016-10-06/StartBuild
@@ -1384,11 +2516,11 @@ func (c *CodeBuild) StopBuildRequest(input *StopBuildInput) (req *request.Reques
 // See the AWS API reference guide for AWS CodeBuild's
 // API operation StopBuild for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidInputException "InvalidInputException"
+// Returned Error Types:
+//   * InvalidInputException
 //   The input value that was provided is not valid.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The specified AWS resource cannot be found.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/codebuild-2016-10-06/StopBuild
@@ -1466,11 +2598,11 @@ func (c *CodeBuild) UpdateProjectRequest(input *UpdateProjectInput) (req *reques
 // See the AWS API reference guide for AWS CodeBuild's
 // API operation UpdateProject for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidInputException "InvalidInputException"
+// Returned Error Types:
+//   * InvalidInputException
 //   The input value that was provided is not valid.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The specified AWS resource cannot be found.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/codebuild-2016-10-06/UpdateProject
@@ -1490,6 +2622,88 @@ func (c *CodeBuild) UpdateProject(input *UpdateProjectInput) (*UpdateProjectOutp
 // for more information on using Contexts.
 func (c *CodeBuild) UpdateProjectWithContext(ctx aws.Context, input *UpdateProjectInput, opts ...request.Option) (*UpdateProjectOutput, error) {
 	req, out := c.UpdateProjectRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opUpdateReportGroup = "UpdateReportGroup"
+
+// UpdateReportGroupRequest generates a "aws/request.Request" representing the
+// client's request for the UpdateReportGroup operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See UpdateReportGroup for more information on using the UpdateReportGroup
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the UpdateReportGroupRequest method.
+//    req, resp := client.UpdateReportGroupRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/codebuild-2016-10-06/UpdateReportGroup
+func (c *CodeBuild) UpdateReportGroupRequest(input *UpdateReportGroupInput) (req *request.Request, output *UpdateReportGroupOutput) {
+	op := &request.Operation{
+		Name:       opUpdateReportGroup,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &UpdateReportGroupInput{}
+	}
+
+	output = &UpdateReportGroupOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// UpdateReportGroup API operation for AWS CodeBuild.
+//
+// Updates a report group.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS CodeBuild's
+// API operation UpdateReportGroup for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidInputException
+//   The input value that was provided is not valid.
+//
+//   * ResourceNotFoundException
+//   The specified AWS resource cannot be found.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/codebuild-2016-10-06/UpdateReportGroup
+func (c *CodeBuild) UpdateReportGroup(input *UpdateReportGroupInput) (*UpdateReportGroupOutput, error) {
+	req, out := c.UpdateReportGroupRequest(input)
+	return out, req.Send()
+}
+
+// UpdateReportGroupWithContext is the same as UpdateReportGroup with the addition of
+// the ability to pass a context and additional request options.
+//
+// See UpdateReportGroup for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *CodeBuild) UpdateReportGroupWithContext(ctx aws.Context, input *UpdateReportGroupInput, opts ...request.Option) (*UpdateReportGroupOutput, error) {
+	req, out := c.UpdateReportGroupRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -1550,14 +2764,14 @@ func (c *CodeBuild) UpdateWebhookRequest(input *UpdateWebhookInput) (req *reques
 // See the AWS API reference guide for AWS CodeBuild's
 // API operation UpdateWebhook for usage and error information.
 //
-// Returned Error Codes:
-//   * ErrCodeInvalidInputException "InvalidInputException"
+// Returned Error Types:
+//   * InvalidInputException
 //   The input value that was provided is not valid.
 //
-//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   * ResourceNotFoundException
 //   The specified AWS resource cannot be found.
 //
-//   * ErrCodeOAuthProviderException "OAuthProviderException"
+//   * OAuthProviderException
 //   There was a problem with the underlying OAuth provider.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/codebuild-2016-10-06/UpdateWebhook
@@ -1580,6 +2794,62 @@ func (c *CodeBuild) UpdateWebhookWithContext(ctx aws.Context, input *UpdateWebho
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
+}
+
+// An AWS service limit was exceeded for the calling AWS account.
+type AccountLimitExceededException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s AccountLimitExceededException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AccountLimitExceededException) GoString() string {
+	return s.String()
+}
+
+func newErrorAccountLimitExceededException(v protocol.ResponseMetadata) error {
+	return &AccountLimitExceededException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *AccountLimitExceededException) Code() string {
+	return "AccountLimitExceededException"
+}
+
+// Message returns the exception's message.
+func (s *AccountLimitExceededException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *AccountLimitExceededException) OrigErr() error {
+	return nil
+}
+
+func (s *AccountLimitExceededException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *AccountLimitExceededException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *AccountLimitExceededException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 type BatchDeleteBuildsInput struct {
@@ -1731,7 +3001,9 @@ func (s *BatchGetBuildsOutput) SetBuildsNotFound(v []*string) *BatchGetBuildsOut
 type BatchGetProjectsInput struct {
 	_ struct{} `type:"structure"`
 
-	// The names of the build projects.
+	// The names or ARNs of the build projects. To get information about a project
+	// shared with your AWS account, its ARN must be specified. You cannot specify
+	// a shared project using its name.
 	//
 	// Names is a required field
 	Names []*string `locationName:"names" min:"1" type:"list" required:"true"`
@@ -1801,6 +3073,154 @@ func (s *BatchGetProjectsOutput) SetProjectsNotFound(v []*string) *BatchGetProje
 	return s
 }
 
+type BatchGetReportGroupsInput struct {
+	_ struct{} `type:"structure"`
+
+	// An array of report group ARNs that identify the report groups to return.
+	//
+	// ReportGroupArns is a required field
+	ReportGroupArns []*string `locationName:"reportGroupArns" min:"1" type:"list" required:"true"`
+}
+
+// String returns the string representation
+func (s BatchGetReportGroupsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s BatchGetReportGroupsInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *BatchGetReportGroupsInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "BatchGetReportGroupsInput"}
+	if s.ReportGroupArns == nil {
+		invalidParams.Add(request.NewErrParamRequired("ReportGroupArns"))
+	}
+	if s.ReportGroupArns != nil && len(s.ReportGroupArns) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ReportGroupArns", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetReportGroupArns sets the ReportGroupArns field's value.
+func (s *BatchGetReportGroupsInput) SetReportGroupArns(v []*string) *BatchGetReportGroupsInput {
+	s.ReportGroupArns = v
+	return s
+}
+
+type BatchGetReportGroupsOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The array of report groups returned by BatchGetReportGroups.
+	ReportGroups []*ReportGroup `locationName:"reportGroups" min:"1" type:"list"`
+
+	// An array of ARNs passed to BatchGetReportGroups that are not associated with
+	// a ReportGroup.
+	ReportGroupsNotFound []*string `locationName:"reportGroupsNotFound" min:"1" type:"list"`
+}
+
+// String returns the string representation
+func (s BatchGetReportGroupsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s BatchGetReportGroupsOutput) GoString() string {
+	return s.String()
+}
+
+// SetReportGroups sets the ReportGroups field's value.
+func (s *BatchGetReportGroupsOutput) SetReportGroups(v []*ReportGroup) *BatchGetReportGroupsOutput {
+	s.ReportGroups = v
+	return s
+}
+
+// SetReportGroupsNotFound sets the ReportGroupsNotFound field's value.
+func (s *BatchGetReportGroupsOutput) SetReportGroupsNotFound(v []*string) *BatchGetReportGroupsOutput {
+	s.ReportGroupsNotFound = v
+	return s
+}
+
+type BatchGetReportsInput struct {
+	_ struct{} `type:"structure"`
+
+	// An array of ARNs that identify the Report objects to return.
+	//
+	// ReportArns is a required field
+	ReportArns []*string `locationName:"reportArns" min:"1" type:"list" required:"true"`
+}
+
+// String returns the string representation
+func (s BatchGetReportsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s BatchGetReportsInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *BatchGetReportsInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "BatchGetReportsInput"}
+	if s.ReportArns == nil {
+		invalidParams.Add(request.NewErrParamRequired("ReportArns"))
+	}
+	if s.ReportArns != nil && len(s.ReportArns) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ReportArns", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetReportArns sets the ReportArns field's value.
+func (s *BatchGetReportsInput) SetReportArns(v []*string) *BatchGetReportsInput {
+	s.ReportArns = v
+	return s
+}
+
+type BatchGetReportsOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The array of Report objects returned by BatchGetReports.
+	Reports []*Report `locationName:"reports" min:"1" type:"list"`
+
+	// An array of ARNs passed to BatchGetReportGroups that are not associated with
+	// a Report.
+	ReportsNotFound []*string `locationName:"reportsNotFound" min:"1" type:"list"`
+}
+
+// String returns the string representation
+func (s BatchGetReportsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s BatchGetReportsOutput) GoString() string {
+	return s.String()
+}
+
+// SetReports sets the Reports field's value.
+func (s *BatchGetReportsOutput) SetReports(v []*Report) *BatchGetReportsOutput {
+	s.Reports = v
+	return s
+}
+
+// SetReportsNotFound sets the ReportsNotFound field's value.
+func (s *BatchGetReportsOutput) SetReportsNotFound(v []*string) *BatchGetReportsOutput {
+	s.ReportsNotFound = v
+	return s
+}
+
 // Information about a build.
 type Build struct {
 	_ struct{} `type:"structure"`
@@ -1813,6 +3233,11 @@ type Build struct {
 
 	// Whether the build is complete. True if complete; otherwise, false.
 	BuildComplete *bool `locationName:"buildComplete" type:"boolean"`
+
+	// The number of the build. For each project, the buildNumber of its first build
+	// is 1. The buildNumber of each subsequent build is incremented by 1. If a
+	// build is deleted, the buildNumber of other builds does not change.
+	BuildNumber *int64 `locationName:"buildNumber" type:"long"`
 
 	// The current status of the build. Valid values include:
 	//
@@ -1851,6 +3276,14 @@ type Build struct {
 	// Information about the build environment for this build.
 	Environment *ProjectEnvironment `locationName:"environment" type:"structure"`
 
+	// A list of exported environment variables for this build.
+	ExportedEnvironmentVariables []*ExportedEnvironmentVariable `locationName:"exportedEnvironmentVariables" type:"list"`
+
+	// An array of ProjectFileSystemLocation objects for a CodeBuild build project.
+	// A ProjectFileSystemLocation object specifies the identifier, location, mountOptions,
+	// mountPoint, and type of a file system created using Amazon Elastic File System.
+	FileSystemLocations []*ProjectFileSystemLocation `locationName:"fileSystemLocations" type:"list"`
+
 	// The unique ID for the build.
 	Id *string `locationName:"id" min:"1" type:"string"`
 
@@ -1882,6 +3315,9 @@ type Build struct {
 	// The number of minutes a build is allowed to be queued before it times out.
 	QueuedTimeoutInMinutes *int64 `locationName:"queuedTimeoutInMinutes" type:"integer"`
 
+	// An array of the ARNs associated with this build's reports.
+	ReportArns []*string `locationName:"reportArns" type:"list"`
+
 	// An identifier for the version of this build's source code.
 	//
 	//    * For AWS CodeCommit, GitHub, GitHub Enterprise, and BitBucket, the commit
@@ -1898,7 +3334,7 @@ type Build struct {
 	// An array of ProjectSourceVersion objects. Each ProjectSourceVersion must
 	// be one of:
 	//
-	//    * For AWS CodeCommit: the commit ID to use.
+	//    * For AWS CodeCommit: the commit ID, branch, or Git tag to use.
 	//
 	//    * For GitHub: the commit ID, pull request ID, branch name, or tag name
 	//    that corresponds to the version of the source code you want to build.
@@ -1975,6 +3411,12 @@ func (s *Build) SetBuildComplete(v bool) *Build {
 	return s
 }
 
+// SetBuildNumber sets the BuildNumber field's value.
+func (s *Build) SetBuildNumber(v int64) *Build {
+	s.BuildNumber = &v
+	return s
+}
+
 // SetBuildStatus sets the BuildStatus field's value.
 func (s *Build) SetBuildStatus(v string) *Build {
 	s.BuildStatus = &v
@@ -2008,6 +3450,18 @@ func (s *Build) SetEndTime(v time.Time) *Build {
 // SetEnvironment sets the Environment field's value.
 func (s *Build) SetEnvironment(v *ProjectEnvironment) *Build {
 	s.Environment = v
+	return s
+}
+
+// SetExportedEnvironmentVariables sets the ExportedEnvironmentVariables field's value.
+func (s *Build) SetExportedEnvironmentVariables(v []*ExportedEnvironmentVariable) *Build {
+	s.ExportedEnvironmentVariables = v
+	return s
+}
+
+// SetFileSystemLocations sets the FileSystemLocations field's value.
+func (s *Build) SetFileSystemLocations(v []*ProjectFileSystemLocation) *Build {
+	s.FileSystemLocations = v
 	return s
 }
 
@@ -2050,6 +3504,12 @@ func (s *Build) SetProjectName(v string) *Build {
 // SetQueuedTimeoutInMinutes sets the QueuedTimeoutInMinutes field's value.
 func (s *Build) SetQueuedTimeoutInMinutes(v int64) *Build {
 	s.QueuedTimeoutInMinutes = &v
+	return s
+}
+
+// SetReportArns sets the ReportArns field's value.
+func (s *Build) SetReportArns(v []*string) *Build {
+	s.ReportArns = v
 	return s
 }
 
@@ -2135,8 +3595,8 @@ type BuildArtifacts struct {
 	// to ZIP.
 	Md5sum *string `locationName:"md5sum" type:"string"`
 
-	// If this flag is set, a name specified in the build spec file overrides the
-	// artifact name. The name specified in a build spec file is calculated at build
+	// If this flag is set, a name specified in the buildspec file overrides the
+	// artifact name. The name specified in a buildspec file is calculated at build
 	// time and uses the Shell Command Language. For example, you can append a date
 	// and time to your artifact name so that it is always unique.
 	OverrideArtifactName *bool `locationName:"overrideArtifactName" type:"boolean"`
@@ -2438,6 +3898,11 @@ type CreateProjectInput struct {
 	// Environment is a required field
 	Environment *ProjectEnvironment `locationName:"environment" type:"structure" required:"true"`
 
+	// An array of ProjectFileSystemLocation objects for a CodeBuild build project.
+	// A ProjectFileSystemLocation object specifies the identifier, location, mountOptions,
+	// mountPoint, and type of a file system created using Amazon Elastic File System.
+	FileSystemLocations []*ProjectFileSystemLocation `locationName:"fileSystemLocations" type:"list"`
+
 	// Information about logs for the build project. These can be logs in Amazon
 	// CloudWatch Logs, logs uploaded to a specified S3 bucket, or both.
 	LogsConfig *LogsConfig `locationName:"logsConfig" type:"structure"`
@@ -2476,7 +3941,7 @@ type CreateProjectInput struct {
 	// A version of the build input to be built for this project. If not specified,
 	// the latest version is used. If specified, it must be one of:
 	//
-	//    * For AWS CodeCommit: the commit ID to use.
+	//    * For AWS CodeCommit: the commit ID, branch, or Git tag to use.
 	//
 	//    * For GitHub: the commit ID, pull request ID, branch name, or tag name
 	//    that corresponds to the version of the source code you want to build.
@@ -2671,6 +4136,12 @@ func (s *CreateProjectInput) SetEnvironment(v *ProjectEnvironment) *CreateProjec
 	return s
 }
 
+// SetFileSystemLocations sets the FileSystemLocations field's value.
+func (s *CreateProjectInput) SetFileSystemLocations(v []*ProjectFileSystemLocation) *CreateProjectInput {
+	s.FileSystemLocations = v
+	return s
+}
+
 // SetLogsConfig sets the LogsConfig field's value.
 func (s *CreateProjectInput) SetLogsConfig(v *LogsConfig) *CreateProjectInput {
 	s.LogsConfig = v
@@ -2763,6 +4234,104 @@ func (s CreateProjectOutput) GoString() string {
 // SetProject sets the Project field's value.
 func (s *CreateProjectOutput) SetProject(v *Project) *CreateProjectOutput {
 	s.Project = v
+	return s
+}
+
+type CreateReportGroupInput struct {
+	_ struct{} `type:"structure"`
+
+	// A ReportExportConfig object that contains information about where the report
+	// group test results are exported.
+	//
+	// ExportConfig is a required field
+	ExportConfig *ReportExportConfig `locationName:"exportConfig" type:"structure" required:"true"`
+
+	// The name of the report group.
+	//
+	// Name is a required field
+	Name *string `locationName:"name" min:"2" type:"string" required:"true"`
+
+	// The type of report group.
+	//
+	// Type is a required field
+	Type *string `locationName:"type" type:"string" required:"true" enum:"ReportType"`
+}
+
+// String returns the string representation
+func (s CreateReportGroupInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateReportGroupInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *CreateReportGroupInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "CreateReportGroupInput"}
+	if s.ExportConfig == nil {
+		invalidParams.Add(request.NewErrParamRequired("ExportConfig"))
+	}
+	if s.Name == nil {
+		invalidParams.Add(request.NewErrParamRequired("Name"))
+	}
+	if s.Name != nil && len(*s.Name) < 2 {
+		invalidParams.Add(request.NewErrParamMinLen("Name", 2))
+	}
+	if s.Type == nil {
+		invalidParams.Add(request.NewErrParamRequired("Type"))
+	}
+	if s.ExportConfig != nil {
+		if err := s.ExportConfig.Validate(); err != nil {
+			invalidParams.AddNested("ExportConfig", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetExportConfig sets the ExportConfig field's value.
+func (s *CreateReportGroupInput) SetExportConfig(v *ReportExportConfig) *CreateReportGroupInput {
+	s.ExportConfig = v
+	return s
+}
+
+// SetName sets the Name field's value.
+func (s *CreateReportGroupInput) SetName(v string) *CreateReportGroupInput {
+	s.Name = &v
+	return s
+}
+
+// SetType sets the Type field's value.
+func (s *CreateReportGroupInput) SetType(v string) *CreateReportGroupInput {
+	s.Type = &v
+	return s
+}
+
+type CreateReportGroupOutput struct {
+	_ struct{} `type:"structure"`
+
+	// Information about the report group that was created.
+	ReportGroup *ReportGroup `locationName:"reportGroup" type:"structure"`
+}
+
+// String returns the string representation
+func (s CreateReportGroupOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateReportGroupOutput) GoString() string {
+	return s.String()
+}
+
+// SetReportGroup sets the ReportGroup field's value.
+func (s *CreateReportGroupOutput) SetReportGroup(v *ReportGroup) *CreateReportGroupOutput {
+	s.ReportGroup = v
 	return s
 }
 
@@ -2914,6 +4483,171 @@ func (s DeleteProjectOutput) GoString() string {
 	return s.String()
 }
 
+type DeleteReportGroupInput struct {
+	_ struct{} `type:"structure"`
+
+	// The ARN of the report group to delete.
+	//
+	// Arn is a required field
+	Arn *string `locationName:"arn" min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s DeleteReportGroupInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteReportGroupInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DeleteReportGroupInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DeleteReportGroupInput"}
+	if s.Arn == nil {
+		invalidParams.Add(request.NewErrParamRequired("Arn"))
+	}
+	if s.Arn != nil && len(*s.Arn) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Arn", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetArn sets the Arn field's value.
+func (s *DeleteReportGroupInput) SetArn(v string) *DeleteReportGroupInput {
+	s.Arn = &v
+	return s
+}
+
+type DeleteReportGroupOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s DeleteReportGroupOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteReportGroupOutput) GoString() string {
+	return s.String()
+}
+
+type DeleteReportInput struct {
+	_ struct{} `type:"structure"`
+
+	// The ARN of the report to delete.
+	//
+	// Arn is a required field
+	Arn *string `locationName:"arn" min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s DeleteReportInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteReportInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DeleteReportInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DeleteReportInput"}
+	if s.Arn == nil {
+		invalidParams.Add(request.NewErrParamRequired("Arn"))
+	}
+	if s.Arn != nil && len(*s.Arn) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Arn", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetArn sets the Arn field's value.
+func (s *DeleteReportInput) SetArn(v string) *DeleteReportInput {
+	s.Arn = &v
+	return s
+}
+
+type DeleteReportOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s DeleteReportOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteReportOutput) GoString() string {
+	return s.String()
+}
+
+type DeleteResourcePolicyInput struct {
+	_ struct{} `type:"structure"`
+
+	// The ARN of the resource that is associated with the resource policy.
+	//
+	// ResourceArn is a required field
+	ResourceArn *string `locationName:"resourceArn" min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s DeleteResourcePolicyInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteResourcePolicyInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DeleteResourcePolicyInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DeleteResourcePolicyInput"}
+	if s.ResourceArn == nil {
+		invalidParams.Add(request.NewErrParamRequired("ResourceArn"))
+	}
+	if s.ResourceArn != nil && len(*s.ResourceArn) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ResourceArn", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetResourceArn sets the ResourceArn field's value.
+func (s *DeleteResourcePolicyInput) SetResourceArn(v string) *DeleteResourcePolicyInput {
+	s.ResourceArn = &v
+	return s
+}
+
+type DeleteResourcePolicyOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s DeleteResourcePolicyOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteResourcePolicyOutput) GoString() string {
+	return s.String()
+}
+
 type DeleteSourceCredentialsInput struct {
 	_ struct{} `type:"structure"`
 
@@ -3031,6 +4765,120 @@ func (s DeleteWebhookOutput) String() string {
 // GoString returns the string representation
 func (s DeleteWebhookOutput) GoString() string {
 	return s.String()
+}
+
+type DescribeTestCasesInput struct {
+	_ struct{} `type:"structure"`
+
+	// A TestCaseFilter object used to filter the returned reports.
+	Filter *TestCaseFilter `locationName:"filter" type:"structure"`
+
+	// The maximum number of paginated test cases returned per response. Use nextToken
+	// to iterate pages in the list of returned TestCase objects. The default value
+	// is 100.
+	MaxResults *int64 `locationName:"maxResults" min:"1" type:"integer"`
+
+	// During a previous call, the maximum number of items that can be returned
+	// is the value specified in maxResults. If there more items in the list, then
+	// a unique string called a nextToken is returned. To get the next batch of
+	// items in the list, call this operation again, adding the next token to the
+	// call. To get all of the items in the list, keep calling this operation with
+	// each subsequent next token that is returned, until no more next tokens are
+	// returned.
+	NextToken *string `locationName:"nextToken" type:"string"`
+
+	// The ARN of the report for which test cases are returned.
+	//
+	// ReportArn is a required field
+	ReportArn *string `locationName:"reportArn" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s DescribeTestCasesInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeTestCasesInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DescribeTestCasesInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DescribeTestCasesInput"}
+	if s.MaxResults != nil && *s.MaxResults < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("MaxResults", 1))
+	}
+	if s.ReportArn == nil {
+		invalidParams.Add(request.NewErrParamRequired("ReportArn"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetFilter sets the Filter field's value.
+func (s *DescribeTestCasesInput) SetFilter(v *TestCaseFilter) *DescribeTestCasesInput {
+	s.Filter = v
+	return s
+}
+
+// SetMaxResults sets the MaxResults field's value.
+func (s *DescribeTestCasesInput) SetMaxResults(v int64) *DescribeTestCasesInput {
+	s.MaxResults = &v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *DescribeTestCasesInput) SetNextToken(v string) *DescribeTestCasesInput {
+	s.NextToken = &v
+	return s
+}
+
+// SetReportArn sets the ReportArn field's value.
+func (s *DescribeTestCasesInput) SetReportArn(v string) *DescribeTestCasesInput {
+	s.ReportArn = &v
+	return s
+}
+
+type DescribeTestCasesOutput struct {
+	_ struct{} `type:"structure"`
+
+	// During a previous call, the maximum number of items that can be returned
+	// is the value specified in maxResults. If there more items in the list, then
+	// a unique string called a nextToken is returned. To get the next batch of
+	// items in the list, call this operation again, adding the next token to the
+	// call. To get all of the items in the list, keep calling this operation with
+	// each subsequent next token that is returned, until no more next tokens are
+	// returned.
+	NextToken *string `locationName:"nextToken" type:"string"`
+
+	// The returned list of test cases.
+	TestCases []*TestCase `locationName:"testCases" type:"list"`
+}
+
+// String returns the string representation
+func (s DescribeTestCasesOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeTestCasesOutput) GoString() string {
+	return s.String()
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *DescribeTestCasesOutput) SetNextToken(v string) *DescribeTestCasesOutput {
+	s.NextToken = &v
+	return s
+}
+
+// SetTestCases sets the TestCases field's value.
+func (s *DescribeTestCasesOutput) SetTestCases(v []*TestCase) *DescribeTestCasesOutput {
+	s.TestCases = v
+	return s
 }
 
 // Information about a Docker image that is managed by AWS CodeBuild.
@@ -3157,15 +5005,19 @@ type EnvironmentVariable struct {
 	//    * PARAMETER_STORE: An environment variable stored in Amazon EC2 Systems
 	//    Manager Parameter Store.
 	//
-	//    * PLAINTEXT: An environment variable in plaintext format.
+	//    * PLAINTEXT: An environment variable in plain text format. This is the
+	//    default value.
+	//
+	//    * SECRETS_MANAGER: An environment variable stored in AWS Secrets Manager.
 	Type *string `locationName:"type" type:"string" enum:"EnvironmentVariableType"`
 
 	// The value of the environment variable.
 	//
-	// We strongly discourage the use of environment variables to store sensitive
-	// values, especially AWS secret key IDs and secret access keys. Environment
-	// variables can be displayed in plain text using the AWS CodeBuild console
-	// and the AWS Command Line Interface (AWS CLI).
+	// We strongly discourage the use of PLAINTEXT environment variables to store
+	// sensitive values, especially AWS secret key IDs and secret access keys. PLAINTEXT
+	// environment variables can be displayed in plain text using the AWS CodeBuild
+	// console and the AWS Command Line Interface (AWS CLI). For sensitive values,
+	// we recommend you use an environment variable of type PARAMETER_STORE or SECRETS_MANAGER.
 	//
 	// Value is a required field
 	Value *string `locationName:"value" type:"string" required:"true"`
@@ -3215,6 +5067,108 @@ func (s *EnvironmentVariable) SetType(v string) *EnvironmentVariable {
 // SetValue sets the Value field's value.
 func (s *EnvironmentVariable) SetValue(v string) *EnvironmentVariable {
 	s.Value = &v
+	return s
+}
+
+// Information about an exported environment variable.
+type ExportedEnvironmentVariable struct {
+	_ struct{} `type:"structure"`
+
+	// The name of this exported environment variable.
+	Name *string `locationName:"name" min:"1" type:"string"`
+
+	// The value assigned to this exported environment variable.
+	//
+	// During a build, the value of a variable is available starting with the install
+	// phase. It can be updated between the start of the install phase and the end
+	// of the post_build phase. After the post_build phase ends, the value of exported
+	// variables cannot change.
+	Value *string `locationName:"value" type:"string"`
+}
+
+// String returns the string representation
+func (s ExportedEnvironmentVariable) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ExportedEnvironmentVariable) GoString() string {
+	return s.String()
+}
+
+// SetName sets the Name field's value.
+func (s *ExportedEnvironmentVariable) SetName(v string) *ExportedEnvironmentVariable {
+	s.Name = &v
+	return s
+}
+
+// SetValue sets the Value field's value.
+func (s *ExportedEnvironmentVariable) SetValue(v string) *ExportedEnvironmentVariable {
+	s.Value = &v
+	return s
+}
+
+type GetResourcePolicyInput struct {
+	_ struct{} `type:"structure"`
+
+	// The ARN of the resource that is associated with the resource policy.
+	//
+	// ResourceArn is a required field
+	ResourceArn *string `locationName:"resourceArn" min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s GetResourcePolicyInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetResourcePolicyInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *GetResourcePolicyInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "GetResourcePolicyInput"}
+	if s.ResourceArn == nil {
+		invalidParams.Add(request.NewErrParamRequired("ResourceArn"))
+	}
+	if s.ResourceArn != nil && len(*s.ResourceArn) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ResourceArn", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetResourceArn sets the ResourceArn field's value.
+func (s *GetResourcePolicyInput) SetResourceArn(v string) *GetResourcePolicyInput {
+	s.ResourceArn = &v
+	return s
+}
+
+type GetResourcePolicyOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The resource policy for the resource identified by the input ARN parameter.
+	Policy *string `locationName:"policy" min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s GetResourcePolicyOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetResourcePolicyOutput) GoString() string {
+	return s.String()
+}
+
+// SetPolicy sets the Policy field's value.
+func (s *GetResourcePolicyOutput) SetPolicy(v string) *GetResourcePolicyOutput {
+	s.Policy = &v
 	return s
 }
 
@@ -3377,6 +5331,62 @@ func (s *ImportSourceCredentialsOutput) SetArn(v string) *ImportSourceCredential
 	return s
 }
 
+// The input value that was provided is not valid.
+type InvalidInputException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidInputException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidInputException) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidInputException(v protocol.ResponseMetadata) error {
+	return &InvalidInputException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *InvalidInputException) Code() string {
+	return "InvalidInputException"
+}
+
+// Message returns the exception's message.
+func (s *InvalidInputException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *InvalidInputException) OrigErr() error {
+	return nil
+}
+
+func (s *InvalidInputException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *InvalidInputException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *InvalidInputException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
 type InvalidateProjectCacheInput struct {
 	_ struct{} `type:"structure"`
 
@@ -3436,11 +5446,11 @@ type ListBuildsForProjectInput struct {
 	_ struct{} `type:"structure"`
 
 	// During a previous call, if there are more than 100 items in the list, only
-	// the first 100 items are returned, along with a unique string called a next
-	// token. To get the next batch of items in the list, call this operation again,
-	// adding the next token to the call. To get all of the items in the list, keep
-	// calling this operation with each subsequent next token that is returned,
-	// until no more next tokens are returned.
+	// the first 100 items are returned, along with a unique string called a nextToken.
+	// To get the next batch of items in the list, call this operation again, adding
+	// the next token to the call. To get all of the items in the list, keep calling
+	// this operation with each subsequent next token that is returned, until no
+	// more next tokens are returned.
 	NextToken *string `locationName:"nextToken" type:"string"`
 
 	// The name of the AWS CodeBuild project.
@@ -3508,7 +5518,7 @@ type ListBuildsForProjectOutput struct {
 	Ids []*string `locationName:"ids" min:"1" type:"list"`
 
 	// If there are more than 100 items in the list, only the first 100 items are
-	// returned, along with a unique string called a next token. To get the next
+	// returned, along with a unique string called a nextToken. To get the next
 	// batch of items in the list, call this operation again, adding the next token
 	// to the call.
 	NextToken *string `locationName:"nextToken" type:"string"`
@@ -3540,11 +5550,11 @@ type ListBuildsInput struct {
 	_ struct{} `type:"structure"`
 
 	// During a previous call, if there are more than 100 items in the list, only
-	// the first 100 items are returned, along with a unique string called a next
-	// token. To get the next batch of items in the list, call this operation again,
-	// adding the next token to the call. To get all of the items in the list, keep
-	// calling this operation with each subsequent next token that is returned,
-	// until no more next tokens are returned.
+	// the first 100 items are returned, along with a unique string called a nextToken.
+	// To get the next batch of items in the list, call this operation again, adding
+	// the next token to the call. To get all of the items in the list, keep calling
+	// this operation with each subsequent next token that is returned, until no
+	// more next tokens are returned.
 	NextToken *string `locationName:"nextToken" type:"string"`
 
 	// The order to list build IDs. Valid values include:
@@ -3584,7 +5594,7 @@ type ListBuildsOutput struct {
 	Ids []*string `locationName:"ids" min:"1" type:"list"`
 
 	// If there are more than 100 items in the list, only the first 100 items are
-	// returned, along with a unique string called a next token. To get the next
+	// returned, along with a unique string called a nextToken. To get the next
 	// batch of items in the list, call this operation again, adding the next token
 	// to the call.
 	NextToken *string `locationName:"nextToken" type:"string"`
@@ -3654,11 +5664,11 @@ type ListProjectsInput struct {
 	_ struct{} `type:"structure"`
 
 	// During a previous call, if there are more than 100 items in the list, only
-	// the first 100 items are returned, along with a unique string called a next
-	// token. To get the next batch of items in the list, call this operation again,
-	// adding the next token to the call. To get all of the items in the list, keep
-	// calling this operation with each subsequent next token that is returned,
-	// until no more next tokens are returned.
+	// the first 100 items are returned, along with a unique string called a nextToken.
+	// To get the next batch of items in the list, call this operation again, adding
+	// the next token to the call. To get all of the items in the list, keep calling
+	// this operation with each subsequent next token that is returned, until no
+	// more next tokens are returned.
 	NextToken *string `locationName:"nextToken" min:"1" type:"string"`
 
 	// The criterion to be used to list build project names. Valid values include:
@@ -3729,7 +5739,7 @@ type ListProjectsOutput struct {
 	_ struct{} `type:"structure"`
 
 	// If there are more than 100 items in the list, only the first 100 items are
-	// returned, along with a unique string called a next token. To get the next
+	// returned, along with a unique string called a nextToken. To get the next
 	// batch of items in the list, call this operation again, adding the next token
 	// to the call.
 	NextToken *string `locationName:"nextToken" type:"string"`
@@ -3758,6 +5768,604 @@ func (s *ListProjectsOutput) SetNextToken(v string) *ListProjectsOutput {
 // SetProjects sets the Projects field's value.
 func (s *ListProjectsOutput) SetProjects(v []*string) *ListProjectsOutput {
 	s.Projects = v
+	return s
+}
+
+type ListReportGroupsInput struct {
+	_ struct{} `type:"structure"`
+
+	// The maximum number of paginated report groups returned per response. Use
+	// nextToken to iterate pages in the list of returned ReportGroup objects. The
+	// default value is 100.
+	MaxResults *int64 `locationName:"maxResults" min:"1" type:"integer"`
+
+	// During a previous call, the maximum number of items that can be returned
+	// is the value specified in maxResults. If there more items in the list, then
+	// a unique string called a nextToken is returned. To get the next batch of
+	// items in the list, call this operation again, adding the next token to the
+	// call. To get all of the items in the list, keep calling this operation with
+	// each subsequent next token that is returned, until no more next tokens are
+	// returned.
+	NextToken *string `locationName:"nextToken" type:"string"`
+
+	// The criterion to be used to list build report groups. Valid values include:
+	//
+	//    * CREATED_TIME: List based on when each report group was created.
+	//
+	//    * LAST_MODIFIED_TIME: List based on when each report group was last changed.
+	//
+	//    * NAME: List based on each report group's name.
+	SortBy *string `locationName:"sortBy" type:"string" enum:"ReportGroupSortByType"`
+
+	// Used to specify the order to sort the list of returned report groups. Valid
+	// values are ASCENDING and DESCENDING.
+	SortOrder *string `locationName:"sortOrder" type:"string" enum:"SortOrderType"`
+}
+
+// String returns the string representation
+func (s ListReportGroupsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListReportGroupsInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ListReportGroupsInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ListReportGroupsInput"}
+	if s.MaxResults != nil && *s.MaxResults < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("MaxResults", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetMaxResults sets the MaxResults field's value.
+func (s *ListReportGroupsInput) SetMaxResults(v int64) *ListReportGroupsInput {
+	s.MaxResults = &v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListReportGroupsInput) SetNextToken(v string) *ListReportGroupsInput {
+	s.NextToken = &v
+	return s
+}
+
+// SetSortBy sets the SortBy field's value.
+func (s *ListReportGroupsInput) SetSortBy(v string) *ListReportGroupsInput {
+	s.SortBy = &v
+	return s
+}
+
+// SetSortOrder sets the SortOrder field's value.
+func (s *ListReportGroupsInput) SetSortOrder(v string) *ListReportGroupsInput {
+	s.SortOrder = &v
+	return s
+}
+
+type ListReportGroupsOutput struct {
+	_ struct{} `type:"structure"`
+
+	// During a previous call, the maximum number of items that can be returned
+	// is the value specified in maxResults. If there more items in the list, then
+	// a unique string called a nextToken is returned. To get the next batch of
+	// items in the list, call this operation again, adding the next token to the
+	// call. To get all of the items in the list, keep calling this operation with
+	// each subsequent next token that is returned, until no more next tokens are
+	// returned.
+	NextToken *string `locationName:"nextToken" type:"string"`
+
+	// The list of ARNs for the report groups in the current AWS account.
+	ReportGroups []*string `locationName:"reportGroups" min:"1" type:"list"`
+}
+
+// String returns the string representation
+func (s ListReportGroupsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListReportGroupsOutput) GoString() string {
+	return s.String()
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListReportGroupsOutput) SetNextToken(v string) *ListReportGroupsOutput {
+	s.NextToken = &v
+	return s
+}
+
+// SetReportGroups sets the ReportGroups field's value.
+func (s *ListReportGroupsOutput) SetReportGroups(v []*string) *ListReportGroupsOutput {
+	s.ReportGroups = v
+	return s
+}
+
+type ListReportsForReportGroupInput struct {
+	_ struct{} `type:"structure"`
+
+	// A ReportFilter object used to filter the returned reports.
+	Filter *ReportFilter `locationName:"filter" type:"structure"`
+
+	// The maximum number of paginated reports in this report group returned per
+	// response. Use nextToken to iterate pages in the list of returned Report objects.
+	// The default value is 100.
+	MaxResults *int64 `locationName:"maxResults" min:"1" type:"integer"`
+
+	// During a previous call, the maximum number of items that can be returned
+	// is the value specified in maxResults. If there more items in the list, then
+	// a unique string called a nextToken is returned. To get the next batch of
+	// items in the list, call this operation again, adding the next token to the
+	// call. To get all of the items in the list, keep calling this operation with
+	// each subsequent next token that is returned, until no more next tokens are
+	// returned.
+	NextToken *string `locationName:"nextToken" type:"string"`
+
+	// The ARN of the report group for which you want to return report ARNs.
+	//
+	// ReportGroupArn is a required field
+	ReportGroupArn *string `locationName:"reportGroupArn" type:"string" required:"true"`
+
+	// Use to specify whether the results are returned in ascending or descending
+	// order.
+	SortOrder *string `locationName:"sortOrder" type:"string" enum:"SortOrderType"`
+}
+
+// String returns the string representation
+func (s ListReportsForReportGroupInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListReportsForReportGroupInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ListReportsForReportGroupInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ListReportsForReportGroupInput"}
+	if s.MaxResults != nil && *s.MaxResults < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("MaxResults", 1))
+	}
+	if s.ReportGroupArn == nil {
+		invalidParams.Add(request.NewErrParamRequired("ReportGroupArn"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetFilter sets the Filter field's value.
+func (s *ListReportsForReportGroupInput) SetFilter(v *ReportFilter) *ListReportsForReportGroupInput {
+	s.Filter = v
+	return s
+}
+
+// SetMaxResults sets the MaxResults field's value.
+func (s *ListReportsForReportGroupInput) SetMaxResults(v int64) *ListReportsForReportGroupInput {
+	s.MaxResults = &v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListReportsForReportGroupInput) SetNextToken(v string) *ListReportsForReportGroupInput {
+	s.NextToken = &v
+	return s
+}
+
+// SetReportGroupArn sets the ReportGroupArn field's value.
+func (s *ListReportsForReportGroupInput) SetReportGroupArn(v string) *ListReportsForReportGroupInput {
+	s.ReportGroupArn = &v
+	return s
+}
+
+// SetSortOrder sets the SortOrder field's value.
+func (s *ListReportsForReportGroupInput) SetSortOrder(v string) *ListReportsForReportGroupInput {
+	s.SortOrder = &v
+	return s
+}
+
+type ListReportsForReportGroupOutput struct {
+	_ struct{} `type:"structure"`
+
+	// During a previous call, the maximum number of items that can be returned
+	// is the value specified in maxResults. If there more items in the list, then
+	// a unique string called a nextToken is returned. To get the next batch of
+	// items in the list, call this operation again, adding the next token to the
+	// call. To get all of the items in the list, keep calling this operation with
+	// each subsequent next token that is returned, until no more next tokens are
+	// returned.
+	NextToken *string `locationName:"nextToken" type:"string"`
+
+	// The list of returned report group ARNs.
+	Reports []*string `locationName:"reports" min:"1" type:"list"`
+}
+
+// String returns the string representation
+func (s ListReportsForReportGroupOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListReportsForReportGroupOutput) GoString() string {
+	return s.String()
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListReportsForReportGroupOutput) SetNextToken(v string) *ListReportsForReportGroupOutput {
+	s.NextToken = &v
+	return s
+}
+
+// SetReports sets the Reports field's value.
+func (s *ListReportsForReportGroupOutput) SetReports(v []*string) *ListReportsForReportGroupOutput {
+	s.Reports = v
+	return s
+}
+
+type ListReportsInput struct {
+	_ struct{} `type:"structure"`
+
+	// A ReportFilter object used to filter the returned reports.
+	Filter *ReportFilter `locationName:"filter" type:"structure"`
+
+	// The maximum number of paginated reports returned per response. Use nextToken
+	// to iterate pages in the list of returned Report objects. The default value
+	// is 100.
+	MaxResults *int64 `locationName:"maxResults" min:"1" type:"integer"`
+
+	// During a previous call, the maximum number of items that can be returned
+	// is the value specified in maxResults. If there more items in the list, then
+	// a unique string called a nextToken is returned. To get the next batch of
+	// items in the list, call this operation again, adding the next token to the
+	// call. To get all of the items in the list, keep calling this operation with
+	// each subsequent next token that is returned, until no more next tokens are
+	// returned.
+	NextToken *string `locationName:"nextToken" type:"string"`
+
+	// Specifies the sort order for the list of returned reports. Valid values are:
+	//
+	//    * ASCENDING: return reports in chronological order based on their creation
+	//    date.
+	//
+	//    * DESCENDING: return reports in the reverse chronological order based
+	//    on their creation date.
+	SortOrder *string `locationName:"sortOrder" type:"string" enum:"SortOrderType"`
+}
+
+// String returns the string representation
+func (s ListReportsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListReportsInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ListReportsInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ListReportsInput"}
+	if s.MaxResults != nil && *s.MaxResults < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("MaxResults", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetFilter sets the Filter field's value.
+func (s *ListReportsInput) SetFilter(v *ReportFilter) *ListReportsInput {
+	s.Filter = v
+	return s
+}
+
+// SetMaxResults sets the MaxResults field's value.
+func (s *ListReportsInput) SetMaxResults(v int64) *ListReportsInput {
+	s.MaxResults = &v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListReportsInput) SetNextToken(v string) *ListReportsInput {
+	s.NextToken = &v
+	return s
+}
+
+// SetSortOrder sets the SortOrder field's value.
+func (s *ListReportsInput) SetSortOrder(v string) *ListReportsInput {
+	s.SortOrder = &v
+	return s
+}
+
+type ListReportsOutput struct {
+	_ struct{} `type:"structure"`
+
+	// During a previous call, the maximum number of items that can be returned
+	// is the value specified in maxResults. If there more items in the list, then
+	// a unique string called a nextToken is returned. To get the next batch of
+	// items in the list, call this operation again, adding the next token to the
+	// call. To get all of the items in the list, keep calling this operation with
+	// each subsequent next token that is returned, until no more next tokens are
+	// returned.
+	NextToken *string `locationName:"nextToken" type:"string"`
+
+	// The list of returned ARNs for the reports in the current AWS account.
+	Reports []*string `locationName:"reports" min:"1" type:"list"`
+}
+
+// String returns the string representation
+func (s ListReportsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListReportsOutput) GoString() string {
+	return s.String()
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListReportsOutput) SetNextToken(v string) *ListReportsOutput {
+	s.NextToken = &v
+	return s
+}
+
+// SetReports sets the Reports field's value.
+func (s *ListReportsOutput) SetReports(v []*string) *ListReportsOutput {
+	s.Reports = v
+	return s
+}
+
+type ListSharedProjectsInput struct {
+	_ struct{} `type:"structure"`
+
+	// The maximum number of paginated shared build projects returned per response.
+	// Use nextToken to iterate pages in the list of returned Project objects. The
+	// default value is 100.
+	MaxResults *int64 `locationName:"maxResults" min:"1" type:"integer"`
+
+	// During a previous call, the maximum number of items that can be returned
+	// is the value specified in maxResults. If there more items in the list, then
+	// a unique string called a nextToken is returned. To get the next batch of
+	// items in the list, call this operation again, adding the next token to the
+	// call. To get all of the items in the list, keep calling this operation with
+	// each subsequent next token that is returned, until no more next tokens are
+	// returned.
+	NextToken *string `locationName:"nextToken" min:"1" type:"string"`
+
+	// The criterion to be used to list build projects shared with the current AWS
+	// account or user. Valid values include:
+	//
+	//    * ARN: List based on the ARN.
+	//
+	//    * MODIFIED_TIME: List based on when information about the shared project
+	//    was last changed.
+	SortBy *string `locationName:"sortBy" type:"string" enum:"SharedResourceSortByType"`
+
+	// The order in which to list shared build projects. Valid values include:
+	//
+	//    * ASCENDING: List in ascending order.
+	//
+	//    * DESCENDING: List in descending order.
+	SortOrder *string `locationName:"sortOrder" type:"string" enum:"SortOrderType"`
+}
+
+// String returns the string representation
+func (s ListSharedProjectsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListSharedProjectsInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ListSharedProjectsInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ListSharedProjectsInput"}
+	if s.MaxResults != nil && *s.MaxResults < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("MaxResults", 1))
+	}
+	if s.NextToken != nil && len(*s.NextToken) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("NextToken", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetMaxResults sets the MaxResults field's value.
+func (s *ListSharedProjectsInput) SetMaxResults(v int64) *ListSharedProjectsInput {
+	s.MaxResults = &v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListSharedProjectsInput) SetNextToken(v string) *ListSharedProjectsInput {
+	s.NextToken = &v
+	return s
+}
+
+// SetSortBy sets the SortBy field's value.
+func (s *ListSharedProjectsInput) SetSortBy(v string) *ListSharedProjectsInput {
+	s.SortBy = &v
+	return s
+}
+
+// SetSortOrder sets the SortOrder field's value.
+func (s *ListSharedProjectsInput) SetSortOrder(v string) *ListSharedProjectsInput {
+	s.SortOrder = &v
+	return s
+}
+
+type ListSharedProjectsOutput struct {
+	_ struct{} `type:"structure"`
+
+	// During a previous call, the maximum number of items that can be returned
+	// is the value specified in maxResults. If there more items in the list, then
+	// a unique string called a nextToken is returned. To get the next batch of
+	// items in the list, call this operation again, adding the next token to the
+	// call. To get all of the items in the list, keep calling this operation with
+	// each subsequent next token that is returned, until no more next tokens are
+	// returned.
+	NextToken *string `locationName:"nextToken" type:"string"`
+
+	// The list of ARNs for the build projects shared with the current AWS account
+	// or user.
+	Projects []*string `locationName:"projects" min:"1" type:"list"`
+}
+
+// String returns the string representation
+func (s ListSharedProjectsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListSharedProjectsOutput) GoString() string {
+	return s.String()
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListSharedProjectsOutput) SetNextToken(v string) *ListSharedProjectsOutput {
+	s.NextToken = &v
+	return s
+}
+
+// SetProjects sets the Projects field's value.
+func (s *ListSharedProjectsOutput) SetProjects(v []*string) *ListSharedProjectsOutput {
+	s.Projects = v
+	return s
+}
+
+type ListSharedReportGroupsInput struct {
+	_ struct{} `type:"structure"`
+
+	// The maximum number of paginated shared report groups per response. Use nextToken
+	// to iterate pages in the list of returned ReportGroup objects. The default
+	// value is 100.
+	MaxResults *int64 `locationName:"maxResults" min:"1" type:"integer"`
+
+	// During a previous call, the maximum number of items that can be returned
+	// is the value specified in maxResults. If there more items in the list, then
+	// a unique string called a nextToken is returned. To get the next batch of
+	// items in the list, call this operation again, adding the next token to the
+	// call. To get all of the items in the list, keep calling this operation with
+	// each subsequent next token that is returned, until no more next tokens are
+	// returned.
+	NextToken *string `locationName:"nextToken" type:"string"`
+
+	// The criterion to be used to list report groups shared with the current AWS
+	// account or user. Valid values include:
+	//
+	//    * ARN: List based on the ARN.
+	//
+	//    * MODIFIED_TIME: List based on when information about the shared report
+	//    group was last changed.
+	SortBy *string `locationName:"sortBy" type:"string" enum:"SharedResourceSortByType"`
+
+	// The order in which to list shared report groups. Valid values include:
+	//
+	//    * ASCENDING: List in ascending order.
+	//
+	//    * DESCENDING: List in descending order.
+	SortOrder *string `locationName:"sortOrder" type:"string" enum:"SortOrderType"`
+}
+
+// String returns the string representation
+func (s ListSharedReportGroupsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListSharedReportGroupsInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ListSharedReportGroupsInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ListSharedReportGroupsInput"}
+	if s.MaxResults != nil && *s.MaxResults < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("MaxResults", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetMaxResults sets the MaxResults field's value.
+func (s *ListSharedReportGroupsInput) SetMaxResults(v int64) *ListSharedReportGroupsInput {
+	s.MaxResults = &v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListSharedReportGroupsInput) SetNextToken(v string) *ListSharedReportGroupsInput {
+	s.NextToken = &v
+	return s
+}
+
+// SetSortBy sets the SortBy field's value.
+func (s *ListSharedReportGroupsInput) SetSortBy(v string) *ListSharedReportGroupsInput {
+	s.SortBy = &v
+	return s
+}
+
+// SetSortOrder sets the SortOrder field's value.
+func (s *ListSharedReportGroupsInput) SetSortOrder(v string) *ListSharedReportGroupsInput {
+	s.SortOrder = &v
+	return s
+}
+
+type ListSharedReportGroupsOutput struct {
+	_ struct{} `type:"structure"`
+
+	// During a previous call, the maximum number of items that can be returned
+	// is the value specified in maxResults. If there more items in the list, then
+	// a unique string called a nextToken is returned. To get the next batch of
+	// items in the list, call this operation again, adding the next token to the
+	// call. To get all of the items in the list, keep calling this operation with
+	// each subsequent next token that is returned, until no more next tokens are
+	// returned.
+	NextToken *string `locationName:"nextToken" type:"string"`
+
+	// The list of ARNs for the report groups shared with the current AWS account
+	// or user.
+	ReportGroups []*string `locationName:"reportGroups" min:"1" type:"list"`
+}
+
+// String returns the string representation
+func (s ListSharedReportGroupsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListSharedReportGroupsOutput) GoString() string {
+	return s.String()
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListSharedReportGroupsOutput) SetNextToken(v string) *ListSharedReportGroupsOutput {
+	s.NextToken = &v
+	return s
+}
+
+// SetReportGroups sets the ReportGroups field's value.
+func (s *ListSharedReportGroupsOutput) SetReportGroups(v []*string) *ListSharedReportGroupsOutput {
+	s.ReportGroups = v
 	return s
 }
 
@@ -3863,6 +6471,10 @@ type LogsLocation struct {
 	// Information about Amazon CloudWatch Logs for a build project.
 	CloudWatchLogs *CloudWatchLogsConfig `locationName:"cloudWatchLogs" type:"structure"`
 
+	// The ARN of Amazon CloudWatch Logs for a build project. Its format is arn:${Partition}:logs:${Region}:${Account}:log-group:${LogGroupName}:log-stream:${LogStreamName}.
+	// For more information, see Resources Defined by Amazon CloudWatch Logs (https://docs.aws.amazon.com/IAM/latest/UserGuide/list_amazoncloudwatchlogs.html#amazoncloudwatchlogs-resources-for-iam-policies).
+	CloudWatchLogsArn *string `locationName:"cloudWatchLogsArn" type:"string"`
+
 	// The URL to an individual build log in Amazon CloudWatch Logs.
 	DeepLink *string `locationName:"deepLink" type:"string"`
 
@@ -3874,6 +6486,10 @@ type LogsLocation struct {
 
 	// Information about S3 logs for a build project.
 	S3Logs *S3LogsConfig `locationName:"s3Logs" type:"structure"`
+
+	// The ARN of S3 logs for a build project. Its format is arn:${Partition}:s3:::${BucketName}/${ObjectName}.
+	// For more information, see Resources Defined by Amazon S3 (https://docs.aws.amazon.com/IAM/latest/UserGuide/list_amazons3.html#amazons3-resources-for-iam-policies).
+	S3LogsArn *string `locationName:"s3LogsArn" type:"string"`
 
 	// The name of the Amazon CloudWatch Logs stream for the build logs.
 	StreamName *string `locationName:"streamName" type:"string"`
@@ -3892,6 +6508,12 @@ func (s LogsLocation) GoString() string {
 // SetCloudWatchLogs sets the CloudWatchLogs field's value.
 func (s *LogsLocation) SetCloudWatchLogs(v *CloudWatchLogsConfig) *LogsLocation {
 	s.CloudWatchLogs = v
+	return s
+}
+
+// SetCloudWatchLogsArn sets the CloudWatchLogsArn field's value.
+func (s *LogsLocation) SetCloudWatchLogsArn(v string) *LogsLocation {
+	s.CloudWatchLogsArn = &v
 	return s
 }
 
@@ -3916,6 +6538,12 @@ func (s *LogsLocation) SetS3DeepLink(v string) *LogsLocation {
 // SetS3Logs sets the S3Logs field's value.
 func (s *LogsLocation) SetS3Logs(v *S3LogsConfig) *LogsLocation {
 	s.S3Logs = v
+	return s
+}
+
+// SetS3LogsArn sets the S3LogsArn field's value.
+func (s *LogsLocation) SetS3LogsArn(v string) *LogsLocation {
+	s.S3LogsArn = &v
 	return s
 }
 
@@ -3956,6 +6584,62 @@ func (s *NetworkInterface) SetNetworkInterfaceId(v string) *NetworkInterface {
 func (s *NetworkInterface) SetSubnetId(v string) *NetworkInterface {
 	s.SubnetId = &v
 	return s
+}
+
+// There was a problem with the underlying OAuth provider.
+type OAuthProviderException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s OAuthProviderException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s OAuthProviderException) GoString() string {
+	return s.String()
+}
+
+func newErrorOAuthProviderException(v protocol.ResponseMetadata) error {
+	return &OAuthProviderException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *OAuthProviderException) Code() string {
+	return "OAuthProviderException"
+}
+
+// Message returns the exception's message.
+func (s *OAuthProviderException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *OAuthProviderException) OrigErr() error {
+	return nil
+}
+
+func (s *OAuthProviderException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *OAuthProviderException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *OAuthProviderException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Additional information about a build phase that has an error. You can use
@@ -4028,6 +6712,11 @@ type Project struct {
 	// Information about the build environment for this build project.
 	Environment *ProjectEnvironment `locationName:"environment" type:"structure"`
 
+	// An array of ProjectFileSystemLocation objects for a CodeBuild build project.
+	// A ProjectFileSystemLocation object specifies the identifier, location, mountOptions,
+	// mountPoint, and type of a file system created using Amazon Elastic File System.
+	FileSystemLocations []*ProjectFileSystemLocation `locationName:"fileSystemLocations" type:"list"`
+
 	// When the build project's settings were last modified, expressed in Unix time
 	// format.
 	LastModified *time.Time `locationName:"lastModified" type:"timestamp"`
@@ -4064,7 +6753,7 @@ type Project struct {
 	// A version of the build input to be built for this project. If not specified,
 	// the latest version is used. If specified, it must be one of:
 	//
-	//    * For AWS CodeCommit: the commit ID to use.
+	//    * For AWS CodeCommit: the commit ID, branch, or Git tag to use.
 	//
 	//    * For GitHub: the commit ID, pull request ID, branch name, or tag name
 	//    that corresponds to the version of the source code you want to build.
@@ -4162,6 +6851,12 @@ func (s *Project) SetEncryptionKey(v string) *Project {
 // SetEnvironment sets the Environment field's value.
 func (s *Project) SetEnvironment(v *ProjectEnvironment) *Project {
 	s.Environment = v
+	return s
+}
+
+// SetFileSystemLocations sets the FileSystemLocations field's value.
+func (s *Project) SetFileSystemLocations(v []*ProjectFileSystemLocation) *Project {
+	s.FileSystemLocations = v
 	return s
 }
 
@@ -4318,8 +7013,8 @@ type ProjectArtifacts struct {
 	// and name is set to MyArtifact.zip, the output artifact is stored in MyArtifacts/build-ID/MyArtifact.zip.
 	NamespaceType *string `locationName:"namespaceType" type:"string" enum:"ArtifactNamespace"`
 
-	// If this flag is set, a name specified in the build spec file overrides the
-	// artifact name. The name specified in a build spec file is calculated at build
+	// If this flag is set, a name specified in the buildspec file overrides the
+	// artifact name. The name specified in a buildspec file is calculated at build
 	// time and uses the Shell Command Language. For example, you can append a date
 	// and time to your artifact name so that it is always unique.
 	OverrideArtifactName *bool `locationName:"overrideArtifactName" type:"boolean"`
@@ -4360,7 +7055,7 @@ type ProjectArtifacts struct {
 	// The type of build output artifact. Valid values include:
 	//
 	//    * CODEPIPELINE: The build project has build output generated through AWS
-	//    CodePipeline.
+	//    CodePipeline. The CODEPIPELINE type is not supported for secondaryArtifacts.
 	//
 	//    * NO_ARTIFACTS: The build project does not produce any build output.
 	//
@@ -4521,7 +7216,7 @@ type ProjectCache struct {
 	//    Only directories can be specified for caching. You cannot specify individual
 	//    files. Symlinks are used to reference cached directories. Cached directories
 	//    are linked to your build before it downloads its project sources. Cached
-	//    items are overriden if a source item has the same name. Directories are
+	//    items are overridden if a source item has the same name. Directories are
 	//    specified using cache paths in the buildspec file.
 	Modes []*string `locationName:"modes" type:"list"`
 
@@ -4593,7 +7288,26 @@ type ProjectEnvironment struct {
 	//
 	//    * BUILD_GENERAL1_MEDIUM: Use up to 7 GB memory and 4 vCPUs for builds.
 	//
-	//    * BUILD_GENERAL1_LARGE: Use up to 15 GB memory and 8 vCPUs for builds.
+	//    * BUILD_GENERAL1_LARGE: Use up to 16 GB memory and 8 vCPUs for builds,
+	//    depending on your environment type.
+	//
+	//    * BUILD_GENERAL1_2XLARGE: Use up to 145 GB memory, 72 vCPUs, and 824 GB
+	//    of SSD storage for builds. This compute type supports Docker images up
+	//    to 100 GB uncompressed.
+	//
+	// If you use BUILD_GENERAL1_LARGE:
+	//
+	//    * For environment type LINUX_CONTAINER, you can use up to 15 GB memory
+	//    and 8 vCPUs for builds.
+	//
+	//    * For environment type LINUX_GPU_CONTAINER, you can use up to 255 GB memory,
+	//    32 vCPUs, and 4 NVIDIA Tesla V100 GPUs for builds.
+	//
+	//    * For environment type ARM_CONTAINER, you can use up to 16 GB memory and
+	//    8 vCPUs on ARM-based processors for builds.
+	//
+	// For more information, see Build Environment Compute Types (https://docs.aws.amazon.com/codebuild/latest/userguide/build-env-ref-compute-types.html)
+	// in the AWS CodeBuild User Guide.
 	//
 	// ComputeType is a required field
 	ComputeType *string `locationName:"computeType" type:"string" required:"true" enum:"ComputeType"`
@@ -4632,7 +7346,8 @@ type ProjectEnvironment struct {
 
 	// Enables running the Docker daemon inside a Docker container. Set to true
 	// only if the build project is used to build Docker images. Otherwise, a build
-	// that attempts to interact with the Docker daemon fails.
+	// that attempts to interact with the Docker daemon fails. The default setting
+	// is false.
 	//
 	// You can initialize the Docker daemon during the install phase of your build
 	// by adding one of the following sets of commands to the install phase of your
@@ -4658,6 +7373,22 @@ type ProjectEnvironment struct {
 	RegistryCredential *RegistryCredential `locationName:"registryCredential" type:"structure"`
 
 	// The type of build environment to use for related builds.
+	//
+	//    * The environment type ARM_CONTAINER is available only in regions US East
+	//    (N. Virginia), US East (Ohio), US West (Oregon), EU (Ireland), Asia Pacific
+	//    (Mumbai), Asia Pacific (Tokyo), Asia Pacific (Sydney), and EU (Frankfurt).
+	//
+	//    * The environment type LINUX_CONTAINER with compute type build.general1.2xlarge
+	//    is available only in regions US East (N. Virginia), US East (N. Virginia),
+	//    US West (Oregon), Canada (Central), EU (Ireland), EU (London), EU (Frankfurt),
+	//    Asia Pacific (Tokyo), Asia Pacific (Seoul), Asia Pacific (Singapore),
+	//    Asia Pacific (Sydney), China (Beijing), and China (Ningxia).
+	//
+	//    * The environment type LINUX_GPU_CONTAINER is available only in regions
+	//    US East (N. Virginia), US East (N. Virginia), US West (Oregon), Canada
+	//    (Central), EU (Ireland), EU (London), EU (Frankfurt), Asia Pacific (Tokyo),
+	//    Asia Pacific (Seoul), Asia Pacific (Singapore), Asia Pacific (Sydney)
+	//    , China (Beijing), and China (Ningxia).
 	//
 	// Type is a required field
 	Type *string `locationName:"type" type:"string" required:"true" enum:"EnvironmentType"`
@@ -4758,6 +7489,83 @@ func (s *ProjectEnvironment) SetType(v string) *ProjectEnvironment {
 	return s
 }
 
+// Information about a file system created by Amazon Elastic File System (EFS).
+// For more information, see What Is Amazon Elastic File System? (https://docs.aws.amazon.com/efs/latest/ug/whatisefs.html)
+type ProjectFileSystemLocation struct {
+	_ struct{} `type:"structure"`
+
+	// The name used to access a file system created by Amazon EFS. CodeBuild creates
+	// an environment variable by appending the identifier in all capital letters
+	// to CODEBUILD_. For example, if you specify my-efs for identifier, a new environment
+	// variable is create named CODEBUILD_MY-EFS.
+	//
+	// The identifier is used to mount your file system.
+	Identifier *string `locationName:"identifier" type:"string"`
+
+	// A string that specifies the location of the file system created by Amazon
+	// EFS. Its format is efs-dns-name:/directory-path. You can find the DNS name
+	// of file system when you view it in the AWS EFS console. The directory path
+	// is a path to a directory in the file system that CodeBuild mounts. For example,
+	// if the DNS name of a file system is fs-abcd1234.efs.us-west-2.amazonaws.com,
+	// and its mount directory is my-efs-mount-directory, then the location is fs-abcd1234.efs.us-west-2.amazonaws.com:/my-efs-mount-directory.
+	//
+	// The directory path in the format efs-dns-name:/directory-path is optional.
+	// If you do not specify a directory path, the location is only the DNS name
+	// and CodeBuild mounts the entire file system.
+	Location *string `locationName:"location" type:"string"`
+
+	// The mount options for a file system created by AWS EFS. The default mount
+	// options used by CodeBuild are nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2.
+	// For more information, see Recommended NFS Mount Options (https://docs.aws.amazon.com/efs/latest/ug/mounting-fs-nfs-mount-settings.html).
+	MountOptions *string `locationName:"mountOptions" type:"string"`
+
+	// The location in the container where you mount the file system.
+	MountPoint *string `locationName:"mountPoint" type:"string"`
+
+	// The type of the file system. The one supported type is EFS.
+	Type *string `locationName:"type" type:"string" enum:"FileSystemType"`
+}
+
+// String returns the string representation
+func (s ProjectFileSystemLocation) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ProjectFileSystemLocation) GoString() string {
+	return s.String()
+}
+
+// SetIdentifier sets the Identifier field's value.
+func (s *ProjectFileSystemLocation) SetIdentifier(v string) *ProjectFileSystemLocation {
+	s.Identifier = &v
+	return s
+}
+
+// SetLocation sets the Location field's value.
+func (s *ProjectFileSystemLocation) SetLocation(v string) *ProjectFileSystemLocation {
+	s.Location = &v
+	return s
+}
+
+// SetMountOptions sets the MountOptions field's value.
+func (s *ProjectFileSystemLocation) SetMountOptions(v string) *ProjectFileSystemLocation {
+	s.MountOptions = &v
+	return s
+}
+
+// SetMountPoint sets the MountPoint field's value.
+func (s *ProjectFileSystemLocation) SetMountPoint(v string) *ProjectFileSystemLocation {
+	s.MountPoint = &v
+	return s
+}
+
+// SetType sets the Type field's value.
+func (s *ProjectFileSystemLocation) SetType(v string) *ProjectFileSystemLocation {
+	s.Type = &v
+	return s
+}
+
 // Information about the build input source code for the build project.
 type ProjectSource struct {
 	_ struct{} `type:"structure"`
@@ -4769,10 +7577,16 @@ type ProjectSource struct {
 	// not get or set this information directly.
 	Auth *SourceAuth `locationName:"auth" type:"structure"`
 
-	// The build spec declaration to use for the builds in this build project.
+	// The buildspec file declaration to use for the builds in this build project.
 	//
-	// If this value is not specified, a build spec must be included along with
-	// the source code to be built.
+	// If this value is set, it can be either an inline buildspec definition, the
+	// path to an alternate buildspec file relative to the value of the built-in
+	// CODEBUILD_SRC_DIR environment variable, or the path to an S3 bucket. The
+	// bucket must be in the same AWS Region as the build project. Specify the buildspec
+	// file using its ARN (for example, arn:aws:s3:::my-codebuild-sample2/buildspec.yml).
+	// If this value is not provided or is set to an empty string, the source code
+	// must contain a buildspec file in its root directory. For more information,
+	// see Buildspec File Name and Storage Location (https://docs.aws.amazon.com/codebuild/latest/userguide/build-spec-ref.html#build-spec-ref-name-storage).
 	Buildspec *string `locationName:"buildspec" type:"string"`
 
 	// Information about the Git clone depth for the build project.
@@ -4794,8 +7608,8 @@ type ProjectSource struct {
 	//    uses the settings in a pipeline's source action instead of this value.
 	//
 	//    * For source code in an AWS CodeCommit repository, the HTTPS clone URL
-	//    to the repository that contains the source code and the build spec (for
-	//    example, https://git-codecommit.region-ID.amazonaws.com/v1/repos/repo-name
+	//    to the repository that contains the source code and the buildspec file
+	//    (for example, https://git-codecommit.region-ID.amazonaws.com/v1/repos/repo-name
 	//    ).
 	//
 	//    * For source code in an Amazon Simple Storage Service (Amazon S3) input
@@ -4804,8 +7618,8 @@ type ProjectSource struct {
 	//    to the folder that contains the source code (for example, bucket-name/path/to/source-code/folder/).
 	//
 	//    * For source code in a GitHub repository, the HTTPS clone URL to the repository
-	//    that contains the source and the build spec. You must connect your AWS
-	//    account to your GitHub account. Use the AWS CodeBuild console to start
+	//    that contains the source and the buildspec file. You must connect your
+	//    AWS account to your GitHub account. Use the AWS CodeBuild console to start
 	//    creating a build project. When you use the console to connect (or reconnect)
 	//    with GitHub, on the GitHub Authorize application page, for Organization
 	//    access, choose Request access next to each repository you want to allow
@@ -4816,7 +7630,7 @@ type ProjectSource struct {
 	//    set the auth object's type value to OAUTH.
 	//
 	//    * For source code in a Bitbucket repository, the HTTPS clone URL to the
-	//    repository that contains the source and the build spec. You must connect
+	//    repository that contains the source and the buildspec file. You must connect
 	//    your AWS account to your Bitbucket account. Use the AWS CodeBuild console
 	//    to start creating a build project. When you use the console to connect
 	//    (or reconnect) with Bitbucket, on the Bitbucket Confirm access to your
@@ -4831,6 +7645,9 @@ type ProjectSource struct {
 	// provider. This option is valid only when your source provider is GitHub,
 	// GitHub Enterprise, or Bitbucket. If this is set and you use a different source
 	// provider, an invalidInputException is thrown.
+	//
+	// The status of a build triggered by a webhook is always reported to your source
+	// provider.
 	ReportBuildStatus *bool `locationName:"reportBuildStatus" type:"boolean"`
 
 	// An identifier for this project source.
@@ -4847,6 +7664,8 @@ type ProjectSource struct {
 	//    of a pipeline in AWS CodePipeline.
 	//
 	//    * GITHUB: The source code is in a GitHub repository.
+	//
+	//    * GITHUB_ENTERPRISE: The source code is in a GitHub Enterprise repository.
 	//
 	//    * NO_SOURCE: The project does not have input source code.
 	//
@@ -4956,7 +7775,7 @@ type ProjectSourceVersion struct {
 	// The source version for the corresponding source identifier. If specified,
 	// must be one of:
 	//
-	//    * For AWS CodeCommit: the commit ID to use.
+	//    * For AWS CodeCommit: the commit ID, branch, or Git tag to use.
 	//
 	//    * For GitHub: the commit ID, pull request ID, branch name, or tag name
 	//    that corresponds to the version of the source code you want to build.
@@ -5018,6 +7837,92 @@ func (s *ProjectSourceVersion) SetSourceVersion(v string) *ProjectSourceVersion 
 	return s
 }
 
+type PutResourcePolicyInput struct {
+	_ struct{} `type:"structure"`
+
+	// A JSON-formatted resource policy. For more information, see Sharing a Project
+	// (https://docs.aws.amazon.com/codebuild/latest/userguide/project-sharing.html#project-sharing-share)
+	// and Sharing a Report Group (https://docs.aws.amazon.com/codebuild/latest/userguide/report-groups-sharing.html#report-groups-sharing-share)
+	// in the AWS CodeBuild User Guide.
+	//
+	// Policy is a required field
+	Policy *string `locationName:"policy" min:"1" type:"string" required:"true"`
+
+	// The ARN of the Project or ReportGroup resource you want to associate with
+	// a resource policy.
+	//
+	// ResourceArn is a required field
+	ResourceArn *string `locationName:"resourceArn" min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s PutResourcePolicyInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s PutResourcePolicyInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *PutResourcePolicyInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "PutResourcePolicyInput"}
+	if s.Policy == nil {
+		invalidParams.Add(request.NewErrParamRequired("Policy"))
+	}
+	if s.Policy != nil && len(*s.Policy) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Policy", 1))
+	}
+	if s.ResourceArn == nil {
+		invalidParams.Add(request.NewErrParamRequired("ResourceArn"))
+	}
+	if s.ResourceArn != nil && len(*s.ResourceArn) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ResourceArn", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetPolicy sets the Policy field's value.
+func (s *PutResourcePolicyInput) SetPolicy(v string) *PutResourcePolicyInput {
+	s.Policy = &v
+	return s
+}
+
+// SetResourceArn sets the ResourceArn field's value.
+func (s *PutResourcePolicyInput) SetResourceArn(v string) *PutResourcePolicyInput {
+	s.ResourceArn = &v
+	return s
+}
+
+type PutResourcePolicyOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The ARN of the Project or ReportGroup resource that is associated with a
+	// resource policy.
+	ResourceArn *string `locationName:"resourceArn" min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s PutResourcePolicyOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s PutResourcePolicyOutput) GoString() string {
+	return s.String()
+}
+
+// SetResourceArn sets the ResourceArn field's value.
+func (s *PutResourcePolicyOutput) SetResourceArn(v string) *PutResourcePolicyOutput {
+	s.ResourceArn = &v
+	return s
+}
+
 // Information about credentials that provide access to a private Docker registry.
 // When this is set:
 //
@@ -5034,7 +7939,7 @@ type RegistryCredential struct {
 	// Manager.
 	//
 	// The credential can use the name of the credentials only if they exist in
-	// your current region.
+	// your current AWS Region.
 	//
 	// Credential is a required field
 	Credential *string `locationName:"credential" min:"1" type:"string" required:"true"`
@@ -5085,6 +7990,390 @@ func (s *RegistryCredential) SetCredential(v string) *RegistryCredential {
 func (s *RegistryCredential) SetCredentialProvider(v string) *RegistryCredential {
 	s.CredentialProvider = &v
 	return s
+}
+
+// Information about the results from running a series of test cases during
+// the run of a build project. The test cases are specified in the buildspec
+// for the build project using one or more paths to the test case files. You
+// can specify any type of tests you want, such as unit tests, integration tests,
+// and functional tests.
+type Report struct {
+	_ struct{} `type:"structure"`
+
+	// The ARN of the report run.
+	Arn *string `locationName:"arn" min:"1" type:"string"`
+
+	// The date and time this report run occurred.
+	Created *time.Time `locationName:"created" type:"timestamp"`
+
+	// The ARN of the build run that generated this report.
+	ExecutionId *string `locationName:"executionId" type:"string"`
+
+	// The date and time a report expires. A report expires 30 days after it is
+	// created. An expired report is not available to view in CodeBuild.
+	Expired *time.Time `locationName:"expired" type:"timestamp"`
+
+	// Information about where the raw data used to generate this report was exported.
+	ExportConfig *ReportExportConfig `locationName:"exportConfig" type:"structure"`
+
+	// The name of the report that was run.
+	Name *string `locationName:"name" type:"string"`
+
+	// The ARN of the report group associated with this report.
+	ReportGroupArn *string `locationName:"reportGroupArn" min:"1" type:"string"`
+
+	// The status of this report.
+	Status *string `locationName:"status" type:"string" enum:"ReportStatusType"`
+
+	// A TestReportSummary object that contains information about this test report.
+	TestSummary *TestReportSummary `locationName:"testSummary" type:"structure"`
+
+	// A boolean that specifies if this report run is truncated. The list of test
+	// cases is truncated after the maximum number of test cases is reached.
+	Truncated *bool `locationName:"truncated" type:"boolean"`
+
+	// The type of the report that was run.
+	Type *string `locationName:"type" type:"string" enum:"ReportType"`
+}
+
+// String returns the string representation
+func (s Report) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s Report) GoString() string {
+	return s.String()
+}
+
+// SetArn sets the Arn field's value.
+func (s *Report) SetArn(v string) *Report {
+	s.Arn = &v
+	return s
+}
+
+// SetCreated sets the Created field's value.
+func (s *Report) SetCreated(v time.Time) *Report {
+	s.Created = &v
+	return s
+}
+
+// SetExecutionId sets the ExecutionId field's value.
+func (s *Report) SetExecutionId(v string) *Report {
+	s.ExecutionId = &v
+	return s
+}
+
+// SetExpired sets the Expired field's value.
+func (s *Report) SetExpired(v time.Time) *Report {
+	s.Expired = &v
+	return s
+}
+
+// SetExportConfig sets the ExportConfig field's value.
+func (s *Report) SetExportConfig(v *ReportExportConfig) *Report {
+	s.ExportConfig = v
+	return s
+}
+
+// SetName sets the Name field's value.
+func (s *Report) SetName(v string) *Report {
+	s.Name = &v
+	return s
+}
+
+// SetReportGroupArn sets the ReportGroupArn field's value.
+func (s *Report) SetReportGroupArn(v string) *Report {
+	s.ReportGroupArn = &v
+	return s
+}
+
+// SetStatus sets the Status field's value.
+func (s *Report) SetStatus(v string) *Report {
+	s.Status = &v
+	return s
+}
+
+// SetTestSummary sets the TestSummary field's value.
+func (s *Report) SetTestSummary(v *TestReportSummary) *Report {
+	s.TestSummary = v
+	return s
+}
+
+// SetTruncated sets the Truncated field's value.
+func (s *Report) SetTruncated(v bool) *Report {
+	s.Truncated = &v
+	return s
+}
+
+// SetType sets the Type field's value.
+func (s *Report) SetType(v string) *Report {
+	s.Type = &v
+	return s
+}
+
+// Information about the location where the run of a report is exported.
+type ReportExportConfig struct {
+	_ struct{} `type:"structure"`
+
+	// The export configuration type. Valid values are:
+	//
+	//    * S3: The report results are exported to an S3 bucket.
+	//
+	//    * NO_EXPORT: The report results are not exported.
+	ExportConfigType *string `locationName:"exportConfigType" type:"string" enum:"ReportExportConfigType"`
+
+	// A S3ReportExportConfig object that contains information about the S3 bucket
+	// where the run of a report is exported.
+	S3Destination *S3ReportExportConfig `locationName:"s3Destination" type:"structure"`
+}
+
+// String returns the string representation
+func (s ReportExportConfig) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ReportExportConfig) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ReportExportConfig) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ReportExportConfig"}
+	if s.S3Destination != nil {
+		if err := s.S3Destination.Validate(); err != nil {
+			invalidParams.AddNested("S3Destination", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetExportConfigType sets the ExportConfigType field's value.
+func (s *ReportExportConfig) SetExportConfigType(v string) *ReportExportConfig {
+	s.ExportConfigType = &v
+	return s
+}
+
+// SetS3Destination sets the S3Destination field's value.
+func (s *ReportExportConfig) SetS3Destination(v *S3ReportExportConfig) *ReportExportConfig {
+	s.S3Destination = v
+	return s
+}
+
+// A filter used to return reports with the status specified by the input status
+// parameter.
+type ReportFilter struct {
+	_ struct{} `type:"structure"`
+
+	// The status used to filter reports. You can filter using one status only.
+	Status *string `locationName:"status" type:"string" enum:"ReportStatusType"`
+}
+
+// String returns the string representation
+func (s ReportFilter) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ReportFilter) GoString() string {
+	return s.String()
+}
+
+// SetStatus sets the Status field's value.
+func (s *ReportFilter) SetStatus(v string) *ReportFilter {
+	s.Status = &v
+	return s
+}
+
+// A series of reports. Each report contains information about the results from
+// running a series of test cases. You specify the test cases for a report group
+// in the buildspec for a build project using one or more paths to the test
+// case files.
+type ReportGroup struct {
+	_ struct{} `type:"structure"`
+
+	// The ARN of a ReportGroup.
+	Arn *string `locationName:"arn" min:"1" type:"string"`
+
+	// The date and time this ReportGroup was created.
+	Created *time.Time `locationName:"created" type:"timestamp"`
+
+	// Information about the destination where the raw data of this ReportGroup
+	// is exported.
+	ExportConfig *ReportExportConfig `locationName:"exportConfig" type:"structure"`
+
+	// The date and time this ReportGroup was last modified.
+	LastModified *time.Time `locationName:"lastModified" type:"timestamp"`
+
+	// The name of a ReportGroup.
+	Name *string `locationName:"name" min:"2" type:"string"`
+
+	// The type of the ReportGroup. The one valid value is TEST.
+	Type *string `locationName:"type" type:"string" enum:"ReportType"`
+}
+
+// String returns the string representation
+func (s ReportGroup) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ReportGroup) GoString() string {
+	return s.String()
+}
+
+// SetArn sets the Arn field's value.
+func (s *ReportGroup) SetArn(v string) *ReportGroup {
+	s.Arn = &v
+	return s
+}
+
+// SetCreated sets the Created field's value.
+func (s *ReportGroup) SetCreated(v time.Time) *ReportGroup {
+	s.Created = &v
+	return s
+}
+
+// SetExportConfig sets the ExportConfig field's value.
+func (s *ReportGroup) SetExportConfig(v *ReportExportConfig) *ReportGroup {
+	s.ExportConfig = v
+	return s
+}
+
+// SetLastModified sets the LastModified field's value.
+func (s *ReportGroup) SetLastModified(v time.Time) *ReportGroup {
+	s.LastModified = &v
+	return s
+}
+
+// SetName sets the Name field's value.
+func (s *ReportGroup) SetName(v string) *ReportGroup {
+	s.Name = &v
+	return s
+}
+
+// SetType sets the Type field's value.
+func (s *ReportGroup) SetType(v string) *ReportGroup {
+	s.Type = &v
+	return s
+}
+
+// The specified AWS resource cannot be created, because an AWS resource with
+// the same settings already exists.
+type ResourceAlreadyExistsException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s ResourceAlreadyExistsException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResourceAlreadyExistsException) GoString() string {
+	return s.String()
+}
+
+func newErrorResourceAlreadyExistsException(v protocol.ResponseMetadata) error {
+	return &ResourceAlreadyExistsException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *ResourceAlreadyExistsException) Code() string {
+	return "ResourceAlreadyExistsException"
+}
+
+// Message returns the exception's message.
+func (s *ResourceAlreadyExistsException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *ResourceAlreadyExistsException) OrigErr() error {
+	return nil
+}
+
+func (s *ResourceAlreadyExistsException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *ResourceAlreadyExistsException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *ResourceAlreadyExistsException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// The specified AWS resource cannot be found.
+type ResourceNotFoundException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s ResourceNotFoundException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResourceNotFoundException) GoString() string {
+	return s.String()
+}
+
+func newErrorResourceNotFoundException(v protocol.ResponseMetadata) error {
+	return &ResourceNotFoundException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *ResourceNotFoundException) Code() string {
+	return "ResourceNotFoundException"
+}
+
+// Message returns the exception's message.
+func (s *ResourceNotFoundException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *ResourceNotFoundException) OrigErr() error {
+	return nil
+}
+
+func (s *ResourceNotFoundException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *ResourceNotFoundException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *ResourceNotFoundException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Information about S3 logs for a build project.
@@ -5148,6 +8437,88 @@ func (s *S3LogsConfig) SetLocation(v string) *S3LogsConfig {
 // SetStatus sets the Status field's value.
 func (s *S3LogsConfig) SetStatus(v string) *S3LogsConfig {
 	s.Status = &v
+	return s
+}
+
+// Information about the S3 bucket where the raw data of a report are exported.
+type S3ReportExportConfig struct {
+	_ struct{} `type:"structure"`
+
+	// The name of the S3 bucket where the raw data of a report are exported.
+	Bucket *string `locationName:"bucket" min:"1" type:"string"`
+
+	// A boolean value that specifies if the results of a report are encrypted.
+	EncryptionDisabled *bool `locationName:"encryptionDisabled" type:"boolean"`
+
+	// The encryption key for the report's encrypted raw data.
+	EncryptionKey *string `locationName:"encryptionKey" min:"1" type:"string"`
+
+	// The type of build output artifact to create. Valid values include:
+	//
+	//    * NONE: AWS CodeBuild creates the raw data in the output bucket. This
+	//    is the default if packaging is not specified.
+	//
+	//    * ZIP: AWS CodeBuild creates a ZIP file with the raw data in the output
+	//    bucket.
+	Packaging *string `locationName:"packaging" type:"string" enum:"ReportPackagingType"`
+
+	// The path to the exported report's raw data results.
+	Path *string `locationName:"path" type:"string"`
+}
+
+// String returns the string representation
+func (s S3ReportExportConfig) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s S3ReportExportConfig) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *S3ReportExportConfig) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "S3ReportExportConfig"}
+	if s.Bucket != nil && len(*s.Bucket) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Bucket", 1))
+	}
+	if s.EncryptionKey != nil && len(*s.EncryptionKey) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("EncryptionKey", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetBucket sets the Bucket field's value.
+func (s *S3ReportExportConfig) SetBucket(v string) *S3ReportExportConfig {
+	s.Bucket = &v
+	return s
+}
+
+// SetEncryptionDisabled sets the EncryptionDisabled field's value.
+func (s *S3ReportExportConfig) SetEncryptionDisabled(v bool) *S3ReportExportConfig {
+	s.EncryptionDisabled = &v
+	return s
+}
+
+// SetEncryptionKey sets the EncryptionKey field's value.
+func (s *S3ReportExportConfig) SetEncryptionKey(v string) *S3ReportExportConfig {
+	s.EncryptionKey = &v
+	return s
+}
+
+// SetPackaging sets the Packaging field's value.
+func (s *S3ReportExportConfig) SetPackaging(v string) *S3ReportExportConfig {
+	s.Packaging = &v
+	return s
+}
+
+// SetPath sets the Path field's value.
+func (s *S3ReportExportConfig) SetPath(v string) *S3ReportExportConfig {
+	s.Path = &v
 	return s
 }
 
@@ -5259,8 +8630,17 @@ type StartBuildInput struct {
 	// ones already defined in the build project.
 	ArtifactsOverride *ProjectArtifacts `locationName:"artifactsOverride" type:"structure"`
 
-	// A build spec declaration that overrides, for this build only, the latest
+	// A buildspec file declaration that overrides, for this build only, the latest
 	// one already defined in the build project.
+	//
+	// If this value is set, it can be either an inline buildspec definition, the
+	// path to an alternate buildspec file relative to the value of the built-in
+	// CODEBUILD_SRC_DIR environment variable, or the path to an S3 bucket. The
+	// bucket must be in the same AWS Region as the build project. Specify the buildspec
+	// file using its ARN (for example, arn:aws:s3:::my-codebuild-sample2/buildspec.yml).
+	// If this value is not provided or is set to an empty string, the source code
+	// must contain a buildspec file in its root directory. For more information,
+	// see Buildspec File Name and Storage Location (https://docs.aws.amazon.com/codebuild/latest/userguide/build-spec-ref.html#build-spec-ref-name-storage).
 	BuildspecOverride *string `locationName:"buildspecOverride" type:"string"`
 
 	// A ProjectCache object specified for this build that overrides the one defined
@@ -5274,6 +8654,17 @@ type StartBuildInput struct {
 	// The name of a compute type for this build that overrides the one specified
 	// in the build project.
 	ComputeTypeOverride *string `locationName:"computeTypeOverride" type:"string" enum:"ComputeType"`
+
+	// The AWS Key Management Service (AWS KMS) customer master key (CMK) that overrides
+	// the one specified in the build project. The CMK key encrypts the build output
+	// artifacts.
+	//
+	// You can use a cross-account KMS key to encrypt the build output artifacts
+	// if your service role has permission to that key.
+	//
+	// You can specify either the Amazon Resource Name (ARN) of the CMK or, if available,
+	// the CMK's alias (using the format alias/alias-name ).
+	EncryptionKeyOverride *string `locationName:"encryptionKeyOverride" min:"1" type:"string"`
 
 	// A container type for this build that overrides the one specified in the build
 	// project.
@@ -5344,6 +8735,9 @@ type StartBuildInput struct {
 	// Set to true to report to your source provider the status of a build's start
 	// and completion. If you use this option with a source provider other than
 	// GitHub, GitHub Enterprise, or Bitbucket, an invalidInputException is thrown.
+	//
+	// The status of a build triggered by a webhook is always reported to your source
+	// provider.
 	ReportBuildStatusOverride *bool `locationName:"reportBuildStatusOverride" type:"boolean"`
 
 	// An array of ProjectArtifacts objects.
@@ -5376,7 +8770,7 @@ type StartBuildInput struct {
 	// A version of the build input to be built, for this build only. If not specified,
 	// the latest version is used. If specified, must be one of:
 	//
-	//    * For AWS CodeCommit: the commit ID to use.
+	//    * For AWS CodeCommit: the commit ID, branch, or Git tag to use.
 	//
 	//    * For GitHub: the commit ID, pull request ID, branch name, or tag name
 	//    that corresponds to the version of the source code you want to build.
@@ -5418,6 +8812,9 @@ func (s StartBuildInput) GoString() string {
 // Validate inspects the fields of the type to determine if they are valid.
 func (s *StartBuildInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "StartBuildInput"}
+	if s.EncryptionKeyOverride != nil && len(*s.EncryptionKeyOverride) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("EncryptionKeyOverride", 1))
+	}
 	if s.ImageOverride != nil && len(*s.ImageOverride) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("ImageOverride", 1))
 	}
@@ -5540,6 +8937,12 @@ func (s *StartBuildInput) SetCertificateOverride(v string) *StartBuildInput {
 // SetComputeTypeOverride sets the ComputeTypeOverride field's value.
 func (s *StartBuildInput) SetComputeTypeOverride(v string) *StartBuildInput {
 	s.ComputeTypeOverride = &v
+	return s
+}
+
+// SetEncryptionKeyOverride sets the EncryptionKeyOverride field's value.
+func (s *StartBuildInput) SetEncryptionKeyOverride(v string) *StartBuildInput {
+	s.EncryptionKeyOverride = &v
 	return s
 }
 
@@ -5819,6 +9222,173 @@ func (s *Tag) SetValue(v string) *Tag {
 	return s
 }
 
+// Information about a test case created using a framework such as NUnit or
+// Cucumber. A test case might be a unit test or a configuration test.
+type TestCase struct {
+	_ struct{} `type:"structure"`
+
+	// The number of nanoseconds it took to run this test case.
+	DurationInNanoSeconds *int64 `locationName:"durationInNanoSeconds" type:"long"`
+
+	// The date and time a test case expires. A test case expires 30 days after
+	// it is created. An expired test case is not available to view in CodeBuild.
+	Expired *time.Time `locationName:"expired" type:"timestamp"`
+
+	// A message associated with a test case. For example, an error message or stack
+	// trace.
+	Message *string `locationName:"message" type:"string"`
+
+	// The name of the test case.
+	Name *string `locationName:"name" type:"string"`
+
+	// A string that is applied to a series of related test cases. CodeBuild generates
+	// the prefix. The prefix depends on the framework used to generate the tests.
+	Prefix *string `locationName:"prefix" type:"string"`
+
+	// The ARN of the report to which the test case belongs.
+	ReportArn *string `locationName:"reportArn" min:"1" type:"string"`
+
+	// The status returned by the test case after it was run. Valid statuses are
+	// SUCCEEDED, FAILED, ERROR, SKIPPED, and UNKNOWN.
+	Status *string `locationName:"status" type:"string"`
+
+	// The path to the raw data file that contains the test result.
+	TestRawDataPath *string `locationName:"testRawDataPath" type:"string"`
+}
+
+// String returns the string representation
+func (s TestCase) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s TestCase) GoString() string {
+	return s.String()
+}
+
+// SetDurationInNanoSeconds sets the DurationInNanoSeconds field's value.
+func (s *TestCase) SetDurationInNanoSeconds(v int64) *TestCase {
+	s.DurationInNanoSeconds = &v
+	return s
+}
+
+// SetExpired sets the Expired field's value.
+func (s *TestCase) SetExpired(v time.Time) *TestCase {
+	s.Expired = &v
+	return s
+}
+
+// SetMessage sets the Message field's value.
+func (s *TestCase) SetMessage(v string) *TestCase {
+	s.Message = &v
+	return s
+}
+
+// SetName sets the Name field's value.
+func (s *TestCase) SetName(v string) *TestCase {
+	s.Name = &v
+	return s
+}
+
+// SetPrefix sets the Prefix field's value.
+func (s *TestCase) SetPrefix(v string) *TestCase {
+	s.Prefix = &v
+	return s
+}
+
+// SetReportArn sets the ReportArn field's value.
+func (s *TestCase) SetReportArn(v string) *TestCase {
+	s.ReportArn = &v
+	return s
+}
+
+// SetStatus sets the Status field's value.
+func (s *TestCase) SetStatus(v string) *TestCase {
+	s.Status = &v
+	return s
+}
+
+// SetTestRawDataPath sets the TestRawDataPath field's value.
+func (s *TestCase) SetTestRawDataPath(v string) *TestCase {
+	s.TestRawDataPath = &v
+	return s
+}
+
+// A filter used to return specific types of test cases.
+type TestCaseFilter struct {
+	_ struct{} `type:"structure"`
+
+	// The status used to filter test cases. Valid statuses are SUCCEEDED, FAILED,
+	// ERROR, SKIPPED, and UNKNOWN. A TestCaseFilter can have one status.
+	Status *string `locationName:"status" type:"string"`
+}
+
+// String returns the string representation
+func (s TestCaseFilter) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s TestCaseFilter) GoString() string {
+	return s.String()
+}
+
+// SetStatus sets the Status field's value.
+func (s *TestCaseFilter) SetStatus(v string) *TestCaseFilter {
+	s.Status = &v
+	return s
+}
+
+// Information about a test report.
+type TestReportSummary struct {
+	_ struct{} `type:"structure"`
+
+	// The number of nanoseconds it took to run all of the test cases in this report.
+	//
+	// DurationInNanoSeconds is a required field
+	DurationInNanoSeconds *int64 `locationName:"durationInNanoSeconds" type:"long" required:"true"`
+
+	// A map that contains the number of each type of status returned by the test
+	// results in this TestReportSummary.
+	//
+	// StatusCounts is a required field
+	StatusCounts map[string]*int64 `locationName:"statusCounts" type:"map" required:"true"`
+
+	// The number of test cases in this TestReportSummary. The total includes truncated
+	// test cases.
+	//
+	// Total is a required field
+	Total *int64 `locationName:"total" type:"integer" required:"true"`
+}
+
+// String returns the string representation
+func (s TestReportSummary) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s TestReportSummary) GoString() string {
+	return s.String()
+}
+
+// SetDurationInNanoSeconds sets the DurationInNanoSeconds field's value.
+func (s *TestReportSummary) SetDurationInNanoSeconds(v int64) *TestReportSummary {
+	s.DurationInNanoSeconds = &v
+	return s
+}
+
+// SetStatusCounts sets the StatusCounts field's value.
+func (s *TestReportSummary) SetStatusCounts(v map[string]*int64) *TestReportSummary {
+	s.StatusCounts = v
+	return s
+}
+
+// SetTotal sets the Total field's value.
+func (s *TestReportSummary) SetTotal(v int64) *TestReportSummary {
+	s.Total = &v
+	return s
+}
+
 type UpdateProjectInput struct {
 	_ struct{} `type:"structure"`
 
@@ -5849,6 +9419,11 @@ type UpdateProjectInput struct {
 
 	// Information to be changed about the build environment for the build project.
 	Environment *ProjectEnvironment `locationName:"environment" type:"structure"`
+
+	// An array of ProjectFileSystemLocation objects for a CodeBuild build project.
+	// A ProjectFileSystemLocation object specifies the identifier, location, mountOptions,
+	// mountPoint, and type of a file system created using Amazon Elastic File System.
+	FileSystemLocations []*ProjectFileSystemLocation `locationName:"fileSystemLocations" type:"list"`
 
 	// Information about logs for the build project. A project can create logs in
 	// Amazon CloudWatch Logs, logs in an S3 bucket, or both.
@@ -5887,7 +9462,7 @@ type UpdateProjectInput struct {
 	// A version of the build input to be built for this project. If not specified,
 	// the latest version is used. If specified, it must be one of:
 	//
-	//    * For AWS CodeCommit: the commit ID to use.
+	//    * For AWS CodeCommit: the commit ID, branch, or Git tag to use.
 	//
 	//    * For GitHub: the commit ID, pull request ID, branch name, or tag name
 	//    that corresponds to the version of the source code you want to build.
@@ -6069,6 +9644,12 @@ func (s *UpdateProjectInput) SetEnvironment(v *ProjectEnvironment) *UpdateProjec
 	return s
 }
 
+// SetFileSystemLocations sets the FileSystemLocations field's value.
+func (s *UpdateProjectInput) SetFileSystemLocations(v []*ProjectFileSystemLocation) *UpdateProjectInput {
+	s.FileSystemLocations = v
+	return s
+}
+
 // SetLogsConfig sets the LogsConfig field's value.
 func (s *UpdateProjectInput) SetLogsConfig(v *LogsConfig) *UpdateProjectInput {
 	s.LogsConfig = v
@@ -6164,6 +9745,88 @@ func (s *UpdateProjectOutput) SetProject(v *Project) *UpdateProjectOutput {
 	return s
 }
 
+type UpdateReportGroupInput struct {
+	_ struct{} `type:"structure"`
+
+	// The ARN of the report group to update.
+	//
+	// Arn is a required field
+	Arn *string `locationName:"arn" min:"1" type:"string" required:"true"`
+
+	// Used to specify an updated export type. Valid values are:
+	//
+	//    * S3: The report results are exported to an S3 bucket.
+	//
+	//    * NO_EXPORT: The report results are not exported.
+	ExportConfig *ReportExportConfig `locationName:"exportConfig" type:"structure"`
+}
+
+// String returns the string representation
+func (s UpdateReportGroupInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateReportGroupInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *UpdateReportGroupInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "UpdateReportGroupInput"}
+	if s.Arn == nil {
+		invalidParams.Add(request.NewErrParamRequired("Arn"))
+	}
+	if s.Arn != nil && len(*s.Arn) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Arn", 1))
+	}
+	if s.ExportConfig != nil {
+		if err := s.ExportConfig.Validate(); err != nil {
+			invalidParams.AddNested("ExportConfig", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetArn sets the Arn field's value.
+func (s *UpdateReportGroupInput) SetArn(v string) *UpdateReportGroupInput {
+	s.Arn = &v
+	return s
+}
+
+// SetExportConfig sets the ExportConfig field's value.
+func (s *UpdateReportGroupInput) SetExportConfig(v *ReportExportConfig) *UpdateReportGroupInput {
+	s.ExportConfig = v
+	return s
+}
+
+type UpdateReportGroupOutput struct {
+	_ struct{} `type:"structure"`
+
+	// Information about the updated report group.
+	ReportGroup *ReportGroup `locationName:"reportGroup" type:"structure"`
+}
+
+// String returns the string representation
+func (s UpdateReportGroupOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateReportGroupOutput) GoString() string {
+	return s.String()
+}
+
+// SetReportGroup sets the ReportGroup field's value.
+func (s *UpdateReportGroupOutput) SetReportGroup(v *ReportGroup) *UpdateReportGroupOutput {
+	s.ReportGroup = v
+	return s
+}
+
 type UpdateWebhookInput struct {
 	_ struct{} `type:"structure"`
 
@@ -6176,7 +9839,7 @@ type UpdateWebhookInput struct {
 	BranchFilter *string `locationName:"branchFilter" type:"string"`
 
 	// An array of arrays of WebhookFilter objects used to determine if a webhook
-	// event can trigger a build. A filter group must pcontain at least one EVENT
+	// event can trigger a build. A filter group must contain at least one EVENT
 	// WebhookFilter.
 	FilterGroups [][]*WebhookFilter `locationName:"filterGroups" type:"list"`
 
@@ -6602,6 +10265,9 @@ const (
 
 	// ComputeTypeBuildGeneral1Large is a ComputeType enum value
 	ComputeTypeBuildGeneral1Large = "BUILD_GENERAL1_LARGE"
+
+	// ComputeTypeBuildGeneral12xlarge is a ComputeType enum value
+	ComputeTypeBuildGeneral12xlarge = "BUILD_GENERAL1_2XLARGE"
 )
 
 const (
@@ -6615,6 +10281,12 @@ const (
 
 	// EnvironmentTypeLinuxContainer is a EnvironmentType enum value
 	EnvironmentTypeLinuxContainer = "LINUX_CONTAINER"
+
+	// EnvironmentTypeLinuxGpuContainer is a EnvironmentType enum value
+	EnvironmentTypeLinuxGpuContainer = "LINUX_GPU_CONTAINER"
+
+	// EnvironmentTypeArmContainer is a EnvironmentType enum value
+	EnvironmentTypeArmContainer = "ARM_CONTAINER"
 )
 
 const (
@@ -6623,6 +10295,14 @@ const (
 
 	// EnvironmentVariableTypeParameterStore is a EnvironmentVariableType enum value
 	EnvironmentVariableTypeParameterStore = "PARAMETER_STORE"
+
+	// EnvironmentVariableTypeSecretsManager is a EnvironmentVariableType enum value
+	EnvironmentVariableTypeSecretsManager = "SECRETS_MANAGER"
+)
+
+const (
+	// FileSystemTypeEfs is a FileSystemType enum value
+	FileSystemTypeEfs = "EFS"
 )
 
 const (
@@ -6699,6 +10379,55 @@ const (
 )
 
 const (
+	// ReportExportConfigTypeS3 is a ReportExportConfigType enum value
+	ReportExportConfigTypeS3 = "S3"
+
+	// ReportExportConfigTypeNoExport is a ReportExportConfigType enum value
+	ReportExportConfigTypeNoExport = "NO_EXPORT"
+)
+
+const (
+	// ReportGroupSortByTypeName is a ReportGroupSortByType enum value
+	ReportGroupSortByTypeName = "NAME"
+
+	// ReportGroupSortByTypeCreatedTime is a ReportGroupSortByType enum value
+	ReportGroupSortByTypeCreatedTime = "CREATED_TIME"
+
+	// ReportGroupSortByTypeLastModifiedTime is a ReportGroupSortByType enum value
+	ReportGroupSortByTypeLastModifiedTime = "LAST_MODIFIED_TIME"
+)
+
+const (
+	// ReportPackagingTypeZip is a ReportPackagingType enum value
+	ReportPackagingTypeZip = "ZIP"
+
+	// ReportPackagingTypeNone is a ReportPackagingType enum value
+	ReportPackagingTypeNone = "NONE"
+)
+
+const (
+	// ReportStatusTypeGenerating is a ReportStatusType enum value
+	ReportStatusTypeGenerating = "GENERATING"
+
+	// ReportStatusTypeSucceeded is a ReportStatusType enum value
+	ReportStatusTypeSucceeded = "SUCCEEDED"
+
+	// ReportStatusTypeFailed is a ReportStatusType enum value
+	ReportStatusTypeFailed = "FAILED"
+
+	// ReportStatusTypeIncomplete is a ReportStatusType enum value
+	ReportStatusTypeIncomplete = "INCOMPLETE"
+
+	// ReportStatusTypeDeleting is a ReportStatusType enum value
+	ReportStatusTypeDeleting = "DELETING"
+)
+
+const (
+	// ReportTypeTest is a ReportType enum value
+	ReportTypeTest = "TEST"
+)
+
+const (
 	// ServerTypeGithub is a ServerType enum value
 	ServerTypeGithub = "GITHUB"
 
@@ -6707,6 +10436,14 @@ const (
 
 	// ServerTypeGithubEnterprise is a ServerType enum value
 	ServerTypeGithubEnterprise = "GITHUB_ENTERPRISE"
+)
+
+const (
+	// SharedResourceSortByTypeArn is a SharedResourceSortByType enum value
+	SharedResourceSortByTypeArn = "ARN"
+
+	// SharedResourceSortByTypeModifiedTime is a SharedResourceSortByType enum value
+	SharedResourceSortByTypeModifiedTime = "MODIFIED_TIME"
 )
 
 const (

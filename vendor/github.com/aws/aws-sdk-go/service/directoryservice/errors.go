@@ -2,6 +2,10 @@
 
 package directoryservice
 
+import (
+	"github.com/aws/aws-sdk-go/private/protocol"
+)
+
 const (
 
 	// ErrCodeAccessDeniedException for service response error code
@@ -16,6 +20,32 @@ const (
 	// An authentication error occurred.
 	ErrCodeAuthenticationFailedException = "AuthenticationFailedException"
 
+	// ErrCodeCertificateAlreadyExistsException for service response error code
+	// "CertificateAlreadyExistsException".
+	//
+	// The certificate has already been registered into the system.
+	ErrCodeCertificateAlreadyExistsException = "CertificateAlreadyExistsException"
+
+	// ErrCodeCertificateDoesNotExistException for service response error code
+	// "CertificateDoesNotExistException".
+	//
+	// The certificate is not present in the system for describe or deregister activities.
+	ErrCodeCertificateDoesNotExistException = "CertificateDoesNotExistException"
+
+	// ErrCodeCertificateInUseException for service response error code
+	// "CertificateInUseException".
+	//
+	// The certificate is being used for the LDAP security connection and cannot
+	// be removed without disabling LDAP security.
+	ErrCodeCertificateInUseException = "CertificateInUseException"
+
+	// ErrCodeCertificateLimitExceededException for service response error code
+	// "CertificateLimitExceededException".
+	//
+	// The certificate could not be added because the certificate limit has been
+	// reached.
+	ErrCodeCertificateLimitExceededException = "CertificateLimitExceededException"
+
 	// ErrCodeClientException for service response error code
 	// "ClientException".
 	//
@@ -27,6 +57,12 @@ const (
 	//
 	// The specified directory has already been shared with this AWS account.
 	ErrCodeDirectoryAlreadySharedException = "DirectoryAlreadySharedException"
+
+	// ErrCodeDirectoryDoesNotExistException for service response error code
+	// "DirectoryDoesNotExistException".
+	//
+	// The specified directory does not exist in the system.
+	ErrCodeDirectoryDoesNotExistException = "DirectoryDoesNotExistException"
 
 	// ErrCodeDirectoryLimitExceededException for service response error code
 	// "DirectoryLimitExceededException".
@@ -73,6 +109,19 @@ const (
 	// The account does not have sufficient permission to perform the operation.
 	ErrCodeInsufficientPermissionsException = "InsufficientPermissionsException"
 
+	// ErrCodeInvalidCertificateException for service response error code
+	// "InvalidCertificateException".
+	//
+	// The certificate PEM that was provided has incorrect encoding.
+	ErrCodeInvalidCertificateException = "InvalidCertificateException"
+
+	// ErrCodeInvalidLDAPSStatusException for service response error code
+	// "InvalidLDAPSStatusException".
+	//
+	// The LDAP activities could not be performed because they are limited by the
+	// LDAPS status.
+	ErrCodeInvalidLDAPSStatusException = "InvalidLDAPSStatusException"
+
 	// ErrCodeInvalidNextTokenException for service response error code
 	// "InvalidNextTokenException".
 	//
@@ -104,6 +153,13 @@ const (
 	// The maximum allowed number of IP addresses was exceeded. The default limit
 	// is 100 IP address blocks.
 	ErrCodeIpRouteLimitExceededException = "IpRouteLimitExceededException"
+
+	// ErrCodeNoAvailableCertificateException for service response error code
+	// "NoAvailableCertificateException".
+	//
+	// The LDAP activities could not be performed because at least one valid certificate
+	// must be registered with the system.
+	ErrCodeNoAvailableCertificateException = "NoAvailableCertificateException"
 
 	// ErrCodeOrganizationsException for service response error code
 	// "OrganizationsException".
@@ -150,3 +206,37 @@ const (
 	// The user provided a username that does not exist in your directory.
 	ErrCodeUserDoesNotExistException = "UserDoesNotExistException"
 )
+
+var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
+	"AccessDeniedException":                  newErrorAccessDeniedException,
+	"AuthenticationFailedException":          newErrorAuthenticationFailedException,
+	"CertificateAlreadyExistsException":      newErrorCertificateAlreadyExistsException,
+	"CertificateDoesNotExistException":       newErrorCertificateDoesNotExistException,
+	"CertificateInUseException":              newErrorCertificateInUseException,
+	"CertificateLimitExceededException":      newErrorCertificateLimitExceededException,
+	"ClientException":                        newErrorClientException,
+	"DirectoryAlreadySharedException":        newErrorDirectoryAlreadySharedException,
+	"DirectoryDoesNotExistException":         newErrorDirectoryDoesNotExistException,
+	"DirectoryLimitExceededException":        newErrorDirectoryLimitExceededException,
+	"DirectoryNotSharedException":            newErrorDirectoryNotSharedException,
+	"DirectoryUnavailableException":          newErrorDirectoryUnavailableException,
+	"DomainControllerLimitExceededException": newErrorDomainControllerLimitExceededException,
+	"EntityAlreadyExistsException":           newErrorEntityAlreadyExistsException,
+	"EntityDoesNotExistException":            newErrorEntityDoesNotExistException,
+	"InsufficientPermissionsException":       newErrorInsufficientPermissionsException,
+	"InvalidCertificateException":            newErrorInvalidCertificateException,
+	"InvalidLDAPSStatusException":            newErrorInvalidLDAPSStatusException,
+	"InvalidNextTokenException":              newErrorInvalidNextTokenException,
+	"InvalidParameterException":              newErrorInvalidParameterException,
+	"InvalidPasswordException":               newErrorInvalidPasswordException,
+	"InvalidTargetException":                 newErrorInvalidTargetException,
+	"IpRouteLimitExceededException":          newErrorIpRouteLimitExceededException,
+	"NoAvailableCertificateException":        newErrorNoAvailableCertificateException,
+	"OrganizationsException":                 newErrorOrganizationsException,
+	"ServiceException":                       newErrorServiceException,
+	"ShareLimitExceededException":            newErrorShareLimitExceededException,
+	"SnapshotLimitExceededException":         newErrorSnapshotLimitExceededException,
+	"TagLimitExceededException":              newErrorTagLimitExceededException,
+	"UnsupportedOperationException":          newErrorUnsupportedOperationException,
+	"UserDoesNotExistException":              newErrorUserDoesNotExistException,
+}

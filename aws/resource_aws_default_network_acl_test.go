@@ -440,10 +440,6 @@ resource "aws_default_network_acl" "default" {
 `
 
 const testAccAWSDefaultNetworkConfig_basicIpv6Vpc = `
-provider "aws" {
-  region = "us-east-2"
-}
-
 resource "aws_vpc" "tftestvpc" {
 	cidr_block = "10.1.0.0/16"
 	assign_generated_ipv6_cidr_block = true

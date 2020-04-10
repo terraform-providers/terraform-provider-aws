@@ -20,8 +20,8 @@ import (
 	multierror "github.com/hashicorp/go-multierror"
 	uuid "github.com/hashicorp/go-uuid"
 	version "github.com/hashicorp/go-version"
-	"github.com/hashicorp/hcl2/hcl"
-	"github.com/hashicorp/hcl2/hcl/hclsyntax"
+	"github.com/hashicorp/hcl/v2"
+	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/hashicorp/terraform-plugin-sdk/internal/addrs"
 	"github.com/hashicorp/terraform-plugin-sdk/internal/configs"
 	"github.com/hashicorp/terraform-plugin-sdk/internal/configs/configschema"
@@ -1110,7 +1110,7 @@ func (m *ModuleState) View(id string) *ModuleState {
 	}
 
 	r := m.deepcopy()
-	for k, _ := range r.Resources {
+	for k := range r.Resources {
 		if id == k || strings.HasPrefix(k, id+".") {
 			continue
 		}
@@ -1197,7 +1197,7 @@ func (m *ModuleState) String() string {
 	}
 
 	names := make([]string, 0, len(m.Resources))
-	for name, _ := range m.Resources {
+	for name := range m.Resources {
 		names = append(names, name)
 	}
 
@@ -1234,7 +1234,7 @@ func (m *ModuleState) String() string {
 			attributes = rs.Primary.Attributes
 		}
 		attrKeys := make([]string, 0, len(attributes))
-		for ak, _ := range attributes {
+		for ak := range attributes {
 			if ak == "id" {
 				continue
 			}
@@ -1269,7 +1269,7 @@ func (m *ModuleState) String() string {
 		buf.WriteString("\nOutputs:\n\n")
 
 		ks := make([]string, 0, len(m.Outputs))
-		for k, _ := range m.Outputs {
+		for k := range m.Outputs {
 			ks = append(ks, k)
 		}
 
@@ -1284,7 +1284,7 @@ func (m *ModuleState) String() string {
 				buf.WriteString(fmt.Sprintf("%s = %s\n", k, vTyped))
 			case map[string]interface{}:
 				var mapKeys []string
-				for key, _ := range vTyped {
+				for key := range vTyped {
 					mapKeys = append(mapKeys, key)
 				}
 				sort.Strings(mapKeys)
@@ -1820,7 +1820,7 @@ func (s *InstanceState) String() string {
 
 	attributes := s.Attributes
 	attrKeys := make([]string, 0, len(attributes))
-	for ak, _ := range attributes {
+	for ak := range attributes {
 		if ak == "id" {
 			continue
 		}

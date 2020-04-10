@@ -30,7 +30,7 @@ func dataSourceAwsAmiIds() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.ValidateRegexp,
+				ValidateFunc: validation.StringIsValidRegExp,
 			},
 			"owners": {
 				Type:     schema.TypeList,

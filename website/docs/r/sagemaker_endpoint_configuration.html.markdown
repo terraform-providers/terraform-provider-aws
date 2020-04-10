@@ -49,6 +49,7 @@ The `production_variants` block supports:
 * `initial_variant_weight` (Optional) - Determines initial traffic distribution among all of the models that you specify in the endpoint configuration. If unspecified, it defaults to 1.0.
 * `model_name` - (Required) The name of the model to use.
 * `variant_name` - (Optional) The name of the variant. If omitted, Terraform will assign a random, unique name.
+
 ## Attributes Reference
 
 The following attributes are exported:

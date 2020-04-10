@@ -160,7 +160,7 @@ func testAccPreCheckAWSMacie(t *testing.T) {
 func testAccAWSMacieS3BucketAssociationConfig_basic(randInt int) string {
 	return fmt.Sprintf(`
 resource "aws_s3_bucket" "test" {
-  bucket = "tf-macie-test-bucket-%d"
+  bucket = "tf-test-macie-bucket-%d"
 }
 
 resource "aws_macie_s3_bucket_association" "test" {
@@ -172,7 +172,7 @@ resource "aws_macie_s3_bucket_association" "test" {
 func testAccAWSMacieS3BucketAssociationConfig_basicOneTime(randInt int) string {
 	return fmt.Sprintf(`
 resource "aws_s3_bucket" "test" {
-  bucket = "tf-macie-test-bucket-%d"
+  bucket = "tf-test-macie-bucket-%d"
 }
 
 resource "aws_macie_s3_bucket_association" "test" {
@@ -188,7 +188,7 @@ resource "aws_macie_s3_bucket_association" "test" {
 func testAccAWSMacieS3BucketAssociationConfig_accountIdAndPrefix(randInt int) string {
 	return fmt.Sprintf(`
 resource "aws_s3_bucket" "test" {
-  bucket = "tf-macie-test-bucket-%d"
+  bucket = "tf-test-macie-bucket-%d"
 }
 
 data "aws_caller_identity" "current" {}
@@ -204,7 +204,7 @@ resource "aws_macie_s3_bucket_association" "test" {
 func testAccAWSMacieS3BucketAssociationConfig_accountIdAndPrefixOneTime(randInt int) string {
 	return fmt.Sprintf(`
 resource "aws_s3_bucket" "test" {
-  bucket = "tf-macie-test-bucket-%d"
+  bucket = "tf-test-macie-bucket-%d"
 }
 
 data "aws_caller_identity" "current" {}

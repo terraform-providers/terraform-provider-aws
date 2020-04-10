@@ -46,6 +46,7 @@ resource "aws_appsync_graphql_api" "example" {
 ```
 
 ### With Schema
+
 ```hcl
 resource "aws_appsync_graphql_api" "example" {
   authentication_type = "AWS_IAM"
@@ -80,8 +81,8 @@ resource "aws_appsync_graphql_api" "example" {
 ```hcl
 resource "aws_appsync_graphql_api" "example" {
   authentication_type = "API_KEY"
-  name = "example"
-  
+  name                = "example"
+
   additional_authentication_provider {
     authentication_type = "AWS_IAM"
   }
@@ -137,6 +138,7 @@ The following arguments are supported:
 * `schema` - (Optional) The schema definition, in GraphQL schema language format. Terraform cannot perform drift detection of this configuration.
 * `additional_authentication_provider` - (Optional) One or more additional authentication providers for the GraphqlApi. Defined below.
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+* `xray_enabled` - (Optional) Whether tracing with X-ray is enabled. Defaults to false.
 
 ### log_config
 

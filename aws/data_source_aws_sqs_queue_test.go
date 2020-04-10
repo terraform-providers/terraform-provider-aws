@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
-func TestAccDataSourceAwsSqsQueue(t *testing.T) {
+func TestAccDataSourceAwsSqsQueue_basic(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf_acc_test_")
 	resourceName := "aws_sqs_queue.test"
 	datasourceName := "data.aws_sqs_queue.by_name"
@@ -22,6 +22,30 @@ func TestAccDataSourceAwsSqsQueue(t *testing.T) {
 				Config: testAccDataSourceAwsSqsQueueConfig(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccDataSourceAwsSqsQueueCheck(datasourceName, resourceName),
+					resource.TestCheckResourceAttr(datasourceName, "tags.%", "0"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDataSourceAwsSqsQueue_tags(t *testing.T) {
+	rName := acctest.RandomWithPrefix("tf_acc_test_")
+	resourceName := "aws_sqs_queue.test"
+	datasourceName := "data.aws_sqs_queue.by_name"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceAwsSqsQueueConfigTags(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccDataSourceAwsSqsQueueCheck(datasourceName, resourceName),
+					resource.TestCheckResourceAttr(datasourceName, "tags.%", "3"),
+					resource.TestCheckResourceAttr(datasourceName, "tags.Environment", "Production"),
+					resource.TestCheckResourceAttr(datasourceName, "tags.Foo", "Bar"),
+					resource.TestCheckResourceAttr(datasourceName, "tags.Empty", ""),
 				),
 			},
 		},
@@ -68,6 +92,24 @@ resource "aws_sqs_queue" "wrong" {
 
 resource "aws_sqs_queue" "test" {
   name = "%[1]s"
+}
+
+data "aws_sqs_queue" "by_name" {
+  name = "${aws_sqs_queue.test.name}"
+}
+`, rName)
+}
+
+func testAccDataSourceAwsSqsQueueConfigTags(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_sqs_queue" "test" {
+  name = "%[1]s"
+
+  tags = {
+    Environment = "Production"
+    Foo         = "Bar"
+    Empty       = ""
+  }
 }
 
 data "aws_sqs_queue" "by_name" {

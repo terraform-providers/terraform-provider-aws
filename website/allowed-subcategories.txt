@@ -1,0 +1,110 @@
+
+ACM PCA
+ACM
+API Gateway (REST APIs)
+API Gateway v2 (WebSocket and HTTP APIs)
+Access Analyzer
+AppMesh
+AppSync
+Application Autoscaling
+Athena
+Autoscaling
+Backup
+Batch
+Budgets
+Cloud9
+CloudFormation
+CloudFront
+CloudHSM v2
+CloudTrail
+CloudWatch
+CodeBuild
+CodeCommit
+CodeDeploy
+CodePipeline
+CodeStar Notifications
+Cognito
+Config
+Cost and Usage Report
+Data Lifecycle Manager (DLM)
+DataPipeline
+DataSync
+Database Migration Service (DMS)
+Device Farm
+Direct Connect
+Directory Service
+DocumentDB
+DynamoDB Accelerator (DAX)
+DynamoDB
+EC2
+ECR
+ECS
+EFS
+EKS
+ElastiCache
+Elastic Beanstalk
+Elastic Load Balancing (ELB Classic)
+Elastic Load Balancing v2 (ALB/NLB)
+Elastic Map Reduce (EMR)
+Elastic Transcoder
+ElasticSearch
+File System (FSx)
+Firewall Manager (FMS)
+Gamelift
+Glacier
+Global Accelerator
+Glue
+GuardDuty
+IAM
+Inspector
+IoT
+KMS
+Kinesis Firehose
+Kinesis
+Kinesis Video
+Lambda
+License Manager
+Lightsail
+MQ
+Macie
+Managed Streaming for Kafka (MSK)
+MediaConvert
+MediaPackage
+MediaStore
+Neptune
+OpsWorks
+Organizations
+Pinpoint
+Pricing
+Quantum Ledger Database (QLDB)
+QuickSight
+RAM
+RDS
+Redshift
+Resource Groups
+Route53 Resolver
+Route53
+S3
+SES
+SNS
+SQS
+SSM
+SWF
+Sagemaker
+Secrets Manager
+Security Hub
+Service Catalog
+Service Discovery
+Service Quotas
+Shield
+SimpleDB
+Step Function (SFN)
+Storage Gateway
+Transfer
+VPC
+WAF Regional
+WAF
+WorkLink
+WorkMail
+WorkSpaces
+XRay

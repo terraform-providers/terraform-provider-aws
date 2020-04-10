@@ -24,7 +24,7 @@ func TestAccAWSRedshiftSecurityGroup_basic(t *testing.T) {
 	resourceName := "aws_redshift_security_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccEC2ClassicPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSRedshiftSecurityGroupDestroy,
 		Steps: []resource.TestStep{
@@ -53,7 +53,7 @@ func TestAccAWSRedshiftSecurityGroup_ingressCidr(t *testing.T) {
 	resourceName := "aws_redshift_security_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccEC2ClassicPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSRedshiftSecurityGroupDestroy,
 		Steps: []resource.TestStep{
@@ -90,7 +90,7 @@ func TestAccAWSRedshiftSecurityGroup_updateIngressCidr(t *testing.T) {
 	resourceName := "aws_redshift_security_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccEC2ClassicPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSRedshiftSecurityGroupDestroy,
 		Steps: []resource.TestStep{
@@ -137,7 +137,7 @@ func TestAccAWSRedshiftSecurityGroup_ingressSecurityGroup(t *testing.T) {
 	resourceName := "aws_redshift_security_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccEC2ClassicPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSRedshiftSecurityGroupDestroy,
 		Steps: []resource.TestStep{
@@ -172,7 +172,7 @@ func TestAccAWSRedshiftSecurityGroup_updateIngressSecurityGroup(t *testing.T) {
 	resourceName := "aws_redshift_security_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccEC2ClassicPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSRedshiftSecurityGroupDestroy,
 		Steps: []resource.TestStep{

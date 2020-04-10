@@ -112,5 +112,9 @@ interpolation.
 * `host_id` - The Id of the dedicated host the instance will be assigned to.
 * `vpc_security_group_ids` - The associated security groups in a non-default VPC.
 * `credit_specification` - The credit specification of the Instance.
+* `metadata_options` - The metadata options of the Instance.
+  * `http_endpoint` - The state of the metadata service: `enabled`, `disabled`.
+  * `http_tokens` - If session tokens are required: `optional`, `required`.
+  * `http_put_response_hop_limit` - The desired HTTP PUT response hop limit for instance metadata requests.
 
 [1]: http://docs.aws.amazon.com/cli/latest/reference/ec2/describe-instances.html

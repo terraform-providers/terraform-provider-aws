@@ -37,3 +37,14 @@ _ = schema.Schema{
     Type:     schema.TypeString,
 }
 ```
+
+## Ignoring Reports
+
+Singular reports can be ignored by adding the a `//lintignore:S012` Go code comment at the end of the offending line or on the line immediately proceding, e.g.
+
+```go
+//lintignore:S012
+_ = schema.Schema{
+    Computed: true,
+}
+```

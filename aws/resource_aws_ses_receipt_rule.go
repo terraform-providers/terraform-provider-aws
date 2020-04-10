@@ -377,7 +377,7 @@ func resourceAwsSesReceiptRuleImport(d *schema.ResourceData, meta interface{}) (
 }
 
 func resourceAwsSesReceiptRuleCreate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).sesConn
+	conn := meta.(*AWSClient).sesconn
 
 	createOpts := &ses.CreateReceiptRuleInput{
 		Rule:        buildReceiptRule(d),
@@ -399,7 +399,7 @@ func resourceAwsSesReceiptRuleCreate(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceAwsSesReceiptRuleUpdate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).sesConn
+	conn := meta.(*AWSClient).sesconn
 
 	updateOpts := &ses.UpdateReceiptRuleInput{
 		Rule:        buildReceiptRule(d),
@@ -428,7 +428,7 @@ func resourceAwsSesReceiptRuleUpdate(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceAwsSesReceiptRuleRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).sesConn
+	conn := meta.(*AWSClient).sesconn
 
 	describeOpts := &ses.DescribeReceiptRuleInput{
 		RuleName:    aws.String(d.Id()),
@@ -447,10 +447,10 @@ func resourceAwsSesReceiptRuleRead(d *schema.ResourceData, meta interface{}) err
 		}
 	}
 
-	d.Set("enabled", *response.Rule.Enabled)
+	d.Set("enabled", response.Rule.Enabled)
 	d.Set("recipients", flattenStringList(response.Rule.Recipients))
-	d.Set("scan_enabled", *response.Rule.ScanEnabled)
-	d.Set("tls_policy", *response.Rule.TlsPolicy)
+	d.Set("scan_enabled", response.Rule.ScanEnabled)
+	d.Set("tls_policy", response.Rule.TlsPolicy)
 
 	addHeaderActionList := []map[string]interface{}{}
 	bounceActionList := []map[string]interface{}{}
@@ -599,7 +599,7 @@ func resourceAwsSesReceiptRuleRead(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceAwsSesReceiptRuleDelete(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).sesConn
+	conn := meta.(*AWSClient).sesconn
 
 	deleteOpts := &ses.DeleteReceiptRuleInput{
 		RuleName:    aws.String(d.Id()),

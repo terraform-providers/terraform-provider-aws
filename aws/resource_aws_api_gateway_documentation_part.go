@@ -71,7 +71,7 @@ func resourceAwsApiGatewayDocumentationPart() *schema.Resource {
 }
 
 func resourceAwsApiGatewayDocumentationPartCreate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	conn := meta.(*AWSClient).apigatewayconn
 
 	apiId := d.Get("rest_api_id").(string)
 	out, err := conn.CreateDocumentationPart(&apigateway.CreateDocumentationPartInput{
@@ -88,7 +88,7 @@ func resourceAwsApiGatewayDocumentationPartCreate(d *schema.ResourceData, meta i
 }
 
 func resourceAwsApiGatewayDocumentationPartRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	conn := meta.(*AWSClient).apigatewayconn
 
 	log.Printf("[INFO] Reading API Gateway Documentation Part %s", d.Id())
 
@@ -120,7 +120,7 @@ func resourceAwsApiGatewayDocumentationPartRead(d *schema.ResourceData, meta int
 }
 
 func resourceAwsApiGatewayDocumentationPartUpdate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	conn := meta.(*AWSClient).apigatewayconn
 
 	apiId, id, err := decodeApiGatewayDocumentationPartId(d.Id())
 	if err != nil {
@@ -157,7 +157,7 @@ func resourceAwsApiGatewayDocumentationPartUpdate(d *schema.ResourceData, meta i
 }
 
 func resourceAwsApiGatewayDocumentationPartDelete(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	conn := meta.(*AWSClient).apigatewayconn
 
 	apiId, id, err := decodeApiGatewayDocumentationPartId(d.Id())
 	if err != nil {

@@ -7,6 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsSsmMaintenanceWindow() *schema.Resource {
@@ -68,6 +69,10 @@ func resourceAwsSsmMaintenanceWindow() *schema.Resource {
 			},
 
 			"tags": tagsSchema(),
+			"description": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 		},
 	}
 }
@@ -84,7 +89,7 @@ func resourceAwsSsmMaintenanceWindowCreate(d *schema.ResourceData, meta interfac
 	}
 
 	if v, ok := d.GetOk("tags"); ok {
-		params.Tags = tagsFromMapSSM(v.(map[string]interface{}))
+		params.Tags = keyvaluetags.New(v.(map[string]interface{})).IgnoreAws().SsmTags()
 	}
 
 	if v, ok := d.GetOk("end_date"); ok {
@@ -97,6 +102,10 @@ func resourceAwsSsmMaintenanceWindowCreate(d *schema.ResourceData, meta interfac
 
 	if v, ok := d.GetOk("start_date"); ok {
 		params.StartDate = aws.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("description"); ok {
+		params.Description = aws.String(v.(string))
 	}
 
 	resp, err := ssmconn.CreateMaintenanceWindow(params)
@@ -149,6 +158,10 @@ func resourceAwsSsmMaintenanceWindowUpdate(d *schema.ResourceData, meta interfac
 		params.StartDate = aws.String(v.(string))
 	}
 
+	if v, ok := d.GetOk("description"); ok {
+		params.Description = aws.String(v.(string))
+	}
+
 	_, err := ssmconn.UpdateMaintenanceWindow(params)
 	if err != nil {
 		if isAWSErr(err, ssm.ErrCodeDoesNotExistException, "") {
@@ -160,8 +173,10 @@ func resourceAwsSsmMaintenanceWindowUpdate(d *schema.ResourceData, meta interfac
 	}
 
 	if d.HasChange("tags") {
-		if err := setTagsSSM(ssmconn, d, d.Id(), ssm.ResourceTypeForTaggingMaintenanceWindow); err != nil {
-			return fmt.Errorf("error setting tags for SSM Maintenance Window (%s): %s", d.Id(), err)
+		o, n := d.GetChange("tags")
+
+		if err := keyvaluetags.SsmUpdateTags(ssmconn, d.Id(), ssm.ResourceTypeForTaggingMaintenanceWindow, o, n); err != nil {
+			return fmt.Errorf("error updating SSM Maintenance Window (%s) tags: %s", d.Id(), err)
 		}
 	}
 
@@ -194,9 +209,16 @@ func resourceAwsSsmMaintenanceWindowRead(d *schema.ResourceData, meta interface{
 	d.Set("schedule_timezone", resp.ScheduleTimezone)
 	d.Set("schedule", resp.Schedule)
 	d.Set("start_date", resp.StartDate)
+	d.Set("description", resp.Description)
 
-	if err := saveTagsSSM(ssmconn, d, d.Id(), ssm.ResourceTypeForTaggingMaintenanceWindow); err != nil {
-		return fmt.Errorf("error saving tags for SSM Maintenance Window (%s): %s", d.Id(), err)
+	tags, err := keyvaluetags.SsmListTags(ssmconn, d.Id(), ssm.ResourceTypeForTaggingMaintenanceWindow)
+
+	if err != nil {
+		return fmt.Errorf("error listing tags for SSM Maintenance Window (%s): %s", d.Id(), err)
+	}
+
+	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+		return fmt.Errorf("error setting tags: %s", err)
 	}
 
 	return nil

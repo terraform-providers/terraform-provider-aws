@@ -2,6 +2,10 @@
 
 package dax
 
+import (
+	"github.com/aws/aws-sdk-go/private/protocol"
+)
+
 const (
 
 	// ErrCodeClusterAlreadyExistsFault for service response error code
@@ -110,6 +114,8 @@ const (
 
 	// ErrCodeServiceLinkedRoleNotFoundFault for service response error code
 	// "ServiceLinkedRoleNotFoundFault".
+	//
+	// The specified service linked role (SLR) was not found.
 	ErrCodeServiceLinkedRoleNotFoundFault = "ServiceLinkedRoleNotFoundFault"
 
 	// ErrCodeSubnetGroupAlreadyExistsFault for service response error code
@@ -162,3 +168,32 @@ const (
 	// You have exceeded the maximum number of tags for this DAX cluster.
 	ErrCodeTagQuotaPerResourceExceeded = "TagQuotaPerResourceExceeded"
 )
+
+var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
+	"ClusterAlreadyExistsFault":            newErrorClusterAlreadyExistsFault,
+	"ClusterNotFoundFault":                 newErrorClusterNotFoundFault,
+	"ClusterQuotaForCustomerExceededFault": newErrorClusterQuotaForCustomerExceededFault,
+	"InsufficientClusterCapacityFault":     newErrorInsufficientClusterCapacityFault,
+	"InvalidARNFault":                      newErrorInvalidARNFault,
+	"InvalidClusterStateFault":             newErrorInvalidClusterStateFault,
+	"InvalidParameterCombinationException": newErrorInvalidParameterCombinationException,
+	"InvalidParameterGroupStateFault":      newErrorInvalidParameterGroupStateFault,
+	"InvalidParameterValueException":       newErrorInvalidParameterValueException,
+	"InvalidSubnet":                        newErrorInvalidSubnet,
+	"InvalidVPCNetworkStateFault":          newErrorInvalidVPCNetworkStateFault,
+	"NodeNotFoundFault":                    newErrorNodeNotFoundFault,
+	"NodeQuotaForClusterExceededFault":     newErrorNodeQuotaForClusterExceededFault,
+	"NodeQuotaForCustomerExceededFault":    newErrorNodeQuotaForCustomerExceededFault,
+	"ParameterGroupAlreadyExistsFault":     newErrorParameterGroupAlreadyExistsFault,
+	"ParameterGroupNotFoundFault":          newErrorParameterGroupNotFoundFault,
+	"ParameterGroupQuotaExceededFault":     newErrorParameterGroupQuotaExceededFault,
+	"ServiceLinkedRoleNotFoundFault":       newErrorServiceLinkedRoleNotFoundFault,
+	"SubnetGroupAlreadyExistsFault":        newErrorSubnetGroupAlreadyExistsFault,
+	"SubnetGroupInUseFault":                newErrorSubnetGroupInUseFault,
+	"SubnetGroupNotFoundFault":             newErrorSubnetGroupNotFoundFault,
+	"SubnetGroupQuotaExceededFault":        newErrorSubnetGroupQuotaExceededFault,
+	"SubnetInUse":                          newErrorSubnetInUse,
+	"SubnetQuotaExceededFault":             newErrorSubnetQuotaExceededFault,
+	"TagNotFoundFault":                     newErrorTagNotFoundFault,
+	"TagQuotaPerResourceExceeded":          newErrorTagQuotaPerResourceExceeded,
+}

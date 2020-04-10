@@ -48,11 +48,21 @@ DOC
 The following arguments are supported:
 
 * `name` - (Required) The name of the document.
+* `attachments_source` - (Optional) One or more configuration blocks describing attachments sources to a version of a document. Defined below.
 * `content` - (Required) The JSON or YAML content of the document.
 * `document_format` - (Optional, defaults to JSON) The format of the document. Valid document types include: `JSON` and `YAML`
-* `document_type` - (Required) The type of the document. Valid document types include: `Command`, `Policy`, `Automation` and `Session`
+* `document_type` - (Required) The type of the document. Valid document types include: `Automation`, `Command`, `Package`, `Policy`, and `Session`
 * `permissions` - (Optional) Additional Permissions to attach to the document. See [Permissions](#permissions) below for details.
+* `target_type` - (Optional) The target type which defines the kinds of resources the document can run on. For example, /AWS::EC2::Instance. For a list of valid resource types, see AWS Resource Types Reference (http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-template-resource-type-ref.html)
 * `tags` - (Optional) A mapping of tags to assign to the object.
+
+## attachments_source
+
+The `attachments_source` block supports the following:
+
+* `key` - (Required) The key describing the location of an attachment to a document. Valid key types include: `SourceUrl` and `S3FileUrl`
+* `values` - (Required) The value describing the location of an attachment to a document
+* `name` - (Optional) The name of the document attachment file
 
 ## Attributes Reference
 
@@ -89,4 +99,23 @@ SSM Documents can be imported using the name, e.g.
 
 ```
 $ terraform import aws_ssm_document.example example
+```
+
+The `attachments_source` argument does not have an SSM API method for reading the attachment information detail after creation. If the argument is set in the Terraform configuration on an imported resource, Terraform will always show a difference. To workaround this behavior, either omit the argument from the Terraform configuration or use [`ignore_changes`](/docs/configuration/resources.html#ignore_changes) to hide the difference, e.g.
+
+```hcl
+resource "aws_ssm_document" "test" {
+  name          = "test_document"
+  document_type = "Package"
+
+  attachments_source {
+    key    = "SourceUrl"
+    values = ["s3://${aws_s3_bucket.object_bucket.bucket}/test.zip"]
+  }
+
+  # There is no AWS SSM API for reading attachments_source info directly
+  lifecycle {
+    ignore_changes = ["attachments_source"]
+  }
+}
 ```

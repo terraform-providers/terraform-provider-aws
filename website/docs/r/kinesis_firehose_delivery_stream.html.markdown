@@ -262,6 +262,7 @@ is redshift). More details are given below.
 * `redshift_configuration` - (Optional) Configuration options if redshift is the destination.
 Using `redshift_configuration` requires the user to also specify a
 `s3_configuration` block. More details are given below.
+* `elasticsearch_configuration` - (Optional) Configuration options if elasticsearch is the destination. More details are given below.
 
 The `kinesis_source_configuration` object supports the following:
 
@@ -329,7 +330,7 @@ The `splunk_configuration` objects supports the following:
 * `hec_endpoint_type` - (Optional) The HEC endpoint type. Valid values are `Raw` or `Event`. The default value is `Raw`.
 * `hec_token` - The GUID that you obtain from your Splunk cluster when you create a new HEC endpoint.
 * `s3_backup_mode` - (Optional) Defines how documents should be delivered to Amazon S3.  Valid values are `FailedEventsOnly` and `AllEvents`.  Default value is `FailedEventsOnly`.
-* `retry_duration` - (Optional) After an initial failure to deliver to Amazon Elasticsearch, the total amount of time, in seconds between 0 to 7200, during which Firehose re-attempts delivery (including the first attempt).  After this time has elapsed, the failed documents are written to Amazon S3.  The default value is 300s.  There will be no retry if the value is 0.
+* `retry_duration` - (Optional) After an initial failure to deliver to Splunk, the total amount of time, in seconds between 0 to 7200, during which Firehose re-attempts delivery (including the first attempt).  After this time has elapsed, the failed documents are written to Amazon S3.  The default value is 300s.  There will be no retry if the value is 0.
 * `cloudwatch_logging_options` - (Optional) The CloudWatch Logging Options for the delivery stream. More details are given below.
 * `processing_configuration` - (Optional) The data processing configuration.  More details are given below.
 

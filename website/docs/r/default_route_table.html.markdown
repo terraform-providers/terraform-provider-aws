@@ -40,7 +40,7 @@ in conjunction with any Route resources. Doing so will cause
 a conflict of rule settings and will overwrite routes.
 
 
-## Example usage with tags:
+## Example usage with tags
 
 ```hcl
 resource "aws_default_route_table" "r" {

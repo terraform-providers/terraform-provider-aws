@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsElasticacheCluster() *schema.Resource {
@@ -33,6 +34,10 @@ func resourceAwsElasticacheCluster() *schema.Resource {
 			"apply_immediately": {
 				Type:     schema.TypeBool,
 				Optional: true,
+				Computed: true,
+			},
+			"arn": {
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 			"availability_zone": {
@@ -100,8 +105,8 @@ func resourceAwsElasticacheCluster() *schema.Resource {
 					validation.StringLenBetween(1, 50),
 					validation.StringMatch(regexp.MustCompile(`^[0-9a-z-]+$`), "must contain only lowercase alphanumeric characters and hyphens"),
 					validation.StringMatch(regexp.MustCompile(`^[a-z]`), "must begin with a lowercase letter"),
-					validateStringNotMatch(regexp.MustCompile(`--`), "cannot contain two consecutive hyphens"),
-					validateStringNotMatch(regexp.MustCompile(`-$`), "cannot end with a hyphen"),
+					validation.StringDoesNotMatch(regexp.MustCompile(`--`), "cannot contain two consecutive hyphens"),
+					validation.StringDoesNotMatch(regexp.MustCompile(`-$`), "cannot end with a hyphen"),
 				),
 			},
 			"configuration_endpoint": {
@@ -152,6 +157,7 @@ func resourceAwsElasticacheCluster() *schema.Resource {
 			"port": {
 				Type:     schema.TypeInt,
 				Optional: true,
+				Computed: true,
 				ForceNew: true,
 				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
 					// Suppress default memcached/redis ports when not defined
@@ -315,7 +321,7 @@ func resourceAwsElasticacheClusterCreate(d *schema.ResourceData, meta interface{
 		securityIdSet := d.Get("security_group_ids").(*schema.Set)
 		securityNames := expandStringList(securityNameSet.List())
 		securityIds := expandStringList(securityIdSet.List())
-		tags := tagsFromMapEC(d.Get("tags").(map[string]interface{}))
+		tags := keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().ElasticacheTags()
 
 		req.CacheSecurityGroupNames = securityNames
 		req.SecurityGroupIds = securityIds
@@ -470,8 +476,7 @@ func resourceAwsElasticacheClusterRead(d *schema.ResourceData, meta interface{})
 		if err := setCacheNodeData(d, c); err != nil {
 			return err
 		}
-		// list tags for resource
-		// set tags
+
 		arn := arn.ARN{
 			Partition: meta.(*AWSClient).partition,
 			Service:   "elasticache",
@@ -479,19 +484,18 @@ func resourceAwsElasticacheClusterRead(d *schema.ResourceData, meta interface{})
 			AccountID: meta.(*AWSClient).accountid,
 			Resource:  fmt.Sprintf("cluster:%s", d.Id()),
 		}.String()
-		resp, err := conn.ListTagsForResource(&elasticache.ListTagsForResourceInput{
-			ResourceName: aws.String(arn),
-		})
+
+		d.Set("arn", arn)
+
+		tags, err := keyvaluetags.ElasticacheListTags(conn, arn)
 
 		if err != nil {
-			log.Printf("[DEBUG] Error retrieving tags for ARN: %s", arn)
+			return fmt.Errorf("error listing tags for Elasticache Cluster (%s): %s", arn, err)
 		}
 
-		var et []*elasticache.Tag
-		if len(resp.TagList) > 0 {
-			et = resp.TagList
+		if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+			return fmt.Errorf("error setting tags: %s", err)
 		}
-		d.Set("tags", tagsToMapEC(et))
 	}
 
 	return nil
@@ -500,15 +504,12 @@ func resourceAwsElasticacheClusterRead(d *schema.ResourceData, meta interface{})
 func resourceAwsElasticacheClusterUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).elasticacheconn
 
-	arn := arn.ARN{
-		Partition: meta.(*AWSClient).partition,
-		Service:   "elasticache",
-		Region:    meta.(*AWSClient).region,
-		AccountID: meta.(*AWSClient).accountid,
-		Resource:  fmt.Sprintf("cluster:%s", d.Id()),
-	}.String()
-	if err := setTagsEC(conn, d, arn); err != nil {
-		return err
+	if d.HasChange("tags") {
+		o, n := d.GetChange("tags")
+
+		if err := keyvaluetags.ElasticacheUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
+			return fmt.Errorf("error updating Elasticache Cluster (%s) tags: %s", d.Get("arn").(string), err)
+		}
 	}
 
 	req := &elasticache.ModifyCacheClusterInput{

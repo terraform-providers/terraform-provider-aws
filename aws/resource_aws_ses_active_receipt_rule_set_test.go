@@ -29,7 +29,7 @@ func TestAccAWSSESActiveReceiptRuleSet_basic(t *testing.T) {
 }
 
 func testAccCheckSESActiveReceiptRuleSetDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*AWSClient).sesConn
+	conn := testAccProvider.Meta().(*AWSClient).sesconn
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "aws_ses_active_receipt_rule_set" {
@@ -62,7 +62,7 @@ func testAccCheckAwsSESActiveReceiptRuleSetExists(n string) resource.TestCheckFu
 			return fmt.Errorf("SES Active Receipt Rule Set name not set")
 		}
 
-		conn := testAccProvider.Meta().(*AWSClient).sesConn
+		conn := testAccProvider.Meta().(*AWSClient).sesconn
 
 		response, err := conn.DescribeActiveReceiptRuleSet(&ses.DescribeActiveReceiptRuleSetInput{})
 		if err != nil {

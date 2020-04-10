@@ -39,7 +39,6 @@ The arguments of this data source act as filters for querying the available
 Route Table in the current region. The given filters must match exactly one
 Route Table whose data will be exported as attributes.
 
-
 * `filter` - (Optional) Custom filter block as described below.
 
 * `route_table_id` - (Optional) The id of the specific Route Table to retrieve.
@@ -49,7 +48,9 @@ Route Table whose data will be exported as attributes.
 
 * `vpc_id` - (Optional) The id of the VPC that the desired Route Table belongs to.
 
-* `subnet_id` - (Optional) The id of a Subnet which is connected to the Route Table (not be exported if not given in parameter).
+* `subnet_id` - (Optional) The id of a Subnet which is connected to the Route Table (not exported if not passed as a parameter).
+
+* `gateway_id` - (Optional) The id of an Internet Gateway or Virtual Private Gateway which is connected to the Route Table (not exported if not passed as a parameter).
 
 More complex filters can be expressed using one or more `filter` sub-blocks,
 which take the following arguments:
@@ -62,7 +63,7 @@ which take the following arguments:
 
 ## Attributes Reference
 
-All of the argument attributes except `filter` and `subnet_id` blocks are also exported as
+All of the argument attributes except the `filter` block are also exported as
 result attributes. This data source will complete the data by populating
 any fields that are not included in the configuration with the data for
 the selected Route Table. In addition the following attributes are exported:
@@ -82,10 +83,10 @@ Each route supports the following:
 * `vpc_peering_connection_id` - The VPC Peering ID.
 * `network_interface_id` - The ID of the elastic network interface (eni) to use.
 
-
 `associations` are also exported with the following attributes:
 
-* `route_table_association_id` - The Association ID .
+* `route_table_association_id` - The Association ID.
 * `route_table_id` - The Route Table ID.
-* `subnet_id` - The Subnet ID.
+* `subnet_id` - The Subnet ID. Only set when associated with a Subnet.
+* `gateway_id` - The Gateway ID. Only set when associated with an Internet Gateway or Virtual Private Gateway.
 * `main` - If the Association due to the Main Route Table.

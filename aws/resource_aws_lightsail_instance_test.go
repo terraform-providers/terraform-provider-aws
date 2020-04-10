@@ -296,6 +296,11 @@ func testAccAWSLightsailInstanceConfig_basic(lightsailName string) string {
 	return fmt.Sprintf(`
 data "aws_availability_zones" "available" {
   state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
 }
 
 resource "aws_lightsail_instance" "lightsail_instance_test" {
@@ -311,6 +316,11 @@ func testAccAWSLightsailInstanceConfig_tags1(lightsailName string) string {
 	return fmt.Sprintf(`
 data "aws_availability_zones" "available" {
   state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
 }
 
 resource "aws_lightsail_instance" "lightsail_instance_test" {
@@ -329,6 +339,11 @@ func testAccAWSLightsailInstanceConfig_tags2(lightsailName string) string {
 	return fmt.Sprintf(`
 data "aws_availability_zones" "available" {
   state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
 }
 
 resource "aws_lightsail_instance" "lightsail_instance_test" {

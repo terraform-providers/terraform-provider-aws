@@ -281,7 +281,14 @@ resource "aws_neptune_parameter_group" "bar" {
 
 func testAccAWSNeptuneClusterInstanceConfig_az(n int) string {
 	return fmt.Sprintf(`
-data "aws_availability_zones" "available" {}
+data "aws_availability_zones" "available" {
+  state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
 
 resource "aws_neptune_cluster" "default" {
   cluster_identifier  = "tf-neptune-cluster-test-%d"

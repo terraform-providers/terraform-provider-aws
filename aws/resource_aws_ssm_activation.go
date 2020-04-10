@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsSsmActivation() *schema.Resource {
@@ -36,8 +37,9 @@ func resourceAwsSsmActivation() *schema.Resource {
 			"expiration_date": {
 				Type:         schema.TypeString,
 				Optional:     true,
+				Computed:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.ValidateRFC3339TimeString,
+				ValidateFunc: validation.IsRFC3339Time,
 			},
 			"iam_role": {
 				Type:     schema.TypeString,
@@ -92,7 +94,7 @@ func resourceAwsSsmActivationCreate(d *schema.ResourceData, meta interface{}) er
 		activationInput.RegistrationLimit = aws.Int64(int64(d.Get("registration_limit").(int)))
 	}
 	if v, ok := d.GetOk("tags"); ok {
-		activationInput.Tags = tagsFromMapSSM(v.(map[string]interface{}))
+		activationInput.Tags = keyvaluetags.New(v.(map[string]interface{})).IgnoreAws().SsmTags()
 	}
 
 	// Retry to allow iam_role to be created and policy attachment to take place
@@ -149,17 +151,22 @@ func resourceAwsSsmActivationRead(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("Error reading SSM activation: %s", err)
 	}
 	if resp.ActivationList == nil || len(resp.ActivationList) == 0 {
-		return fmt.Errorf("ActivationList was nil or empty")
+		log.Printf("[WARN] SSM Activation (%s) not found, removing from state", d.Id())
+		d.SetId("")
+		return nil
 	}
 
 	activation := resp.ActivationList[0] // Only 1 result as MaxResults is 1 above
 	d.Set("name", activation.DefaultInstanceName)
 	d.Set("description", activation.Description)
-	d.Set("expiration_date", activation.ExpirationDate)
+	d.Set("expiration_date", aws.TimeValue(activation.ExpirationDate).Format(time.RFC3339))
 	d.Set("expired", activation.Expired)
 	d.Set("iam_role", activation.IamRole)
 	d.Set("registration_limit", activation.RegistrationLimit)
 	d.Set("registration_count", activation.RegistrationsCount)
+	if err := d.Set("tags", keyvaluetags.SsmKeyValueTags(activation.Tags).IgnoreAws().Map()); err != nil {
+		return fmt.Errorf("error setting tags: %s", err)
+	}
 
 	return nil
 }

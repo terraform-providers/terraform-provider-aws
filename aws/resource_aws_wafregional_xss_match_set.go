@@ -16,6 +16,9 @@ func resourceAwsWafRegionalXssMatchSet() *schema.Resource {
 		Read:   resourceAwsWafRegionalXssMatchSetRead,
 		Update: resourceAwsWafRegionalXssMatchSetUpdate,
 		Delete: resourceAwsWafRegionalXssMatchSetDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {

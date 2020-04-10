@@ -1,17 +1,17 @@
 ---
-subcategory: "API Gateway"
+subcategory: "API Gateway (REST APIs)"
 layout: "aws"
 page_title: "AWS: aws_api_gateway_deployment"
 description: |-
-  Provides an API Gateway Deployment.
+  Provides an API Gateway REST Deployment.
 ---
 
 # Resource: aws_api_gateway_deployment
 
-Provides an API Gateway Deployment.
+Provides an API Gateway REST Deployment.
 
 -> **Note:** Depends on having `aws_api_gateway_integration` inside your rest api (which in turn depends on `aws_api_gateway_method`). To avoid race conditions
-you might need to add an explicit `depends_on = ["aws_api_gateway_integration.name"]`.
+you might need to add an explicit `depends_on = ["${aws_api_gateway_integration.name}"]`.
 
 ## Example Usage
 
@@ -42,7 +42,7 @@ resource "aws_api_gateway_integration" "MyDemoIntegration" {
 }
 
 resource "aws_api_gateway_deployment" "MyDemoDeployment" {
-  depends_on = ["aws_api_gateway_integration.MyDemoIntegration"]
+  depends_on = ["${aws_api_gateway_integration.MyDemoIntegration}"]
 
   rest_api_id = "${aws_api_gateway_rest_api.MyDemoAPI.id}"
   stage_name  = "test"

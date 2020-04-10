@@ -58,6 +58,10 @@ func resourceAwsWafRule() *schema.Resource {
 				},
 			},
 			"tags": tagsSchema(),
+			"arn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -85,7 +89,17 @@ func resourceAwsWafRuleCreate(d *schema.ResourceData, meta interface{}) error {
 	}
 	resp := out.(*waf.CreateRuleOutput)
 	d.SetId(*resp.Rule.RuleId)
-	return resourceAwsWafRuleUpdate(d, meta)
+
+	newPredicates := d.Get("predicates").(*schema.Set).List()
+	if len(newPredicates) > 0 {
+		noPredicates := []interface{}{}
+		err := updateWafRuleResource(d.Id(), noPredicates, newPredicates, conn)
+		if err != nil {
+			return fmt.Errorf("Error Updating WAF Rule: %s", err)
+		}
+	}
+
+	return resourceAwsWafRuleRead(d, meta)
 }
 
 func resourceAwsWafRuleRead(d *schema.ResourceData, meta interface{}) error {
@@ -97,7 +111,7 @@ func resourceAwsWafRuleRead(d *schema.ResourceData, meta interface{}) error {
 
 	resp, err := conn.GetRule(params)
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok && awsErr.Code() == "WAFNonexistentItemException" {
+		if awsErr, ok := err.(awserr.Error); ok && awsErr.Code() == waf.ErrCodeNonexistentItemException {
 			log.Printf("[WARN] WAF Rule (%s) not found, removing from state", d.Id())
 			d.SetId("")
 			return nil
@@ -123,14 +137,15 @@ func resourceAwsWafRuleRead(d *schema.ResourceData, meta interface{}) error {
 		AccountID: meta.(*AWSClient).accountid,
 		Resource:  fmt.Sprintf("rule/%s", d.Id()),
 	}.String()
+	d.Set("arn", arn)
 
-	tagList, err := conn.ListTagsForResource(&waf.ListTagsForResourceInput{
-		ResourceARN: aws.String(arn),
-	})
+	tags, err := keyvaluetags.WafListTags(conn, arn)
+
 	if err != nil {
-		return fmt.Errorf("Failed to get WAF Rule parameter tags for %s: %s", d.Get("name"), err)
+		return fmt.Errorf("error listing tags for WAF Rule (%s): %s", arn, err)
 	}
-	if err := d.Set("tags", keyvaluetags.WafKeyValueTags(tagList.TagInfoForResource.TagList).IgnoreAws().Map()); err != nil {
+
+	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
@@ -157,14 +172,7 @@ func resourceAwsWafRuleUpdate(d *schema.ResourceData, meta interface{}) error {
 	if d.HasChange("tags") {
 		o, n := d.GetChange("tags")
 
-		arn := arn.ARN{
-			Partition: meta.(*AWSClient).partition,
-			Service:   "waf",
-			AccountID: meta.(*AWSClient).accountid,
-			Resource:  fmt.Sprintf("rule/%s", d.Id()),
-		}.String()
-
-		if err := keyvaluetags.WafUpdateTags(conn, arn, o, n); err != nil {
+		if err := keyvaluetags.WafUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating tags: %s", err)
 		}
 	}

@@ -1,8 +1,10 @@
 SWEEP?=us-east-1,us-west-2
 TEST?=./...
+SWEEP_DIR?=./aws
 GOFMT_FILES?=$$(find . -name '*.go' |grep -v vendor)
 PKG_NAME=aws
 WEBSITE_REPO=github.com/hashicorp/terraform-website
+TEST_COUNT?=1
 
 default: build
 
@@ -15,13 +17,13 @@ gen:
 
 sweep:
 	@echo "WARNING: This will destroy infrastructure. Use only in development accounts."
-	go test $(TEST) -v -sweep=$(SWEEP) $(SWEEPARGS)
+	go test $(SWEEP_DIR) -v -sweep=$(SWEEP) $(SWEEPARGS) -timeout 60m
 
 test: fmtcheck
-	go test $(TEST) -timeout=30s -parallel=4
+	go test $(TEST) $(TESTARGS) -timeout=120s -parallel=4
 
 testacc: fmtcheck
-	TF_ACC=1 go test $(TEST) -v -count 1 -parallel 20 $(TESTARGS) -timeout 120m
+	TF_ACC=1 go test $(TEST) -v -count $(TEST_COUNT) -parallel 20 $(TESTARGS) -timeout 120m
 
 fmt:
 	@echo "==> Fixing source code with gofmt..."
@@ -31,19 +33,47 @@ fmt:
 fmtcheck:
 	@sh -c "'$(CURDIR)/scripts/gofmtcheck.sh'"
 
-websitefmtcheck:
-	@sh -c "'$(CURDIR)/scripts/websitefmtcheck.sh'"
+gencheck:
+	@echo "==> Checking generated source code..."
+	@$(MAKE) gen
+	@git diff --compact-summary --exit-code || \
+		(echo; echo "Unexpected difference in directories after code generation. Run 'make gen' command and commit."; exit 1)
+
+depscheck:
+	@echo "==> Checking source code with go mod tidy..."
+	@go mod tidy
+	@git diff --exit-code -- go.mod go.sum || \
+		(echo; echo "Unexpected difference in go.mod/go.sum files. Run 'go mod tidy' command or revert any go.mod/go.sum changes and commit."; exit 1)
+	@echo "==> Checking source code with go mod vendor..."
+	@go mod vendor
+	@git diff --compact-summary --exit-code -- vendor || \
+		(echo; echo "Unexpected difference in vendor/ directory. Run 'go mod vendor' command or revert any go.mod/go.sum/vendor changes and commit."; exit 1)
 
 docscheck:
-	@sh -c "'$(CURDIR)/scripts/docscheck.sh'"
+	@tfproviderdocs check \
+		-allowed-resource-subcategories-file website/allowed-subcategories.txt \
+		-ignore-side-navigation-data-sources aws_alb,aws_alb_listener,aws_alb_target_group,aws_kms_secret \
+		-require-resource-subcategory
+	@misspell -error -source text CHANGELOG.md
 
 lint:
 	@echo "==> Checking source code against linters..."
 	@golangci-lint run ./$(PKG_NAME)/...
-	@tfproviderlint \
+	@awsproviderlint \
 		-c 1 \
 		-AT001 \
 		-AT002 \
+		-AT005 \
+		-AT006 \
+		-AT007 \
+		-AT008 \
+		-AWSR001 \
+		-R002 \
+		-R004 \
+		-R006 \
+		-R012 \
+		-R013 \
+		-R014 \
 		-S001 \
 		-S002 \
 		-S003 \
@@ -61,12 +91,35 @@ lint:
 		-S016 \
 		-S017 \
 		-S019 \
+		-S020 \
+		-S021 \
+		-S025 \
+		-S026 \
+		-S027 \
+		-S028 \
+		-S029 \
+		-S030 \
+		-S031 \
+		-S032 \
+		-S033 \
+		-S034 \
+		-S035 \
+		-S036 \
+		-S037 \
+		-V002 \
+		-V003 \
+		-V004 \
+		-V006 \
+		-V007 \
+		-V008 \
 		./$(PKG_NAME)
 
 tools:
-	GO111MODULE=on go install github.com/bflad/tfproviderlint/cmd/tfproviderlint
+	GO111MODULE=on go install ./awsproviderlint
+	GO111MODULE=on go install github.com/bflad/tfproviderdocs
 	GO111MODULE=on go install github.com/client9/misspell/cmd/misspell
 	GO111MODULE=on go install github.com/golangci/golangci-lint/cmd/golangci-lint
+	GO111MODULE=on go install github.com/katbyte/terrafmt
 
 test-compile:
 	@if [ "$(TEST)" = "./..." ]; then \
@@ -85,7 +138,25 @@ endif
 
 website-lint:
 	@echo "==> Checking website against linters..."
-	@misspell -error -source=text website/
+	@misspell -error -source=text website/ || (echo; \
+		echo "Unexpected mispelling found in website files."; \
+		echo "To automatically fix the misspelling, run 'make website-lint-fix' and commit the changes."; \
+		exit 1)
+	@docker run -v $(PWD):/markdown 06kellyjac/markdownlint-cli website/docs/ || (echo; \
+		echo "Unexpected issues found in website Markdown files."; \
+		echo "To apply any automatic fixes, run 'make website-lint-fix' and commit the changes."; \
+		exit 1)
+	@terrafmt diff ./website --check --pattern '*.markdown' --quiet || (echo; \
+		echo "Unexpected differences in website HCL formatting."; \
+		echo "To see the full differences, run: terrafmt diff ./website --pattern '*.markdown'"; \
+		echo "To automatically fix the formatting, run 'make website-lint-fix' and commit the changes."; \
+		exit 1)
+
+website-lint-fix:
+	@echo "==> Applying automatic website linter fixes..."
+	@misspell -w -source=text website/
+	@docker run -v $(PWD):/markdown 06kellyjac/markdownlint-cli --fix website/docs/
+	@terrafmt fmt ./website --pattern '*.markdown'
 
 website-test:
 ifeq (,$(wildcard $(GOPATH)/src/$(WEBSITE_REPO)))
@@ -94,5 +165,5 @@ ifeq (,$(wildcard $(GOPATH)/src/$(WEBSITE_REPO)))
 endif
 	@$(MAKE) -C $(GOPATH)/src/$(WEBSITE_REPO) website-provider-test PROVIDER_PATH=$(shell pwd) PROVIDER_NAME=$(PKG_NAME)
 
-.PHONY: build gen sweep test testacc fmt fmtcheck lint tools test-compile website website-lint website-test docscheck
+.PHONY: build gen sweep test testacc fmt fmtcheck lint tools test-compile website website-lint website-lint-fix website-test depscheck docscheck
 

@@ -14,7 +14,7 @@ Provides a Data Pipeline resource.
 
 ```hcl
 resource "aws_datapipeline_pipeline" "default" {
-	name      	= "tf-pipeline-default"
+  name = "tf-pipeline-default"
 }
 ```
 

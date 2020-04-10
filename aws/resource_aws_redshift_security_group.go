@@ -135,21 +135,21 @@ func resourceAwsRedshiftSecurityGroupRead(d *schema.ResourceData, meta interface
 	}
 
 	for _, v := range sg.IPRanges {
-		rule := map[string]interface{}{"cidr": *v.CIDRIP}
+		rule := map[string]interface{}{"cidr": aws.StringValue(v.CIDRIP)}
 		rules.Add(rule)
 	}
 
 	for _, g := range sg.EC2SecurityGroups {
 		rule := map[string]interface{}{
-			"security_group_name":     *g.EC2SecurityGroupName,
-			"security_group_owner_id": *g.EC2SecurityGroupOwnerId,
+			"security_group_name":     aws.StringValue(g.EC2SecurityGroupName),
+			"security_group_owner_id": aws.StringValue(g.EC2SecurityGroupOwnerId),
 		}
 		rules.Add(rule)
 	}
 
 	d.Set("ingress", rules)
-	d.Set("name", *sg.ClusterSecurityGroupName)
-	d.Set("description", *sg.Description)
+	d.Set("name", sg.ClusterSecurityGroupName)
+	d.Set("description", sg.Description)
 
 	return nil
 }

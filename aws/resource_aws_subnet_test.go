@@ -25,12 +25,13 @@ func init() {
 		Dependencies: []string{
 			"aws_autoscaling_group",
 			"aws_batch_compute_environment",
-			"aws_beanstalk_environment",
+			"aws_elastic_beanstalk_environment",
 			"aws_cloudhsm_v2_cluster",
 			"aws_db_subnet_group",
 			"aws_directory_service_directory",
 			"aws_ec2_client_vpn_endpoint",
 			"aws_ec2_transit_gateway_vpc_attachment",
+			"aws_efs_file_system",
 			"aws_eks_cluster",
 			"aws_elasticache_cluster",
 			"aws_elasticache_replication_group",
@@ -191,11 +192,11 @@ func TestAccAWSSubnet_ignoreTags(t *testing.T) {
 				ExpectNonEmptyPlan: true,
 			},
 			{
-				Config:   testAccProviderConfigIgnoreTagPrefixes1("ignorekey") + testAccSubnetConfig,
+				Config:   testAccProviderConfigIgnoreTagsKeyPrefixes1("ignorekey") + testAccSubnetConfig,
 				PlanOnly: true,
 			},
 			{
-				Config:   testAccProviderConfigIgnoreTags1("ignorekey1") + testAccSubnetConfig,
+				Config:   testAccProviderConfigIgnoreTagsKeys1("ignorekey1") + testAccSubnetConfig,
 				PlanOnly: true,
 			},
 		},

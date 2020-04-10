@@ -4,11 +4,14 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/datasync"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsDataSyncLocationS3() *schema.Resource {
@@ -63,11 +66,7 @@ func resourceAwsDataSyncLocationS3() *schema.Resource {
 					return false
 				},
 			},
-			"tags": {
-				Type:     schema.TypeMap,
-				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-			},
+			"tags": tagsSchema(),
 			"uri": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -83,11 +82,39 @@ func resourceAwsDataSyncLocationS3Create(d *schema.ResourceData, meta interface{
 		S3BucketArn:  aws.String(d.Get("s3_bucket_arn").(string)),
 		S3Config:     expandDataSyncS3Config(d.Get("s3_config").([]interface{})),
 		Subdirectory: aws.String(d.Get("subdirectory").(string)),
-		Tags:         expandDataSyncTagListEntry(d.Get("tags").(map[string]interface{})),
+		Tags:         keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().DatasyncTags(),
 	}
 
 	log.Printf("[DEBUG] Creating DataSync Location S3: %s", input)
-	output, err := conn.CreateLocationS3(input)
+
+	var output *datasync.CreateLocationS3Output
+	err := resource.Retry(2*time.Minute, func() *resource.RetryError {
+		var err error
+		output, err = conn.CreateLocationS3(input)
+
+		// Retry for IAM eventual consistency on error:
+		// InvalidRequestException: Unable to assume role. Reason: Access denied when calling sts:AssumeRole
+		if isAWSErr(err, datasync.ErrCodeInvalidRequestException, "Unable to assume role") {
+			return resource.RetryableError(err)
+		}
+
+		// Retry for IAM eventual consistency on error:
+		// InvalidRequestException: DataSync location access test failed: could not perform s3:ListObjectsV2 on bucket
+		if isAWSErr(err, datasync.ErrCodeInvalidRequestException, "access test failed") {
+			return resource.RetryableError(err)
+		}
+
+		if err != nil {
+			return resource.NonRetryableError(err)
+		}
+
+		return nil
+	})
+
+	if isResourceTimeoutError(err) {
+		output, err = conn.CreateLocationS3(input)
+	}
+
 	if err != nil {
 		return fmt.Errorf("error creating DataSync Location S3: %s", err)
 	}
@@ -117,17 +144,6 @@ func resourceAwsDataSyncLocationS3Read(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("error reading DataSync Location S3 (%s): %s", d.Id(), err)
 	}
 
-	tagsInput := &datasync.ListTagsForResourceInput{
-		ResourceArn: output.LocationArn,
-	}
-
-	log.Printf("[DEBUG] Reading DataSync Location S3 tags: %s", tagsInput)
-	tagsOutput, err := conn.ListTagsForResource(tagsInput)
-
-	if err != nil {
-		return fmt.Errorf("error reading DataSync Location S3 (%s) tags: %s", d.Id(), err)
-	}
-
 	subdirectory, err := dataSyncParseLocationURI(aws.StringValue(output.LocationUri))
 
 	if err != nil {
@@ -141,12 +157,17 @@ func resourceAwsDataSyncLocationS3Read(d *schema.ResourceData, meta interface{})
 	}
 
 	d.Set("subdirectory", subdirectory)
+	d.Set("uri", output.LocationUri)
 
-	if err := d.Set("tags", flattenDataSyncTagListEntry(tagsOutput.Tags)); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	tags, err := keyvaluetags.DatasyncListTags(conn, d.Id())
+
+	if err != nil {
+		return fmt.Errorf("error listing tags for DataSync Location S3 (%s): %s", d.Id(), err)
 	}
 
-	d.Set("uri", output.LocationUri)
+	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+		return fmt.Errorf("error setting tags: %s", err)
+	}
 
 	return nil
 }
@@ -155,31 +176,10 @@ func resourceAwsDataSyncLocationS3Update(d *schema.ResourceData, meta interface{
 	conn := meta.(*AWSClient).datasyncconn
 
 	if d.HasChange("tags") {
-		oldRaw, newRaw := d.GetChange("tags")
-		createTags, removeTags := dataSyncTagsDiff(expandDataSyncTagListEntry(oldRaw.(map[string]interface{})), expandDataSyncTagListEntry(newRaw.(map[string]interface{})))
+		o, n := d.GetChange("tags")
 
-		if len(removeTags) > 0 {
-			input := &datasync.UntagResourceInput{
-				Keys:        dataSyncTagsKeys(removeTags),
-				ResourceArn: aws.String(d.Id()),
-			}
-
-			log.Printf("[DEBUG] Untagging DataSync Location S3: %s", input)
-			if _, err := conn.UntagResource(input); err != nil {
-				return fmt.Errorf("error untagging DataSync Location S3 (%s): %s", d.Id(), err)
-			}
-		}
-
-		if len(createTags) > 0 {
-			input := &datasync.TagResourceInput{
-				ResourceArn: aws.String(d.Id()),
-				Tags:        createTags,
-			}
-
-			log.Printf("[DEBUG] Tagging DataSync Location S3: %s", input)
-			if _, err := conn.TagResource(input); err != nil {
-				return fmt.Errorf("error tagging DataSync Location S3 (%s): %s", d.Id(), err)
-			}
+		if err := keyvaluetags.DatasyncUpdateTags(conn, d.Id(), o, n); err != nil {
+			return fmt.Errorf("error updating DataSync Location S3 (%s) tags: %s", d.Id(), err)
 		}
 	}
 

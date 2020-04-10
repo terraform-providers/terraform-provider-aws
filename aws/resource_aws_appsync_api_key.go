@@ -43,7 +43,7 @@ func resourceAwsAppsyncApiKey() *schema.Resource {
 					}
 					return false
 				},
-				ValidateFunc: validation.ValidateRFC3339TimeString,
+				ValidateFunc: validation.IsRFC3339Time,
 			},
 			"key": {
 				Type:      schema.TypeString,

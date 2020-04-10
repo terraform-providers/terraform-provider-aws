@@ -4,13 +4,12 @@ package S006
 
 import (
 	"go/ast"
-	"go/types"
-	"strings"
 
 	"golang.org/x/tools/go/analysis"
 
+	"github.com/bflad/tfproviderlint/helper/terraformtype/helper/schema"
 	"github.com/bflad/tfproviderlint/passes/commentignore"
-	"github.com/bflad/tfproviderlint/passes/schemaschema"
+	"github.com/bflad/tfproviderlint/passes/helper/schema/schemainfo"
 )
 
 const Doc = `check for Schema of TypeMap missing Elem
@@ -25,7 +24,7 @@ var Analyzer = &analysis.Analyzer{
 	Name: analyzerName,
 	Doc:  Doc,
 	Requires: []*analysis.Analyzer{
-		schemaschema.Analyzer,
+		schemainfo.Analyzer,
 		commentignore.Analyzer,
 	},
 	Run: run,
@@ -33,62 +32,25 @@ var Analyzer = &analysis.Analyzer{
 
 func run(pass *analysis.Pass) (interface{}, error) {
 	ignorer := pass.ResultOf[commentignore.Analyzer].(*commentignore.Ignorer)
-	schemas := pass.ResultOf[schemaschema.Analyzer].([]*ast.CompositeLit)
-	for _, schema := range schemas {
-		if ignorer.ShouldIgnore(analyzerName, schema) {
+	schemaInfos := pass.ResultOf[schemainfo.Analyzer].([]*schema.SchemaInfo)
+	for _, schemaInfo := range schemaInfos {
+		if ignorer.ShouldIgnore(analyzerName, schemaInfo.AstCompositeLit) {
 			continue
 		}
 
-		var elemFound bool
-		var typeMap bool
-
-		for _, elt := range schema.Elts {
-			switch v := elt.(type) {
-			default:
-				continue
-			case *ast.KeyValueExpr:
-				name := v.Key.(*ast.Ident).Name
-
-				if name == "Elem" {
-					elemFound = true
-					continue
-				}
-
-				if name != "Type" {
-					continue
-				}
-
-				switch v := v.Value.(type) {
-				default:
-					continue
-				case *ast.SelectorExpr:
-					// Use AST over TypesInfo here as schema uses ValueType
-					if v.Sel.Name != "TypeMap" {
-						continue
-					}
-
-					switch t := pass.TypesInfo.TypeOf(v).(type) {
-					default:
-						continue
-					case *types.Named:
-						// HasSuffix here due to vendoring
-						if !strings.HasSuffix(t.Obj().Pkg().Path(), "github.com/hashicorp/terraform-plugin-sdk/helper/schema") {
-							continue
-						}
-
-						typeMap = true
-					}
-				}
-			}
+		if schemaInfo.DeclaresField(schema.SchemaFieldElem) {
+			continue
 		}
 
-		if typeMap && !elemFound {
-			switch t := schema.Type.(type) {
-			default:
-				pass.Reportf(schema.Lbrace, "%s: schema of TypeMap should include Elem", analyzerName)
-			case *ast.SelectorExpr:
-				pass.Reportf(t.Sel.Pos(), "%s: schema of TypeMap should include Elem", analyzerName)
-			}
+		if !schemaInfo.IsType(schema.SchemaValueTypeMap) {
+			continue
+		}
+
+		switch t := schemaInfo.AstCompositeLit.Type.(type) {
+		default:
+			pass.Reportf(schemaInfo.AstCompositeLit.Lbrace, "%s: schema of TypeMap should include Elem", analyzerName)
+		case *ast.SelectorExpr:
+			pass.Reportf(t.Sel.Pos(), "%s: schema of TypeMap should include Elem", analyzerName)
 		}
 	}
 

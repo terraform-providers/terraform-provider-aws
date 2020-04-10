@@ -2,13 +2,31 @@
 
 package elasticsearchservice
 
+import (
+	"github.com/aws/aws-sdk-go/private/protocol"
+)
+
 const (
+
+	// ErrCodeAccessDeniedException for service response error code
+	// "AccessDeniedException".
+	//
+	// An error occurred because user does not have permissions to access the resource.
+	// Returns HTTP status code 403.
+	ErrCodeAccessDeniedException = "AccessDeniedException"
 
 	// ErrCodeBaseException for service response error code
 	// "BaseException".
 	//
 	// An error occurred while processing the request.
 	ErrCodeBaseException = "BaseException"
+
+	// ErrCodeConflictException for service response error code
+	// "ConflictException".
+	//
+	// An error occurred because the client attempts to remove a resource that is
+	// currently in use. Returns HTTP status code 409.
+	ErrCodeConflictException = "ConflictException"
 
 	// ErrCodeDisabledOperationException for service response error code
 	// "DisabledOperationException".
@@ -60,3 +78,16 @@ const (
 	// 400.
 	ErrCodeValidationException = "ValidationException"
 )
+
+var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
+	"AccessDeniedException":          newErrorAccessDeniedException,
+	"BaseException":                  newErrorBaseException,
+	"ConflictException":              newErrorConflictException,
+	"DisabledOperationException":     newErrorDisabledOperationException,
+	"InternalException":              newErrorInternalException,
+	"InvalidTypeException":           newErrorInvalidTypeException,
+	"LimitExceededException":         newErrorLimitExceededException,
+	"ResourceAlreadyExistsException": newErrorResourceAlreadyExistsException,
+	"ResourceNotFoundException":      newErrorResourceNotFoundException,
+	"ValidationException":            newErrorValidationException,
+}

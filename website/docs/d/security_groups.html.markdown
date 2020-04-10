@@ -12,6 +12,7 @@ Use this data source to get IDs and VPC membership of Security Groups that are c
 outside of Terraform.
 
 ## Example Usage
+
 ```hcl
 data "aws_security_groups" "test" {
   tags = {

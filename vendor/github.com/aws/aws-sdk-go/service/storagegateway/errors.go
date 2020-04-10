@@ -2,6 +2,10 @@
 
 package storagegateway
 
+import (
+	"github.com/aws/aws-sdk-go/private/protocol"
+)
+
 const (
 
 	// ErrCodeInternalServerError for service response error code
@@ -25,3 +29,9 @@ const (
 	// For more information, see the error and message fields.
 	ErrCodeServiceUnavailableError = "ServiceUnavailableError"
 )
+
+var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
+	"InternalServerError":            newErrorInternalServerError,
+	"InvalidGatewayRequestException": newErrorInvalidGatewayRequestException,
+	"ServiceUnavailableError":        newErrorServiceUnavailableError,
+}

@@ -71,3 +71,14 @@ func TestAccExampleThing_basic(t *testing.T) {
     })
 }
 ```
+
+## Ignoring Reports
+
+Singular reports can be ignored by adding the a `//lintignore:AT002` Go code comment at the end of the offending line or on the line immediately proceding, e.g.
+
+```go
+//lintignore:AT002
+func TestAccExampleThing_importBasic(t *testing.T) {
+    // ...
+}
+```

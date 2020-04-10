@@ -8,18 +8,20 @@
 // types, and errors. For more information about Global Accelerator features,
 // see the AWS Global Accelerator Developer Guide (https://docs.aws.amazon.com/global-accelerator/latest/dg/Welcome.html).
 //
-// AWS Global Accelerator is a network layer service in which you create accelerators
-// to improve availability and performance for internet applications used by
-// a global audience.
+// AWS Global Accelerator is a service in which you create accelerators to improve
+// availability and performance of your applications for local and global users.
 //
-// You must specify the US-West-2 (Oregon) Region to create or update accelerators.
+// You must specify the US West (Oregon) Region to create or update accelerators.
 //
-// Global Accelerator provides you with static IP addresses that you associate
-// with your accelerator. These IP addresses are anycast from the AWS edge network
-// and distribute incoming application traffic across multiple endpoint resources
-// in multiple AWS Regions, which increases the availability of your applications.
-// Endpoints can be Elastic IP addresses, Network Load Balancers, and Application
-// Load Balancers that are located in one AWS Region or multiple Regions.
+// By default, Global Accelerator provides you with static IP addresses that
+// you associate with your accelerator. (Instead of using the IP addresses that
+// Global Accelerator provides, you can configure these entry points to be IPv4
+// addresses from your own IP address ranges that you bring to Global Accelerator.)
+// The static IP addresses are anycast from the AWS edge network and distribute
+// incoming application traffic across multiple endpoint resources in multiple
+// AWS Regions, which increases the availability of your applications. Endpoints
+// can be Network Load Balancers, Application Load Balancers, EC2 instances,
+// or Elastic IP addresses that are located in one AWS Region or multiple Regions.
 //
 // Global Accelerator uses the AWS global network to route traffic to the optimal
 // regional endpoint based on health, client location, and policies that you
@@ -32,12 +34,25 @@
 //
 // Static IP address
 //
-// AWS Global Accelerator provides you with a set of static IP addresses which
-// are anycast from the AWS edge network and serve as the single fixed entry
-// points for your clients. If you already have Elastic Load Balancing or Elastic
-// IP address resources set up for your applications, you can easily add those
-// to Global Accelerator to allow the resources to be accessed by a Global Accelerator
-// static IP address.
+// By default, AWS Global Accelerator provides you with a set of static IP addresses
+// that are anycast from the AWS edge network and serve as the single fixed
+// entry points for your clients. Or you can configure these entry points to
+// be IPv4 addresses from your own IP address ranges that you bring to Global
+// Accelerator (BYOIP). For more information, see Bring Your Own IP Addresses
+// (BYOIP) (https://docs.aws.amazon.com/global-accelerator/latest/dg/using-byoip.html)
+// in the AWS Global Accelerator Developer Guide. If you already have load balancers,
+// EC2 instances, or Elastic IP addresses set up for your applications, you
+// can easily add those to Global Accelerator to allow the resources to be accessed
+// by the static IP addresses.
+//
+// The static IP addresses remain assigned to your accelerator for as long as
+// it exists, even if you disable the accelerator and it no longer accepts or
+// routes traffic. However, when you delete an accelerator, you lose the static
+// IP addresses that are assigned to it, so you can no longer route traffic
+// by using them. You can use IAM policies with Global Accelerator to limit
+// the users who have permissions to delete an accelerator. For more information,
+// see Authentication and Access Control (https://docs.aws.amazon.com/global-accelerator/latest/dg/auth-and-access-control.html)
+// in the AWS Global Accelerator Developer Guide.
 //
 // Accelerator
 //
@@ -45,16 +60,25 @@
 // to improve availability and performance for your internet applications that
 // have a global audience. Each accelerator includes one or more listeners.
 //
+// DNS name
+//
+// Global Accelerator assigns each accelerator a default Domain Name System
+// (DNS) name, similar to a1234567890abcdef.awsglobalaccelerator.com, that points
+// to your Global Accelerator static IP addresses. Depending on the use case,
+// you can use your accelerator's static IP addresses or DNS name to route traffic
+// to your accelerator, or set up DNS records to route traffic using your own
+// custom domain name.
+//
 // Network zone
 //
 // A network zone services the static IP addresses for your accelerator from
 // a unique IP subnet. Similar to an AWS Availability Zone, a network zone is
 // an isolated unit with its own set of physical infrastructure. When you configure
-// an accelerator, Global Accelerator allocates two IPv4 addresses for it. If
-// one IP address from a network zone becomes unavailable due to IP address
-// blocking by certain client networks, or network disruptions, then client
-// applications can retry on the healthy static IP address from the other isolated
-// network zone.
+// an accelerator, by default, Global Accelerator allocates two IPv4 addresses
+// for it. If one IP address from a network zone becomes unavailable due to
+// IP address blocking by certain client networks, or network disruptions, then
+// client applications can retry on the healthy static IP address from the other
+// isolated network zone.
 //
 // Listener
 //
@@ -76,13 +100,13 @@
 //
 // Endpoint
 //
-// An endpoint is an Elastic IP address, Network Load Balancer, or Application
-// Load Balancer. Traffic is routed to endpoints based on several factors, including
-// the geo-proximity to the user, the health of the endpoint, and the configuration
-// options that you choose, such as endpoint weights. For each endpoint, you
-// can configure weights, which are numbers that you can use to specify the
-// proportion of traffic to route to each one. This can be useful, for example,
-// to do performance testing within a Region.
+// An endpoint is a Network Load Balancer, Application Load Balancer, EC2 instance,
+// or Elastic IP address. Traffic is routed to endpoints based on several factors,
+// including the geo-proximity to the user, the health of the endpoint, and
+// the configuration options that you choose, such as endpoint weights. For
+// each endpoint, you can configure weights, which are numbers that you can
+// use to specify the proportion of traffic to route to each one. This can be
+// useful, for example, to do performance testing within a Region.
 //
 // See https://docs.aws.amazon.com/goto/WebAPI/globalaccelerator-2018-08-08 for more information on this service.
 //

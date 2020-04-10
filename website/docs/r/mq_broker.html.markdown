@@ -60,7 +60,7 @@ The following arguments are supported:
 * `deployment_mode` - (Optional) The deployment mode of the broker. Supported: `SINGLE_INSTANCE` and `ACTIVE_STANDBY_MULTI_AZ`. Defaults to `SINGLE_INSTANCE`.
 * `encryption_options` - (Optional) Configuration block containing encryption options. See below.
 * `engine_type` - (Required) The type of broker engine. Currently, Amazon MQ supports only `ActiveMQ`.
-* `engine_version` - (Required) The version of the broker engine. Currently, See the [AmazonMQ Broker Engine docs](https://docs.aws.amazon.com/amazon-mq/latest/developer-guide/broker-engine.html) for supported versions.
+* `engine_version` - (Required) The version of the broker engine. See the [AmazonMQ Broker Engine docs](https://docs.aws.amazon.com/amazon-mq/latest/developer-guide/broker-engine.html) for supported versions.
 * `host_instance_type` - (Required) The broker's instance type. e.g. `mq.t2.micro` or `mq.m4.large`
 * `publicly_accessible` - (Optional) Whether to enable connections from applications outside of the VPC that hosts the broker's subnets.
 * `security_groups` - (Required) The list of security group IDs assigned to the broker.

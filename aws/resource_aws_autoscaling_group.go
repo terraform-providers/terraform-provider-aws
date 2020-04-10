@@ -3,6 +3,7 @@ package aws
 import (
 	"fmt"
 	"log"
+	"regexp"
 	"strings"
 	"time"
 
@@ -186,6 +187,11 @@ func resourceAwsAutoscalingGroup() *schema.Resource {
 													Type:     schema.TypeString,
 													Optional: true,
 												},
+												"weighted_capacity": {
+													Type:         schema.TypeString,
+													Optional:     true,
+													ValidateFunc: validation.StringMatch(regexp.MustCompile(`^[1-9][0-9]{0,2}$`), "see https://docs.aws.amazon.com/autoscaling/ec2/APIReference/API_LaunchTemplateOverrides.html"),
+												},
 											},
 										},
 									},
@@ -215,6 +221,11 @@ func resourceAwsAutoscalingGroup() *schema.Resource {
 			"max_size": {
 				Type:     schema.TypeInt,
 				Required: true,
+			},
+
+			"max_instance_lifetime": {
+				Type:     schema.TypeInt,
+				Optional: true,
 			},
 
 			"default_cooldown": {
@@ -579,6 +590,10 @@ func resourceAwsAutoscalingGroupCreate(d *schema.ResourceData, meta interface{})
 		createOpts.ServiceLinkedRoleARN = aws.String(v.(string))
 	}
 
+	if v, ok := d.GetOk("max_instance_lifetime"); ok {
+		createOpts.MaxInstanceLifetime = aws.Int64(int64(v.(int)))
+	}
+
 	log.Printf("[DEBUG] AutoScaling Group create configuration: %#v", createOpts)
 
 	// Retry for IAM eventual consistency
@@ -694,6 +709,7 @@ func resourceAwsAutoscalingGroupRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("placement_group", g.PlacementGroup)
 	d.Set("protect_from_scale_in", g.NewInstancesProtectedFromScaleIn)
 	d.Set("service_linked_role_arn", g.ServiceLinkedRoleARN)
+	d.Set("max_instance_lifetime", g.MaxInstanceLifetime)
 
 	if err := d.Set("suspended_processes", flattenAsgSuspendedProcesses(g.SuspendedProcesses)); err != nil {
 		return fmt.Errorf("error setting suspended_processes: %s", err)
@@ -883,6 +899,10 @@ func resourceAwsAutoscalingGroupUpdate(d *schema.ResourceData, meta interface{})
 		opts.MaxSize = aws.Int64(int64(d.Get("max_size").(int)))
 	}
 
+	if d.HasChange("max_instance_lifetime") {
+		opts.MaxInstanceLifetime = aws.Int64(int64(d.Get("max_instance_lifetime").(int)))
+	}
+
 	if d.HasChange("health_check_grace_period") {
 		opts.HealthCheckGracePeriod = aws.Int64(int64(d.Get("health_check_grace_period").(int)))
 	}
@@ -925,18 +945,9 @@ func resourceAwsAutoscalingGroupUpdate(d *schema.ResourceData, meta interface{})
 		return err
 	}
 
-	if d.HasChange("tag") {
-		d.SetPartial("tag")
-	}
-
-	if d.HasChange("tags") {
-		d.SetPartial("tags")
-	}
-
 	log.Printf("[DEBUG] AutoScaling Group update configuration: %#v", opts)
 	_, err := conn.UpdateAutoScalingGroup(&opts)
 	if err != nil {
-		d.Partial(true)
 		return fmt.Errorf("Error updating Autoscaling group: %s", err)
 	}
 
@@ -1511,6 +1522,10 @@ func expandAutoScalingLaunchTemplateOverride(m map[string]interface{}) *autoscal
 		launchTemplateOverrides.InstanceType = aws.String(v.(string))
 	}
 
+	if v, ok := m["weighted_capacity"]; ok && v.(string) != "" {
+		launchTemplateOverrides.WeightedCapacity = aws.String(v.(string))
+	}
+
 	return launchTemplateOverrides
 }
 
@@ -1598,7 +1613,8 @@ func flattenAutoScalingLaunchTemplateOverrides(launchTemplateOverrides []*autosc
 			continue
 		}
 		m := map[string]interface{}{
-			"instance_type": aws.StringValue(launchTemplateOverride.InstanceType),
+			"instance_type":     aws.StringValue(launchTemplateOverride.InstanceType),
+			"weighted_capacity": aws.StringValue(launchTemplateOverride.WeightedCapacity),
 		}
 		l[i] = m
 	}

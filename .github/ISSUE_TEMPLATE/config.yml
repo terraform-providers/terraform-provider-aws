@@ -1,0 +1,14 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Terraform AWS Provider Questions
+    url: https://discuss.hashicorp.com/c/terraform-providers/tf-aws
+    about: GitHub issues in this repository are only intended for bug reports and feature requests. Other issues will be closed. Please ask and answer questions through the Terraform AWS Provider Community Forum.
+  - name: Terraform Core Bug Reports and Feature Requests
+    url: https://github.com/hashicorp/terraform/issues/new/choose
+    about: Terraform Core, which handles the Terraform configuration language, CLI commands, and resource dependency graph, has its own codebase. Bug reports and feature requests for those pieces of functionality should be directed to that repository.
+  - name: Terraform Language or Workflow Questions
+    url: https://discuss.hashicorp.com/c/terraform-core
+    about: Please ask and answer language or workflow related questions through the Terraform Core Community Forum.
+  - name: Security Vulnerability
+    url: https://www.hashicorp.com/security.html
+    about: Please report security vulnerabilities responsibly.

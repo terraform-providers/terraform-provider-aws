@@ -12,6 +12,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+)
+
+const (
+	cloudWatchEventRuleDeleteRetryTimeout = 5 * time.Minute
 )
 
 func resourceAwsCloudWatchEventRule() *schema.Resource {
@@ -61,7 +66,7 @@ func resourceAwsCloudWatchEventRule() *schema.Resource {
 			"role_arn": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validation.StringLenBetween(0, 1600),
+				ValidateFunc: validateArn,
 			},
 			"is_enabled": {
 				Type:     schema.TypeBool,
@@ -122,11 +127,7 @@ func resourceAwsCloudWatchEventRuleCreate(d *schema.ResourceData, meta interface
 
 	log.Printf("[INFO] CloudWatch Event Rule %q created", *out.RuleArn)
 
-	if err := setTagsCloudWatchEvents(conn, d, aws.StringValue(out.RuleArn)); err != nil {
-		return fmt.Errorf("Error creating tags for %s: %s", d.Id(), err)
-	}
-
-	return resourceAwsCloudWatchEventRuleUpdate(d, meta)
+	return resourceAwsCloudWatchEventRuleRead(d, meta)
 }
 
 func resourceAwsCloudWatchEventRuleRead(d *schema.ResourceData, meta interface{}) error {
@@ -138,7 +139,7 @@ func resourceAwsCloudWatchEventRuleRead(d *schema.ResourceData, meta interface{}
 	log.Printf("[DEBUG] Reading CloudWatch Event Rule: %s", input)
 	out, err := conn.DescribeRule(&input)
 	if awsErr, ok := err.(awserr.Error); ok {
-		if awsErr.Code() == "ResourceNotFoundException" {
+		if awsErr.Code() == events.ErrCodeResourceNotFoundException {
 			log.Printf("[WARN] Removing CloudWatch Event Rule %q because it's gone.", d.Id())
 			d.SetId("")
 			return nil
@@ -149,7 +150,8 @@ func resourceAwsCloudWatchEventRuleRead(d *schema.ResourceData, meta interface{}
 	}
 	log.Printf("[DEBUG] Found Event Rule: %s", out)
 
-	d.Set("arn", out.Arn)
+	arn := *out.Arn
+	d.Set("arn", arn)
 	d.Set("description", out.Description)
 	if out.EventPattern != nil {
 		pattern, err := structure.NormalizeJsonString(*out.EventPattern)
@@ -168,25 +170,22 @@ func resourceAwsCloudWatchEventRuleRead(d *schema.ResourceData, meta interface{}
 	}
 	log.Printf("[DEBUG] Setting boolean state: %t", boolState)
 	d.Set("is_enabled", boolState)
-	if err := saveTagsCloudWatchEvents(conn, d, aws.StringValue(out.Arn)); err != nil {
+
+	tags, err := keyvaluetags.CloudwatcheventsListTags(conn, arn)
+
+	if err != nil {
+		return fmt.Errorf("error listing tags for CloudWatch Event Rule (%s): %s", arn, err)
+	}
+
+	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
+
 	return nil
 }
 
 func resourceAwsCloudWatchEventRuleUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).cloudwatcheventsconn
-
-	if d.HasChange("is_enabled") && d.Get("is_enabled").(bool) {
-		log.Printf("[DEBUG] Enabling CloudWatch Event Rule %q", d.Id())
-		_, err := conn.EnableRule(&events.EnableRuleInput{
-			Name: aws.String(d.Id()),
-		})
-		if err != nil {
-			return err
-		}
-		log.Printf("[DEBUG] CloudWatch Event Rule (%q) enabled", d.Id())
-	}
 
 	input, err := buildPutRuleInputStruct(d, d.Id())
 	if err != nil {
@@ -215,20 +214,12 @@ func resourceAwsCloudWatchEventRuleUpdate(d *schema.ResourceData, meta interface
 		return fmt.Errorf("Updating CloudWatch Event Rule failed: %s", err)
 	}
 
-	if d.HasChange("is_enabled") && !d.Get("is_enabled").(bool) {
-		log.Printf("[DEBUG] Disabling CloudWatch Event Rule %q", d.Id())
-		_, err := conn.DisableRule(&events.DisableRuleInput{
-			Name: aws.String(d.Id()),
-		})
-		if err != nil {
-			return err
-		}
-		log.Printf("[DEBUG] CloudWatch Event Rule (%q) disabled", d.Id())
-	}
-
+	arn := d.Get("arn").(string)
 	if d.HasChange("tags") {
-		if err := setTagsCloudWatchEvents(conn, d, d.Get("arn").(string)); err != nil {
-			return fmt.Errorf("Error updating tags for %s: %s", d.Id(), err)
+		o, n := d.GetChange("tags")
+
+		if err := keyvaluetags.CloudwatcheventsUpdateTags(conn, arn, o, n); err != nil {
+			return fmt.Errorf("error updating CloudwWatch Event Rule (%s) tags: %s", arn, err)
 		}
 	}
 
@@ -238,14 +229,31 @@ func resourceAwsCloudWatchEventRuleUpdate(d *schema.ResourceData, meta interface
 func resourceAwsCloudWatchEventRuleDelete(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).cloudwatcheventsconn
 
-	log.Printf("[INFO] Deleting CloudWatch Event Rule: %s", d.Id())
-	_, err := conn.DeleteRule(&events.DeleteRuleInput{
+	input := &events.DeleteRuleInput{
 		Name: aws.String(d.Id()),
-	})
-	if err != nil {
-		return fmt.Errorf("Error deleting CloudWatch Event Rule: %s", err)
 	}
-	log.Println("[INFO] CloudWatch Event Rule deleted")
+
+	err := resource.Retry(cloudWatchEventRuleDeleteRetryTimeout, func() *resource.RetryError {
+		_, err := conn.DeleteRule(input)
+
+		if isAWSErr(err, "ValidationException", "Rule can't be deleted since it has targets") {
+			return resource.RetryableError(err)
+		}
+
+		if err != nil {
+			return resource.NonRetryableError(err)
+		}
+
+		return nil
+	})
+
+	if isResourceTimeoutError(err) {
+		_, err = conn.DeleteRule(input)
+	}
+
+	if err != nil {
+		return fmt.Errorf("error deleting CloudWatch Event Rule (%s): %s", d.Id(), err)
+	}
 
 	return nil
 }
@@ -271,6 +279,10 @@ func buildPutRuleInputStruct(d *schema.ResourceData, name string) (*events.PutRu
 		input.ScheduleExpression = aws.String(v.(string))
 	}
 
+	if v, ok := d.GetOk("tags"); ok {
+		input.Tags = keyvaluetags.New(v.(map[string]interface{})).IgnoreAws().CloudwatcheventsTags()
+	}
+
 	input.State = aws.String(getStringStateFromBoolean(d.Get("is_enabled").(bool)))
 
 	return &input, nil
@@ -278,9 +290,9 @@ func buildPutRuleInputStruct(d *schema.ResourceData, name string) (*events.PutRu
 
 // State is represented as (ENABLED|DISABLED) in the API
 func getBooleanStateFromString(state string) (bool, error) {
-	if state == "ENABLED" {
+	if state == events.RuleStateEnabled {
 		return true, nil
-	} else if state == "DISABLED" {
+	} else if state == events.RuleStateDisabled {
 		return false, nil
 	}
 	// We don't just blindly trust AWS as they tend to return
@@ -291,9 +303,9 @@ func getBooleanStateFromString(state string) (bool, error) {
 // State is represented as (ENABLED|DISABLED) in the API
 func getStringStateFromBoolean(isEnabled bool) string {
 	if isEnabled {
-		return "ENABLED"
+		return events.RuleStateEnabled
 	}
-	return "DISABLED"
+	return events.RuleStateDisabled
 }
 
 func validateEventPatternValue() schema.SchemaValidateFunc {

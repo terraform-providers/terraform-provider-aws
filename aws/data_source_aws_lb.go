@@ -74,7 +74,6 @@ func dataSourceAwsLb() *schema.Resource {
 			"access_logs": {
 				Type:     schema.TypeList,
 				Computed: true,
-				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"bucket": {
@@ -100,6 +99,11 @@ func dataSourceAwsLb() *schema.Resource {
 
 			"idle_timeout": {
 				Type:     schema.TypeInt,
+				Computed: true,
+			},
+
+			"drop_invalid_header_fields": {
+				Type:     schema.TypeBool,
 				Computed: true,
 			},
 

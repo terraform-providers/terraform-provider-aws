@@ -155,9 +155,6 @@ func resourceAwsQLDBLedgerRead(d *schema.ResourceData, meta interface{}) error {
 func resourceAwsQLDBLedgerUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).qldbconn
 
-	// Turn on partial mode
-	d.Partial(true)
-
 	if d.HasChange("deletion_protection") {
 		val := d.Get("deletion_protection").(bool)
 		modifyOpts := &qldb.UpdateLedgerInput{
@@ -171,8 +168,6 @@ func resourceAwsQLDBLedgerUpdate(d *schema.ResourceData, meta interface{}) error
 
 			return err
 		}
-
-		d.SetPartial("deletion_protection")
 	}
 
 	if d.HasChange("tags") {
@@ -182,7 +177,6 @@ func resourceAwsQLDBLedgerUpdate(d *schema.ResourceData, meta interface{}) error
 		}
 	}
 
-	d.Partial(false)
 	return resourceAwsQLDBLedgerRead(d, meta)
 }
 

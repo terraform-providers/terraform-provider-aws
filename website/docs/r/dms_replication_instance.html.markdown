@@ -67,7 +67,7 @@ resource "aws_dms_replication_instance" "test" {
   apply_immediately            = true
   auto_minor_version_upgrade   = true
   availability_zone            = "us-west-2c"
-  engine_version               = "1.9.0"
+  engine_version               = "3.1.4"
   kms_key_arn                  = "arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012"
   multi_az                     = false
   preferred_maintenance_window = "sun:10:30-sun:14:30"
@@ -125,7 +125,6 @@ In addition to all arguments above, the following attributes are exported:
 * `replication_instance_private_ips` -  A list of the private IP addresses of the replication instance.
 * `replication_instance_public_ips` - A list of the public IP addresses of the replication instance.
 
-<a id="timeouts"></a>
 ## Timeouts
 
 `aws_dms_replication_instance` provides the following

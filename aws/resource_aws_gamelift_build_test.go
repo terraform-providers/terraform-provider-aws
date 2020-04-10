@@ -3,6 +3,7 @@ package aws
 import (
 	"fmt"
 	"log"
+	"regexp"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -62,6 +63,7 @@ func TestAccAWSGameliftBuild_basic(t *testing.T) {
 	var conf gamelift.Build
 
 	rString := acctest.RandString(8)
+	resourceName := "aws_gamelift_build.test"
 
 	buildName := fmt.Sprintf("%s_%s", testAccGameliftBuildPrefix, rString)
 	uBuildName := fmt.Sprintf("%s_updated_%s", testAccGameliftBuildPrefix, rString)
@@ -90,26 +92,128 @@ func TestAccAWSGameliftBuild_basic(t *testing.T) {
 			{
 				Config: testAccAWSGameliftBuildBasicConfig(buildName, bucketName, key, roleArn),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSGameliftBuildExists("aws_gamelift_build.test", &conf),
-					resource.TestCheckResourceAttr("aws_gamelift_build.test", "name", buildName),
-					resource.TestCheckResourceAttr("aws_gamelift_build.test", "operating_system", "WINDOWS_2012"),
-					resource.TestCheckResourceAttr("aws_gamelift_build.test", "storage_location.#", "1"),
-					resource.TestCheckResourceAttr("aws_gamelift_build.test", "storage_location.0.bucket", bucketName),
-					resource.TestCheckResourceAttr("aws_gamelift_build.test", "storage_location.0.key", key),
-					resource.TestCheckResourceAttr("aws_gamelift_build.test", "storage_location.0.role_arn", roleArn),
+					testAccCheckAWSGameliftBuildExists(resourceName, &conf),
+					resource.TestCheckResourceAttr(resourceName, "name", buildName),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "gamelift", regexp.MustCompile(`build/build-.+`)),
+					resource.TestCheckResourceAttr(resourceName, "operating_system", "WINDOWS_2012"),
+					resource.TestCheckResourceAttr(resourceName, "storage_location.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "storage_location.0.bucket", bucketName),
+					resource.TestCheckResourceAttr(resourceName, "storage_location.0.key", key),
+					resource.TestCheckResourceAttr(resourceName, "storage_location.0.role_arn", roleArn),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 				),
 			},
 			{
 				Config: testAccAWSGameliftBuildBasicConfig(uBuildName, bucketName, key, roleArn),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSGameliftBuildExists("aws_gamelift_build.test", &conf),
-					resource.TestCheckResourceAttr("aws_gamelift_build.test", "name", uBuildName),
-					resource.TestCheckResourceAttr("aws_gamelift_build.test", "operating_system", "WINDOWS_2012"),
-					resource.TestCheckResourceAttr("aws_gamelift_build.test", "storage_location.#", "1"),
-					resource.TestCheckResourceAttr("aws_gamelift_build.test", "storage_location.0.bucket", bucketName),
-					resource.TestCheckResourceAttr("aws_gamelift_build.test", "storage_location.0.key", key),
-					resource.TestCheckResourceAttr("aws_gamelift_build.test", "storage_location.0.role_arn", roleArn),
+					testAccCheckAWSGameliftBuildExists(resourceName, &conf),
+					resource.TestCheckResourceAttr(resourceName, "name", uBuildName),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "gamelift", regexp.MustCompile(`build/build-.+`)),
+					resource.TestCheckResourceAttr(resourceName, "operating_system", "WINDOWS_2012"),
+					resource.TestCheckResourceAttr(resourceName, "storage_location.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "storage_location.0.bucket", bucketName),
+					resource.TestCheckResourceAttr(resourceName, "storage_location.0.key", key),
+					resource.TestCheckResourceAttr(resourceName, "storage_location.0.role_arn", roleArn),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 				),
+			},
+		},
+	})
+}
+
+func TestAccAWSGameliftBuild_tags(t *testing.T) {
+	var conf gamelift.Build
+
+	rString := acctest.RandString(8)
+	resourceName := "aws_gamelift_build.test"
+
+	buildName := fmt.Sprintf("%s_%s", testAccGameliftBuildPrefix, rString)
+	region := testAccGetRegion()
+	g, err := testAccAWSGameliftSampleGame(region)
+
+	if isResourceNotFoundError(err) {
+		t.Skip(err)
+	}
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	loc := g.Location
+	bucketName := *loc.Bucket
+	roleArn := *loc.RoleArn
+	key := *loc.Key
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSGamelift(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSGameliftBuildDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSGameliftBuildBasicConfigTags1(buildName, bucketName, key, roleArn, "key1", "value1"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSGameliftBuildExists(resourceName, &conf),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1"),
+				),
+			},
+			{
+				Config: testAccAWSGameliftBuildBasicConfigTags2(buildName, bucketName, key, roleArn, "key1", "value1updated", "key2", "value2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSGameliftBuildExists(resourceName, &conf),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1updated"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
+				),
+			},
+			{
+				Config: testAccAWSGameliftBuildBasicConfigTags1(buildName, bucketName, key, roleArn, "key2", "value2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSGameliftBuildExists(resourceName, &conf),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSGameliftBuild_disappears(t *testing.T) {
+	var conf gamelift.Build
+
+	rString := acctest.RandString(8)
+	resourceName := "aws_gamelift_build.test"
+
+	buildName := fmt.Sprintf("%s_%s", testAccGameliftBuildPrefix, rString)
+
+	region := testAccGetRegion()
+	g, err := testAccAWSGameliftSampleGame(region)
+
+	if isResourceNotFoundError(err) {
+		t.Skip(err)
+	}
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	loc := g.Location
+	bucketName := *loc.Bucket
+	roleArn := *loc.RoleArn
+	key := *loc.Key
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSGamelift(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSGameliftBuildDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSGameliftBuildBasicConfig(buildName, bucketName, key, roleArn),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSGameliftBuildExists(resourceName, &conf),
+					testAccCheckAWSGameliftBuildDisappears(&conf),
+				),
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
@@ -145,6 +249,17 @@ func testAccCheckAWSGameliftBuildExists(n string, res *gamelift.Build) resource.
 		*res = *b
 
 		return nil
+	}
+}
+
+func testAccCheckAWSGameliftBuildDisappears(res *gamelift.Build) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		conn := testAccProvider.Meta().(*AWSClient).gameliftconn
+
+		input := &gamelift.DeleteBuildInput{BuildId: res.BuildId}
+
+		_, err := conn.DeleteBuild(input)
+		return err
 	}
 }
 
@@ -204,4 +319,43 @@ resource "aws_gamelift_build" "test" {
   }
 }
 `, buildName, bucketName, key, roleArn)
+}
+
+func testAccAWSGameliftBuildBasicConfigTags1(buildName, bucketName, key, roleArn, tagKey1, tagValue1 string) string {
+	return fmt.Sprintf(`
+resource "aws_gamelift_build" "test" {
+  name             = %[1]q
+  operating_system = "WINDOWS_2012"
+
+  storage_location {
+    bucket   = %[2]q
+    key      = %[3]q
+    role_arn = %[4]q
+  }
+
+  tags = {
+    %[5]q = %[6]q
+  }
+}
+`, buildName, bucketName, key, roleArn, tagKey1, tagValue1)
+}
+
+func testAccAWSGameliftBuildBasicConfigTags2(buildName, bucketName, key, roleArn, tagKey1, tagValue1, tagKey2, tagValue2 string) string {
+	return fmt.Sprintf(`
+resource "aws_gamelift_build" "test" {
+  name             = %[1]q
+  operating_system = "WINDOWS_2012"
+
+  storage_location {
+    bucket   = %[2]q
+    key      = %[3]q
+    role_arn = %[4]q
+  }
+
+  tags = {
+    %[5]q = %[6]q
+    %[7]q = %[8]q
+  }
+}
+`, buildName, bucketName, key, roleArn, tagKey1, tagValue1, tagKey2, tagValue2)
 }

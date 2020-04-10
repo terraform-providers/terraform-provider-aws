@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
@@ -60,7 +62,24 @@ func resourceAwsCloudWatchLogStreamRead(d *schema.ResourceData, meta interface{}
 
 	group := d.Get("log_group_name").(string)
 
-	ls, exists, err := lookupCloudWatchLogStream(conn, d.Id(), group, nil)
+	var ls *cloudwatchlogs.LogStream
+	var exists bool
+
+	err := resource.Retry(2*time.Minute, func() *resource.RetryError {
+		var err error
+		ls, exists, err = lookupCloudWatchLogStream(conn, d.Id(), group, nil)
+		if err != nil {
+			return resource.NonRetryableError(err)
+		}
+		if d.IsNewResource() && !exists {
+			return resource.RetryableError(&resource.NotFoundError{})
+		}
+		return nil
+	})
+	if isResourceTimeoutError(err) {
+		ls, exists, err = lookupCloudWatchLogStream(conn, d.Id(), group, nil)
+	}
+
 	if err != nil {
 		if !isAWSErr(err, cloudwatchlogs.ErrCodeResourceNotFoundException, "") {
 			return err

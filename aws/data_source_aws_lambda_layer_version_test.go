@@ -81,7 +81,7 @@ func testAccDataSourceAWSLambdaLayerVersionConfigBasic(rName string) string {
 resource "aws_lambda_layer_version" "test" {
   filename            = "test-fixtures/lambdatest.zip"
   layer_name          = %[1]q
-  compatible_runtimes = ["nodejs8.10"]
+  compatible_runtimes = ["nodejs12.x"]
 }
 
 data "aws_lambda_layer_version" "test" {
@@ -95,13 +95,13 @@ func testAccDataSourceAWSLambdaLayerVersionConfigVersion(rName string) string {
 resource "aws_lambda_layer_version" "test" {
   filename            = "test-fixtures/lambdatest.zip"
   layer_name          = %[1]q
-  compatible_runtimes = ["nodejs8.10"]
+  compatible_runtimes = ["nodejs12.x"]
 }
 
 resource "aws_lambda_layer_version" "test_two" {
   filename            = "test-fixtures/lambdatest_modified.zip"
   layer_name          = %[1]q
-  compatible_runtimes = ["nodejs8.10"]
+  compatible_runtimes = ["nodejs12.x"]
 }
 
 data "aws_lambda_layer_version" "test" {
@@ -122,7 +122,7 @@ resource "aws_lambda_layer_version" "test" {
 resource "aws_lambda_layer_version" "test_two" {
   filename            = "test-fixtures/lambdatest_modified.zip"
   layer_name          = "${aws_lambda_layer_version.test.layer_name}"
-  compatible_runtimes = ["nodejs8.10"]
+  compatible_runtimes = ["nodejs12.x"]
 }
 
 data "aws_lambda_layer_version" "test" {

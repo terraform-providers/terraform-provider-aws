@@ -2,6 +2,10 @@
 
 package organizations
 
+import (
+	"github.com/aws/aws-sdk-go/private/protocol"
+)
+
 const (
 
 	// ErrCodeAWSOrganizationsNotInUseException for service response error code
@@ -29,6 +33,12 @@ const (
 	// create the required service-linked role. You don't have that permission.
 	ErrCodeAccessDeniedForDependencyException = "AccessDeniedForDependencyException"
 
+	// ErrCodeAccountAlreadyRegisteredException for service response error code
+	// "AccountAlreadyRegisteredException".
+	//
+	// The specified account is already a delegated administrator for this AWS service.
+	ErrCodeAccountAlreadyRegisteredException = "AccountAlreadyRegisteredException"
+
 	// ErrCodeAccountNotFoundException for service response error code
 	// "AccountNotFoundException".
 	//
@@ -36,6 +46,12 @@ const (
 	// account whose credentials you used to make this request isn't a member of
 	// an organization.
 	ErrCodeAccountNotFoundException = "AccountNotFoundException"
+
+	// ErrCodeAccountNotRegisteredException for service response error code
+	// "AccountNotRegisteredException".
+	//
+	// The specified account is not a delegated administrator for this AWS service.
+	ErrCodeAccountNotRegisteredException = "AccountNotRegisteredException"
 
 	// ErrCodeAccountOwnerNotVerifiedException for service response error code
 	// "AccountOwnerNotVerifiedException".
@@ -109,6 +125,15 @@ const (
 	//    try again. If after an hour it continues to fail with this error, contact
 	//    AWS Support (https://console.aws.amazon.com/support/home#/).
 	//
+	//    * CANNOT_REGISTER_MASTER_AS_DELEGATED_ADMINISTRATOR: You can designate
+	//    only a member account as a delegated administrator.
+	//
+	//    * CANNOT_REMOVE_DELEGATED_ADMINISTRATOR_FROM_ORG: To complete this operation,
+	//    you must first deregister this account as a delegated administrator.
+	//
+	//    * DELEGATED_ADMINISTRATOR_EXISTS_FOR_THIS_SERVICE: To complete this operation,
+	//    you must first deregister all delegated administrators for this service.
+	//
 	//    * HANDSHAKE_RATE_LIMIT_EXCEEDED: You attempted to exceed the number of
 	//    handshakes that you can send in one day.
 	//
@@ -134,6 +159,10 @@ const (
 	//    an organization when all required account information has not yet been
 	//    provided (http://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_accounts_remove.html#leave-without-all-info)
 	//    in the AWS Organizations User Guide.
+	//
+	//    * MAX_DELEGATED_ADMINISTRATORS_FOR_SERVICE_LIMIT_EXCEEDED: You attempted
+	//    to register more delegated administrators than allowed for the service
+	//    principal.
 	//
 	//    * MAX_POLICY_TYPE_ATTACHMENT_LIMIT_EXCEEDED: You attempted to exceed the
 	//    number of policies of a certain type that can be attached to an entity
@@ -215,6 +244,15 @@ const (
 	//
 	// A policy with the same name already exists.
 	ErrCodeDuplicatePolicyException = "DuplicatePolicyException"
+
+	// ErrCodeEffectivePolicyNotFoundException for service response error code
+	// "EffectivePolicyNotFoundException".
+	//
+	// If you ran this action on the master account, this policy type is not enabled.
+	// If you ran the action on a member account, the account doesn't have an effective
+	// policy of this type. Contact the administrator of your organization about
+	// attaching a policy of this type to the account.
+	ErrCodeEffectivePolicyNotFoundException = "EffectivePolicyNotFoundException"
 
 	// ErrCodeFinalizingOrganizationException for service response error code
 	// "FinalizingOrganizationException".
@@ -399,6 +437,13 @@ const (
 	// We can't find a root or OU with the ParentId that you specified.
 	ErrCodeParentNotFoundException = "ParentNotFoundException"
 
+	// ErrCodePolicyChangesInProgressException for service response error code
+	// "PolicyChangesInProgressException".
+	//
+	// Changes to the effective policy are in progress, and its contents can't be
+	// returned. Try the operation again later.
+	ErrCodePolicyChangesInProgressException = "PolicyChangesInProgressException"
+
 	// ErrCodePolicyInUseException for service response error code
 	// "PolicyInUseException".
 	//
@@ -486,3 +531,50 @@ const (
 	// This action isn't available in the current Region.
 	ErrCodeUnsupportedAPIEndpointException = "UnsupportedAPIEndpointException"
 )
+
+var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
+	"AWSOrganizationsNotInUseException":              newErrorAWSOrganizationsNotInUseException,
+	"AccessDeniedException":                          newErrorAccessDeniedException,
+	"AccessDeniedForDependencyException":             newErrorAccessDeniedForDependencyException,
+	"AccountAlreadyRegisteredException":              newErrorAccountAlreadyRegisteredException,
+	"AccountNotFoundException":                       newErrorAccountNotFoundException,
+	"AccountNotRegisteredException":                  newErrorAccountNotRegisteredException,
+	"AccountOwnerNotVerifiedException":               newErrorAccountOwnerNotVerifiedException,
+	"AlreadyInOrganizationException":                 newErrorAlreadyInOrganizationException,
+	"ChildNotFoundException":                         newErrorChildNotFoundException,
+	"ConcurrentModificationException":                newErrorConcurrentModificationException,
+	"ConstraintViolationException":                   newErrorConstraintViolationException,
+	"CreateAccountStatusNotFoundException":           newErrorCreateAccountStatusNotFoundException,
+	"DestinationParentNotFoundException":             newErrorDestinationParentNotFoundException,
+	"DuplicateAccountException":                      newErrorDuplicateAccountException,
+	"DuplicateHandshakeException":                    newErrorDuplicateHandshakeException,
+	"DuplicateOrganizationalUnitException":           newErrorDuplicateOrganizationalUnitException,
+	"DuplicatePolicyAttachmentException":             newErrorDuplicatePolicyAttachmentException,
+	"DuplicatePolicyException":                       newErrorDuplicatePolicyException,
+	"EffectivePolicyNotFoundException":               newErrorEffectivePolicyNotFoundException,
+	"FinalizingOrganizationException":                newErrorFinalizingOrganizationException,
+	"HandshakeAlreadyInStateException":               newErrorHandshakeAlreadyInStateException,
+	"HandshakeConstraintViolationException":          newErrorHandshakeConstraintViolationException,
+	"HandshakeNotFoundException":                     newErrorHandshakeNotFoundException,
+	"InvalidHandshakeTransitionException":            newErrorInvalidHandshakeTransitionException,
+	"InvalidInputException":                          newErrorInvalidInputException,
+	"MalformedPolicyDocumentException":               newErrorMalformedPolicyDocumentException,
+	"MasterCannotLeaveOrganizationException":         newErrorMasterCannotLeaveOrganizationException,
+	"OrganizationNotEmptyException":                  newErrorOrganizationNotEmptyException,
+	"OrganizationalUnitNotEmptyException":            newErrorOrganizationalUnitNotEmptyException,
+	"OrganizationalUnitNotFoundException":            newErrorOrganizationalUnitNotFoundException,
+	"ParentNotFoundException":                        newErrorParentNotFoundException,
+	"PolicyChangesInProgressException":               newErrorPolicyChangesInProgressException,
+	"PolicyInUseException":                           newErrorPolicyInUseException,
+	"PolicyNotAttachedException":                     newErrorPolicyNotAttachedException,
+	"PolicyNotFoundException":                        newErrorPolicyNotFoundException,
+	"PolicyTypeAlreadyEnabledException":              newErrorPolicyTypeAlreadyEnabledException,
+	"PolicyTypeNotAvailableForOrganizationException": newErrorPolicyTypeNotAvailableForOrganizationException,
+	"PolicyTypeNotEnabledException":                  newErrorPolicyTypeNotEnabledException,
+	"RootNotFoundException":                          newErrorRootNotFoundException,
+	"ServiceException":                               newErrorServiceException,
+	"SourceParentNotFoundException":                  newErrorSourceParentNotFoundException,
+	"TargetNotFoundException":                        newErrorTargetNotFoundException,
+	"TooManyRequestsException":                       newErrorTooManyRequestsException,
+	"UnsupportedAPIEndpointException":                newErrorUnsupportedAPIEndpointException,
+}

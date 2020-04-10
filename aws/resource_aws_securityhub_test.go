@@ -9,6 +9,10 @@ func TestAccAWSSecurityHub(t *testing.T) {
 		"Account": {
 			"basic": testAccAWSSecurityHubAccount_basic,
 		},
+		"Member": {
+			"basic":  testAccAWSSecurityHubMember_basic,
+			"invite": testAccAWSSecurityHubMember_invite,
+		},
 		"ProductSubscription": {
 			"basic": testAccAWSSecurityHubProductSubscription_basic,
 		},

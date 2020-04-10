@@ -2,6 +2,10 @@
 
 package fms
 
+import (
+	"github.com/aws/aws-sdk-go/private/protocol"
+)
+
 const (
 
 	// ErrCodeInternalErrorException for service response error code
@@ -46,3 +50,12 @@ const (
 	// The specified resource was not found.
 	ErrCodeResourceNotFoundException = "ResourceNotFoundException"
 )
+
+var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
+	"InternalErrorException":    newErrorInternalErrorException,
+	"InvalidInputException":     newErrorInvalidInputException,
+	"InvalidOperationException": newErrorInvalidOperationException,
+	"InvalidTypeException":      newErrorInvalidTypeException,
+	"LimitExceededException":    newErrorLimitExceededException,
+	"ResourceNotFoundException": newErrorResourceNotFoundException,
+}

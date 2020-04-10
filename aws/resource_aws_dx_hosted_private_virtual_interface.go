@@ -3,6 +3,7 @@ package aws
 import (
 	"fmt"
 	"log"
+	"strconv"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -22,25 +23,32 @@ func resourceAwsDxHostedPrivateVirtualInterface() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
+			"address_family": {
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					directconnect.AddressFamilyIpv4,
+					directconnect.AddressFamilyIpv6,
+				}, false),
+			},
+			"amazon_address": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+				ForceNew: true,
+			},
 			"arn": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"connection_id": {
+			"amazon_side_asn": {
 				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Computed: true,
 			},
-			"name": {
+			"aws_device": {
 				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
-			"vlan": {
-				Type:         schema.TypeInt,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.IntBetween(1, 4094),
+				Computed: true,
 			},
 			"bgp_asn": {
 				Type:     schema.TypeInt,
@@ -53,11 +61,10 @@ func resourceAwsDxHostedPrivateVirtualInterface() *schema.Resource {
 				Computed: true,
 				ForceNew: true,
 			},
-			"address_family": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringInSlice([]string{directconnect.AddressFamilyIpv4, directconnect.AddressFamilyIpv6}, false),
+			"connection_id": {
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
 			},
 			"customer_address": {
 				Type:     schema.TypeString,
@@ -65,17 +72,9 @@ func resourceAwsDxHostedPrivateVirtualInterface() *schema.Resource {
 				Computed: true,
 				ForceNew: true,
 			},
-			"amazon_address": {
-				Type:     schema.TypeString,
-				Optional: true,
+			"jumbo_frame_capable": {
+				Type:     schema.TypeBool,
 				Computed: true,
-				ForceNew: true,
-			},
-			"owner_account_id": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validateAwsAccountId,
 			},
 			"mtu": {
 				Type:         schema.TypeInt,
@@ -84,13 +83,22 @@ func resourceAwsDxHostedPrivateVirtualInterface() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: validation.IntInSlice([]int{1500, 9001}),
 			},
-			"jumbo_frame_capable": {
-				Type:     schema.TypeBool,
-				Computed: true,
-			},
-			"aws_device": {
+			"name": {
 				Type:     schema.TypeString,
-				Computed: true,
+				Required: true,
+				ForceNew: true,
+			},
+			"owner_account_id": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validateAwsAccountId,
+			},
+			"vlan": {
+				Type:         schema.TypeInt,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.IntBetween(1, 4094),
 			},
 		},
 
@@ -107,14 +115,17 @@ func resourceAwsDxHostedPrivateVirtualInterfaceCreate(d *schema.ResourceData, me
 
 	req := &directconnect.AllocatePrivateVirtualInterfaceInput{
 		ConnectionId: aws.String(d.Get("connection_id").(string)),
-		OwnerAccount: aws.String(d.Get("owner_account_id").(string)),
 		NewPrivateVirtualInterfaceAllocation: &directconnect.NewPrivateVirtualInterfaceAllocation{
+			AddressFamily:        aws.String(d.Get("address_family").(string)),
+			Asn:                  aws.Int64(int64(d.Get("bgp_asn").(int))),
+			Mtu:                  aws.Int64(int64(d.Get("mtu").(int))),
 			VirtualInterfaceName: aws.String(d.Get("name").(string)),
 			Vlan:                 aws.Int64(int64(d.Get("vlan").(int))),
-			Asn:                  aws.Int64(int64(d.Get("bgp_asn").(int))),
-			AddressFamily:        aws.String(d.Get("address_family").(string)),
-			Mtu:                  aws.Int64(int64(d.Get("mtu").(int))),
 		},
+		OwnerAccount: aws.String(d.Get("owner_account_id").(string)),
+	}
+	if v, ok := d.GetOk("amazon_address"); ok && v.(string) != "" {
+		req.NewPrivateVirtualInterfaceAllocation.AmazonAddress = aws.String(v.(string))
 	}
 	if v, ok := d.GetOk("bgp_auth_key"); ok && v.(string) != "" {
 		req.NewPrivateVirtualInterfaceAllocation.AuthKey = aws.String(v.(string))
@@ -122,28 +133,17 @@ func resourceAwsDxHostedPrivateVirtualInterfaceCreate(d *schema.ResourceData, me
 	if v, ok := d.GetOk("customer_address"); ok && v.(string) != "" {
 		req.NewPrivateVirtualInterfaceAllocation.CustomerAddress = aws.String(v.(string))
 	}
-	if v, ok := d.GetOk("amazon_address"); ok && v.(string) != "" {
-		req.NewPrivateVirtualInterfaceAllocation.AmazonAddress = aws.String(v.(string))
-	}
 	if v, ok := d.GetOk("mtu"); ok && v.(int) != 0 {
 		req.NewPrivateVirtualInterfaceAllocation.Mtu = aws.Int64(int64(v.(int)))
 	}
 
-	log.Printf("[DEBUG] Creating Direct Connect hosted private virtual interface: %#v", req)
+	log.Printf("[DEBUG] Creating Direct Connect hosted private virtual interface: %s", req)
 	resp, err := conn.AllocatePrivateVirtualInterface(req)
 	if err != nil {
-		return fmt.Errorf("Error creating Direct Connect hosted private virtual interface: %s", err.Error())
+		return fmt.Errorf("error creating Direct Connect hosted private virtual interface: %s", err)
 	}
 
 	d.SetId(aws.StringValue(resp.VirtualInterfaceId))
-	arn := arn.ARN{
-		Partition: meta.(*AWSClient).partition,
-		Region:    meta.(*AWSClient).region,
-		Service:   "directconnect",
-		AccountID: meta.(*AWSClient).accountid,
-		Resource:  fmt.Sprintf("dxvif/%s", d.Id()),
-	}.String()
-	d.Set("arn", arn)
 
 	if err := dxHostedPrivateVirtualInterfaceWaitUntilAvailable(conn, d.Id(), d.Timeout(schema.TimeoutCreate)); err != nil {
 		return err
@@ -160,23 +160,32 @@ func resourceAwsDxHostedPrivateVirtualInterfaceRead(d *schema.ResourceData, meta
 		return err
 	}
 	if vif == nil {
-		log.Printf("[WARN] Direct Connect virtual interface (%s) not found, removing from state", d.Id())
+		log.Printf("[WARN] Direct Connect hosted private virtual interface (%s) not found, removing from state", d.Id())
 		d.SetId("")
 		return nil
 	}
 
-	d.Set("connection_id", vif.ConnectionId)
-	d.Set("name", vif.VirtualInterfaceName)
-	d.Set("vlan", vif.Vlan)
+	d.Set("address_family", vif.AddressFamily)
+	d.Set("amazon_address", vif.AmazonAddress)
+	d.Set("amazon_side_asn", strconv.FormatInt(aws.Int64Value(vif.AmazonSideAsn), 10))
+	arn := arn.ARN{
+		Partition: meta.(*AWSClient).partition,
+		Region:    meta.(*AWSClient).region,
+		Service:   "directconnect",
+		AccountID: meta.(*AWSClient).accountid,
+		Resource:  fmt.Sprintf("dxvif/%s", d.Id()),
+	}.String()
+	d.Set("arn", arn)
+	d.Set("aws_device", vif.AwsDeviceV2)
 	d.Set("bgp_asn", vif.Asn)
 	d.Set("bgp_auth_key", vif.AuthKey)
-	d.Set("address_family", vif.AddressFamily)
+	d.Set("connection_id", vif.ConnectionId)
 	d.Set("customer_address", vif.CustomerAddress)
-	d.Set("amazon_address", vif.AmazonAddress)
-	d.Set("owner_account_id", vif.OwnerAccount)
-	d.Set("mtu", vif.Mtu)
 	d.Set("jumbo_frame_capable", vif.JumboFrameCapable)
-	d.Set("aws_device", vif.AwsDeviceV2)
+	d.Set("mtu", vif.Mtu)
+	d.Set("name", vif.VirtualInterfaceName)
+	d.Set("owner_account_id", vif.OwnerAccount)
+	d.Set("vlan", vif.Vlan)
 
 	return nil
 }
@@ -186,14 +195,19 @@ func resourceAwsDxHostedPrivateVirtualInterfaceDelete(d *schema.ResourceData, me
 }
 
 func resourceAwsDxHostedPrivateVirtualInterfaceImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-	arn := arn.ARN{
-		Partition: meta.(*AWSClient).partition,
-		Region:    meta.(*AWSClient).region,
-		Service:   "directconnect",
-		AccountID: meta.(*AWSClient).accountid,
-		Resource:  fmt.Sprintf("dxvif/%s", d.Id()),
-	}.String()
-	d.Set("arn", arn)
+	conn := meta.(*AWSClient).dxconn
+
+	vif, err := dxVirtualInterfaceRead(d.Id(), conn)
+	if err != nil {
+		return nil, err
+	}
+	if vif == nil {
+		return nil, fmt.Errorf("virtual interface (%s) not found", d.Id())
+	}
+
+	if vifType := aws.StringValue(vif.VirtualInterfaceType); vifType != "private" {
+		return nil, fmt.Errorf("virtual interface (%s) has incorrect type: %s", d.Id(), vifType)
+	}
 
 	return []*schema.ResourceData{d}, nil
 }

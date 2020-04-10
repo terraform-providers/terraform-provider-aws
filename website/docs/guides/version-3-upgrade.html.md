@@ -184,3 +184,36 @@ resource "aws_emr_cluster" "example" {
   }
 }
 ```
+
+## Resource: aws_lb_listener_rule
+
+### condition.field and condition.values Arguments Removal
+
+Switch your Terraform configuration to use the `host_header` or `path_pattern` configuration block instead.
+
+For example, given this previous configuration:
+
+```hcl
+resource "aws_lb_listener_rule" "example" {
+  # ... other configuration ...
+
+  condition {
+    field  = "path-pattern"
+    values = ["/static/*"]
+  }
+}
+```
+
+An updated configuration:
+
+```hcl
+resource "aws_lb_listener_rule" "example" {
+  # ... other configuration ...
+
+  condition {
+    path_pattern {
+      values = ["/static/*"]
+    }
+  }
+}
+```

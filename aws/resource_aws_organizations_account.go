@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsOrganizationsAccount() *schema.Resource {
@@ -163,16 +164,9 @@ func resourceAwsOrganizationsAccountCreate(d *schema.ResourceData, meta interfac
 		}
 	}
 
-	if tags := tagsFromMapOrganizations(d.Get("tags").(map[string]interface{})); len(tags) > 0 {
-		input := &organizations.TagResourceInput{
-			ResourceId: aws.String(d.Id()),
-			Tags:       tags,
-		}
-
-		log.Printf("[DEBUG] Adding Organizations Account (%s) tags: %s", d.Id(), input)
-
-		if _, err := conn.TagResource(input); err != nil {
-			return fmt.Errorf("error updating Organizations Account (%s) tags: %s", d.Id(), err)
+	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
+		if err := keyvaluetags.OrganizationsUpdateTags(conn, d.Id(), nil, v); err != nil {
+			return fmt.Errorf("error adding AWS Organizations Account (%s) tags: %s", d.Id(), err)
 		}
 	}
 
@@ -208,29 +202,21 @@ func resourceAwsOrganizationsAccountRead(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("error getting AWS Organizations Account (%s) parent: %s", d.Id(), err)
 	}
 
-	tagsInput := &organizations.ListTagsForResourceInput{
-		ResourceId: aws.String(d.Id()),
-	}
-
-	tagsOutput, err := conn.ListTagsForResource(tagsInput)
-
-	if err != nil {
-		return fmt.Errorf("error reading Organizations Account (%s) tags: %s", d.Id(), err)
-	}
-
-	if tagsOutput == nil {
-		return fmt.Errorf("error reading Organizations Account (%s) tags: empty result", d.Id())
-	}
-
 	d.Set("arn", account.Arn)
 	d.Set("email", account.Email)
 	d.Set("joined_method", account.JoinedMethod)
-	d.Set("joined_timestamp", account.JoinedTimestamp)
+	d.Set("joined_timestamp", aws.TimeValue(account.JoinedTimestamp).Format(time.RFC3339))
 	d.Set("name", account.Name)
 	d.Set("parent_id", parentId)
 	d.Set("status", account.Status)
 
-	if err := d.Set("tags", tagsToMapOrganizations(tagsOutput.Tags)); err != nil {
+	tags, err := keyvaluetags.OrganizationsListTags(conn, d.Id())
+
+	if err != nil {
+		return fmt.Errorf("error listing tags for AWS Organizations Account (%s): %s", d.Id(), err)
+	}
+
+	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
@@ -255,35 +241,10 @@ func resourceAwsOrganizationsAccountUpdate(d *schema.ResourceData, meta interfac
 	}
 
 	if d.HasChange("tags") {
-		oraw, nraw := d.GetChange("tags")
-		o := oraw.(map[string]interface{})
-		n := nraw.(map[string]interface{})
-		create, remove := diffTagsOrganizations(tagsFromMapOrganizations(o), tagsFromMapOrganizations(n))
+		o, n := d.GetChange("tags")
 
-		// Set tags
-		if len(remove) > 0 {
-			input := &organizations.UntagResourceInput{
-				ResourceId: aws.String(d.Id()),
-				TagKeys:    remove,
-			}
-
-			log.Printf("[DEBUG] Removing Organizations Account (%s) tags: %s", d.Id(), input)
-
-			if _, err := conn.UntagResource(input); err != nil {
-				return fmt.Errorf("error removing Organizations Account (%s) tags: %s", d.Id(), err)
-			}
-		}
-		if len(create) > 0 {
-			input := &organizations.TagResourceInput{
-				ResourceId: aws.String(d.Id()),
-				Tags:       create,
-			}
-
-			log.Printf("[DEBUG] Adding Organizations Account (%s) tags: %s", d.Id(), input)
-
-			if _, err := conn.TagResource(input); err != nil {
-				return fmt.Errorf("error updating Organizations Account (%s) tags: %s", d.Id(), err)
-			}
+		if err := keyvaluetags.OrganizationsUpdateTags(conn, d.Id(), o, n); err != nil {
+			return fmt.Errorf("error updating AWS Organizations Account (%s) tags: %s", d.Id(), err)
 		}
 	}
 

@@ -37,6 +37,7 @@ func TestAccAWSDocDBClusterInstance_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "dbi_resource_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "availability_zone"),
 					resource.TestCheckResourceAttrSet(resourceName, "engine_version"),
+					resource.TestCheckResourceAttrSet(resourceName, "ca_cert_identifier"),
 					resource.TestCheckResourceAttr(resourceName, "engine", "docdb"),
 				),
 			},
@@ -326,7 +327,14 @@ resource "aws_docdb_cluster_instance" "cluster_instances" {
 
 func testAccAWSDocDBClusterInstanceConfig_az(n int) string {
 	return fmt.Sprintf(`
-data "aws_availability_zones" "available" {}
+data "aws_availability_zones" "available" {
+  state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
 
 resource "aws_docdb_cluster" "default" {
   cluster_identifier  = "tf-docdb-cluster-test-%d"

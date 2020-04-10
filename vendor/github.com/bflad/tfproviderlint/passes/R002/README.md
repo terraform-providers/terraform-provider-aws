@@ -19,3 +19,14 @@ var stringPtr *string
 
 d.Set("example", stringPtr)
 ```
+
+## Ignoring Reports
+
+Singular reports can be ignored by adding the a `//lintignore:R002` Go code comment at the end of the offending line or on the line immediately proceding, e.g.
+
+```go
+var stringPtr *string
+
+//lintignore:R002
+d.Set("example", *stringPtr)
+```

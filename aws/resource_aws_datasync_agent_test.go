@@ -56,7 +56,7 @@ func testSweepDataSyncAgents(region string) error {
 
 			_, err := conn.DeleteAgent(input)
 
-			if isAWSErr(err, "InvalidRequestException", "not found") {
+			if isAWSErr(err, "InvalidRequestException", "does not exist") {
 				continue
 			}
 
@@ -219,7 +219,7 @@ func testAccCheckAWSDataSyncAgentDestroy(s *terraform.State) error {
 
 		_, err := conn.DescribeAgent(input)
 
-		if isAWSErr(err, "InvalidRequestException", "not found") {
+		if isAWSErr(err, "InvalidRequestException", "does not exist") {
 			return nil
 		}
 

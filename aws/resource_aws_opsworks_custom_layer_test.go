@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/opsworks"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -29,7 +28,7 @@ func TestAccAWSOpsworksCustomLayer_basic(t *testing.T) {
 			{
 				Config: testAccAwsOpsworksCustomLayerConfigVpcCreate(name),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSOpsworksCustomLayerExists(resourceName, &opslayer),
+					testAccCheckAWSOpsworksLayerExists(resourceName, &opslayer),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
 					resource.TestCheckResourceAttr(resourceName, "auto_assign_elastic_ips", "false"),
 					resource.TestCheckResourceAttr(resourceName, "auto_healing", "true"),
@@ -44,12 +43,57 @@ func TestAccAWSOpsworksCustomLayer_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "ebs_volume.3575749636.number_of_disks", "2"),
 					resource.TestCheckResourceAttr(resourceName, "ebs_volume.3575749636.mount_point", "/home"),
 					resource.TestCheckResourceAttr(resourceName, "ebs_volume.3575749636.size", "100"),
+					resource.TestCheckResourceAttr(resourceName, "ebs_volume.3575749636.encrypted", "false"),
 				),
 			},
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSOpsworksCustomLayer_tags(t *testing.T) {
+	name := acctest.RandomWithPrefix("tf-acc-test")
+	var opslayer opsworks.Layer
+	resourceName := "aws_opsworks_custom_layer.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAwsOpsworksCustomLayerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAwsOpsworksCustomLayerConfigTags1(name, "key1", "value1"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSOpsworksLayerExists(resourceName, &opslayer),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAwsOpsworksCustomLayerConfigTags2(name, "key1", "value1updated", "key2", "value2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSOpsworksLayerExists(resourceName, &opslayer),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1updated"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
+				),
+			},
+			{
+				Config: testAccAwsOpsworksCustomLayerConfigTags1(name, "key2", "value2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSOpsworksLayerExists(resourceName, &opslayer),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
+				),
 			},
 		},
 	})
@@ -68,7 +112,7 @@ func TestAccAWSOpsworksCustomLayer_noVPC(t *testing.T) {
 			{
 				Config: testAccAwsOpsworksCustomLayerConfigNoVpcCreate(stackName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSOpsworksCustomLayerExists(resourceName, &opslayer),
+					testAccCheckAWSOpsworksLayerExists(resourceName, &opslayer),
 					testAccCheckAWSOpsworksCreateLayerAttributes(&opslayer, stackName),
 					resource.TestCheckResourceAttr(resourceName, "name", stackName),
 					resource.TestCheckResourceAttr(resourceName, "auto_assign_elastic_ips", "false"),
@@ -84,6 +128,7 @@ func TestAccAWSOpsworksCustomLayer_noVPC(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "ebs_volume.3575749636.number_of_disks", "2"),
 					resource.TestCheckResourceAttr(resourceName, "ebs_volume.3575749636.mount_point", "/home"),
 					resource.TestCheckResourceAttr(resourceName, "ebs_volume.3575749636.size", "100"),
+					resource.TestCheckResourceAttr(resourceName, "ebs_volume.3575749636.encrypted", "false"),
 				),
 			},
 			{
@@ -108,6 +153,7 @@ func TestAccAWSOpsworksCustomLayer_noVPC(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "ebs_volume.1266957920.size", "100"),
 					resource.TestCheckResourceAttr(resourceName, "ebs_volume.1266957920.raid_level", "1"),
 					resource.TestCheckResourceAttr(resourceName, "ebs_volume.1266957920.iops", "3000"),
+					resource.TestCheckResourceAttr(resourceName, "ebs_volume.1266957920.encrypted", "true"),
 					resource.TestCheckResourceAttr(resourceName, "custom_json", `{"layer_key":"layer_value2"}`),
 				),
 			},
@@ -115,8 +161,7 @@ func TestAccAWSOpsworksCustomLayer_noVPC(t *testing.T) {
 	})
 }
 
-func testAccCheckAWSOpsworksCustomLayerExists(
-	n string, opslayer *opsworks.Layer) resource.TestCheckFunc {
+func testAccCheckAWSOpsworksLayerExists(n string, opslayer *opsworks.Layer) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -209,10 +254,10 @@ func testAccCheckAWSOpsworksCreateLayerAttributes(
 	}
 }
 
-func testAccCheckAwsOpsworksCustomLayerDestroy(s *terraform.State) error {
+func testAccCheckAwsOpsworksLayerDestroy(resourceType string, s *terraform.State) error {
 	opsworksconn := testAccProvider.Meta().(*AWSClient).opsworksconn
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "aws_opsworks_custom_layer" {
+		if rs.Type != resourceType {
 			continue
 		}
 		req := &opsworks.DescribeLayersInput{
@@ -223,17 +268,18 @@ func testAccCheckAwsOpsworksCustomLayerDestroy(s *terraform.State) error {
 
 		_, err := opsworksconn.DescribeLayers(req)
 		if err != nil {
-			if awserr, ok := err.(awserr.Error); ok {
-				if awserr.Code() == "ResourceNotFoundException" {
-					// not found, good to go
-					return nil
-				}
+			if isAWSErr(err, opsworks.ErrCodeResourceNotFoundException, "") {
+				return nil
 			}
 			return err
 		}
 	}
 
-	return fmt.Errorf("Fall through error on OpsWorks custom layer test")
+	return fmt.Errorf("Fall through error on OpsWorks layer test")
+}
+
+func testAccCheckAwsOpsworksCustomLayerDestroy(s *terraform.State) error {
+	return testAccCheckAwsOpsworksLayerDestroy("aws_opsworks_custom_layer", s)
 }
 
 func testAccAwsOpsworksCustomLayerSecurityGroups(name string) string {
@@ -285,6 +331,7 @@ resource "aws_opsworks_custom_layer" "tf-acc" {
     mount_point = "/home"
     size = 100
     raid_level = 0
+    encrypted = false
   }
 }
 
@@ -366,6 +413,7 @@ resource "aws_opsworks_custom_layer" "tf-acc" {
     mount_point = "/home"
     size = 100
     raid_level = 0
+    encrypted = true
   }
   ebs_volume {
     type = "io1"
@@ -374,6 +422,7 @@ resource "aws_opsworks_custom_layer" "tf-acc" {
     size = 100
     raid_level = 1
     iops = 3000
+    encrypted = true
   }
   custom_json = "{\"layer_key\": \"layer_value2\"}"
 }
@@ -382,4 +431,81 @@ resource "aws_opsworks_custom_layer" "tf-acc" {
 
 %s 
 `, name, testAccAwsOpsworksStackConfigNoVpcCreate(name), testAccAwsOpsworksCustomLayerSecurityGroups(name))
+}
+
+func testAccAwsOpsworksCustomLayerConfigTags1(name, tagKey1, tagValue1 string) string {
+	return testAccAwsOpsworksStackConfigVpcCreate(name) +
+		testAccAwsOpsworksCustomLayerSecurityGroups(name) +
+		fmt.Sprintf(`
+resource "aws_opsworks_custom_layer" "test" {
+  stack_id               = "${aws_opsworks_stack.tf-acc.id}"
+  name                   = %[1]q
+  short_name             = "tf-ops-acc-custom-layer"
+  auto_assign_public_ips = false
+
+  custom_security_group_ids = [
+    "${aws_security_group.tf-ops-acc-layer1.id}",
+    "${aws_security_group.tf-ops-acc-layer2.id}",
+  ]
+
+  drain_elb_on_shutdown     = true
+  instance_shutdown_timeout = 300
+
+  system_packages = [
+    "git",
+    "golang",
+  ]
+
+  ebs_volume {
+    type            = "gp2"
+    number_of_disks = 2
+    mount_point     = "/home"
+    size            = 100
+    raid_level      = 0
+  }
+
+  tags = {
+    %[2]q = %[3]q
+  }
+}
+`, name, tagKey1, tagValue1)
+}
+
+func testAccAwsOpsworksCustomLayerConfigTags2(name, tagKey1, tagValue1, tagKey2, tagValue2 string) string {
+	return testAccAwsOpsworksStackConfigVpcCreate(name) +
+		testAccAwsOpsworksCustomLayerSecurityGroups(name) +
+		fmt.Sprintf(`
+resource "aws_opsworks_custom_layer" "test" {
+  stack_id               = "${aws_opsworks_stack.tf-acc.id}"
+  name                   = %[1]q
+  short_name             = "tf-ops-acc-custom-layer"
+  auto_assign_public_ips = false
+
+  custom_security_group_ids = [
+    "${aws_security_group.tf-ops-acc-layer1.id}",
+    "${aws_security_group.tf-ops-acc-layer2.id}",
+  ]
+
+  drain_elb_on_shutdown     = true
+  instance_shutdown_timeout = 300
+
+  system_packages = [
+    "git",
+    "golang",
+  ]
+
+  ebs_volume {
+    type            = "gp2"
+    number_of_disks = 2
+    mount_point     = "/home"
+    size            = 100
+    raid_level      = 0
+  }
+
+  tags = {
+    %[2]q = %[3]q
+    %[4]q = %[5]q
+  }
+}
+`, name, tagKey1, tagValue1, tagKey2, tagValue2)
 }
