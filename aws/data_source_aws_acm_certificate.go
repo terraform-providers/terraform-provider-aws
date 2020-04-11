@@ -53,6 +53,44 @@ func dataSourceAwsAcmCertificate() *schema.Resource {
 				Optional: true,
 				Default:  false,
 			},
+			"subject_alternative_names": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
+			"validation_method": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"domain_validation_options": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"domain_name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"resource_record_name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"resource_record_type": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"resource_record_value": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+			"validation_emails": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
 		},
 	}
 }
@@ -168,6 +206,24 @@ func dataSourceAwsAcmCertificateRead(d *schema.ResourceData, meta interface{}) e
 
 	d.SetId(time.Now().UTC().String())
 	d.Set("arn", matchedCertificate.CertificateArn)
+
+	if err := d.Set("subject_alternative_names", cleanUpSubjectAlternativeNames(matchedCertificate)); err != nil {
+		return err
+	}
+
+	domainValidationOptions, emailValidationOptions, err := convertValidationOptions(matchedCertificate)
+
+	if err != nil {
+		return err
+	}
+
+	if err := d.Set("domain_validation_options", domainValidationOptions); err != nil {
+		return err
+	}
+	if err := d.Set("validation_emails", emailValidationOptions); err != nil {
+		return err
+	}
+	d.Set("validation_method", resourceAwsAcmCertificateGuessValidationMethod(domainValidationOptions, emailValidationOptions))
 
 	return nil
 }
