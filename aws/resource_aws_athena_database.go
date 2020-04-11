@@ -33,6 +33,10 @@ func resourceAwsAthenaDatabase() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
+			"comment": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 			"force_destroy": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -93,8 +97,15 @@ func expandAthenaResultConfiguration(bucket string, encryptionConfigurationList 
 func resourceAwsAthenaDatabaseCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).athenaconn
 
+	var databaseDescription string
+	if v, ok := d.GetOk("comment"); ok {
+		databaseDescription = strings.Replace(v.(string), "'", "\\'", -1)
+	} else {
+		databaseDescription = ""
+	}
+
 	input := &athena.StartQueryExecutionInput{
-		QueryString:         aws.String(fmt.Sprintf("create database `%s`;", d.Get("name").(string))),
+		QueryString:         aws.String(fmt.Sprintf("create database `%[1]s`  comment '%[2]s';", d.Get("name").(string), databaseDescription)),
 		ResultConfiguration: expandAthenaResultConfiguration(d.Get("bucket").(string), d.Get("encryption_configuration").([]interface{})),
 	}
 
