@@ -89,6 +89,9 @@ The following arguments are supported:
 * `connection_draining` - (Optional) Boolean to enable connection draining. Default: `false`
 * `connection_draining_timeout` - (Optional) The time in seconds to allow for connections to drain. Default: `300`
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+* `wait_for_ready_timeout` - (Default: `5m`) The maximum
+  [duration](https://golang.org/pkg/time/#ParseDuration) that Terraform should
+  wait for an ELB to be in a ready state before timing out.
 
 Exactly one of `availability_zones` or `subnets` must be specified: this
 determines if the ELB exists in a VPC or in EC2-classic.

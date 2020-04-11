@@ -3,8 +3,10 @@ package aws
 import (
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"reflect"
 	"regexp"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
@@ -51,4 +53,18 @@ func isResourceNotFoundError(err error) bool {
 func isResourceTimeoutError(err error) bool {
 	timeoutErr, ok := err.(*resource.TimeoutError)
 	return ok && timeoutErr.LastError == nil
+}
+
+func validateDuration(v interface{}, k string) (ws []string, errors []error) {
+	value := v.(string)
+	duration, err := time.ParseDuration(value)
+	if err != nil {
+		errors = append(errors, fmt.Errorf(
+			"%q cannot be parsed as a duration: %s", k, err))
+	}
+	if duration < 0 {
+		errors = append(errors, fmt.Errorf(
+			"%q must be greater than zero", k))
+	}
+	return
 }

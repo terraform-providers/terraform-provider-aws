@@ -67,6 +67,9 @@ Spot Instance Requests support all the same arguments as
 * `valid_until` - (Optional) The end date and time of the request, in UTC [RFC3339](https://tools.ietf.org/html/rfc3339#section-5.8) format(for example, YYYY-MM-DDTHH:MM:SSZ). At this point, no new Spot instance requests are placed or enabled to fulfill the request. The default end date is 7 days from the current date.
 * `valid_from` - (Optional) The start date and time of the request, in UTC [RFC3339](https://tools.ietf.org/html/rfc3339#section-5.8) format(for example, YYYY-MM-DDTHH:MM:SSZ). The default is to start fulfilling the request immediately.
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+* `wait_for_ready_timeout` - (Default: `1m`) The maximum
+  [duration](https://golang.org/pkg/time/#ParseDuration) that Terraform should
+  wait for the spot instance to be in a ready state before timing out.
 
 ### Timeouts
 
