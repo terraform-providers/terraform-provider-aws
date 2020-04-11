@@ -29,6 +29,7 @@ The following arguments are supported:
 
 * `name` - (Required) Name of the database to create.
 * `bucket` - (Required) Name of s3 bucket to save the results of the query execution.
+* `comment` - (Optional) Description of the database.
 * `encryption_configuration` - (Optional) The encryption key block AWS Athena uses to decrypt the data in S3, such as an AWS Key Management Service (AWS KMS) key. An `encryption_configuration` block is documented below.
 * `force_destroy` - (Optional, Default: false) A boolean that indicates all tables should be deleted from the database so that the database can be destroyed without error. The tables are *not* recoverable.
 
