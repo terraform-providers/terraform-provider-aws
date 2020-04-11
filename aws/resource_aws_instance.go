@@ -692,23 +692,48 @@ func resourceAwsInstanceCreate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	// Update if we need to
-	return resourceAwsInstanceUpdate(d, meta)
+	err = resource.Retry(2*time.Minute, func() *resource.RetryError {
+		err := resourceAwsInstanceUpdate(d, meta)
+		if err != nil {
+			if isAWSErr(err, "InvalidInstanceID.NotFound", "") {
+				log.Printf("[INFO] Instance not found in update, retrying...")
+				return resource.RetryableError(err)
+			}
+			return resource.NonRetryableError(err)
+		}
+		return nil
+	})
+	return err
 }
 
 func resourceAwsInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
 
-	resp, err := conn.DescribeInstances(&ec2.DescribeInstancesInput{
-		InstanceIds: []*string{aws.String(d.Id())},
+	var resp *ec2.DescribeInstancesOutput
+
+	// Retry read for a short period to account for eventual consistency
+	// during create.
+	err := resource.Retry(10*time.Second, func() *resource.RetryError {
+		var err error
+		resp, err = conn.DescribeInstances(&ec2.DescribeInstancesInput{
+			InstanceIds: []*string{aws.String(d.Id())},
+		})
+		if err != nil {
+			if isAWSErr(err, "InvalidInstanceID.NotFound", "") {
+				log.Printf("[INFO] Instance not found in read, retrying...")
+				return resource.RetryableError(err)
+			}
+			return resource.NonRetryableError(err)
+		}
+		return nil
 	})
 	if err != nil {
 		// If the instance was not found, return nil so that we can show
 		// that the instance is gone.
-		if ec2err, ok := err.(awserr.Error); ok && ec2err.Code() == "InvalidInstanceID.NotFound" {
+		if isAWSErr(err, "InvalidInstanceID.NotFound", "") {
 			d.SetId("")
 			return nil
 		}
-
 		// Some other error, report it
 		return err
 	}
