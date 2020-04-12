@@ -14,7 +14,7 @@ Provides an Gamelift Script resource.
 
 ```hcl
 resource "aws_gamelift_script" "test" {
-  name             = "example-script"
+  name = "example-script"
 
   storage_location {
     bucket   = "${aws_s3_bucket.test.bucket}"
