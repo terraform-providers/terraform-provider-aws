@@ -91,6 +91,7 @@ attributes, etc.
 * `server_side_encryption` - (Optional) Encryption at rest options. AWS DynamoDB tables are automatically encrypted at rest with an AWS owned Customer Master Key if this argument isn't specified.
 * `tags` - (Optional) A map of tags to populate on the created table.
 * `point_in_time_recovery` - (Optional) Point-in-time recovery options.
+* `final_backup_identifier` - (Optional) The name of your final table backup when this table is deleted. If omitted, no final backup will be made.
 
 ### Timeouts
 

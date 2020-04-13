@@ -279,6 +279,10 @@ func resourceAwsDynamoDbTable() *schema.Resource {
 					},
 				},
 			},
+			"final_backup_identifier": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 		},
 	}
 }
@@ -651,6 +655,30 @@ func resourceAwsDynamoDbTableDelete(d *schema.ResourceData, meta interface{}) er
 	conn := meta.(*AWSClient).dynamodbconn
 
 	log.Printf("[DEBUG] DynamoDB delete table: %s", d.Id())
+
+	if backupName, ok := d.GetOk("final_backup_identifier"); ok {
+		backupInput := &dynamodb.CreateBackupInput{
+			BackupName: aws.String(backupName.(string)),
+			TableName:  aws.String(d.Id()),
+		}
+		err := resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
+			_, err := conn.CreateBackup(backupInput)
+			if err == nil {
+				return nil
+			}
+			if isAWSErr(err, dynamodb.ErrCodeTableNotFoundException, "") {
+				return nil
+			}
+			if isAWSErr(err, dynamodb.ErrCodeContinuousBackupsUnavailableException, "") {
+				return resource.RetryableError(err)
+			}
+
+			return resource.NonRetryableError(err)
+		})
+		if err != nil {
+			return fmt.Errorf("error creating backup DynamoDB Table (%s): %s", d.Id(), err)
+		}
+	}
 
 	err := deleteAwsDynamoDbTable(d.Id(), conn)
 	if err != nil {
