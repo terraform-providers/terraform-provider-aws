@@ -97,6 +97,44 @@ func TestAccAWSDlmLifecyclePolicy_Full(t *testing.T) {
 	})
 }
 
+func TestAccAWSDlmLifecyclePolicy_Retain(t *testing.T) {
+	resourceName := "aws_dlm_lifecycle_policy.full"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSDlm(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: dlmLifecyclePolicyDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: dlmLifecyclePolicyFullUpdateConfigWithAgeBasedRetain(rName),
+				Check: resource.ComposeTestCheckFunc(
+					checkDlmLifecyclePolicyExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "description", "tf-acc-full-updated-age"),
+					resource.TestCheckResourceAttrSet(resourceName, "execution_role_arn"),
+					resource.TestCheckResourceAttr(resourceName, "state", "DISABLED"),
+					resource.TestCheckResourceAttr(resourceName, "policy_details.0.resource_types.0", "VOLUME"),
+					resource.TestCheckResourceAttr(resourceName, "policy_details.0.schedule.0.name", "tf-acc-full-updated-age"),
+					resource.TestCheckResourceAttr(resourceName, "policy_details.0.schedule.0.create_rule.0.interval", "24"),
+					resource.TestCheckResourceAttr(resourceName, "policy_details.0.schedule.0.create_rule.0.interval_unit", "HOURS"),
+					resource.TestCheckResourceAttr(resourceName, "policy_details.0.schedule.0.create_rule.0.times.0", "09:42"),
+					resource.TestCheckResourceAttr(resourceName, "policy_details.0.schedule.0.retain_rule.0.interval", "15"),
+					resource.TestCheckResourceAttr(resourceName, "policy_details.0.schedule.0.retain_rule.0.interval_unit", "DAYS"),
+					resource.TestCheckResourceAttr(resourceName, "policy_details.0.schedule.0.tags_to_add.tf-acc-test-added", "full-updated-age"),
+					resource.TestCheckResourceAttr(resourceName, "policy_details.0.schedule.0.copy_tags", "true"),
+					resource.TestCheckResourceAttr(resourceName, "policy_details.0.target_tags.tf-acc-test", "full-updated-age"),
+				),
+			},
+			{
+				Config: dlmLifecyclePolicyFullUpdateConfigWithAgeBasedRetainless(rName),
+				Check: resource.ComposeTestCheckFunc(
+					checkDlmLifecyclePolicyExists(resourceName),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAWSDlmLifecyclePolicy_Tags(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_dlm_lifecycle_policy.test"
@@ -246,7 +284,7 @@ resource "aws_dlm_lifecycle_policy" "basic" {
       }
 
       retain_rule {
-        count = 10
+        count         = 10
       }
     }
 
@@ -368,6 +406,123 @@ resource "aws_dlm_lifecycle_policy" "full" {
 
     target_tags = {
       tf-acc-test = "full-updated"
+    }
+  }
+}
+`, rName)
+}
+
+func dlmLifecyclePolicyFullUpdateConfigWithAgeBasedRetain(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_iam_role" "dlm_lifecycle_role" {
+  name = %q
+
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "dlm.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_dlm_lifecycle_policy" "full" {
+  description        = "tf-acc-full-updated-age"
+  execution_role_arn = "${aws_iam_role.dlm_lifecycle_role.arn}-doesnt-exist"
+  state              = "DISABLED"
+
+  policy_details {
+    resource_types = ["VOLUME"]
+
+    schedule {
+      name = "tf-acc-full-updated-age"
+
+      create_rule {
+        interval      = 24
+        interval_unit = "HOURS"
+        times         = ["09:42"]
+      }
+
+      retain_rule {
+				interval			= 15
+				interval_unit = "DAYS"
+      }
+
+      tags_to_add = {
+        tf-acc-test-added = "full-updated-age"
+      }
+
+      copy_tags = true
+    }
+
+    target_tags = {
+      tf-acc-test = "full-updated-age"
+    }
+  }
+}
+`, rName)
+}
+
+func dlmLifecyclePolicyFullUpdateConfigWithAgeBasedRetainless(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_iam_role" "dlm_lifecycle_role" {
+  name = %q
+
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "dlm.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_dlm_lifecycle_policy" "full" {
+  description        = "tf-acc-full-updated-age"
+  execution_role_arn = "${aws_iam_role.dlm_lifecycle_role.arn}-doesnt-exist"
+  state              = "DISABLED"
+
+  policy_details {
+    resource_types = ["VOLUME"]
+
+    schedule {
+      name = "tf-acc-full-updated-age"
+
+      create_rule {
+        interval      = 24
+        interval_unit = "HOURS"
+        times         = ["09:42"]
+      }
+
+      retain_rule {
+			  count = 5
+      }
+
+      tags_to_add = {
+        tf-acc-test-added = "full-updated-age"
+      }
+
+      copy_tags = true
+    }
+
+    target_tags = {
+      tf-acc-test = "full-updated-age"
     }
   }
 }

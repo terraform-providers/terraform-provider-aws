@@ -121,7 +121,7 @@ The following arguments are supported:
 * `copy_tags` - (Optional) Copy all user-defined tags on a source volume to snapshots of the volume created by this policy.
 * `create_rule` - (Required) See the [`create_rule`](#create-rule-arguments) block. Max of 1 per schedule.
 * `name` - (Required) A name for the schedule.
-* `retain_rule` - (Required) See the [`retain_rule`](#retain-rule-arguments) block. Max of 1 per schedule.
+* `retain_rule` - (Required) See the [`retain_rule`](#retain-rule-arguments) block.
 * `tags_to_add` - (Optional) A mapping of tag keys and their values. DLM lifecycle policies will already tag the snapshot with the tags on the volume. This configuration adds extra tags on top of these.
 
 #### Create Rule arguments
@@ -132,7 +132,11 @@ The following arguments are supported:
 
 #### Retain Rule arguments
 
-* `count` - (Required) How many snapshots to keep. Must be an integer between 1 and 1000.
+Note: One of either `count` or `interval`/`interval_unit` must be specified.
+
+* `count` - (Optional) How many snapshots to keep. Must be an integer between 1 and 1000. 
+* `interval` - (Optional) The amount of time to retain each snapshot. The maximum is 100 years or that equivalent in months (1200), weeks (5200), and days (36500).
+* `interval_unit` - (Optional) The unit of time for time-based retention.
 
 ## Attributes Reference
 
