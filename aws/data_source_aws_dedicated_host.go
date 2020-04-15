@@ -3,9 +3,10 @@ package aws
 import (
 	"errors"
 	"fmt"
+	"log"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
-	"log"
 
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -21,18 +22,15 @@ func dataSourceAwsDedicatedHost() *schema.Resource {
 			"host_id": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: true,
 			},
 
 			"availability_zone": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: true,
 			},
 			"instance_type": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: true,
 			},
 			"host_recovery": {
 				Type:     schema.TypeString,
