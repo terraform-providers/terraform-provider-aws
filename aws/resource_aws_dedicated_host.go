@@ -14,6 +14,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
 func resourceAwsDedicatedHost() *schema.Resource {
@@ -51,11 +52,25 @@ func resourceAwsDedicatedHost() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+					ValidateFunc: validation.StringInSlice([]string{
+						ec2.HostRecoveryOn,
+						ec2.HostRecoveryOff,
+					}, false),
+				},
 			},
 			"auto_placement": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+					ValidateFunc: validation.StringInSlice([]string{
+						ec2.AutoPlacementOn,
+						ec2.AutoPlacementOff,
+					}, false),
+				},
 			},
 		},
 	}
