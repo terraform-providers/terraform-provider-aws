@@ -53,7 +53,6 @@ func resourceAwsDedicatedHost() *schema.Resource {
 				Optional: true,
 				Computed: true,
 				Elem: &schema.Schema{
-					Type: schema.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
 						ec2.HostRecoveryOn,
 						ec2.HostRecoveryOff,
@@ -65,7 +64,6 @@ func resourceAwsDedicatedHost() *schema.Resource {
 				Optional: true,
 				Computed: true,
 				Elem: &schema.Schema{
-					Type: schema.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
 						ec2.AutoPlacementOn,
 						ec2.AutoPlacementOff,
