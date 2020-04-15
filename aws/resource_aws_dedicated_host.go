@@ -52,23 +52,19 @@ func resourceAwsDedicatedHost() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
-				Elem: &schema.Schema{
-					ValidateFunc: validation.StringInSlice([]string{
-						ec2.HostRecoveryOn,
-						ec2.HostRecoveryOff,
-					}, false),
-				},
+				ValidateFunc: validation.StringInSlice([]string{
+					ec2.HostRecoveryOn,
+					ec2.HostRecoveryOff,
+				}, false),
 			},
 			"auto_placement": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
-				Elem: &schema.Schema{
-					ValidateFunc: validation.StringInSlice([]string{
-						ec2.AutoPlacementOn,
-						ec2.AutoPlacementOff,
-					}, false),
-				},
+				ValidateFunc: validation.StringInSlice([]string{
+					ec2.AutoPlacementOn,
+					ec2.AutoPlacementOff,
+				}, false),
 			},
 		},
 	}
