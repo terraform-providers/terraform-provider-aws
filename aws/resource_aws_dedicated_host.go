@@ -3,14 +3,14 @@ package aws
 import (
 	"errors"
 	"fmt"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 	"log"
+
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -90,7 +90,7 @@ func resourceAwsDedicatedHostCreate(d *schema.ResourceData, meta interface{}) er
 		return err
 	}
 
-	tagsSpec := ec2TagSpecificationsFromMap(d.Get("tags").(map[string]interface{}), ec2.ResourceTypeHostReservation)
+	tagsSpec := ec2TagSpecificationsFromMap(d.Get("tags").(map[string]interface{}), ec2.ResourceTypeDedicatedHost)
 
 	// Build the creation struct
 	runOpts := &ec2.AllocateHostsInput{
@@ -137,7 +137,7 @@ func resourceAwsDedicatedHostRead(d *schema.ResourceData, meta interface{}) erro
 	if err != nil {
 		// If the host was not found, return nil so that we can show
 		// that host is gone.
-		if ec2err, ok := err.(awserr.Error); ok && ec2err.Code() == "InvalidHostID.NotFound" {
+		if isAWSErr(err, "InvalidHostID.NotFound", "") {
 			d.SetId("")
 			return nil
 		}
@@ -225,7 +225,7 @@ func awsReleaseHosts(conn *ec2.EC2, id string, timeout time.Duration) error {
 		HostIds: []*string{aws.String(id)},
 	}
 	if _, err := conn.ReleaseHosts(req); err != nil {
-		if ec2err, ok := err.(awserr.Error); ok && ec2err.Code() == "InvalidHostID.NotFound" {
+		if isAWSErr(err, "InvalidHostID.NotFound", "") {
 			return nil
 		}
 		return err

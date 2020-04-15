@@ -2,12 +2,12 @@ package aws
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
@@ -75,7 +75,7 @@ func testAccCheckHostDestroyWithProvider(s *terraform.State, provider *schema.Pr
 		}
 
 		// Verify the error is what we want
-		if ae, ok := err.(awserr.Error); ok && ae.Code() == "InvalidID.NotFound" {
+		if isAWSErr(err, "InvalidID.NotFound", "") {
 			continue
 		}
 
