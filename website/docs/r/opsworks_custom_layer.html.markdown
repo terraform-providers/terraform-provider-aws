@@ -40,6 +40,8 @@ The following arguments are supported:
 * `use_ebs_optimized_instances` - (Optional) Whether to use EBS-optimized instances.
 * `ebs_volume` - (Optional) `ebs_volume` blocks, as described below, will each create an EBS volume and connect it to the layer's instances.
 * `custom_json` - (Optional) Custom JSON attributes to apply to the layer.
+* `enable_load_based_autoscaling` - (Optional) Whether to enable load-based autoscaling for the layer.
+* `load_based_autoscaling` - (Optional) `load_based_autoscaling` block, as described below, defines the load-based autoscaling settings for the layer.
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 The following extra optional arguments, all lists of Chef recipe names, allow
@@ -61,6 +63,35 @@ An `ebs_volume` block supports the following arguments:
 * `type` - (Optional) The type of volume to create. This may be `standard` (the default), `io1` or `gp2`.
 * `iops` - (Optional) For PIOPS volumes, the IOPS per disk.
 * `encrypted` - (Optional) Encrypt the volume.
+
+A `load_based_autoscaling` block supports the following blocks:
+
+* `upscaling` - (Required) The upscaling settings, as defined below, used for load-based autoscaling
+* `downscaling` - (Required) The downscaling settings, as defined below, used for load-based autoscaling
+
+An `upscaling` block supports the following arguments:
+
+Though the three thresholds are optional, at least one threshold must be set when using load-based autoscaling.
+
+* `alarms` - (Optional) Custom Cloudwatch auto scaling alarms, to be used as thresholds. This parameter takes a list of up to five alarm names, which are case sensitive and must be in the same region as the stack.
+* `cpu_threshold` - (Optional) The CPU utilization threshold, as a percent of the available CPU. A value of -1 disables the threshold.
+* `ignore_metrics_time` - (Optional) The amount of time (in minutes) after a scaling event occurs that AWS OpsWorks Stacks should ignore metrics and suppress additional scaling events.
+* `instance_count` - (Optional) The number of instances to add or remove when the load exceeds a threshold.
+* `load_threshold` - (Optional) The load threshold. A value of -1 disables the threshold.
+* `memory_threshold` - (Optional) The memory utilization threshold, as a percent of the available memory. A value of -1 disables the threshold.
+* `thresholds_wait_time` - (Optional) The amount of time, in minutes, that the load must exceed a threshold before more instances are added or removed.
+
+A `downscaling` block supports the following arguments:
+
+Though the three thresholds are optional, at least one threshold must be set when using load-based autoscaling.
+
+* `alarms` - (Optional) Custom Cloudwatch auto scaling alarms, to be used as thresholds. This parameter takes a list of up to five alarm names, which are case sensitive and must be in the same region as the stack.
+* `cpu_threshold` - (Optional) The CPU utilization threshold, as a percent of the available CPU. A value of -1 disables the threshold.
+* `ignore_metrics_time` - (Optional) The amount of time (in minutes) after a scaling event occurs that AWS OpsWorks Stacks should ignore metrics and suppress additional scaling events.
+* `instance_count` - (Optional) The number of instances to add or remove when the load exceeds a threshold.
+* `load_threshold` - (Optional) The load threshold. A value of -1 disables the threshold.
+* `memory_threshold` - (Optional) The memory utilization threshold, as a percent of the available memory. A value of -1 disables the threshold.
+* `thresholds_wait_time` - (Optional) The amount of time, in minutes, that the load must exceed a threshold before more instances are added or removed.
 
 ## Attributes Reference
 
