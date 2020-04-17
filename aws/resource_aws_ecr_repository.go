@@ -69,6 +69,11 @@ func resourceAwsEcrRepository() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"force_delete": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
 		},
 	}
 }
@@ -215,11 +220,14 @@ func resourceAwsEcrRepositoryDelete(d *schema.ResourceData, meta interface{}) er
 	_, err := conn.DeleteRepository(&ecr.DeleteRepositoryInput{
 		RepositoryName: aws.String(d.Id()),
 		RegistryId:     aws.String(d.Get("registry_id").(string)),
-		Force:          aws.Bool(true),
+		Force:          aws.Bool(d.Get("force_delete").(bool)),
 	})
 	if err != nil {
 		if isAWSErr(err, ecr.ErrCodeRepositoryNotFoundException, "") {
 			return nil
+		}
+		if isAWSErr(err, ecr.ErrCodeRepositoryNotEmptyException, "") {
+			return fmt.Errorf("error ECR repository not empty, consider using force_delete: %s", err)
 		}
 		return fmt.Errorf("error deleting ECR repository: %s", err)
 	}
