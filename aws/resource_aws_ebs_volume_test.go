@@ -311,6 +311,33 @@ func TestAccAWSEBSVolume_withTags(t *testing.T) {
 	})
 }
 
+func TestAccAWSEBSVolume_FinalSnapshot(t *testing.T) {
+	var v ec2.Volume
+	resourceName := "aws_ebs_volume.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:      func() { testAccPreCheck(t) },
+		IDRefreshName: resourceName,
+		Providers:     testAccProviders,
+		CheckDestroy:  testAccCheckVolumeDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAwsEbsVolumeConfigFinalSnapshot,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckVolumeExists(resourceName, &v),
+				),
+			},
+			{
+				Config:  testAccAwsEbsVolumeConfigFinalSnapshot,
+				Destroy: true,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckEbsSnapshotExists(),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckVolumeDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*AWSClient).ec2conn
 
@@ -369,6 +396,52 @@ func testAccCheckVolumeExists(n string, v *ec2.Volume) resource.TestCheckFunc {
 		}
 		return fmt.Errorf("Error finding EC2 volume %s", rs.Primary.ID)
 	}
+}
+
+func testAccCheckEbsSnapshotExists() resource.TestCheckFunc {
+
+	var id string
+
+	return func(s *terraform.State) error {
+		for _, rs := range s.RootModule().Resources {
+			if rs.Type == "aws_ebs_volume" {
+				id = rs.Primary.ID
+			}
+		}
+
+		conn := testAccProvider.Meta().(*AWSClient).ec2conn
+		resp, err := conn.DescribeSnapshots(&ec2.DescribeSnapshotsInput{
+			Filters: []*ec2.Filter{
+				{
+					Name:   aws.String("volume-id"),
+					Values: []*string{aws.String(id)},
+				},
+				{
+					Name:   aws.String("status"),
+					Values: []*string{aws.String("completed")},
+				},
+			},
+		})
+
+		if err != nil {
+			return fmt.Errorf("Error requesting volume snapshot for volume %s", id)
+		}
+		if len(resp.Snapshots) == 0 {
+			return fmt.Errorf("No snapshots found for volume %s", id)
+		}
+
+		snapshotId := resp.Snapshots[0].SnapshotId
+		_, err = conn.DeleteSnapshot(&ec2.DeleteSnapshotInput{
+			SnapshotId: aws.String(*snapshotId),
+		})
+
+		if err != nil {
+			return fmt.Errorf("Error deleting snapshot for volume %s", id)
+		}
+
+		return nil
+	}
+
 }
 
 const testAccAwsEbsVolumeConfig = `
@@ -651,6 +724,19 @@ resource "aws_ebs_volume" "test" {
 }
 `
 
+const testAccAwsEbsVolumeConfigFinalSnapshot = `
+data "aws_availability_zones" "available" {}
+
+resource "aws_ebs_volume" "test" {
+  availability_zone = "${data.aws_availability_zones.available.names[0]}"
+  size = 1
+  tags = {
+    Name = "TerraformTest"
+  }
+
+  final_snapshot = true
+}
+`
 const testAccAwsEbsVolumeConfigWithNoIops = `
 data "aws_availability_zones" "available" {
   state = "available"

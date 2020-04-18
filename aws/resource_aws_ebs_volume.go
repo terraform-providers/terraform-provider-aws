@@ -41,6 +41,11 @@ func resourceAwsEbsVolume() *schema.Resource {
 				Computed: true,
 				ForceNew: true,
 			},
+			"final_snapshot": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
 			"iops": {
 				Type:     schema.TypeInt,
 				Optional: true,
@@ -276,6 +281,69 @@ func resourceAwsEbsVolumeRead(d *schema.ResourceData, meta interface{}) error {
 
 func resourceAwsEbsVolumeDelete(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
+
+	if d.Get("final_snapshot").(bool) {
+		// Boosted heavily from r-aws_ebs_snapshot when I couldn't figure out
+		// how to call that directly from here.
+
+		log.Printf("[INFO] final_snaphot set to true; before destroying, making it so for volume: %s", d.Id())
+
+		request := &ec2.CreateSnapshotInput{
+			VolumeId:          aws.String(d.Id()),
+			TagSpecifications: ec2TagSpecificationsFromMap(d.Get("tags").(map[string]interface{}), ec2.ResourceTypeSnapshot),
+		}
+
+		var res *ec2.Snapshot
+		err := resource.Retry(1*time.Minute, func() *resource.RetryError {
+			var err error
+			res, err = conn.CreateSnapshot(request)
+
+			if isAWSErr(err, "SnapshotCreationPerVolumeRateExceeded", "The maximum per volume CreateSnapshot request rate has been exceeded") {
+				return resource.RetryableError(err)
+			}
+
+			if err != nil {
+				return resource.NonRetryableError(err)
+			}
+
+			return nil
+		})
+		if isResourceTimeoutError(err) {
+			res, err = conn.CreateSnapshot(request)
+		}
+		if err != nil {
+			return fmt.Errorf("error creating EC2 EBS Snapshot: %s", err)
+		}
+
+		err = func() error {
+			log.Printf("Waiting for Snapshot %s to become available...", d.Id())
+			input := &ec2.DescribeSnapshotsInput{
+				SnapshotIds: []*string{aws.String(*res.SnapshotId)},
+			}
+			err := resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
+				err := conn.WaitUntilSnapshotCompleted(input)
+				if err == nil {
+					return nil
+				}
+				if isAWSErr(err, "ResourceNotReady", "") {
+					return resource.RetryableError(fmt.Errorf("EBS CreatingSnapshot - waiting for snapshot to become available"))
+				}
+				return resource.NonRetryableError(err)
+			})
+			if isResourceTimeoutError(err) {
+				err = conn.WaitUntilSnapshotCompleted(input)
+			}
+			if err != nil {
+				return fmt.Errorf("Error waiting for EBS snapshot to complete: %s", err)
+			}
+			return nil
+		}()
+
+		if err != nil {
+			return fmt.Errorf("Error creating snapshot: %s", err)
+		}
+
+	}
 
 	input := &ec2.DeleteVolumeInput{
 		VolumeId: aws.String(d.Id()),
