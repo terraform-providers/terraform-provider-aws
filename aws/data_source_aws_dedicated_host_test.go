@@ -21,8 +21,8 @@ func TestAccAWSDedicatedHostDataSource_basic(t *testing.T) {
 			{
 				Config: testAccDedicatedHostDataSourceConfig,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.aws_dedicated_host.test_data", "instance_type", "c5.18xlarge"),
-					resource.TestCheckResourceAttr("data.aws_dedicated_host.test_data", "availability_zone", "us-west-2a"),
+					resource.TestCheckResourceAttrPair("data.aws_dedicated_host.test_data", "instance_type", "aws_dedicated_host.test", "instance_type"),
+					resource.TestCheckResourceAttrPair("data.aws_dedicated_host.test_data", "availability_zone", "aws_dedicated_host.test", "availability_zone"),
 					resource.TestCheckResourceAttr("data.aws_dedicated_host.test_data", "host_recovery", "on"),
 					resource.TestCheckResourceAttr("data.aws_dedicated_host.test_data", "auto_placement", "on"),
 				),
@@ -33,20 +33,30 @@ func TestAccAWSDedicatedHostDataSource_basic(t *testing.T) {
 
 const testAccDedicatedHostDataSourceConfig = `
 resource "aws_dedicated_host" "test" {
-   #us-west-2
-   instance_type = "c5.18xlarge"
-   availability_zone = "us-west-2a"
+   instance_type = "c5.xlarge"
+   availability_zone = "${data.aws_availability_zones.available.names[0]}"
    host_recovery = "on"
    auto_placement = "on"
 }
 
+
 data "aws_dedicated_host" "test_data" {
-   host_id="${aws_dedicated_host.test.id}"
-   instance_type = "c5.18xlarge"
-   availability_zone = "us-west-2a"
-   host_recovery = "on"
-   auto_placement = "on"
+  host_id = "${aws_dedicated_host.test.id}"
+  instance_type = "${aws_dedicated_host.test.instance_type}"
+  host_recovery = "${aws_dedicated_host.test.host_recovery}"
+  auto_placement = "${aws_dedicated_host.test.auto_placement}"
 }
+
+data "aws_availability_zones" "available" {
+	state = "available"
+  
+	filter {
+	  name   = "opt-in-status"
+	  values = ["opt-in-not-required"]
+	}
+  }
+  
+	
 
 `
 

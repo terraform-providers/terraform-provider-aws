@@ -4,17 +4,14 @@ import (
 	"errors"
 	"fmt"
 	"log"
-
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
-
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
-
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsDedicatedHost() *schema.Resource {
@@ -134,7 +131,7 @@ func resourceAwsDedicatedHostCreate(d *schema.ResourceData, meta interface{}) er
 	d.SetId(*runResp.HostIds[0])
 
 	// Update if we need to
-	return resourceAwsDedicatedHostUpdate(d, meta)
+	return resourceAwsDedicatedHostRead(d, meta)
 }
 
 func resourceAwsDedicatedHostRead(d *schema.ResourceData, meta interface{}) error {
@@ -177,41 +174,40 @@ func resourceAwsDedicatedHostRead(d *schema.ResourceData, meta interface{}) erro
 // https://docs.aws.amazon.com/en_pv/AWSEC2/latest/APIReference/API_ModifyHosts.html
 func resourceAwsDedicatedHostUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
+	requestUpdate := false
+	req := &ec2.ModifyHostsInput{
+		HostIds: []*string{aws.String(d.Id())},
+	}
+	if d.HasChange("auto_placement") {
+		req.AutoPlacement = aws.String(d.Get("auto_placement").(string))
+		requestUpdate = true
+	}
+	// Indicates whether to enable or disable host recovery for the Dedicated Host.
+	// https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/dedicated-hosts-recovery.html
+	if d.HasChange("host_recovery") {
+		req.HostRecovery = aws.String(d.Get("host_recovery").(string))
+		requestUpdate = true
+	}
+	if requestUpdate {
+		err := resource.Retry(30*time.Second, func() *resource.RetryError {
+			_, err := conn.ModifyHosts(req)
+			if err != nil {
+				return resource.RetryableError(err)
+			}
+			return nil
+		})
+		if err != nil {
+			return fmt.Errorf("Error modifying host %s: %s", d.Id(), err)
+		}
+	}
 
-	d.Partial(true)
-
-	if d.HasChange("tags") && !d.IsNewResource() {
+	if d.HasChange("tags") {
 		o, n := d.GetChange("tags")
 
 		if err := keyvaluetags.Ec2UpdateTags(conn, d.Id(), o, n); err != nil {
 			return fmt.Errorf("error updating tags: %s", err)
 		}
 	}
-	if d.HasChange("auto_placement") && !d.IsNewResource() {
-		log.Printf("[INFO] Modifying auto-placement on host %s", d.Id())
-		_, err := conn.ModifyHosts(&ec2.ModifyHostsInput{
-			HostIds:       []*string{aws.String(d.Id())},
-			AutoPlacement: aws.String(d.Get("auto_placement").(string)),
-		})
-		if err != nil {
-			return err
-		}
-	}
-	// Indicates whether to enable or disable host recovery for the Dedicated Host.
-	// https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/dedicated-hosts-recovery.html
-	if d.HasChange("host_recovery") && !d.IsNewResource() {
-		log.Printf("[INFO] Modifying host-recovery on host %s", d.Id())
-		_, err := conn.ModifyHosts(&ec2.ModifyHostsInput{
-			HostIds:       []*string{aws.String(d.Id())},
-			AutoPlacement: aws.String(d.Get("host_recovery").(string)),
-		})
-		if err != nil {
-			return err
-		}
-		d.SetPartial("host_recovery")
-	}
-
-	d.Partial(false)
 
 	return resourceAwsDedicatedHostRead(d, meta)
 }

@@ -6,10 +6,9 @@ import (
 	"log"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
-
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func dataSourceAwsDedicatedHost() *schema.Resource {
@@ -35,12 +34,10 @@ func dataSourceAwsDedicatedHost() *schema.Resource {
 			"host_recovery": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Computed: true,
 			},
 			"auto_placement": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Computed: true,
 			},
 		},
 	}
@@ -51,7 +48,7 @@ func dataSourceAwsAwsDedicatedHostRead(d *schema.ResourceData, meta interface{})
 	hostID, hostIDOk := d.GetOk("host_id")
 
 	filters, filtersOk := d.GetOk("filter")
-	tags, tagsOk := d.GetOk("instance_tags")
+	tags, tagsOk := d.GetOk("tags")
 
 	params := &ec2.DescribeHostsInput{}
 	if hostIDOk {
@@ -112,6 +109,9 @@ func hostDescriptionAttributes(d *schema.ResourceData, host *ec2.Host, conn *ec2
 	}
 	if host.AutoPlacement != nil {
 		d.Set("auto_placement", host.AutoPlacement)
+	}
+	if host.HostProperties.InstanceFamily != nil {
+		d.Set("instance_type", host.HostProperties.InstanceType)
 	}
 
 	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(host.Tags).IgnoreAws().Map()); err != nil {
