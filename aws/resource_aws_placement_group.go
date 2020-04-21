@@ -40,11 +40,18 @@ func resourceAwsPlacementGroup() *schema.Resource {
 					ec2.PlacementStrategySpread,
 				}, false),
 			},
+
 			"placement_group_id": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 			"tags": tagsSchema(),
+			"partition_count": {
+				Type:     schema.TypeInt,
+				Optional: true,
+				Computed: true,
+				ForceNew: true,
+			},
 		},
 	}
 }
@@ -57,6 +64,17 @@ func resourceAwsPlacementGroupCreate(d *schema.ResourceData, meta interface{}) e
 		GroupName: aws.String(name),
 		Strategy:  aws.String(d.Get("strategy").(string)),
 	}
+
+	// PartitionCount is only valid for strategy partition.
+	strategy := d.Get("strategy").(string)
+	partition_count := d.Get("partition_count").(int)
+
+	if strategy != "partition" && partition_count > 1 {
+		log.Printf("[WARN] partition_count is only valid for strategy partition for PlacementGroup")
+	} else if strategy == "partition" {
+		input.PartitionCount = aws.Int64(int64(partition_count))
+	}
+
 	log.Printf("[DEBUG] Creating EC2 Placement group: %s", input)
 	_, err := conn.CreatePlacementGroup(&input)
 	if err != nil {
@@ -142,7 +160,9 @@ func resourceAwsPlacementGroupRead(d *schema.ResourceData, meta interface{}) err
 	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(pg.Tags).IgnoreAws().Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
-
+	if pg.PartitionCount != nil {
+		d.Set("partition_count", pg.PartitionCount)
+	}
 	return nil
 }
 
