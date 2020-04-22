@@ -13,6 +13,8 @@ import (
 )
 
 func TestAccAWSDedicatedHostDataSource_basic(t *testing.T) {
+	dataSourceName := "data.aws_dedicated_host.test_data"
+	resourceName := "aws_dedicated_host.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -21,10 +23,17 @@ func TestAccAWSDedicatedHostDataSource_basic(t *testing.T) {
 			{
 				Config: testAccDedicatedHostDataSourceConfig,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrPair("data.aws_dedicated_host.test_data", "instance_type", "aws_dedicated_host.test", "instance_type"),
-					resource.TestCheckResourceAttrPair("data.aws_dedicated_host.test_data", "availability_zone", "aws_dedicated_host.test", "availability_zone"),
-					resource.TestCheckResourceAttr("data.aws_dedicated_host.test_data", "host_recovery", "on"),
-					resource.TestCheckResourceAttr("data.aws_dedicated_host.test_data", "auto_placement", "on"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "instance_type", resourceName, "instance_type"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "availability_zone", resourceName, "availability_zone"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "instance_family", resourceName, "instance_family"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "cores", resourceName, "cores"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "total_vcpus", resourceName, "total_vcpus"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "sockets", resourceName, "sockets"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "host_recovery", resourceName, "host_recovery"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "auto_placement", resourceName, "auto_placement"),
+					resource.TestCheckResourceAttr(dataSourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(dataSourceName, "tags.tag1", "test-value1"),
+					resource.TestCheckResourceAttr(dataSourceName, "tags.tag2", "test-value2"),
 				),
 			},
 		},
@@ -37,14 +46,15 @@ resource "aws_dedicated_host" "test" {
    availability_zone = "${data.aws_availability_zones.available.names[0]}"
    host_recovery = "on"
    auto_placement = "on"
+	tags = {
+    tag1 = "test-value1"
+    tag2 = "test-value2"
+  }
 }
 
 
 data "aws_dedicated_host" "test_data" {
   host_id = "${aws_dedicated_host.test.id}"
-  instance_type = "${aws_dedicated_host.test.instance_type}"
-  host_recovery = "${aws_dedicated_host.test.host_recovery}"
-  auto_placement = "${aws_dedicated_host.test.auto_placement}"
 }
 
 data "aws_availability_zones" "available" {

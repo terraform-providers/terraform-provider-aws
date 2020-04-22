@@ -20,24 +20,35 @@ func dataSourceAwsDedicatedHost() *schema.Resource {
 			"tags":   tagsSchemaComputed(),
 			"host_id": {
 				Type:     schema.TypeString,
-				Optional: true,
+				Required: true,
 			},
-
 			"availability_zone": {
 				Type:     schema.TypeString,
-				Optional: true,
+				Computed: true,
 			},
 			"instance_type": {
 				Type:     schema.TypeString,
-				Optional: true,
+				Computed: true,
 			},
 			"host_recovery": {
 				Type:     schema.TypeString,
-				Optional: true,
+				Computed: true,
 			},
-			"auto_placement": {
+			"instance_family": {
 				Type:     schema.TypeString,
-				Optional: true,
+				Computed: true,
+			},
+			"cores": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"total_vcpus": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"sockets": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 		},
 	}
@@ -110,8 +121,20 @@ func hostDescriptionAttributes(d *schema.ResourceData, host *ec2.Host, conn *ec2
 	if host.AutoPlacement != nil {
 		d.Set("auto_placement", host.AutoPlacement)
 	}
-	if host.HostProperties.InstanceFamily != nil {
+	if host.HostProperties.InstanceType != nil {
 		d.Set("instance_type", host.HostProperties.InstanceType)
+	}
+	if host.HostProperties.InstanceFamily != nil {
+		d.Set("instance_family", host.HostProperties.InstanceFamily)
+	}
+	if host.HostProperties.Cores != nil {
+		d.Set("cores", host.HostProperties.Cores)
+	}
+	if host.HostProperties.Sockets != nil {
+		d.Set("sockets", host.HostProperties.Sockets)
+	}
+	if host.HostProperties.TotalVCpus != nil {
+		d.Set("total_vcpus", host.HostProperties.TotalVCpus)
 	}
 
 	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(host.Tags).IgnoreAws().Map()); err != nil {
