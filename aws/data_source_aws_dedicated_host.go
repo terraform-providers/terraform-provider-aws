@@ -50,6 +50,10 @@ func dataSourceAwsDedicatedHost() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"auto_placement": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
