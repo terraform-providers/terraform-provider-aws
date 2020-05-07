@@ -90,6 +90,7 @@ func resourceAwsGameliftScriptCreate(d *schema.ResourceData, meta interface{}) e
 
 func resourceAwsGameliftScriptRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).gameliftconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	log.Printf("[INFO] Reading Gamelift Script: %s", d.Id())
 	out, err := conn.DescribeScript(&gamelift.DescribeScriptInput{
@@ -117,7 +118,7 @@ func resourceAwsGameliftScriptRead(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("error listing tags for Game Lift Script (%s): %s", arn, err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
