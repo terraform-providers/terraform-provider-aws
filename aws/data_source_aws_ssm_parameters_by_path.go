@@ -19,7 +19,6 @@ func dataSourceAwsSsmParametersByPath() *schema.Resource {
 			"path": {
 				Type:     schema.TypeString,
 				Required: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"arns": {
 				Type:     schema.TypeList,
