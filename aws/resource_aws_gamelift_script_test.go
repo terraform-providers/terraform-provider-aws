@@ -214,7 +214,7 @@ func TestAccAWSGameliftScript_disappears(t *testing.T) {
 				Config: testAccAWSGameliftScriptBasicConfig(rName, bucketName, key, roleArn),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSGameliftScriptExists(resourceName, &conf),
-					testAccCheckAWSGameliftScriptDisappears(&conf),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsGameliftScript(), resourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -252,17 +252,6 @@ func testAccCheckAWSGameliftScriptExists(n string, res *gamelift.Script) resourc
 		*res = *b
 
 		return nil
-	}
-}
-
-func testAccCheckAWSGameliftScriptDisappears(res *gamelift.Script) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*AWSClient).gameliftconn
-
-		input := &gamelift.DeleteScriptInput{ScriptId: res.ScriptId}
-
-		_, err := conn.DeleteScript(input)
-		return err
 	}
 }
 
