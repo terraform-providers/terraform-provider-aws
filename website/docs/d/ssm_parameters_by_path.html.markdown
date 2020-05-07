@@ -1,4 +1,5 @@
 ---
+subcategory: "SSM"
 layout: "aws"
 page_title: "AWS: aws_ssm_parameters_by_path"
 description: |-
