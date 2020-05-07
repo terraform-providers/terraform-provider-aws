@@ -1,7 +1,6 @@
 ---
 layout: "aws"
 page_title: "AWS: aws_ssm_parameters_by_path"
-sidebar_current: "docs-aws-datasource-ssm-parameters-by-path"
 description: |-
   Provides SSM Parameters by path
 ---
