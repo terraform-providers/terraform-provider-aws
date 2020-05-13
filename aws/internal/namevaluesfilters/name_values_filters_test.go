@@ -66,38 +66,6 @@ func TestNameValuesFiltersMerge(t *testing.T) {
 	}
 }
 
-func testNameValuesFiltersVerifyNames(t *testing.T, got []string, want []string) {
-	for _, g := range got {
-		found := false
-
-		for _, w := range want {
-			if w == g {
-				found = true
-				break
-			}
-		}
-
-		if !found {
-			t.Errorf("got extra name: %s", g)
-		}
-	}
-
-	for _, w := range want {
-		found := false
-
-		for _, g := range got {
-			if g == w {
-				found = true
-				break
-			}
-		}
-
-		if !found {
-			t.Errorf("want missing name: %s", w)
-		}
-	}
-}
-
 func testNameValuesFiltersVerifyMap(t *testing.T, got map[string][]string, want map[string][]string) {
 	for k, wantV := range want {
 		gotV, ok := got[k]
