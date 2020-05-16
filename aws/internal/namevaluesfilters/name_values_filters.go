@@ -2,6 +2,10 @@
 
 package namevaluesfilters
 
+import (
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+)
+
 // NameValuesFilters is a standard implementation for AWS resource filters.
 // The AWS Go SDK is split into multiple service packages, each service with
 // its own Go struct type representing a resource filter. To standardize logic
@@ -61,7 +65,7 @@ func (filters NameValuesFilters) Merge(mergeFilters NameValuesFilters) NameValue
 }
 
 // New creates NameValuesFilters from common Terraform Provider SDK types.
-// Supports map[string]string, map[string][]string, TODO.
+// Supports map[string]string, map[string][]string, *schema.Set.
 func New(i interface{}) NameValuesFilters {
 	switch value := i.(type) {
 	case map[string]string:
@@ -74,7 +78,49 @@ func New(i interface{}) NameValuesFilters {
 		return nvfm
 	case map[string][]string:
 		return NameValuesFilters(value)
+	case *schema.Set:
+		// The set of filters described by Schema().
+		filters := value.List()
+		nvfm := make(NameValuesFilters, len(filters))
+
+		for _, filter := range filters {
+			filterMap := filter.(map[string]interface{})
+			name := filterMap["name"].(string)
+			values := filterMap["values"].(*schema.Set)
+			nvfm[name] = make([]string, values.Len())
+			for _, value := range values.List() {
+				nvfm[name] = append(nvfm[name], value.(string))
+			}
+		}
+
+		return nvfm
 	default:
 		return make(NameValuesFilters)
+	}
+}
+
+// Schema returns a *schema.Schema that represents a set of custom filtering criteria
+// that a user can specify as input to a data source.
+// It is conventional for an attribute of this type to be included as a top-level attribute called "filter".
+func Schema() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeSet,
+		Optional: true,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"name": {
+					Type:     schema.TypeString,
+					Required: true,
+				},
+
+				"values": {
+					Type:     schema.TypeSet,
+					Required: true,
+					Elem: &schema.Schema{
+						Type: schema.TypeString,
+					},
+				},
+			},
+		},
 	}
 }

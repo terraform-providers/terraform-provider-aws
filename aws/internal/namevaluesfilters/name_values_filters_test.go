@@ -3,6 +3,9 @@ package namevaluesfilters
 import (
 	"reflect"
 	"testing"
+
+	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 func TestNameValuesFiltersMap(t *testing.T) {
@@ -96,6 +99,39 @@ func TestNameValuesFiltersMerge(t *testing.T) {
 				"name3": {"value3"},
 			},
 		},
+		{
+			name: "from_set",
+			filters: New(schema.NewSet(testNameValuesFiltersHashSet, []interface{}{
+				map[string]interface{}{
+					"name": "name1",
+					"values": schema.NewSet(schema.HashString, []interface{}{
+						"value1",
+					}),
+				},
+				map[string]interface{}{
+					"name": "name2",
+					"values": schema.NewSet(schema.HashString, []interface{}{
+						"value2a",
+						"value2b",
+					}),
+				},
+				map[string]interface{}{
+					"name": "name3",
+					"values": schema.NewSet(schema.HashString, []interface{}{
+						"value3",
+					}),
+				},
+			})),
+			mergeFilters: map[string][]string{
+				"name1": {"value1"},
+				"name2": {"value2c"},
+			},
+			want: map[string][]string{
+				"name1": {"value1"},
+				"name2": {"value2a", "value2b", "value2c"},
+				"name3": {"value3"},
+			},
+		},
 	}
 
 	for _, testCase := range testCases {
@@ -126,4 +162,9 @@ func testNameValuesFiltersVerifyMap(t *testing.T, got map[string][]string, want 
 			t.Errorf("got extra name: %s", k)
 		}
 	}
+}
+
+func testNameValuesFiltersHashSet(v interface{}) int {
+	m := v.(map[string]interface{})
+	return hashcode.String(m["name"].(string))
 }
