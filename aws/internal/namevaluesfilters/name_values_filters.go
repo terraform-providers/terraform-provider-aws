@@ -9,12 +9,33 @@ package namevaluesfilters
 type NameValuesFilters map[string][]string
 
 // Map returns filter names mapped to their values.
+// Duplicate values are eliminated and empty values removed.
 func (filters NameValuesFilters) Map() map[string][]string {
-	result := make(map[string][]string, len(filters))
+	result := make(map[string][]string)
 
 	for k, v := range filters {
-		result[k] = make([]string, len(v))
-		copy(result[k], v)
+		targetValues := make([]string, 0)
+
+	SOURCE_VALUES:
+		for _, sourceValue := range v {
+			if sourceValue == "" {
+				continue
+			}
+
+			for _, targetValue := range targetValues {
+				if sourceValue == targetValue {
+					continue SOURCE_VALUES
+				}
+			}
+
+			targetValues = append(targetValues, sourceValue)
+		}
+
+		if len(targetValues) == 0 {
+			continue
+		}
+
+		result[k] = targetValues
 	}
 
 	return result

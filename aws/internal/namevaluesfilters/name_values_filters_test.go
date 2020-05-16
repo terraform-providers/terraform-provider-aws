@@ -5,6 +5,47 @@ import (
 	"testing"
 )
 
+func TestNameValuesFiltersMap(t *testing.T) {
+	testCases := []struct {
+		name    string
+		filters NameValuesFilters
+		want    map[string][]string
+	}{
+		{
+			name:    "empty",
+			filters: New(map[string][]string{}),
+			want:    map[string][]string{},
+		},
+		{
+			name: "empty_strings",
+			filters: New(map[string][]string{
+				"name1": {""},
+				"name2": {"", ""},
+			}),
+			want: map[string][]string{},
+		},
+		{
+			name: "duplicates",
+			filters: New(map[string][]string{
+				"name1": {"value1"},
+				"name2": {"value2a", "value2b", "", "value2a", "value2c", "value2c"},
+			}),
+			want: map[string][]string{
+				"name1": {"value1"},
+				"name2": {"value2a", "value2b", "value2c"},
+			},
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			got := testCase.filters.Map()
+
+			testNameValuesFiltersVerifyMap(t, got, testCase.want)
+		})
+	}
+}
+
 func TestNameValuesFiltersMerge(t *testing.T) {
 	testCases := []struct {
 		name         string

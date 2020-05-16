@@ -94,9 +94,15 @@ import (
 
 // {{ . | Title }}Filters returns {{ . }} service filters.
 func (filters NameValuesFilters) {{ . | Title }}Filters() []*{{ . | FilterPackage }}.{{ . | FilterType }} {
-	result := make([]*{{ . | FilterPackage }}.{{ . | FilterType }}, 0, len(filters))
+	m := filters.Map()
 
-	for k, v := range filters.Map() {
+	if len(m) == 0 {
+		return nil
+	}
+
+	result := make([]*{{ . | FilterPackage }}.{{ . | FilterType }}, 0, len(m))
+
+	for k, v := range m {
 		filter := &{{ . | FilterPackage }}.{{ . | FilterType }}{
 			{{ . | FilterTypeNameField }}:   aws.String(k),
 			{{ . | FilterTypeValuesField }}: aws.StringSlice(v),

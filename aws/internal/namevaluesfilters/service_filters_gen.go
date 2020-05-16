@@ -12,9 +12,15 @@ import (
 
 // Ec2Filters returns ec2 service filters.
 func (filters NameValuesFilters) Ec2Filters() []*ec2.Filter {
-	result := make([]*ec2.Filter, 0, len(filters))
+	m := filters.Map()
 
-	for k, v := range filters.Map() {
+	if len(m) == 0 {
+		return nil
+	}
+
+	result := make([]*ec2.Filter, 0, len(m))
+
+	for k, v := range m {
 		filter := &ec2.Filter{
 			Name:   aws.String(k),
 			Values: aws.StringSlice(v),
@@ -28,9 +34,15 @@ func (filters NameValuesFilters) Ec2Filters() []*ec2.Filter {
 
 // RdsFilters returns rds service filters.
 func (filters NameValuesFilters) RdsFilters() []*rds.Filter {
-	result := make([]*rds.Filter, 0, len(filters))
+	m := filters.Map()
 
-	for k, v := range filters.Map() {
+	if len(m) == 0 {
+		return nil
+	}
+
+	result := make([]*rds.Filter, 0, len(m))
+
+	for k, v := range m {
 		filter := &rds.Filter{
 			Name:   aws.String(k),
 			Values: aws.StringSlice(v),
