@@ -18,8 +18,16 @@ const filename = `service_filters_gen.go`
 
 // Representing types such as []*ec2.Filter, []*rds.Filter, ...
 var sliceServiceNames = []string{
+	"autoscaling",
+	"databasemigrationservice",
+	"docdb",
 	"ec2",
+	"fsx",
+	"imagebuilder",
+	"licensemanager",
+	"neptune",
 	"rds",
+	"route53resolver",
 }
 
 type TemplateData struct {
@@ -94,15 +102,15 @@ import (
 
 // {{ . | Title }}Filters returns {{ . }} service filters.
 func (filters NameValuesFilters) {{ . | Title }}Filters() []*{{ . | FilterPackage }}.{{ . | FilterType }} {
-	m := filters.Map()
+	nvfm := filters.Map()
 
-	if len(m) == 0 {
+	if len(nvfm) == 0 {
 		return nil
 	}
 
-	result := make([]*{{ . | FilterPackage }}.{{ . | FilterType }}, 0, len(m))
+	result := make([]*{{ . | FilterPackage }}.{{ . | FilterType }}, 0, len(nvfm))
 
-	for k, v := range m {
+	for k, v := range nvfm {
 		filter := &{{ . | FilterPackage }}.{{ . | FilterType }}{
 			{{ . | FilterTypeNameField }}:   aws.String(k),
 			{{ . | FilterTypeValuesField }}: aws.StringSlice(v),
