@@ -739,6 +739,7 @@ func Provider() terraform.ResourceProvider {
 			"aws_redshift_snapshot_schedule":                          resourceAwsRedshiftSnapshotSchedule(),
 			"aws_redshift_snapshot_schedule_association":              resourceAwsRedshiftSnapshotScheduleAssociation(),
 			"aws_redshift_event_subscription":                         resourceAwsRedshiftEventSubscription(),
+			"aws_redshift_scheduled_action":                           resourceAwsRedshiftScheduledAction(),
 			"aws_resourcegroups_group":                                resourceAwsResourceGroupsGroup(),
 			"aws_route53_delegation_set":                              resourceAwsRoute53DelegationSet(),
 			"aws_route53_query_log":                                   resourceAwsRoute53QueryLog(),
