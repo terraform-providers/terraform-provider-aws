@@ -464,24 +464,10 @@ func resourceAwsEcsServiceCreate(d *schema.ResourceData, meta interface{}) error
 		input.PlacementStrategy = ps
 	}
 
-	constraints := d.Get("placement_constraints").(*schema.Set).List()
-	if len(constraints) > 0 {
-		var pc []*ecs.PlacementConstraint
-		for _, raw := range constraints {
-			p := raw.(map[string]interface{})
-			t := p["type"].(string)
-			e := p["expression"].(string)
-			if err := validateAwsEcsPlacementConstraint(t, e); err != nil {
-				return err
-			}
-			constraint := &ecs.PlacementConstraint{
-				Type: aws.String(t),
-			}
-			if e != "" {
-				constraint.Expression = aws.String(e)
-			}
-
-			pc = append(pc, constraint)
+	if v, ok := d.GetOk("placement_constraints"); ok {
+		pc, err := expandPlacementConstraints(v.(*schema.Set).List())
+		if err != nil {
+			return err
 		}
 		input.PlacementConstraints = pc
 	}
@@ -836,6 +822,31 @@ func expandPlacementStrategy(s []interface{}) ([]*ecs.PlacementStrategy, error) 
 		pss = append(pss, ps)
 	}
 	return pss, nil
+}
+
+func expandPlacementConstraints(s []interface{}) ([]*ecs.PlacementConstraint, error) {
+	if len(s) == 0 {
+		return nil, nil
+	}
+
+	var pc []*ecs.PlacementConstraint
+	for _, raw := range s {
+		p := raw.(map[string]interface{})
+		t := p["type"].(string)
+		e := p["expression"].(string)
+		if err := validateAwsEcsPlacementConstraint(t, e); err != nil {
+			return nil, err
+		}
+		constraint := &ecs.PlacementConstraint{
+			Type: aws.String(t),
+		}
+		if e != "" {
+			constraint.Expression = aws.String(e)
+		}
+
+		pc = append(pc, constraint)
+	}
+	return pc, nil
 }
 
 func flattenPlacementStrategy(pss []*ecs.PlacementStrategy) []interface{} {

@@ -228,6 +228,7 @@ func Provider() terraform.ResourceProvider {
 			"aws_ecs_cluster":                               dataSourceAwsEcsCluster(),
 			"aws_ecs_container_definition":                  dataSourceAwsEcsContainerDefinition(),
 			"aws_ecs_service":                               dataSourceAwsEcsService(),
+			"aws_ecs_run_task":                              dataSourceAwsEcsRunTask(),
 			"aws_ecs_task_definition":                       dataSourceAwsEcsTaskDefinition(),
 			"aws_customer_gateway":                          dataSourceAwsCustomerGateway(),
 			"aws_efs_file_system":                           dataSourceAwsEfsFileSystem(),
