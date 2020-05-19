@@ -2,7 +2,7 @@
 
 The `namevaluesfilters` package is designed to provide a consistent interface for handling AWS resource filtering.
 
-This package instead implements a single `NameValuesFilters` type, which covers all filter handling logic such as merging filters via functions on the single type. The underlying implementation is compatible with Go operations such as `len()`.
+This package implements a single `NameValuesFilters` type, which covers all filter handling logic, such as merging filters, via functions on the single type. The underlying implementation is compatible with Go operations such as `len()`.
 
 Full documentation for this package can be found on [GoDoc](https://godoc.org/github.com/terraform-providers/terraform-provider-aws/aws/internal/namevaluesfilters).
 
