@@ -64,7 +64,7 @@ func TestAccAWSCloudfrontFieldLevelEncryptionProfile_disappears(t *testing.T) {
 				Config: testAccAWSCloudfrontFieldLevelEncryptionProfileConfig(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudfrontFieldLevelEncryptionProfileExists(resourceName, &profile),
-					testAccCheckCloudfrontFieldLevelEncryptionProfileDisappears(&profile),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsCloudfrontFieldLevelEncryptionProfile(), resourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -117,21 +117,6 @@ func testAccCheckCloudfrontFieldLevelEncryptionProfileExists(r string, profile *
 		*profile = *resp
 
 		return nil
-	}
-}
-
-func testAccCheckCloudfrontFieldLevelEncryptionProfileDisappears(profile *cloudfront.GetFieldLevelEncryptionProfileOutput) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*AWSClient).cloudfrontconn
-
-		params := &cloudfront.DeleteFieldLevelEncryptionProfileInput{
-			Id:      profile.FieldLevelEncryptionProfile.Id,
-			IfMatch: profile.ETag,
-		}
-
-		_, err := conn.DeleteFieldLevelEncryptionProfile(params)
-
-		return err
 	}
 }
 

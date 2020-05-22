@@ -52,3 +52,11 @@ In addition to all arguments above, the following attributes are exported:
 * `caller_reference` - Internal value used by CloudFront to allow future updates to the Field Level Encryption Profile.
 * `etag` - The current version of the Field Level Encryption Profile. For example: `E2QWRUHAPOMQZL`.
 * `id` - The identifier for the Field Level Encryption Profile. For example: `K3D5EWEUDCCXON`.
+
+## Import
+
+Cloudfront Field Level Encryption Profile can be imported using the `id`, e.g.
+
+```
+$ terraform import aws_cloudfront_field_level_encryption_profile.profile E74FTE3AEXAMPLE
+```
