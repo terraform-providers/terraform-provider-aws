@@ -114,16 +114,18 @@ func resourceAwsRedshiftScheduledActionCreate(d *schema.ResourceData, meta inter
 		createOpts.Enable = aws.Bool(attr.(bool))
 	}
 	if attr, ok := d.GetOk("start_time"); ok {
-		createOpts.StartTime = aws.Time(attr.(time.Time))
+		t, _ := time.Parse("2006-01-02T15:04:05-0700", attr.(string))
+		createOpts.StartTime = aws.Time(t)
 	}
 	if attr, ok := d.GetOk("end_time"); ok {
-		createOpts.EndTime = aws.Time(attr.(time.Time))
+		t, _ := time.Parse("2006-01-02T15:04:05-0700", attr.(string))
+		createOpts.EndTime = aws.Time(t)
 	}
 
-	log.Printf("[DEBUG] Creating Glue Connection: %s", createOpts)
+	log.Printf("[DEBUG] Creating Redshift Scheduled Action: %s", createOpts)
 	_, err := conn.CreateScheduledAction(createOpts)
 	if err != nil {
-		return fmt.Errorf("error creating Glue Connection (%s): %s", name, err)
+		return fmt.Errorf("error creating Redshift Scheduled Action (%s): %s", name, err)
 	}
 
 	d.SetId(name)
@@ -175,9 +177,16 @@ func resourceAwsRedshiftScheduledActionUpdate(d *schema.ResourceData, meta inter
 		IamRole:                    aws.String(d.Get("iam_role").(string)),
 		TargetAction:               expandRedshiftScheduledActionTargetAction(d.Get("target_action")),
 		Enable:                     aws.Bool(d.Get("active").(bool)),
-		StartTime:                  aws.Time(d.Get("start_time").(time.Time)),
-		EndTime:                    aws.Time(d.Get("end_time").(time.Time)),
 		ScheduledActionDescription: aws.String(d.Get("description").(string)),
+	}
+
+	if attr, ok := d.GetOk("start_time"); ok {
+		t, _ := time.Parse("2006-01-02T15:04:05-0700", attr.(string))
+		modifyOpts.StartTime = aws.Time(t)
+	}
+	if attr, ok := d.GetOk("end_time"); ok {
+		t, _ := time.Parse("2006-01-02T15:04:05-0700", attr.(string))
+		modifyOpts.EndTime = aws.Time(t)
 	}
 
 	log.Printf("[DEBUG] Updating Redshift Scheduled Action: %s", modifyOpts)
@@ -209,27 +218,33 @@ func expandRedshiftScheduledActionTargetAction(configured interface{}) *redshift
 	if configured == nil {
 		return nil
 	}
-	if configured.([]interface{}) == nil || len(configured.([]interface{})) == 0 {
-		return nil
-	}
 
 	p := configured.(map[string]interface{})
-	targetAction := &redshift.ScheduledActionType{}
 
 	switch p["action"].(string) {
 	case redshift.ScheduledActionTypeValuesPauseCluster:
-		targetAction.PauseCluster.ClusterIdentifier = p["cluster_identifier"].(*string)
+		pauseCluster := redshift.PauseClusterMessage{ClusterIdentifier: aws.String(p["cluster_identifier"].(string))}
+		return &redshift.ScheduledActionType{
+			PauseCluster: &pauseCluster,
+		}
 	case redshift.ScheduledActionTypeValuesResumeCluster:
-		targetAction.ResumeCluster.ClusterIdentifier = p["cluster_identifier"].(*string)
+		resumeCluster := redshift.ResumeClusterMessage{ClusterIdentifier: aws.String(p["cluster_identifier"].(string))}
+		return &redshift.ScheduledActionType{
+			ResumeCluster: &resumeCluster,
+		}
 	case redshift.ScheduledActionTypeValuesResizeCluster:
-		targetAction.ResizeCluster.ClusterIdentifier = p["cluster_identifier"].(*string)
-		targetAction.ResizeCluster.Classic = p["classic"].(*bool)
-		targetAction.ResizeCluster.ClusterType = p["cluster_type"].(*string)
-		targetAction.ResizeCluster.NodeType = p["node_type"].(*string)
-		targetAction.ResizeCluster.NumberOfNodes = p["number_of_nodes"].(*int64)
+		resizeCluster := redshift.ResizeClusterMessage{
+			ClusterIdentifier: aws.String(p["cluster_identifier"].(string)),
+			Classic:           aws.Bool(p["classic"].(bool)),
+			ClusterType:       aws.String(p["cluster_type"].(string)),
+			NodeType:          aws.String(p["node_type"].(string)),
+			NumberOfNodes:     aws.Int64(p["number_of_nodes"].(int64)),
+		}
+		return &redshift.ScheduledActionType{
+			ResizeCluster: &resizeCluster,
+		}
 	}
-
-	return targetAction
+	return nil
 }
 
 func flattenRedshiftScheduledActionType(scheduledActionType *redshift.ScheduledActionType) map[string]interface{} {
