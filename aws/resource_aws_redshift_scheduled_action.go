@@ -3,6 +3,7 @@ package aws
 import (
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/redshift"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -37,12 +38,14 @@ func resourceAwsRedshiftScheduledAction() *schema.Resource {
 				Default:  true,
 			},
 			"start_time": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.IsRFC3339Time,
 			},
 			"end_time": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.IsRFC3339Time,
 			},
 			"schedule": {
 				Type:     schema.TypeString,
@@ -53,8 +56,9 @@ func resourceAwsRedshiftScheduledAction() *schema.Resource {
 				Required: true,
 			},
 			"target_action": {
-				Type:     schema.TypeMap,
+				Type:     schema.TypeList,
 				Required: true,
+				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"action": {
@@ -114,11 +118,11 @@ func resourceAwsRedshiftScheduledActionCreate(d *schema.ResourceData, meta inter
 		createOpts.Enable = aws.Bool(attr.(bool))
 	}
 	if attr, ok := d.GetOk("start_time"); ok {
-		t, _ := time.Parse("2006-01-02T15:04:05-0700", attr.(string))
+		t, _ := time.Parse(time.RFC3339, attr.(string))
 		createOpts.StartTime = aws.Time(t)
 	}
 	if attr, ok := d.GetOk("end_time"); ok {
-		t, _ := time.Parse("2006-01-02T15:04:05-0700", attr.(string))
+		t, _ := time.Parse(time.RFC3339, attr.(string))
 		createOpts.EndTime = aws.Time(t)
 	}
 
@@ -128,16 +132,25 @@ func resourceAwsRedshiftScheduledActionCreate(d *schema.ResourceData, meta inter
 		return fmt.Errorf("error creating Redshift Scheduled Action (%s): %s", name, err)
 	}
 
-	d.SetId(name)
+	id := arn.ARN{
+		Partition: meta.(*AWSClient).partition,
+		Service:   "redshift",
+		Region:    meta.(*AWSClient).region,
+		AccountID: meta.(*AWSClient).accountid,
+		Resource:  fmt.Sprintf("scheduledaction:%s", name),
+	}.String()
+
+	d.SetId(id)
 
 	return resourceAwsRedshiftScheduledActionRead(d, meta)
 }
 
 func resourceAwsRedshiftScheduledActionRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).redshiftconn
+	name := d.Get("name")
 
 	descOpts := &redshift.DescribeScheduledActionsInput{
-		ScheduledActionName: aws.String(d.Id()),
+		ScheduledActionName: aws.String(name.(string)),
 	}
 
 	resp, err := conn.DescribeScheduledActions(descOpts)
@@ -156,8 +169,8 @@ func resourceAwsRedshiftScheduledActionRead(d *schema.ResourceData, meta interfa
 	d.Set("name", scheduledAction.ScheduledActionName)
 	d.Set("description", scheduledAction.ScheduledActionDescription)
 	d.Set("active", scheduledAction.State)
-	d.Set("start_time", scheduledAction.StartTime)
-	d.Set("end_time", scheduledAction.EndTime)
+	d.Set("start_time", aws.TimeValue(scheduledAction.StartTime).Format(time.RFC3339))
+	d.Set("end_time", aws.TimeValue(scheduledAction.EndTime).Format(time.RFC3339))
 	d.Set("schedule", scheduledAction.Schedule)
 	d.Set("iam_role", scheduledAction.IamRole)
 
@@ -172,7 +185,7 @@ func resourceAwsRedshiftScheduledActionUpdate(d *schema.ResourceData, meta inter
 	conn := meta.(*AWSClient).redshiftconn
 
 	modifyOpts := &redshift.ModifyScheduledActionInput{
-		ScheduledActionName:        aws.String(d.Id()),
+		ScheduledActionName:        aws.String(d.Get("name").(string)),
 		Schedule:                   aws.String(d.Get("schedule").(string)),
 		IamRole:                    aws.String(d.Get("iam_role").(string)),
 		TargetAction:               expandRedshiftScheduledActionTargetAction(d.Get("target_action")),
@@ -181,11 +194,11 @@ func resourceAwsRedshiftScheduledActionUpdate(d *schema.ResourceData, meta inter
 	}
 
 	if attr, ok := d.GetOk("start_time"); ok {
-		t, _ := time.Parse("2006-01-02T15:04:05-0700", attr.(string))
+		t, _ := time.Parse(time.RFC3339, attr.(string))
 		modifyOpts.StartTime = aws.Time(t)
 	}
 	if attr, ok := d.GetOk("end_time"); ok {
-		t, _ := time.Parse("2006-01-02T15:04:05-0700", attr.(string))
+		t, _ := time.Parse(time.RFC3339, attr.(string))
 		modifyOpts.EndTime = aws.Time(t)
 	}
 
@@ -215,11 +228,11 @@ func resourceAwsRedshiftScheduledActionDelete(d *schema.ResourceData, meta inter
 }
 
 func expandRedshiftScheduledActionTargetAction(configured interface{}) *redshift.ScheduledActionType {
-	if configured == nil {
+	if configured == nil || len(configured.([]interface{})) == 0 {
 		return nil
 	}
 
-	p := configured.(map[string]interface{})
+	p := configured.([]interface{})[0].(map[string]interface{})
 
 	switch p["action"].(string) {
 	case redshift.ScheduledActionTypeValuesPauseCluster:
@@ -247,9 +260,9 @@ func expandRedshiftScheduledActionTargetAction(configured interface{}) *redshift
 	return nil
 }
 
-func flattenRedshiftScheduledActionType(scheduledActionType *redshift.ScheduledActionType) map[string]interface{} {
+func flattenRedshiftScheduledActionType(scheduledActionType *redshift.ScheduledActionType) []map[string]interface{} {
 	if scheduledActionType == nil {
-		return map[string]interface{}{}
+		return []map[string]interface{}{}
 	}
 
 	m := map[string]interface{}{}
@@ -276,5 +289,5 @@ func flattenRedshiftScheduledActionType(scheduledActionType *redshift.ScheduledA
 			"number_of_nodes":    aws.Int64Value(scheduledActionType.ResizeCluster.NumberOfNodes),
 		}
 	}
-	return m
+	return []map[string]interface{}{m}
 }
