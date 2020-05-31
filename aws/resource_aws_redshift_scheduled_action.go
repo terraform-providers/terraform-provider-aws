@@ -3,7 +3,6 @@ package aws
 import (
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/redshift"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -132,25 +131,17 @@ func resourceAwsRedshiftScheduledActionCreate(d *schema.ResourceData, meta inter
 		return fmt.Errorf("error creating Redshift Scheduled Action (%s): %s", name, err)
 	}
 
-	id := arn.ARN{
-		Partition: meta.(*AWSClient).partition,
-		Service:   "redshift",
-		Region:    meta.(*AWSClient).region,
-		AccountID: meta.(*AWSClient).accountid,
-		Resource:  fmt.Sprintf("scheduledaction:%s", name),
-	}.String()
-
-	d.SetId(id)
+	d.SetId(name)
 
 	return resourceAwsRedshiftScheduledActionRead(d, meta)
 }
 
 func resourceAwsRedshiftScheduledActionRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).redshiftconn
-	name := d.Get("name")
+	name := d.Id()
 
 	descOpts := &redshift.DescribeScheduledActionsInput{
-		ScheduledActionName: aws.String(name.(string)),
+		ScheduledActionName: aws.String(name),
 	}
 
 	resp, err := conn.DescribeScheduledActions(descOpts)
