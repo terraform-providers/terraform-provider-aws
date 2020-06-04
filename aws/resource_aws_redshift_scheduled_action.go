@@ -126,7 +126,23 @@ func resourceAwsRedshiftScheduledActionCreate(d *schema.ResourceData, meta inter
 	}
 
 	log.Printf("[DEBUG] Creating Redshift Scheduled Action: %s", createOpts)
-	_, err := conn.CreateScheduledAction(createOpts)
+
+	// Retry for IAM eventual consistency
+	err := resource.Retry(1*time.Minute, func() *resource.RetryError {
+		_, err := conn.CreateScheduledAction(createOpts)
+
+		// InvalidParameterValue: If you create iam role same time, you must wait the role will be valid
+		if isAWSErr(err, "InvalidParameterValue", "The IAM role must delegate access to Amazon Redshift scheduler") {
+			return resource.RetryableError(err)
+		}
+
+		if err != nil {
+			return resource.NonRetryableError(err)
+		}
+
+		return nil
+	})
+
 	if err != nil {
 		return fmt.Errorf("error creating Redshift Scheduled Action (%s): %s", name, err)
 	}
@@ -160,10 +176,16 @@ func resourceAwsRedshiftScheduledActionRead(d *schema.ResourceData, meta interfa
 	d.Set("name", scheduledAction.ScheduledActionName)
 	d.Set("description", scheduledAction.ScheduledActionDescription)
 	d.Set("active", scheduledAction.State)
-	d.Set("start_time", aws.TimeValue(scheduledAction.StartTime).Format(time.RFC3339))
-	d.Set("end_time", aws.TimeValue(scheduledAction.EndTime).Format(time.RFC3339))
 	d.Set("schedule", scheduledAction.Schedule)
 	d.Set("iam_role", scheduledAction.IamRole)
+
+	if aws.TimeValue(scheduledAction.StartTime).Format(time.RFC3339) != "0001-01-01T00:00:00Z" {
+		d.Set("start_time", aws.TimeValue(scheduledAction.StartTime).Format(time.RFC3339))
+	}
+
+	if aws.TimeValue(scheduledAction.EndTime).Format(time.RFC3339) != "0001-01-01T00:00:00Z" {
+		d.Set("start_time", aws.TimeValue(scheduledAction.EndTime).Format(time.RFC3339))
+	}
 
 	if err := d.Set("target_action", flattenRedshiftScheduledActionType(scheduledAction.TargetAction)); err != nil {
 		return fmt.Errorf("Error setting definitions: %s", err)
@@ -194,7 +216,22 @@ func resourceAwsRedshiftScheduledActionUpdate(d *schema.ResourceData, meta inter
 	}
 
 	log.Printf("[DEBUG] Updating Redshift Scheduled Action: %s", modifyOpts)
-	_, err := conn.ModifyScheduledAction(modifyOpts)
+
+	err := resource.Retry(1*time.Minute, func() *resource.RetryError {
+		_, err := conn.ModifyScheduledAction(modifyOpts)
+
+		// InvalidParameterValue: If you create iam role same time, you must wait the role will be valid
+		if isAWSErr(err, "InvalidParameterValue", "The IAM role must delegate access to Amazon Redshift scheduler") {
+			return resource.RetryableError(err)
+		}
+
+		if err != nil {
+			return resource.NonRetryableError(err)
+		}
+
+		return nil
+	})
+
 	if err != nil {
 		return fmt.Errorf("error updating Redshift Scheduled Action (%s): %s", d.Id(), err)
 	}
