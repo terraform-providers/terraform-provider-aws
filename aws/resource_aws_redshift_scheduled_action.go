@@ -99,11 +99,6 @@ func resourceAwsRedshiftScheduledAction() *schema.Resource {
 func resourceAwsRedshiftScheduledActionCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).redshiftconn
 	var name string
-	if v, ok := d.GetOk("name"); ok {
-		name = v.(string)
-	} else {
-		name = resource.UniqueId()
-	}
 	createOpts := &redshift.CreateScheduledActionInput{
 		ScheduledActionName: aws.String(name),
 		Schedule:            aws.String(d.Get("schedule").(string)),
@@ -184,7 +179,7 @@ func resourceAwsRedshiftScheduledActionRead(d *schema.ResourceData, meta interfa
 	}
 
 	if aws.TimeValue(scheduledAction.EndTime).Format(time.RFC3339) != "0001-01-01T00:00:00Z" {
-		d.Set("start_time", aws.TimeValue(scheduledAction.EndTime).Format(time.RFC3339))
+		d.Set("end_time", aws.TimeValue(scheduledAction.EndTime).Format(time.RFC3339))
 	}
 
 	if err := d.Set("target_action", flattenRedshiftScheduledActionType(scheduledAction.TargetAction)); err != nil {
@@ -279,7 +274,7 @@ func expandRedshiftScheduledActionTargetAction(configured interface{}) *redshift
 			Classic:           aws.Bool(p["classic"].(bool)),
 			ClusterType:       aws.String(p["cluster_type"].(string)),
 			NodeType:          aws.String(p["node_type"].(string)),
-			NumberOfNodes:     aws.Int64(p["number_of_nodes"].(int64)),
+			NumberOfNodes:     aws.Int64(int64(p["number_of_nodes"].(int))),
 		}
 		return &redshift.ScheduledActionType{
 			ResizeCluster: &resizeCluster,
