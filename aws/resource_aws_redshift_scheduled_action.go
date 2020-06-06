@@ -98,7 +98,7 @@ func resourceAwsRedshiftScheduledAction() *schema.Resource {
 
 func resourceAwsRedshiftScheduledActionCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).redshiftconn
-	var name string
+	name := d.Get("name").(string)
 	createOpts := &redshift.CreateScheduledActionInput{
 		ScheduledActionName: aws.String(name),
 		Schedule:            aws.String(d.Get("schedule").(string)),
