@@ -52,12 +52,12 @@ func dataSourceAwsRamResourceShare() *schema.Resource {
 				Computed: true,
 			},
 
-			"tags": tagsSchemaComputed(),
-
-			"id": {
+			"owning_account_id": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
+			"tags": tagsSchemaComputed(),
 
 			"status": {
 				Type:     schema.TypeString,

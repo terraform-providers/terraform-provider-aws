@@ -42,46 +42,73 @@ func resourceAwsApiGatewayMethodSettings() *schema.Resource {
 						"metrics_enabled": {
 							Type:     schema.TypeBool,
 							Optional: true,
+							Computed: true,
 						},
 						"logging_level": {
 							Type:     schema.TypeString,
 							Optional: true,
+							Computed: true,
 						},
 						"data_trace_enabled": {
 							Type:     schema.TypeBool,
 							Optional: true,
+							Computed: true,
 						},
 						"throttling_burst_limit": {
 							Type:     schema.TypeInt,
 							Optional: true,
+							Computed: true,
 						},
 						"throttling_rate_limit": {
 							Type:     schema.TypeFloat,
 							Optional: true,
+							Computed: true,
 						},
 						"caching_enabled": {
 							Type:     schema.TypeBool,
 							Optional: true,
+							Computed: true,
 						},
 						"cache_ttl_in_seconds": {
 							Type:     schema.TypeInt,
 							Optional: true,
+							Computed: true,
 						},
 						"cache_data_encrypted": {
 							Type:     schema.TypeBool,
 							Optional: true,
+							Computed: true,
 						},
 						"require_authorization_for_cache_control": {
 							Type:     schema.TypeBool,
 							Optional: true,
+							Computed: true,
 						},
 						"unauthorized_cache_control_header_strategy": {
 							Type:     schema.TypeString,
 							Optional: true,
+							Computed: true,
 						},
 					},
 				},
 			},
+		},
+	}
+}
+
+func flattenAwsApiGatewayMethodSettings(settings *apigateway.MethodSetting) []interface{} {
+	return []interface{}{
+		map[string]interface{}{
+			"metrics_enabled":                            settings.MetricsEnabled,
+			"logging_level":                              settings.LoggingLevel,
+			"data_trace_enabled":                         settings.DataTraceEnabled,
+			"throttling_burst_limit":                     settings.ThrottlingBurstLimit,
+			"throttling_rate_limit":                      settings.ThrottlingRateLimit,
+			"caching_enabled":                            settings.CachingEnabled,
+			"cache_ttl_in_seconds":                       settings.CacheTtlInSeconds,
+			"cache_data_encrypted":                       settings.CacheDataEncrypted,
+			"require_authorization_for_cache_control":    settings.RequireAuthorizationForCacheControl,
+			"unauthorized_cache_control_header_strategy": settings.UnauthorizedCacheControlHeaderStrategy,
 		},
 	}
 }
@@ -113,16 +140,9 @@ func resourceAwsApiGatewayMethodSettingsRead(d *schema.ResourceData, meta interf
 		return nil
 	}
 
-	d.Set("settings.0.metrics_enabled", settings.MetricsEnabled)
-	d.Set("settings.0.logging_level", settings.LoggingLevel)
-	d.Set("settings.0.data_trace_enabled", settings.DataTraceEnabled)
-	d.Set("settings.0.throttling_burst_limit", settings.ThrottlingBurstLimit)
-	d.Set("settings.0.throttling_rate_limit", settings.ThrottlingRateLimit)
-	d.Set("settings.0.caching_enabled", settings.CachingEnabled)
-	d.Set("settings.0.cache_ttl_in_seconds", settings.CacheTtlInSeconds)
-	d.Set("settings.0.cache_data_encrypted", settings.CacheDataEncrypted)
-	d.Set("settings.0.require_authorization_for_cache_control", settings.RequireAuthorizationForCacheControl)
-	d.Set("settings.0.unauthorized_cache_control_header_strategy", settings.UnauthorizedCacheControlHeaderStrategy)
+	if err := d.Set("settings", flattenAwsApiGatewayMethodSettings(settings)); err != nil {
+		return fmt.Errorf("error setting settings: %s", err)
+	}
 
 	return nil
 }

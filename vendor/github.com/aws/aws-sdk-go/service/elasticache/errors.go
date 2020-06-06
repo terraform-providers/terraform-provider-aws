@@ -165,7 +165,7 @@ const (
 	// ErrCodeInvalidGlobalReplicationGroupStateFault for service response error code
 	// "InvalidGlobalReplicationGroupState".
 	//
-	// The Global Datastore is not available
+	// The Global Datastore is not available or in primary-only state.
 	ErrCodeInvalidGlobalReplicationGroupStateFault = "InvalidGlobalReplicationGroupState"
 
 	// ErrCodeInvalidKMSKeyFault for service response error code

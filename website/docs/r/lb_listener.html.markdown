@@ -185,9 +185,26 @@ The following arguments are supported:
 Action Blocks (for `default_action`) support the following:
 
 * `type` - (Required) The type of routing action. Valid values are `forward`, `redirect`, `fixed-response`, `authenticate-cognito` and `authenticate-oidc`.
-* `target_group_arn` - (Optional) The ARN of the Target Group to which to route traffic. Required if `type` is `forward`.
+* `target_group_arn` - (Optional) The ARN of the Target Group to which to route traffic. Specify only if `type` is `forward` and you want to route to a single target group. To route to one or more target groups, use a `forward` block instead.
+* `forward` - (Optional) Information for creating an action that distributes requests among one or more target groups. Specify only if `type` is `forward`. If you specify both `forward` block and `target_group_arn` attribute, you can specify only one target group using `forward` and it must be the same target group specified in `target_group_arn`.
 * `redirect` - (Optional) Information for creating a redirect action. Required if `type` is `redirect`.
 * `fixed_response` - (Optional) Information for creating an action that returns a custom HTTP response. Required if `type` is `fixed-response`.
+
+Forward Blocks (for `forward`) support the following:
+
+* `target_group` - (Required) One or more target groups block.
+* `stickiness` - (Optional) The target group stickiness for the rule.
+
+Target Group Blocks (for `target_group`) supports the following:
+
+* `arn` - (Required) The Amazon Resource Name (ARN) of the target group.
+* `weight` - (Optional) The weight. The range is 0 to 999.
+
+Target Group Stickiness Config Blocks (for `stickiness`) supports the following:
+
+* `enabled` - (Required) Indicates whether target group stickiness is enabled.
+* `duration` - (Optional) The time period, in seconds, during which requests from a client should be routed to the same target group. The range is 1-604800 seconds (7 days).
+
 
 Redirect Blocks (for `redirect`) support the following:
 

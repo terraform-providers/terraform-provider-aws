@@ -139,6 +139,7 @@ func TestAccAWSVpnConnection_TransitGatewayID(t *testing.T) {
 }
 
 func TestAccAWSVpnConnection_tunnelOptions(t *testing.T) {
+	badCidrRangeErr := regexp.MustCompile(`expected \w+ to not be any of \[[\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/30\s?]+\]`)
 	rBgpAsn := acctest.RandIntRange(64512, 65534)
 	resourceName := "aws_vpn_connection.test"
 	var vpn ec2.VpnConnection
@@ -153,11 +154,11 @@ func TestAccAWSVpnConnection_tunnelOptions(t *testing.T) {
 			// Checking CIDR blocks
 			{
 				Config:      testAccAwsVpnConnectionConfigSingleTunnelOptions(rBgpAsn, "12345678", "not-a-cidr"),
-				ExpectError: regexp.MustCompile(`must contain a valid CIDR`),
+				ExpectError: regexp.MustCompile(`invalid CIDR address: not-a-cidr`),
 			},
 			{
 				Config:      testAccAwsVpnConnectionConfigSingleTunnelOptions(rBgpAsn, "12345678", "169.254.254.0/31"),
-				ExpectError: regexp.MustCompile(`must be /30 CIDR`),
+				ExpectError: regexp.MustCompile(`expected "\w+" to contain a network Value with between 30 and 30 significant bits`),
 			},
 			{
 				Config:      testAccAwsVpnConnectionConfigSingleTunnelOptions(rBgpAsn, "12345678", "172.16.0.0/30"),
@@ -165,41 +166,41 @@ func TestAccAWSVpnConnection_tunnelOptions(t *testing.T) {
 			},
 			{
 				Config:      testAccAwsVpnConnectionConfigSingleTunnelOptions(rBgpAsn, "12345678", "169.254.0.0/30"),
-				ExpectError: regexp.MustCompile(`cannot be 169.254.0.0/30`),
+				ExpectError: badCidrRangeErr,
 			},
 			{
 				Config:      testAccAwsVpnConnectionConfigSingleTunnelOptions(rBgpAsn, "12345678", "169.254.1.0/30"),
-				ExpectError: regexp.MustCompile(`cannot be 169.254.1.0/30`),
+				ExpectError: badCidrRangeErr,
 			},
 			{
 				Config:      testAccAwsVpnConnectionConfigSingleTunnelOptions(rBgpAsn, "12345678", "169.254.2.0/30"),
-				ExpectError: regexp.MustCompile(`cannot be 169.254.2.0/30`),
+				ExpectError: badCidrRangeErr,
 			},
 			{
 				Config:      testAccAwsVpnConnectionConfigSingleTunnelOptions(rBgpAsn, "12345678", "169.254.3.0/30"),
-				ExpectError: regexp.MustCompile(`cannot be 169.254.3.0/30`),
+				ExpectError: badCidrRangeErr,
 			},
 			{
 				Config:      testAccAwsVpnConnectionConfigSingleTunnelOptions(rBgpAsn, "12345678", "169.254.4.0/30"),
-				ExpectError: regexp.MustCompile(`cannot be 169.254.4.0/30`),
+				ExpectError: badCidrRangeErr,
 			},
 			{
 				Config:      testAccAwsVpnConnectionConfigSingleTunnelOptions(rBgpAsn, "12345678", "169.254.5.0/30"),
-				ExpectError: regexp.MustCompile(`cannot be 169.254.5.0/30`),
+				ExpectError: badCidrRangeErr,
 			},
 			{
 				Config:      testAccAwsVpnConnectionConfigSingleTunnelOptions(rBgpAsn, "12345678", "169.254.169.252/30"),
-				ExpectError: regexp.MustCompile(`cannot be 169.254.169.252/30`),
+				ExpectError: badCidrRangeErr,
 			},
 
 			// Checking PreShared Key
 			{
 				Config:      testAccAwsVpnConnectionConfigSingleTunnelOptions(rBgpAsn, "1234567", "169.254.254.0/30"),
-				ExpectError: regexp.MustCompile(`must be between 8 and 64 characters in length`),
+				ExpectError: regexp.MustCompile(`expected length of \w+ to be in the range \(8 - 64\)`),
 			},
 			{
 				Config:      testAccAwsVpnConnectionConfigSingleTunnelOptions(rBgpAsn, acctest.RandStringFromCharSet(65, acctest.CharSetAlpha), "169.254.254.0/30"),
-				ExpectError: regexp.MustCompile(`must be between 8 and 64 characters in length`),
+				ExpectError: regexp.MustCompile(`expected length of \w+ to be in the range \(8 - 64\)`),
 			},
 			{
 				Config:      testAccAwsVpnConnectionConfigSingleTunnelOptions(rBgpAsn, "01234567", "169.254.254.0/30"),

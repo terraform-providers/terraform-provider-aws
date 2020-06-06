@@ -53,3 +53,43 @@ func symlinkDir(srcDir string, destDir string) (err error) {
 	}
 	return
 }
+
+// symlinkDirectoriesOnly finds only the first-level child directories in srcDir
+// and symlinks them into destDir.
+// Unlike symlinkDir, this is done non-recursively in order to limit the number
+// of file descriptors used.
+func symlinkDirectoriesOnly(srcDir string, destDir string) (err error) {
+	srcInfo, err := os.Stat(srcDir)
+	if err != nil {
+		return err
+	}
+
+	err = os.MkdirAll(destDir, srcInfo.Mode())
+	if err != nil {
+		return err
+	}
+
+	directory, err := os.Open(srcDir)
+	if err != nil {
+		return err
+	}
+	defer directory.Close()
+	objects, err := directory.Readdir(-1)
+	if err != nil {
+		return err
+	}
+
+	for _, obj := range objects {
+		srcPath := filepath.Join(srcDir, obj.Name())
+		destPath := filepath.Join(destDir, obj.Name())
+
+		if obj.IsDir() {
+			err = symlinkFile(srcPath, destPath)
+			if err != nil {
+				return err
+			}
+		}
+
+	}
+	return
+}

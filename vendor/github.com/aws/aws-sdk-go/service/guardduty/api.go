@@ -1646,8 +1646,8 @@ func (c *GuardDuty) DisableOrganizationAdminAccountRequest(input *DisableOrganiz
 
 // DisableOrganizationAdminAccount API operation for Amazon GuardDuty.
 //
-// Disables GuardDuty administrator permissions for an AWS account within the
-// Organization.
+// Disables an AWS account within the Organization as the GuardDuty delegated
+// administrator.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1896,8 +1896,8 @@ func (c *GuardDuty) EnableOrganizationAdminAccountRequest(input *EnableOrganizat
 
 // EnableOrganizationAdminAccount API operation for Amazon GuardDuty.
 //
-// Enables GuardDuty administrator permissions for an AWS account within the
-// organization.
+// Enables an AWS account within the organization as the GuardDuty delegated
+// administrator.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -3655,7 +3655,7 @@ func (c *GuardDuty) ListOrganizationAdminAccountsRequest(input *ListOrganization
 
 // ListOrganizationAdminAccounts API operation for Amazon GuardDuty.
 //
-// Lists the accounts configured as AWS Organization delegated administrators.
+// Lists the accounts configured as GuardDuty delegated administrators.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -5977,6 +5977,8 @@ type CreateFilterInput struct {
 	//
 	//    * service.action.networkConnectionAction.protocol
 	//
+	//    * service.action.networkConnectionAction.localIpDetails.ipAddressV4
+	//
 	//    * service.action.networkConnectionAction.remoteIpDetails.city.cityName
 	//
 	//    * service.action.networkConnectionAction.remoteIpDetails.country.countryName
@@ -6160,7 +6162,7 @@ type CreateIPSetInput struct {
 	// Format is a required field
 	Format *string `locationName:"format" min:"1" type:"string" required:"true" enum:"IpSetFormat"`
 
-	// The URI of the file that contains the IPSet. For example: https://s3.us-west-2.amazonaws.com/my-bucket/my-object-key.
+	// The URI of the file that contains the IPSet. For example: .
 	//
 	// Location is a required field
 	Location *string `locationName:"location" min:"1" type:"string" required:"true"`
@@ -6585,7 +6587,7 @@ type CreateThreatIntelSetInput struct {
 	// Format is a required field
 	Format *string `locationName:"format" min:"1" type:"string" required:"true" enum:"ThreatIntelSetFormat"`
 
-	// The URI of the file that contains the ThreatIntelSet. For example: https://s3.us-west-2.amazonaws.com/my-bucket/my-object-key.
+	// The URI of the file that contains the ThreatIntelSet. For example: .
 	//
 	// Location is a required field
 	Location *string `locationName:"location" min:"1" type:"string" required:"true"`
@@ -7579,7 +7581,7 @@ func (s *DestinationProperties) SetKmsKeyArn(v string) *DestinationProperties {
 type DisableOrganizationAdminAccountInput struct {
 	_ struct{} `type:"structure"`
 
-	// The AWS Account ID for the Organizations account to be disabled as a GuardDuty
+	// The AWS Account ID for the organizations account to be disabled as a GuardDuty
 	// delegated administrator.
 	//
 	// AdminAccountId is a required field
@@ -7821,7 +7823,7 @@ func (s *DomainDetails) SetDomain(v string) *DomainDetails {
 type EnableOrganizationAdminAccountInput struct {
 	_ struct{} `type:"structure"`
 
-	// The AWS Account ID for the Organizations account to be enabled as a GuardDuty
+	// The AWS Account ID for the organization account to be enabled as a GuardDuty
 	// delegated administrator.
 	//
 	// AdminAccountId is a required field
@@ -8642,7 +8644,7 @@ type GetIPSetOutput struct {
 	// Format is a required field
 	Format *string `locationName:"format" min:"1" type:"string" required:"true" enum:"IpSetFormat"`
 
-	// The URI of the file that contains the IPSet. For example: https://s3.us-west-2.amazonaws.com/my-bucket/my-object-key.
+	// The URI of the file that contains the IPSet. For example: .
 	//
 	// Location is a required field
 	Location *string `locationName:"location" min:"1" type:"string" required:"true"`
@@ -8966,7 +8968,7 @@ type GetThreatIntelSetOutput struct {
 	// Format is a required field
 	Format *string `locationName:"format" min:"1" type:"string" required:"true" enum:"ThreatIntelSetFormat"`
 
-	// The URI of the file that contains the ThreatIntelSet. For example: https://s3.us-west-2.amazonaws.com/my-bucket/my-object-key.
+	// The URI of the file that contains the ThreatIntelSet. For example: .
 	//
 	// Location is a required field
 	Location *string `locationName:"location" min:"1" type:"string" required:"true"`
@@ -9630,6 +9632,8 @@ type ListFindingsInput struct {
 	//
 	//    * resource.instanceDetails.instanceId
 	//
+	//    * resource.instanceDetails.outpostArn
+	//
 	//    * resource.instanceDetails.networkInterfaces.ipv6Addresses
 	//
 	//    * resource.instanceDetails.networkInterfaces.privateIpAddresses.privateIpAddress
@@ -9679,6 +9683,8 @@ type ListFindingsInput struct {
 	//    * service.action.networkConnectionAction.localPortDetails.port
 	//
 	//    * service.action.networkConnectionAction.protocol
+	//
+	//    * service.action.networkConnectionAction.localIpDetails.ipAddressV4
 	//
 	//    * service.action.networkConnectionAction.remoteIpDetails.city.cityName
 	//
@@ -12147,7 +12153,7 @@ type UpdateIPSetInput struct {
 	// IpSetId is a required field
 	IpSetId *string `location:"uri" locationName:"ipSetId" type:"string" required:"true"`
 
-	// The updated URI of the file that contains the IPSet. For example: https://s3.us-west-2.amazonaws.com/my-bucket/my-object-key.
+	// The updated URI of the file that contains the IPSet. For example: .
 	Location *string `locationName:"location" min:"1" type:"string"`
 
 	// The unique ID that specifies the IPSet that you want to update.
@@ -12400,8 +12406,7 @@ type UpdateThreatIntelSetInput struct {
 	// DetectorId is a required field
 	DetectorId *string `location:"uri" locationName:"detectorId" min:"1" type:"string" required:"true"`
 
-	// The updated URI of the file that contains the ThreateIntelSet. For example:
-	// https://s3.us-west-2.amazonaws.com/my-bucket/my-object-key.
+	// The updated URI of the file that contains the ThreateIntelSet. For example: .
 	Location *string `locationName:"location" min:"1" type:"string"`
 
 	// The unique ID that specifies the ThreatIntelSet that you want to update.

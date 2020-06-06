@@ -197,8 +197,8 @@ func resourceAwsVpcPeeringConnectionModifyOptions(d *schema.ResourceData, meta i
 
 	req := &ec2.ModifyVpcPeeringConnectionOptionsInput{
 		VpcPeeringConnectionId:            aws.String(d.Id()),
-		AccepterPeeringConnectionOptions:  expandVpcPeeringConnectionOptions(d.Get("accepter").(*schema.Set).List(), crossRegionPeering),
-		RequesterPeeringConnectionOptions: expandVpcPeeringConnectionOptions(d.Get("requester").(*schema.Set).List(), crossRegionPeering),
+		AccepterPeeringConnectionOptions:  expandVpcPeeringConnectionOptions(d.Get("accepter").([]interface{}), crossRegionPeering),
+		RequesterPeeringConnectionOptions: expandVpcPeeringConnectionOptions(d.Get("requester").([]interface{}), crossRegionPeering),
 	}
 
 	log.Printf("[DEBUG] Modifying VPC Peering Connection options: %#v", req)
@@ -325,7 +325,7 @@ func vpcPeeringConnectionRefreshState(conn *ec2.EC2, id string) resource.StateRe
 
 func vpcPeeringConnectionOptionsSchema() *schema.Schema {
 	return &schema.Schema{
-		Type:     schema.TypeSet,
+		Type:     schema.TypeList,
 		Optional: true,
 		Computed: true,
 		MaxItems: 1,

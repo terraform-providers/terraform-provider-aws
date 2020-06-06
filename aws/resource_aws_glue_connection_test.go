@@ -72,6 +72,7 @@ func TestAccAWSGlueConnection_Basic(t *testing.T) {
 				Config: testAccAWSGlueConnectionConfig_Required(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSGlueConnectionExists(resourceName, &connection),
+					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "glue", fmt.Sprintf("connection/%s", rName)),
 					resource.TestCheckResourceAttr(resourceName, "connection_properties.%", "3"),
 					resource.TestCheckResourceAttr(resourceName, "connection_properties.JDBC_CONNECTION_URL", "jdbc:mysql://terraformacctesting.com/testdatabase"),
 					resource.TestCheckResourceAttr(resourceName, "connection_properties.PASSWORD", "testpassword"),

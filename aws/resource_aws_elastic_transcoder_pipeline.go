@@ -35,7 +35,7 @@ func resourceAwsElasticTranscoderPipeline() *schema.Resource {
 
 			// ContentConfig also requires ThumbnailConfig
 			"content_config": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Optional: true,
 				Computed: true,
 				MaxItems: 1,
@@ -102,7 +102,7 @@ func resourceAwsElasticTranscoderPipeline() *schema.Resource {
 			},
 
 			"notifications": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Optional: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
@@ -144,7 +144,7 @@ func resourceAwsElasticTranscoderPipeline() *schema.Resource {
 			},
 
 			"thumbnail_config": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Optional: true,
 				Computed: true,
 				MaxItems: 1,
@@ -235,22 +235,22 @@ func resourceAwsElasticTranscoderPipelineCreate(d *schema.ResourceData, meta int
 }
 
 func expandETNotifications(d *schema.ResourceData) *elastictranscoder.Notifications {
-	set, ok := d.GetOk("notifications")
+	list, ok := d.GetOk("notifications")
 	if !ok {
 		return nil
 	}
 
-	s := set.(*schema.Set).List()
-	if len(s) == 0 {
+	l := list.([]interface{})
+	if len(l) == 0 {
 		return nil
 	}
 
-	if s[0] == nil {
-		log.Printf("[ERR] First element of Notifications set is nil")
+	if l[0] == nil {
+		log.Printf("[ERR] First element of Notifications list is nil")
 		return nil
 	}
 
-	rN := s[0].(map[string]interface{})
+	rN := l[0].(map[string]interface{})
 
 	return &elastictranscoder.Notifications{
 		Completed:   aws.String(rN["completed"].(string)),
@@ -290,17 +290,17 @@ func flattenETNotifications(n *elastictranscoder.Notifications) []map[string]int
 }
 
 func expandETPiplineOutputConfig(d *schema.ResourceData, key string) *elastictranscoder.PipelineOutputConfig {
-	set, ok := d.GetOk(key)
+	list, ok := d.GetOk(key)
 	if !ok {
 		return nil
 	}
 
-	s := set.(*schema.Set)
-	if s == nil || s.Len() == 0 {
+	l := list.([]interface{})
+	if len(l) == 0 {
 		return nil
 	}
 
-	cc := s.List()[0].(map[string]interface{})
+	cc := l[0].(map[string]interface{})
 
 	cfg := &elastictranscoder.PipelineOutputConfig{
 		Bucket:       aws.String(cc["bucket"].(string)),

@@ -82,6 +82,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/mediastore"
 	"github.com/aws/aws-sdk-go/service/mq"
 	"github.com/aws/aws-sdk-go/service/neptune"
+	"github.com/aws/aws-sdk-go/service/networkmanager"
 	"github.com/aws/aws-sdk-go/service/opsworks"
 	"github.com/aws/aws-sdk-go/service/organizations"
 	"github.com/aws/aws-sdk-go/service/pinpoint"
@@ -102,6 +103,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/aws/aws-sdk-go/service/storagegateway"
 	"github.com/aws/aws-sdk-go/service/swf"
+	"github.com/aws/aws-sdk-go/service/synthetics"
 	"github.com/aws/aws-sdk-go/service/transfer"
 	"github.com/aws/aws-sdk-go/service/waf"
 	"github.com/aws/aws-sdk-go/service/wafregional"
@@ -268,6 +270,8 @@ func ServiceClientType(serviceName string) string {
 		funcType = reflect.TypeOf(mq.New)
 	case "neptune":
 		funcType = reflect.TypeOf(neptune.New)
+	case "networkmanager":
+		funcType = reflect.TypeOf(networkmanager.New)
 	case "opsworks":
 		funcType = reflect.TypeOf(opsworks.New)
 	case "organizations":
@@ -308,6 +312,8 @@ func ServiceClientType(serviceName string) string {
 		funcType = reflect.TypeOf(storagegateway.New)
 	case "swf":
 		funcType = reflect.TypeOf(swf.New)
+	case "synthetics":
+		funcType = reflect.TypeOf(synthetics.New)
 	case "transfer":
 		funcType = reflect.TypeOf(transfer.New)
 	case "waf":
@@ -461,6 +467,8 @@ func ServiceListTagsOutputTagsField(serviceName string) string {
 	case "mediaconvert":
 		return "ResourceTags.Tags"
 	case "neptune":
+		return "TagList"
+	case "networkmanager":
 		return "TagList"
 	case "pinpoint":
 		return "TagsModel.Tags"

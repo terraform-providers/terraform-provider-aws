@@ -3,13 +3,12 @@ package aws
 import (
 	"fmt"
 	"log"
-	"regexp"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/iam"
-
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
@@ -47,14 +46,14 @@ func resourceAwsIamSamlProvider() *schema.Resource {
 }
 
 func resourceAwsIamSamlProviderCreate(d *schema.ResourceData, meta interface{}) error {
-	iamconn := meta.(*AWSClient).iamconn
+	conn := meta.(*AWSClient).iamconn
 
 	input := &iam.CreateSAMLProviderInput{
 		Name:                 aws.String(d.Get("name").(string)),
 		SAMLMetadataDocument: aws.String(d.Get("saml_metadata_document").(string)),
 	}
 
-	out, err := iamconn.CreateSAMLProvider(input)
+	out, err := conn.CreateSAMLProvider(input)
 	if err != nil {
 		return err
 	}
@@ -65,14 +64,14 @@ func resourceAwsIamSamlProviderCreate(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceAwsIamSamlProviderRead(d *schema.ResourceData, meta interface{}) error {
-	iamconn := meta.(*AWSClient).iamconn
+	conn := meta.(*AWSClient).iamconn
 
 	input := &iam.GetSAMLProviderInput{
 		SAMLProviderArn: aws.String(d.Id()),
 	}
-	out, err := iamconn.GetSAMLProvider(input)
+	out, err := conn.GetSAMLProvider(input)
 	if err != nil {
-		if iamerr, ok := err.(awserr.Error); ok && iamerr.Code() == "NoSuchEntity" {
+		if isAWSErr(err, iam.ErrCodeNoSuchEntityException, "") {
 			log.Printf("[WARN] IAM SAML Provider %q not found.", d.Id())
 			d.SetId("")
 			return nil
@@ -81,7 +80,7 @@ func resourceAwsIamSamlProviderRead(d *schema.ResourceData, meta interface{}) er
 	}
 
 	d.Set("arn", d.Id())
-	name, err := extractNameFromIAMSamlProviderArn(d.Id(), meta.(*AWSClient).partition)
+	name, err := extractNameFromIAMSamlProviderArn(d.Id())
 	if err != nil {
 		return err
 	}
@@ -93,13 +92,13 @@ func resourceAwsIamSamlProviderRead(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceAwsIamSamlProviderUpdate(d *schema.ResourceData, meta interface{}) error {
-	iamconn := meta.(*AWSClient).iamconn
+	conn := meta.(*AWSClient).iamconn
 
 	input := &iam.UpdateSAMLProviderInput{
 		SAMLProviderArn:      aws.String(d.Id()),
 		SAMLMetadataDocument: aws.String(d.Get("saml_metadata_document").(string)),
 	}
-	_, err := iamconn.UpdateSAMLProvider(input)
+	_, err := conn.UpdateSAMLProvider(input)
 	if err != nil {
 		return err
 	}
@@ -108,22 +107,23 @@ func resourceAwsIamSamlProviderUpdate(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceAwsIamSamlProviderDelete(d *schema.ResourceData, meta interface{}) error {
-	iamconn := meta.(*AWSClient).iamconn
+	conn := meta.(*AWSClient).iamconn
 
 	input := &iam.DeleteSAMLProviderInput{
 		SAMLProviderArn: aws.String(d.Id()),
 	}
-	_, err := iamconn.DeleteSAMLProvider(input)
+	_, err := conn.DeleteSAMLProvider(input)
 
 	return err
 }
 
-func extractNameFromIAMSamlProviderArn(arn, partition string) (string, error) {
-	// arn:aws:iam::123456789012:saml-provider/tf-salesforce-test
-	r := regexp.MustCompile(fmt.Sprintf("^arn:%s:iam::[0-9]{12}:saml-provider/(.+)$", partition))
-	submatches := r.FindStringSubmatch(arn)
-	if len(submatches) != 2 {
-		return "", fmt.Errorf("Unable to extract name from a given ARN: %q", arn)
+func extractNameFromIAMSamlProviderArn(samlArn string) (string, error) {
+	parsedArn, err := arn.Parse(samlArn)
+	if err != nil {
+		return "", fmt.Errorf("Unable to extract name from a given ARN: %q", samlArn)
 	}
-	return submatches[1], nil
+
+	name := strings.TrimPrefix(parsedArn.Resource, "saml-provider/")
+
+	return name, nil
 }

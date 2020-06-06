@@ -3191,8 +3191,8 @@ resource "aws_s3_bucket" "xtrabackup" {
 resource "aws_s3_bucket_object" "xtrabackup_db" {
   bucket = "${aws_s3_bucket.xtrabackup.id}"
   key    = "%s/mysql-5-6-xtrabackup.tar.gz"
-  source = "../files/mysql-5-6-xtrabackup.tar.gz"
-  etag   = "${filemd5("../files/mysql-5-6-xtrabackup.tar.gz")}"
+  source = "./testdata/mysql-5-6-xtrabackup.tar.gz"
+  etag   = "${filemd5("./testdata/mysql-5-6-xtrabackup.tar.gz")}"
 }
 
 resource "aws_iam_role" "rds_s3_access_role" {

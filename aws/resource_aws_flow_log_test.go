@@ -2,15 +2,68 @@ package aws
 
 import (
 	"fmt"
+	"log"
 	"regexp"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
+
+func init() {
+	resource.AddTestSweepers("aws_flow_log", &resource.Sweeper{
+		Name: "aws_flow_log",
+		F:    testSweepFlowLogs,
+	})
+}
+
+func testSweepFlowLogs(region string) error {
+	client, err := sharedClientForRegion(region)
+	if err != nil {
+		return fmt.Errorf("error getting client: %w", err)
+	}
+	conn := client.(*AWSClient).ec2conn
+	var sweeperErrs *multierror.Error
+
+	err = conn.DescribeFlowLogsPages(&ec2.DescribeFlowLogsInput{}, func(page *ec2.DescribeFlowLogsOutput, isLast bool) bool {
+		if page == nil {
+			return !isLast
+		}
+
+		for _, flowLog := range page.FlowLogs {
+			id := aws.StringValue(flowLog.FlowLogId)
+
+			log.Printf("[INFO] Deleting Flow Log: %s", id)
+			_, err := conn.DeleteFlowLogs(&ec2.DeleteFlowLogsInput{
+				FlowLogIds: aws.StringSlice([]string{id}),
+			})
+			if isAWSErr(err, "InvalidFlowLogId.NotFound", "") {
+				continue
+			}
+			if err != nil {
+				sweeperErr := fmt.Errorf("error deleting Flow Log (%s): %w", id, err)
+				log.Printf("[ERROR] %s", sweeperErr)
+				sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
+				continue
+			}
+		}
+
+		return !isLast
+	})
+	if testSweepSkipSweepError(err) {
+		log.Printf("[WARN] Skipping Flow Logs sweep for %s: %s", region, err)
+		return sweeperErrs.ErrorOrNil() // In case we have completed some pages, but had errors
+	}
+	if err != nil {
+		sweeperErrs = multierror.Append(sweeperErrs, fmt.Errorf("error retrieving Flow Logs: %w", err))
+	}
+
+	return sweeperErrs.ErrorOrNil()
+}
 
 func TestAccAWSFlowLog_VPCID(t *testing.T) {
 	var flowLog ec2.FlowLog

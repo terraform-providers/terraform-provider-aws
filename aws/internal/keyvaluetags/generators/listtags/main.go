@@ -88,6 +88,7 @@ var serviceNames = []string{
 	"mediastore",
 	"mq",
 	"neptune",
+	"networkmanager",
 	"opsworks",
 	"organizations",
 	"pinpoint",

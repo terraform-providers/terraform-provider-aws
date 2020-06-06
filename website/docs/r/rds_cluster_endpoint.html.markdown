@@ -3,12 +3,12 @@ subcategory: "RDS"
 layout: "aws"
 page_title: "AWS: aws_rds_cluster_endpoint"
 description: |-
-  Manages a RDS Aurora Cluster Endpoint
+  Manages an RDS Aurora Cluster Endpoint
 ---
 
 # Resource: aws_rds_cluster_endpoint
 
-Manages a RDS Aurora Cluster Endpoint.
+Manages an RDS Aurora Cluster Endpoint.
 You can refer to the [User Guide][1].
 
 

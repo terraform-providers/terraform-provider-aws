@@ -24,7 +24,7 @@ func resourceAwsRedshiftSecurityGroup() *schema.Resource {
 		Update: resourceAwsRedshiftSecurityGroupUpdate,
 		Delete: resourceAwsRedshiftSecurityGroupDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceAwsRedshiftClusterImport,
+			State: schema.ImportStatePassthrough,
 		},
 
 		Schema: map[string]*schema.Schema{

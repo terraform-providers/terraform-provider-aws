@@ -81,9 +81,8 @@ func TestAccAWSLambdaFunction_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsLambdaFunctionExists(resourceName, funcName, &conf),
 					testAccCheckAwsLambdaFunctionName(&conf, funcName),
-					testAccCheckAwsLambdaFunctionArnHasSuffix(&conf, ":"+funcName),
-					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "lambda", regexp.MustCompile(`function.+`)),
-					resource.TestMatchResourceAttr(resourceName, "invoke_arn", regexp.MustCompile(fmt.Sprintf("^arn:[^:]+:apigateway:[^:]+:lambda:path/2015-03-31/functions/arn:[^:]+:lambda:[^:]+:[^:]+:function:%s/invocations$", funcName))),
+					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "lambda", fmt.Sprintf("function:%s", funcName)),
+					testAccCheckAwsLambdaFunctionInvokeArn(resourceName, &conf),
 					resource.TestCheckResourceAttr(resourceName, "reserved_concurrent_executions", "-1"),
 				),
 			},
@@ -140,7 +139,7 @@ func TestAccAWSLambdaFunction_concurrency(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsLambdaFunctionExists(resourceName, funcName, &conf),
 					testAccCheckAwsLambdaFunctionName(&conf, funcName),
-					testAccCheckAwsLambdaFunctionArnHasSuffix(&conf, ":"+funcName),
+					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "lambda", fmt.Sprintf("function:%s", funcName)),
 					resource.TestCheckResourceAttr(resourceName, "reserved_concurrent_executions", "111"),
 				),
 			},
@@ -155,7 +154,7 @@ func TestAccAWSLambdaFunction_concurrency(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsLambdaFunctionExists(resourceName, funcName, &conf),
 					testAccCheckAwsLambdaFunctionName(&conf, funcName),
-					testAccCheckAwsLambdaFunctionArnHasSuffix(&conf, ":"+funcName),
+					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "lambda", fmt.Sprintf("function:%s", funcName)),
 					resource.TestCheckResourceAttr(resourceName, "reserved_concurrent_executions", "222"),
 				),
 			},
@@ -183,7 +182,7 @@ func TestAccAWSLambdaFunction_concurrencyCycle(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsLambdaFunctionExists(resourceName, funcName, &conf),
 					testAccCheckAwsLambdaFunctionName(&conf, funcName),
-					testAccCheckAwsLambdaFunctionArnHasSuffix(&conf, ":"+funcName),
+					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "lambda", fmt.Sprintf("function:%s", funcName)),
 					resource.TestCheckResourceAttr(resourceName, "reserved_concurrent_executions", "-1"),
 				),
 			},
@@ -198,7 +197,7 @@ func TestAccAWSLambdaFunction_concurrencyCycle(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsLambdaFunctionExists(resourceName, funcName, &conf),
 					testAccCheckAwsLambdaFunctionName(&conf, funcName),
-					testAccCheckAwsLambdaFunctionArnHasSuffix(&conf, ":"+funcName),
+					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "lambda", fmt.Sprintf("function:%s", funcName)),
 					resource.TestCheckResourceAttr(resourceName, "reserved_concurrent_executions", "222"),
 				),
 			},
@@ -207,7 +206,7 @@ func TestAccAWSLambdaFunction_concurrencyCycle(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsLambdaFunctionExists(resourceName, funcName, &conf),
 					testAccCheckAwsLambdaFunctionName(&conf, funcName),
-					testAccCheckAwsLambdaFunctionArnHasSuffix(&conf, ":"+funcName),
+					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "lambda", fmt.Sprintf("function:%s", funcName)),
 					resource.TestCheckResourceAttr(resourceName, "reserved_concurrent_executions", "-1"),
 				),
 			},
@@ -294,7 +293,7 @@ func TestAccAWSLambdaFunction_envVariables(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsLambdaFunctionExists(resourceName, funcName, &conf),
 					testAccCheckAwsLambdaFunctionName(&conf, funcName),
-					testAccCheckAwsLambdaFunctionArnHasSuffix(&conf, ":"+funcName),
+					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "lambda", fmt.Sprintf("function:%s", funcName)),
 					resource.TestCheckNoResourceAttr(resourceName, "environment"),
 				),
 			},
@@ -309,7 +308,7 @@ func TestAccAWSLambdaFunction_envVariables(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsLambdaFunctionExists(resourceName, funcName, &conf),
 					testAccCheckAwsLambdaFunctionName(&conf, funcName),
-					testAccCheckAwsLambdaFunctionArnHasSuffix(&conf, ":"+funcName),
+					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "lambda", fmt.Sprintf("function:%s", funcName)),
 					resource.TestCheckResourceAttr(resourceName, "environment.0.variables.foo", "bar"),
 				),
 			},
@@ -318,7 +317,7 @@ func TestAccAWSLambdaFunction_envVariables(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsLambdaFunctionExists(resourceName, funcName, &conf),
 					testAccCheckAwsLambdaFunctionName(&conf, funcName),
-					testAccCheckAwsLambdaFunctionArnHasSuffix(&conf, ":"+funcName),
+					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "lambda", fmt.Sprintf("function:%s", funcName)),
 					resource.TestCheckResourceAttr(resourceName, "environment.0.variables.foo", "baz"),
 					resource.TestCheckResourceAttr(resourceName, "environment.0.variables.foo1", "bar1"),
 				),
@@ -328,7 +327,7 @@ func TestAccAWSLambdaFunction_envVariables(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsLambdaFunctionExists(resourceName, funcName, &conf),
 					testAccCheckAwsLambdaFunctionName(&conf, funcName),
-					testAccCheckAwsLambdaFunctionArnHasSuffix(&conf, ":"+funcName),
+					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "lambda", fmt.Sprintf("function:%s", funcName)),
 					resource.TestCheckNoResourceAttr(resourceName, "environment"),
 				),
 			},
@@ -357,7 +356,7 @@ func TestAccAWSLambdaFunction_encryptedEnvVariables(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsLambdaFunctionExists(resourceName, funcName, &conf),
 					testAccCheckAwsLambdaFunctionName(&conf, funcName),
-					testAccCheckAwsLambdaFunctionArnHasSuffix(&conf, ":"+funcName),
+					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "lambda", fmt.Sprintf("function:%s", funcName)),
 					resource.TestCheckResourceAttr(resourceName, "environment.0.variables.foo", "bar"),
 					testAccMatchResourceAttrRegionalARN(resourceName, "kms_key_arn", "kms", regexp.MustCompile(`key/.+`)),
 				),
@@ -373,7 +372,7 @@ func TestAccAWSLambdaFunction_encryptedEnvVariables(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsLambdaFunctionExists(resourceName, funcName, &conf),
 					testAccCheckAwsLambdaFunctionName(&conf, funcName),
-					testAccCheckAwsLambdaFunctionArnHasSuffix(&conf, ":"+funcName),
+					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "lambda", fmt.Sprintf("function:%s", funcName)),
 					resource.TestCheckResourceAttr(resourceName, "environment.0.variables.foo", "bar"),
 					resource.TestCheckResourceAttr(resourceName, "kms_key_arn", ""),
 				),
@@ -392,6 +391,8 @@ func TestAccAWSLambdaFunction_versioned(t *testing.T) {
 	sgName := fmt.Sprintf("tf_acc_sg_lambda_func_versioned_%s", rString)
 	resourceName := "aws_lambda_function.test"
 
+	version := "1"
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -402,11 +403,11 @@ func TestAccAWSLambdaFunction_versioned(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsLambdaFunctionExists(resourceName, funcName, &conf),
 					testAccCheckAwsLambdaFunctionName(&conf, funcName),
-					testAccCheckAwsLambdaFunctionArnHasSuffix(&conf, ":"+funcName),
-					resource.TestMatchResourceAttr(resourceName, "version",
-						regexp.MustCompile("^[0-9]+$")),
-					resource.TestMatchResourceAttr(resourceName, "qualified_arn",
-						regexp.MustCompile(":"+funcName+":[0-9]+$")),
+					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "lambda", fmt.Sprintf("function:%s", funcName)),
+					resource.TestMatchResourceAttr(resourceName, "version", regexp.MustCompile("^[0-9]+$")),
+					resource.TestCheckResourceAttr(resourceName, "version", version),
+					testAccMatchResourceAttrRegionalARN(resourceName, "qualified_arn", "lambda", regexp.MustCompile(fmt.Sprintf("function:%s:[0-9]+$", funcName))),
+					testAccCheckResourceAttrRegionalARN(resourceName, "qualified_arn", "lambda", fmt.Sprintf("function:%s:%s", funcName, version)),
 				),
 			},
 			{
@@ -437,6 +438,9 @@ func TestAccAWSLambdaFunction_versionedUpdate(t *testing.T) {
 
 	var timeBeforeUpdate time.Time
 
+	version := "2"
+	versionUpdated := "3"
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -456,11 +460,9 @@ func TestAccAWSLambdaFunction_versionedUpdate(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsLambdaFunctionExists(resourceName, funcName, &conf),
 					testAccCheckAwsLambdaFunctionName(&conf, funcName),
-					testAccCheckAwsLambdaFunctionArnHasSuffix(&conf, ":"+funcName),
-					resource.TestMatchResourceAttr(resourceName, "version",
-						regexp.MustCompile("^2$")),
-					resource.TestMatchResourceAttr(resourceName, "qualified_arn",
-						regexp.MustCompile(":"+funcName+":[0-9]+$")),
+					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "lambda", fmt.Sprintf("function:%s", funcName)),
+					resource.TestCheckResourceAttr(resourceName, "version", "2"),
+					testAccCheckResourceAttrRegionalARN(resourceName, "qualified_arn", "lambda", fmt.Sprintf("function:%s:%s", funcName, version)),
 					func(s *terraform.State) error {
 						return testAccCheckAttributeIsDateAfter(s, resourceName, "last_modified", timeBeforeUpdate)
 					},
@@ -474,11 +476,9 @@ func TestAccAWSLambdaFunction_versionedUpdate(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsLambdaFunctionExists(resourceName, funcName, &conf),
 					testAccCheckAwsLambdaFunctionName(&conf, funcName),
-					testAccCheckAwsLambdaFunctionArnHasSuffix(&conf, ":"+funcName),
-					resource.TestMatchResourceAttr(resourceName, "version",
-						regexp.MustCompile("^3$")),
-					resource.TestMatchResourceAttr(resourceName, "qualified_arn",
-						regexp.MustCompile(":"+funcName+":[0-9]+$")),
+					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "lambda", fmt.Sprintf("function:%s", funcName)),
+					resource.TestMatchResourceAttr(resourceName, "version", regexp.MustCompile("^3$")),
+					testAccCheckResourceAttrRegionalARN(resourceName, "qualified_arn", "lambda", fmt.Sprintf("function:%s:%s", funcName, versionUpdated)),
 					resource.TestCheckResourceAttr(resourceName, "runtime", lambda.RuntimeNodejs10X),
 					func(s *terraform.State) error {
 						return testAccCheckAttributeIsDateAfter(s, resourceName, "last_modified", timeBeforeUpdate)
@@ -516,7 +516,7 @@ func TestAccAWSLambdaFunction_DeadLetterConfig(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsLambdaFunctionExists(resourceName, funcName, &conf),
 					testAccCheckAwsLambdaFunctionName(&conf, funcName),
-					testAccCheckAwsLambdaFunctionArnHasSuffix(&conf, ":"+funcName),
+					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "lambda", fmt.Sprintf("function:%s", funcName)),
 					func(s *terraform.State) error {
 						if !strings.HasSuffix(*conf.Configuration.DeadLetterConfig.TargetArn, ":"+topicName) {
 							return fmt.Errorf(
@@ -550,7 +550,6 @@ func TestAccAWSLambdaFunction_DeadLetterConfigUpdated(t *testing.T) {
 
 	rString := acctest.RandString(8)
 	funcName := fmt.Sprintf("tf_acc_lambda_func_dlcfg_upd_%s", rString)
-	uFuncName := fmt.Sprintf("tf_acc_lambda_func_dlcfg_upd_%s", rString)
 	policyName := fmt.Sprintf("tf_acc_policy_lambda_func_dlcfg_upd_%s", rString)
 	roleName := fmt.Sprintf("tf_acc_role_lambda_func_dlcfg_upd_%s", rString)
 	sgName := fmt.Sprintf("tf_acc_sg_lambda_func_dlcfg_upd_%s", rString)
@@ -567,7 +566,7 @@ func TestAccAWSLambdaFunction_DeadLetterConfigUpdated(t *testing.T) {
 				Config: testAccAWSLambdaConfigWithDeadLetterConfig(funcName, topic1Name, policyName, roleName, sgName),
 			},
 			{
-				Config: testAccAWSLambdaConfigWithDeadLetterConfigUpdated(funcName, topic1Name, topic2Name, policyName, roleName, sgName, uFuncName),
+				Config: testAccAWSLambdaConfigWithDeadLetterConfigUpdated(funcName, topic1Name, topic2Name, policyName, roleName, sgName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsLambdaFunctionExists(resourceName, funcName, &conf),
 					func(s *terraform.State) error {
@@ -635,7 +634,7 @@ func TestAccAWSLambdaFunction_tracingConfig(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsLambdaFunctionExists(resourceName, funcName, &conf),
 					testAccCheckAwsLambdaFunctionName(&conf, funcName),
-					testAccCheckAwsLambdaFunctionArnHasSuffix(&conf, ":"+funcName),
+					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "lambda", fmt.Sprintf("function:%s", funcName)),
 					resource.TestCheckResourceAttr(resourceName, "tracing_config.0.mode", "Active"),
 				),
 			},
@@ -650,7 +649,7 @@ func TestAccAWSLambdaFunction_tracingConfig(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsLambdaFunctionExists(resourceName, funcName, &conf),
 					testAccCheckAwsLambdaFunctionName(&conf, funcName),
-					testAccCheckAwsLambdaFunctionArnHasSuffix(&conf, ":"+funcName),
+					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "lambda", fmt.Sprintf("function:%s", funcName)),
 					resource.TestCheckResourceAttr(resourceName, "tracing_config.0.mode", "PassThrough"),
 				),
 			},
@@ -712,7 +711,7 @@ func TestAccAWSLambdaFunction_Layers(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsLambdaFunctionExists(resourceName, funcName, &conf),
 					testAccCheckAwsLambdaFunctionName(&conf, funcName),
-					testAccCheckAwsLambdaFunctionArnHasSuffix(&conf, ":"+funcName),
+					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "lambda", fmt.Sprintf("function:%s", funcName)),
 					testAccCheckAWSLambdaFunctionVersion(&conf, "$LATEST"),
 					resource.TestCheckResourceAttr(resourceName, "layers.#", "1"),
 				),
@@ -749,7 +748,7 @@ func TestAccAWSLambdaFunction_LayersUpdate(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsLambdaFunctionExists(resourceName, funcName, &conf),
 					testAccCheckAwsLambdaFunctionName(&conf, funcName),
-					testAccCheckAwsLambdaFunctionArnHasSuffix(&conf, ":"+funcName),
+					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "lambda", fmt.Sprintf("function:%s", funcName)),
 					testAccCheckAWSLambdaFunctionVersion(&conf, "$LATEST"),
 					resource.TestCheckResourceAttr(resourceName, "layers.#", "1"),
 				),
@@ -765,7 +764,7 @@ func TestAccAWSLambdaFunction_LayersUpdate(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsLambdaFunctionExists(resourceName, funcName, &conf),
 					testAccCheckAwsLambdaFunctionName(&conf, funcName),
-					testAccCheckAwsLambdaFunctionArnHasSuffix(&conf, ":"+funcName),
+					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "lambda", fmt.Sprintf("function:%s", funcName)),
 					testAccCheckAWSLambdaFunctionVersion(&conf, "$LATEST"),
 					resource.TestCheckResourceAttr(resourceName, "layers.#", "2"),
 				),
@@ -794,7 +793,7 @@ func TestAccAWSLambdaFunction_VPC(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsLambdaFunctionExists(resourceName, funcName, &conf),
 					testAccCheckAwsLambdaFunctionName(&conf, funcName),
-					testAccCheckAwsLambdaFunctionArnHasSuffix(&conf, ":"+funcName),
+					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "lambda", fmt.Sprintf("function:%s", funcName)),
 					testAccCheckAWSLambdaFunctionVersion(&conf, "$LATEST"),
 					resource.TestCheckResourceAttr(resourceName, "vpc_config.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "vpc_config.0.subnet_ids.#", "1"),
@@ -868,7 +867,7 @@ func TestAccAWSLambdaFunction_VPCUpdate(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsLambdaFunctionExists(resourceName, funcName, &conf),
 					testAccCheckAwsLambdaFunctionName(&conf, funcName),
-					testAccCheckAwsLambdaFunctionArnHasSuffix(&conf, ":"+funcName),
+					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "lambda", fmt.Sprintf("function:%s", funcName)),
 					testAccCheckAWSLambdaFunctionVersion(&conf, "$LATEST"),
 					resource.TestCheckResourceAttr(resourceName, "vpc_config.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "vpc_config.0.subnet_ids.#", "1"),
@@ -886,7 +885,7 @@ func TestAccAWSLambdaFunction_VPCUpdate(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsLambdaFunctionExists(resourceName, funcName, &conf),
 					testAccCheckAwsLambdaFunctionName(&conf, funcName),
-					testAccCheckAwsLambdaFunctionArnHasSuffix(&conf, ":"+funcName),
+					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "lambda", fmt.Sprintf("function:%s", funcName)),
 					testAccCheckAWSLambdaFunctionVersion(&conf, "$LATEST"),
 					resource.TestCheckResourceAttr(resourceName, "vpc_config.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "vpc_config.0.subnet_ids.#", "2"),
@@ -1009,7 +1008,7 @@ func TestAccAWSLambdaFunction_s3(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsLambdaFunctionExists(resourceName, funcName, &conf),
 					testAccCheckAwsLambdaFunctionName(&conf, funcName),
-					testAccCheckAwsLambdaFunctionArnHasSuffix(&conf, ":"+funcName),
+					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "lambda", fmt.Sprintf("function:%s", funcName)),
 					testAccCheckAWSLambdaFunctionVersion(&conf, "$LATEST"),
 				),
 			},
@@ -1054,7 +1053,7 @@ func TestAccAWSLambdaFunction_localUpdate(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsLambdaFunctionExists(resourceName, funcName, &conf),
 					testAccCheckAwsLambdaFunctionName(&conf, funcName),
-					testAccCheckAwsLambdaFunctionArnHasSuffix(&conf, funcName),
+					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "lambda", fmt.Sprintf("function:%s", funcName)),
 					testAccCheckAwsLambdaSourceCodeHash(&conf, "8DPiX+G1l2LQ8hjBkwRchQFf1TSCEvPrYGRKlM9UoyY="),
 				),
 			},
@@ -1075,7 +1074,7 @@ func TestAccAWSLambdaFunction_localUpdate(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsLambdaFunctionExists(resourceName, funcName, &conf),
 					testAccCheckAwsLambdaFunctionName(&conf, funcName),
-					testAccCheckAwsLambdaFunctionArnHasSuffix(&conf, funcName),
+					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "lambda", fmt.Sprintf("function:%s", funcName)),
 					testAccCheckAwsLambdaSourceCodeHash(&conf, "0tdaP9H9hsk9c2CycSwOG/sa/x5JyAmSYunA/ce99Pg="),
 					func(s *terraform.State) error {
 						return testAccCheckAttributeIsDateAfter(s, resourceName, "last_modified", timeBeforeUpdate)
@@ -1121,7 +1120,7 @@ func TestAccAWSLambdaFunction_localUpdate_nameOnly(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsLambdaFunctionExists(resourceName, funcName, &conf),
 					testAccCheckAwsLambdaFunctionName(&conf, funcName),
-					testAccCheckAwsLambdaFunctionArnHasSuffix(&conf, funcName),
+					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "lambda", fmt.Sprintf("function:%s", funcName)),
 					testAccCheckAwsLambdaSourceCodeHash(&conf, "8DPiX+G1l2LQ8hjBkwRchQFf1TSCEvPrYGRKlM9UoyY="),
 				),
 			},
@@ -1141,7 +1140,7 @@ func TestAccAWSLambdaFunction_localUpdate_nameOnly(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsLambdaFunctionExists(resourceName, funcName, &conf),
 					testAccCheckAwsLambdaFunctionName(&conf, funcName),
-					testAccCheckAwsLambdaFunctionArnHasSuffix(&conf, funcName),
+					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "lambda", fmt.Sprintf("function:%s", funcName)),
 					testAccCheckAwsLambdaSourceCodeHash(&conf, "0tdaP9H9hsk9c2CycSwOG/sa/x5JyAmSYunA/ce99Pg="),
 				),
 			},
@@ -1182,7 +1181,7 @@ func TestAccAWSLambdaFunction_s3Update_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsLambdaFunctionExists(resourceName, funcName, &conf),
 					testAccCheckAwsLambdaFunctionName(&conf, funcName),
-					testAccCheckAwsLambdaFunctionArnHasSuffix(&conf, funcName),
+					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "lambda", fmt.Sprintf("function:%s", funcName)),
 					testAccCheckAwsLambdaSourceCodeHash(&conf, "8DPiX+G1l2LQ8hjBkwRchQFf1TSCEvPrYGRKlM9UoyY="),
 				),
 			},
@@ -1203,7 +1202,7 @@ func TestAccAWSLambdaFunction_s3Update_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsLambdaFunctionExists(resourceName, funcName, &conf),
 					testAccCheckAwsLambdaFunctionName(&conf, funcName),
-					testAccCheckAwsLambdaFunctionArnHasSuffix(&conf, funcName),
+					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "lambda", fmt.Sprintf("function:%s", funcName)),
 					testAccCheckAwsLambdaSourceCodeHash(&conf, "0tdaP9H9hsk9c2CycSwOG/sa/x5JyAmSYunA/ce99Pg="),
 				),
 			},
@@ -1244,7 +1243,7 @@ func TestAccAWSLambdaFunction_s3Update_unversioned(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsLambdaFunctionExists(resourceName, funcName, &conf),
 					testAccCheckAwsLambdaFunctionName(&conf, funcName),
-					testAccCheckAwsLambdaFunctionArnHasSuffix(&conf, funcName),
+					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "lambda", fmt.Sprintf("function:%s", funcName)),
 					testAccCheckAwsLambdaSourceCodeHash(&conf, "8DPiX+G1l2LQ8hjBkwRchQFf1TSCEvPrYGRKlM9UoyY="),
 				),
 			},
@@ -1265,7 +1264,7 @@ func TestAccAWSLambdaFunction_s3Update_unversioned(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsLambdaFunctionExists(resourceName, funcName, &conf),
 					testAccCheckAwsLambdaFunctionName(&conf, funcName),
-					testAccCheckAwsLambdaFunctionArnHasSuffix(&conf, funcName),
+					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "lambda", fmt.Sprintf("function:%s", funcName)),
 					testAccCheckAwsLambdaSourceCodeHash(&conf, "0tdaP9H9hsk9c2CycSwOG/sa/x5JyAmSYunA/ce99Pg="),
 				),
 			},
@@ -1473,7 +1472,7 @@ func TestAccAWSLambdaFunction_tags(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsLambdaFunctionExists(resourceName, funcName, &conf),
 					testAccCheckAwsLambdaFunctionName(&conf, funcName),
-					testAccCheckAwsLambdaFunctionArnHasSuffix(&conf, ":"+funcName),
+					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "lambda", fmt.Sprintf("function:%s", funcName)),
 					resource.TestCheckNoResourceAttr(resourceName, "tags"),
 				),
 			},
@@ -1488,7 +1487,7 @@ func TestAccAWSLambdaFunction_tags(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsLambdaFunctionExists(resourceName, funcName, &conf),
 					testAccCheckAwsLambdaFunctionName(&conf, funcName),
-					testAccCheckAwsLambdaFunctionArnHasSuffix(&conf, ":"+funcName),
+					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "lambda", fmt.Sprintf("function:%s", funcName)),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
 					resource.TestCheckResourceAttr(resourceName, "tags.Key1", "Value One"),
 					resource.TestCheckResourceAttr(resourceName, "tags.Description", "Very interesting"),
@@ -1499,7 +1498,7 @@ func TestAccAWSLambdaFunction_tags(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsLambdaFunctionExists(resourceName, funcName, &conf),
 					testAccCheckAwsLambdaFunctionName(&conf, funcName),
-					testAccCheckAwsLambdaFunctionArnHasSuffix(&conf, ":"+funcName),
+					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "lambda", fmt.Sprintf("function:%s", funcName)),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "3"),
 					resource.TestCheckResourceAttr(resourceName, "tags.Key1", "Value One Changed"),
 					resource.TestCheckResourceAttr(resourceName, "tags.Key2", "Value Two"),
@@ -1793,6 +1792,13 @@ func testAccCheckAwsLambdaFunctionExists(res, funcName string, function *lambda.
 	}
 }
 
+func testAccCheckAwsLambdaFunctionInvokeArn(name string, function *lambda.GetFunctionOutput) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		arn := aws.StringValue(function.Configuration.FunctionArn)
+		return testAccCheckResourceAttrRegionalARNAccountID(name, "invoke_arn", "apigateway", "lambda", fmt.Sprintf("path/2015-03-31/functions/%s/invocations", arn))(s)
+	}
+}
+
 func testAccAwsInvokeLambdaFunction(function *lambda.GetFunctionOutput) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		f := function.Configuration
@@ -1824,17 +1830,6 @@ func testAccCheckAWSLambdaFunctionVersion(function *lambda.GetFunctionOutput, ex
 		if *c.Version != expectedVersion {
 			return fmt.Errorf("Expected version %s, got %s", expectedVersion, *c.Version)
 		}
-		return nil
-	}
-}
-
-func testAccCheckAwsLambdaFunctionArnHasSuffix(function *lambda.GetFunctionOutput, arnSuffix string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		c := function.Configuration
-		if !strings.HasSuffix(*c.FunctionArn, arnSuffix) {
-			return fmt.Errorf("Expected function ARN %s to have suffix %s", *c.FunctionArn, arnSuffix)
-		}
-
 		return nil
 	}
 }
@@ -2377,7 +2372,7 @@ resource "aws_sns_topic" "test" {
 }
 
 func testAccAWSLambdaConfigWithDeadLetterConfigUpdated(funcName, topic1Name, topic2Name, policyName,
-	roleName, sgName, uFuncName string) string {
+	roleName, sgName string) string {
 	return fmt.Sprintf(baseAccAWSLambdaConfig(policyName, roleName, sgName)+`
 resource "aws_lambda_function" "test" {
     filename = "test-fixtures/lambdatest.zip"
@@ -2398,7 +2393,7 @@ resource "aws_sns_topic" "test" {
 resource "aws_sns_topic" "test_2" {
 	name = "%s"
 }
-`, uFuncName, topic1Name, topic2Name)
+`, funcName, topic1Name, topic2Name)
 }
 
 func testAccAWSLambdaConfigWithNilDeadLetterConfig(funcName, policyName, roleName, sgName string) string {

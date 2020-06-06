@@ -3,12 +3,12 @@ subcategory: "EFS"
 layout: "aws"
 page_title: "AWS: aws_efs_file_system"
 description: |-
-  Provides an Elastic File System (EFS) data source.
+  Provides an Elastic File System (EFS) File System data source.
 ---
 
 # Data Source: aws_efs_file_system
 
-Provides information about an Elastic File System (EFS).
+Provides information about an Elastic File System (EFS) File System.
 
 ## Example Usage
 

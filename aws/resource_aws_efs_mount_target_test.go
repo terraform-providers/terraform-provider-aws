@@ -46,12 +46,12 @@ func testSweepEfsMountTargets(region string) error {
 				out, err := conn.DescribeMountTargets(input)
 				if err != nil {
 					errors = multierror.Append(errors, fmt.Errorf("error retrieving EFS Mount Targets on File System %q: %w", id, err))
-					continue
+					break
 				}
 
 				if out == nil || len(out.MountTargets) == 0 {
 					log.Printf("[INFO] No EFS Mount Targets to sweep on File System %q", id)
-					continue
+					break
 				}
 
 				for _, mounttarget := range out.MountTargets {

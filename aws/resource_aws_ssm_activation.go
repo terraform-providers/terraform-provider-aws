@@ -34,7 +34,7 @@ func resourceAwsSsmActivation() *schema.Resource {
 				ForceNew: true,
 			},
 			"expired": {
-				Type:     schema.TypeString,
+				Type:     schema.TypeBool,
 				Computed: true,
 			},
 			"expiration_date": {

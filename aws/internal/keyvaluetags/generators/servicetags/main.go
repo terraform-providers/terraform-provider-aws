@@ -71,6 +71,7 @@ var sliceServiceNames = []string{
 	"lightsail",
 	"mediastore",
 	"neptune",
+	"networkmanager",
 	"organizations",
 	"quicksight",
 	"ram",
@@ -131,6 +132,7 @@ var mapServiceNames = []string{
 	"resourcegroups",
 	"securityhub",
 	"sqs",
+	"synthetics",
 }
 
 type TemplateData struct {

@@ -323,10 +323,9 @@ func TestAccAWSCloudFrontDistribution_noOptionalItemsConfig(t *testing.T) {
 	var distribution cloudfront.Distribution
 	resourceName := "aws_cloudfront_distribution.no_optional_items"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:            func() { testAccPreCheck(t); testAccPreCheckAWSCloudFront(t) },
-		Providers:           testAccProviders,
-		CheckDestroy:        testAccCheckCloudFrontDistributionDestroy,
-		DisableBinaryDriver: true,
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCloudFront(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudFrontDistributionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSCloudFrontDistributionNoOptionalItemsConfig,
@@ -1080,10 +1079,9 @@ func TestAccAWSCloudFrontDistribution_OriginGroups(t *testing.T) {
 	ri := acctest.RandInt()
 	testConfig := fmt.Sprintf(testAccAWSCloudFrontDistributionOriginGroupsConfig, ri, originBucket, backupBucket, testAccAWSCloudFrontDistributionRetainConfig())
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:            func() { testAccPreCheck(t); testAccPreCheckAWSCloudFront(t) },
-		Providers:           testAccProviders,
-		CheckDestroy:        testAccCheckCloudFrontDistributionDestroy,
-		DisableBinaryDriver: true,
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCloudFront(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudFrontDistributionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfig,

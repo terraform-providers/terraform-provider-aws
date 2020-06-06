@@ -208,10 +208,9 @@ func TestAccAWSAPIGatewayUsagePlan_throttling(t *testing.T) {
 	resourceName := "aws_api_gateway_usage_plan.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:            func() { testAccPreCheck(t) },
-		Providers:           testAccProviders,
-		CheckDestroy:        testAccCheckAWSAPIGatewayUsagePlanDestroy,
-		DisableBinaryDriver: true,
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAPIGatewayUsagePlanDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSApiGatewayUsagePlanBasicConfig(rName),
@@ -231,8 +230,8 @@ func TestAccAWSAPIGatewayUsagePlan_throttling(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSAPIGatewayUsagePlanExists(resourceName, &conf),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
-					resource.TestCheckResourceAttr(resourceName, "throttle_settings.4173790118.burst_limit", "2"),
-					resource.TestCheckResourceAttr(resourceName, "throttle_settings.4173790118.rate_limit", "5"),
+					resource.TestCheckResourceAttr(resourceName, "throttle_settings.0.burst_limit", "2"),
+					resource.TestCheckResourceAttr(resourceName, "throttle_settings.0.rate_limit", "5"),
 				),
 			},
 			{
@@ -240,8 +239,8 @@ func TestAccAWSAPIGatewayUsagePlan_throttling(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSAPIGatewayUsagePlanExists(resourceName, &conf),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
-					resource.TestCheckResourceAttr(resourceName, "throttle_settings.1779463053.burst_limit", "3"),
-					resource.TestCheckResourceAttr(resourceName, "throttle_settings.1779463053.rate_limit", "6"),
+					resource.TestCheckResourceAttr(resourceName, "throttle_settings.0.burst_limit", "3"),
+					resource.TestCheckResourceAttr(resourceName, "throttle_settings.0.rate_limit", "6"),
 				),
 			},
 			{
@@ -263,16 +262,15 @@ func TestAccAWSAPIGatewayUsagePlan_throttlingInitialRateLimit(t *testing.T) {
 	resourceName := "aws_api_gateway_usage_plan.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:            func() { testAccPreCheck(t) },
-		Providers:           testAccProviders,
-		CheckDestroy:        testAccCheckAWSAPIGatewayUsagePlanDestroy,
-		DisableBinaryDriver: true,
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAPIGatewayUsagePlanDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSApiGatewayUsagePlanThrottlingConfig(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSAPIGatewayUsagePlanExists(resourceName, &conf),
-					resource.TestCheckResourceAttr(resourceName, "throttle_settings.4173790118.rate_limit", "5"),
+					resource.TestCheckResourceAttr(resourceName, "throttle_settings.0.rate_limit", "5"),
 				),
 			},
 			{
@@ -290,10 +288,9 @@ func TestAccAWSAPIGatewayUsagePlan_quota(t *testing.T) {
 	resourceName := "aws_api_gateway_usage_plan.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:            func() { testAccPreCheck(t) },
-		Providers:           testAccProviders,
-		CheckDestroy:        testAccCheckAWSAPIGatewayUsagePlanDestroy,
-		DisableBinaryDriver: true,
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAPIGatewayUsagePlanDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSApiGatewayUsagePlanBasicConfig(rName),
@@ -313,9 +310,9 @@ func TestAccAWSAPIGatewayUsagePlan_quota(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSAPIGatewayUsagePlanExists(resourceName, &conf),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
-					resource.TestCheckResourceAttr(resourceName, "quota_settings.1956747625.limit", "100"),
-					resource.TestCheckResourceAttr(resourceName, "quota_settings.1956747625.offset", "6"),
-					resource.TestCheckResourceAttr(resourceName, "quota_settings.1956747625.period", "WEEK"),
+					resource.TestCheckResourceAttr(resourceName, "quota_settings.0.limit", "100"),
+					resource.TestCheckResourceAttr(resourceName, "quota_settings.0.offset", "6"),
+					resource.TestCheckResourceAttr(resourceName, "quota_settings.0.period", "WEEK"),
 				),
 			},
 			{
@@ -323,9 +320,9 @@ func TestAccAWSAPIGatewayUsagePlan_quota(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSAPIGatewayUsagePlanExists(resourceName, &conf),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
-					resource.TestCheckResourceAttr(resourceName, "quota_settings.3909168194.limit", "200"),
-					resource.TestCheckResourceAttr(resourceName, "quota_settings.3909168194.offset", "20"),
-					resource.TestCheckResourceAttr(resourceName, "quota_settings.3909168194.period", "MONTH"),
+					resource.TestCheckResourceAttr(resourceName, "quota_settings.0.limit", "200"),
+					resource.TestCheckResourceAttr(resourceName, "quota_settings.0.offset", "20"),
+					resource.TestCheckResourceAttr(resourceName, "quota_settings.0.period", "MONTH"),
 				),
 			},
 			{

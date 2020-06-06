@@ -599,11 +599,11 @@ func (c *Lightsail) CloseInstancePublicPortsRequest(input *CloseInstancePublicPo
 
 // CloseInstancePublicPorts API operation for Amazon Lightsail.
 //
-// Closes the public ports on a specific Amazon Lightsail instance.
+// Closes ports for a specific Amazon Lightsail instance.
 //
-// The close instance public ports operation supports tag-based access control
-// via resource tags applied to the resource identified by instance name. For
-// more information, see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-controlling-access-using-tags).
+// The CloseInstancePublicPorts action supports tag-based access control via
+// resource tags applied to the resource identified by instanceName. For more
+// information, see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-controlling-access-using-tags).
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -6762,7 +6762,9 @@ func (c *Lightsail) GetInstancePortStatesRequest(input *GetInstancePortStatesInp
 
 // GetInstancePortStates API operation for Amazon Lightsail.
 //
-// Returns the port states for a specific virtual private server, or instance.
+// Returns the firewall port states for a specific Amazon Lightsail instance,
+// the IP addresses allowed to connect to the instance through the ports, and
+// the protocol.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -10020,11 +10022,12 @@ func (c *Lightsail) OpenInstancePublicPortsRequest(input *OpenInstancePublicPort
 
 // OpenInstancePublicPorts API operation for Amazon Lightsail.
 //
-// Adds public ports to an Amazon Lightsail instance.
+// Opens ports for a specific Amazon Lightsail instance, and specifies the IP
+// addresses allowed to connect to the instance through the ports, and the protocol.
 //
-// The open instance public ports operation supports tag-based access control
-// via resource tags applied to the resource identified by instance name. For
-// more information, see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-controlling-access-using-tags).
+// The OpenInstancePublicPorts action supports tag-based access control via
+// resource tags applied to the resource identified by instanceName. For more
+// information, see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-controlling-access-using-tags).
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -10345,12 +10348,16 @@ func (c *Lightsail) PutInstancePublicPortsRequest(input *PutInstancePublicPortsI
 
 // PutInstancePublicPorts API operation for Amazon Lightsail.
 //
-// Sets the specified open ports for an Amazon Lightsail instance, and closes
-// all ports for every protocol not included in the current request.
+// Opens ports for a specific Amazon Lightsail instance, and specifies the IP
+// addresses allowed to connect to the instance through the ports, and the protocol.
+// This action also closes all currently open ports that are not included in
+// the request. Include all of the ports and the protocols you want to open
+// in your PutInstancePublicPortsrequest. Or use the OpenInstancePublicPorts
+// action to open ports without closing currently open ports.
 //
-// The put instance public ports operation supports tag-based access control
-// via resource tags applied to the resource identified by instance name. For
-// more information, see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-controlling-access-using-tags).
+// The PutInstancePublicPorts action supports tag-based access control via resource
+// tags applied to the resource identified by instanceName. For more information,
+// see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-controlling-access-using-tags).
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -10774,8 +10781,8 @@ func (c *Lightsail) SendContactMethodVerificationRequest(input *SendContactMetho
 
 // SendContactMethodVerification API operation for Amazon Lightsail.
 //
-// Sends a verification request to an email contact method to ensure it’s
-// owned by the requester. SMS contact methods don’t need to be verified.
+// Sends a verification request to an email contact method to ensure it's owned
+// by the requester. SMS contact methods don't need to be verified.
 //
 // A contact method is used to send you notifications about your Amazon Lightsail
 // resources. You can add one email address and one mobile phone number contact
@@ -12459,35 +12466,35 @@ type Alarm struct {
 	//
 	// An alarm has the following possible states:
 	//
-	//    * ALARM — The metric is outside of the defined threshold.
+	//    * ALARM - The metric is outside of the defined threshold.
 	//
-	//    * INSUFFICIENT_DATA — The alarm has just started, the metric is not
-	//    available, or not enough data is available for the metric to determine
-	//    the alarm state.
+	//    * INSUFFICIENT_DATA - The alarm has just started, the metric is not available,
+	//    or not enough data is available for the metric to determine the alarm
+	//    state.
 	//
-	//    * OK — The metric is within the defined threshold.
+	//    * OK - The metric is within the defined threshold.
 	State *string `locationName:"state" type:"string" enum:"AlarmState"`
 
 	// The statistic for the metric associated with the alarm.
 	//
 	// The following statistics are available:
 	//
-	//    * Minimum — The lowest value observed during the specified period. Use
+	//    * Minimum - The lowest value observed during the specified period. Use
 	//    this value to determine low volumes of activity for your application.
 	//
-	//    * Maximum — The highest value observed during the specified period.
-	//    Use this value to determine high volumes of activity for your application.
+	//    * Maximum - The highest value observed during the specified period. Use
+	//    this value to determine high volumes of activity for your application.
 	//
-	//    * Sum — All values submitted for the matching metric added together.
-	//    You can use this statistic to determine the total volume of a metric.
+	//    * Sum - All values submitted for the matching metric added together. You
+	//    can use this statistic to determine the total volume of a metric.
 	//
-	//    * Average — The value of Sum / SampleCount during the specified period.
+	//    * Average - The value of Sum / SampleCount during the specified period.
 	//    By comparing this statistic with the Minimum and Maximum values, you can
 	//    determine the full scope of a metric and how close the average use is
 	//    to the Minimum and Maximum values. This comparison helps you to know when
 	//    to increase or decrease your resources.
 	//
-	//    * SampleCount — The count, or number, of data points used for the statistical
+	//    * SampleCount - The count, or number, of data points used for the statistical
 	//    calculation.
 	Statistic *string `locationName:"statistic" type:"string" enum:"MetricStatistic"`
 
@@ -12503,16 +12510,16 @@ type Alarm struct {
 	//
 	// An alarm can treat missing data in the following ways:
 	//
-	//    * breaching — Assume the missing data is not within the threshold. Missing
+	//    * breaching - Assume the missing data is not within the threshold. Missing
 	//    data counts towards the number of times the metric is not within the threshold.
 	//
-	//    * notBreaching — Assume the missing data is within the threshold. Missing
+	//    * notBreaching - Assume the missing data is within the threshold. Missing
 	//    data does not count towards the number of times the metric is not within
 	//    the threshold.
 	//
-	//    * ignore — Ignore the missing data. Maintains the current alarm state.
+	//    * ignore - Ignore the missing data. Maintains the current alarm state.
 	//
-	//    * missing — Missing data is treated as missing.
+	//    * missing - Missing data is treated as missing.
 	TreatMissingData *string `locationName:"treatMissingData" type:"string" enum:"TreatMissingData"`
 
 	// The unit of the metric associated with the alarm.
@@ -12691,7 +12698,7 @@ type AllocateStaticIpOutput struct {
 	_ struct{} `type:"structure"`
 
 	// An array of objects that describe the result of the action, such as the status
-	// of the request, the time stamp of the request, and the resources affected
+	// of the request, the timestamp of the request, and the resources affected
 	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
@@ -12783,7 +12790,7 @@ type AttachDiskOutput struct {
 	_ struct{} `type:"structure"`
 
 	// An array of objects that describe the result of the action, such as the status
-	// of the request, the time stamp of the request, and the resources affected
+	// of the request, the timestamp of the request, and the resources affected
 	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
@@ -12867,7 +12874,7 @@ type AttachInstancesToLoadBalancerOutput struct {
 	_ struct{} `type:"structure"`
 
 	// An array of objects that describe the result of the action, such as the status
-	// of the request, the time stamp of the request, and the resources affected
+	// of the request, the timestamp of the request, and the resources affected
 	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
@@ -12945,7 +12952,7 @@ type AttachLoadBalancerTlsCertificateOutput struct {
 	_ struct{} `type:"structure"`
 
 	// An array of objects that describe the result of the action, such as the status
-	// of the request, the time stamp of the request, and the resources affected
+	// of the request, the timestamp of the request, and the resources affected
 	// by the request.
 	//
 	// These SSL/TLS certificates are only usable by Lightsail load balancers. You
@@ -13025,7 +13032,7 @@ type AttachStaticIpOutput struct {
 	_ struct{} `type:"structure"`
 
 	// An array of objects that describe the result of the action, such as the status
-	// of the request, the time stamp of the request, and the resources affected
+	// of the request, the timestamp of the request, and the resources affected
 	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
@@ -13484,12 +13491,12 @@ func (s *Bundle) SetTransferPerMonthInGb(v int64) *Bundle {
 type CloseInstancePublicPortsInput struct {
 	_ struct{} `type:"structure"`
 
-	// The name of the instance on which you're attempting to close the public ports.
+	// The name of the instance for which to close ports.
 	//
 	// InstanceName is a required field
 	InstanceName *string `locationName:"instanceName" type:"string" required:"true"`
 
-	// Information about the public port you are trying to close.
+	// An object to describe the ports to close for the specified instance.
 	//
 	// PortInfo is a required field
 	PortInfo *PortInfo `locationName:"portInfo" type:"structure" required:"true"`
@@ -13514,6 +13521,11 @@ func (s *CloseInstancePublicPortsInput) Validate() error {
 	if s.PortInfo == nil {
 		invalidParams.Add(request.NewErrParamRequired("PortInfo"))
 	}
+	if s.PortInfo != nil {
+		if err := s.PortInfo.Validate(); err != nil {
+			invalidParams.AddNested("PortInfo", err.(request.ErrInvalidParams))
+		}
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -13536,9 +13548,9 @@ func (s *CloseInstancePublicPortsInput) SetPortInfo(v *PortInfo) *CloseInstanceP
 type CloseInstancePublicPortsOutput struct {
 	_ struct{} `type:"structure"`
 
-	// An array of objects that describe the result of the action, such as the status
-	// of the request, the time stamp of the request, and the resources affected
-	// by the request.
+	// An object that describes the result of the action, such as the status of
+	// the request, the timestamp of the request, and the resources affected by
+	// the request.
 	Operation *Operation `locationName:"operation" type:"structure"`
 }
 
@@ -13729,12 +13741,12 @@ type ContactMethod struct {
 	//
 	// A contact method has the following possible status:
 	//
-	//    * PendingVerification — The contact method has not yet been verified,
+	//    * PendingVerification - The contact method has not yet been verified,
 	//    and the verification has not yet expired.
 	//
-	//    * Valid — The contact method has been verified.
+	//    * Valid - The contact method has been verified.
 	//
-	//    * InValid — An attempt was made to verify the contact method, but the
+	//    * InValid - An attempt was made to verify the contact method, but the
 	//    verification has expired.
 	Status *string `locationName:"status" type:"string" enum:"ContactMethodStatus"`
 
@@ -13933,7 +13945,7 @@ type CopySnapshotOutput struct {
 	_ struct{} `type:"structure"`
 
 	// An array of objects that describe the result of the action, such as the status
-	// of the request, the time stamp of the request, and the resources affected
+	// of the request, the timestamp of the request, and the resources affected
 	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
@@ -14009,7 +14021,7 @@ type CreateCloudFormationStackOutput struct {
 	_ struct{} `type:"structure"`
 
 	// An array of objects that describe the result of the action, such as the status
-	// of the request, the time stamp of the request, and the resources affected
+	// of the request, the timestamp of the request, and the resources affected
 	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
@@ -14041,7 +14053,7 @@ type CreateContactMethodInput struct {
 	// Phone numbers that follow this format can have a maximum of 15 digits, and
 	// they are prefixed with the plus character (+) and the country code. For example,
 	// a U.S. phone number in E.164 format would be specified as +1XXX5550100. For
-	// more information, see E.164 (https://en.wikipedia.org/wiki/E.164) in Wikipedia.
+	// more information, see E.164 (https://en.wikipedia.org/wiki/E.164) on Wikipedia.
 	//
 	// ContactEndpoint is a required field
 	ContactEndpoint *string `locationName:"contactEndpoint" min:"1" type:"string" required:"true"`
@@ -14119,7 +14131,7 @@ type CreateContactMethodOutput struct {
 	_ struct{} `type:"structure"`
 
 	// An array of objects that describe the result of the action, such as the status
-	// of the request, the time stamp of the request, and the resources affected
+	// of the request, the timestamp of the request, and the resources affected
 	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
@@ -14320,7 +14332,7 @@ type CreateDiskFromSnapshotOutput struct {
 	_ struct{} `type:"structure"`
 
 	// An array of objects that describe the result of the action, such as the status
-	// of the request, the time stamp of the request, and the resources affected
+	// of the request, the timestamp of the request, and the resources affected
 	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
@@ -14446,7 +14458,7 @@ type CreateDiskOutput struct {
 	_ struct{} `type:"structure"`
 
 	// An array of objects that describe the result of the action, such as the status
-	// of the request, the time stamp of the request, and the resources affected
+	// of the request, the timestamp of the request, and the resources affected
 	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
@@ -14546,7 +14558,7 @@ type CreateDiskSnapshotOutput struct {
 	_ struct{} `type:"structure"`
 
 	// An array of objects that describe the result of the action, such as the status
-	// of the request, the time stamp of the request, and the resources affected
+	// of the request, the timestamp of the request, and the resources affected
 	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
@@ -14625,7 +14637,7 @@ type CreateDomainEntryOutput struct {
 	_ struct{} `type:"structure"`
 
 	// An array of objects that describe the result of the action, such as the status
-	// of the request, the time stamp of the request, and the resources affected
+	// of the request, the timestamp of the request, and the resources affected
 	// by the request.
 	Operation *Operation `locationName:"operation" type:"structure"`
 }
@@ -14704,7 +14716,7 @@ type CreateDomainOutput struct {
 	_ struct{} `type:"structure"`
 
 	// An array of objects that describe the result of the action, such as the status
-	// of the request, the time stamp of the request, and the resources affected
+	// of the request, the timestamp of the request, and the resources affected
 	// by the request.
 	Operation *Operation `locationName:"operation" type:"structure"`
 }
@@ -14792,7 +14804,7 @@ type CreateInstanceSnapshotOutput struct {
 	_ struct{} `type:"structure"`
 
 	// An array of objects that describe the result of the action, such as the status
-	// of the request, the time stamp of the request, and the resources affected
+	// of the request, the timestamp of the request, and the resources affected
 	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
@@ -15028,7 +15040,7 @@ type CreateInstancesFromSnapshotOutput struct {
 	_ struct{} `type:"structure"`
 
 	// An array of objects that describe the result of the action, such as the status
-	// of the request, the time stamp of the request, and the resources affected
+	// of the request, the timestamp of the request, and the resources affected
 	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
@@ -15214,7 +15226,7 @@ type CreateInstancesOutput struct {
 	_ struct{} `type:"structure"`
 
 	// An array of objects that describe the result of the action, such as the status
-	// of the request, the time stamp of the request, and the resources affected
+	// of the request, the timestamp of the request, and the resources affected
 	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
@@ -15292,7 +15304,7 @@ type CreateKeyPairOutput struct {
 	KeyPair *KeyPair `locationName:"keyPair" type:"structure"`
 
 	// An array of objects that describe the result of the action, such as the status
-	// of the request, the time stamp of the request, and the resources affected
+	// of the request, the timestamp of the request, and the resources affected
 	// by the request.
 	Operation *Operation `locationName:"operation" type:"structure"`
 
@@ -15397,6 +15409,9 @@ func (s *CreateLoadBalancerInput) Validate() error {
 	if s.InstancePort == nil {
 		invalidParams.Add(request.NewErrParamRequired("InstancePort"))
 	}
+	if s.InstancePort != nil && *s.InstancePort < -1 {
+		invalidParams.Add(request.NewErrParamMinValue("InstancePort", -1))
+	}
 	if s.LoadBalancerName == nil {
 		invalidParams.Add(request.NewErrParamRequired("LoadBalancerName"))
 	}
@@ -15453,7 +15468,7 @@ type CreateLoadBalancerOutput struct {
 	_ struct{} `type:"structure"`
 
 	// An array of objects that describe the result of the action, such as the status
-	// of the request, the time stamp of the request, and the resources affected
+	// of the request, the timestamp of the request, and the resources affected
 	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
@@ -15572,7 +15587,7 @@ type CreateLoadBalancerTlsCertificateOutput struct {
 	_ struct{} `type:"structure"`
 
 	// An array of objects that describe the result of the action, such as the status
-	// of the request, the time stamp of the request, and the resources affected
+	// of the request, the timestamp of the request, and the resources affected
 	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
@@ -15747,7 +15762,7 @@ type CreateRelationalDatabaseFromSnapshotOutput struct {
 	_ struct{} `type:"structure"`
 
 	// An array of objects that describe the result of the action, such as the status
-	// of the request, the time stamp of the request, and the resources affected
+	// of the request, the timestamp of the request, and the resources affected
 	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
@@ -15999,7 +16014,7 @@ type CreateRelationalDatabaseOutput struct {
 	_ struct{} `type:"structure"`
 
 	// An array of objects that describe the result of the action, such as the status
-	// of the request, the time stamp of the request, and the resources affected
+	// of the request, the timestamp of the request, and the resources affected
 	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
@@ -16093,7 +16108,7 @@ type CreateRelationalDatabaseSnapshotOutput struct {
 	_ struct{} `type:"structure"`
 
 	// An array of objects that describe the result of the action, such as the status
-	// of the request, the time stamp of the request, and the resources affected
+	// of the request, the timestamp of the request, and the resources affected
 	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
@@ -16156,7 +16171,7 @@ type DeleteAlarmOutput struct {
 	_ struct{} `type:"structure"`
 
 	// An array of objects that describe the result of the action, such as the status
-	// of the request, the time stamp of the request, and the resources affected
+	// of the request, the timestamp of the request, and the resources affected
 	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
@@ -16236,7 +16251,7 @@ type DeleteAutoSnapshotOutput struct {
 	_ struct{} `type:"structure"`
 
 	// An array of objects that describe the result of the action, such as the status
-	// of the request, the time stamp of the request, and the resources affected
+	// of the request, the timestamp of the request, and the resources affected
 	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
@@ -16302,7 +16317,7 @@ type DeleteContactMethodOutput struct {
 	_ struct{} `type:"structure"`
 
 	// An array of objects that describe the result of the action, such as the status
-	// of the request, the time stamp of the request, and the resources affected
+	// of the request, the timestamp of the request, and the resources affected
 	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
@@ -16375,7 +16390,7 @@ type DeleteDiskOutput struct {
 	_ struct{} `type:"structure"`
 
 	// An array of objects that describe the result of the action, such as the status
-	// of the request, the time stamp of the request, and the resources affected
+	// of the request, the timestamp of the request, and the resources affected
 	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
@@ -16438,7 +16453,7 @@ type DeleteDiskSnapshotOutput struct {
 	_ struct{} `type:"structure"`
 
 	// An array of objects that describe the result of the action, such as the status
-	// of the request, the time stamp of the request, and the resources affected
+	// of the request, the timestamp of the request, and the resources affected
 	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
@@ -16515,7 +16530,7 @@ type DeleteDomainEntryOutput struct {
 	_ struct{} `type:"structure"`
 
 	// An array of objects that describe the result of the action, such as the status
-	// of the request, the time stamp of the request, and the resources affected
+	// of the request, the timestamp of the request, and the resources affected
 	// by the request.
 	Operation *Operation `locationName:"operation" type:"structure"`
 }
@@ -16578,7 +16593,7 @@ type DeleteDomainOutput struct {
 	_ struct{} `type:"structure"`
 
 	// An array of objects that describe the result of the action, such as the status
-	// of the request, the time stamp of the request, and the resources affected
+	// of the request, the timestamp of the request, and the resources affected
 	// by the request.
 	Operation *Operation `locationName:"operation" type:"structure"`
 }
@@ -16651,7 +16666,7 @@ type DeleteInstanceOutput struct {
 	_ struct{} `type:"structure"`
 
 	// An array of objects that describe the result of the action, such as the status
-	// of the request, the time stamp of the request, and the resources affected
+	// of the request, the timestamp of the request, and the resources affected
 	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
@@ -16714,7 +16729,7 @@ type DeleteInstanceSnapshotOutput struct {
 	_ struct{} `type:"structure"`
 
 	// An array of objects that describe the result of the action, such as the status
-	// of the request, the time stamp of the request, and the resources affected
+	// of the request, the timestamp of the request, and the resources affected
 	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
@@ -16777,7 +16792,7 @@ type DeleteKeyPairOutput struct {
 	_ struct{} `type:"structure"`
 
 	// An array of objects that describe the result of the action, such as the status
-	// of the request, the time stamp of the request, and the resources affected
+	// of the request, the timestamp of the request, and the resources affected
 	// by the request.
 	Operation *Operation `locationName:"operation" type:"structure"`
 }
@@ -16840,7 +16855,7 @@ type DeleteKnownHostKeysOutput struct {
 	_ struct{} `type:"structure"`
 
 	// An array of objects that describe the result of the action, such as the status
-	// of the request, the time stamp of the request, and the resources affected
+	// of the request, the timestamp of the request, and the resources affected
 	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
@@ -16903,7 +16918,7 @@ type DeleteLoadBalancerOutput struct {
 	_ struct{} `type:"structure"`
 
 	// An array of objects that describe the result of the action, such as the status
-	// of the request, the time stamp of the request, and the resources affected
+	// of the request, the timestamp of the request, and the resources affected
 	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
@@ -16993,7 +17008,7 @@ type DeleteLoadBalancerTlsCertificateOutput struct {
 	_ struct{} `type:"structure"`
 
 	// An array of objects that describe the result of the action, such as the status
-	// of the request, the time stamp of the request, and the resources affected
+	// of the request, the timestamp of the request, and the resources affected
 	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
@@ -17091,7 +17106,7 @@ type DeleteRelationalDatabaseOutput struct {
 	_ struct{} `type:"structure"`
 
 	// An array of objects that describe the result of the action, such as the status
-	// of the request, the time stamp of the request, and the resources affected
+	// of the request, the timestamp of the request, and the resources affected
 	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
@@ -17154,7 +17169,7 @@ type DeleteRelationalDatabaseSnapshotOutput struct {
 	_ struct{} `type:"structure"`
 
 	// An array of objects that describe the result of the action, such as the status
-	// of the request, the time stamp of the request, and the resources affected
+	// of the request, the timestamp of the request, and the resources affected
 	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
@@ -17251,7 +17266,7 @@ type DetachDiskOutput struct {
 	_ struct{} `type:"structure"`
 
 	// An array of objects that describe the result of the action, such as the status
-	// of the request, the time stamp of the request, and the resources affected
+	// of the request, the timestamp of the request, and the resources affected
 	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
@@ -17329,7 +17344,7 @@ type DetachInstancesFromLoadBalancerOutput struct {
 	_ struct{} `type:"structure"`
 
 	// An array of objects that describe the result of the action, such as the status
-	// of the request, the time stamp of the request, and the resources affected
+	// of the request, the timestamp of the request, and the resources affected
 	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
@@ -17392,7 +17407,7 @@ type DetachStaticIpOutput struct {
 	_ struct{} `type:"structure"`
 
 	// An array of objects that describe the result of the action, such as the status
-	// of the request, the time stamp of the request, and the resources affected
+	// of the request, the timestamp of the request, and the resources affected
 	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
@@ -17469,7 +17484,7 @@ type DisableAddOnOutput struct {
 	_ struct{} `type:"structure"`
 
 	// An array of objects that describe the result of the action, such as the status
-	// of the request, the time stamp of the request, and the resources affected
+	// of the request, the timestamp of the request, and the resources affected
 	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
@@ -18235,7 +18250,7 @@ type EnableAddOnOutput struct {
 	_ struct{} `type:"structure"`
 
 	// An array of objects that describe the result of the action, such as the status
-	// of the request, the time stamp of the request, and the resources affected
+	// of the request, the timestamp of the request, and the resources affected
 	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
@@ -18298,7 +18313,7 @@ type ExportSnapshotOutput struct {
 	_ struct{} `type:"structure"`
 
 	// An array of objects that describe the result of the action, such as the status
-	// of the request, the time stamp of the request, and the resources affected
+	// of the request, the timestamp of the request, and the resources affected
 	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
@@ -19556,44 +19571,43 @@ type GetInstanceMetricDataInput struct {
 	// Valid instance metric names are listed below, along with the most useful
 	// statistics to include in your request, and the published unit value.
 	//
-	//    * CPUUtilization — The percentage of allocated compute units that are
+	//    * CPUUtilization - The percentage of allocated compute units that are
 	//    currently in use on the instance. This metric identifies the processing
 	//    power to run the applications on the instance. Tools in your operating
 	//    system can show a lower percentage than Lightsail when the instance is
 	//    not allocated a full processor core. Statistics: The most useful statistics
 	//    are Maximum and Average. Unit: The published unit is Percent.
 	//
-	//    * NetworkIn — The number of bytes received on all network interfaces
-	//    by the instance. This metric identifies the volume of incoming network
-	//    traffic to the instance. The number reported is the number of bytes received
-	//    during the period. Because this metric is reported in 5-minute intervals,
-	//    divide the reported number by 300 to find Bytes/second. Statistics: The
-	//    most useful statistic is Sum. Unit: The published unit is Bytes.
+	//    * NetworkIn - The number of bytes received on all network interfaces by
+	//    the instance. This metric identifies the volume of incoming network traffic
+	//    to the instance. The number reported is the number of bytes received during
+	//    the period. Because this metric is reported in 5-minute intervals, divide
+	//    the reported number by 300 to find Bytes/second. Statistics: The most
+	//    useful statistic is Sum. Unit: The published unit is Bytes.
 	//
-	//    * NetworkOut — The number of bytes sent out on all network interfaces
+	//    * NetworkOut - The number of bytes sent out on all network interfaces
 	//    by the instance. This metric identifies the volume of outgoing network
 	//    traffic from the instance. The number reported is the number of bytes
 	//    sent during the period. Because this metric is reported in 5-minute intervals,
 	//    divide the reported number by 300 to find Bytes/second. Statistics: The
 	//    most useful statistic is Sum. Unit: The published unit is Bytes.
 	//
-	//    * StatusCheckFailed — Reports whether the instance passed or failed
-	//    both the instance status check and the system status check. This metric
-	//    can be either 0 (passed) or 1 (failed). This metric data is available
-	//    in 1-minute (60 seconds) granularity. Statistics: The most useful statistic
-	//    is Sum. Unit: The published unit is Count.
+	//    * StatusCheckFailed - Reports whether the instance passed or failed both
+	//    the instance status check and the system status check. This metric can
+	//    be either 0 (passed) or 1 (failed). This metric data is available in 1-minute
+	//    (60 seconds) granularity. Statistics: The most useful statistic is Sum.
+	//    Unit: The published unit is Count.
 	//
-	//    * StatusCheckFailed_Instance — Reports whether the instance passed or
+	//    * StatusCheckFailed_Instance - Reports whether the instance passed or
 	//    failed the instance status check. This metric can be either 0 (passed)
 	//    or 1 (failed). This metric data is available in 1-minute (60 seconds)
 	//    granularity. Statistics: The most useful statistic is Sum. Unit: The published
 	//    unit is Count.
 	//
-	//    * StatusCheckFailed_System — Reports whether the instance passed or
-	//    failed the system status check. This metric can be either 0 (passed) or
-	//    1 (failed). This metric data is available in 1-minute (60 seconds) granularity.
-	//    Statistics: The most useful statistic is Sum. Unit: The published unit
-	//    is Count.
+	//    * StatusCheckFailed_System - Reports whether the instance passed or failed
+	//    the system status check. This metric can be either 0 (passed) or 1 (failed).
+	//    This metric data is available in 1-minute (60 seconds) granularity. Statistics:
+	//    The most useful statistic is Sum. Unit: The published unit is Count.
 	//
 	// MetricName is a required field
 	MetricName *string `locationName:"metricName" type:"string" required:"true" enum:"InstanceMetricName"`
@@ -19616,30 +19630,30 @@ type GetInstanceMetricDataInput struct {
 	//
 	// The following statistics are available:
 	//
-	//    * Minimum — The lowest value observed during the specified period. Use
+	//    * Minimum - The lowest value observed during the specified period. Use
 	//    this value to determine low volumes of activity for your application.
 	//
-	//    * Maximum — The highest value observed during the specified period.
-	//    Use this value to determine high volumes of activity for your application.
+	//    * Maximum - The highest value observed during the specified period. Use
+	//    this value to determine high volumes of activity for your application.
 	//
-	//    * Sum — All values submitted for the matching metric added together.
-	//    You can use this statistic to determine the total volume of a metric.
+	//    * Sum - All values submitted for the matching metric added together. You
+	//    can use this statistic to determine the total volume of a metric.
 	//
-	//    * Average — The value of Sum / SampleCount during the specified period.
+	//    * Average - The value of Sum / SampleCount during the specified period.
 	//    By comparing this statistic with the Minimum and Maximum values, you can
 	//    determine the full scope of a metric and how close the average use is
 	//    to the Minimum and Maximum values. This comparison helps you to know when
 	//    to increase or decrease your resources.
 	//
-	//    * SampleCount — The count, or number, of data points used for the statistical
+	//    * SampleCount - The count, or number, of data points used for the statistical
 	//    calculation.
 	//
 	// Statistics is a required field
 	Statistics []*string `locationName:"statistics" type:"list" required:"true"`
 
 	// The unit for the metric data request. Valid units depend on the metric data
-	// being required. For the valid units with each available metric, see the metricName
-	// parameter.
+	// being requested. For the valid units to specify with each available metric,
+	// see the metricName parameter.
 	//
 	// Unit is a required field
 	Unit *string `locationName:"unit" type:"string" required:"true" enum:"MetricUnit"`
@@ -19790,7 +19804,7 @@ func (s *GetInstanceOutput) SetInstance(v *Instance) *GetInstanceOutput {
 type GetInstancePortStatesInput struct {
 	_ struct{} `type:"structure"`
 
-	// The name of the instance.
+	// The name of the instance for which to return firewall port states.
 	//
 	// InstanceName is a required field
 	InstanceName *string `locationName:"instanceName" type:"string" required:"true"`
@@ -19828,7 +19842,8 @@ func (s *GetInstancePortStatesInput) SetInstanceName(v string) *GetInstancePortS
 type GetInstancePortStatesOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Information about the port states resulting from your request.
+	// An array of objects that describe the firewall port states for the specified
+	// instance.
 	PortStates []*InstancePortState `locationName:"portStates" type:"list"`
 }
 
@@ -20281,73 +20296,73 @@ type GetLoadBalancerMetricDataInput struct {
 	// Valid load balancer metric names are listed below, along with the most useful
 	// statistics to include in your request, and the published unit value.
 	//
-	//    * ClientTLSNegotiationErrorCount — The number of TLS connections initiated
+	//    * ClientTLSNegotiationErrorCount - The number of TLS connections initiated
 	//    by the client that did not establish a session with the load balancer
 	//    due to a TLS error generated by the load balancer. Possible causes include
 	//    a mismatch of ciphers or protocols. Statistics: The most useful statistic
 	//    is Sum. Unit: The published unit is Count.
 	//
-	//    * HealthyHostCount — The number of target instances that are considered
+	//    * HealthyHostCount - The number of target instances that are considered
 	//    healthy. Statistics: The most useful statistic are Average, Minimum, and
 	//    Maximum. Unit: The published unit is Count.
 	//
-	//    * HTTPCode_Instance_2XX_Count — The number of HTTP 2XX response codes
+	//    * HTTPCode_Instance_2XX_Count - The number of HTTP 2XX response codes
 	//    generated by the target instances. This does not include any response
 	//    codes generated by the load balancer. Statistics: The most useful statistic
 	//    is Sum. Note that Minimum, Maximum, and Average all return 1. Unit: The
 	//    published unit is Count.
 	//
-	//    * HTTPCode_Instance_3XX_Count — The number of HTTP 3XX response codes
+	//    * HTTPCode_Instance_3XX_Count - The number of HTTP 3XX response codes
 	//    generated by the target instances. This does not include any response
 	//    codes generated by the load balancer. Statistics: The most useful statistic
 	//    is Sum. Note that Minimum, Maximum, and Average all return 1. Unit: The
 	//    published unit is Count.
 	//
-	//    * HTTPCode_Instance_4XX_Count — The number of HTTP 4XX response codes
+	//    * HTTPCode_Instance_4XX_Count - The number of HTTP 4XX response codes
 	//    generated by the target instances. This does not include any response
 	//    codes generated by the load balancer. Statistics: The most useful statistic
 	//    is Sum. Note that Minimum, Maximum, and Average all return 1. Unit: The
 	//    published unit is Count.
 	//
-	//    * HTTPCode_Instance_5XX_Count — The number of HTTP 5XX response codes
+	//    * HTTPCode_Instance_5XX_Count - The number of HTTP 5XX response codes
 	//    generated by the target instances. This does not include any response
 	//    codes generated by the load balancer. Statistics: The most useful statistic
 	//    is Sum. Note that Minimum, Maximum, and Average all return 1. Unit: The
 	//    published unit is Count.
 	//
-	//    * HTTPCode_LB_4XX_Count — The number of HTTP 4XX client error codes
-	//    that originated from the load balancer. Client errors are generated when
-	//    requests are malformed or incomplete. These requests were not received
-	//    by the target instance. This count does not include response codes generated
-	//    by the target instances. Statistics: The most useful statistic is Sum.
-	//    Note that Minimum, Maximum, and Average all return 1. Unit: The published
-	//    unit is Count.
+	//    * HTTPCode_LB_4XX_Count - The number of HTTP 4XX client error codes that
+	//    originated from the load balancer. Client errors are generated when requests
+	//    are malformed or incomplete. These requests were not received by the target
+	//    instance. This count does not include response codes generated by the
+	//    target instances. Statistics: The most useful statistic is Sum. Note that
+	//    Minimum, Maximum, and Average all return 1. Unit: The published unit is
+	//    Count.
 	//
-	//    * HTTPCode_LB_5XX_Count — The number of HTTP 5XX server error codes
-	//    that originated from the load balancer. This does not include any response
+	//    * HTTPCode_LB_5XX_Count - The number of HTTP 5XX server error codes that
+	//    originated from the load balancer. This does not include any response
 	//    codes generated by the target instance. This metric is reported if there
 	//    are no healthy instances attached to the load balancer, or if the request
 	//    rate exceeds the capacity of the instances (spillover) or the load balancer.
 	//    Statistics: The most useful statistic is Sum. Note that Minimum, Maximum,
 	//    and Average all return 1. Unit: The published unit is Count.
 	//
-	//    * InstanceResponseTime — The time elapsed, in seconds, after the request
+	//    * InstanceResponseTime - The time elapsed, in seconds, after the request
 	//    leaves the load balancer until a response from the target instance is
 	//    received. Statistics: The most useful statistic is Average. Unit: The
 	//    published unit is Seconds.
 	//
-	//    * RejectedConnectionCount — The number of connections that were rejected
+	//    * RejectedConnectionCount - The number of connections that were rejected
 	//    because the load balancer had reached its maximum number of connections.
 	//    Statistics: The most useful statistic is Sum. Unit: The published unit
 	//    is Count.
 	//
-	//    * RequestCount — The number of requests processed over IPv4. This count
+	//    * RequestCount - The number of requests processed over IPv4. This count
 	//    includes only the requests with a response generated by a target instance
 	//    of the load balancer. Statistics: The most useful statistic is Sum. Note
 	//    that Minimum, Maximum, and Average all return 1. Unit: The published unit
 	//    is Count.
 	//
-	//    * UnhealthyHostCount — The number of target instances that are considered
+	//    * UnhealthyHostCount - The number of target instances that are considered
 	//    unhealthy. Statistics: The most useful statistic are Average, Minimum,
 	//    and Maximum. Unit: The published unit is Count.
 	//
@@ -20368,22 +20383,22 @@ type GetLoadBalancerMetricDataInput struct {
 	//
 	// The following statistics are available:
 	//
-	//    * Minimum — The lowest value observed during the specified period. Use
+	//    * Minimum - The lowest value observed during the specified period. Use
 	//    this value to determine low volumes of activity for your application.
 	//
-	//    * Maximum — The highest value observed during the specified period.
-	//    Use this value to determine high volumes of activity for your application.
+	//    * Maximum - The highest value observed during the specified period. Use
+	//    this value to determine high volumes of activity for your application.
 	//
-	//    * Sum — All values submitted for the matching metric added together.
-	//    You can use this statistic to determine the total volume of a metric.
+	//    * Sum - All values submitted for the matching metric added together. You
+	//    can use this statistic to determine the total volume of a metric.
 	//
-	//    * Average — The value of Sum / SampleCount during the specified period.
+	//    * Average - The value of Sum / SampleCount during the specified period.
 	//    By comparing this statistic with the Minimum and Maximum values, you can
 	//    determine the full scope of a metric and how close the average use is
 	//    to the Minimum and Maximum values. This comparison helps you to know when
 	//    to increase or decrease your resources.
 	//
-	//    * SampleCount — The count, or number, of data points used for the statistical
+	//    * SampleCount - The count, or number, of data points used for the statistical
 	//    calculation.
 	//
 	// Statistics is a required field
@@ -20765,7 +20780,7 @@ type GetOperationOutput struct {
 	_ struct{} `type:"structure"`
 
 	// An array of objects that describe the result of the action, such as the status
-	// of the request, the time stamp of the request, and the resources affected
+	// of the request, the timestamp of the request, and the resources affected
 	// by the request.
 	Operation *Operation `locationName:"operation" type:"structure"`
 }
@@ -20857,7 +20872,7 @@ type GetOperationsForResourceOutput struct {
 	NextPageToken *string `locationName:"nextPageToken" type:"string"`
 
 	// An array of objects that describe the result of the action, such as the status
-	// of the request, the time stamp of the request, and the resources affected
+	// of the request, the timestamp of the request, and the resources affected
 	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
@@ -20929,7 +20944,7 @@ type GetOperationsOutput struct {
 	NextPageToken *string `locationName:"nextPageToken" type:"string"`
 
 	// An array of objects that describe the result of the action, such as the status
-	// of the request, the time stamp of the request, and the resources affected
+	// of the request, the timestamp of the request, and the resources affected
 	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
@@ -21617,27 +21632,27 @@ type GetRelationalDatabaseMetricDataInput struct {
 	// All relational database metric data is available in 1-minute (60 seconds)
 	// granularity.
 	//
-	//    * CPUUtilization — The percentage of CPU utilization currently in use
+	//    * CPUUtilization - The percentage of CPU utilization currently in use
 	//    on the database. Statistics: The most useful statistics are Maximum and
 	//    Average. Unit: The published unit is Percent.
 	//
-	//    * DatabaseConnections — The number of database connections in use. Statistics:
+	//    * DatabaseConnections - The number of database connections in use. Statistics:
 	//    The most useful statistics are Maximum and Sum. Unit: The published unit
 	//    is Count.
 	//
-	//    * DiskQueueDepth — The number of outstanding IOs (read/write requests)
+	//    * DiskQueueDepth - The number of outstanding IOs (read/write requests)
 	//    that are waiting to access the disk. Statistics: The most useful statistic
 	//    is Sum. Unit: The published unit is Count.
 	//
-	//    * FreeStorageSpace — The amount of available storage space. Statistics:
+	//    * FreeStorageSpace - The amount of available storage space. Statistics:
 	//    The most useful statistic is Sum. Unit: The published unit is Bytes.
 	//
-	//    * NetworkReceiveThroughput — The incoming (Receive) network traffic
-	//    on the database, including both customer database traffic and AWS traffic
+	//    * NetworkReceiveThroughput - The incoming (Receive) network traffic on
+	//    the database, including both customer database traffic and AWS traffic
 	//    used for monitoring and replication. Statistics: The most useful statistic
 	//    is Average. Unit: The published unit is Bytes/Second.
 	//
-	//    * NetworkTransmitThroughput — The outgoing (Transmit) network traffic
+	//    * NetworkTransmitThroughput - The outgoing (Transmit) network traffic
 	//    on the database, including both customer database traffic and AWS traffic
 	//    used for monitoring and replication. Statistics: The most useful statistic
 	//    is Average. Unit: The published unit is Bytes/Second.
@@ -21675,22 +21690,22 @@ type GetRelationalDatabaseMetricDataInput struct {
 	//
 	// The following statistics are available:
 	//
-	//    * Minimum — The lowest value observed during the specified period. Use
+	//    * Minimum - The lowest value observed during the specified period. Use
 	//    this value to determine low volumes of activity for your application.
 	//
-	//    * Maximum — The highest value observed during the specified period.
-	//    Use this value to determine high volumes of activity for your application.
+	//    * Maximum - The highest value observed during the specified period. Use
+	//    this value to determine high volumes of activity for your application.
 	//
-	//    * Sum — All values submitted for the matching metric added together.
-	//    You can use this statistic to determine the total volume of a metric.
+	//    * Sum - All values submitted for the matching metric added together. You
+	//    can use this statistic to determine the total volume of a metric.
 	//
-	//    * Average — The value of Sum / SampleCount during the specified period.
+	//    * Average - The value of Sum / SampleCount during the specified period.
 	//    By comparing this statistic with the Minimum and Maximum values, you can
 	//    determine the full scope of a metric and how close the average use is
 	//    to the Minimum and Maximum values. This comparison helps you to know when
 	//    to increase or decrease your resources.
 	//
-	//    * SampleCount — The count, or number, of data points used for the statistical
+	//    * SampleCount - The count, or number, of data points used for the statistical
 	//    calculation.
 	//
 	// Statistics is a required field
@@ -22401,7 +22416,7 @@ type ImportKeyPairOutput struct {
 	_ struct{} `type:"structure"`
 
 	// An array of objects that describe the result of the action, such as the status
-	// of the request, the time stamp of the request, and the resources affected
+	// of the request, the timestamp of the request, and the resources affected
 	// by the request.
 	Operation *Operation `locationName:"operation" type:"structure"`
 }
@@ -22763,13 +22778,20 @@ type InstanceEntry struct {
 	//
 	// The following configuration options are available:
 	//
-	//    * DEFAULT — Use the default firewall settings from the image.
+	//    * DEFAULT - Use the default firewall settings from the Lightsail instance
+	//    blueprint.
 	//
-	//    * INSTANCE — Use the firewall settings from the source Lightsail instance.
+	//    * INSTANCE - Use the configured firewall settings from the source Lightsail
+	//    instance.
 	//
-	//    * NONE — Default to Amazon EC2.
+	//    * NONE - Use the default Amazon EC2 security group.
 	//
-	//    * CLOSED — All ports closed.
+	//    * CLOSED - All ports closed.
+	//
+	// If you configured lightsail-connect as a cidrListAliases on your instance,
+	// or if you chose to allow the Lightsail browser-based SSH or RDP clients to
+	// connect to your instance, that configuration is not carried over to your
+	// new Amazon EC2 instance.
 	//
 	// PortInfoSource is a required field
 	PortInfoSource *string `locationName:"portInfoSource" type:"string" required:"true" enum:"PortInfoSourceType"`
@@ -23019,26 +23041,55 @@ func (s *InstanceNetworking) SetPorts(v []*InstancePortInfo) *InstanceNetworking
 	return s
 }
 
-// Describes information about the instance ports.
+// Describes information about ports for an Amazon Lightsail instance.
 type InstancePortInfo struct {
 	_ struct{} `type:"structure"`
 
 	// The access direction (inbound or outbound).
+	//
+	// Lightsail currently supports only inbound access direction.
 	AccessDirection *string `locationName:"accessDirection" type:"string" enum:"AccessDirection"`
 
-	// The location from which access is allowed (e.g., Anywhere (0.0.0.0/0)).
+	// The location from which access is allowed. For example, Anywhere (0.0.0.0/0),
+	// or Custom if a specific IP address or range of IP addresses is allowed.
 	AccessFrom *string `locationName:"accessFrom" type:"string"`
 
 	// The type of access (Public or Private).
 	AccessType *string `locationName:"accessType" type:"string" enum:"PortAccessType"`
 
-	// The common name.
+	// An alias that defines access for a preconfigured range of IP addresses.
+	//
+	// The only alias currently supported is lightsail-connect, which allows IP
+	// addresses of the browser-based RDP/SSH client in the Lightsail console to
+	// connect to your instance.
+	CidrListAliases []*string `locationName:"cidrListAliases" type:"list"`
+
+	// The IP address, or range of IP addresses in CIDR notation, that are allowed
+	// to connect to an instance through the ports, and the protocol. Lightsail
+	// supports IPv4 addresses.
+	//
+	// For more information about CIDR block notation, see Classless Inter-Domain
+	// Routing (https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing#CIDR_notation)
+	// on Wikipedia.
+	Cidrs []*string `locationName:"cidrs" type:"list"`
+
+	// The common name of the port information.
 	CommonName *string `locationName:"commonName" type:"string"`
 
-	// The first port in the range.
+	// The first port in a range of open ports on an instance.
+	//
+	// Allowed ports:
+	//
+	//    * TCP and UDP - 0 to 65535
+	//
+	//    * ICMP - 8 (to configure Ping) Ping is the only communication supported
+	//    through the ICMP protocol in Lightsail. To configure ping, specify the
+	//    fromPort parameter as 8, and the toPort parameter as -1.
 	FromPort *int64 `locationName:"fromPort" type:"integer"`
 
-	// The protocol being used. Can be one of the following.
+	// The IP protocol name.
+	//
+	// The name can be one of the following:
 	//
 	//    * tcp - Transmission Control Protocol (TCP) provides reliable, ordered,
 	//    and error-checked delivery of streamed data between applications running
@@ -23056,9 +23107,24 @@ type InstancePortInfo struct {
 	//    can use UDP, which provides a connectionless datagram service that emphasizes
 	//    reduced latency over reliability. If you do require reliable data stream
 	//    service, use TCP instead.
+	//
+	//    * icmp - Internet Control Message Protocol (ICMP) is used to send error
+	//    messages and operational information indicating success or failure when
+	//    communicating with an instance. For example, an error is indicated when
+	//    an instance could not be reached. Ping is the only communication supported
+	//    through the ICMP protocol in Lightsail. To configure ping, specify the
+	//    fromPort parameter as 8, and the toPort parameter as -1.
 	Protocol *string `locationName:"protocol" type:"string" enum:"NetworkProtocol"`
 
-	// The last port in the range.
+	// The last port in a range of open ports on an instance.
+	//
+	// Allowed ports:
+	//
+	//    * TCP and UDP - 0 to 65535
+	//
+	//    * ICMP - -1 (to configure Ping) Ping is the only communication supported
+	//    through the ICMP protocol in Lightsail. To configure ping, specify the
+	//    fromPort parameter as 8, and the toPort parameter as -1.
 	ToPort *int64 `locationName:"toPort" type:"integer"`
 }
 
@@ -23090,6 +23156,18 @@ func (s *InstancePortInfo) SetAccessType(v string) *InstancePortInfo {
 	return s
 }
 
+// SetCidrListAliases sets the CidrListAliases field's value.
+func (s *InstancePortInfo) SetCidrListAliases(v []*string) *InstancePortInfo {
+	s.CidrListAliases = v
+	return s
+}
+
+// SetCidrs sets the Cidrs field's value.
+func (s *InstancePortInfo) SetCidrs(v []*string) *InstancePortInfo {
+	s.Cidrs = v
+	return s
+}
+
 // SetCommonName sets the CommonName field's value.
 func (s *InstancePortInfo) SetCommonName(v string) *InstancePortInfo {
 	s.CommonName = &v
@@ -23114,14 +23192,41 @@ func (s *InstancePortInfo) SetToPort(v int64) *InstancePortInfo {
 	return s
 }
 
-// Describes the port state.
+// Describes open ports on an instance, the IP addresses allowed to connect
+// to the instance through the ports, and the protocol.
 type InstancePortState struct {
 	_ struct{} `type:"structure"`
 
-	// The first port in the range.
+	// An alias that defines access for a preconfigured range of IP addresses.
+	//
+	// The only alias currently supported is lightsail-connect, which allows IP
+	// addresses of the browser-based RDP/SSH client in the Lightsail console to
+	// connect to your instance.
+	CidrListAliases []*string `locationName:"cidrListAliases" type:"list"`
+
+	// The IP address, or range of IP addresses in CIDR notation, that are allowed
+	// to connect to an instance through the ports, and the protocol. Lightsail
+	// supports IPv4 addresses.
+	//
+	// For more information about CIDR block notation, see Classless Inter-Domain
+	// Routing (https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing#CIDR_notation)
+	// on Wikipedia.
+	Cidrs []*string `locationName:"cidrs" type:"list"`
+
+	// The first port in a range of open ports on an instance.
+	//
+	// Allowed ports:
+	//
+	//    * TCP and UDP - 0 to 65535
+	//
+	//    * ICMP - 8 (to configure Ping) Ping is the only communication supported
+	//    through the ICMP protocol in Lightsail. To configure ping, specify the
+	//    fromPort parameter as 8, and the toPort parameter as -1.
 	FromPort *int64 `locationName:"fromPort" type:"integer"`
 
-	// The protocol being used. Can be one of the following.
+	// The IP protocol name.
+	//
+	// The name can be one of the following:
 	//
 	//    * tcp - Transmission Control Protocol (TCP) provides reliable, ordered,
 	//    and error-checked delivery of streamed data between applications running
@@ -23139,12 +23244,29 @@ type InstancePortState struct {
 	//    can use UDP, which provides a connectionless datagram service that emphasizes
 	//    reduced latency over reliability. If you do require reliable data stream
 	//    service, use TCP instead.
+	//
+	//    * icmp - Internet Control Message Protocol (ICMP) is used to send error
+	//    messages and operational information indicating success or failure when
+	//    communicating with an instance. For example, an error is indicated when
+	//    an instance could not be reached. Ping is the only communication supported
+	//    through the ICMP protocol in Lightsail. To configure ping, specify the
+	//    fromPort parameter as 8, and the toPort parameter as -1.
 	Protocol *string `locationName:"protocol" type:"string" enum:"NetworkProtocol"`
 
 	// Specifies whether the instance port is open or closed.
+	//
+	// The port state for Lightsail instances is always open.
 	State *string `locationName:"state" type:"string" enum:"PortState"`
 
-	// The last port in the range.
+	// The last port in a range of open ports on an instance.
+	//
+	// Allowed ports:
+	//
+	//    * TCP and UDP - 0 to 65535
+	//
+	//    * ICMP - -1 (to configure Ping) Ping is the only communication supported
+	//    through the ICMP protocol in Lightsail. To configure ping, specify the
+	//    fromPort parameter as 8, and the toPort parameter as -1.
 	ToPort *int64 `locationName:"toPort" type:"integer"`
 }
 
@@ -23156,6 +23278,18 @@ func (s InstancePortState) String() string {
 // GoString returns the string representation
 func (s InstancePortState) GoString() string {
 	return s.String()
+}
+
+// SetCidrListAliases sets the CidrListAliases field's value.
+func (s *InstancePortState) SetCidrListAliases(v []*string) *InstancePortState {
+	s.CidrListAliases = v
+	return s
+}
+
+// SetCidrs sets the Cidrs field's value.
+func (s *InstancePortState) SetCidrs(v []*string) *InstancePortState {
+	s.Cidrs = v
+	return s
 }
 
 // SetFromPort sets the FromPort field's value.
@@ -24477,12 +24611,12 @@ func (s *NotFoundException) RequestID() string {
 type OpenInstancePublicPortsInput struct {
 	_ struct{} `type:"structure"`
 
-	// The name of the instance for which you want to open the public ports.
+	// The name of the instance for which to open ports.
 	//
 	// InstanceName is a required field
 	InstanceName *string `locationName:"instanceName" type:"string" required:"true"`
 
-	// An array of key-value pairs containing information about the port mappings.
+	// An object to describe the ports to open for the specified instance.
 	//
 	// PortInfo is a required field
 	PortInfo *PortInfo `locationName:"portInfo" type:"structure" required:"true"`
@@ -24507,6 +24641,11 @@ func (s *OpenInstancePublicPortsInput) Validate() error {
 	if s.PortInfo == nil {
 		invalidParams.Add(request.NewErrParamRequired("PortInfo"))
 	}
+	if s.PortInfo != nil {
+		if err := s.PortInfo.Validate(); err != nil {
+			invalidParams.AddNested("PortInfo", err.(request.ErrInvalidParams))
+		}
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -24530,7 +24669,7 @@ type OpenInstancePublicPortsOutput struct {
 	_ struct{} `type:"structure"`
 
 	// An array of objects that describe the result of the action, such as the status
-	// of the request, the time stamp of the request, and the resources affected
+	// of the request, the timestamp of the request, and the resources affected
 	// by the request.
 	Operation *Operation `locationName:"operation" type:"structure"`
 }
@@ -24806,7 +24945,7 @@ type PeerVpcOutput struct {
 	_ struct{} `type:"structure"`
 
 	// An array of objects that describe the result of the action, such as the status
-	// of the request, the time stamp of the request, and the resources affected
+	// of the request, the timestamp of the request, and the resources affected
 	// by the request.
 	Operation *Operation `locationName:"operation" type:"structure"`
 }
@@ -24911,18 +25050,82 @@ func (s *PendingModifiedRelationalDatabaseValues) SetMasterUserPassword(v string
 	return s
 }
 
-// Describes information about the ports on your virtual private server (or
-// instance).
+// Describes ports to open on an instance, the IP addresses allowed to connect
+// to the instance through the ports, and the protocol.
 type PortInfo struct {
 	_ struct{} `type:"structure"`
 
-	// The first port in the range.
+	// An alias that defines access for a preconfigured range of IP addresses.
+	//
+	// The only alias currently supported is lightsail-connect, which allows IP
+	// addresses of the browser-based RDP/SSH client in the Lightsail console to
+	// connect to your instance.
+	CidrListAliases []*string `locationName:"cidrListAliases" type:"list"`
+
+	// The IP address, or range of IP addresses in CIDR notation, that are allowed
+	// to connect to an instance through the ports, and the protocol. Lightsail
+	// supports IPv4 addresses.
+	//
+	// Examples:
+	//
+	//    * To allow the IP address 192.0.2.44, specify 192.0.2.44 or 192.0.2.44/32.
+	//
+	//    * To allow the IP addresses 192.0.2.0 to 192.0.2.255, specify 192.0.2.0/24.
+	//
+	// For more information about CIDR block notation, see Classless Inter-Domain
+	// Routing (https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing#CIDR_notation)
+	// on Wikipedia.
+	Cidrs []*string `locationName:"cidrs" type:"list"`
+
+	// The first port in a range of open ports on an instance.
+	//
+	// Allowed ports:
+	//
+	//    * TCP and UDP - 0 to 65535
+	//
+	//    * ICMP - 8 (to configure Ping) Ping is the only communication supported
+	//    through the ICMP protocol in Lightsail. To configure ping, specify the
+	//    fromPort parameter as 8, and the toPort parameter as -1.
 	FromPort *int64 `locationName:"fromPort" type:"integer"`
 
-	// The protocol.
+	// The IP protocol name.
+	//
+	// The name can be one of the following:
+	//
+	//    * tcp - Transmission Control Protocol (TCP) provides reliable, ordered,
+	//    and error-checked delivery of streamed data between applications running
+	//    on hosts communicating by an IP network. If you have an application that
+	//    doesn't require reliable data stream service, use UDP instead.
+	//
+	//    * all - All transport layer protocol types. For more general information,
+	//    see Transport layer (https://en.wikipedia.org/wiki/Transport_layer) on
+	//    Wikipedia.
+	//
+	//    * udp - With User Datagram Protocol (UDP), computer applications can send
+	//    messages (or datagrams) to other hosts on an Internet Protocol (IP) network.
+	//    Prior communications are not required to set up transmission channels
+	//    or data paths. Applications that don't require reliable data stream service
+	//    can use UDP, which provides a connectionless datagram service that emphasizes
+	//    reduced latency over reliability. If you do require reliable data stream
+	//    service, use TCP instead.
+	//
+	//    * icmp - Internet Control Message Protocol (ICMP) is used to send error
+	//    messages and operational information indicating success or failure when
+	//    communicating with an instance. For example, an error is indicated when
+	//    an instance could not be reached. Ping is the only communication supported
+	//    through the ICMP protocol in Lightsail. To configure ping, specify the
+	//    fromPort parameter as 8, and the toPort parameter as -1.
 	Protocol *string `locationName:"protocol" type:"string" enum:"NetworkProtocol"`
 
-	// The last port in the range.
+	// The last port in a range of open ports on an instance.
+	//
+	// Allowed ports:
+	//
+	//    * TCP and UDP - 0 to 65535
+	//
+	//    * ICMP - -1 (to configure Ping) Ping is the only communication supported
+	//    through the ICMP protocol in Lightsail. To configure ping, specify the
+	//    fromPort parameter as 8, and the toPort parameter as -1.
 	ToPort *int64 `locationName:"toPort" type:"integer"`
 }
 
@@ -24934,6 +25137,34 @@ func (s PortInfo) String() string {
 // GoString returns the string representation
 func (s PortInfo) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *PortInfo) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "PortInfo"}
+	if s.FromPort != nil && *s.FromPort < -1 {
+		invalidParams.Add(request.NewErrParamMinValue("FromPort", -1))
+	}
+	if s.ToPort != nil && *s.ToPort < -1 {
+		invalidParams.Add(request.NewErrParamMinValue("ToPort", -1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetCidrListAliases sets the CidrListAliases field's value.
+func (s *PortInfo) SetCidrListAliases(v []*string) *PortInfo {
+	s.CidrListAliases = v
+	return s
+}
+
+// SetCidrs sets the Cidrs field's value.
+func (s *PortInfo) SetCidrs(v []*string) *PortInfo {
+	s.Cidrs = v
+	return s
 }
 
 // SetFromPort sets the FromPort field's value.
@@ -25042,13 +25273,13 @@ type PutAlarmInput struct {
 	//
 	// An alarm has the following possible states:
 	//
-	//    * ALARM — The metric is outside of the defined threshold.
+	//    * ALARM - The metric is outside of the defined threshold.
 	//
-	//    * INSUFFICIENT_DATA — The alarm has just started, the metric is not
-	//    available, or not enough data is available for the metric to determine
-	//    the alarm state.
+	//    * INSUFFICIENT_DATA - The alarm has just started, the metric is not available,
+	//    or not enough data is available for the metric to determine the alarm
+	//    state.
 	//
-	//    * OK — The metric is within the defined threshold.
+	//    * OK - The metric is within the defined threshold.
 	//
 	// When you specify a notification trigger, the ALARM state must be specified.
 	// The INSUFFICIENT_DATA and OK states can be specified in addition to the ALARM
@@ -25074,16 +25305,16 @@ type PutAlarmInput struct {
 	//
 	// An alarm can treat missing data in the following ways:
 	//
-	//    * breaching — Assume the missing data is not within the threshold. Missing
+	//    * breaching - Assume the missing data is not within the threshold. Missing
 	//    data counts towards the number of times the metric is not within the threshold.
 	//
-	//    * notBreaching — Assume the missing data is within the threshold. Missing
+	//    * notBreaching - Assume the missing data is within the threshold. Missing
 	//    data does not count towards the number of times the metric is not within
 	//    the threshold.
 	//
-	//    * ignore — Ignore the missing data. Maintains the current alarm state.
+	//    * ignore - Ignore the missing data. Maintains the current alarm state.
 	//
-	//    * missing — Missing data is treated as missing.
+	//    * missing - Missing data is treated as missing.
 	//
 	// If treatMissingData is not specified, the default behavior of missing is
 	// used.
@@ -25198,7 +25429,7 @@ type PutAlarmOutput struct {
 	_ struct{} `type:"structure"`
 
 	// An array of objects that describe the result of the action, such as the status
-	// of the request, the time stamp of the request, and the resources affected
+	// of the request, the timestamp of the request, and the resources affected
 	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
@@ -25222,12 +25453,12 @@ func (s *PutAlarmOutput) SetOperations(v []*Operation) *PutAlarmOutput {
 type PutInstancePublicPortsInput struct {
 	_ struct{} `type:"structure"`
 
-	// The Lightsail instance name of the public port(s) you are setting.
+	// The name of the instance for which to open ports.
 	//
 	// InstanceName is a required field
 	InstanceName *string `locationName:"instanceName" type:"string" required:"true"`
 
-	// Specifies information about the public port(s).
+	// An array of objects to describe the ports to open for the specified instance.
 	//
 	// PortInfos is a required field
 	PortInfos []*PortInfo `locationName:"portInfos" type:"list" required:"true"`
@@ -25252,6 +25483,16 @@ func (s *PutInstancePublicPortsInput) Validate() error {
 	if s.PortInfos == nil {
 		invalidParams.Add(request.NewErrParamRequired("PortInfos"))
 	}
+	if s.PortInfos != nil {
+		for i, v := range s.PortInfos {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "PortInfos", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -25275,7 +25516,7 @@ type PutInstancePublicPortsOutput struct {
 	_ struct{} `type:"structure"`
 
 	// An array of objects that describe the result of the action, such as the status
-	// of the request, the time stamp of the request, and the resources affected
+	// of the request, the timestamp of the request, and the resources affected
 	// by the request.
 	Operation *Operation `locationName:"operation" type:"structure"`
 }
@@ -25338,7 +25579,7 @@ type RebootInstanceOutput struct {
 	_ struct{} `type:"structure"`
 
 	// An array of objects that describe the result of the action, such as the status
-	// of the request, the time stamp of the request, and the resources affected
+	// of the request, the timestamp of the request, and the resources affected
 	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
@@ -25401,7 +25642,7 @@ type RebootRelationalDatabaseOutput struct {
 	_ struct{} `type:"structure"`
 
 	// An array of objects that describe the result of the action, such as the status
-	// of the request, the time stamp of the request, and the resources affected
+	// of the request, the timestamp of the request, and the resources affected
 	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
@@ -26336,7 +26577,7 @@ type ReleaseStaticIpOutput struct {
 	_ struct{} `type:"structure"`
 
 	// An array of objects that describe the result of the action, such as the status
-	// of the request, the time stamp of the request, and the resources affected
+	// of the request, the timestamp of the request, and the resources affected
 	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
@@ -26432,7 +26673,7 @@ type SendContactMethodVerificationOutput struct {
 	_ struct{} `type:"structure"`
 
 	// An array of objects that describe the result of the action, such as the status
-	// of the request, the time stamp of the request, and the resources affected
+	// of the request, the timestamp of the request, and the resources affected
 	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
@@ -26557,7 +26798,7 @@ type StartInstanceOutput struct {
 	_ struct{} `type:"structure"`
 
 	// An array of objects that describe the result of the action, such as the status
-	// of the request, the time stamp of the request, and the resources affected
+	// of the request, the timestamp of the request, and the resources affected
 	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
@@ -26620,7 +26861,7 @@ type StartRelationalDatabaseOutput struct {
 	_ struct{} `type:"structure"`
 
 	// An array of objects that describe the result of the action, such as the status
-	// of the request, the time stamp of the request, and the resources affected
+	// of the request, the timestamp of the request, and the resources affected
 	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
@@ -26795,7 +27036,7 @@ type StopInstanceOutput struct {
 	_ struct{} `type:"structure"`
 
 	// An array of objects that describe the result of the action, such as the status
-	// of the request, the time stamp of the request, and the resources affected
+	// of the request, the timestamp of the request, and the resources affected
 	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
@@ -26868,7 +27109,7 @@ type StopRelationalDatabaseOutput struct {
 	_ struct{} `type:"structure"`
 
 	// An array of objects that describe the result of the action, such as the status
-	// of the request, the time stamp of the request, and the resources affected
+	// of the request, the timestamp of the request, and the resources affected
 	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
@@ -26997,7 +27238,7 @@ type TagResourceOutput struct {
 	_ struct{} `type:"structure"`
 
 	// An array of objects that describe the result of the action, such as the status
-	// of the request, the time stamp of the request, and the resources affected
+	// of the request, the timestamp of the request, and the resources affected
 	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
@@ -27030,13 +27271,13 @@ type TestAlarmInput struct {
 	//
 	// An alarm has the following possible states that can be tested:
 	//
-	//    * ALARM — The metric is outside of the defined threshold.
+	//    * ALARM - The metric is outside of the defined threshold.
 	//
-	//    * INSUFFICIENT_DATA — The alarm has just started, the metric is not
-	//    available, or not enough data is available for the metric to determine
-	//    the alarm state.
+	//    * INSUFFICIENT_DATA - The alarm has just started, the metric is not available,
+	//    or not enough data is available for the metric to determine the alarm
+	//    state.
 	//
-	//    * OK — The metric is within the defined threshold.
+	//    * OK - The metric is within the defined threshold.
 	//
 	// State is a required field
 	State *string `locationName:"state" type:"string" required:"true" enum:"AlarmState"`
@@ -27084,7 +27325,7 @@ type TestAlarmOutput struct {
 	_ struct{} `type:"structure"`
 
 	// An array of objects that describe the result of the action, such as the status
-	// of the request, the time stamp of the request, and the resources affected
+	// of the request, the timestamp of the request, and the resources affected
 	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
@@ -27185,7 +27426,7 @@ type UnpeerVpcOutput struct {
 	_ struct{} `type:"structure"`
 
 	// An array of objects that describe the result of the action, such as the status
-	// of the request, the time stamp of the request, and the resources affected
+	// of the request, the timestamp of the request, and the resources affected
 	// by the request.
 	Operation *Operation `locationName:"operation" type:"structure"`
 }
@@ -27272,7 +27513,7 @@ type UntagResourceOutput struct {
 	_ struct{} `type:"structure"`
 
 	// An array of objects that describe the result of the action, such as the status
-	// of the request, the time stamp of the request, and the resources affected
+	// of the request, the timestamp of the request, and the resources affected
 	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
@@ -27349,7 +27590,7 @@ type UpdateDomainEntryOutput struct {
 	_ struct{} `type:"structure"`
 
 	// An array of objects that describe the result of the action, such as the status
-	// of the request, the time stamp of the request, and the resources affected
+	// of the request, the timestamp of the request, and the resources affected
 	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
@@ -27443,7 +27684,7 @@ type UpdateLoadBalancerAttributeOutput struct {
 	_ struct{} `type:"structure"`
 
 	// An array of objects that describe the result of the action, such as the status
-	// of the request, the time stamp of the request, and the resources affected
+	// of the request, the timestamp of the request, and the resources affected
 	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
@@ -27636,7 +27877,7 @@ type UpdateRelationalDatabaseOutput struct {
 	_ struct{} `type:"structure"`
 
 	// An array of objects that describe the result of the action, such as the status
-	// of the request, the time stamp of the request, and the resources affected
+	// of the request, the timestamp of the request, and the resources affected
 	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
@@ -27713,7 +27954,7 @@ type UpdateRelationalDatabaseParametersOutput struct {
 	_ struct{} `type:"structure"`
 
 	// An array of objects that describe the result of the action, such as the status
-	// of the request, the time stamp of the request, and the resources affected
+	// of the request, the timestamp of the request, and the resources affected
 	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
@@ -28318,6 +28559,9 @@ const (
 
 	// NetworkProtocolUdp is a NetworkProtocol enum value
 	NetworkProtocolUdp = "udp"
+
+	// NetworkProtocolIcmp is a NetworkProtocol enum value
+	NetworkProtocolIcmp = "icmp"
 )
 
 const (

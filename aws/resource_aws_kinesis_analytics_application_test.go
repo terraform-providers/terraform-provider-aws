@@ -2,14 +2,101 @@ package aws
 
 import (
 	"fmt"
+	"log"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/kinesisanalytics"
+	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/kinesisanalytics/waiter"
 )
+
+func init() {
+	resource.AddTestSweepers("aws_kinesis_analytics_application", &resource.Sweeper{
+		Name: "aws_kinesis_analytics_application",
+		F:    testSweepKinesisAnalyticsApplications,
+	})
+}
+
+func testSweepKinesisAnalyticsApplications(region string) error {
+	client, err := sharedClientForRegion(region)
+	if err != nil {
+		return fmt.Errorf("error getting client: %w", err)
+	}
+	conn := client.(*AWSClient).kinesisanalyticsconn
+	input := &kinesisanalytics.ListApplicationsInput{}
+	var sweeperErrs *multierror.Error
+
+	for {
+		output, err := conn.ListApplications(input)
+		if testSweepSkipSweepError(err) {
+			log.Printf("[WARN] Skipping Kinesis Analytics Application sweep for %s: %s", region, err)
+			return sweeperErrs.ErrorOrNil() // In case we have completed some pages, but had errors
+		}
+		if err != nil {
+			sweeperErrs = multierror.Append(sweeperErrs, fmt.Errorf("error retrieving Kinesis Analytics Applications: %w", err))
+			return sweeperErrs
+		}
+
+		var name string
+		for _, applicationSummary := range output.ApplicationSummaries {
+			name = aws.StringValue(applicationSummary.ApplicationName)
+
+			output, err := conn.DescribeApplication(&kinesisanalytics.DescribeApplicationInput{
+				ApplicationName: aws.String(name),
+			})
+			if isAWSErr(err, kinesisanalytics.ErrCodeResourceNotFoundException, "") {
+				continue
+			}
+			if err != nil {
+				sweeperErr := fmt.Errorf("error describing Kinesis Analytics Application (%s): %w", name, err)
+				log.Printf("[ERROR] %s", sweeperErr)
+				sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
+				continue
+			}
+
+			if output.ApplicationDetail == nil {
+				continue
+			}
+
+			log.Printf("[INFO] Deleting Kinesis Analytics Application: %s", name)
+			_, err = conn.DeleteApplication(&kinesisanalytics.DeleteApplicationInput{
+				ApplicationName: aws.String(name),
+				CreateTimestamp: output.ApplicationDetail.CreateTimestamp,
+			})
+			if isAWSErr(err, kinesisanalytics.ErrCodeResourceNotFoundException, "") {
+				continue
+			}
+			if err != nil {
+				sweeperErr := fmt.Errorf("error deleting Kinesis Analytics Application (%s): %w", name, err)
+				log.Printf("[ERROR] %s", sweeperErr)
+				sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
+				continue
+			}
+
+			_, err = waiter.ApplicationDeleted(conn, name)
+			if isAWSErr(err, kinesisanalytics.ErrCodeResourceNotFoundException, "") {
+				continue
+			}
+			if err != nil {
+				sweeperErr := fmt.Errorf("error waiting for Kinesis Analytics Application (%s) to be deleted: %w", name, err)
+				log.Printf("[ERROR] %s", sweeperErr)
+				sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
+				continue
+			}
+		}
+
+		if !aws.BoolValue(output.HasMoreApplications) {
+			break
+		}
+		input.ExclusiveStartApplicationName = aws.String(name)
+	}
+
+	return sweeperErrs.ErrorOrNil()
+}
 
 func TestAccAWSKinesisAnalyticsApplication_basic(t *testing.T) {
 	var application kinesisanalytics.ApplicationDetail

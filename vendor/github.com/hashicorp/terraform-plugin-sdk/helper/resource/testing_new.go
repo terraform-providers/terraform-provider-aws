@@ -14,13 +14,18 @@ import (
 	tftest "github.com/hashicorp/terraform-plugin-test"
 )
 
-func getState(t *testing.T, wd *tftest.WorkingDir) *terraform.State {
-	jsonState := wd.RequireState(t)
-	state, err := shimStateFromJson(jsonState)
-	if err != nil {
-		t.Fatal(err)
+func runPostTestDestroy(t *testing.T, c TestCase, wd *tftest.WorkingDir) error {
+	wd.RequireDestroy(t)
+
+	if c.CheckDestroy != nil {
+		statePostDestroy := getState(t, wd)
+
+		if err := c.CheckDestroy(statePostDestroy); err != nil {
+			return err
+		}
 	}
-	return state
+
+	return nil
 }
 
 func RunNewTest(t *testing.T, c TestCase, providers map[string]terraform.ResourceProvider) {
@@ -29,15 +34,12 @@ func RunNewTest(t *testing.T, c TestCase, providers map[string]terraform.Resourc
 	wd := acctest.TestHelper.RequireNewWorkingDir(t)
 
 	defer func() {
-		wd.RequireDestroy(t)
+		statePreDestroy := getState(t, wd)
 
-		if c.CheckDestroy != nil {
-			statePostDestroy := getState(t, wd)
-
-			if err := c.CheckDestroy(statePostDestroy); err != nil {
-				t.Fatal(err)
-			}
+		if !stateIsEmpty(statePreDestroy) {
+			runPostTestDestroy(t, c, wd)
 		}
+
 		wd.Close()
 	}()
 
@@ -98,6 +100,19 @@ func RunNewTest(t *testing.T, c TestCase, providers map[string]terraform.Resourc
 	}
 }
 
+func getState(t *testing.T, wd *tftest.WorkingDir) *terraform.State {
+	jsonState := wd.RequireState(t)
+	state, err := shimStateFromJson(jsonState)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return state
+}
+
+func stateIsEmpty(state *terraform.State) bool {
+	return state.Empty() || !state.HasResources()
+}
+
 func planIsEmpty(plan *tfjson.Plan) bool {
 	for _, rc := range plan.ResourceChanges {
 		if rc.Mode == tfjson.DataResourceMode {
@@ -114,6 +129,7 @@ func planIsEmpty(plan *tfjson.Plan) bool {
 	}
 	return true
 }
+
 func testIDRefresh(c TestCase, t *testing.T, wd *tftest.WorkingDir, step TestStep, r *terraform.ResourceState) error {
 	spewConf := spew.NewDefaultConfig()
 	spewConf.SortKeys = true

@@ -103,7 +103,7 @@ func resourceAwsAthenaWorkgroup() *schema.Resource {
 				ForceNew: true,
 				ValidateFunc: validation.All(
 					validation.StringLenBetween(1, 128),
-					validation.StringMatch(regexp.MustCompile(`^[a-zA-z0-9._-]+$`), "must contain only alphanumeric characters, periods, underscores, and hyphens"),
+					validation.StringMatch(regexp.MustCompile(`^[a-zA-Z0-9._-]+$`), "must contain only alphanumeric characters, periods, underscores, and hyphens"),
 				),
 			},
 			"state": {

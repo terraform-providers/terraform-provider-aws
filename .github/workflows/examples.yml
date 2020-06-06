@@ -23,15 +23,11 @@ jobs:
     - uses: actions/checkout@v2
       with:
         fetch-depth: 0
-    - name: git fetch tags
-      run: git fetch --depth=1 origin +refs/tags/*:refs/tags/*
-    - uses: actions/cache@v1
+    - uses: actions/cache@v2
       with:
         path: ~/go/pkg/mod
-        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-        restore-keys: |
-          ${{ runner.os }}-go-
-    - uses: actions/setup-go@v1
+        key: ${{ runner.os }}-go-pkg-mod-${{ hashFiles('go.sum') }}
+    - uses: actions/setup-go@v2
       with:
         go-version: ${{ matrix.go_version }}
     - name: go build

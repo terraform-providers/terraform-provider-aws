@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/secretsmanager/waiter"
 )
 
 func resourceAwsSecretsManagerSecret() *schema.Resource {
@@ -130,7 +131,7 @@ func resourceAwsSecretsManagerSecretCreate(d *schema.ResourceData, meta interfac
 
 	// Retry for secret recreation after deletion
 	var output *secretsmanager.CreateSecretOutput
-	err := resource.Retry(2*time.Minute, func() *resource.RetryError {
+	err := resource.Retry(waiter.DeletionPropagationTimeout, func() *resource.RetryError {
 		var err error
 		output, err = conn.CreateSecret(input)
 		// Temporarily retry on these errors to support immediate secret recreation:

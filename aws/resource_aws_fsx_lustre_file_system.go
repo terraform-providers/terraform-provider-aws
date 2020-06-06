@@ -87,7 +87,7 @@ func resourceAwsFsxLustreFileSystem() *schema.Resource {
 				ValidateFunc: validation.IntAtLeast(1200),
 			},
 			"subnet_ids": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Required: true,
 				ForceNew: true,
 				MinItems: 1,
@@ -119,7 +119,7 @@ func resourceAwsFsxLustreFileSystemCreate(d *schema.ResourceData, meta interface
 		ClientRequestToken: aws.String(resource.UniqueId()),
 		FileSystemType:     aws.String(fsx.FileSystemTypeLustre),
 		StorageCapacity:    aws.Int64(int64(d.Get("storage_capacity").(int))),
-		SubnetIds:          expandStringSet(d.Get("subnet_ids").(*schema.Set)),
+		SubnetIds:          expandStringList(d.Get("subnet_ids").([]interface{})),
 	}
 
 	if v, ok := d.GetOk("export_path"); ok {

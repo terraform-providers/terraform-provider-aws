@@ -20,6 +20,7 @@ func resourceAWSInspectorResourceGroup() *schema.Resource {
 				ForceNew: true,
 				Required: true,
 				Type:     schema.TypeMap,
+				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"arn": {
 				Type:     schema.TypeString,

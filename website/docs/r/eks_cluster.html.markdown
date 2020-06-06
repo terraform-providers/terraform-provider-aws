@@ -185,17 +185,17 @@ In addition to all arguments above, the following attributes are exported:
 * `id` - The name of the cluster.
 * `arn` - The Amazon Resource Name (ARN) of the cluster.
 * `certificate_authority` - Nested attribute containing `certificate-authority-data` for your cluster.
-  * `data` - The base64 encoded certificate data required to communicate with your cluster. Add this to the `certificate-authority-data` section of the `kubeconfig` file for your cluster.
+    * `data` - The base64 encoded certificate data required to communicate with your cluster. Add this to the `certificate-authority-data` section of the `kubeconfig` file for your cluster.
 * `endpoint` - The endpoint for your Kubernetes API server.
 * `identity` - Nested attribute containing identity provider information for your cluster. Only available on Kubernetes version 1.13 and 1.14 clusters created or upgraded on or after September 3, 2019.
-  * `oidc` - Nested attribute containing [OpenID Connect](https://openid.net/connect/) identity provider information for the cluster.
-    * `issuer` - Issuer URL for the OpenID Connect identity provider.
+    * `oidc` - Nested attribute containing [OpenID Connect](https://openid.net/connect/) identity provider information for the cluster.
+        * `issuer` - Issuer URL for the OpenID Connect identity provider.
 * `platform_version` - The platform version for the cluster.
 * `status` - The status of the EKS cluster. One of `CREATING`, `ACTIVE`, `DELETING`, `FAILED`. 
 * `version` - The Kubernetes server version for the cluster.
 * `vpc_config` - Additional nested attributes:
-  * `cluster_security_group_id` - The cluster security group that was created by Amazon EKS for the cluster.
-  * `vpc_id` - The VPC associated with your cluster.
+    * `cluster_security_group_id` - The cluster security group that was created by Amazon EKS for the cluster.
+    * `vpc_id` - The VPC associated with your cluster.
 
 ## Timeouts
 

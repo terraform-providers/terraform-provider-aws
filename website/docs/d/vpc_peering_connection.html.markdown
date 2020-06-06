@@ -77,10 +77,10 @@ which take the following arguments:
 All of the argument attributes except `filter` are also exported as result attributes.
 
 * `accepter` - A configuration block that describes [VPC Peering Connection]
-(http://docs.aws.amazon.com/AmazonVPC/latest/PeeringGuide) options set for the accepter VPC.
+(https://docs.aws.amazon.com/vpc/latest/peering/what-is-vpc-peering.html) options set for the accepter VPC.
 
 * `requester` - A configuration block that describes [VPC Peering Connection]
-(http://docs.aws.amazon.com/AmazonVPC/latest/PeeringGuide) options set for the requester VPC.
+(https://docs.aws.amazon.com/vpc/latest/peering/what-is-vpc-peering.html) options set for the requester VPC.
 
 #### Accepter and Requester Attributes Reference
 

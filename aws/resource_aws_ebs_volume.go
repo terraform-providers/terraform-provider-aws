@@ -126,7 +126,7 @@ func resourceAwsEbsVolumeCreate(d *schema.ResourceData, meta interface{}) error 
 
 	iops := d.Get("iops").(int)
 	if t != ec2.VolumeTypeIo1 && iops > 0 {
-		log.Printf("[WARN] IOPs is only valid for storate type io1 for EBS Volumes")
+		log.Printf("[WARN] IOPs is only valid on IO1 storage type for EBS Volumes")
 	} else if t == ec2.VolumeTypeIo1 {
 		// We add the iops value without validating it's size, to allow AWS to
 		// enforce a size requirement (currently 100)

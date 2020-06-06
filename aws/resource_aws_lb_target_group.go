@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/elbv2"
@@ -495,9 +496,29 @@ func resourceAwsLbTargetGroupUpdate(d *schema.ResourceData, meta interface{}) er
 func resourceAwsLbTargetGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	elbconn := meta.(*AWSClient).elbv2conn
 
-	_, err := elbconn.DeleteTargetGroup(&elbv2.DeleteTargetGroupInput{
+	input := &elbv2.DeleteTargetGroupInput{
 		TargetGroupArn: aws.String(d.Id()),
+	}
+
+	log.Printf("[DEBUG] Deleting Target Group (%s): %s", d.Id(), input)
+	err := resource.Retry(2*time.Minute, func() *resource.RetryError {
+		_, err := elbconn.DeleteTargetGroup(input)
+
+		if isAWSErr(err, "ResourceInUse", "is currently in use by a listener or a rule") {
+			return resource.RetryableError(err)
+		}
+
+		if err != nil {
+			return resource.NonRetryableError(err)
+		}
+
+		return nil
 	})
+
+	if isResourceTimeoutError(err) {
+		_, err = elbconn.DeleteTargetGroup(input)
+	}
+
 	if err != nil {
 		return fmt.Errorf("Error deleting Target Group: %s", err)
 	}

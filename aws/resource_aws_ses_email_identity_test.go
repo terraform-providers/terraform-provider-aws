@@ -13,6 +13,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
+func init() {
+	resource.AddTestSweepers("aws_ses_email_identity", &resource.Sweeper{
+		Name: "aws_ses_email_identity",
+		F:    func(region string) error { return testSweepSesIdentities(region, ses.IdentityTypeEmailAddress) },
+	})
+}
+
 func TestAccAWSSESEmailIdentity_basic(t *testing.T) {
 	email := fmt.Sprintf(
 		"%s@terraformtesting.com",

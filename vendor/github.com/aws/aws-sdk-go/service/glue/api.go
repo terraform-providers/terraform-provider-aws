@@ -11279,6 +11279,98 @@ func (c *Glue) StopTriggerWithContext(ctx aws.Context, input *StopTriggerInput, 
 	return out, req.Send()
 }
 
+const opStopWorkflowRun = "StopWorkflowRun"
+
+// StopWorkflowRunRequest generates a "aws/request.Request" representing the
+// client's request for the StopWorkflowRun operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See StopWorkflowRun for more information on using the StopWorkflowRun
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the StopWorkflowRunRequest method.
+//    req, resp := client.StopWorkflowRunRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/glue-2017-03-31/StopWorkflowRun
+func (c *Glue) StopWorkflowRunRequest(input *StopWorkflowRunInput) (req *request.Request, output *StopWorkflowRunOutput) {
+	op := &request.Operation{
+		Name:       opStopWorkflowRun,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &StopWorkflowRunInput{}
+	}
+
+	output = &StopWorkflowRunOutput{}
+	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
+	return
+}
+
+// StopWorkflowRun API operation for AWS Glue.
+//
+// Stops the execution of the specified workflow run.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Glue's
+// API operation StopWorkflowRun for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidInputException
+//   The input provided was not valid.
+//
+//   * EntityNotFoundException
+//   A specified entity does not exist
+//
+//   * InternalServiceException
+//   An internal service error occurred.
+//
+//   * OperationTimeoutException
+//   The operation timed out.
+//
+//   * IllegalWorkflowStateException
+//   The workflow is in an invalid state to perform a requested operation.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/glue-2017-03-31/StopWorkflowRun
+func (c *Glue) StopWorkflowRun(input *StopWorkflowRunInput) (*StopWorkflowRunOutput, error) {
+	req, out := c.StopWorkflowRunRequest(input)
+	return out, req.Send()
+}
+
+// StopWorkflowRunWithContext is the same as StopWorkflowRun with the addition of
+// the ability to pass a context and additional request options.
+//
+// See StopWorkflowRun for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Glue) StopWorkflowRunWithContext(ctx aws.Context, input *StopWorkflowRunInput, opts ...request.Option) (*StopWorkflowRunOutput, error) {
+	req, out := c.StopWorkflowRunRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opTagResource = "TagResource"
 
 // TagResourceRequest generates a "aws/request.Request" representing the
@@ -14843,8 +14935,9 @@ type Condition struct {
 	// A logical operator.
 	LogicalOperator *string `type:"string" enum:"LogicalOperator"`
 
-	// The condition state. Currently, the values supported are SUCCEEDED, STOPPED,
-	// TIMEOUT, and FAILED.
+	// The condition state. Currently, the only job states that a trigger can listen
+	// for are SUCCEEDED, STOPPED, FAILED, and TIMEOUT. The only crawler states
+	// that a trigger can listen for are SUCCEEDED, FAILED, and CANCELLED.
 	State *string `type:"string" enum:"JobRunState"`
 }
 
@@ -25095,6 +25188,63 @@ func (s *IdempotentParameterMismatchException) RequestID() string {
 	return s.RespMetadata.RequestID
 }
 
+// The workflow is in an invalid state to perform a requested operation.
+type IllegalWorkflowStateException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// A message describing the problem.
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s IllegalWorkflowStateException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s IllegalWorkflowStateException) GoString() string {
+	return s.String()
+}
+
+func newErrorIllegalWorkflowStateException(v protocol.ResponseMetadata) error {
+	return &IllegalWorkflowStateException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *IllegalWorkflowStateException) Code() string {
+	return "IllegalWorkflowStateException"
+}
+
+// Message returns the exception's message.
+func (s *IllegalWorkflowStateException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *IllegalWorkflowStateException) OrigErr() error {
+	return nil
+}
+
+func (s *IllegalWorkflowStateException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *IllegalWorkflowStateException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *IllegalWorkflowStateException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
 type ImportCatalogToGlueInput struct {
 	_ struct{} `type:"structure"`
 
@@ -25833,7 +25983,8 @@ type JobRun struct {
 	// The name of the job definition being used in this run.
 	JobName *string `min:"1" type:"string"`
 
-	// The current state of the job run.
+	// The current state of the job run. For more information about the statuses
+	// of jobs that have terminated abnormally, see AWS Glue Job Run Statuses (https://docs.aws.amazon.com/glue/latest/dg/job-run-statuses.html).
 	JobRunState *string `type:"string" enum:"JobRunState"`
 
 	// The last time that this job run was modified.
@@ -30302,6 +30453,78 @@ func (s *StopTriggerOutput) SetName(v string) *StopTriggerOutput {
 	return s
 }
 
+type StopWorkflowRunInput struct {
+	_ struct{} `type:"structure"`
+
+	// The name of the workflow to stop.
+	//
+	// Name is a required field
+	Name *string `min:"1" type:"string" required:"true"`
+
+	// The ID of the workflow run to stop.
+	//
+	// RunId is a required field
+	RunId *string `min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s StopWorkflowRunInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s StopWorkflowRunInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *StopWorkflowRunInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "StopWorkflowRunInput"}
+	if s.Name == nil {
+		invalidParams.Add(request.NewErrParamRequired("Name"))
+	}
+	if s.Name != nil && len(*s.Name) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Name", 1))
+	}
+	if s.RunId == nil {
+		invalidParams.Add(request.NewErrParamRequired("RunId"))
+	}
+	if s.RunId != nil && len(*s.RunId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("RunId", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetName sets the Name field's value.
+func (s *StopWorkflowRunInput) SetName(v string) *StopWorkflowRunInput {
+	s.Name = &v
+	return s
+}
+
+// SetRunId sets the RunId field's value.
+func (s *StopWorkflowRunInput) SetRunId(v string) *StopWorkflowRunInput {
+	s.RunId = &v
+	return s
+}
+
+type StopWorkflowRunOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s StopWorkflowRunOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s StopWorkflowRunOutput) GoString() string {
+	return s.String()
+}
+
 // Describes the physical storage of table data.
 type StorageDescriptor struct {
 	_ struct{} `type:"structure"`
@@ -34291,11 +34514,14 @@ const (
 	// CrawlStateRunning is a CrawlState enum value
 	CrawlStateRunning = "RUNNING"
 
-	// CrawlStateSucceeded is a CrawlState enum value
-	CrawlStateSucceeded = "SUCCEEDED"
+	// CrawlStateCancelling is a CrawlState enum value
+	CrawlStateCancelling = "CANCELLING"
 
 	// CrawlStateCancelled is a CrawlState enum value
 	CrawlStateCancelled = "CANCELLED"
+
+	// CrawlStateSucceeded is a CrawlState enum value
+	CrawlStateSucceeded = "SUCCEEDED"
 
 	// CrawlStateFailed is a CrawlState enum value
 	CrawlStateFailed = "FAILED"
@@ -34654,4 +34880,10 @@ const (
 
 	// WorkflowRunStatusCompleted is a WorkflowRunStatus enum value
 	WorkflowRunStatusCompleted = "COMPLETED"
+
+	// WorkflowRunStatusStopping is a WorkflowRunStatus enum value
+	WorkflowRunStatusStopping = "STOPPING"
+
+	// WorkflowRunStatusStopped is a WorkflowRunStatus enum value
+	WorkflowRunStatusStopped = "STOPPED"
 )

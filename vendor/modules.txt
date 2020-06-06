@@ -25,7 +25,7 @@ github.com/apparentlymart/go-cidr/cidr
 github.com/apparentlymart/go-textseg/textseg
 # github.com/armon/go-radix v1.0.0
 github.com/armon/go-radix
-# github.com/aws/aws-sdk-go v1.30.21
+# github.com/aws/aws-sdk-go v1.31.2
 github.com/aws/aws-sdk-go/aws
 github.com/aws/aws-sdk-go/aws/arn
 github.com/aws/aws-sdk-go/aws/awserr
@@ -165,6 +165,7 @@ github.com/aws/aws-sdk-go/service/mediastore
 github.com/aws/aws-sdk-go/service/mediastoredata
 github.com/aws/aws-sdk-go/service/mq
 github.com/aws/aws-sdk-go/service/neptune
+github.com/aws/aws-sdk-go/service/networkmanager
 github.com/aws/aws-sdk-go/service/opsworks
 github.com/aws/aws-sdk-go/service/organizations
 github.com/aws/aws-sdk-go/service/personalize
@@ -200,6 +201,7 @@ github.com/aws/aws-sdk-go/service/storagegateway
 github.com/aws/aws-sdk-go/service/sts
 github.com/aws/aws-sdk-go/service/sts/stsiface
 github.com/aws/aws-sdk-go/service/swf
+github.com/aws/aws-sdk-go/service/synthetics
 github.com/aws/aws-sdk-go/service/transfer
 github.com/aws/aws-sdk-go/service/waf
 github.com/aws/aws-sdk-go/service/wafregional
@@ -215,7 +217,7 @@ github.com/bflad/gopaniccheck/passes/logpaniccallexpr
 github.com/bflad/gopaniccheck/passes/logpanicfcallexpr
 github.com/bflad/gopaniccheck/passes/logpaniclncallexpr
 github.com/bflad/gopaniccheck/passes/paniccallexpr
-# github.com/bflad/tfproviderdocs v0.5.3
+# github.com/bflad/tfproviderdocs v0.6.0
 github.com/bflad/tfproviderdocs
 github.com/bflad/tfproviderdocs/check
 github.com/bflad/tfproviderdocs/check/sidenavigation
@@ -525,9 +527,9 @@ github.com/hashicorp/hcl/v2/json
 github.com/hashicorp/logutils
 # github.com/hashicorp/terraform-config-inspect v0.0.0-20191115094559-17f92b0546e8
 github.com/hashicorp/terraform-config-inspect/tfconfig
-# github.com/hashicorp/terraform-json v0.4.0
+# github.com/hashicorp/terraform-json v0.5.0
 github.com/hashicorp/terraform-json
-# github.com/hashicorp/terraform-plugin-sdk v1.9.0
+# github.com/hashicorp/terraform-plugin-sdk v1.13.1
 github.com/hashicorp/terraform-plugin-sdk/acctest
 github.com/hashicorp/terraform-plugin-sdk/helper/acctest
 github.com/hashicorp/terraform-plugin-sdk/helper/customdiff
@@ -579,7 +581,7 @@ github.com/hashicorp/terraform-plugin-sdk/internal/version
 github.com/hashicorp/terraform-plugin-sdk/meta
 github.com/hashicorp/terraform-plugin-sdk/plugin
 github.com/hashicorp/terraform-plugin-sdk/terraform
-# github.com/hashicorp/terraform-plugin-test v1.2.0
+# github.com/hashicorp/terraform-plugin-test v1.3.0
 github.com/hashicorp/terraform-plugin-test
 # github.com/hashicorp/terraform-svchost v0.0.0-20191011084731-65d371908596
 github.com/hashicorp/terraform-svchost

@@ -32,6 +32,7 @@ func testStepNewConfig(t *testing.T, c TestCase, wd *tftest.WorkingDir, step Tes
 
 		state := getState(t, wd)
 		if step.Check != nil {
+			state.IsBinaryDrivenTest = true
 			if err := step.Check(state); err != nil {
 				t.Fatal(err)
 			}

@@ -112,6 +112,10 @@ type State struct {
 	Modules []*ModuleState `json:"modules"`
 
 	mu sync.Mutex
+
+	// IsBinaryDrivenTest is a special flag that assists with a binary driver
+	// heuristic, it should not be set externally
+	IsBinaryDrivenTest bool
 }
 
 func (s *State) Lock()   { s.mu.Lock() }

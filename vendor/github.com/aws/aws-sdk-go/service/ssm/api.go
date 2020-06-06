@@ -45713,6 +45713,12 @@ const (
 
 	// OperatingSystemCentos is a OperatingSystem enum value
 	OperatingSystemCentos = "CENTOS"
+
+	// OperatingSystemOracleLinux is a OperatingSystem enum value
+	OperatingSystemOracleLinux = "ORACLE_LINUX"
+
+	// OperatingSystemDebian is a OperatingSystem enum value
+	OperatingSystemDebian = "DEBIAN"
 )
 
 const (

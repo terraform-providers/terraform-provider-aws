@@ -43,19 +43,10 @@ func resourceAwsIamRole() *schema.Resource {
 				Computed:      true,
 				ForceNew:      true,
 				ConflictsWith: []string{"name_prefix"},
-				ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-					// https://github.com/boto/botocore/blob/2485f5c/botocore/data/iam/2010-05-08/service-2.json#L8329-L8334
-					value := v.(string)
-					if len(value) > 64 {
-						errors = append(errors, fmt.Errorf(
-							"%q cannot be longer than 64 characters", k))
-					}
-					if !regexp.MustCompile(`^[\w+=,.@-]*$`).MatchString(value) {
-						errors = append(errors, fmt.Errorf(
-							"%q must match [\\w+=,.@-]", k))
-					}
-					return
-				},
+				ValidateFunc: validation.All(
+					validation.StringLenBetween(1, 64),
+					validation.StringMatch(regexp.MustCompile(`^[\w+=,.@-]*$`), "must match [\\w+=,.@-]"),
+				),
 			},
 
 			"name_prefix": {
@@ -63,19 +54,10 @@ func resourceAwsIamRole() *schema.Resource {
 				Optional:      true,
 				ForceNew:      true,
 				ConflictsWith: []string{"name"},
-				ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-					// https://github.com/boto/botocore/blob/2485f5c/botocore/data/iam/2010-05-08/service-2.json#L8329-L8334
-					value := v.(string)
-					if len(value) > 32 {
-						errors = append(errors, fmt.Errorf(
-							"%q cannot be longer than 32 characters, name is limited to 64", k))
-					}
-					if !regexp.MustCompile(`^[\w+=,.@-]*$`).MatchString(value) {
-						errors = append(errors, fmt.Errorf(
-							"%q must match [\\w+=,.@-]", k))
-					}
-					return
-				},
+				ValidateFunc: validation.All(
+					validation.StringLenBetween(1, 32),
+					validation.StringMatch(regexp.MustCompile(`^[\w+=,.@-]*$`), "must match [\\w+=,.@-]"),
+				),
 			},
 
 			"path": {

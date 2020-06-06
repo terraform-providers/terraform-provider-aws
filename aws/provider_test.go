@@ -21,6 +21,7 @@ import (
 )
 
 const rfc3339RegexPattern = `^[0-9]{4}-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])[Tt]([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](\.[0-9]+)?([Zz]|([+-]([01][0-9]|2[0-3]):[0-5][0-9]))$`
+const uuidRegexPattern = `[a-f0-9]{8}-[a-f0-9]{4}-[1-5][a-f0-9]{3}-[ab89][a-f0-9]{3}-[a-f0-9]{12}`
 
 var testAccProviders map[string]terraform.ResourceProvider
 var testAccProviderFactories func(providers *[]*schema.Provider) map[string]terraform.ResourceProviderFactory
@@ -125,6 +126,20 @@ func testAccCheckResourceAttrRegionalARNNoAccount(resourceName, attributeName, a
 	}
 }
 
+// testAccCheckResourceAttrRegionalARNAccountID ensures the Terraform state exactly matches a formatted ARN with region and specific account ID
+func testAccCheckResourceAttrRegionalARNAccountID(resourceName, attributeName, arnService, accountID, arnResource string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		attributeValue := arn.ARN{
+			AccountID: accountID,
+			Partition: testAccGetPartition(),
+			Region:    testAccGetRegion(),
+			Resource:  arnResource,
+			Service:   arnService,
+		}.String()
+		return resource.TestCheckResourceAttr(resourceName, attributeName, attributeValue)(s)
+	}
+}
+
 // testAccMatchResourceAttrRegionalARN ensures the Terraform state regexp matches a formatted ARN with region
 func testAccMatchResourceAttrRegionalARN(resourceName, attributeName, arnService string, arnResourceRegexp *regexp.Regexp) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
@@ -150,6 +165,27 @@ func testAccMatchResourceAttrRegionalARN(resourceName, attributeName, arnService
 func testAccMatchResourceAttrRegionalARNNoAccount(resourceName, attributeName, arnService string, arnResourceRegexp *regexp.Regexp) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		arnRegexp := arn.ARN{
+			Partition: testAccGetPartition(),
+			Region:    testAccGetRegion(),
+			Resource:  arnResourceRegexp.String(),
+			Service:   arnService,
+		}.String()
+
+		attributeMatch, err := regexp.Compile(arnRegexp)
+
+		if err != nil {
+			return fmt.Errorf("Unable to compile ARN regexp (%s): %s", arnRegexp, err)
+		}
+
+		return resource.TestMatchResourceAttr(resourceName, attributeName, attributeMatch)(s)
+	}
+}
+
+// testAccMatchResourceAttrRegionalARNAccountID ensures the Terraform state regexp matches a formatted ARN with region and specific account ID
+func testAccMatchResourceAttrRegionalARNAccountID(resourceName, attributeName, arnService, accountID string, arnResourceRegexp *regexp.Regexp) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		arnRegexp := arn.ARN{
+			AccountID: accountID,
 			Partition: testAccGetPartition(),
 			Region:    testAccGetRegion(),
 			Resource:  arnResourceRegexp.String(),
@@ -198,6 +234,19 @@ func testAccCheckResourceAttrGlobalARN(resourceName, attributeName, arnService, 
 func testAccCheckResourceAttrGlobalARNNoAccount(resourceName, attributeName, arnService, arnResource string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		attributeValue := arn.ARN{
+			Partition: testAccGetPartition(),
+			Resource:  arnResource,
+			Service:   arnService,
+		}.String()
+		return resource.TestCheckResourceAttr(resourceName, attributeName, attributeValue)(s)
+	}
+}
+
+// testAccCheckResourceAttrGlobalARNAccountID ensures the Terraform state exactly matches a formatted ARN without region and with specific account ID
+func testAccCheckResourceAttrGlobalARNAccountID(resourceName, attributeName, accountID, arnService, arnResource string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		attributeValue := arn.ARN{
+			AccountID: accountID,
 			Partition: testAccGetPartition(),
 			Resource:  arnResource,
 			Service:   arnService,
@@ -325,7 +374,7 @@ func primaryInstanceState(s *terraform.State, name string) (*terraform.InstanceS
 }
 
 // testAccGetAccountID returns the account ID of testAccProvider
-// Must be used returned within a resource.TestCheckFunc
+// Must be used within a resource.TestCheckFunc
 func testAccGetAccountID() string {
 	return testAccAwsProviderAccountID(testAccProvider)
 }
@@ -342,6 +391,14 @@ func testAccGetAlternateRegion() string {
 	v := os.Getenv("AWS_ALTERNATE_REGION")
 	if v == "" {
 		return "us-east-1"
+	}
+	return v
+}
+
+func testAccGetThirdRegion() string {
+	v := os.Getenv("AWS_THIRD_REGION")
+	if v == "" {
+		return "us-east-2"
 	}
 	return v
 }
@@ -367,6 +424,13 @@ func testAccGetAlternateRegionPartition() string {
 	return "aws"
 }
 
+func testAccGetThirdRegionPartition() string {
+	if partition, ok := endpoints.PartitionForRegion(endpoints.DefaultPartitions(), testAccGetThirdRegion()); ok {
+		return partition.ID()
+	}
+	return "aws"
+}
+
 func testAccAlternateAccountPreCheck(t *testing.T) {
 	if os.Getenv("AWS_ALTERNATE_PROFILE") == "" && os.Getenv("AWS_ALTERNATE_ACCESS_KEY_ID") == "" {
 		t.Fatal("AWS_ALTERNATE_ACCESS_KEY_ID or AWS_ALTERNATE_PROFILE must be set for acceptance tests")
@@ -377,6 +441,7 @@ func testAccAlternateAccountPreCheck(t *testing.T) {
 	}
 }
 
+// Deprecated: Use testAccMultipleRegionPreCheck instead
 func testAccAlternateRegionPreCheck(t *testing.T) {
 	if testAccGetRegion() == testAccGetAlternateRegion() {
 		t.Fatal("AWS_DEFAULT_REGION and AWS_ALTERNATE_REGION must be set to different values for acceptance tests")
@@ -415,6 +480,37 @@ func testAccPartitionHasServicePreCheck(serviceId string, t *testing.T) {
 	}
 }
 
+func testAccMultipleRegionPreCheck(t *testing.T, regions int) {
+	if testAccGetRegion() == testAccGetAlternateRegion() {
+		t.Fatal("AWS_DEFAULT_REGION and AWS_ALTERNATE_REGION must be set to different values for acceptance tests")
+	}
+
+	if testAccGetPartition() != testAccGetAlternateRegionPartition() {
+		t.Fatalf("AWS_ALTERNATE_REGION partition (%s) does not match AWS_DEFAULT_REGION partition (%s)", testAccGetAlternateRegionPartition(), testAccGetPartition())
+	}
+
+	if regions >= 3 {
+		if testAccGetRegion() == testAccGetThirdRegion() {
+			t.Fatal("AWS_DEFAULT_REGION and AWS_THIRD_REGION must be set to different values for acceptance tests")
+		}
+
+		if testAccGetAlternateRegion() == testAccGetThirdRegion() {
+			t.Fatal("AWS_ALTERNATE_REGION and AWS_THIRD_REGION must be set to different values for acceptance tests")
+		}
+
+		if testAccGetPartition() != testAccGetThirdRegionPartition() {
+			t.Fatalf("AWS_THIRD_REGION partition (%s) does not match AWS_DEFAULT_REGION partition (%s)", testAccGetThirdRegionPartition(), testAccGetPartition())
+		}
+	}
+
+	if partition, ok := endpoints.PartitionForRegion(endpoints.DefaultPartitions(), testAccGetRegion()); ok {
+		if len(partition.Regions()) < regions {
+			t.Skipf("skipping tests; partition includes %d regions, %d expected", len(partition.Regions()), regions)
+		}
+	}
+}
+
+// Deprecated: Use testAccMultipleRegionPreCheck instead.
 func testAccMultipleRegionsPreCheck(t *testing.T) {
 	if partition, ok := endpoints.PartitionForRegion(endpoints.DefaultPartitions(), testAccGetRegion()); ok {
 		if len(partition.Regions()) < 2 {
@@ -500,6 +596,7 @@ provider "aws" {
 `, os.Getenv("AWS_ALTERNATE_ACCESS_KEY_ID"), os.Getenv("AWS_ALTERNATE_PROFILE"), testAccGetAlternateRegion(), os.Getenv("AWS_ALTERNATE_SECRET_ACCESS_KEY"))
 }
 
+// Deprecated: Use testAccMultipleRegionProviderConfig instead
 func testAccAlternateRegionProviderConfig() string {
 	//lintignore:AT004
 	return fmt.Sprintf(`
@@ -508,6 +605,30 @@ provider "aws" {
   region = %[1]q
 }
 `, testAccGetAlternateRegion())
+}
+
+func testAccMultipleRegionProviderConfig(regions int) string {
+	var config strings.Builder
+
+	//lintignore:AT004
+	fmt.Fprintf(&config, `
+provider "aws" {
+  alias  = "alternate"
+  region = %[1]q
+}
+`, testAccGetAlternateRegion())
+
+	if regions >= 3 {
+		//lintignore:AT004
+		fmt.Fprintf(&config, `
+provider "aws" {
+  alias  = "third"
+  region = %[1]q
+}
+`, testAccGetThirdRegion())
+	}
+
+	return config.String()
 }
 
 func testAccProviderConfigIgnoreTagsKeyPrefixes1(keyPrefix1 string) string {
@@ -676,6 +797,10 @@ func testSweepSkipSweepError(err error) bool {
 	}
 	// Example: InvalidAction: The action DescribeTransitGatewayAttachments is not valid for this web service
 	if isAWSErr(err, "InvalidAction", "is not valid") {
+		return true
+	}
+	// For example from GovCloud SES.SetActiveReceiptRuleSet.
+	if isAWSErr(err, "InvalidAction", "Unavailable Operation") {
 		return true
 	}
 	return false
@@ -920,6 +1045,24 @@ func TestAccAWSProvider_Region_AwsGovCloudUs(t *testing.T) {
 					testAccCheckAWSProviderPartition(&providers, "aws-us-gov"),
 				),
 				PlanOnly: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSProvider_AssumeRole_Empty(t *testing.T) {
+	var providers []*schema.Provider
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories(&providers),
+		CheckDestroy:      nil,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckAWSProviderConfigAssumeRoleEmpty,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsCallerIdentityAccountId("data.aws_caller_identity.current"),
+				),
 			},
 		},
 	})
@@ -1446,6 +1589,15 @@ provider "aws" {
 }
 `, os.Getenv("TF_ACC_ASSUME_ROLE_ARN"), policy)
 }
+
+const testAccCheckAWSProviderConfigAssumeRoleEmpty = `
+provider "aws" {
+  assume_role {
+  }
+}
+
+data "aws_caller_identity" "current" {}
+`
 
 // composeConfig can be called to concatenate multiple strings to build test configurations
 func composeConfig(config ...string) string {

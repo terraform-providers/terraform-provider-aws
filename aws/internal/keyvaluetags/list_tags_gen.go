@@ -75,6 +75,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/mediastore"
 	"github.com/aws/aws-sdk-go/service/mq"
 	"github.com/aws/aws-sdk-go/service/neptune"
+	"github.com/aws/aws-sdk-go/service/networkmanager"
 	"github.com/aws/aws-sdk-go/service/opsworks"
 	"github.com/aws/aws-sdk-go/service/organizations"
 	"github.com/aws/aws-sdk-go/service/pinpoint"
@@ -1304,6 +1305,23 @@ func NeptuneListTags(conn *neptune.Neptune, identifier string) (KeyValueTags, er
 	}
 
 	return NeptuneKeyValueTags(output.TagList), nil
+}
+
+// NetworkmanagerListTags lists networkmanager service tags.
+// The identifier is typically the Amazon Resource Name (ARN), although
+// it may also be a different identifier depending on the service.
+func NetworkmanagerListTags(conn *networkmanager.NetworkManager, identifier string) (KeyValueTags, error) {
+	input := &networkmanager.ListTagsForResourceInput{
+		ResourceArn: aws.String(identifier),
+	}
+
+	output, err := conn.ListTagsForResource(input)
+
+	if err != nil {
+		return New(nil), err
+	}
+
+	return NetworkmanagerKeyValueTags(output.TagList), nil
 }
 
 // OpsworksListTags lists opsworks service tags.

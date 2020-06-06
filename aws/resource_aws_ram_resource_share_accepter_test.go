@@ -17,6 +17,8 @@ import (
 func TestAccAwsRamResourceShareAccepter_basic(t *testing.T) {
 	var providers []*schema.Provider
 	resourceName := "aws_ram_resource_share_accepter.test"
+	principalAssociationResourceName := "aws_ram_principal_association.test"
+
 	shareName := fmt.Sprintf("tf-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -31,11 +33,11 @@ func TestAccAwsRamResourceShareAccepter_basic(t *testing.T) {
 				Config: testAccAwsRamResourceShareAccepterBasic(shareName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsRamResourceShareAccepterExists(resourceName),
-					resource.TestMatchResourceAttr(resourceName, "share_arn", regexp.MustCompile(`^arn\:aws\:ram\:.*resource-share/.+$`)),
-					resource.TestMatchResourceAttr(resourceName, "invitation_arn", regexp.MustCompile(`^arn\:aws\:ram\:.*resource-share-invitation/.+$`)),
-					resource.TestMatchResourceAttr(resourceName, "share_id", regexp.MustCompile(`^rs-.+$`)),
+					resource.TestCheckResourceAttrPair(resourceName, "share_arn", principalAssociationResourceName, "resource_share_arn"),
+					testAccMatchResourceAttrRegionalARNAccountID(resourceName, "invitation_arn", "ram", `\d{12}`, regexp.MustCompile(fmt.Sprintf("resource-share-invitation/%s$", uuidRegexPattern))),
+					resource.TestMatchResourceAttr(resourceName, "share_id", regexp.MustCompile(fmt.Sprintf(`^rs-%s$`, uuidRegexPattern))),
 					resource.TestCheckResourceAttr(resourceName, "status", ram.ResourceShareStatusActive),
-					resource.TestMatchResourceAttr(resourceName, "receiver_account_id", regexp.MustCompile(`\d{12}`)),
+					testAccCheckResourceAttrAccountID(resourceName, "receiver_account_id"),
 					resource.TestMatchResourceAttr(resourceName, "sender_account_id", regexp.MustCompile(`\d{12}`)),
 					resource.TestCheckResourceAttr(resourceName, "share_name", shareName),
 					resource.TestCheckResourceAttr(resourceName, "resources.%", "0"),
@@ -106,6 +108,10 @@ func testAccCheckAwsRamResourceShareAccepterExists(name string) resource.TestChe
 
 func testAccAwsRamResourceShareAccepterBasic(shareName string) string {
 	return testAccAlternateAccountProviderConfig() + fmt.Sprintf(`
+resource "aws_ram_resource_share_accepter" "test" {
+  share_arn = "${aws_ram_principal_association.test.resource_share_arn}"
+}
+
 resource "aws_ram_resource_share" "test" {
   provider = "aws.alternate"
 
@@ -125,9 +131,5 @@ resource "aws_ram_principal_association" "test" {
 }
 
 data "aws_caller_identity" "receiver" {}
-
-resource "aws_ram_resource_share_accepter" "test" {
-  share_arn = "${aws_ram_principal_association.test.resource_share_arn}"
-}
 `, shareName)
 }

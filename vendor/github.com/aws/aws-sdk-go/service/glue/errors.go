@@ -74,6 +74,12 @@ const (
 	// The same unique identifier was associated with two different records.
 	ErrCodeIdempotentParameterMismatchException = "IdempotentParameterMismatchException"
 
+	// ErrCodeIllegalWorkflowStateException for service response error code
+	// "IllegalWorkflowStateException".
+	//
+	// The workflow is in an invalid state to perform a requested operation.
+	ErrCodeIllegalWorkflowStateException = "IllegalWorkflowStateException"
+
 	// ErrCodeInternalServiceException for service response error code
 	// "InternalServiceException".
 	//
@@ -153,6 +159,7 @@ var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
 	"GlueEncryptionException":              newErrorEncryptionException,
 	"EntityNotFoundException":              newErrorEntityNotFoundException,
 	"IdempotentParameterMismatchException": newErrorIdempotentParameterMismatchException,
+	"IllegalWorkflowStateException":        newErrorIllegalWorkflowStateException,
 	"InternalServiceException":             newErrorInternalServiceException,
 	"InvalidInputException":                newErrorInvalidInputException,
 	"MLTransformNotReadyException":         newErrorMLTransformNotReadyException,

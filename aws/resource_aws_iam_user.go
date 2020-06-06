@@ -43,9 +43,12 @@ func resourceAwsIamUser() *schema.Resource {
 				Computed: true,
 			},
 			"name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: validateAwsIamUserName,
+				Type:     schema.TypeString,
+				Required: true,
+				ValidateFunc: validation.StringMatch(
+					regexp.MustCompile(`^[0-9A-Za-z=,.@\-_+]+$`),
+					fmt.Sprintf("must only contain alphanumeric characters, hyphens, underscores, commas, periods, @ symbols, plus and equals signs"),
+				),
 			},
 			"path": {
 				Type:     schema.TypeString,
@@ -247,16 +250,6 @@ func resourceAwsIamUserDelete(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	return nil
-}
-
-func validateAwsIamUserName(v interface{}, k string) (ws []string, errors []error) {
-	value := v.(string)
-	if !regexp.MustCompile(`^[0-9A-Za-z=,.@\-_+]+$`).MatchString(value) {
-		errors = append(errors, fmt.Errorf(
-			"only alphanumeric characters, hyphens, underscores, commas, periods, @ symbols, plus and equals signs allowed in %q: %q",
-			k, value))
-	}
-	return
 }
 
 func deleteAwsIamUserGroupMemberships(conn *iam.IAM, username string) error {

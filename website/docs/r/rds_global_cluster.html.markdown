@@ -3,12 +3,12 @@ subcategory: "RDS"
 layout: "aws"
 page_title: "AWS: aws_rds_global_cluster"
 description: |-
-  Manages a RDS Global Cluster
+  Manages an RDS Global Cluster
 ---
 
 # Resource: aws_rds_global_cluster
 
-Manages a RDS Global Cluster, which is an Aurora global database spread across multiple regions. The global database contains a single primary cluster with read-write capability, and a read-only secondary cluster that receives data from the primary cluster through high-speed replication performed by the Aurora storage subsystem.
+Manages an RDS Global Cluster, which is an Aurora global database spread across multiple regions. The global database contains a single primary cluster with read-write capability, and a read-only secondary cluster that receives data from the primary cluster through high-speed replication performed by the Aurora storage subsystem.
 
 More information about Aurora global databases can be found in the [Aurora User Guide](https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-global-database.html#aurora-global-database-creating).
 

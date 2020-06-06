@@ -15,6 +15,10 @@ import (
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
+const (
+	apigatewayv2DefaultStageName = "$default"
+)
+
 func resourceAwsApiGatewayV2Stage() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceAwsApiGatewayV2StageCreate,
@@ -93,6 +97,13 @@ func resourceAwsApiGatewayV2Stage() *schema.Resource {
 								apigatewayv2.LoggingLevelInfo,
 								apigatewayv2.LoggingLevelOff,
 							}, false),
+							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+								// Not set for HTTP APIs.
+								if old == "" && new == apigatewayv2.LoggingLevelOff {
+									return true
+								}
+								return false
+							},
 						},
 						"throttling_burst_limit": {
 							Type:     schema.TypeInt,
@@ -261,15 +272,6 @@ func resourceAwsApiGatewayV2StageRead(d *schema.ResourceData, meta interface{}) 
 	}
 	d.Set("deployment_id", resp.DeploymentId)
 	d.Set("description", resp.Description)
-	executionArn := arn.ARN{
-		Partition: meta.(*AWSClient).partition,
-		Service:   "execute-api",
-		Region:    region,
-		AccountID: meta.(*AWSClient).accountid,
-		Resource:  fmt.Sprintf("%s/%s", apiId, stageName),
-	}.String()
-	d.Set("execution_arn", executionArn)
-	d.Set("invoke_url", fmt.Sprintf("wss://%s.execute-api.%s.amazonaws.com/%s", apiId, region, stageName))
 	d.Set("name", stageName)
 	err = d.Set("route_settings", flattenApiGatewayV2RouteSettings(resp.RouteSettings))
 	if err != nil {
@@ -281,6 +283,33 @@ func resourceAwsApiGatewayV2StageRead(d *schema.ResourceData, meta interface{}) 
 	}
 	if err := d.Set("tags", keyvaluetags.Apigatewayv2KeyValueTags(resp.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
+	}
+
+	apiOutput, err := conn.GetApi(&apigatewayv2.GetApiInput{
+		ApiId: aws.String(apiId),
+	})
+	if err != nil {
+		return fmt.Errorf("error reading API Gateway v2 API (%s): %s", apiId, err)
+	}
+
+	switch aws.StringValue(apiOutput.ProtocolType) {
+	case apigatewayv2.ProtocolTypeWebsocket:
+		executionArn := arn.ARN{
+			Partition: meta.(*AWSClient).partition,
+			Service:   "execute-api",
+			Region:    region,
+			AccountID: meta.(*AWSClient).accountid,
+			Resource:  fmt.Sprintf("%s/%s", apiId, stageName),
+		}.String()
+		d.Set("execution_arn", executionArn)
+		d.Set("invoke_url", fmt.Sprintf("wss://%s.execute-api.%s.amazonaws.com/%s", apiId, region, stageName))
+	case apigatewayv2.ProtocolTypeHttp:
+		d.Set("execution_arn", "")
+		if stageName == apigatewayv2DefaultStageName {
+			d.Set("invoke_url", fmt.Sprintf("https://%s.execute-api.%s.amazonaws.com/", apiId, region))
+		} else {
+			d.Set("invoke_url", fmt.Sprintf("https://%s.execute-api.%s.amazonaws.com/%s", apiId, region, stageName))
+		}
 	}
 
 	return nil

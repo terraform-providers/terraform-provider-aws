@@ -38,6 +38,7 @@ func resourceAwsGlueTrigger() *schema.Resource {
 						"arguments": {
 							Type:     schema.TypeMap,
 							Optional: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
 						"crawler_name": {
 							Type:     schema.TypeString,

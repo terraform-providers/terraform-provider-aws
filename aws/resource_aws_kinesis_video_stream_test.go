@@ -156,7 +156,7 @@ func TestAccAWSKinesisVideoStream_disappears(t *testing.T) {
 				Config: testAccKinesisVideoStreamConfig(rInt),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckKinesisVideoStreamExists(resourceName, &stream),
-					testAccCheckKinesisVideoStreamDisappears(resourceName, &stream),
+					testAccCheckKinesisVideoStreamDisappears(resourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -164,7 +164,7 @@ func TestAccAWSKinesisVideoStream_disappears(t *testing.T) {
 	})
 }
 
-func testAccCheckKinesisVideoStreamDisappears(resourceName string, stream *kinesisvideo.StreamInfo) resource.TestCheckFunc {
+func testAccCheckKinesisVideoStreamDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := testAccProvider.Meta().(*AWSClient).kinesisvideoconn
 

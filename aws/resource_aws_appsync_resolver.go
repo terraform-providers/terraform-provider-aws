@@ -77,6 +77,27 @@ func resourceAwsAppsyncResolver() *schema.Resource {
 					},
 				},
 			},
+			"caching_config": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"caching_keys": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+							Set: schema.HashString,
+						},
+						"ttl": {
+							Type:     schema.TypeInt,
+							Optional: true,
+						},
+					},
+				},
+			},
 			"arn": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -106,6 +127,10 @@ func resourceAwsAppsyncResolverCreate(d *schema.ResourceData, meta interface{}) 
 		input.PipelineConfig = &appsync.PipelineConfig{
 			Functions: expandStringList(config["functions"].([]interface{})),
 		}
+	}
+
+	if v, ok := d.GetOk("caching_config"); ok {
+		input.CachingConfig = expandAppsyncResolverCachingConfig(v.([]interface{}))
 	}
 
 	mutexKey := fmt.Sprintf("appsync-schema-%s", d.Get("api_id").(string))
@@ -165,6 +190,10 @@ func resourceAwsAppsyncResolverRead(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("Error setting pipeline_config: %s", err)
 	}
 
+	if err := d.Set("caching_config", flattenAppsyncCachingConfig(resp.Resolver.CachingConfig)); err != nil {
+		return fmt.Errorf("Error setting caching_config: %s", err)
+	}
+
 	return nil
 }
 
@@ -189,6 +218,10 @@ func resourceAwsAppsyncResolverUpdate(d *schema.ResourceData, meta interface{}) 
 		input.PipelineConfig = &appsync.PipelineConfig{
 			Functions: expandStringList(config["functions"].([]interface{})),
 		}
+	}
+
+	if v, ok := d.GetOk("caching_config"); ok {
+		input.CachingConfig = expandAppsyncResolverCachingConfig(v.([]interface{}))
 	}
 
 	mutexKey := fmt.Sprintf("appsync-schema-%s", d.Get("api_id").(string))
@@ -242,4 +275,55 @@ func decodeAppsyncResolverID(id string) (string, string, string, error) {
 		return "", "", "", fmt.Errorf("expected ID in format ApiID-TypeName-FieldName, received: %s", id)
 	}
 	return idParts[0], idParts[1], idParts[2], nil
+}
+
+func expandAppsyncResolverCachingConfig(l []interface{}) *appsync.CachingConfig {
+	if len(l) < 1 || l[0] == nil {
+		return nil
+	}
+
+	m := l[0].(map[string]interface{})
+
+	cachingConfig := &appsync.CachingConfig{
+		CachingKeys: expandStringSet(m["caching_keys"].(*schema.Set)),
+	}
+
+	if v, ok := m["ttl"].(int); ok && v != 0 {
+		cachingConfig.Ttl = aws.Int64(int64(v))
+	}
+
+	return cachingConfig
+}
+
+func flattenAppsyncPipelineConfig(c *appsync.PipelineConfig) []interface{} {
+	if c == nil {
+		return nil
+	}
+
+	if len(c.Functions) == 0 {
+		return nil
+	}
+
+	m := map[string]interface{}{
+		"functions": flattenStringList(c.Functions),
+	}
+
+	return []interface{}{m}
+}
+
+func flattenAppsyncCachingConfig(c *appsync.CachingConfig) []interface{} {
+	if c == nil {
+		return nil
+	}
+
+	if len(c.CachingKeys) == 0 && *(c.Ttl) == 0 {
+		return nil
+	}
+
+	m := map[string]interface{}{
+		"caching_keys": flattenStringSet(c.CachingKeys),
+		"ttl":          int(aws.Int64Value(c.Ttl)),
+	}
+
+	return []interface{}{m}
 }

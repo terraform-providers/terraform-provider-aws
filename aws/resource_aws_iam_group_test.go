@@ -13,43 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
-func TestValidateIamGroupName(t *testing.T) {
-	validNames := []string{
-		"test-group",
-		"test_group",
-		"testgroup123",
-		"TestGroup",
-		"Test-Group",
-		"test.group",
-		"test.123,group",
-		"testgroup@hashicorp",
-		"test+group@hashicorp.com",
-	}
-	for _, v := range validNames {
-		_, errs := validateAwsIamGroupName(v, "name")
-		if len(errs) != 0 {
-			t.Fatalf("%q should be a valid IAM Group name: %q", v, errs)
-		}
-	}
-
-	invalidNames := []string{
-		"!",
-		"/",
-		" ",
-		":",
-		";",
-		"test name",
-		"/slash-at-the-beginning",
-		"slash-at-the-end/",
-	}
-	for _, v := range invalidNames {
-		_, errs := validateAwsIamGroupName(v, "name")
-		if len(errs) == 0 {
-			t.Fatalf("%q should be an invalid IAM Group name", v)
-		}
-	}
-}
-
 func TestAccAWSIAMGroup_basic(t *testing.T) {
 	var conf iam.GetGroupOutput
 	resourceName := "aws_iam_group.test"

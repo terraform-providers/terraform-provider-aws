@@ -31,6 +31,11 @@ func dataSourceAwsRdsCluster() *schema.Resource {
 				Set:      schema.HashString,
 			},
 
+			"backtrack_window": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
+
 			"backup_retention_period": {
 				Type:     schema.TypeInt,
 				Computed: true,

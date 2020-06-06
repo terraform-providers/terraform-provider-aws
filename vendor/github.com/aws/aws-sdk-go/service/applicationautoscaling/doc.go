@@ -26,7 +26,7 @@
 //
 //    * AWS Lambda function provisioned concurrency
 //
-//    * Amazon Keyspaces for Apache Cassandra tables
+//    * Amazon Keyspaces (for Apache Cassandra) tables
 //
 // API Summary
 //

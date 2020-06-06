@@ -151,7 +151,7 @@ func resourceAwsRamResourceShareAccepterRead(d *schema.ResourceData, meta interf
 
 	shares, err := conn.GetResourceShares(listResourceSharesInput)
 	if err != nil {
-		return fmt.Errorf("Error retrieving resource shares: %s", err)
+		return fmt.Errorf("error retrieving resource shares: %w", err)
 	}
 
 	if len(shares.ResourceShares) != 1 {

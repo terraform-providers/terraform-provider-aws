@@ -147,7 +147,7 @@ func resourceAwsFsxWindowsFileSystem() *schema.Resource {
 				ValidateFunc: validation.IntBetween(32, 65536),
 			},
 			"subnet_ids": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Required: true,
 				ForceNew: true,
 				MinItems: 1,
@@ -185,7 +185,7 @@ func resourceAwsFsxWindowsFileSystemCreate(d *schema.ResourceData, meta interfac
 		ClientRequestToken: aws.String(resource.UniqueId()),
 		FileSystemType:     aws.String(fsx.FileSystemTypeWindows),
 		StorageCapacity:    aws.Int64(int64(d.Get("storage_capacity").(int))),
-		SubnetIds:          expandStringSet(d.Get("subnet_ids").(*schema.Set)),
+		SubnetIds:          expandStringList(d.Get("subnet_ids").([]interface{})),
 		WindowsConfiguration: &fsx.CreateFileSystemWindowsConfiguration{
 			AutomaticBackupRetentionDays: aws.Int64(int64(d.Get("automatic_backup_retention_days").(int))),
 			CopyTagsToBackups:            aws.Bool(d.Get("copy_tags_to_backups").(bool)),

@@ -44,6 +44,8 @@ func (r *FieldReadResult) ValueOrZero(s *Schema) interface{} {
 
 // SchemasForFlatmapPath tries its best to find a sequence of schemas that
 // the given dot-delimited attribute path traverses through.
+//
+// Deprecated: This function will be removed in version 2 without replacement.
 func SchemasForFlatmapPath(path string, schemaMap map[string]*Schema) []*Schema {
 	parts := strings.Split(path, ".")
 	return addrToSchema(parts, schemaMap)

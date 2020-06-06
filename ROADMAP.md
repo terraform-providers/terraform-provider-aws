@@ -22,7 +22,7 @@ We'll be updating the linked milestone as we work to finalize and complete v3.0.
 
 ### WAFv2
 
-Issue: [#11406](https://github.com/terraform-providers/terraform-provider-aws/issues/11406)
+Issue: [#11046](https://github.com/terraform-providers/terraform-provider-aws/issues/11046)
 
 _AWS WAFv2 is a web application firewall that lets you monitor the HTTP and HTTPS requests that are forwarded to Amazon CloudFront, an Amazon API Gateway API, or an Application Load Balancer._
 

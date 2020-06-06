@@ -2,7 +2,6 @@ package aws
 
 import (
 	"fmt"
-	"regexp"
 	"strconv"
 	"testing"
 	"time"
@@ -19,6 +18,9 @@ func TestAccAWSLambdaEventSourceMapping_kinesis_basic(t *testing.T) {
 	var conf lambda.EventSourceMappingConfiguration
 
 	resourceName := "aws_lambda_event_source_mapping.lambda_event_source_mapping_test"
+	functionResourceName := "aws_lambda_function.lambda_function_test_create"
+	functionResourceNameUpdated := "aws_lambda_function.lambda_function_test_update"
+	eventSourceResourceName := "aws_kinesis_stream.kinesis_stream_test"
 
 	rString := acctest.RandString(8)
 	roleName := fmt.Sprintf("tf_acc_role_lambda_esm_basic_%s", rString)
@@ -27,7 +29,6 @@ func TestAccAWSLambdaEventSourceMapping_kinesis_basic(t *testing.T) {
 	streamName := fmt.Sprintf("tf_acc_stream_lambda_esm_basic_%s", rString)
 	funcName := fmt.Sprintf("tf_acc_lambda_esm_basic_%s", rString)
 	uFuncName := fmt.Sprintf("tf_acc_lambda_esm_basic_updated_%s", rString)
-	uFuncArnRe := regexp.MustCompile(":" + uFuncName + "$")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -40,6 +41,9 @@ func TestAccAWSLambdaEventSourceMapping_kinesis_basic(t *testing.T) {
 					testAccCheckAwsLambdaEventSourceMappingExists(resourceName, &conf),
 					testAccCheckAWSLambdaEventSourceMappingAttributes(&conf),
 					testAccCheckResourceAttrRfc3339(resourceName, "last_modified"),
+					resource.TestCheckResourceAttrPair(resourceName, "function_name", functionResourceName, "arn"),
+					resource.TestCheckResourceAttrPair(resourceName, "function_arn", functionResourceName, "arn"),
+					resource.TestCheckResourceAttrPair(resourceName, "event_source_arn", eventSourceResourceName, "arn"),
 				),
 			},
 			{
@@ -54,7 +58,9 @@ func TestAccAWSLambdaEventSourceMapping_kinesis_basic(t *testing.T) {
 					testAccCheckAwsLambdaEventSourceMappingExists(resourceName, &conf),
 					resource.TestCheckResourceAttr(resourceName, "batch_size", strconv.Itoa(200)),
 					resource.TestCheckResourceAttr(resourceName, "enabled", strconv.FormatBool(false)),
-					resource.TestMatchResourceAttr(resourceName, "function_arn", uFuncArnRe),
+					resource.TestCheckResourceAttrPair(resourceName, "function_name", functionResourceNameUpdated, "arn"),
+					resource.TestCheckResourceAttrPair(resourceName, "function_arn", functionResourceNameUpdated, "arn"),
+					resource.TestCheckResourceAttrPair(resourceName, "event_source_arn", eventSourceResourceName, "arn"),
 					resource.TestCheckResourceAttr(resourceName, "starting_position", "TRIM_HORIZON"),
 				),
 			},
@@ -114,6 +120,9 @@ func TestAccAWSLambdaEventSourceMapping_sqs_basic(t *testing.T) {
 	var conf lambda.EventSourceMappingConfiguration
 
 	resourceName := "aws_lambda_event_source_mapping.lambda_event_source_mapping_test"
+	functionResourceName := "aws_lambda_function.lambda_function_test_create"
+	functionResourceNameUpdated := "aws_lambda_function.lambda_function_test_update"
+	eventSourceResourceName := "aws_sqs_queue.sqs_queue_test"
 
 	rString := acctest.RandString(8)
 	roleName := fmt.Sprintf("tf_acc_role_lambda_sqs_basic_%s", rString)
@@ -122,7 +131,6 @@ func TestAccAWSLambdaEventSourceMapping_sqs_basic(t *testing.T) {
 	streamName := fmt.Sprintf("tf_acc_stream_lambda_sqs_basic_%s", rString)
 	funcName := fmt.Sprintf("tf_acc_lambda_sqs_basic_%s", rString)
 	uFuncName := fmt.Sprintf("tf_acc_lambda_sqs_basic_updated_%s", rString)
-	uFuncArnRe := regexp.MustCompile(":" + uFuncName + "$")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -134,9 +142,11 @@ func TestAccAWSLambdaEventSourceMapping_sqs_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsLambdaEventSourceMappingExists(resourceName, &conf),
 					testAccCheckAWSLambdaEventSourceMappingAttributes(&conf),
+					resource.TestCheckResourceAttrPair(resourceName, "function_name", functionResourceName, "arn"),
+					resource.TestCheckResourceAttrPair(resourceName, "function_arn", functionResourceName, "arn"),
+					resource.TestCheckResourceAttrPair(resourceName, "event_source_arn", eventSourceResourceName, "arn"),
 					testAccCheckResourceAttrRfc3339(resourceName, "last_modified"),
-					resource.TestCheckNoResourceAttr(resourceName,
-						"starting_position"),
+					resource.TestCheckNoResourceAttr(resourceName, "starting_position"),
 				),
 			},
 			{
@@ -151,7 +161,9 @@ func TestAccAWSLambdaEventSourceMapping_sqs_basic(t *testing.T) {
 					testAccCheckAwsLambdaEventSourceMappingExists(resourceName, &conf),
 					resource.TestCheckResourceAttr(resourceName, "batch_size", strconv.Itoa(5)),
 					resource.TestCheckResourceAttr(resourceName, "enabled", strconv.FormatBool(false)),
-					resource.TestMatchResourceAttr(resourceName, "function_arn", uFuncArnRe),
+					resource.TestCheckResourceAttrPair(resourceName, "function_name", functionResourceNameUpdated, "arn"),
+					resource.TestCheckResourceAttrPair(resourceName, "function_arn", functionResourceNameUpdated, "arn"),
+					resource.TestCheckResourceAttrPair(resourceName, "event_source_arn", eventSourceResourceName, "arn"),
 					resource.TestCheckNoResourceAttr(resourceName, "starting_position"),
 				),
 			},
@@ -163,6 +175,7 @@ func TestAccAWSLambdaEventSourceMapping_sqs_withFunctionName(t *testing.T) {
 	var conf lambda.EventSourceMappingConfiguration
 
 	resourceName := "aws_lambda_event_source_mapping.lambda_event_source_mapping_test"
+	functionResourceName := "aws_lambda_function.lambda_function_test_create"
 
 	rString := acctest.RandString(8)
 	roleName := fmt.Sprintf("tf_acc_role_lambda_sqs_basic_%s", rString)
@@ -170,7 +183,6 @@ func TestAccAWSLambdaEventSourceMapping_sqs_withFunctionName(t *testing.T) {
 	attName := fmt.Sprintf("tf_acc_att_lambda_sqs_basic_%s", rString)
 	streamName := fmt.Sprintf("tf_acc_stream_lambda_sqs_basic_%s", rString)
 	funcName := fmt.Sprintf("tf_acc_lambda_sqs_basic_%s", rString)
-	funcArnRe := regexp.MustCompile(":" + funcName + "$")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -182,8 +194,8 @@ func TestAccAWSLambdaEventSourceMapping_sqs_withFunctionName(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsLambdaEventSourceMappingExists(resourceName, &conf),
 					testAccCheckAWSLambdaEventSourceMappingAttributes(&conf),
-					resource.TestMatchResourceAttr(resourceName, "function_arn", funcArnRe),
-					resource.TestMatchResourceAttr(resourceName, "function_name", funcArnRe),
+					resource.TestCheckResourceAttrPair(resourceName, "function_name", functionResourceName, "arn"),
+					resource.TestCheckResourceAttrPair(resourceName, "function_arn", functionResourceName, "arn"),
 					resource.TestCheckNoResourceAttr(resourceName, "starting_position"),
 				),
 			},
@@ -512,9 +524,11 @@ func TestAccAWSLambdaEventSourceMapping_KinesisDestinationConfig(t *testing.T) {
 	var conf lambda.EventSourceMappingConfiguration
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	rString := acctest.RandString(8)
-	resourceName := "aws_lambda_event_source_mapping.test"
 	streamName := fmt.Sprintf("tf_acc_stream_dest_config_%s", rString)
 	streamNameUpdated := fmt.Sprintf("tf_acc_stream_dest_config_updated_%s", rString)
+
+	resourceName := "aws_lambda_event_source_mapping.test"
+	sqsResourceName := "aws_sqs_queue.sqs_queue_test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -527,7 +541,7 @@ func TestAccAWSLambdaEventSourceMapping_KinesisDestinationConfig(t *testing.T) {
 					testAccCheckAwsLambdaEventSourceMappingExists(resourceName, &conf),
 					resource.TestCheckResourceAttr(resourceName, "destination_config.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "destination_config.0.on_failure.#", "1"),
-					resource.TestCheckResourceAttrPair(resourceName, "destination_config.0.on_failure.0.destination_arn", "aws_sqs_queue.sqs_queue_test", "arn"),
+					resource.TestCheckResourceAttrPair(resourceName, "destination_config.0.on_failure.0.destination_arn", sqsResourceName, "arn"),
 				),
 			},
 			{
@@ -545,7 +559,7 @@ func TestAccAWSLambdaEventSourceMapping_KinesisDestinationConfig(t *testing.T) {
 					testAccCheckAwsLambdaEventSourceMappingExists(resourceName, &conf),
 					resource.TestCheckResourceAttr(resourceName, "destination_config.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "destination_config.0.on_failure.#", "1"),
-					resource.TestCheckResourceAttrPair(resourceName, "destination_config.0.on_failure.0.destination_arn", "aws_sqs_queue.sqs_queue_test", "arn"),
+					resource.TestCheckResourceAttrPair(resourceName, "destination_config.0.on_failure.0.destination_arn", sqsResourceName, "arn"),
 				),
 			},
 		},

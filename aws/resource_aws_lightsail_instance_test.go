@@ -91,6 +91,7 @@ func TestAccAWSLightsailInstance_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet("aws_lightsail_instance.lightsail_instance_test", "bundle_id"),
 					resource.TestCheckResourceAttrSet("aws_lightsail_instance.lightsail_instance_test", "key_pair_name"),
 					resource.TestCheckResourceAttr("aws_lightsail_instance.lightsail_instance_test", "tags.%", "0"),
+					resource.TestMatchResourceAttr("aws_lightsail_instance.lightsail_instance_test", "ram_size", regexp.MustCompile(`\d+(.\d+)?`)),
 				),
 			},
 		},

@@ -1,3 +1,12 @@
+# v0.6.0
+
+ENHANCEMENTS
+
+* check: Add `-ignore-file-mismatch-data-sources` option
+* check: Add `-ignore-file-mismatch-resources` option
+* check: Add `-ignore-file-missing-data-sources` option
+* check: Add `-ignore-file-missing-resources` option
+
 # v0.5.3
 
 BUG FIXES

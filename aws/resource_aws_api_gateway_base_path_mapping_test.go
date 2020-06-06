@@ -80,7 +80,7 @@ func TestAccAWSAPIGatewayBasePathMapping_basic(t *testing.T) {
 			{
 				Config: testAccAWSAPIGatewayBasePathConfigBasePath(name, key, certificate, "tf-acc-test"),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSAPIGatewayBasePathExists("aws_api_gateway_base_path_mapping.test", name, &conf),
+					testAccCheckAWSAPIGatewayBasePathExists("aws_api_gateway_base_path_mapping.test", &conf),
 				),
 			},
 			{
@@ -109,7 +109,7 @@ func TestAccAWSAPIGatewayBasePathMapping_BasePath_Empty(t *testing.T) {
 			{
 				Config: testAccAWSAPIGatewayBasePathConfigBasePath(name, key, certificate, ""),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSAPIGatewayBasePathExists("aws_api_gateway_base_path_mapping.test", name, &conf),
+					testAccCheckAWSAPIGatewayBasePathExists("aws_api_gateway_base_path_mapping.test", &conf),
 				),
 			},
 			{
@@ -121,7 +121,7 @@ func TestAccAWSAPIGatewayBasePathMapping_BasePath_Empty(t *testing.T) {
 	})
 }
 
-func testAccCheckAWSAPIGatewayBasePathExists(n string, name string, res *apigateway.BasePathMapping) resource.TestCheckFunc {
+func testAccCheckAWSAPIGatewayBasePathExists(n string, res *apigateway.BasePathMapping) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {

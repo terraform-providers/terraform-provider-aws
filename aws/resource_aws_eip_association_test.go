@@ -123,7 +123,7 @@ func TestAccAWSEIPAssociation_ec2Classic(t *testing.T) {
 					testAccCheckAWSEIPAssociationExists(resourceName, &a),
 					resource.TestCheckResourceAttrSet(resourceName, "public_ip"),
 					resource.TestCheckResourceAttr(resourceName, "allocation_id", ""),
-					testAccCheckAWSEIPAssociationHasIpBasedId(resourceName, &a),
+					testAccCheckAWSEIPAssociationHasIpBasedId(resourceName),
 				),
 			},
 			{
@@ -230,7 +230,7 @@ func testAccCheckAWSEIPAssociationExists(name string, res *ec2.Address) resource
 	}
 }
 
-func testAccCheckAWSEIPAssociationHasIpBasedId(name string, res *ec2.Address) resource.TestCheckFunc {
+func testAccCheckAWSEIPAssociationHasIpBasedId(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[name]
 		if !ok {

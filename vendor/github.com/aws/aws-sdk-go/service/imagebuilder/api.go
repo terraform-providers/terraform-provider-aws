@@ -5135,6 +5135,11 @@ type Component struct {
 	// The platform of the component.
 	Platform *string `locationName:"platform" type:"string" enum:"Platform"`
 
+	// The operating system (OS) version supported by the component. If the OS information
+	// is available, a prefix match is performed against the parent image OS version
+	// during image recipe creation.
+	SupportedOsVersions []*string `locationName:"supportedOsVersions" min:"1" type:"list"`
+
 	// The tags associated with the component.
 	Tags map[string]*string `locationName:"tags" min:"1" type:"map"`
 
@@ -5213,6 +5218,12 @@ func (s *Component) SetOwner(v string) *Component {
 // SetPlatform sets the Platform field's value.
 func (s *Component) SetPlatform(v string) *Component {
 	s.Platform = &v
+	return s
+}
+
+// SetSupportedOsVersions sets the SupportedOsVersions field's value.
+func (s *Component) SetSupportedOsVersions(v []*string) *Component {
+	s.SupportedOsVersions = v
 	return s
 }
 
@@ -5298,6 +5309,11 @@ type ComponentSummary struct {
 	// The platform of the component.
 	Platform *string `locationName:"platform" type:"string" enum:"Platform"`
 
+	// The operating system (OS) version supported by the component. If the OS information
+	// is available, a prefix match is performed against the parent image OS version
+	// during image recipe creation.
+	SupportedOsVersions []*string `locationName:"supportedOsVersions" min:"1" type:"list"`
+
 	// The tags associated with the component.
 	Tags map[string]*string `locationName:"tags" min:"1" type:"map"`
 
@@ -5361,6 +5377,12 @@ func (s *ComponentSummary) SetPlatform(v string) *ComponentSummary {
 	return s
 }
 
+// SetSupportedOsVersions sets the SupportedOsVersions field's value.
+func (s *ComponentSummary) SetSupportedOsVersions(v []*string) *ComponentSummary {
+	s.SupportedOsVersions = v
+	return s
+}
+
 // SetTags sets the Tags field's value.
 func (s *ComponentSummary) SetTags(v map[string]*string) *ComponentSummary {
 	s.Tags = v
@@ -5400,6 +5422,11 @@ type ComponentVersion struct {
 
 	// The platform of the component.
 	Platform *string `locationName:"platform" type:"string" enum:"Platform"`
+
+	// The operating system (OS) version supported by the component. If the OS information
+	// is available, a prefix match is performed against the parent image OS version
+	// during image recipe creation.
+	SupportedOsVersions []*string `locationName:"supportedOsVersions" min:"1" type:"list"`
 
 	// The type of the component denotes whether the component is used to build
 	// the image or only to test it.
@@ -5455,6 +5482,12 @@ func (s *ComponentVersion) SetPlatform(v string) *ComponentVersion {
 	return s
 }
 
+// SetSupportedOsVersions sets the SupportedOsVersions field's value.
+func (s *ComponentVersion) SetSupportedOsVersions(v []*string) *ComponentVersion {
+	s.SupportedOsVersions = v
+	return s
+}
+
 // SetType sets the Type field's value.
 func (s *ComponentVersion) SetType(v string) *ComponentVersion {
 	s.Type = &v
@@ -5505,6 +5538,11 @@ type CreateComponentInput struct {
 	// SemanticVersion is a required field
 	SemanticVersion *string `locationName:"semanticVersion" type:"string" required:"true"`
 
+	// The operating system (OS) version supported by the component. If the OS information
+	// is available, a prefix match is performed against the parent image OS version
+	// during image recipe creation.
+	SupportedOsVersions []*string `locationName:"supportedOsVersions" min:"1" type:"list"`
+
 	// The tags of the component.
 	Tags map[string]*string `locationName:"tags" min:"1" type:"map"`
 
@@ -5551,6 +5589,9 @@ func (s *CreateComponentInput) Validate() error {
 	}
 	if s.SemanticVersion == nil {
 		invalidParams.Add(request.NewErrParamRequired("SemanticVersion"))
+	}
+	if s.SupportedOsVersions != nil && len(s.SupportedOsVersions) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("SupportedOsVersions", 1))
 	}
 	if s.Tags != nil && len(s.Tags) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("Tags", 1))
@@ -5607,6 +5648,12 @@ func (s *CreateComponentInput) SetPlatform(v string) *CreateComponentInput {
 // SetSemanticVersion sets the SemanticVersion field's value.
 func (s *CreateComponentInput) SetSemanticVersion(v string) *CreateComponentInput {
 	s.SemanticVersion = &v
+	return s
+}
+
+// SetSupportedOsVersions sets the SupportedOsVersions field's value.
+func (s *CreateComponentInput) SetSupportedOsVersions(v []*string) *CreateComponentInput {
+	s.SupportedOsVersions = v
 	return s
 }
 

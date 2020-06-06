@@ -149,6 +149,7 @@ func dataSourceAwsAmi() *schema.Resource {
 						"ebs": {
 							Type:     schema.TypeMap,
 							Computed: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
 					},
 				},
@@ -173,6 +174,7 @@ func dataSourceAwsAmi() *schema.Resource {
 			"state_reason": {
 				Type:     schema.TypeMap,
 				Computed: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"tags": tagsSchemaComputed(),
 		},

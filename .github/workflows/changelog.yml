@@ -1,12 +1,20 @@
 name: CHANGELOG Checks
 on:
+  push:
+    branches:
+      - master
   pull_request:
     paths:
       - CHANGELOG.md
 
+env:
+  GO_VERSION: "1.14"
+  GO111MODULE: on
+
 jobs:
-  PRCheck:
-    name: PR Check
+  comment:
+    if: github.event_name == 'pull_request' && !contains(fromJSON('["bflad", "breathingdust", "ewbankkit", "gdavison", "maryelizbeth"]'), github.actor)
+    name: Comment
     runs-on: ubuntu-latest
     steps:
       - name: PR Comment
@@ -22,3 +30,18 @@ jobs:
             Remove any changes to the `CHANGELOG.md` file and commit them in this pull request to prevent delays with reviewing and potentially merging this pull request.
       - name: Fail the check
         run: exit 1
+  misspell:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
+        with:
+          go-version: ${{ env.GO_VERSION }}
+      - uses: actions/cache@v2
+        continue-on-error: true
+        timeout-minutes: 2
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-pkg-mod-${{ hashFiles('go.sum') }}
+      - run: go install github.com/client9/misspell/cmd/misspell
+      - run: misspell -error -source text CHANGELOG.md

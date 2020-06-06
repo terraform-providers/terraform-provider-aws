@@ -195,6 +195,7 @@ func resourceAwsEcsTaskDefinition() *schema.Resource {
 										Type:     schema.TypeString,
 										ForceNew: true,
 										Optional: true,
+										Default:  "/",
 									},
 								},
 							},
@@ -376,11 +377,7 @@ func resourceAwsEcsTaskDefinitionCreate(d *schema.ResourceData, meta interface{}
 	}
 
 	if v, ok := d.GetOk("inference_accelerator"); ok {
-		iAcc, err := expandEcsInferenceAccelerators(v.(*schema.Set).List())
-		if err != nil {
-			return err
-		}
-		input.InferenceAccelerators = iAcc
+		input.InferenceAccelerators = expandEcsInferenceAccelerators(v.(*schema.Set).List())
 	}
 
 	constraints := d.Get("placement_constraints").(*schema.Set).List()
@@ -592,6 +589,19 @@ func resourceAwsEcsTaskDefinitionVolumeHash(v interface{}) int {
 	m := v.(map[string]interface{})
 	buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
 	buf.WriteString(fmt.Sprintf("%s-", m["host_path"].(string)))
+
+	if v, ok := m["efs_volume_configuration"]; ok && len(v.([]interface{})) > 0 && v.([]interface{})[0] != nil {
+		m := v.([]interface{})[0].(map[string]interface{})
+
+		if v, ok := m["file_system_id"]; ok && v.(string) != "" {
+			buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+		}
+
+		if v, ok := m["root_directory"]; ok && v.(string) != "" {
+			buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+		}
+	}
+
 	return hashcode.String(buf.String())
 }
 
@@ -608,7 +618,7 @@ func flattenEcsInferenceAccelerators(list []*ecs.InferenceAccelerator) []map[str
 	return result
 }
 
-func expandEcsInferenceAccelerators(configured []interface{}) ([]*ecs.InferenceAccelerator, error) {
+func expandEcsInferenceAccelerators(configured []interface{}) []*ecs.InferenceAccelerator {
 	iAccs := make([]*ecs.InferenceAccelerator, 0, len(configured))
 	for _, lRaw := range configured {
 		data := lRaw.(map[string]interface{})
@@ -619,5 +629,5 @@ func expandEcsInferenceAccelerators(configured []interface{}) ([]*ecs.InferenceA
 		iAccs = append(iAccs, l)
 	}
 
-	return iAccs, nil
+	return iAccs
 }

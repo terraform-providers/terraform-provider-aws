@@ -4678,6 +4678,8 @@ func (c *EC2) CreateLaunchTemplateRequest(input *CreateLaunchTemplateInput) (req
 // Creates a launch template. A launch template contains the parameters to launch
 // an instance. When you launch an instance using RunInstances, you can specify
 // a launch template instead of providing the launch parameters in the request.
+// For more information, see Launching an instance from a launch template (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-launch-templates.html)in
+// the Amazon Elastic Compute Cloud User Guide.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -4756,6 +4758,9 @@ func (c *EC2) CreateLaunchTemplateVersionRequest(input *CreateLaunchTemplateVers
 //
 // Launch template versions are numbered in the order in which they are created.
 // You cannot specify, change, or replace the numbering of launch template versions.
+//
+// For more information, see Managing launch template versions (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-launch-templates.html#manage-launch-template-versions)in
+// the Amazon Elastic Compute Cloud User Guide.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -11234,8 +11239,12 @@ func (c *EC2) DeleteVpnConnectionRequest(input *DeleteVpnConnectionInput) (req *
 // your VPN connection have been compromised, you can delete the VPN connection
 // and create a new one that has new keys, without needing to delete the VPC
 // or virtual private gateway. If you create a new VPN connection, you must
-// reconfigure the customer gateway using the new configuration information
+// reconfigure the customer gateway device using the new configuration information
 // returned with the new VPN connection ID.
+//
+// For certificate-based authentication, delete all AWS Certificate Manager
+// (ACM) private certificates used for the AWS-side tunnel endpoints for the
+// VPN connection before deleting the VPN connection.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -32598,8 +32607,9 @@ func (c *EC2) ModifyVpnConnectionRequest(input *ModifyVpnConnectionInput) (req *
 
 // ModifyVpnConnection API operation for Amazon Elastic Compute Cloud.
 //
-// Modifies the target gateway of an AWS Site-to-Site VPN connection. The following
-// migration options are available:
+// Modifies the customer gateway or the target gateway of an AWS Site-to-Site
+// VPN connection. To modify the target gateway, the following migration options
+// are available:
 //
 //    * An existing virtual private gateway to a new virtual private gateway
 //
@@ -40229,7 +40239,8 @@ func (s *AuthorizationRule) SetStatus(v *ClientVpnAuthorizationRuleStatus) *Auth
 type AuthorizeClientVpnIngressInput struct {
 	_ struct{} `type:"structure"`
 
-	// The ID of the Active Directory group to grant access.
+	// The ID of the group to grant access to, for example, the Active Directory
+	// group or identity provider (IdP) group.
 	AccessGroupId *string `type:"string"`
 
 	// Indicates whether to grant access to all clients. Use true to grant all clients
@@ -42712,15 +42723,17 @@ func (s *ClientData) SetUploadStart(v time.Time) *ClientData {
 	return s
 }
 
-// Describes the authentication methods used by a Client VPN endpoint. Client
-// VPN supports Active Directory and mutual authentication. For more information,
-// see Authentication (https://docs.aws.amazon.com/vpn/latest/clientvpn-admin/authentication-authrization.html#client-authentication)
+// Describes the authentication methods used by a Client VPN endpoint. For more
+// information, see Authentication (https://docs.aws.amazon.com/vpn/latest/clientvpn-admin/authentication-authrization.html#client-authentication)
 // in the AWS Client VPN Administrator Guide.
 type ClientVpnAuthentication struct {
 	_ struct{} `type:"structure"`
 
 	// Information about the Active Directory, if applicable.
 	ActiveDirectory *DirectoryServiceAuthentication `locationName:"activeDirectory" type:"structure"`
+
+	// Information about the IAM SAML identity provider, if applicable.
+	FederatedAuthentication *FederatedAuthentication `locationName:"federatedAuthentication" type:"structure"`
 
 	// Information about the authentication certificates, if applicable.
 	MutualAuthentication *CertificateAuthentication `locationName:"mutualAuthentication" type:"structure"`
@@ -42745,6 +42758,12 @@ func (s *ClientVpnAuthentication) SetActiveDirectory(v *DirectoryServiceAuthenti
 	return s
 }
 
+// SetFederatedAuthentication sets the FederatedAuthentication field's value.
+func (s *ClientVpnAuthentication) SetFederatedAuthentication(v *FederatedAuthentication) *ClientVpnAuthentication {
+	s.FederatedAuthentication = v
+	return s
+}
+
 // SetMutualAuthentication sets the MutualAuthentication field's value.
 func (s *ClientVpnAuthentication) SetMutualAuthentication(v *CertificateAuthentication) *ClientVpnAuthentication {
 	s.MutualAuthentication = v
@@ -42758,8 +42777,7 @@ func (s *ClientVpnAuthentication) SetType(v string) *ClientVpnAuthentication {
 }
 
 // Describes the authentication method to be used by a Client VPN endpoint.
-// Client VPN supports Active Directory and mutual authentication. For more
-// information, see Authentication (https://docs.aws.amazon.com/vpn/latest/clientvpn-admin/authentication-authrization.html#client-authentication)
+// For more information, see Authentication (https://docs.aws.amazon.com/vpn/latest/clientvpn-admin/authentication-authrization.html#client-authentication)
 // in the AWS Client VPN Administrator Guide.
 type ClientVpnAuthenticationRequest struct {
 	_ struct{} `type:"structure"`
@@ -42768,13 +42786,15 @@ type ClientVpnAuthenticationRequest struct {
 	// provide this information if Type is directory-service-authentication.
 	ActiveDirectory *DirectoryServiceAuthenticationRequest `type:"structure"`
 
+	// Information about the IAM SAML identity provider to be used, if applicable.
+	// You must provide this information if Type is federated-authentication.
+	FederatedAuthentication *FederatedAuthenticationRequest `type:"structure"`
+
 	// Information about the authentication certificates to be used, if applicable.
 	// You must provide this information if Type is certificate-authentication.
 	MutualAuthentication *CertificateAuthenticationRequest `type:"structure"`
 
-	// The type of client authentication to be used. Specify certificate-authentication
-	// to use certificate-based authentication, or directory-service-authentication
-	// to use Active Directory authentication.
+	// The type of client authentication to be used.
 	Type *string `type:"string" enum:"ClientVpnAuthenticationType"`
 }
 
@@ -42791,6 +42811,12 @@ func (s ClientVpnAuthenticationRequest) GoString() string {
 // SetActiveDirectory sets the ActiveDirectory field's value.
 func (s *ClientVpnAuthenticationRequest) SetActiveDirectory(v *DirectoryServiceAuthenticationRequest) *ClientVpnAuthenticationRequest {
 	s.ActiveDirectory = v
+	return s
+}
+
+// SetFederatedAuthentication sets the FederatedAuthentication field's value.
+func (s *ClientVpnAuthenticationRequest) SetFederatedAuthentication(v *FederatedAuthenticationRequest) *ClientVpnAuthenticationRequest {
+	s.FederatedAuthentication = v
 	return s
 }
 
@@ -46592,6 +46618,11 @@ type CreateLaunchTemplateOutput struct {
 
 	// Information about the launch template.
 	LaunchTemplate *LaunchTemplate `locationName:"launchTemplate" type:"structure"`
+
+	// If the launch template contains parameters or parameter combinations that
+	// are not valid, an error code and an error message are returned for each issue
+	// that's found.
+	Warning *ValidationWarning `locationName:"warning" type:"structure"`
 }
 
 // String returns the string representation
@@ -46607,6 +46638,12 @@ func (s CreateLaunchTemplateOutput) GoString() string {
 // SetLaunchTemplate sets the LaunchTemplate field's value.
 func (s *CreateLaunchTemplateOutput) SetLaunchTemplate(v *LaunchTemplate) *CreateLaunchTemplateOutput {
 	s.LaunchTemplate = v
+	return s
+}
+
+// SetWarning sets the Warning field's value.
+func (s *CreateLaunchTemplateOutput) SetWarning(v *ValidationWarning) *CreateLaunchTemplateOutput {
+	s.Warning = v
 	return s
 }
 
@@ -46727,6 +46764,11 @@ type CreateLaunchTemplateVersionOutput struct {
 
 	// Information about the launch template version.
 	LaunchTemplateVersion *LaunchTemplateVersion `locationName:"launchTemplateVersion" type:"structure"`
+
+	// If the new version of the launch template contains parameters or parameter
+	// combinations that are not valid, an error code and an error message are returned
+	// for each issue that's found.
+	Warning *ValidationWarning `locationName:"warning" type:"structure"`
 }
 
 // String returns the string representation
@@ -46742,6 +46784,12 @@ func (s CreateLaunchTemplateVersionOutput) GoString() string {
 // SetLaunchTemplateVersion sets the LaunchTemplateVersion field's value.
 func (s *CreateLaunchTemplateVersionOutput) SetLaunchTemplateVersion(v *LaunchTemplateVersion) *CreateLaunchTemplateVersionOutput {
 	s.LaunchTemplateVersion = v
+	return s
+}
+
+// SetWarning sets the Warning field's value.
+func (s *CreateLaunchTemplateVersionOutput) SetWarning(v *ValidationWarning) *CreateLaunchTemplateVersionOutput {
+	s.Warning = v
 	return s
 }
 
@@ -46861,6 +46909,9 @@ type CreateLocalGatewayRouteTableVpcAssociationInput struct {
 	// LocalGatewayRouteTableId is a required field
 	LocalGatewayRouteTableId *string `type:"string" required:"true"`
 
+	// The tags to assign to the local gateway route table VPC association.
+	TagSpecifications []*TagSpecification `locationName:"TagSpecification" locationNameList:"item" type:"list"`
+
 	// The ID of the VPC.
 	//
 	// VpcId is a required field
@@ -46902,6 +46953,12 @@ func (s *CreateLocalGatewayRouteTableVpcAssociationInput) SetDryRun(v bool) *Cre
 // SetLocalGatewayRouteTableId sets the LocalGatewayRouteTableId field's value.
 func (s *CreateLocalGatewayRouteTableVpcAssociationInput) SetLocalGatewayRouteTableId(v string) *CreateLocalGatewayRouteTableVpcAssociationInput {
 	s.LocalGatewayRouteTableId = &v
+	return s
+}
+
+// SetTagSpecifications sets the TagSpecifications field's value.
+func (s *CreateLocalGatewayRouteTableVpcAssociationInput) SetTagSpecifications(v []*TagSpecification) *CreateLocalGatewayRouteTableVpcAssociationInput {
+	s.TagSpecifications = v
 	return s
 }
 
@@ -48403,7 +48460,8 @@ type CreateSubnetInput struct {
 	// must use a /64 prefix length.
 	Ipv6CidrBlock *string `type:"string"`
 
-	// The Amazon Resource Name (ARN) of the Outpost.
+	// The Amazon Resource Name (ARN) of the Outpost. If you specify an Outpost
+	// ARN, you must also specify the Availability Zone of the Outpost subnet.
 	OutpostArn *string `type:"string"`
 
 	// The ID of the VPC.
@@ -61444,6 +61502,18 @@ type DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsInput struct
 	DryRun *bool `type:"boolean"`
 
 	// One or more filters.
+	//
+	//    * local-gateway-id - The ID of a local gateway.
+	//
+	//    * local-gateway-route-table-id - The ID of the local gateway route table.
+	//
+	//    * local-gateway-route-table-virtual-interface-group-association-id - The
+	//    ID of the association.
+	//
+	//    * local-gateway-route-table-virtual-interface-group-id - The ID of the
+	//    virtual interface group.
+	//
+	//    * state - The state of the association.
 	Filters []*Filter `locationName:"Filter" locationNameList:"Filter" type:"list"`
 
 	// The IDs of the associations.
@@ -61553,6 +61623,16 @@ type DescribeLocalGatewayRouteTableVpcAssociationsInput struct {
 	DryRun *bool `type:"boolean"`
 
 	// One or more filters.
+	//
+	//    * local-gateway-id - The ID of a local gateway.
+	//
+	//    * local-gateway-route-table-id - The ID of the local gateway route table.
+	//
+	//    * local-gateway-route-table-vpc-association-id - The ID of the association.
+	//
+	//    * state - The state of the association.
+	//
+	//    * vpc-id - The ID of the VPC.
 	Filters []*Filter `locationName:"Filter" locationNameList:"Filter" type:"list"`
 
 	// The IDs of the associations.
@@ -61662,6 +61742,14 @@ type DescribeLocalGatewayRouteTablesInput struct {
 	DryRun *bool `type:"boolean"`
 
 	// One or more filters.
+	//
+	//    * local-gateway-id - The ID of a local gateway.
+	//
+	//    * local-gateway-route-table-id - The ID of a local gateway route table.
+	//
+	//    * outpost-arn - The Amazon Resource Name (ARN) of the Outpost.
+	//
+	//    * state - The state of the local gateway route table.
 	Filters []*Filter `locationName:"Filter" locationNameList:"Filter" type:"list"`
 
 	// The IDs of the local gateway route tables.
@@ -61771,6 +61859,13 @@ type DescribeLocalGatewayVirtualInterfaceGroupsInput struct {
 	DryRun *bool `type:"boolean"`
 
 	// One or more filters.
+	//
+	//    * local-gateway-id - The ID of a local gateway.
+	//
+	//    * local-gateway-virtual-interface-id - The ID of the virtual interface.
+	//
+	//    * local-gateway-virtual-interface-group-id - The ID of the virtual interface
+	//    group.
 	Filters []*Filter `locationName:"Filter" locationNameList:"Filter" type:"list"`
 
 	// The IDs of the virtual interface groups.
@@ -61991,7 +62086,21 @@ type DescribeLocalGatewaysInput struct {
 	// One or more filters.
 	Filters []*Filter `locationName:"Filter" locationNameList:"Filter" type:"list"`
 
-	// The IDs of the local gateways.
+	// One or more filters.
+	//
+	//    * local-gateway-id - The ID of a local gateway.
+	//
+	//    * local-gateway-route-table-id - The ID of the local gateway route table.
+	//
+	//    * local-gateway-route-table-virtual-interface-group-association-id - The
+	//    ID of the association.
+	//
+	//    * local-gateway-route-table-virtual-interface-group-id - The ID of the
+	//    virtual interface group.
+	//
+	//    * outpost-arn - The Amazon Resource Name (ARN) of the Outpost.
+	//
+	//    * state - The state of the association.
 	LocalGatewayIds []*string `locationName:"LocalGatewayId" locationNameList:"item" type:"list"`
 
 	// The maximum number of results to return with a single call. To retrieve the
@@ -73680,6 +73789,54 @@ func (s *FailedQueuedPurchaseDeletion) SetError(v *DeleteQueuedReservedInstances
 // SetReservedInstancesId sets the ReservedInstancesId field's value.
 func (s *FailedQueuedPurchaseDeletion) SetReservedInstancesId(v string) *FailedQueuedPurchaseDeletion {
 	s.ReservedInstancesId = &v
+	return s
+}
+
+// Describes the IAM SAML identity provider used for federated authentication.
+type FederatedAuthentication struct {
+	_ struct{} `type:"structure"`
+
+	// The Amazon Resource Name (ARN) of the IAM SAML identity provider.
+	SamlProviderArn *string `locationName:"samlProviderArn" type:"string"`
+}
+
+// String returns the string representation
+func (s FederatedAuthentication) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s FederatedAuthentication) GoString() string {
+	return s.String()
+}
+
+// SetSamlProviderArn sets the SamlProviderArn field's value.
+func (s *FederatedAuthentication) SetSamlProviderArn(v string) *FederatedAuthentication {
+	s.SamlProviderArn = &v
+	return s
+}
+
+// The IAM SAML identity provider used for federated authentication.
+type FederatedAuthenticationRequest struct {
+	_ struct{} `type:"structure"`
+
+	// The Amazon Resource Name (ARN) of the IAM SAML identity provider.
+	SAMLProviderArn *string `type:"string"`
+}
+
+// String returns the string representation
+func (s FederatedAuthenticationRequest) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s FederatedAuthenticationRequest) GoString() string {
+	return s.String()
+}
+
+// SetSAMLProviderArn sets the SAMLProviderArn field's value.
+func (s *FederatedAuthenticationRequest) SetSAMLProviderArn(v string) *FederatedAuthenticationRequest {
+	s.SAMLProviderArn = &v
 	return s
 }
 
@@ -98145,7 +98302,7 @@ type RunInstancesInput struct {
 	// For more information, see Ensuring Idempotency (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Run_Instance_Idempotency.html).
 	//
 	// Constraints: Maximum 64 ASCII characters
-	ClientToken *string `locationName:"clientToken" type:"string"`
+	ClientToken *string `locationName:"clientToken" type:"string" idempotencyToken:"true"`
 
 	// The CPU options for the instance. For more information, see Optimizing CPU
 	// Options (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-optimize-cpu.html)
@@ -107275,6 +107432,70 @@ func (s *VCpuInfo) SetValidThreadsPerCore(v []*int64) *VCpuInfo {
 	return s
 }
 
+// The error code and error message that is returned for a parameter or parameter
+// combination that is not valid when a new launch template or new version of
+// a launch template is created.
+type ValidationError struct {
+	_ struct{} `type:"structure"`
+
+	// The error code that indicates why the parameter or parameter combination
+	// is not valid. For more information about error codes, see Error Codes (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/errors-overview.html.html).
+	Code *string `locationName:"code" type:"string"`
+
+	// The error message that describes why the parameter or parameter combination
+	// is not valid. For more information about error messages, see Error Codes
+	// (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/errors-overview.html.html).
+	Message *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s ValidationError) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ValidationError) GoString() string {
+	return s.String()
+}
+
+// SetCode sets the Code field's value.
+func (s *ValidationError) SetCode(v string) *ValidationError {
+	s.Code = &v
+	return s
+}
+
+// SetMessage sets the Message field's value.
+func (s *ValidationError) SetMessage(v string) *ValidationError {
+	s.Message = &v
+	return s
+}
+
+// The error codes and error messages that are returned for the parameters or
+// parameter combinations that are not valid when a new launch template or new
+// version of a launch template is created.
+type ValidationWarning struct {
+	_ struct{} `type:"structure"`
+
+	// The error codes and error messages.
+	Errors []*ValidationError `locationName:"errorSet" locationNameList:"item" type:"list"`
+}
+
+// String returns the string representation
+func (s ValidationWarning) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ValidationWarning) GoString() string {
+	return s.String()
+}
+
+// SetErrors sets the Errors field's value.
+func (s *ValidationWarning) SetErrors(v []*ValidationError) *ValidationWarning {
+	s.Errors = v
+	return s
+}
+
 // Describes telemetry for a VPN tunnel.
 type VgwTelemetry struct {
 	_ struct{} `type:"structure"`
@@ -109823,6 +110044,9 @@ const (
 
 	// ClientVpnAuthenticationTypeDirectoryServiceAuthentication is a ClientVpnAuthenticationType enum value
 	ClientVpnAuthenticationTypeDirectoryServiceAuthentication = "directory-service-authentication"
+
+	// ClientVpnAuthenticationTypeFederatedAuthentication is a ClientVpnAuthenticationType enum value
+	ClientVpnAuthenticationTypeFederatedAuthentication = "federated-authentication"
 )
 
 const (
@@ -111329,6 +111553,33 @@ const (
 
 	// InstanceTypeInf124xlarge is a InstanceType enum value
 	InstanceTypeInf124xlarge = "inf1.24xlarge"
+
+	// InstanceTypeM6gMetal is a InstanceType enum value
+	InstanceTypeM6gMetal = "m6g.metal"
+
+	// InstanceTypeM6gMedium is a InstanceType enum value
+	InstanceTypeM6gMedium = "m6g.medium"
+
+	// InstanceTypeM6gLarge is a InstanceType enum value
+	InstanceTypeM6gLarge = "m6g.large"
+
+	// InstanceTypeM6gXlarge is a InstanceType enum value
+	InstanceTypeM6gXlarge = "m6g.xlarge"
+
+	// InstanceTypeM6g2xlarge is a InstanceType enum value
+	InstanceTypeM6g2xlarge = "m6g.2xlarge"
+
+	// InstanceTypeM6g4xlarge is a InstanceType enum value
+	InstanceTypeM6g4xlarge = "m6g.4xlarge"
+
+	// InstanceTypeM6g8xlarge is a InstanceType enum value
+	InstanceTypeM6g8xlarge = "m6g.8xlarge"
+
+	// InstanceTypeM6g12xlarge is a InstanceType enum value
+	InstanceTypeM6g12xlarge = "m6g.12xlarge"
+
+	// InstanceTypeM6g16xlarge is a InstanceType enum value
+	InstanceTypeM6g16xlarge = "m6g.16xlarge"
 )
 
 const (

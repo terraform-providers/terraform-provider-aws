@@ -1089,7 +1089,7 @@ func (c *ElastiCache) CreateGlobalReplicationGroupRequest(input *CreateGlobalRep
 // reads and disaster recovery across regions. For more information, see Replication
 // Across Regions Using Global Datastore (/AmazonElastiCache/latest/red-ug/Redis-Global-Clusters.html).
 //
-//    * The GlobalReplicationGroupId is the name of the Global Datastore.
+//    * The GlobalReplicationGroupIdSuffix is the name of the Global Datastore.
 //
 //    * The PrimaryReplicationGroupId represents the name of the primary cluster
 //    that accepts writes and will replicate updates to the secondary cluster.
@@ -1273,7 +1273,7 @@ func (c *ElastiCache) CreateReplicationGroupRequest(input *CreateReplicationGrou
 //   The Global Datastore does not exist
 //
 //   * ErrCodeInvalidGlobalReplicationGroupStateFault "InvalidGlobalReplicationGroupState"
-//   The Global Datastore is not available
+//   The Global Datastore is not available or in primary-only state.
 //
 //   * ErrCodeInvalidParameterValueException "InvalidParameterValue"
 //   The value for a parameter is invalid.
@@ -1476,7 +1476,7 @@ func (c *ElastiCache) DecreaseNodeGroupsInGlobalReplicationGroupRequest(input *D
 //   The Global Datastore does not exist
 //
 //   * ErrCodeInvalidGlobalReplicationGroupStateFault "InvalidGlobalReplicationGroupState"
-//   The Global Datastore is not available
+//   The Global Datastore is not available or in primary-only state.
 //
 //   * ErrCodeInvalidParameterValueException "InvalidParameterValue"
 //   The value for a parameter is invalid.
@@ -2078,8 +2078,6 @@ func (c *ElastiCache) DeleteGlobalReplicationGroupRequest(input *DeleteGlobalRep
 // immediately begins deleting the selected resources; you cannot cancel or
 // revert this operation.
 //
-// This operation is valid for Redis only.
-//
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
 // the error.
@@ -2092,7 +2090,7 @@ func (c *ElastiCache) DeleteGlobalReplicationGroupRequest(input *DeleteGlobalRep
 //   The Global Datastore does not exist
 //
 //   * ErrCodeInvalidGlobalReplicationGroupStateFault "InvalidGlobalReplicationGroupState"
-//   The Global Datastore is not available
+//   The Global Datastore is not available or in primary-only state.
 //
 //   * ErrCodeInvalidParameterValueException "InvalidParameterValue"
 //   The value for a parameter is invalid.
@@ -4559,7 +4557,7 @@ func (c *ElastiCache) DisassociateGlobalReplicationGroupRequest(input *Disassoci
 //   The Global Datastore does not exist
 //
 //   * ErrCodeInvalidGlobalReplicationGroupStateFault "InvalidGlobalReplicationGroupState"
-//   The Global Datastore is not available
+//   The Global Datastore is not available or in primary-only state.
 //
 //   * ErrCodeInvalidParameterValueException "InvalidParameterValue"
 //   The value for a parameter is invalid.
@@ -4633,7 +4631,9 @@ func (c *ElastiCache) FailoverGlobalReplicationGroupRequest(input *FailoverGloba
 
 // FailoverGlobalReplicationGroup API operation for Amazon ElastiCache.
 //
-// Used to failover the primary region to a selected secondary region.
+// Used to failover the primary region to a selected secondary region. The selected
+// secondary region will be come primary, and all other clusters will become
+// secondary.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -4647,7 +4647,7 @@ func (c *ElastiCache) FailoverGlobalReplicationGroupRequest(input *FailoverGloba
 //   The Global Datastore does not exist
 //
 //   * ErrCodeInvalidGlobalReplicationGroupStateFault "InvalidGlobalReplicationGroupState"
-//   The Global Datastore is not available
+//   The Global Datastore is not available or in primary-only state.
 //
 //   * ErrCodeInvalidParameterValueException "InvalidParameterValue"
 //   The value for a parameter is invalid.
@@ -4735,7 +4735,7 @@ func (c *ElastiCache) IncreaseNodeGroupsInGlobalReplicationGroupRequest(input *I
 //   The Global Datastore does not exist
 //
 //   * ErrCodeInvalidGlobalReplicationGroupStateFault "InvalidGlobalReplicationGroupState"
-//   The Global Datastore is not available
+//   The Global Datastore is not available or in primary-only state.
 //
 //   * ErrCodeInvalidParameterValueException "InvalidParameterValue"
 //   The value for a parameter is invalid.
@@ -5258,7 +5258,7 @@ func (c *ElastiCache) ModifyCacheParameterGroupRequest(input *ModifyCacheParamet
 //   Two or more incompatible parameters were specified.
 //
 //   * ErrCodeInvalidGlobalReplicationGroupStateFault "InvalidGlobalReplicationGroupState"
-//   The Global Datastore is not available
+//   The Global Datastore is not available or in primary-only state.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/elasticache-2015-02-02/ModifyCacheParameterGroup
 func (c *ElastiCache) ModifyCacheParameterGroup(input *ModifyCacheParameterGroupInput) (*CacheParameterGroupNameMessage, error) {
@@ -5430,7 +5430,7 @@ func (c *ElastiCache) ModifyGlobalReplicationGroupRequest(input *ModifyGlobalRep
 //   The Global Datastore does not exist
 //
 //   * ErrCodeInvalidGlobalReplicationGroupStateFault "InvalidGlobalReplicationGroupState"
-//   The Global Datastore is not available
+//   The Global Datastore is not available or in primary-only state.
 //
 //   * ErrCodeInvalidParameterValueException "InvalidParameterValue"
 //   The value for a parameter is invalid.
@@ -5502,10 +5502,6 @@ func (c *ElastiCache) ModifyReplicationGroupRequest(input *ModifyReplicationGrou
 // ModifyReplicationGroup API operation for Amazon ElastiCache.
 //
 // Modifies the settings for a replication group.
-//
-// For Redis (cluster mode enabled) clusters, this operation cannot be used
-// to change a cluster's node type or engine version. For more information,
-// see:
 //
 //    * Scaling for Amazon ElastiCache for Redis (cluster mode enabled) (https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/scaling-redis-cluster-mode-enabled.html)
 //    in the ElastiCache User Guide
@@ -5841,7 +5837,7 @@ func (c *ElastiCache) RebalanceSlotsInGlobalReplicationGroupRequest(input *Rebal
 
 // RebalanceSlotsInGlobalReplicationGroup API operation for Amazon ElastiCache.
 //
-// Redistribute slots to ensure unifirom distribution across existing shards
+// Redistribute slots to ensure uniform distribution across existing shards
 // in the cluster.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
@@ -5856,7 +5852,7 @@ func (c *ElastiCache) RebalanceSlotsInGlobalReplicationGroupRequest(input *Rebal
 //   The Global Datastore does not exist
 //
 //   * ErrCodeInvalidGlobalReplicationGroupStateFault "InvalidGlobalReplicationGroupState"
-//   The Global Datastore is not available
+//   The Global Datastore is not available or in primary-only state.
 //
 //   * ErrCodeInvalidParameterValueException "InvalidParameterValue"
 //   The value for a parameter is invalid.
@@ -6141,7 +6137,7 @@ func (c *ElastiCache) ResetCacheParameterGroupRequest(input *ResetCacheParameter
 //   Two or more incompatible parameters were specified.
 //
 //   * ErrCodeInvalidGlobalReplicationGroupStateFault "InvalidGlobalReplicationGroupState"
-//   The Global Datastore is not available
+//   The Global Datastore is not available or in primary-only state.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/elasticache-2015-02-02/ResetCacheParameterGroup
 func (c *ElastiCache) ResetCacheParameterGroup(input *ResetCacheParameterGroupInput) (*CacheParameterGroupNameMessage, error) {
@@ -8858,8 +8854,8 @@ type CreateGlobalReplicationGroupInput struct {
 	// Provides details of the Global Datastore
 	GlobalReplicationGroupDescription *string `type:"string"`
 
-	// The suffix for name of a Global Datastore. The suffix guarantees uniqueness
-	// of the Global Datastore name across multiple regions.
+	// The suffix name of a Global Datastore. The suffix guarantees uniqueness of
+	// the Global Datastore name across multiple regions.
 	//
 	// GlobalReplicationGroupIdSuffix is a required field
 	GlobalReplicationGroupIdSuffix *string `type:"string" required:"true"`
@@ -8923,8 +8919,8 @@ type CreateGlobalReplicationGroupOutput struct {
 	// only reads. The primary cluster automatically replicates updates to the secondary
 	// cluster.
 	//
-	//    * The GlobalReplicationGroupId represents the name of the Global Datastore,
-	//    which is what you use to associate a secondary cluster.
+	//    * The GlobalReplicationGroupIdSuffix represents the name of the Global
+	//    Datastore, which is what you use to associate a secondary cluster.
 	GlobalReplicationGroup *GlobalReplicationGroup `type:"structure"`
 }
 
@@ -9099,10 +9095,10 @@ type CreateReplicationGroupInput struct {
 	//
 	// If you're creating a Redis (cluster mode disabled) or a Redis (cluster mode
 	// enabled) replication group, you can use this parameter to individually configure
-	// each node group (shard), or you can omit this parameter. However, when seeding
-	// a Redis (cluster mode enabled) cluster from a S3 rdb file, you must configure
-	// each node group (shard) using this parameter because you must specify the
-	// slots for each node group.
+	// each node group (shard), or you can omit this parameter. However, it is required
+	// when seeding a Redis (cluster mode enabled) cluster from a S3 rdb file. You
+	// must configure each node group (shard) using this parameter because you must
+	// specify the slots for each node group.
 	NodeGroupConfiguration []*NodeGroupConfiguration `locationNameList:"NodeGroupConfiguration" type:"list"`
 
 	// The Amazon Resource Name (ARN) of the Amazon Simple Notification Service
@@ -9740,8 +9736,8 @@ type DecreaseNodeGroupsInGlobalReplicationGroupOutput struct {
 	// only reads. The primary cluster automatically replicates updates to the secondary
 	// cluster.
 	//
-	//    * The GlobalReplicationGroupId represents the name of the Global Datastore,
-	//    which is what you use to associate a secondary cluster.
+	//    * The GlobalReplicationGroupIdSuffix represents the name of the Global
+	//    Datastore, which is what you use to associate a secondary cluster.
 	GlobalReplicationGroup *GlobalReplicationGroup `type:"structure"`
 }
 
@@ -10136,8 +10132,7 @@ type DeleteGlobalReplicationGroupInput struct {
 	// GlobalReplicationGroupId is a required field
 	GlobalReplicationGroupId *string `type:"string" required:"true"`
 
-	// If set to true, the primary replication is retained as a standalone replication
-	// group.
+	// The primary replication group is retained as a standalone replication group.
 	//
 	// RetainPrimaryReplicationGroup is a required field
 	RetainPrimaryReplicationGroup *bool `type:"boolean" required:"true"`
@@ -10189,8 +10184,8 @@ type DeleteGlobalReplicationGroupOutput struct {
 	// only reads. The primary cluster automatically replicates updates to the secondary
 	// cluster.
 	//
-	//    * The GlobalReplicationGroupId represents the name of the Global Datastore,
-	//    which is what you use to associate a secondary cluster.
+	//    * The GlobalReplicationGroupIdSuffix represents the name of the Global
+	//    Datastore, which is what you use to associate a secondary cluster.
 	GlobalReplicationGroup *GlobalReplicationGroup `type:"structure"`
 }
 
@@ -12127,8 +12122,8 @@ type DisassociateGlobalReplicationGroupOutput struct {
 	// only reads. The primary cluster automatically replicates updates to the secondary
 	// cluster.
 	//
-	//    * The GlobalReplicationGroupId represents the name of the Global Datastore,
-	//    which is what you use to associate a secondary cluster.
+	//    * The GlobalReplicationGroupIdSuffix represents the name of the Global
+	//    Datastore, which is what you use to associate a secondary cluster.
 	GlobalReplicationGroup *GlobalReplicationGroup `type:"structure"`
 }
 
@@ -12409,8 +12404,8 @@ type FailoverGlobalReplicationGroupOutput struct {
 	// only reads. The primary cluster automatically replicates updates to the secondary
 	// cluster.
 	//
-	//    * The GlobalReplicationGroupId represents the name of the Global Datastore,
-	//    which is what you use to associate a secondary cluster.
+	//    * The GlobalReplicationGroupIdSuffix represents the name of the Global
+	//    Datastore, which is what you use to associate a secondary cluster.
 	GlobalReplicationGroup *GlobalReplicationGroup `type:"structure"`
 }
 
@@ -12468,8 +12463,8 @@ func (s *GlobalNodeGroup) SetSlots(v string) *GlobalNodeGroup {
 // only reads. The primary cluster automatically replicates updates to the secondary
 // cluster.
 //
-//    * The GlobalReplicationGroupId represents the name of the Global Datastore,
-//    which is what you use to associate a secondary cluster.
+//    * The GlobalReplicationGroupIdSuffix represents the name of the Global
+//    Datastore, which is what you use to associate a secondary cluster.
 type GlobalReplicationGroup struct {
 	_ struct{} `type:"structure"`
 
@@ -12495,7 +12490,7 @@ type GlobalReplicationGroup struct {
 	// A flag that indicates whether the Global Datastore is cluster enabled.
 	ClusterEnabled *bool `type:"boolean"`
 
-	// The Elasticache engine. For preview, it is Redis only.
+	// The Elasticache engine. For Redis only.
 	Engine *string `type:"string"`
 
 	// The Elasticache Redis engine version. For preview, it is Redis version 5.0.5
@@ -12797,8 +12792,8 @@ type IncreaseNodeGroupsInGlobalReplicationGroupOutput struct {
 	// only reads. The primary cluster automatically replicates updates to the secondary
 	// cluster.
 	//
-	//    * The GlobalReplicationGroupId represents the name of the Global Datastore,
-	//    which is what you use to associate a secondary cluster.
+	//    * The GlobalReplicationGroupIdSuffix represents the name of the Global
+	//    Datastore, which is what you use to associate a secondary cluster.
 	GlobalReplicationGroup *GlobalReplicationGroup `type:"structure"`
 }
 
@@ -13603,12 +13598,9 @@ func (s *ModifyCacheSubnetGroupOutput) SetCacheSubnetGroup(v *CacheSubnetGroup) 
 type ModifyGlobalReplicationGroupInput struct {
 	_ struct{} `type:"structure"`
 
-	// If true, this parameter causes the modifications in this request and any
-	// pending modifications to be applied, asynchronously and as soon as possible,
-	// regardless of the PreferredMaintenanceWindow setting for the replication
-	// group. If false, changes to the nodes in the replication group are applied
-	// on the next maintenance reboot, or the next failure reboot, whichever occurs
-	// first.
+	// This parameter causes the modifications in this request and any pending modifications
+	// to be applied, asynchronously and as soon as possible. Modifications to Global
+	// Replication Groups cannot be requested to be applied in PreferredMaintenceWindow.
 	//
 	// ApplyImmediately is a required field
 	ApplyImmediately *bool `type:"boolean" required:"true"`
@@ -13703,8 +13695,8 @@ type ModifyGlobalReplicationGroupOutput struct {
 	// only reads. The primary cluster automatically replicates updates to the secondary
 	// cluster.
 	//
-	//    * The GlobalReplicationGroupId represents the name of the Global Datastore,
-	//    which is what you use to associate a secondary cluster.
+	//    * The GlobalReplicationGroupIdSuffix represents the name of the Global
+	//    Datastore, which is what you use to associate a secondary cluster.
 	GlobalReplicationGroup *GlobalReplicationGroup `type:"structure"`
 }
 
@@ -15078,8 +15070,8 @@ type RebalanceSlotsInGlobalReplicationGroupOutput struct {
 	// only reads. The primary cluster automatically replicates updates to the secondary
 	// cluster.
 	//
-	//    * The GlobalReplicationGroupId represents the name of the Global Datastore,
-	//    which is what you use to associate a secondary cluster.
+	//    * The GlobalReplicationGroupIdSuffix represents the name of the Global
+	//    Datastore, which is what you use to associate a secondary cluster.
 	GlobalReplicationGroup *GlobalReplicationGroup `type:"structure"`
 }
 
@@ -17365,4 +17357,13 @@ const (
 
 	// UpdateActionStatusComplete is a UpdateActionStatus enum value
 	UpdateActionStatusComplete = "complete"
+
+	// UpdateActionStatusScheduling is a UpdateActionStatus enum value
+	UpdateActionStatusScheduling = "scheduling"
+
+	// UpdateActionStatusScheduled is a UpdateActionStatus enum value
+	UpdateActionStatusScheduled = "scheduled"
+
+	// UpdateActionStatusNotApplicable is a UpdateActionStatus enum value
+	UpdateActionStatusNotApplicable = "not-applicable"
 )

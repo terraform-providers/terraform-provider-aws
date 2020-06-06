@@ -1707,7 +1707,7 @@ func readPlacementFromConfig(p map[string]interface{}) *ec2.LaunchTemplatePlacem
 		placement.Tenancy = aws.String(v)
 	}
 
-	if v, ok := p["partition_number"].(int); ok {
+	if v, ok := p["partition_number"].(int); ok && v != 0 {
 		placement.PartitionNumber = aws.Int64(int64(v))
 	}
 

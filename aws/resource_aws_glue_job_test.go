@@ -60,6 +60,7 @@ func TestAccAWSGlueJob_Basic(t *testing.T) {
 
 	rName := fmt.Sprintf("tf-acc-test-%s", acctest.RandString(5))
 	resourceName := "aws_glue_job.test"
+	roleResourceName := "aws_iam_role.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -75,7 +76,7 @@ func TestAccAWSGlueJob_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "command.0.script_location", "testscriptlocation"),
 					resource.TestCheckResourceAttr(resourceName, "default_arguments.%", "0"),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
-					resource.TestMatchResourceAttr(resourceName, "role_arn", regexp.MustCompile(fmt.Sprintf("^arn:[^:]+:iam::[^:]+:role/%s", rName))),
+					resource.TestCheckResourceAttrPair(resourceName, "role_arn", roleResourceName, "arn"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 					resource.TestCheckResourceAttr(resourceName, "timeout", "2880"),
 				),

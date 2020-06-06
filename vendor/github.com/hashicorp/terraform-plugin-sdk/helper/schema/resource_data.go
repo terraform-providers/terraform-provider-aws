@@ -157,9 +157,6 @@ func (d *ResourceData) HasChange(key string) bool {
 // When partial state mode is enabled, then only key prefixes specified
 // by SetPartial will be in the final state. This allows providers to return
 // partial states for partially applied resources (when errors occur).
-//
-// Deprecated: Partial state has very limited benefit given Terraform refreshes
-// before operations by default.
 func (d *ResourceData) Partial(on bool) {
 	d.partial = on
 	if on {

@@ -142,10 +142,10 @@ The following arguments are supported:
 
 * `vpc_peering_connection_id` - (Required) The ID of the requester VPC peering connection.
 * `accepter` (Optional) - An optional configuration block that allows for [VPC Peering Connection]
-(http://docs.aws.amazon.com/AmazonVPC/latest/PeeringGuide) options to be set for the VPC that accepts
+(https://docs.aws.amazon.com/vpc/latest/peering/what-is-vpc-peering.html) options to be set for the VPC that accepts
 the peering connection (a maximum of one).
 * `requester` (Optional) - A optional configuration block that allows for [VPC Peering Connection]
-(http://docs.aws.amazon.com/AmazonVPC/latest/PeeringGuide) options to be set for the VPC that requests
+(https://docs.aws.amazon.com/vpc/latest/peering/what-is-vpc-peering.html) options to be set for the VPC that requests
 the peering connection (a maximum of one).
 
 #### Accepter and Requester Arguments

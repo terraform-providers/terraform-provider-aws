@@ -27,6 +27,7 @@ func TestAccDataSourceAwsRamResourceShare_Basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrPair(datasourceName, "name", resourceName, "name"),
 					resource.TestCheckResourceAttrPair(datasourceName, "id", resourceName, "id"),
+					resource.TestCheckResourceAttrSet(datasourceName, "owning_account_id"),
 				),
 			},
 		},

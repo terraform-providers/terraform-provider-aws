@@ -71,6 +71,7 @@ The following arguments are supported:
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - Catalog ID and name of the connection
+* `arn` - The ARN of the Glue Connection.
 
 ## Import
 

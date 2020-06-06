@@ -2,15 +2,77 @@ package aws
 
 import (
 	"fmt"
+	"log"
 	"regexp"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/rds"
+	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
+
+func init() {
+	resource.AddTestSweepers("aws_db_cluster_snapshot", &resource.Sweeper{
+		Name: "aws_db_cluster_snapshot",
+		F:    testSweepDbClusterSnapshots,
+	})
+}
+
+func testSweepDbClusterSnapshots(region string) error {
+	client, err := sharedClientForRegion(region)
+	if err != nil {
+		return fmt.Errorf("error getting client: %w", err)
+	}
+	conn := client.(*AWSClient).rdsconn
+	input := &rds.DescribeDBClusterSnapshotsInput{
+		// "InvalidDBClusterSnapshotStateFault: Only manual snapshots may be deleted."
+		Filters: []*rds.Filter{{
+			Name:   aws.String("snapshot-type"),
+			Values: aws.StringSlice([]string{"manual"}),
+		}},
+	}
+	var sweeperErrs *multierror.Error
+
+	for {
+		output, err := conn.DescribeDBClusterSnapshots(input)
+		if testSweepSkipSweepError(err) {
+			log.Printf("[WARN] Skipping RDS DB Cluster Snapshots sweep for %s: %s", region, err)
+			return sweeperErrs.ErrorOrNil() // In case we have completed some pages, but had errors
+		}
+		if err != nil {
+			sweeperErrs = multierror.Append(sweeperErrs, fmt.Errorf("error retrieving RDS DB Cluster Snapshots: %w", err))
+			return sweeperErrs
+		}
+
+		for _, dbClusterSnapshot := range output.DBClusterSnapshots {
+			id := aws.StringValue(dbClusterSnapshot.DBClusterSnapshotIdentifier)
+
+			log.Printf("[INFO] Deleting RDS DB Cluster Snapshot: %s", id)
+			_, err := conn.DeleteDBClusterSnapshot(&rds.DeleteDBClusterSnapshotInput{
+				DBClusterSnapshotIdentifier: aws.String(id),
+			})
+			if isAWSErr(err, rds.ErrCodeDBClusterSnapshotNotFoundFault, "") {
+				continue
+			}
+			if err != nil {
+				sweeperErr := fmt.Errorf("error deleting RDS DB Cluster Snapshot (%s): %w", id, err)
+				log.Printf("[ERROR] %s", sweeperErr)
+				sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
+				continue
+			}
+		}
+
+		if aws.StringValue(output.Marker) == "" {
+			break
+		}
+		input.Marker = output.Marker
+	}
+
+	return sweeperErrs.ErrorOrNil()
+}
 
 func TestAccAWSDBClusterSnapshot_basic(t *testing.T) {
 	var dbClusterSnapshot rds.DBClusterSnapshot

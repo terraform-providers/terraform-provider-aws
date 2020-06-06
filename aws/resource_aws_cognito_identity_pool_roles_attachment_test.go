@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/cognitoidentity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -15,6 +14,7 @@ import (
 )
 
 func TestAccAWSCognitoIdentityPoolRolesAttachment_basic(t *testing.T) {
+	resourceName := "aws_cognito_identity_pool_roles_attachment.test"
 	name := acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 	updatedName := acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 
@@ -26,17 +26,22 @@ func TestAccAWSCognitoIdentityPoolRolesAttachment_basic(t *testing.T) {
 			{
 				Config: testAccAWSCognitoIdentityPoolRolesAttachmentConfig_basic(name),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckAWSCognitoIdentityPoolRolesAttachmentExists("aws_cognito_identity_pool_roles_attachment.main"),
-					resource.TestCheckResourceAttrSet("aws_cognito_identity_pool_roles_attachment.main", "identity_pool_id"),
-					resource.TestCheckResourceAttrSet("aws_cognito_identity_pool_roles_attachment.main", "roles.authenticated"),
+					testAccCheckAWSCognitoIdentityPoolRolesAttachmentExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "identity_pool_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "roles.authenticated"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 			{
 				Config: testAccAWSCognitoIdentityPoolRolesAttachmentConfig_basic(updatedName),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckAWSCognitoIdentityPoolRolesAttachmentExists("aws_cognito_identity_pool_roles_attachment.main"),
-					resource.TestCheckResourceAttrSet("aws_cognito_identity_pool_roles_attachment.main", "identity_pool_id"),
-					resource.TestCheckResourceAttrSet("aws_cognito_identity_pool_roles_attachment.main", "roles.authenticated"),
+					testAccCheckAWSCognitoIdentityPoolRolesAttachmentExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "identity_pool_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "roles.authenticated"),
 				),
 			},
 		},
@@ -44,6 +49,7 @@ func TestAccAWSCognitoIdentityPoolRolesAttachment_basic(t *testing.T) {
 }
 
 func TestAccAWSCognitoIdentityPoolRolesAttachment_roleMappings(t *testing.T) {
+	resourceName := "aws_cognito_identity_pool_roles_attachment.test"
 	name := acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -54,38 +60,64 @@ func TestAccAWSCognitoIdentityPoolRolesAttachment_roleMappings(t *testing.T) {
 			{
 				Config: testAccAWSCognitoIdentityPoolRolesAttachmentConfig_basic(name),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckAWSCognitoIdentityPoolRolesAttachmentExists("aws_cognito_identity_pool_roles_attachment.main"),
-					resource.TestCheckResourceAttrSet("aws_cognito_identity_pool_roles_attachment.main", "identity_pool_id"),
-					resource.TestCheckResourceAttr("aws_cognito_identity_pool_roles_attachment.main", "role_mapping.#", "0"),
-					resource.TestCheckResourceAttrSet("aws_cognito_identity_pool_roles_attachment.main", "roles.authenticated"),
+					testAccCheckAWSCognitoIdentityPoolRolesAttachmentExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "identity_pool_id"),
+					resource.TestCheckResourceAttr(resourceName, "role_mapping.#", "0"),
+					resource.TestCheckResourceAttrSet(resourceName, "roles.authenticated"),
 				),
 			},
 			{
 				Config: testAccAWSCognitoIdentityPoolRolesAttachmentConfig_roleMappings(name),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckAWSCognitoIdentityPoolRolesAttachmentExists("aws_cognito_identity_pool_roles_attachment.main"),
-					resource.TestCheckResourceAttrSet("aws_cognito_identity_pool_roles_attachment.main", "identity_pool_id"),
-					resource.TestCheckResourceAttr("aws_cognito_identity_pool_roles_attachment.main", "role_mapping.#", "1"),
-					resource.TestCheckResourceAttrSet("aws_cognito_identity_pool_roles_attachment.main", "roles.authenticated"),
+					testAccCheckAWSCognitoIdentityPoolRolesAttachmentExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "identity_pool_id"),
+					resource.TestCheckResourceAttr(resourceName, "role_mapping.#", "1"),
+					resource.TestCheckResourceAttrSet(resourceName, "roles.authenticated"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 			{
 				Config: testAccAWSCognitoIdentityPoolRolesAttachmentConfig_roleMappingsUpdated(name),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckAWSCognitoIdentityPoolRolesAttachmentExists("aws_cognito_identity_pool_roles_attachment.main"),
-					resource.TestCheckResourceAttrSet("aws_cognito_identity_pool_roles_attachment.main", "identity_pool_id"),
-					resource.TestCheckResourceAttr("aws_cognito_identity_pool_roles_attachment.main", "role_mapping.#", "1"),
-					resource.TestCheckResourceAttrSet("aws_cognito_identity_pool_roles_attachment.main", "roles.authenticated"),
+					testAccCheckAWSCognitoIdentityPoolRolesAttachmentExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "identity_pool_id"),
+					resource.TestCheckResourceAttr(resourceName, "role_mapping.#", "1"),
+					resource.TestCheckResourceAttrSet(resourceName, "roles.authenticated"),
 				),
 			},
 			{
 				Config: testAccAWSCognitoIdentityPoolRolesAttachmentConfig_basic(name),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckAWSCognitoIdentityPoolRolesAttachmentExists("aws_cognito_identity_pool_roles_attachment.main"),
-					resource.TestCheckResourceAttrSet("aws_cognito_identity_pool_roles_attachment.main", "identity_pool_id"),
-					resource.TestCheckResourceAttr("aws_cognito_identity_pool_roles_attachment.main", "role_mapping.#", "0"),
-					resource.TestCheckResourceAttrSet("aws_cognito_identity_pool_roles_attachment.main", "roles.authenticated"),
+					testAccCheckAWSCognitoIdentityPoolRolesAttachmentExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "identity_pool_id"),
+					resource.TestCheckResourceAttr(resourceName, "role_mapping.#", "0"),
+					resource.TestCheckResourceAttrSet(resourceName, "roles.authenticated"),
 				),
+			},
+		},
+	})
+}
+
+func TestAccAWSCognitoIdentityPoolRolesAttachment_disappears(t *testing.T) {
+	resourceName := "aws_cognito_identity_pool_roles_attachment.test"
+	name := acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCognitoIdentity(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSCognitoIdentityPoolRolesAttachmentDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSCognitoIdentityPoolRolesAttachmentConfig_basic(name),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSCognitoIdentityPoolRolesAttachmentExists(resourceName),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsCognitoIdentityPoolRolesAttachment(), resourceName),
+				),
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
@@ -173,7 +205,7 @@ func testAccCheckAWSCognitoIdentityPoolRolesAttachmentDestroy(s *terraform.State
 		})
 
 		if err != nil {
-			if wserr, ok := err.(awserr.Error); ok && wserr.Code() == "ResourceNotFoundException" {
+			if isAWSErr(err, cognitoidentity.ErrCodeResourceNotFoundException, "") {
 				return nil
 			}
 			return err
@@ -301,7 +333,7 @@ EOF
 
 func testAccAWSCognitoIdentityPoolRolesAttachmentConfig_basic(name string) string {
 	return fmt.Sprintf(baseAWSCognitoIdentityPoolRolesAttachmentConfig(name) + `
-resource "aws_cognito_identity_pool_roles_attachment" "main" {
+resource "aws_cognito_identity_pool_roles_attachment" "test" {
   identity_pool_id = "${aws_cognito_identity_pool.main.id}"
 
   roles = {
@@ -313,7 +345,7 @@ resource "aws_cognito_identity_pool_roles_attachment" "main" {
 
 func testAccAWSCognitoIdentityPoolRolesAttachmentConfig_roleMappings(name string) string {
 	return fmt.Sprintf(baseAWSCognitoIdentityPoolRolesAttachmentConfig(name) + `
-resource "aws_cognito_identity_pool_roles_attachment" "main" {
+resource "aws_cognito_identity_pool_roles_attachment" "test" {
   identity_pool_id = "${aws_cognito_identity_pool.main.id}"
 
   role_mapping {
@@ -338,7 +370,7 @@ resource "aws_cognito_identity_pool_roles_attachment" "main" {
 
 func testAccAWSCognitoIdentityPoolRolesAttachmentConfig_roleMappingsUpdated(name string) string {
 	return fmt.Sprintf(baseAWSCognitoIdentityPoolRolesAttachmentConfig(name) + `
-resource "aws_cognito_identity_pool_roles_attachment" "main" {
+resource "aws_cognito_identity_pool_roles_attachment" "test" {
   identity_pool_id = "${aws_cognito_identity_pool.main.id}"
 
   role_mapping {
@@ -370,7 +402,7 @@ resource "aws_cognito_identity_pool_roles_attachment" "main" {
 
 func testAccAWSCognitoIdentityPoolRolesAttachmentConfig_roleMappingsWithAmbiguousRoleResolutionError(name string) string {
 	return fmt.Sprintf(baseAWSCognitoIdentityPoolRolesAttachmentConfig(name) + `
-resource "aws_cognito_identity_pool_roles_attachment" "main" {
+resource "aws_cognito_identity_pool_roles_attachment" "test" {
   identity_pool_id = "${aws_cognito_identity_pool.main.id}"
 
   role_mapping {
@@ -394,7 +426,7 @@ resource "aws_cognito_identity_pool_roles_attachment" "main" {
 
 func testAccAWSCognitoIdentityPoolRolesAttachmentConfig_roleMappingsWithRulesTypeError(name string) string {
 	return fmt.Sprintf(baseAWSCognitoIdentityPoolRolesAttachmentConfig(name) + `
-resource "aws_cognito_identity_pool_roles_attachment" "main" {
+resource "aws_cognito_identity_pool_roles_attachment" "test" {
   identity_pool_id = "${aws_cognito_identity_pool.main.id}"
 
   role_mapping {
@@ -412,7 +444,7 @@ resource "aws_cognito_identity_pool_roles_attachment" "main" {
 
 func testAccAWSCognitoIdentityPoolRolesAttachmentConfig_roleMappingsWithTokenTypeError(name string) string {
 	return fmt.Sprintf(baseAWSCognitoIdentityPoolRolesAttachmentConfig(name) + `
-resource "aws_cognito_identity_pool_roles_attachment" "main" {
+resource "aws_cognito_identity_pool_roles_attachment" "test" {
   identity_pool_id = "${aws_cognito_identity_pool.main.id}"
 
   role_mapping {

@@ -62,6 +62,7 @@ func resourceAwsSsmAssociation() *schema.Resource {
 				Type:     schema.TypeMap,
 				Optional: true,
 				Computed: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"schedule_expression": {
 				Type:     schema.TypeString,

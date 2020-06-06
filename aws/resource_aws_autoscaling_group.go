@@ -396,9 +396,12 @@ func resourceAwsAutoscalingGroup() *schema.Resource {
 			"tag": autoscalingTagSchema(),
 
 			"tags": {
-				Type:          schema.TypeList,
-				Optional:      true,
-				Elem:          &schema.Schema{Type: schema.TypeMap},
+				Type:     schema.TypeSet,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeMap,
+					Elem: &schema.Schema{Type: schema.TypeString},
+				},
 				ConflictsWith: []string{"tag"},
 			},
 
@@ -545,7 +548,7 @@ func resourceAwsAutoscalingGroupCreate(d *schema.ResourceData, meta interface{})
 	}
 
 	if v, ok := d.GetOk("tags"); ok {
-		tags, err := autoscalingTagsFromList(v.([]interface{}), resourceID)
+		tags, err := autoscalingTagsFromList(v.(*schema.Set).List(), resourceID)
 		if err != nil {
 			return err
 		}
@@ -726,12 +729,12 @@ func resourceAwsAutoscalingGroupRead(d *schema.ResourceData, meta interface{}) e
 				tagList = append(tagList, t)
 			}
 		}
-		d.Set("tag", autoscalingTagDescriptionsToSlice(tagList))
+		d.Set("tag", autoscalingTagDescriptionsToSlice(tagList, false))
 	}
 
 	if v, tagsOk = d.GetOk("tags"); tagsOk {
 		tags := map[string]struct{}{}
-		for _, tag := range v.([]interface{}) {
+		for _, tag := range v.(*schema.Set).List() {
 			attr, ok := tag.(map[string]interface{})
 			if !ok {
 				continue
@@ -751,11 +754,11 @@ func resourceAwsAutoscalingGroupRead(d *schema.ResourceData, meta interface{}) e
 			}
 		}
 		//lintignore:AWSR002
-		d.Set("tags", autoscalingTagDescriptionsToSlice(tagsList))
+		d.Set("tags", autoscalingTagDescriptionsToSlice(tagsList, true))
 	}
 
 	if !tagOk && !tagsOk {
-		d.Set("tag", autoscalingTagDescriptionsToSlice(g.Tags))
+		d.Set("tag", autoscalingTagDescriptionsToSlice(g.Tags, false))
 	}
 
 	if err := d.Set("target_group_arns", flattenStringList(g.TargetGroupARNs)); err != nil {

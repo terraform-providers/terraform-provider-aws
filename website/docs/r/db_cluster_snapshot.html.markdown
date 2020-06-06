@@ -3,12 +3,12 @@ subcategory: "RDS"
 layout: "aws"
 page_title: "AWS: aws_db_cluster_snapshot"
 description: |-
-  Manages a RDS database cluster snapshot.
+  Manages an RDS database cluster snapshot.
 ---
 
 # Resource: aws_db_cluster_snapshot
 
-Manages a RDS database cluster snapshot for Aurora clusters. For managing RDS database instance snapshots, see the [`aws_db_snapshot` resource](/docs/providers/aws/r/db_snapshot.html).
+Manages an RDS database cluster snapshot for Aurora clusters. For managing RDS database instance snapshots, see the [`aws_db_snapshot` resource](/docs/providers/aws/r/db_snapshot.html).
 
 ## Example Usage
 

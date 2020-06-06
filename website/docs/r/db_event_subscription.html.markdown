@@ -77,9 +77,9 @@ The following additional atttributes are provided:
 `aws_db_event_subscription` provides the following [Timeouts](/docs/configuration/resources.html#timeouts)
 configuration options:
 
-- `create` - (Default `40m`) How long to wait for a RDS event notification subscription to be ready.
-- `delete` - (Default `40m`) How long to wait for a RDS event notification subscription to be deleted.
-- `update` - (Default `40m`) How long to wait for a RDS event notification subscription to be updated.
+- `create` - (Default `40m`) How long to wait for an RDS event notification subscription to be ready.
+- `delete` - (Default `40m`) How long to wait for an RDS event notification subscription to be deleted.
+- `update` - (Default `40m`) How long to wait for an RDS event notification subscription to be updated.
 
 ## Import
 

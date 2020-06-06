@@ -149,6 +149,7 @@ The Terraform AWS Provider allows the following endpoints to be customized:
   <li><code>mediastoredata</code></li>
   <li><code>mq</code></li>
   <li><code>neptune</code></li>
+  <li><code>networkmanager</code></li>
   <li><code>opsworks</code></li>
   <li><code>organizations</code></li>
   <li><code>personalize</code></li>
@@ -183,6 +184,7 @@ The Terraform AWS Provider allows the following endpoints to be customized:
   <li><code>storagegateway</code></li>
   <li><code>sts</code></li>
   <li><code>swf</code></li>
+  <li><code>synthetics</code></li>
   <li><code>transfer</code></li>
   <li><code>waf</code></li>
   <li><code>wafregional</code></li>

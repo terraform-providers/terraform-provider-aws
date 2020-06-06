@@ -67,7 +67,7 @@ Lambda
 License Manager
 Lightsail
 MQ
-Macie
+Macie Classic
 Managed Streaming for Kafka (MSK)
 MediaConvert
 MediaPackage
@@ -102,10 +102,13 @@ Shield
 SimpleDB
 Step Function (SFN)
 Storage Gateway
+Synthetics
 Transfer
+Transit Gateway Network Manager
 VPC
 WAF Regional
 WAF
+WAFv2
 WorkLink
 WorkMail
 WorkSpaces

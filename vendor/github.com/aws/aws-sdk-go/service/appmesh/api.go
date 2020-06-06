@@ -57,12 +57,14 @@ func (c *AppMesh) CreateMeshRequest(input *CreateMeshInput) (req *request.Reques
 
 // CreateMesh API operation for AWS App Mesh.
 //
-// Creates a service mesh. A service mesh is a logical boundary for network
-// traffic between the services that reside within it.
+// Creates a service mesh.
 //
-// After you create your service mesh, you can create virtual services, virtual
-// nodes, virtual routers, and routes to distribute traffic between the applications
-// in your mesh.
+// A service mesh is a logical boundary for network traffic between services
+// that are represented by resources within the mesh. After you create your
+// service mesh, you can create virtual services, virtual nodes, virtual routers,
+// and routes to distribute traffic between the applications in your mesh.
+//
+// For more information about service meshes, see Service meshes (https://docs.aws.amazon.com/app-mesh/latest/userguide/meshes.html).
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -89,7 +91,7 @@ func (c *AppMesh) CreateMeshRequest(input *CreateMeshInput) (req *request.Reques
 //
 //   * LimitExceededException
 //   You have exceeded a service limit for your account. For more information,
-//   see Service Limits (https://docs.aws.amazon.com/app-mesh/latest/userguide/service_limits.html)
+//   see Service Limits (https://docs.aws.amazon.com/app-mesh/latest/userguide/service-quotas.html)
 //   in the AWS App Mesh User Guide.
 //
 //   * NotFoundException
@@ -171,13 +173,8 @@ func (c *AppMesh) CreateRouteRequest(input *CreateRouteInput) (req *request.Requ
 //
 // Creates a route that is associated with a virtual router.
 //
-// You can use the prefix parameter in your route specification for path-based
-// routing of requests. For example, if your virtual service name is my-service.local
-// and you want the route to match requests to my-service.local/metrics, your
-// prefix should be /metrics.
-//
-// If your route matches a request, you can distribute traffic to one or more
-// target virtual nodes with relative weighting.
+// You can route several different protocols and define a retry policy for a
+// route. Traffic can be routed to one or more virtual nodes.
 //
 // For more information about routes, see Routes (https://docs.aws.amazon.com/app-mesh/latest/userguide/routes.html).
 //
@@ -206,7 +203,7 @@ func (c *AppMesh) CreateRouteRequest(input *CreateRouteInput) (req *request.Requ
 //
 //   * LimitExceededException
 //   You have exceeded a service limit for your account. For more information,
-//   see Service Limits (https://docs.aws.amazon.com/app-mesh/latest/userguide/service_limits.html)
+//   see Service Limits (https://docs.aws.amazon.com/app-mesh/latest/userguide/service-quotas.html)
 //   in the AWS App Mesh User Guide.
 //
 //   * NotFoundException
@@ -290,11 +287,13 @@ func (c *AppMesh) CreateVirtualNodeRequest(input *CreateVirtualNodeInput) (req *
 //
 // A virtual node acts as a logical pointer to a particular task group, such
 // as an Amazon ECS service or a Kubernetes deployment. When you create a virtual
-// node, you can specify the service discovery information for your task group.
+// node, you can specify the service discovery information for your task group,
+// and whether the proxy running in a task group will communicate with other
+// proxies using Transport Layer Security (TLS).
 //
-// Any inbound traffic that your virtual node expects should be specified as
-// a listener. Any outbound traffic that your virtual node expects to reach
-// should be specified as a backend.
+// You define a listener for any inbound traffic that your virtual node expects.
+// Any virtual service that your virtual node expects to communicate to is specified
+// as a backend.
 //
 // The response metadata for your new virtual node contains the arn that is
 // associated with the virtual node. Set this value (either the full ARN or
@@ -307,7 +306,7 @@ func (c *AppMesh) CreateVirtualNodeRequest(input *CreateVirtualNodeInput) (req *
 // override the node.cluster value that is set by APPMESH_VIRTUAL_NODE_NAME
 // with the APPMESH_VIRTUAL_NODE_CLUSTER environment variable.
 //
-// For more information about virtual nodes, see Virtual Nodes (https://docs.aws.amazon.com/app-mesh/latest/userguide/virtual_nodes.html).
+// For more information about virtual nodes, see Virtual nodes (https://docs.aws.amazon.com/app-mesh/latest/userguide/virtual_nodes.html).
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -334,7 +333,7 @@ func (c *AppMesh) CreateVirtualNodeRequest(input *CreateVirtualNodeInput) (req *
 //
 //   * LimitExceededException
 //   You have exceeded a service limit for your account. For more information,
-//   see Service Limits (https://docs.aws.amazon.com/app-mesh/latest/userguide/service_limits.html)
+//   see Service Limits (https://docs.aws.amazon.com/app-mesh/latest/userguide/service-quotas.html)
 //   in the AWS App Mesh User Guide.
 //
 //   * NotFoundException
@@ -416,14 +415,13 @@ func (c *AppMesh) CreateVirtualRouterRequest(input *CreateVirtualRouterInput) (r
 //
 // Creates a virtual router within a service mesh.
 //
-// Any inbound traffic that your virtual router expects should be specified
-// as a listener.
-//
+// Specify a listener for any inbound traffic that your virtual router receives.
+// Create a virtual router for each protocol and port that you need to route.
 // Virtual routers handle traffic for one or more virtual services within your
 // mesh. After you create your virtual router, create and associate routes for
 // your virtual router that direct incoming requests to different virtual nodes.
 //
-// For more information about virtual routers, see Virtual Routers (https://docs.aws.amazon.com/app-mesh/latest/userguide/virtual_routers.html).
+// For more information about virtual routers, see Virtual routers (https://docs.aws.amazon.com/app-mesh/latest/userguide/virtual_routers.html).
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -450,7 +448,7 @@ func (c *AppMesh) CreateVirtualRouterRequest(input *CreateVirtualRouterInput) (r
 //
 //   * LimitExceededException
 //   You have exceeded a service limit for your account. For more information,
-//   see Service Limits (https://docs.aws.amazon.com/app-mesh/latest/userguide/service_limits.html)
+//   see Service Limits (https://docs.aws.amazon.com/app-mesh/latest/userguide/service-quotas.html)
 //   in the AWS App Mesh User Guide.
 //
 //   * NotFoundException
@@ -538,7 +536,7 @@ func (c *AppMesh) CreateVirtualServiceRequest(input *CreateVirtualServiceInput) 
 // are routed to the virtual node or virtual router that is specified as the
 // provider for the virtual service.
 //
-// For more information about virtual services, see Virtual Services (https://docs.aws.amazon.com/app-mesh/latest/userguide/virtual_services.html).
+// For more information about virtual services, see Virtual services (https://docs.aws.amazon.com/app-mesh/latest/userguide/virtual_services.html).
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -565,7 +563,7 @@ func (c *AppMesh) CreateVirtualServiceRequest(input *CreateVirtualServiceInput) 
 //
 //   * LimitExceededException
 //   You have exceeded a service limit for your account. For more information,
-//   see Service Limits (https://docs.aws.amazon.com/app-mesh/latest/userguide/service_limits.html)
+//   see Service Limits (https://docs.aws.amazon.com/app-mesh/latest/userguide/service-quotas.html)
 //   in the AWS App Mesh User Guide.
 //
 //   * NotFoundException
@@ -1080,6 +1078,10 @@ func (c *AppMesh) DeleteVirtualServiceRequest(input *DeleteVirtualServiceInput) 
 //
 //   * NotFoundException
 //   The specified resource doesn't exist. Check your request syntax and try again.
+//
+//   * ResourceInUseException
+//   You can't delete the specified resource because it's in use or required by
+//   another resource.
 //
 //   * ServiceUnavailableException
 //   The request has failed due to a temporary failure of the service.
@@ -2903,7 +2905,7 @@ func (c *AppMesh) UpdateRouteRequest(input *UpdateRouteInput) (req *request.Requ
 //
 //   * LimitExceededException
 //   You have exceeded a service limit for your account. For more information,
-//   see Service Limits (https://docs.aws.amazon.com/app-mesh/latest/userguide/service_limits.html)
+//   see Service Limits (https://docs.aws.amazon.com/app-mesh/latest/userguide/service-quotas.html)
 //   in the AWS App Mesh User Guide.
 //
 //   * NotFoundException
@@ -3010,7 +3012,7 @@ func (c *AppMesh) UpdateVirtualNodeRequest(input *UpdateVirtualNodeInput) (req *
 //
 //   * LimitExceededException
 //   You have exceeded a service limit for your account. For more information,
-//   see Service Limits (https://docs.aws.amazon.com/app-mesh/latest/userguide/service_limits.html)
+//   see Service Limits (https://docs.aws.amazon.com/app-mesh/latest/userguide/service-quotas.html)
 //   in the AWS App Mesh User Guide.
 //
 //   * NotFoundException
@@ -3117,7 +3119,7 @@ func (c *AppMesh) UpdateVirtualRouterRequest(input *UpdateVirtualRouterInput) (r
 //
 //   * LimitExceededException
 //   You have exceeded a service limit for your account. For more information,
-//   see Service Limits (https://docs.aws.amazon.com/app-mesh/latest/userguide/service_limits.html)
+//   see Service Limits (https://docs.aws.amazon.com/app-mesh/latest/userguide/service-quotas.html)
 //   in the AWS App Mesh User Guide.
 //
 //   * NotFoundException
@@ -3224,7 +3226,7 @@ func (c *AppMesh) UpdateVirtualServiceRequest(input *UpdateVirtualServiceInput) 
 //
 //   * LimitExceededException
 //   You have exceeded a service limit for your account. For more information,
-//   see Service Limits (https://docs.aws.amazon.com/app-mesh/latest/userguide/service_limits.html)
+//   see Service Limits (https://docs.aws.amazon.com/app-mesh/latest/userguide/service-quotas.html)
 //   in the AWS App Mesh User Guide.
 //
 //   * NotFoundException
@@ -6500,7 +6502,7 @@ func (s *InternalServerErrorException) RequestID() string {
 }
 
 // You have exceeded a service limit for your account. For more information,
-// see Service Limits (https://docs.aws.amazon.com/app-mesh/latest/userguide/service_limits.html)
+// see Service Limits (https://docs.aws.amazon.com/app-mesh/latest/userguide/service-quotas.html)
 // in the AWS App Mesh User Guide.
 type LimitExceededException struct {
 	_            struct{}                  `type:"structure"`
@@ -7308,7 +7310,7 @@ type ListenerTlsCertificate struct {
 
 	// An object that represents a local file certificate. The certificate must
 	// meet specific requirements and you must have proxy authorization enabled.
-	// For more information, see Transport Layer Security (TLS) (https://docs.aws.amazon.com/app-mesh/latest/userguide/virtual-node-tls.html#virtual-node-tls-prerequisites).
+	// For more information, see Transport Layer Security (TLS) (https://docs.aws.amazon.com/app-mesh/latest/userguide/tls.html#virtual-node-tls-prerequisites).
 	File *ListenerTlsFileCertificate `locationName:"file" type:"structure"`
 }
 
@@ -7356,7 +7358,7 @@ func (s *ListenerTlsCertificate) SetFile(v *ListenerTlsFileCertificate) *Listene
 
 // An object that represents a local file certificate. The certificate must
 // meet specific requirements and you must have proxy authorization enabled.
-// For more information, see Transport Layer Security (TLS) (https://docs.aws.amazon.com/app-mesh/latest/userguide/virtual-node-tls.html#virtual-node-tls-prerequisites).
+// For more information, see Transport Layer Security (TLS) (https://docs.aws.amazon.com/app-mesh/latest/userguide/tls.html#virtual-node-tls-prerequisites).
 type ListenerTlsFileCertificate struct {
 	_ struct{} `type:"structure"`
 
@@ -7566,6 +7568,12 @@ type MeshRef struct {
 	// Arn is a required field
 	Arn *string `locationName:"arn" type:"string" required:"true"`
 
+	// CreatedAt is a required field
+	CreatedAt *time.Time `locationName:"createdAt" type:"timestamp" required:"true"`
+
+	// LastUpdatedAt is a required field
+	LastUpdatedAt *time.Time `locationName:"lastUpdatedAt" type:"timestamp" required:"true"`
+
 	// MeshName is a required field
 	MeshName *string `locationName:"meshName" min:"1" type:"string" required:"true"`
 
@@ -7574,6 +7582,9 @@ type MeshRef struct {
 
 	// ResourceOwner is a required field
 	ResourceOwner *string `locationName:"resourceOwner" min:"12" type:"string" required:"true"`
+
+	// Version is a required field
+	Version *int64 `locationName:"version" type:"long" required:"true"`
 }
 
 // String returns the string representation
@@ -7592,6 +7603,18 @@ func (s *MeshRef) SetArn(v string) *MeshRef {
 	return s
 }
 
+// SetCreatedAt sets the CreatedAt field's value.
+func (s *MeshRef) SetCreatedAt(v time.Time) *MeshRef {
+	s.CreatedAt = &v
+	return s
+}
+
+// SetLastUpdatedAt sets the LastUpdatedAt field's value.
+func (s *MeshRef) SetLastUpdatedAt(v time.Time) *MeshRef {
+	s.LastUpdatedAt = &v
+	return s
+}
+
 // SetMeshName sets the MeshName field's value.
 func (s *MeshRef) SetMeshName(v string) *MeshRef {
 	s.MeshName = &v
@@ -7607,6 +7630,12 @@ func (s *MeshRef) SetMeshOwner(v string) *MeshRef {
 // SetResourceOwner sets the ResourceOwner field's value.
 func (s *MeshRef) SetResourceOwner(v string) *MeshRef {
 	s.ResourceOwner = &v
+	return s
+}
+
+// SetVersion sets the Version field's value.
+func (s *MeshRef) SetVersion(v int64) *MeshRef {
+	s.Version = &v
 	return s
 }
 
@@ -7997,6 +8026,12 @@ type RouteRef struct {
 	// Arn is a required field
 	Arn *string `locationName:"arn" type:"string" required:"true"`
 
+	// CreatedAt is a required field
+	CreatedAt *time.Time `locationName:"createdAt" type:"timestamp" required:"true"`
+
+	// LastUpdatedAt is a required field
+	LastUpdatedAt *time.Time `locationName:"lastUpdatedAt" type:"timestamp" required:"true"`
+
 	// MeshName is a required field
 	MeshName *string `locationName:"meshName" min:"1" type:"string" required:"true"`
 
@@ -8008,6 +8043,9 @@ type RouteRef struct {
 
 	// RouteName is a required field
 	RouteName *string `locationName:"routeName" min:"1" type:"string" required:"true"`
+
+	// Version is a required field
+	Version *int64 `locationName:"version" type:"long" required:"true"`
 
 	// VirtualRouterName is a required field
 	VirtualRouterName *string `locationName:"virtualRouterName" min:"1" type:"string" required:"true"`
@@ -8026,6 +8064,18 @@ func (s RouteRef) GoString() string {
 // SetArn sets the Arn field's value.
 func (s *RouteRef) SetArn(v string) *RouteRef {
 	s.Arn = &v
+	return s
+}
+
+// SetCreatedAt sets the CreatedAt field's value.
+func (s *RouteRef) SetCreatedAt(v time.Time) *RouteRef {
+	s.CreatedAt = &v
+	return s
+}
+
+// SetLastUpdatedAt sets the LastUpdatedAt field's value.
+func (s *RouteRef) SetLastUpdatedAt(v time.Time) *RouteRef {
+	s.LastUpdatedAt = &v
 	return s
 }
 
@@ -8050,6 +8100,12 @@ func (s *RouteRef) SetResourceOwner(v string) *RouteRef {
 // SetRouteName sets the RouteName field's value.
 func (s *RouteRef) SetRouteName(v string) *RouteRef {
 	s.RouteName = &v
+	return s
+}
+
+// SetVersion sets the Version field's value.
+func (s *RouteRef) SetVersion(v int64) *RouteRef {
+	s.Version = &v
 	return s
 }
 
@@ -9504,6 +9560,12 @@ type VirtualNodeRef struct {
 	// Arn is a required field
 	Arn *string `locationName:"arn" type:"string" required:"true"`
 
+	// CreatedAt is a required field
+	CreatedAt *time.Time `locationName:"createdAt" type:"timestamp" required:"true"`
+
+	// LastUpdatedAt is a required field
+	LastUpdatedAt *time.Time `locationName:"lastUpdatedAt" type:"timestamp" required:"true"`
+
 	// MeshName is a required field
 	MeshName *string `locationName:"meshName" min:"1" type:"string" required:"true"`
 
@@ -9512,6 +9574,9 @@ type VirtualNodeRef struct {
 
 	// ResourceOwner is a required field
 	ResourceOwner *string `locationName:"resourceOwner" min:"12" type:"string" required:"true"`
+
+	// Version is a required field
+	Version *int64 `locationName:"version" type:"long" required:"true"`
 
 	// VirtualNodeName is a required field
 	VirtualNodeName *string `locationName:"virtualNodeName" min:"1" type:"string" required:"true"`
@@ -9533,6 +9598,18 @@ func (s *VirtualNodeRef) SetArn(v string) *VirtualNodeRef {
 	return s
 }
 
+// SetCreatedAt sets the CreatedAt field's value.
+func (s *VirtualNodeRef) SetCreatedAt(v time.Time) *VirtualNodeRef {
+	s.CreatedAt = &v
+	return s
+}
+
+// SetLastUpdatedAt sets the LastUpdatedAt field's value.
+func (s *VirtualNodeRef) SetLastUpdatedAt(v time.Time) *VirtualNodeRef {
+	s.LastUpdatedAt = &v
+	return s
+}
+
 // SetMeshName sets the MeshName field's value.
 func (s *VirtualNodeRef) SetMeshName(v string) *VirtualNodeRef {
 	s.MeshName = &v
@@ -9548,6 +9625,12 @@ func (s *VirtualNodeRef) SetMeshOwner(v string) *VirtualNodeRef {
 // SetResourceOwner sets the ResourceOwner field's value.
 func (s *VirtualNodeRef) SetResourceOwner(v string) *VirtualNodeRef {
 	s.ResourceOwner = &v
+	return s
+}
+
+// SetVersion sets the Version field's value.
+func (s *VirtualNodeRef) SetVersion(v int64) *VirtualNodeRef {
+	s.Version = &v
 	return s
 }
 
@@ -9842,6 +9925,12 @@ type VirtualRouterRef struct {
 	// Arn is a required field
 	Arn *string `locationName:"arn" type:"string" required:"true"`
 
+	// CreatedAt is a required field
+	CreatedAt *time.Time `locationName:"createdAt" type:"timestamp" required:"true"`
+
+	// LastUpdatedAt is a required field
+	LastUpdatedAt *time.Time `locationName:"lastUpdatedAt" type:"timestamp" required:"true"`
+
 	// MeshName is a required field
 	MeshName *string `locationName:"meshName" min:"1" type:"string" required:"true"`
 
@@ -9850,6 +9939,9 @@ type VirtualRouterRef struct {
 
 	// ResourceOwner is a required field
 	ResourceOwner *string `locationName:"resourceOwner" min:"12" type:"string" required:"true"`
+
+	// Version is a required field
+	Version *int64 `locationName:"version" type:"long" required:"true"`
 
 	// VirtualRouterName is a required field
 	VirtualRouterName *string `locationName:"virtualRouterName" min:"1" type:"string" required:"true"`
@@ -9871,6 +9963,18 @@ func (s *VirtualRouterRef) SetArn(v string) *VirtualRouterRef {
 	return s
 }
 
+// SetCreatedAt sets the CreatedAt field's value.
+func (s *VirtualRouterRef) SetCreatedAt(v time.Time) *VirtualRouterRef {
+	s.CreatedAt = &v
+	return s
+}
+
+// SetLastUpdatedAt sets the LastUpdatedAt field's value.
+func (s *VirtualRouterRef) SetLastUpdatedAt(v time.Time) *VirtualRouterRef {
+	s.LastUpdatedAt = &v
+	return s
+}
+
 // SetMeshName sets the MeshName field's value.
 func (s *VirtualRouterRef) SetMeshName(v string) *VirtualRouterRef {
 	s.MeshName = &v
@@ -9886,6 +9990,12 @@ func (s *VirtualRouterRef) SetMeshOwner(v string) *VirtualRouterRef {
 // SetResourceOwner sets the ResourceOwner field's value.
 func (s *VirtualRouterRef) SetResourceOwner(v string) *VirtualRouterRef {
 	s.ResourceOwner = &v
+	return s
+}
+
+// SetVersion sets the Version field's value.
+func (s *VirtualRouterRef) SetVersion(v int64) *VirtualRouterRef {
+	s.Version = &v
 	return s
 }
 
@@ -10182,6 +10292,12 @@ type VirtualServiceRef struct {
 	// Arn is a required field
 	Arn *string `locationName:"arn" type:"string" required:"true"`
 
+	// CreatedAt is a required field
+	CreatedAt *time.Time `locationName:"createdAt" type:"timestamp" required:"true"`
+
+	// LastUpdatedAt is a required field
+	LastUpdatedAt *time.Time `locationName:"lastUpdatedAt" type:"timestamp" required:"true"`
+
 	// MeshName is a required field
 	MeshName *string `locationName:"meshName" min:"1" type:"string" required:"true"`
 
@@ -10190,6 +10306,9 @@ type VirtualServiceRef struct {
 
 	// ResourceOwner is a required field
 	ResourceOwner *string `locationName:"resourceOwner" min:"12" type:"string" required:"true"`
+
+	// Version is a required field
+	Version *int64 `locationName:"version" type:"long" required:"true"`
 
 	// VirtualServiceName is a required field
 	VirtualServiceName *string `locationName:"virtualServiceName" type:"string" required:"true"`
@@ -10211,6 +10330,18 @@ func (s *VirtualServiceRef) SetArn(v string) *VirtualServiceRef {
 	return s
 }
 
+// SetCreatedAt sets the CreatedAt field's value.
+func (s *VirtualServiceRef) SetCreatedAt(v time.Time) *VirtualServiceRef {
+	s.CreatedAt = &v
+	return s
+}
+
+// SetLastUpdatedAt sets the LastUpdatedAt field's value.
+func (s *VirtualServiceRef) SetLastUpdatedAt(v time.Time) *VirtualServiceRef {
+	s.LastUpdatedAt = &v
+	return s
+}
+
 // SetMeshName sets the MeshName field's value.
 func (s *VirtualServiceRef) SetMeshName(v string) *VirtualServiceRef {
 	s.MeshName = &v
@@ -10226,6 +10357,12 @@ func (s *VirtualServiceRef) SetMeshOwner(v string) *VirtualServiceRef {
 // SetResourceOwner sets the ResourceOwner field's value.
 func (s *VirtualServiceRef) SetResourceOwner(v string) *VirtualServiceRef {
 	s.ResourceOwner = &v
+	return s
+}
+
+// SetVersion sets the Version field's value.
+func (s *VirtualServiceRef) SetVersion(v int64) *VirtualServiceRef {
+	s.Version = &v
 	return s
 }
 

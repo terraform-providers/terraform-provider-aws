@@ -1387,7 +1387,52 @@ func testAccCheckAWSDynamoDbTableDisappears(table *dynamodb.DescribeTableOutput)
 	}
 }
 
-func TestAccAWSDynamoDbTable_Replica(t *testing.T) {
+func TestAccAWSDynamoDbTable_Replica_Multiple(t *testing.T) {
+	var table dynamodb.DescribeTableOutput
+	var providers []*schema.Provider
+	resourceName := "aws_dynamodb_table.test"
+	tableName := acctest.RandomWithPrefix("TerraformTestTable-")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccMultipleRegionPreCheck(t, 3)
+		},
+		ProviderFactories: testAccProviderFactories(&providers),
+		CheckDestroy:      testAccCheckAWSDynamoDbTableDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSDynamoDbTableConfigReplica2(tableName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckInitialAWSDynamoDbTableExists(resourceName, &table),
+					resource.TestCheckResourceAttr(resourceName, "replica.#", "2"),
+				),
+			},
+			{
+				Config:            testAccAWSDynamoDbTableConfigReplica2(tableName),
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAWSDynamoDbTableConfigReplica0(tableName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckInitialAWSDynamoDbTableExists(resourceName, &table),
+					resource.TestCheckResourceAttr(resourceName, "replica.#", "0"),
+				),
+			},
+			{
+				Config: testAccAWSDynamoDbTableConfigReplica2(tableName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckInitialAWSDynamoDbTableExists(resourceName, &table),
+					resource.TestCheckResourceAttr(resourceName, "replica.#", "2"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSDynamoDbTable_Replica_Single(t *testing.T) {
 	var conf dynamodb.DescribeTableOutput
 	var providers []*schema.Provider
 	resourceName := "aws_dynamodb_table.test"
@@ -1396,97 +1441,40 @@ func TestAccAWSDynamoDbTable_Replica(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() {
 			testAccPreCheck(t)
-			testAccMultipleRegionsPreCheck(t)
-			testAccAlternateRegionPreCheck(t)
+			testAccMultipleRegionPreCheck(t, 2)
 		},
-		ProviderFactories:   testAccProviderFactories(&providers),
-		CheckDestroy:        testAccCheckAWSDynamoDbTableDestroy,
-		DisableBinaryDriver: true,
+		ProviderFactories: testAccProviderFactories(&providers),
+		CheckDestroy:      testAccCheckAWSDynamoDbTableDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSDynamoDbReplicaUpdates(tableName),
+				Config: testAccAWSDynamoDbTableConfigReplica1(tableName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckInitialAWSDynamoDbTableExists(resourceName, &conf),
-					resource.TestCheckResourceAttr(resourceName, "name", tableName),
-					resource.TestCheckResourceAttr(resourceName, "hash_key", "TestTableHashKey"),
-					resource.TestCheckResourceAttr(resourceName, "attribute.2990477658.name", "TestTableHashKey"),
-					resource.TestCheckResourceAttr(resourceName, "attribute.2990477658.type", "S"),
 					resource.TestCheckResourceAttr(resourceName, "replica.#", "1"),
 				),
 			},
 			{
-				Config:            testAccAWSDynamoDbReplicaUpdates(tableName),
+				Config:            testAccAWSDynamoDbTableConfigReplica1(tableName),
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAWSDynamoDbReplicaDeletes(tableName),
+				Config: testAccAWSDynamoDbTableConfigReplica0(tableName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckInitialAWSDynamoDbTableExists(resourceName, &conf),
-					resource.TestCheckResourceAttr(resourceName, "name", tableName),
-					resource.TestCheckResourceAttr(resourceName, "hash_key", "TestTableHashKey"),
-					resource.TestCheckResourceAttr(resourceName, "attribute.2990477658.name", "TestTableHashKey"),
-					resource.TestCheckResourceAttr(resourceName, "attribute.2990477658.type", "S"),
-					resource.TestCheckResourceAttr(resourceName, "hash_key", "TestTableHashKey"),
 					resource.TestCheckResourceAttr(resourceName, "replica.#", "0"),
 				),
 			},
 			{
-				Config: testAccAWSDynamoDbReplicaUpdates(tableName),
+				Config: testAccAWSDynamoDbTableConfigReplica1(tableName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckInitialAWSDynamoDbTableExists(resourceName, &conf),
-					resource.TestCheckResourceAttr(resourceName, "name", tableName),
-					resource.TestCheckResourceAttr(resourceName, "hash_key", "TestTableHashKey"),
-					resource.TestCheckResourceAttr(resourceName, "attribute.2990477658.name", "TestTableHashKey"),
-					resource.TestCheckResourceAttr(resourceName, "attribute.2990477658.type", "S"),
 					resource.TestCheckResourceAttr(resourceName, "replica.#", "1"),
 				),
 			},
 		},
 	})
-}
-
-func testAccAWSDynamoDbReplicaUpdates(rName string) string {
-	return testAccAlternateRegionProviderConfig() + fmt.Sprintf(`
-data "aws_region" "alternate" {
-  provider = "aws.alternate"
-}
-
-resource "aws_dynamodb_table" "test" {
-  name             = %[1]q
-  hash_key         = "TestTableHashKey"
-  billing_mode     = "PAY_PER_REQUEST"
-  stream_enabled   = true
-  stream_view_type = "NEW_AND_OLD_IMAGES"
-
-  attribute {
-    name = "TestTableHashKey"
-    type = "S"
-  }
-
-  replica {
-    region_name = %[2]q
-  }
-}
-`, rName, testAccGetAlternateRegion())
-}
-
-func testAccAWSDynamoDbReplicaDeletes(rName string) string {
-	return testAccAlternateRegionProviderConfig() + fmt.Sprintf(`
-resource "aws_dynamodb_table" "test" {
-  name         = "%s"
-  hash_key     = "TestTableHashKey"
-	billing_mode = "PAY_PER_REQUEST"
-	stream_enabled = true
-	stream_view_type = "NEW_AND_OLD_IMAGES"
-
-  attribute {
-    name = "TestTableHashKey"
-    type = "S"
-  }
-}
-`, rName)
 }
 
 func dynamoDbGetGSIIndex(gsiList *[]*dynamodb.GlobalSecondaryIndexDescription, target string) int {
@@ -2189,4 +2177,85 @@ resource "aws_dynamodb_table" "test" {
   }
 }
 `, rName, attrName1, attrType1, attrName2, attrType2, hashKey, rangeKey)
+}
+
+func testAccAWSDynamoDbTableConfigReplica0(rName string) string {
+	return composeConfig(
+		testAccMultipleRegionProviderConfig(3), // Prevent "Provider configuration not present" errors
+		fmt.Sprintf(`
+resource "aws_dynamodb_table" "test" {
+  name            = %[1]q
+  hash_key        = "TestTableHashKey"
+  billing_mode    = "PAY_PER_REQUEST"
+  stream_enabled  = true
+  stream_view_type = "NEW_AND_OLD_IMAGES"
+
+  attribute {
+    name = "TestTableHashKey"
+    type = "S"
+  }
+}
+`, rName))
+}
+
+func testAccAWSDynamoDbTableConfigReplica1(rName string) string {
+	return composeConfig(
+		testAccMultipleRegionProviderConfig(3), // Prevent "Provider configuration not present" errors
+		fmt.Sprintf(`
+data "aws_region" "alternate" {
+  provider = "aws.alternate"
+}
+
+resource "aws_dynamodb_table" "test" {
+  name             = %[1]q
+  hash_key         = "TestTableHashKey"
+  billing_mode     = "PAY_PER_REQUEST"
+  stream_enabled   = true
+  stream_view_type = "NEW_AND_OLD_IMAGES"
+
+  attribute {
+    name = "TestTableHashKey"
+    type = "S"
+  }
+
+  replica {
+    region_name = data.aws_region.alternate.name
+  }
+}
+`, rName))
+}
+
+func testAccAWSDynamoDbTableConfigReplica2(rName string) string {
+	return composeConfig(
+		testAccMultipleRegionProviderConfig(3),
+		fmt.Sprintf(`
+data "aws_region" "alternate" {
+  provider = "aws.alternate"
+}
+
+data "aws_region" "third" {
+  provider = "aws.third"
+}
+
+resource "aws_dynamodb_table" "test" {
+  name             = %[1]q
+  hash_key         = "TestTableHashKey"
+  billing_mode     = "PAY_PER_REQUEST"
+  stream_enabled   = true
+  stream_view_type = "NEW_AND_OLD_IMAGES"
+
+  attribute {
+    name = "TestTableHashKey"
+    type = "S"
+  }
+
+  replica {
+    region_name = data.aws_region.alternate.name
+  }
+
+  replica {
+    region_name = data.aws_region.third.name
+  }
+}
+`, rName))
 }

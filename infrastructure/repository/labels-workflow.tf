@@ -1,5 +1,6 @@
 variable "workflow_labels" {
   default = {
+    "examples"                       = "fef2c0",
     "hacktoberfest"                  = "2c0fad",
     "needs-triage"                   = "e236d7",
     "terraform-plugin-sdk-migration" = "fad8c7",

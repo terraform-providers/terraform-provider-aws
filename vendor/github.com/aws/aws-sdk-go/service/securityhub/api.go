@@ -781,10 +781,10 @@ func (c *SecurityHub) CreateMembersRequest(input *CreateMembersInput) (req *requ
 // Security Hub and become member accounts in Security Hub.
 //
 // If the account owner accepts the invitation, the account becomes a member
-// account in Security Hub, and a permission policy is added that permits the
-// master account to view the findings generated in the member account. When
-// Security Hub is enabled in the invited account, findings start to be sent
-// to both the member and master accounts.
+// account in Security Hub. A permissions policy is added that permits the master
+// account to view the findings generated in the member account. When Security
+// Hub is enabled in the invited account, findings start to be sent to both
+// the member and master accounts.
 //
 // To remove the association between the master and member accounts, use the
 // DisassociateFromMasterAccount or DisassociateMembers operation.
@@ -2418,7 +2418,7 @@ func (c *SecurityHub) EnableImportFindingsForProductRequest(input *EnableImportF
 // Enables the integration of a partner product with Security Hub. Integrated
 // products send findings to Security Hub.
 //
-// When you enable a product integration, a permission policy that grants permission
+// When you enable a product integration, a permissions policy that grants permission
 // for the product to send findings to Security Hub is applied.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
@@ -2521,9 +2521,17 @@ func (c *SecurityHub) EnableSecurityHubRequest(input *EnableSecurityHubInput) (r
 // Hub.
 //
 // When you use the EnableSecurityHub operation to enable Security Hub, you
-// also automatically enable the CIS AWS Foundations standard. You do not enable
-// the Payment Card Industry Data Security Standard (PCI DSS) standard. To not
-// enable the CIS AWS Foundations standard, set EnableDefaultStandards to false.
+// also automatically enable the following standards.
+//
+//    * CIS AWS Foundations
+//
+//    * AWS Foundational Security Best Practices
+//
+// You do not enable the Payment Card Industry Data Security Standard (PCI DSS)
+// standard.
+//
+// To not enable the automatically enabled standards, set EnableDefaultStandards
+// to false.
 //
 // After you enable Security Hub, to enable a standard, use the BatchEnableStandards
 // operation. To disable a standard, use the BatchDisableStandards operation.
@@ -4946,8 +4954,8 @@ func (s *AwsCloudFrontDistributionLogging) SetPrefix(v string) *AwsCloudFrontDis
 }
 
 // A complex type that describes the Amazon S3 bucket, HTTP server (for example,
-// a web server), Amazon MediaStore, or other server from which CloudFront gets
-// your files.
+// a web server), Amazon Elemental MediaStore, or other server from which CloudFront
+// gets your files.
 type AwsCloudFrontDistributionOriginItem struct {
 	_ struct{} `type:"structure"`
 
@@ -5118,20 +5126,20 @@ type AwsCodeBuildProjectEnvironment struct {
 
 	// The type of build environment to use for related builds.
 	//
-	// The environment type ARM_CONTAINER is available only in regions US East (N.
+	// The environment type ARM_CONTAINER is available only in Regions US East (N.
 	// Virginia), US East (Ohio), US West (Oregon), Europe (Ireland), Asia Pacific
 	// (Mumbai), Asia Pacific (Tokyo), Asia Pacific (Sydney), and Europe (Frankfurt).
 	//
 	// The environment type LINUX_CONTAINER with compute type build.general1.2xlarge
-	// is available only in regions US East (N. Virginia), US East (N. Virginia),
+	// is available only in Regions US East (N. Virginia), US East (N. Virginia),
 	// US West (Oregon), Canada (Central), Europe (Ireland), Europe (London), Europe
 	// (Frankfurt), Asia Pacific (Tokyo), Asia Pacific (Seoul), Asia Pacific (Singapore),
 	// Asia Pacific (Sydney), China (Beijing), and China (Ningxia).
 	//
-	// The environment type LINUX_GPU_CONTAINER is available only in regions US
+	// The environment type LINUX_GPU_CONTAINER is available only in Regions US
 	// East (N. Virginia), US East (N. Virginia), US West (Oregon), Canada (Central),
 	// Europe (Ireland), Europe (London), Europe (Frankfurt), Asia Pacific (Tokyo),
-	// Asia Pacific (Seoul), Asia Pacific (Singapore), Asia Pacific (Sydney) , China
+	// Asia Pacific (Seoul), Asia Pacific (Singapore), Asia Pacific (Sydney), China
 	// (Beijing), and China (Ningxia).
 	//
 	// Valid values: WINDOWS_CONTAINER | LINUX_CONTAINER | LINUX_GPU_CONTAINER |
@@ -5232,7 +5240,7 @@ type AwsCodeBuildProjectSource struct {
 	//    uses the settings in a pipeline's source action instead of this value.
 	//
 	//    * For source code in an AWS CodeCommit repository, the HTTPS clone URL
-	//    to the repository that contains the source code and the buildspec file
+	//    to the repository that contains the source code and the build spec file
 	//    (for example, https://git-codecommit.region-ID.amazonaws.com/v1/repos/repo-name
 	//    ).
 	//
@@ -5241,10 +5249,10 @@ type AwsCodeBuildProjectSource struct {
 	//    The path to the folder that contains the source code (for example, bucket-name/path/to/source-code/folder/).
 	//
 	//    * For source code in a GitHub repository, the HTTPS clone URL to the repository
-	//    that contains the source and the buildspec file.
+	//    that contains the source and the build spec file.
 	//
 	//    * For source code in a Bitbucket repository, the HTTPS clone URL to the
-	//    repository that contains the source and the buildspec file.
+	//    repository that contains the source and the build spec file.
 	Location *string `type:"string"`
 
 	// The type of repository that contains the source code to be built. Valid values
@@ -5775,9 +5783,9 @@ func (s *AwsEc2SecurityGroupIpPermission) SetUserIdGroupPairs(v []*AwsEc2Securit
 type AwsEc2SecurityGroupIpRange struct {
 	_ struct{} `type:"structure"`
 
-	// The IPv4 CIDR range. You can either specify either a CIDR range or a source
-	// security group, but not both. To specify a single IPv4 address, use the /32
-	// prefix length.
+	// The IPv4 CIDR range. You can specify either a CIDR range or a source security
+	// group, but not both. To specify a single IPv4 address, use the /32 prefix
+	// length.
 	CidrIp *string `type:"string"`
 }
 
@@ -5801,9 +5809,9 @@ func (s *AwsEc2SecurityGroupIpRange) SetCidrIp(v string) *AwsEc2SecurityGroupIpR
 type AwsEc2SecurityGroupIpv6Range struct {
 	_ struct{} `type:"structure"`
 
-	// The IPv6 CIDR range. You can either specify either a CIDR range or a source
-	// security group, but not both. To specify a single IPv6 address, use the /128
-	// prefix length.
+	// The IPv6 CIDR range. You can specify either a CIDR range or a source security
+	// group, but not both. To specify a single IPv6 address, use the /128 prefix
+	// length.
 	CidrIpv6 *string `type:"string"`
 }
 
@@ -6959,7 +6967,7 @@ func (s *AwsLambdaFunctionVpcConfig) SetVpcId(v string) *AwsLambdaFunctionVpcCon
 type AwsLambdaLayerVersionDetails struct {
 	_ struct{} `type:"structure"`
 
-	// The layer's compatible runtimes. Maximum number of 5 items.
+	// The layer's compatible runtimes. Maximum number of five items.
 	//
 	// Valid values: nodejs10.x | nodejs12.x | java8 | java11 | python2.7 | python3.6
 	// | python3.7 | python3.8 | dotnetcore1.0 | dotnetcore2.1 | go1.x | ruby2.5
@@ -7015,12 +7023,12 @@ type AwsRdsDbInstanceAssociatedRole struct {
 	// Describes the state of the association between the IAM role and the DB instance.
 	// The Status property returns one of the following values:
 	//
-	//    * ACTIVE - the IAM role ARN is associated with the DB instance and can
+	//    * ACTIVE - The IAM role ARN is associated with the DB instance and can
 	//    be used to access other AWS services on your behalf.
 	//
-	//    * PENDING - the IAM role ARN is being associated with the DB instance.
+	//    * PENDING - The IAM role ARN is being associated with the DB instance.
 	//
-	//    * INVALID - the IAM role ARN is associated with the DB instance, but the
+	//    * INVALID - The IAM role ARN is associated with the DB instance. But the
 	//    DB instance is unable to assume the IAM role in order to access other
 	//    AWS services on your behalf.
 	Status *string `type:"string"`
@@ -7466,7 +7474,7 @@ type AwsS3BucketServerSideEncryptionRule struct {
 	_ struct{} `type:"structure"`
 
 	// Specifies the default server-side encryption to apply to new objects in the
-	// bucket. If a PUT Object request doesn't specify any server-side encryption,
+	// bucket. If a PUT object request doesn't specify any server-side encryption,
 	// this default encryption is applied.
 	ApplyServerSideEncryptionByDefault *AwsS3BucketServerSideEncryptionByDefault `type:"structure"`
 }
@@ -7487,7 +7495,7 @@ func (s *AwsS3BucketServerSideEncryptionRule) SetApplyServerSideEncryptionByDefa
 	return s
 }
 
-// Details about an AWS S3 object.
+// Details about an Amazon S3 object.
 type AwsS3ObjectDetails struct {
 	_ struct{} `type:"structure"`
 
@@ -7611,7 +7619,7 @@ type AwsSecurityFinding struct {
 
 	// The identifier for the solution-specific component (a discrete unit of logic)
 	// that generated a finding. In various security-findings providers' solutions,
-	// this generator can be called a rule, a check, a detector, a plug-in, etc.
+	// this generator can be called a rule, a check, a detector, a plugin, etc.
 	//
 	// GeneratorId is a required field
 	GeneratorId *string `type:"string" required:"true"`
@@ -7765,6 +7773,11 @@ func (s *AwsSecurityFinding) Validate() error {
 	}
 	if s.UpdatedAt == nil {
 		invalidParams.Add(request.NewErrParamRequired("UpdatedAt"))
+	}
+	if s.Compliance != nil {
+		if err := s.Compliance.Validate(); err != nil {
+			invalidParams.AddNested("Compliance", err.(request.ErrInvalidParams))
+		}
 	}
 	if s.Malware != nil {
 		for i, v := range s.Malware {
@@ -8038,7 +8051,7 @@ type AwsSecurityFindingFilters struct {
 
 	// The identifier for the solution-specific component (a discrete unit of logic)
 	// that generated a finding. In various security-findings providers' solutions,
-	// this generator can be called a rule, a check, a detector, a plug-in, etc.
+	// this generator can be called a rule, a check, a detector, a plugin, etc.
 	GeneratorId []*StringFilter `type:"list"`
 
 	// The security findings provider-specific identifier for a finding.
@@ -8865,7 +8878,7 @@ func (s *AwsSecurityFindingIdentifier) SetProductArn(v string) *AwsSecurityFindi
 type AwsSnsTopicDetails struct {
 	_ struct{} `type:"structure"`
 
-	// The ID of an AWS-managed customer master key (CMK) for Amazon SNS or a custom
+	// The ID of an AWS managed customer master key (CMK) for Amazon SNS or a custom
 	// CMK.
 	KmsMasterKeyId *string `type:"string"`
 
@@ -8959,7 +8972,7 @@ type AwsSqsQueueDetails struct {
 	// to encrypt or decrypt messages before calling AWS KMS again.
 	KmsDataKeyReusePeriodSeconds *int64 `type:"integer"`
 
-	// The ID of an AWS-managed customer master key (CMK) for Amazon SQS or a custom
+	// The ID of an AWS managed customer master key (CMK) for Amazon SQS or a custom
 	// CMK.
 	KmsMasterKeyId *string `type:"string"`
 
@@ -9005,7 +9018,7 @@ func (s *AwsSqsQueueDetails) SetQueueName(v string) *AwsSqsQueueDetails {
 type AwsWafWebAclDetails struct {
 	_ struct{} `type:"structure"`
 
-	// The action to perform if none of the Rules contained in the WebACL match.
+	// The action to perform if none of the rules contained in the WebACL match.
 	DefaultAction *string `type:"string"`
 
 	// A friendly name or description of the WebACL. You can't change the name of
@@ -9059,7 +9072,7 @@ type AwsWafWebAclRule struct {
 	_ struct{} `type:"structure"`
 
 	// Specifies the action that CloudFront or AWS WAF takes when a web request
-	// matches the conditions in the Rule.
+	// matches the conditions in the rule.
 	Action *WafAction `type:"structure"`
 
 	// Rules to exclude from a rule group.
@@ -9081,13 +9094,13 @@ type AwsWafWebAclRule struct {
 	// update requests, ActivatedRule|Action is used instead of ActivatedRule|OverrideAction.
 	OverrideAction *WafOverrideAction `type:"structure"`
 
-	// Specifies the order in which the Rules in a WebACL are evaluated. Rules with
-	// a lower value for Priority are evaluated before Rules with a higher value.
-	// The value must be a unique integer. If you add multiple Rules to a WebACL,
+	// Specifies the order in which the rules in a WebACL are evaluated. Rules with
+	// a lower value for Priority are evaluated before rules with a higher value.
+	// The value must be a unique integer. If you add multiple rules to a WebACL,
 	// the values do not need to be consecutive.
 	Priority *int64 `type:"integer"`
 
-	// The identifier for a Rule.
+	// The identifier for a rule.
 	RuleId *string `type:"string"`
 
 	// The rule type.
@@ -9648,28 +9661,34 @@ func (s *BatchUpdateFindingsUnprocessedFinding) SetFindingIdentifier(v *AwsSecur
 	return s
 }
 
-// Exclusive to findings that are generated as the result of a check run against
-// a specific rule in a supported security standard, such as CIS AWS Foundations.
-// Contains security standard-related finding details.
-//
-// Values include the following:
-//
-//    * Allowed values are the following: PASSED - Standards check passed for
-//    all evaluated resources. WARNING - Some information is missing or this
-//    check is not supported given your configuration. FAILED - Standards check
-//    failed for at least one evaluated resource. NOT_AVAILABLE - Check could
-//    not be performed due to a service outage, API error, or because the result
-//    of the AWS Config evaluation was NOT_APPLICABLE. If the AWS Config evaluation
-//    result was NOT_APPLICABLE, then after 3 days, Security Hub automatically
-//    archives the finding.
+// Contains finding details that are specific to control-based findings. Only
+// returned for findings generated from controls.
 type Compliance struct {
 	_ struct{} `type:"structure"`
 
-	// List of requirements that are related to a standards control.
+	// For a control, the industry or regulatory framework requirements that are
+	// related to the control. The check for that control is aligned with these
+	// requirements.
 	RelatedRequirements []*string `type:"list"`
 
 	// The result of a standards check.
+	//
+	// The valid values for Status are as follows.
+	//
+	//    * PASSED - Standards check passed for all evaluated resources. WARNING
+	//    - Some information is missing or this check is not supported for your
+	//    configuration. FAILED - Standards check failed for at least one evaluated
+	//    resource. NOT_AVAILABLE - Check could not be performed due to a service
+	//    outage, API error, or because the result of the AWS Config evaluation
+	//    was NOT_APPLICABLE. If the AWS Config evaluation result was NOT_APPLICABLE,
+	//    then after 3 days, Security Hub automatically archives the finding.
 	Status *string `type:"string" enum:"ComplianceStatus"`
+
+	// For findings generated from controls, a list of reasons behind the value
+	// of Status. For the list of status reason codes and their meanings, see Standards-related
+	// information in the ASFF (https://docs.aws.amazon.com/securityhub/latest/userguide/securityhub-standards-results.html#securityhub-standards-results-asff)
+	// in the AWS Security Hub User Guide.
+	StatusReasons []*StatusReason `type:"list"`
 }
 
 // String returns the string representation
@@ -9682,6 +9701,26 @@ func (s Compliance) GoString() string {
 	return s.String()
 }
 
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *Compliance) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "Compliance"}
+	if s.StatusReasons != nil {
+		for i, v := range s.StatusReasons {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "StatusReasons", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
 // SetRelatedRequirements sets the RelatedRequirements field's value.
 func (s *Compliance) SetRelatedRequirements(v []*string) *Compliance {
 	s.RelatedRequirements = v
@@ -9691,6 +9730,12 @@ func (s *Compliance) SetRelatedRequirements(v []*string) *Compliance {
 // SetStatus sets the Status field's value.
 func (s *Compliance) SetStatus(v string) *Compliance {
 	s.Status = &v
+	return s
+}
+
+// SetStatusReasons sets the StatusReasons field's value.
+func (s *Compliance) SetStatusReasons(v []*StatusReason) *Compliance {
+	s.StatusReasons = v
 	return s
 }
 
@@ -10987,7 +11032,7 @@ type EnableSecurityHubInput struct {
 	// EnableDefaultStandards to false.
 	EnableDefaultStandards *bool `type:"boolean"`
 
-	// The tags to add to the Hub resource when you enable Security Hub.
+	// The tags to add to the hub resource when you enable Security Hub.
 	Tags map[string]*string `min:"1" type:"map"`
 }
 
@@ -13417,7 +13462,7 @@ type ResourceDetails struct {
 	// Details about an Amazon EC2 instance related to a finding.
 	AwsEc2Instance *AwsEc2InstanceDetails `type:"structure"`
 
-	// Details for an AWS EC2 network interface.
+	// Details for an Amazon EC2 network interface.
 	AwsEc2NetworkInterface *AwsEc2NetworkInterfaceDetails `type:"structure"`
 
 	// Details for an EC2 security group.
@@ -13444,10 +13489,10 @@ type ResourceDetails struct {
 	// Details for a Lambda layer version.
 	AwsLambdaLayerVersion *AwsLambdaLayerVersionDetails `type:"structure"`
 
-	// Details for an RDS database instance.
+	// Details for an Amazon RDS database instance.
 	AwsRdsDbInstance *AwsRdsDbInstanceDetails `type:"structure"`
 
-	// Details about an Amazon S3 Bucket related to a finding.
+	// Details about an Amazon S3 bucket related to a finding.
 	AwsS3Bucket *AwsS3BucketDetails `type:"structure"`
 
 	// Details about an Amazon S3 object related to a finding.
@@ -13748,6 +13793,12 @@ type Severity struct {
 	//    * 90–100 - CRITICAL
 	Normalized *int64 `type:"integer"`
 
+	// The native severity from the finding product that generated the finding.
+	Original *string `type:"string"`
+
+	// Deprecated. This attribute is being deprecated. Instead of providing Product,
+	// provide Original.
+	//
 	// The native severity as defined by the AWS service or integrated partner product
 	// that generated the finding.
 	Product *float64 `type:"double"`
@@ -13772,6 +13823,12 @@ func (s *Severity) SetLabel(v string) *Severity {
 // SetNormalized sets the Normalized field's value.
 func (s *Severity) SetNormalized(v int64) *Severity {
 	s.Normalized = &v
+	return s
+}
+
+// SetOriginal sets the Original field's value.
+func (s *Severity) SetOriginal(v string) *Severity {
+	s.Original = &v
 	return s
 }
 
@@ -14155,6 +14212,57 @@ func (s *StandardsSubscriptionRequest) SetStandardsArn(v string) *StandardsSubsc
 // SetStandardsInput sets the StandardsInput field's value.
 func (s *StandardsSubscriptionRequest) SetStandardsInput(v map[string]*string) *StandardsSubscriptionRequest {
 	s.StandardsInput = v
+	return s
+}
+
+// Provides additional context for the value of Compliance.Status.
+type StatusReason struct {
+	_ struct{} `type:"structure"`
+
+	// The corresponding description for the status reason code.
+	Description *string `type:"string"`
+
+	// A code that represents a reason for the control status. For the list of status
+	// reason codes and their meanings, see Standards-related information in the
+	// ASFF (https://docs.aws.amazon.com/securityhub/latest/userguide/securityhub-standards-results.html#securityhub-standards-results-asff)
+	// in the AWS Security Hub User Guide.
+	//
+	// ReasonCode is a required field
+	ReasonCode *string `type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s StatusReason) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s StatusReason) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *StatusReason) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "StatusReason"}
+	if s.ReasonCode == nil {
+		invalidParams.Add(request.NewErrParamRequired("ReasonCode"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetDescription sets the Description field's value.
+func (s *StatusReason) SetDescription(v string) *StatusReason {
+	s.Description = &v
+	return s
+}
+
+// SetReasonCode sets the ReasonCode field's value.
+func (s *StatusReason) SetReasonCode(v string) *StatusReason {
+	s.ReasonCode = &v
 	return s
 }
 
@@ -14710,12 +14818,12 @@ func (s UpdateStandardsControlOutput) GoString() string {
 }
 
 // Details about the action that CloudFront or AWS WAF takes when a web request
-// matches the conditions in the Rule.
+// matches the conditions in the rule.
 type WafAction struct {
 	_ struct{} `type:"structure"`
 
 	// Specifies how you want AWS WAF to respond to requests that match the settings
-	// in a Rule.
+	// in a rule.
 	//
 	// Valid settings include the following:
 	//

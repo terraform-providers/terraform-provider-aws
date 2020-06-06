@@ -2,6 +2,7 @@ package aws
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -24,6 +25,7 @@ func TestAccAWSIAMSamlProvider_basic(t *testing.T) {
 				Config: testAccIAMSamlProviderConfig(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckIAMSamlProviderExists(resourceName),
+					testAccMatchResourceAttrGlobalARN(resourceName, "arn", "iam", regexp.MustCompile(`saml-provider/.+`)),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttrSet(resourceName, "saml_metadata_document"),
 				),
@@ -45,8 +47,29 @@ func TestAccAWSIAMSamlProvider_basic(t *testing.T) {
 	})
 }
 
+func TestAccAWSIAMSamlProvider_disappears(t *testing.T) {
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_iam_saml_provider.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckIAMSamlProviderDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccIAMSamlProviderConfig(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckIAMSamlProviderExists(resourceName),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsIamSamlProvider(), resourceName),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
 func testAccCheckIAMSamlProviderDestroy(s *terraform.State) error {
-	iamconn := testAccProvider.Meta().(*AWSClient).iamconn
+	conn := testAccProvider.Meta().(*AWSClient).iamconn
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "aws_iam_saml_provider" {
@@ -56,7 +79,7 @@ func testAccCheckIAMSamlProviderDestroy(s *terraform.State) error {
 		input := &iam.GetSAMLProviderInput{
 			SAMLProviderArn: aws.String(rs.Primary.ID),
 		}
-		out, err := iamconn.GetSAMLProvider(input)
+		out, err := conn.GetSAMLProvider(input)
 
 		if isAWSErr(err, iam.ErrCodeNoSuchEntityException, "") {
 			continue
@@ -85,8 +108,8 @@ func testAccCheckIAMSamlProviderExists(id string) resource.TestCheckFunc {
 			return fmt.Errorf("No ID is set")
 		}
 
-		iamconn := testAccProvider.Meta().(*AWSClient).iamconn
-		_, err := iamconn.GetSAMLProvider(&iam.GetSAMLProviderInput{
+		conn := testAccProvider.Meta().(*AWSClient).iamconn
+		_, err := conn.GetSAMLProvider(&iam.GetSAMLProviderInput{
 			SAMLProviderArn: aws.String(rs.Primary.ID),
 		})
 

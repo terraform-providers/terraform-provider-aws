@@ -72,6 +72,7 @@ In addition to all arguments above, the following attributes are exported:
 * `description` - The description of the document.
 * `schema_version` - The schema version of the document.
 * `default_version` - The default version of the document.
+* `document_version` - The document version.
 * `hash` - The sha1 or sha256 of the document content
 * `hash_type` - "Sha1" "Sha256". The hashing algorithm used when hashing the content.
 * `latest_version` - The latest version of the document.

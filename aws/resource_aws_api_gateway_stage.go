@@ -113,6 +113,7 @@ func resourceAwsApiGatewayStage() *schema.Resource {
 			"variables": {
 				Type:     schema.TypeMap,
 				Optional: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"tags": tagsSchema(),
 			"xray_tracing_enabled": {

@@ -252,7 +252,7 @@ func (c *CodeDeploy) BatchGetApplicationsRequest(input *BatchGetApplicationsInpu
 // BatchGetApplications API operation for AWS CodeDeploy.
 //
 // Gets information about one or more applications. The maximum number of applications
-// that can be returned is 25.
+// that can be returned is 100.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -477,7 +477,8 @@ func (c *CodeDeploy) BatchGetDeploymentInstancesRequest(input *BatchGetDeploymen
 //   The maximum number of names or IDs allowed for this request (100) was exceeded.
 //
 //   * InvalidComputePlatformException
-//   The computePlatform is invalid. The computePlatform should be Lambda or Server.
+//   The computePlatform is invalid. The computePlatform should be Lambda, Server,
+//   or ECS.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/codedeploy-2014-10-06/BatchGetDeploymentInstances
 //
@@ -554,13 +555,17 @@ func (c *CodeDeploy) BatchGetDeploymentTargetsRequest(input *BatchGetDeploymentT
 // BatchGetDeploymentInstances. The maximum number of targets that can be returned
 // is 25.
 //
-// The type of targets returned depends on the deployment's compute platform:
+// The type of targets returned depends on the deployment's compute platform
+// or deployment method:
 //
 //    * EC2/On-premises: Information about EC2 instance targets.
 //
 //    * AWS Lambda: Information about Lambda functions targets.
 //
 //    * Amazon ECS: Information about Amazon ECS service targets.
+//
+//    * CloudFormation: Information about targets of blue/green deployments
+//    initiated by a CloudFormation stack update.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -596,6 +601,9 @@ func (c *CodeDeploy) BatchGetDeploymentTargetsRequest(input *BatchGetDeploymentT
 //   AWS Lambda deployment was exceeded. The target list of both types of deployments
 //   must have exactly one item. This exception does not apply to EC2/On-premises
 //   deployments.
+//
+//   * InstanceDoesNotExistException
+//   The specified instance does not exist in the deployment group.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/codedeploy-2014-10-06/BatchGetDeploymentTargets
 func (c *CodeDeploy) BatchGetDeploymentTargets(input *BatchGetDeploymentTargetsInput) (*BatchGetDeploymentTargetsOutput, error) {
@@ -965,7 +973,8 @@ func (c *CodeDeploy) CreateApplicationRequest(input *CreateApplicationInput) (re
 //   More applications were attempted to be created than are allowed.
 //
 //   * InvalidComputePlatformException
-//   The computePlatform is invalid. The computePlatform should be Lambda or Server.
+//   The computePlatform is invalid. The computePlatform should be Lambda, Server,
+//   or ECS.
 //
 //   * InvalidTagsToAddException
 //   The specified tags are not valid.
@@ -1133,6 +1142,10 @@ func (c *CodeDeploy) CreateDeploymentRequest(input *CreateDeploymentInput) (req 
 //   * InvalidGitHubAccountTokenException
 //   The GitHub token is not valid.
 //
+//   * InvalidTrafficRoutingConfigurationException
+//   The configuration that specifies how traffic is routed during a deployment
+//   is invalid.
+//
 // See also, https://docs.aws.amazon.com/goto/WebAPI/codedeploy-2014-10-06/CreateDeployment
 func (c *CodeDeploy) CreateDeployment(input *CreateDeploymentInput) (*CreateDeploymentOutput, error) {
 	req, out := c.CreateDeploymentRequest(input)
@@ -1217,7 +1230,7 @@ func (c *CodeDeploy) CreateDeploymentConfigRequest(input *CreateDeploymentConfig
 //
 //   * DeploymentConfigAlreadyExistsException
 //   A deployment configuration with the specified name with the IAM user or AWS
-//   account already exists .
+//   account already exists.
 //
 //   * InvalidMinimumHealthyHostValueException
 //   The minimum healthy instance value was specified in an invalid format.
@@ -1226,7 +1239,8 @@ func (c *CodeDeploy) CreateDeploymentConfigRequest(input *CreateDeploymentConfig
 //   The deployment configurations limit was exceeded.
 //
 //   * InvalidComputePlatformException
-//   The computePlatform is invalid. The computePlatform should be Lambda or Server.
+//   The computePlatform is invalid. The computePlatform should be Lambda, Server,
+//   or ECS.
 //
 //   * InvalidTrafficRoutingConfigurationException
 //   The configuration that specifies how traffic is routed during a deployment
@@ -1426,6 +1440,10 @@ func (c *CodeDeploy) CreateDeploymentGroupRequest(input *CreateDeploymentGroupIn
 //
 //   * InvalidTagsToAddException
 //   The specified tags are not valid.
+//
+//   * InvalidTrafficRoutingConfigurationException
+//   The configuration that specifies how traffic is routed during a deployment
+//   is invalid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/codedeploy-2014-10-06/CreateDeploymentGroup
 func (c *CodeDeploy) CreateDeploymentGroup(input *CreateDeploymentGroupInput) (*CreateDeploymentGroupOutput, error) {
@@ -1808,6 +1826,81 @@ func (c *CodeDeploy) DeleteGitHubAccountToken(input *DeleteGitHubAccountTokenInp
 // for more information on using Contexts.
 func (c *CodeDeploy) DeleteGitHubAccountTokenWithContext(ctx aws.Context, input *DeleteGitHubAccountTokenInput, opts ...request.Option) (*DeleteGitHubAccountTokenOutput, error) {
 	req, out := c.DeleteGitHubAccountTokenRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opDeleteResourcesByExternalId = "DeleteResourcesByExternalId"
+
+// DeleteResourcesByExternalIdRequest generates a "aws/request.Request" representing the
+// client's request for the DeleteResourcesByExternalId operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DeleteResourcesByExternalId for more information on using the DeleteResourcesByExternalId
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the DeleteResourcesByExternalIdRequest method.
+//    req, resp := client.DeleteResourcesByExternalIdRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/codedeploy-2014-10-06/DeleteResourcesByExternalId
+func (c *CodeDeploy) DeleteResourcesByExternalIdRequest(input *DeleteResourcesByExternalIdInput) (req *request.Request, output *DeleteResourcesByExternalIdOutput) {
+	op := &request.Operation{
+		Name:       opDeleteResourcesByExternalId,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &DeleteResourcesByExternalIdInput{}
+	}
+
+	output = &DeleteResourcesByExternalIdOutput{}
+	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
+	return
+}
+
+// DeleteResourcesByExternalId API operation for AWS CodeDeploy.
+//
+// Deletes resources linked to an external ID.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS CodeDeploy's
+// API operation DeleteResourcesByExternalId for usage and error information.
+// See also, https://docs.aws.amazon.com/goto/WebAPI/codedeploy-2014-10-06/DeleteResourcesByExternalId
+func (c *CodeDeploy) DeleteResourcesByExternalId(input *DeleteResourcesByExternalIdInput) (*DeleteResourcesByExternalIdOutput, error) {
+	req, out := c.DeleteResourcesByExternalIdRequest(input)
+	return out, req.Send()
+}
+
+// DeleteResourcesByExternalIdWithContext is the same as DeleteResourcesByExternalId with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DeleteResourcesByExternalId for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *CodeDeploy) DeleteResourcesByExternalIdWithContext(ctx aws.Context, input *DeleteResourcesByExternalIdInput, opts ...request.Option) (*DeleteResourcesByExternalIdOutput, error) {
+	req, out := c.DeleteResourcesByExternalIdRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -2229,7 +2322,8 @@ func (c *CodeDeploy) GetDeploymentConfigRequest(input *GetDeploymentConfigInput)
 //   The deployment configuration does not exist with the IAM user or AWS account.
 //
 //   * InvalidComputePlatformException
-//   The computePlatform is invalid. The computePlatform should be Lambda or Server.
+//   The computePlatform is invalid. The computePlatform should be Lambda, Server,
+//   or ECS.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/codedeploy-2014-10-06/GetDeploymentConfig
 func (c *CodeDeploy) GetDeploymentConfig(input *GetDeploymentConfigInput) (*GetDeploymentConfigOutput, error) {
@@ -2428,7 +2522,8 @@ func (c *CodeDeploy) GetDeploymentInstanceRequest(input *GetDeploymentInstanceIn
 //   The on-premises instance name was specified in an invalid format.
 //
 //   * InvalidComputePlatformException
-//   The computePlatform is invalid. The computePlatform should be Lambda or Server.
+//   The computePlatform is invalid. The computePlatform should be Lambda, Server,
+//   or ECS.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/codedeploy-2014-10-06/GetDeploymentInstance
 //
@@ -3328,7 +3423,8 @@ func (c *CodeDeploy) ListDeploymentInstancesRequest(input *ListDeploymentInstanc
 //   The target filter name is invalid.
 //
 //   * InvalidComputePlatformException
-//   The computePlatform is invalid. The computePlatform should be Lambda or Server.
+//   The computePlatform is invalid. The computePlatform should be Lambda, Server,
+//   or ECS.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/codedeploy-2014-10-06/ListDeploymentInstances
 //
@@ -3602,6 +3698,12 @@ func (c *CodeDeploy) ListDeploymentsRequest(input *ListDeploymentsInput) (req *r
 //
 //   * InvalidNextTokenException
 //   The next token was specified in an invalid format.
+//
+//   * InvalidExternalIdException
+//   The external ID was specified in an invalid format.
+//
+//   * InvalidInputException
+//   The input was specified in an invalid format.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/codedeploy-2014-10-06/ListDeployments
 func (c *CodeDeploy) ListDeployments(input *ListDeploymentsInput) (*ListDeploymentsOutput, error) {
@@ -3895,8 +3997,9 @@ func (c *CodeDeploy) ListTagsForResourceRequest(input *ListTagsForResourceInput)
 
 // ListTagsForResource API operation for AWS CodeDeploy.
 //
-// Returns a list of tags for the resource identified by a specified ARN. Tags
-// are used to organize and categorize your CodeDeploy resources.
+// Returns a list of tags for the resource identified by a specified Amazon
+// Resource Name (ARN). Tags are used to organize and categorize your CodeDeploy
+// resources.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -3982,9 +4085,15 @@ func (c *CodeDeploy) PutLifecycleEventHookExecutionStatusRequest(input *PutLifec
 
 // PutLifecycleEventHookExecutionStatus API operation for AWS CodeDeploy.
 //
-// Sets the result of a Lambda validation function. The function validates one
-// or both lifecycle events (BeforeAllowTraffic and AfterAllowTraffic) and returns
-// Succeeded or Failed.
+// Sets the result of a Lambda validation function. The function validates lifecycle
+// hooks during a deployment that uses the AWS Lambda or Amazon ECS compute
+// platform. For AWS Lambda deployments, the available lifecycle hooks are BeforeAllowTraffic
+// and AfterAllowTraffic. For Amazon ECS deployments, the available lifecycle
+// hooks are BeforeInstall, AfterInstall, AfterAllowTestTraffic, BeforeAllowTraffic,
+// and AfterAllowTraffic. Lambda validation functions return Succeeded or Failed.
+// For more information, see AppSpec 'hooks' Section for an AWS Lambda Deployment
+// (https://docs.aws.amazon.com/codedeploy/latest/userguide/reference-appspec-file-structure-hooks.html#appspec-hooks-lambda)
+// and AppSpec 'hooks' Section for an Amazon ECS Deployment (https://docs.aws.amazon.com/codedeploy/latest/userguide/reference-appspec-file-structure-hooks.html#appspec-hooks-ecs).
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -4520,6 +4629,9 @@ func (c *CodeDeploy) StopDeploymentRequest(input *StopDeploymentInput) (req *req
 //   * InvalidDeploymentIdException
 //   At least one of the deployment IDs was specified in an invalid format.
 //
+//   * UnsupportedActionForDeploymentTypeException
+//   A call was submitted that is not supported for the specified deployment type.
+//
 // See also, https://docs.aws.amazon.com/goto/WebAPI/codedeploy-2014-10-06/StopDeployment
 func (c *CodeDeploy) StopDeployment(input *StopDeploymentInput) (*StopDeploymentOutput, error) {
 	req, out := c.StopDeploymentRequest(input)
@@ -4691,7 +4803,7 @@ func (c *CodeDeploy) UntagResourceRequest(input *UntagResourceInput) (req *reque
 // UntagResource API operation for AWS CodeDeploy.
 //
 // Disassociates a resource from a list of tags. The resource is identified
-// by the ResourceArn input parameter. The tags are identfied by the list of
+// by the ResourceArn input parameter. The tags are identified by the list of
 // keys in the TagKeys input parameter.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
@@ -5005,6 +5117,10 @@ func (c *CodeDeploy) UpdateDeploymentGroupRequest(input *UpdateDeploymentGroupIn
 //   * ECSServiceMappingLimitExceededException
 //   The Amazon ECS service is associated with more than one deployment groups.
 //   An Amazon ECS service can be associated with only one deployment group.
+//
+//   * InvalidTrafficRoutingConfigurationException
+//   The configuration that specifies how traffic is routed during a deployment
+//   is invalid.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/codedeploy-2014-10-06/UpdateDeploymentGroup
 func (c *CodeDeploy) UpdateDeploymentGroup(input *UpdateDeploymentGroupInput) (*UpdateDeploymentGroupOutput, error) {
@@ -5803,7 +5919,7 @@ type BatchGetApplicationsInput struct {
 	_ struct{} `type:"structure"`
 
 	// A list of application names separated by spaces. The maximum number of application
-	// names you can specify is 25.
+	// names you can specify is 100.
 	//
 	// ApplicationNames is a required field
 	ApplicationNames []*string `locationName:"applicationNames" type:"list" required:"true"`
@@ -6058,6 +6174,9 @@ type BatchGetDeploymentTargetsInput struct {
 	//    * For deployments that use the Amazon ECS compute platform, the target
 	//    IDs are pairs of Amazon ECS clusters and services specified using the
 	//    format <clustername>:<servicename>. Their target type is ecsTarget.
+	//
+	//    * For deployments that are deployed with AWS CloudFormation, the target
+	//    IDs are CloudFormation stack IDs. Their target type is cloudFormationTarget.
 	TargetIds []*string `locationName:"targetIds" type:"list"`
 }
 
@@ -6096,6 +6215,9 @@ type BatchGetDeploymentTargetsOutput struct {
 	//    function.
 	//
 	//    * Amazon ECS: The target object is an Amazon ECS service.
+	//
+	//    * CloudFormation: The target object is an AWS CloudFormation blue/green
+	//    deployment.
 	DeploymentTargets []*DeploymentTarget `locationName:"deploymentTargets" type:"list"`
 }
 
@@ -6448,6 +6570,89 @@ func (s *BucketNameFilterRequiredException) RequestID() string {
 	return s.RespMetadata.RequestID
 }
 
+// Information about the target to be updated by an AWS CloudFormation blue/green
+// deployment. This target type is used for all deployments initiated by a CloudFormation
+// stack update.
+type CloudFormationTarget struct {
+	_ struct{} `type:"structure"`
+
+	// The unique ID of an AWS CloudFormation blue/green deployment.
+	DeploymentId *string `locationName:"deploymentId" type:"string"`
+
+	// The date and time when the target application was updated by an AWS CloudFormation
+	// blue/green deployment.
+	LastUpdatedAt *time.Time `locationName:"lastUpdatedAt" type:"timestamp"`
+
+	// The lifecycle events of the AWS CloudFormation blue/green deployment to this
+	// target application.
+	LifecycleEvents []*LifecycleEvent `locationName:"lifecycleEvents" type:"list"`
+
+	// The resource type for the AWS CloudFormation blue/green deployment.
+	ResourceType *string `locationName:"resourceType" type:"string"`
+
+	// The status of an AWS CloudFormation blue/green deployment's target application.
+	Status *string `locationName:"status" type:"string" enum:"TargetStatus"`
+
+	// The unique ID of a deployment target that has a type of CloudFormationTarget.
+	TargetId *string `locationName:"targetId" type:"string"`
+
+	// The percentage of production traffic that the target version of an AWS CloudFormation
+	// blue/green deployment receives.
+	TargetVersionWeight *float64 `locationName:"targetVersionWeight" type:"double"`
+}
+
+// String returns the string representation
+func (s CloudFormationTarget) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CloudFormationTarget) GoString() string {
+	return s.String()
+}
+
+// SetDeploymentId sets the DeploymentId field's value.
+func (s *CloudFormationTarget) SetDeploymentId(v string) *CloudFormationTarget {
+	s.DeploymentId = &v
+	return s
+}
+
+// SetLastUpdatedAt sets the LastUpdatedAt field's value.
+func (s *CloudFormationTarget) SetLastUpdatedAt(v time.Time) *CloudFormationTarget {
+	s.LastUpdatedAt = &v
+	return s
+}
+
+// SetLifecycleEvents sets the LifecycleEvents field's value.
+func (s *CloudFormationTarget) SetLifecycleEvents(v []*LifecycleEvent) *CloudFormationTarget {
+	s.LifecycleEvents = v
+	return s
+}
+
+// SetResourceType sets the ResourceType field's value.
+func (s *CloudFormationTarget) SetResourceType(v string) *CloudFormationTarget {
+	s.ResourceType = &v
+	return s
+}
+
+// SetStatus sets the Status field's value.
+func (s *CloudFormationTarget) SetStatus(v string) *CloudFormationTarget {
+	s.Status = &v
+	return s
+}
+
+// SetTargetId sets the TargetId field's value.
+func (s *CloudFormationTarget) SetTargetId(v string) *CloudFormationTarget {
+	s.TargetId = &v
+	return s
+}
+
+// SetTargetVersionWeight sets the TargetVersionWeight field's value.
+func (s *CloudFormationTarget) SetTargetVersionWeight(v float64) *CloudFormationTarget {
+	s.TargetVersionWeight = &v
+	return s
+}
+
 type ContinueDeploymentInput struct {
 	_ struct{} `type:"structure"`
 
@@ -6455,9 +6660,9 @@ type ContinueDeploymentInput struct {
 	// traffic to the replacement environment.
 	DeploymentId *string `locationName:"deploymentId" type:"string"`
 
-	// The status of the deployment's waiting period. READY_WAIT indicates the deployment
-	// is ready to start shifting traffic. TERMINATION_WAIT indicates the traffic
-	// is shifted, but the original target is not terminated.
+	// The status of the deployment's waiting period. READY_WAIT indicates that
+	// the deployment is ready to start shifting traffic. TERMINATION_WAIT indicates
+	// that the traffic is shifted, but the original target is not terminated.
 	DeploymentWaitType *string `locationName:"deploymentWaitType" type:"string" enum:"DeploymentWaitType"`
 }
 
@@ -6608,7 +6813,7 @@ type CreateDeploymentConfigInput struct {
 	//    * FLEET_PERCENT: The value parameter represents the minimum number of
 	//    healthy instances as a percentage of the total number of instances in
 	//    the deployment. If you specify FLEET_PERCENT, at the start of the deployment,
-	//    AWS CodeDeploy converts the percentage to the equivalent number of instance
+	//    AWS CodeDeploy converts the percentage to the equivalent number of instances
 	//    and rounds up fractional instances.
 	//
 	// The value parameter takes an integer.
@@ -6729,7 +6934,7 @@ type CreateDeploymentGroupInput struct {
 	// group.
 	//
 	// For more information about the predefined deployment configurations in AWS
-	// CodeDeploy, see Working with Deployment Groups in AWS CodeDeploy (https://docs.aws.amazon.com/codedeploy/latest/userguide/deployment-configurations.html)
+	// CodeDeploy, see Working with Deployment Configurations in CodeDeploy (https://docs.aws.amazon.com/codedeploy/latest/userguide/deployment-configurations.html)
 	// in the AWS CodeDeploy User Guide.
 	DeploymentConfigName *string `locationName:"deploymentConfigName" min:"1" type:"string"`
 
@@ -6771,8 +6976,8 @@ type CreateDeploymentGroupInput struct {
 	// Cannot be used in the same call as onPremisesInstanceTagFilters.
 	OnPremisesTagSet *OnPremisesTagSet `locationName:"onPremisesTagSet" type:"structure"`
 
-	// A service role ARN that allows AWS CodeDeploy to act on the user's behalf
-	// when interacting with AWS services.
+	// A service role Amazon Resource Name (ARN) that allows AWS CodeDeploy to act
+	// on the user's behalf when interacting with AWS services.
 	//
 	// ServiceRoleArn is a required field
 	ServiceRoleArn *string `locationName:"serviceRoleArn" type:"string" required:"true"`
@@ -7400,6 +7605,44 @@ func (s *DeleteGitHubAccountTokenOutput) SetTokenName(v string) *DeleteGitHubAcc
 	return s
 }
 
+type DeleteResourcesByExternalIdInput struct {
+	_ struct{} `type:"structure"`
+
+	// The unique ID of an external resource (for example, a CloudFormation stack
+	// ID) that is linked to one or more CodeDeploy resources.
+	ExternalId *string `locationName:"externalId" type:"string"`
+}
+
+// String returns the string representation
+func (s DeleteResourcesByExternalIdInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteResourcesByExternalIdInput) GoString() string {
+	return s.String()
+}
+
+// SetExternalId sets the ExternalId field's value.
+func (s *DeleteResourcesByExternalIdInput) SetExternalId(v string) *DeleteResourcesByExternalIdInput {
+	s.ExternalId = &v
+	return s
+}
+
+type DeleteResourcesByExternalIdOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s DeleteResourcesByExternalIdOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteResourcesByExternalIdOutput) GoString() string {
+	return s.String()
+}
+
 // The deployment is already complete.
 type DeploymentAlreadyCompletedException struct {
 	_            struct{}                  `type:"structure"`
@@ -7457,7 +7700,7 @@ func (s *DeploymentAlreadyCompletedException) RequestID() string {
 }
 
 // A deployment configuration with the specified name with the IAM user or AWS
-// account already exists .
+// account already exists.
 type DeploymentConfigAlreadyExistsException struct {
 	_            struct{}                  `type:"structure"`
 	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
@@ -7644,8 +7887,8 @@ type DeploymentConfigInfo struct {
 	// Information about the number or percentage of minimum healthy instance.
 	MinimumHealthyHosts *MinimumHealthyHosts `locationName:"minimumHealthyHosts" type:"structure"`
 
-	// The configuration that specifies how the deployment traffic is routed. Only
-	// deployments with a Lambda compute platform can specify this.
+	// The configuration that specifies how the deployment traffic is routed. Used
+	// for deployments with a Lambda or ECS compute platform only.
 	TrafficRoutingConfig *TrafficRoutingConfig `locationName:"trafficRoutingConfig" type:"structure"`
 }
 
@@ -8426,6 +8669,10 @@ type DeploymentInfo struct {
 	// Information about any error associated with this deployment.
 	ErrorInformation *ErrorInformation `locationName:"errorInformation" type:"structure"`
 
+	// The unique ID for an external resource (for example, a CloudFormation stack
+	// ID) that is linked to this deployment.
+	ExternalId *string `locationName:"externalId" type:"string"`
+
 	// Information about how AWS CodeDeploy handles files that already exist in
 	// a deployment target location but weren't part of the previous successful
 	// deployment.
@@ -8608,6 +8855,12 @@ func (s *DeploymentInfo) SetDescription(v string) *DeploymentInfo {
 // SetErrorInformation sets the ErrorInformation field's value.
 func (s *DeploymentInfo) SetErrorInformation(v *ErrorInformation) *DeploymentInfo {
 	s.ErrorInformation = v
+	return s
+}
+
+// SetExternalId sets the ExternalId field's value.
+func (s *DeploymentInfo) SetExternalId(v string) *DeploymentInfo {
+	s.ExternalId = &v
 	return s
 }
 
@@ -8936,7 +9189,7 @@ type DeploymentReadyOption struct {
 
 	// The number of minutes to wait before the status of a blue/green deployment
 	// is changed to Stopped if rerouting is not started manually. Applies only
-	// to the STOP_DEPLOYMENT option for actionOnTimeout
+	// to the STOP_DEPLOYMENT option for actionOnTimeout.
 	WaitTimeInMinutes *int64 `locationName:"waitTimeInMinutes" type:"integer"`
 }
 
@@ -9000,7 +9253,13 @@ func (s *DeploymentStyle) SetDeploymentType(v string) *DeploymentStyle {
 type DeploymentTarget struct {
 	_ struct{} `type:"structure"`
 
-	// The deployment type that is specific to the deployment's compute platform.
+	// Information about the target to be updated by an AWS CloudFormation blue/green
+	// deployment. This target type is used for all deployments initiated by a CloudFormation
+	// stack update.
+	CloudFormationTarget *CloudFormationTarget `locationName:"cloudFormationTarget" type:"structure"`
+
+	// The deployment type that is specific to the deployment's compute platform
+	// or deployments initiated by a CloudFormation stack update.
 	DeploymentTargetType *string `locationName:"deploymentTargetType" type:"string" enum:"DeploymentTargetType"`
 
 	// Information about the target for a deployment that uses the Amazon ECS compute
@@ -9024,6 +9283,12 @@ func (s DeploymentTarget) String() string {
 // GoString returns the string representation
 func (s DeploymentTarget) GoString() string {
 	return s.String()
+}
+
+// SetCloudFormationTarget sets the CloudFormationTarget field's value.
+func (s *DeploymentTarget) SetCloudFormationTarget(v *CloudFormationTarget) *DeploymentTarget {
+	s.CloudFormationTarget = v
+	return s
 }
 
 // SetDeploymentTargetType sets the DeploymentTargetType field's value.
@@ -9580,7 +9845,7 @@ type ECSTarget struct {
 	// The status an Amazon ECS deployment's target ECS application.
 	Status *string `locationName:"status" type:"string" enum:"TargetStatus"`
 
-	// The ARN of the target.
+	// The Amazon Resource Name (ARN) of the target.
 	TargetArn *string `locationName:"targetArn" type:"string"`
 
 	// The unique ID of a deployment target that has a type of ecsTarget.
@@ -10404,7 +10669,7 @@ type GetDeploymentTargetOutput struct {
 	_ struct{} `type:"structure"`
 
 	// A deployment target that contains information about a deployment such as
-	// its status, lifecyle events, and when it was last updated. It also contains
+	// its status, lifecycle events, and when it was last updated. It also contains
 	// metadata about the deployment target. The deployment target metadata depends
 	// on the deployment target's type (instanceTarget, lambdaTarget, or ecsTarget).
 	DeploymentTarget *DeploymentTarget `locationName:"deploymentTarget" type:"structure"`
@@ -11335,7 +11600,7 @@ type InstanceSummary struct {
 	//    * GREEN: The instance is part of the replacement environment.
 	InstanceType *string `locationName:"instanceType" type:"string" enum:"InstanceType"`
 
-	// A timestamp that indicaties when the instance information was last updated.
+	// A timestamp that indicates when the instance information was last updated.
 	LastUpdatedAt *time.Time `locationName:"lastUpdatedAt" type:"timestamp"`
 
 	// A list of lifecycle events for this instance.
@@ -11424,7 +11689,7 @@ type InstanceTarget struct {
 	// The status an EC2/On-premises deployment's target instance.
 	Status *string `locationName:"status" type:"string" enum:"TargetStatus"`
 
-	// The ARN of the target.
+	// The Amazon Resource Name (ARN) of the target.
 	TargetArn *string `locationName:"targetArn" type:"string"`
 
 	// The unique ID of a deployment target that has a type of instanceTarget.
@@ -11889,7 +12154,8 @@ func (s *InvalidBucketNameFilterException) RequestID() string {
 	return s.RespMetadata.RequestID
 }
 
-// The computePlatform is invalid. The computePlatform should be Lambda or Server.
+// The computePlatform is invalid. The computePlatform should be Lambda, Server,
+// or ECS.
 type InvalidComputePlatformException struct {
 	_            struct{}                  `type:"structure"`
 	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
@@ -12618,6 +12884,62 @@ func (s *InvalidECSServiceException) StatusCode() int {
 
 // RequestID returns the service's response RequestID for request.
 func (s *InvalidECSServiceException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// The external ID was specified in an invalid format.
+type InvalidExternalIdException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidExternalIdException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidExternalIdException) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidExternalIdException(v protocol.ResponseMetadata) error {
+	return &InvalidExternalIdException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *InvalidExternalIdException) Code() string {
+	return "InvalidExternalIdException"
+}
+
+// Message returns the exception's message.
+func (s *InvalidExternalIdException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *InvalidExternalIdException) OrigErr() error {
+	return nil
+}
+
+func (s *InvalidExternalIdException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *InvalidExternalIdException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *InvalidExternalIdException) RequestID() string {
 	return s.RespMetadata.RequestID
 }
 
@@ -14499,8 +14821,9 @@ type LambdaFunctionInfo struct {
 	// The version of a Lambda function that production traffic points to.
 	CurrentVersion *string `locationName:"currentVersion" type:"string"`
 
-	// The alias of a Lambda function. For more information, see Introduction to
-	// AWS Lambda Aliases (https://docs.aws.amazon.com/lambda/latest/dg/aliases-intro.html).
+	// The alias of a Lambda function. For more information, see AWS Lambda Function
+	// Aliases (https://docs.aws.amazon.com/lambda/latest/dg/aliases-intro.html)
+	// in the AWS Lambda Developer Guide.
 	FunctionAlias *string `locationName:"functionAlias" type:"string"`
 
 	// The name of a Lambda function.
@@ -14574,7 +14897,7 @@ type LambdaTarget struct {
 	// The status an AWS Lambda deployment's target Lambda function.
 	Status *string `locationName:"status" type:"string" enum:"TargetStatus"`
 
-	// The ARN of the target.
+	// The Amazon Resource Name (ARN) of the target.
 	TargetArn *string `locationName:"targetArn" type:"string"`
 
 	// The unique ID of a deployment target that has a type of lambdaTarget.
@@ -14883,7 +15206,7 @@ type ListApplicationRevisionsInput struct {
 	ApplicationName *string `locationName:"applicationName" min:"1" type:"string" required:"true"`
 
 	// Whether to list revisions based on whether the revision is the target revision
-	// of an deployment group:
+	// of a deployment group:
 	//
 	//    * include: List revisions that are target revisions of a deployment group.
 	//
@@ -15469,6 +15792,10 @@ type ListDeploymentsInput struct {
 	// If it is not specified, then applicationName must not be specified.
 	DeploymentGroupName *string `locationName:"deploymentGroupName" min:"1" type:"string"`
 
+	// The unique ID of an external resource for returning deployments linked to
+	// the external resource.
+	ExternalId *string `locationName:"externalId" type:"string"`
+
 	// A subset of deployments to list by status:
 	//
 	//    * Created: Include created deployments in the resulting list.
@@ -15530,6 +15857,12 @@ func (s *ListDeploymentsInput) SetCreateTimeRange(v *TimeRange) *ListDeployments
 // SetDeploymentGroupName sets the DeploymentGroupName field's value.
 func (s *ListDeploymentsInput) SetDeploymentGroupName(v string) *ListDeploymentsInput {
 	s.DeploymentGroupName = &v
+	return s
+}
+
+// SetExternalId sets the ExternalId field's value.
+func (s *ListDeploymentsInput) SetExternalId(v string) *ListDeploymentsInput {
+	s.ExternalId = &v
 	return s
 }
 
@@ -15870,16 +16203,16 @@ type MinimumHealthyHosts struct {
 
 	// The minimum healthy instance type:
 	//
-	//    * HOST_COUNT: The minimum number of healthy instance as an absolute value.
+	//    * HOST_COUNT: The minimum number of healthy instances as an absolute value.
 	//
-	//    * FLEET_PERCENT: The minimum number of healthy instance as a percentage
-	//    of the total number of instance in the deployment.
+	//    * FLEET_PERCENT: The minimum number of healthy instances as a percentage
+	//    of the total number of instances in the deployment.
 	//
-	// In an example of nine instance, if a HOST_COUNT of six is specified, deploy
+	// In an example of nine instances, if a HOST_COUNT of six is specified, deploy
 	// to up to three instances at a time. The deployment is successful if six or
 	// more instances are deployed to successfully. Otherwise, the deployment fails.
-	// If a FLEET_PERCENT of 40 is specified, deploy to up to five instance at a
-	// time. The deployment is successful if four or more instance are deployed
+	// If a FLEET_PERCENT of 40 is specified, deploy to up to five instances at
+	// a time. The deployment is successful if four or more instances are deployed
 	// to successfully. Otherwise, the deployment fails.
 	//
 	// In a call to the GetDeploymentConfig, CodeDeployDefault.OneAtATime returns
@@ -16609,6 +16942,10 @@ type RevisionLocation struct {
 	//
 	//    * String: A YAML-formatted or JSON-formatted string (AWS Lambda deployments
 	//    only).
+	//
+	//    * AppSpecContent: An AppSpecContent object that contains the contents
+	//    of an AppSpec file for an AWS Lambda or Amazon ECS deployment. The content
+	//    is formatted as JSON or YAML stored as a RawString.
 	RevisionType *string `locationName:"revisionType" type:"string" enum:"RevisionLocationType"`
 
 	// Information about the location of a revision stored in Amazon S3.
@@ -17520,8 +17857,9 @@ func (s *ThrottlingException) RequestID() string {
 }
 
 // A configuration that shifts traffic from one version of a Lambda function
-// to another in two increments. The original and target Lambda function versions
-// are specified in the deployment's AppSpec file.
+// or ECS task set to another in two increments. The original and target Lambda
+// function versions or ECS task sets are specified in the deployment's AppSpec
+// file.
 type TimeBasedCanary struct {
 	_ struct{} `type:"structure"`
 
@@ -17557,9 +17895,9 @@ func (s *TimeBasedCanary) SetCanaryPercentage(v int64) *TimeBasedCanary {
 }
 
 // A configuration that shifts traffic from one version of a Lambda function
-// to another in equal increments, with an equal number of minutes between each
-// increment. The original and target Lambda function versions are specified
-// in the deployment's AppSpec file.
+// or ECS task set to another in equal increments, with an equal number of minutes
+// between each increment. The original and target Lambda function versions
+// or ECS task sets are specified in the deployment's AppSpec file.
 type TimeBasedLinear struct {
 	_ struct{} `type:"structure"`
 
@@ -17636,9 +17974,9 @@ func (s *TimeRange) SetStart(v time.Time) *TimeRange {
 type TrafficRoute struct {
 	_ struct{} `type:"structure"`
 
-	// The ARN of one listener. The listener identifies the route between a target
-	// group and a load balancer. This is an array of strings with a maximum size
-	// of one.
+	// The Amazon Resource Name (ARN) of one listener. The listener identifies the
+	// route between a target group and a load balancer. This is an array of strings
+	// with a maximum size of one.
 	ListenerArns []*string `locationName:"listenerArns" type:"list"`
 }
 
@@ -17659,23 +17997,25 @@ func (s *TrafficRoute) SetListenerArns(v []*string) *TrafficRoute {
 }
 
 // The configuration that specifies how traffic is shifted from one version
-// of a Lambda function to another version during an AWS Lambda deployment.
+// of a Lambda function to another version during an AWS Lambda deployment,
+// or from one Amazon ECS task set to another during an Amazon ECS deployment.
 type TrafficRoutingConfig struct {
 	_ struct{} `type:"structure"`
 
 	// A configuration that shifts traffic from one version of a Lambda function
-	// to another in two increments. The original and target Lambda function versions
-	// are specified in the deployment's AppSpec file.
+	// or ECS task set to another in two increments. The original and target Lambda
+	// function versions or ECS task sets are specified in the deployment's AppSpec
+	// file.
 	TimeBasedCanary *TimeBasedCanary `locationName:"timeBasedCanary" type:"structure"`
 
 	// A configuration that shifts traffic from one version of a Lambda function
-	// to another in equal increments, with an equal number of minutes between each
-	// increment. The original and target Lambda function versions are specified
-	// in the deployment's AppSpec file.
+	// or ECS task set to another in equal increments, with an equal number of minutes
+	// between each increment. The original and target Lambda function versions
+	// or ECS task sets are specified in the deployment's AppSpec file.
 	TimeBasedLinear *TimeBasedLinear `locationName:"timeBasedLinear" type:"structure"`
 
 	// The type of traffic shifting (TimeBasedCanary or TimeBasedLinear) used by
-	// a deployment configuration .
+	// a deployment configuration.
 	Type *string `locationName:"type" type:"string" enum:"TrafficRoutingType"`
 }
 
@@ -17717,8 +18057,9 @@ type TriggerConfig struct {
 	// The name of the notification trigger.
 	TriggerName *string `locationName:"triggerName" type:"string"`
 
-	// The ARN of the Amazon Simple Notification Service topic through which notifications
-	// about deployment or instance events are sent.
+	// The Amazon Resource Name (ARN) of the Amazon Simple Notification Service
+	// topic through which notifications about deployment or instance events are
+	// sent.
 	TriggerTargetArn *string `locationName:"triggerTargetArn" type:"string"`
 }
 
@@ -17865,8 +18206,8 @@ func (s *UnsupportedActionForDeploymentTypeException) RequestID() string {
 type UntagResourceInput struct {
 	_ struct{} `type:"structure"`
 
-	// The ARN that specifies from which resource to disassociate the tags with
-	// the keys in the TagKeys input paramter.
+	// The Amazon Resource Name (ARN) that specifies from which resource to disassociate
+	// the tags with the keys in the TagKeys input parameter.
 	//
 	// ResourceArn is a required field
 	ResourceArn *string `min:"1" type:"string" required:"true"`
@@ -18069,7 +18410,7 @@ type UpdateDeploymentGroupInput struct {
 	ServiceRoleArn *string `locationName:"serviceRoleArn" type:"string"`
 
 	// Information about triggers to change when the deployment group is updated.
-	// For examples, see Modify Triggers in an AWS CodeDeploy Deployment Group (https://docs.aws.amazon.com/codedeploy/latest/userguide/how-to-notify-edit.html)
+	// For examples, see Edit a Trigger in a CodeDeploy Deployment Group (https://docs.aws.amazon.com/codedeploy/latest/userguide/how-to-notify-edit.html)
 	// in the AWS CodeDeploy User Guide.
 	TriggerConfigurations []*TriggerConfig `locationName:"triggerConfigurations" type:"list"`
 }
@@ -18301,6 +18642,15 @@ const (
 
 	// DeploymentCreatorCodeDeployRollback is a DeploymentCreator enum value
 	DeploymentCreatorCodeDeployRollback = "codeDeployRollback"
+
+	// DeploymentCreatorCodeDeploy is a DeploymentCreator enum value
+	DeploymentCreatorCodeDeploy = "CodeDeploy"
+
+	// DeploymentCreatorCloudFormation is a DeploymentCreator enum value
+	DeploymentCreatorCloudFormation = "CloudFormation"
+
+	// DeploymentCreatorCloudFormationRollback is a DeploymentCreator enum value
+	DeploymentCreatorCloudFormationRollback = "CloudFormationRollback"
 )
 
 const (
@@ -18329,6 +18679,9 @@ const (
 	// DeploymentStatusInProgress is a DeploymentStatus enum value
 	DeploymentStatusInProgress = "InProgress"
 
+	// DeploymentStatusBaking is a DeploymentStatus enum value
+	DeploymentStatusBaking = "Baking"
+
 	// DeploymentStatusSucceeded is a DeploymentStatus enum value
 	DeploymentStatusSucceeded = "Succeeded"
 
@@ -18351,6 +18704,9 @@ const (
 
 	// DeploymentTargetTypeEcstarget is a DeploymentTargetType enum value
 	DeploymentTargetTypeEcstarget = "ECSTarget"
+
+	// DeploymentTargetTypeCloudFormationTarget is a DeploymentTargetType enum value
+	DeploymentTargetTypeCloudFormationTarget = "CloudFormationTarget"
 )
 
 const (
@@ -18479,6 +18835,9 @@ const (
 
 	// ErrorCodeTimeout is a ErrorCode enum value
 	ErrorCodeTimeout = "TIMEOUT"
+
+	// ErrorCodeCloudformationStackFailure is a ErrorCode enum value
+	ErrorCodeCloudformationStackFailure = "CLOUDFORMATION_STACK_FAILURE"
 )
 
 const (

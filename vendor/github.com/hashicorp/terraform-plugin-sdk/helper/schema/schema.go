@@ -223,9 +223,12 @@ type Schema struct {
 	//
 	// AtLeastOneOf is a set of schema keys that, when set, at least one of
 	// the keys in that list must be specified.
+	//
+	// RequiredWith is a set of schema keys that must be set simultaneously.
 	ConflictsWith []string
 	ExactlyOneOf  []string
 	AtLeastOneOf  []string
+	RequiredWith  []string
 
 	// When Deprecated is set, this attribute is deprecated.
 	//
@@ -235,6 +238,9 @@ type Schema struct {
 	Deprecated string
 
 	// When Removed is set, this attribute has been removed from the schema
+	//
+	// Deprecated: This field will be removed in version 2 without replacement
+	// as the functionality is not necessary.
 	//
 	// Removed attributes can be left in the Schema to generate informative error
 	// messages for the user when they show up in resource configurations.
@@ -767,21 +773,28 @@ func (m schemaMap) internalValidate(topSchemaMap schemaMap, attrsOnly bool) erro
 		}
 
 		if len(v.ConflictsWith) > 0 {
-			err := checkKeysAgainstSchemaFlags(k, v.ConflictsWith, topSchemaMap)
+			err := checkKeysAgainstSchemaFlags(k, v.ConflictsWith, topSchemaMap, v, false)
 			if err != nil {
 				return fmt.Errorf("ConflictsWith: %+v", err)
 			}
 		}
 
+		if len(v.RequiredWith) > 0 {
+			err := checkKeysAgainstSchemaFlags(k, v.RequiredWith, topSchemaMap, v, true)
+			if err != nil {
+				return fmt.Errorf("RequiredWith: %+v", err)
+			}
+		}
+
 		if len(v.ExactlyOneOf) > 0 {
-			err := checkKeysAgainstSchemaFlags(k, v.ExactlyOneOf, topSchemaMap)
+			err := checkKeysAgainstSchemaFlags(k, v.ExactlyOneOf, topSchemaMap, v, true)
 			if err != nil {
 				return fmt.Errorf("ExactlyOneOf: %+v", err)
 			}
 		}
 
 		if len(v.AtLeastOneOf) > 0 {
-			err := checkKeysAgainstSchemaFlags(k, v.AtLeastOneOf, topSchemaMap)
+			err := checkKeysAgainstSchemaFlags(k, v.AtLeastOneOf, topSchemaMap, v, true)
 			if err != nil {
 				return fmt.Errorf("AtLeastOneOf: %+v", err)
 			}
@@ -850,14 +863,20 @@ func (m schemaMap) internalValidate(topSchemaMap schemaMap, attrsOnly bool) erro
 	return nil
 }
 
-func checkKeysAgainstSchemaFlags(k string, keys []string, topSchemaMap schemaMap) error {
+func checkKeysAgainstSchemaFlags(k string, keys []string, topSchemaMap schemaMap, self *Schema, allowSelfReference bool) error {
 	for _, key := range keys {
 		parts := strings.Split(key, ".")
 		sm := topSchemaMap
 		var target *Schema
-		for _, part := range parts {
-			// Skip index fields
-			if _, err := strconv.Atoi(part); err == nil {
+		for idx, part := range parts {
+			// Skip index fields if 0
+			partInt, err := strconv.Atoi(part)
+
+			if err == nil {
+				if partInt != 0 {
+					return fmt.Errorf("%s configuration block reference (%s) can only use the .0. index for TypeList and MaxItems: 1 configuration blocks", k, key)
+				}
+
 				continue
 			}
 
@@ -866,13 +885,28 @@ func checkKeysAgainstSchemaFlags(k string, keys []string, topSchemaMap schemaMap
 				return fmt.Errorf("%s references unknown attribute (%s) at part (%s)", k, key, part)
 			}
 
-			if subResource, ok := target.Elem.(*Resource); ok {
-				sm = schemaMap(subResource.Schema)
+			subResource, ok := target.Elem.(*Resource)
+
+			if !ok {
+				continue
 			}
+
+			// Skip Type/MaxItems check if not the last element
+			if (target.Type == TypeSet || target.MaxItems != 1) && idx+1 != len(parts) {
+				return fmt.Errorf("%s configuration block reference (%s) can only be used with TypeList and MaxItems: 1 configuration blocks", k, key)
+			}
+
+			sm = schemaMap(subResource.Schema)
 		}
+
 		if target == nil {
 			return fmt.Errorf("%s cannot find target attribute (%s), sm: %#v", k, key, sm)
 		}
+
+		if target == self && !allowSelfReference {
+			return fmt.Errorf("%s cannot reference self (%s)", k, key)
+		}
+
 		if target.Required {
 			return fmt.Errorf("%s cannot contain Required attribute (%s)", k, key)
 		}
@@ -881,6 +915,7 @@ func checkKeysAgainstSchemaFlags(k string, keys []string, topSchemaMap schemaMap
 			return fmt.Errorf("%s cannot contain Computed(When) attribute (%s)", k, key)
 		}
 	}
+
 	return nil
 }
 
@@ -1414,6 +1449,11 @@ func (m schemaMap) validate(
 			"%q: this field cannot be set", k)}
 	}
 
+	err = validateRequiredWithAttribute(k, schema, c)
+	if err != nil {
+		return nil, []error{err}
+	}
+
 	// If the value is unknown then we can't validate it yet.
 	// In particular, this avoids spurious type errors where downstream
 	// validation code sees UnknownVariableValue as being just a string.
@@ -1492,6 +1532,27 @@ func removeDuplicates(elements []string) []string {
 	}
 
 	return result
+}
+
+func validateRequiredWithAttribute(
+	k string,
+	schema *Schema,
+	c *terraform.ResourceConfig) error {
+
+	if len(schema.RequiredWith) == 0 {
+		return nil
+	}
+
+	allKeys := removeDuplicates(append(schema.RequiredWith, k))
+	sort.Strings(allKeys)
+
+	for _, key := range allKeys {
+		if _, ok := c.Get(key); !ok {
+			return fmt.Errorf("%q: all of `%s` must be specified", k, strings.Join(allKeys, ","))
+		}
+	}
+
+	return nil
 }
 
 func validateExactlyOneAttribute(

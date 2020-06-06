@@ -83,6 +83,18 @@ type Schema struct {
 	Block *SchemaBlock `json:"block,omitempty"`
 }
 
+// SchemaDescriptionKind describes the format type for a particular description's field.
+type SchemaDescriptionKind string
+
+const (
+	// SchemaDescriptionKindPlain indicates a string in plain text format.
+	SchemaDescriptionKindPlain SchemaDescriptionKind = "plaintext"
+
+	// SchemaDescriptionKindMarkdown indicates a Markdown string and may need to be
+	// processed prior to presentation.
+	SchemaDescriptionKindMarkdown SchemaDescriptionKind = "markdown"
+)
+
 // SchemaBlock represents a nested block within a particular schema.
 type SchemaBlock struct {
 	// The attributes defined at the particular level of this block.
@@ -90,6 +102,14 @@ type SchemaBlock struct {
 
 	// Any nested blocks within this particular block.
 	NestedBlocks map[string]*SchemaBlockType `json:"block_types,omitempty"`
+
+	// The description for this block and format of the description. If
+	// no kind is provided, it can be assumed to be plain text.
+	Description     string                `json:"description,omitempty"`
+	DescriptionKind SchemaDescriptionKind `json:"description_kind,omitempty"`
+
+	// If true, this block is deprecated.
+	Deprecated bool `json:"deprecated,omitempty"`
 }
 
 // SchemaNestingMode is the nesting mode for a particular nested
@@ -145,8 +165,13 @@ type SchemaAttribute struct {
 	// The attribute type.
 	AttributeType cty.Type `json:"type,omitempty"`
 
-	// The description field for this attribute.
-	Description string `json:"description,omitempty"`
+	// The description field for this attribute. If no kind is
+	// provided, it can be assumed to be plain text.
+	Description     string                `json:"description,omitempty"`
+	DescriptionKind SchemaDescriptionKind `json:"description_kind,omitempty"`
+
+	// If true, this attribute is deprecated.
+	Deprecated bool `json:"deprecated,omitempty"`
 
 	// If true, this attribute is required - it has to be entered in
 	// configuration.

@@ -134,7 +134,7 @@ func resourceAwsNeptuneClusterInstance() *schema.Resource {
 			"port": {
 				Type:     schema.TypeInt,
 				Optional: true,
-				Default:  8182,
+				Default:  neptuneDefaultPort,
 				ForceNew: true,
 			},
 

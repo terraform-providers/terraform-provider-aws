@@ -51,4 +51,5 @@ In addition to all arguments above, the following attributes are exported:
 * `arn` - The Amazon Resource Name (ARN) of the resource share.
 * `id` - The Amazon Resource Name (ARN) of the resource share.
 * `status` - The Status of the RAM share.
+* `owning_account_id` - The ID of the AWS account that owns the resource share.
 * `tags` - The Tags attached to the RAM share

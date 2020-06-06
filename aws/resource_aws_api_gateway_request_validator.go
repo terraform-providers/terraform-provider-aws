@@ -25,7 +25,6 @@ func resourceAwsApiGatewayRequestValidator() *schema.Resource {
 				}
 				restApiID := idParts[0]
 				requestValidatorID := idParts[1]
-				d.Set("request_validator_id", requestValidatorID)
 				d.Set("rest_api_id", restApiID)
 				d.SetId(requestValidatorID)
 				return []*schema.ResourceData{d}, nil

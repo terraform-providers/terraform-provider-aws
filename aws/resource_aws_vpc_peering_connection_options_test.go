@@ -202,8 +202,9 @@ func TestAccAWSVpcPeeringConnectionOptions_sameRegionDifferentAccount(t *testing
 			testAccPreCheck(t)
 			testAccAlternateAccountPreCheck(t)
 		},
-		ProviderFactories: testAccProviderFactories(&providers),
-		CheckDestroy:      testAccCheckAWSVpcPeeringConnectionDestroy,
+		ProviderFactories:   testAccProviderFactories(&providers),
+		CheckDestroy:        testAccCheckAWSVpcPeeringConnectionDestroy,
+		DisableBinaryDriver: true,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccVpcPeeringConnectionOptionsConfig_sameRegion_differentAccount(rName),

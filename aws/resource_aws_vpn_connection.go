@@ -5,10 +5,8 @@ import (
 	"encoding/xml"
 	"fmt"
 	"log"
-	"net"
 	"regexp"
 	"sort"
-	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -17,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -114,7 +113,7 @@ func resourceAwsVpnConnection() *schema.Resource {
 				Optional:     true,
 				Computed:     true,
 				ForceNew:     true,
-				ValidateFunc: validateVpnConnectionTunnelInsideCIDR,
+				ValidateFunc: validateVpnConnectionTunnelInsideCIDR(),
 			},
 
 			"tunnel1_preshared_key": {
@@ -123,7 +122,7 @@ func resourceAwsVpnConnection() *schema.Resource {
 				Sensitive:    true,
 				Computed:     true,
 				ForceNew:     true,
-				ValidateFunc: validateVpnConnectionTunnelPreSharedKey,
+				ValidateFunc: validateVpnConnectionTunnelPreSharedKey(),
 			},
 
 			"tunnel2_inside_cidr": {
@@ -131,7 +130,7 @@ func resourceAwsVpnConnection() *schema.Resource {
 				Optional:     true,
 				Computed:     true,
 				ForceNew:     true,
-				ValidateFunc: validateVpnConnectionTunnelInsideCIDR,
+				ValidateFunc: validateVpnConnectionTunnelInsideCIDR(),
 			},
 
 			"tunnel2_preshared_key": {
@@ -140,7 +139,7 @@ func resourceAwsVpnConnection() *schema.Resource {
 				Sensitive:    true,
 				Computed:     true,
 				ForceNew:     true,
-				ValidateFunc: validateVpnConnectionTunnelPreSharedKey,
+				ValidateFunc: validateVpnConnectionTunnelPreSharedKey(),
 			},
 
 			"tags": tagsSchema(),
@@ -619,55 +618,29 @@ func xmlConfigToTunnelInfo(xmlConfig string) (*TunnelInfo, error) {
 	return &tunnelInfo, nil
 }
 
-func validateVpnConnectionTunnelPreSharedKey(v interface{}, k string) (ws []string, errors []error) {
-	value := v.(string)
-
-	if (len(value) < 8) || (len(value) > 64) {
-		errors = append(errors, fmt.Errorf("%q must be between 8 and 64 characters in length", k))
-	}
-
-	if strings.HasPrefix(value, "0") {
-		errors = append(errors, fmt.Errorf("%q cannot start with zero character", k))
-	}
-
-	if !regexp.MustCompile(`^[0-9a-zA-Z_.]+$`).MatchString(value) {
-		errors = append(errors, fmt.Errorf("%q can only contain alphanumeric, period and underscore characters", k))
-	}
-
-	return
+func validateVpnConnectionTunnelPreSharedKey() schema.SchemaValidateFunc {
+	return validation.All(
+		validation.StringLenBetween(8, 64),
+		validation.StringDoesNotMatch(regexp.MustCompile(`^0`), "cannot start with zero character"),
+		validation.StringMatch(regexp.MustCompile(`^[0-9a-zA-Z_.]+$`), "can only contain alphanumeric, period and underscore characters"),
+	)
 }
 
 // https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_VpnTunnelOptionsSpecification.html
-func validateVpnConnectionTunnelInsideCIDR(v interface{}, k string) (ws []string, errors []error) {
-	value := v.(string)
-	_, ipnet, err := net.ParseCIDR(value)
-
-	if err != nil {
-		errors = append(errors, fmt.Errorf("%q must contain a valid CIDR, got error parsing: %s", k, err))
-		return
+func validateVpnConnectionTunnelInsideCIDR() schema.SchemaValidateFunc {
+	disallowedCidrs := []string{
+		"169.254.0.0/30",
+		"169.254.1.0/30",
+		"169.254.2.0/30",
+		"169.254.3.0/30",
+		"169.254.4.0/30",
+		"169.254.5.0/30",
+		"169.254.169.252/30",
 	}
 
-	if !strings.HasSuffix(ipnet.String(), "/30") {
-		errors = append(errors, fmt.Errorf("%q must be /30 CIDR", k))
-	}
-
-	if !strings.HasPrefix(ipnet.String(), "169.254.") {
-		errors = append(errors, fmt.Errorf("%q must be within 169.254.0.0/16", k))
-	} else if ipnet.String() == "169.254.0.0/30" {
-		errors = append(errors, fmt.Errorf("%q cannot be 169.254.0.0/30", k))
-	} else if ipnet.String() == "169.254.1.0/30" {
-		errors = append(errors, fmt.Errorf("%q cannot be 169.254.1.0/30", k))
-	} else if ipnet.String() == "169.254.2.0/30" {
-		errors = append(errors, fmt.Errorf("%q cannot be 169.254.2.0/30", k))
-	} else if ipnet.String() == "169.254.3.0/30" {
-		errors = append(errors, fmt.Errorf("%q cannot be 169.254.3.0/30", k))
-	} else if ipnet.String() == "169.254.4.0/30" {
-		errors = append(errors, fmt.Errorf("%q cannot be 169.254.4.0/30", k))
-	} else if ipnet.String() == "169.254.5.0/30" {
-		errors = append(errors, fmt.Errorf("%q cannot be 169.254.5.0/30", k))
-	} else if ipnet.String() == "169.254.169.252/30" {
-		errors = append(errors, fmt.Errorf("%q cannot be 169.254.169.252/30", k))
-	}
-
-	return
+	return validation.All(
+		validation.IsCIDRNetwork(30, 30),
+		validation.StringMatch(regexp.MustCompile(`^169\.254\.`), "must be within 169.254.0.0/16"),
+		validation.StringNotInSlice(disallowedCidrs, false),
+	)
 }

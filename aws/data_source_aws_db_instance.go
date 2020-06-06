@@ -242,7 +242,7 @@ func dataSourceAwsDbInstanceRead(d *schema.ResourceData, meta interface{}) error
 	d.SetId(d.Get("db_instance_identifier").(string))
 
 	d.Set("allocated_storage", dbInstance.AllocatedStorage)
-	d.Set("auto_minor_upgrade_enabled", dbInstance.AutoMinorVersionUpgrade)
+	d.Set("auto_minor_version_upgrade", dbInstance.AutoMinorVersionUpgrade)
 	d.Set("availability_zone", dbInstance.AvailabilityZone)
 	d.Set("backup_retention_period", dbInstance.BackupRetentionPeriod)
 	d.Set("db_cluster_identifier", dbInstance.DBClusterIdentifier)

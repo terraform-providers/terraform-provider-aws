@@ -27,7 +27,7 @@ func TestAccAWSNeptuneParameterGroup_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSNeptuneParameterGroupExists(resourceName, &v),
 					testAccCheckAWSNeptuneParameterGroupAttributes(&v, rName),
-					resource.TestMatchResourceAttr(resourceName, "arn", regexp.MustCompile(fmt.Sprintf("^arn:[^:]+:rds:[^:]+:\\d{12}:pg:%s", rName))),
+					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "rds", fmt.Sprintf("pg:%s", rName)),
 					resource.TestCheckResourceAttr(resourceName, "description", "Managed by Terraform"),
 					resource.TestCheckResourceAttr(resourceName, "family", "neptune1"),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),

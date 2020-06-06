@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	awspolicy "github.com/jen20/awspolicyequivalence"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/secretsmanager/waiter"
 )
 
 func init() {
@@ -424,12 +425,32 @@ func testAccCheckAwsSecretsManagerSecretDestroy(s *terraform.State) error {
 			SecretId: aws.String(rs.Primary.ID),
 		}
 
-		output, err := conn.DescribeSecret(input)
+		var output *secretsmanager.DescribeSecretOutput
+
+		err := resource.Retry(waiter.DeletionPropagationTimeout, func() *resource.RetryError {
+			var err error
+			output, err = conn.DescribeSecret(input)
+
+			if err != nil {
+				return resource.NonRetryableError(err)
+			}
+
+			if output != nil && output.DeletedDate == nil {
+				return resource.RetryableError(fmt.Errorf("Secret %q still exists", rs.Primary.ID))
+			}
+
+			return nil
+		})
+
+		if isResourceTimeoutError(err) {
+			output, err = conn.DescribeSecret(input)
+		}
+
+		if isAWSErr(err, secretsmanager.ErrCodeResourceNotFoundException, "") {
+			continue
+		}
 
 		if err != nil {
-			if isAWSErr(err, secretsmanager.ErrCodeResourceNotFoundException, "") {
-				return nil
-			}
 			return err
 		}
 

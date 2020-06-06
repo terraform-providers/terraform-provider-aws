@@ -120,6 +120,12 @@ The following arguments are supported:
 * `provider_arns` - (Optional, required for type `COGNITO_USER_POOLS`) A list of the Amazon Cognito user pool ARNs.
 	Each element is of this format: `arn:aws:cognito-idp:{region}:{account_id}:userpool/{user_pool_id}`.
 
+## Attribute Reference
+
+In addition to all arguments above, the following attributes are exported:
+
+* `id` - The Authorizer identifier.
+
 ## Import
 
 AWS API Gateway Authorizer can be imported using the `REST-API-ID/AUTHORIZER-ID`, e.g.

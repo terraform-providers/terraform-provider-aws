@@ -139,6 +139,7 @@ func resourceAwsDataSyncTask() *schema.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								datasync.VerifyModeNone,
 								datasync.VerifyModePointInTimeConsistent,
+								datasync.VerifyModeOnlyFilesTransferred,
 							}, false),
 						},
 					},

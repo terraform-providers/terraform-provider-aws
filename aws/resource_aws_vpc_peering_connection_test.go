@@ -222,9 +222,8 @@ func TestAccAWSVPCPeeringConnection_options(t *testing.T) {
 		IDRefreshName:   resourceName,
 		IDRefreshIgnore: []string{"auto_accept"},
 
-		Providers:           testAccProviders,
-		CheckDestroy:        testAccCheckAWSVpcPeeringConnectionDestroy,
-		DisableBinaryDriver: true,
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSVpcPeeringConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccVpcPeeringConfig_options(rName),
@@ -241,17 +240,17 @@ func TestAccAWSVPCPeeringConnection_options(t *testing.T) {
 					),
 					resource.TestCheckResourceAttr(
 						resourceName,
-						"requester.41753983.allow_remote_vpc_dns_resolution",
+						"requester.0.allow_remote_vpc_dns_resolution",
 						"false",
 					),
 					resource.TestCheckResourceAttr(
 						resourceName,
-						"requester.41753983.allow_classic_link_to_remote_vpc",
+						"requester.0.allow_classic_link_to_remote_vpc",
 						"true",
 					),
 					resource.TestCheckResourceAttr(
 						resourceName,
-						"requester.41753983.allow_vpc_to_remote_classic_link",
+						"requester.0.allow_vpc_to_remote_classic_link",
 						"true",
 					),
 					testAccCheckAWSVpcPeeringConnectionOptions(
@@ -270,17 +269,17 @@ func TestAccAWSVPCPeeringConnection_options(t *testing.T) {
 					),
 					resource.TestCheckResourceAttr(
 						resourceName,
-						"accepter.1102046665.allow_remote_vpc_dns_resolution",
+						"accepter.0.allow_remote_vpc_dns_resolution",
 						"true",
 					),
 					resource.TestCheckResourceAttr(
 						resourceName,
-						"accepter.1102046665.allow_classic_link_to_remote_vpc",
+						"accepter.0.allow_classic_link_to_remote_vpc",
 						"false",
 					),
 					resource.TestCheckResourceAttr(
 						resourceName,
-						"accepter.1102046665.allow_vpc_to_remote_classic_link",
+						"accepter.0.allow_vpc_to_remote_classic_link",
 						"false",
 					),
 					testAccCheckAWSVpcPeeringConnectionOptions(
@@ -318,17 +317,17 @@ func TestAccAWSVPCPeeringConnection_options(t *testing.T) {
 					),
 					resource.TestCheckResourceAttr(
 						resourceName,
-						"requester.41753983.allow_remote_vpc_dns_resolution",
+						"requester.0.allow_remote_vpc_dns_resolution",
 						"false",
 					),
 					resource.TestCheckResourceAttr(
 						resourceName,
-						"requester.41753983.allow_classic_link_to_remote_vpc",
+						"requester.0.allow_classic_link_to_remote_vpc",
 						"true",
 					),
 					resource.TestCheckResourceAttr(
 						resourceName,
-						"requester.41753983.allow_vpc_to_remote_classic_link",
+						"requester.0.allow_vpc_to_remote_classic_link",
 						"true",
 					),
 					testAccCheckAWSVpcPeeringConnectionOptions(
@@ -347,17 +346,17 @@ func TestAccAWSVPCPeeringConnection_options(t *testing.T) {
 					),
 					resource.TestCheckResourceAttr(
 						resourceName,
-						"accepter.1102046665.allow_remote_vpc_dns_resolution",
+						"accepter.0.allow_remote_vpc_dns_resolution",
 						"true",
 					),
 					resource.TestCheckResourceAttr(
 						resourceName,
-						"accepter.1102046665.allow_classic_link_to_remote_vpc",
+						"accepter.0.allow_classic_link_to_remote_vpc",
 						"false",
 					),
 					resource.TestCheckResourceAttr(
 						resourceName,
-						"accepter.1102046665.allow_vpc_to_remote_classic_link",
+						"accepter.0.allow_vpc_to_remote_classic_link",
 						"false",
 					),
 					testAccCheckAWSVpcPeeringConnectionOptions(

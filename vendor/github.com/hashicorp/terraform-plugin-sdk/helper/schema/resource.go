@@ -770,6 +770,8 @@ func (r *Resource) TestResourceData() *ResourceData {
 // SchemasForFlatmapPath tries its best to find a sequence of schemas that
 // the given dot-delimited attribute path traverses through in the schema
 // of the receiving Resource.
+//
+// Deprecated: This function will be removed in version 2 without replacement.
 func (r *Resource) SchemasForFlatmapPath(path string) []*Schema {
 	return SchemasForFlatmapPath(path, r.Schema)
 }

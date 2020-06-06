@@ -270,7 +270,6 @@ func resourceAwsEMRInstanceGroupRead(d *schema.ResourceData, meta interface{}) e
 	}
 	d.Set("ebs_optimized", ig.EbsOptimized)
 	d.Set("instance_count", ig.RequestedInstanceCount)
-	d.Set("instance_role", ig.InstanceGroupType)
 	d.Set("instance_type", ig.InstanceType)
 	d.Set("name", ig.Name)
 	d.Set("running_instance_count", ig.RunningInstanceCount)

@@ -2,16 +2,81 @@ package aws
 
 import (
 	"fmt"
+	"log"
 	"regexp"
 	"testing"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/rds"
+	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/rds/waiter"
 )
+
+func init() {
+	resource.AddTestSweepers("aws_db_event_subscription", &resource.Sweeper{
+		Name: "aws_db_event_subscription",
+		F:    testSweepDbEventSubscriptions,
+	})
+}
+
+func testSweepDbEventSubscriptions(region string) error {
+	client, err := sharedClientForRegion(region)
+	if err != nil {
+		return fmt.Errorf("error getting client: %w", err)
+	}
+	conn := client.(*AWSClient).rdsconn
+	var sweeperErrs *multierror.Error
+
+	err = conn.DescribeEventSubscriptionsPages(&rds.DescribeEventSubscriptionsInput{}, func(page *rds.DescribeEventSubscriptionsOutput, isLast bool) bool {
+		if page == nil {
+			return !isLast
+		}
+
+		for _, eventSubscription := range page.EventSubscriptionsList {
+			name := aws.StringValue(eventSubscription.CustSubscriptionId)
+
+			log.Printf("[INFO] Deleting RDS Event Subscription: %s", name)
+			_, err = conn.DeleteEventSubscription(&rds.DeleteEventSubscriptionInput{
+				SubscriptionName: aws.String(name),
+			})
+			if isAWSErr(err, rds.ErrCodeSubscriptionNotFoundFault, "") {
+				continue
+			}
+			if err != nil {
+				sweeperErr := fmt.Errorf("error deleting RDS Event Subscription (%s): %w", name, err)
+				log.Printf("[ERROR] %s", sweeperErr)
+				sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
+				continue
+			}
+
+			_, err = waiter.EventSubscriptionDeleted(conn, name)
+			if isAWSErr(err, rds.ErrCodeSubscriptionNotFoundFault, "") {
+				continue
+			}
+			if err != nil {
+				sweeperErr := fmt.Errorf("error waiting for RDS Event Subscription (%s) deletion: %w", name, err)
+				log.Printf("[ERROR] %s", sweeperErr)
+				sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
+				continue
+			}
+		}
+
+		return !isLast
+	})
+	if testSweepSkipSweepError(err) {
+		log.Printf("[WARN] Skipping RDS Event Subscriptions sweep for %s: %s", region, err)
+		return sweeperErrs.ErrorOrNil() // In case we have completed some pages, but had errors
+	}
+	if err != nil {
+		sweeperErrs = multierror.Append(sweeperErrs, fmt.Errorf("error retrieving RDS Event Subscriptions: %w", err))
+	}
+
+	return sweeperErrs.ErrorOrNil()
+}
 
 func TestAccAWSDBEventSubscription_basicUpdate(t *testing.T) {
 	var v rds.EventSubscription

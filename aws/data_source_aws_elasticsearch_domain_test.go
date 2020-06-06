@@ -20,6 +20,7 @@ func TestAccAWSDataElasticsearchDomain_basic(t *testing.T) {
 			{
 				Config: testAccAWSElasticsearchDomainConfigWithDataSource(rInt),
 				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(datasourceName, "processing", "false"),
 					resource.TestCheckResourceAttrPair(datasourceName, "elasticsearch_version", resourceName, "elasticsearch_version"),
 					resource.TestCheckResourceAttrPair(datasourceName, "cluster_config.#", resourceName, "cluster_config.#"),
 					resource.TestCheckResourceAttrPair(datasourceName, "cluster_config.0.instance_type", resourceName, "cluster_config.0.instance_type"),

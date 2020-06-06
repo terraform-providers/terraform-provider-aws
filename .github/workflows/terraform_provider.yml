@@ -1,0 +1,257 @@
+name: Terraform Provider Checks
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    paths:
+      - .github/workflows/terraform_provider.yml
+      - .golangci.yml
+      - aws/**
+      - awsproviderlint/**
+      - docs/index.md
+      - docs/data-sources/**
+      - docs/guides/**
+      - docs/resources/**
+      - go.sum
+      - GNUmakefile
+      - main.go
+      - staticcheck.conf
+      - website/**
+
+env:
+  AWS_DEFAULT_REGION: us-west-2
+  GO_VERSION: "1.14"
+  GO111MODULE: on
+  TERRAFORM_VERSION: "0.12.25"
+
+jobs:
+  go_mod_download:
+    name: go mod download
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-go@v2
+      with:
+        go-version: ${{ env.GO_VERSION }}
+    - uses: actions/cache@v2
+      continue-on-error: true
+      id: cache-go-pkg-mod
+      timeout-minutes: 2
+      with:
+        path: ~/go/pkg/mod
+        key: ${{ runner.os }}-go-pkg-mod-${{ hashFiles('go.sum') }}
+    - if: steps.cache-go-pkg-mod.outputs.cache-hit != 'true' || steps.cache-go-pkg-mod.outcome == 'failure'
+      run: go mod download
+
+  go_build:
+    name: go build
+    needs: [go_mod_download]
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/cache@v2
+      continue-on-error: true
+      id: cache-terraform-plugin-dir
+      timeout-minutes: 2
+      with:
+        path: terraform-plugin-dir
+        key: ${{ runner.os }}-terraform-plugin-dir-${{ hashFiles('go.sum') }}-${{ hashFiles('aws/**') }}
+    - if: steps.cache-terraform-plugin-dir.outputs.cache-hit != 'true' || steps.cache-terraform-plugin-dir.outcome == 'failure'
+      uses: actions/setup-go@v2
+      with:
+        go-version: ${{ env.GO_VERSION }}
+    - if: steps.cache-terraform-plugin-dir.outputs.cache-hit != 'true' || steps.cache-terraform-plugin-dir.outcome == 'failure'
+      name: go env
+      run: |
+        echo "::set-env name=GOCACHE::$(go env GOCACHE)"
+    - if: steps.cache-terraform-plugin-dir.outputs.cache-hit != 'true' || steps.cache-terraform-plugin-dir.outcome == 'failure'
+      uses: actions/cache@v2
+      with:
+        path: ${{ env.GOCACHE }}
+        key: ${{ runner.os }}-GOCACHE-${{ hashFiles('go.sum') }}-${{ hashFiles('aws/**') }}
+    - if: steps.cache-terraform-plugin-dir.outputs.cache-hit != 'true' || steps.cache-terraform-plugin-dir.outcome == 'failure'
+      uses: actions/cache@v2
+      with:
+        path: ~/go/pkg/mod
+        key: ${{ runner.os }}-go-pkg-mod-${{ hashFiles('go.sum') }}
+    - if: steps.cache-terraform-plugin-dir.outputs.cache-hit != 'true' || steps.cache-terraform-plugin-dir.outcome == 'failure'
+      name: go build
+      run: go build -o terraform-plugin-dir/terraform-provider-aws_v99.99.99_x4 .
+
+  terraform_providers_schema:
+    name: terraform providers schema
+    needs: [go_build]
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/cache@v2
+      continue-on-error: true
+      id: cache-terraform-providers-schema
+      timeout-minutes: 2
+      with:
+        path: terraform-providers-schema
+        key: ${{ runner.os }}-terraform-providers-schema-${{ hashFiles('go.sum') }}-${{ hashFiles('aws/**') }}
+    - if: steps.cache-terraform-providers-schema.outputs.cache-hit != 'true' || steps.cache-terraform-providers-schema.outcome == 'failure'
+      uses: actions/cache@v2
+      timeout-minutes: 2
+      with:
+        path: terraform-plugin-dir
+        key: ${{ runner.os }}-terraform-plugin-dir-${{ hashFiles('go.sum') }}-${{ hashFiles('aws/**') }}
+    - if: steps.cache-terraform-providers-schema.outputs.cache-hit != 'true' || steps.cache-terraform-providers-schema.outcome == 'failure'
+      uses: hashicorp/setup-terraform@v1
+      with:
+        terraform_version: ${{ env.TERRAFORM_VERSION }}
+        terraform_wrapper: false
+    - if: steps.cache-terraform-providers-schema.outputs.cache-hit != 'true' || steps.cache-terraform-providers-schema.outcome == 'failure'
+      name: terraform init
+      run: |
+        # We need a file to initialize the provider
+        echo 'data "aws_partition" "example" {}' > example.tf
+        terraform init -plugin-dir terraform-plugin-dir
+    - if: steps.cache-terraform-providers-schema.outputs.cache-hit != 'true' || steps.cache-terraform-providers-schema.outcome == 'failure'
+      name: terraform providers schema
+      run: |
+        mkdir terraform-providers-schema
+        terraform providers schema -json > terraform-providers-schema/schema.json
+
+  awsproviderlint:
+    needs: [go_build]
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-go@v2
+      with:
+        go-version: ${{ env.GO_VERSION }}
+    - name: go env
+      run: |
+        echo "::set-env name=GOCACHE::$(go env GOCACHE)"
+    - uses: actions/cache@v2
+      continue-on-error: true
+      timeout-minutes: 2
+      with:
+        path: ${{ env.GOCACHE }}
+        key: ${{ runner.os }}-GOCACHE-${{ hashFiles('go.sum') }}-${{ hashFiles('aws/**') }}
+    - uses: actions/cache@v2
+      continue-on-error: true
+      timeout-minutes: 2
+      with:
+        path: ~/go/pkg/mod
+        key: ${{ runner.os }}-go-pkg-mod-${{ hashFiles('go.sum') }}
+    - run: go install ./awsproviderlint
+    - name: awsproviderlint
+      run: make awsproviderlint
+
+  go_generate:
+    name: go generate
+    needs: [go_build]
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-go@v2
+      with:
+        go-version: ${{ env.GO_VERSION }}
+    - name: go env
+      run: |
+        echo "::set-env name=GOCACHE::$(go env GOCACHE)"
+    - uses: actions/cache@v2
+      continue-on-error: true
+      timeout-minutes: 2
+      with:
+        path: ${{ env.GOCACHE }}
+        key: ${{ runner.os }}-GOCACHE-${{ hashFiles('go.sum') }}-${{ hashFiles('aws/**') }}
+    - uses: actions/cache@v2
+      continue-on-error: true
+      timeout-minutes: 2
+      with:
+        path: ~/go/pkg/mod
+        key: ${{ runner.os }}-go-pkg-mod-${{ hashFiles('go.sum') }}
+    - run: go generate ./...
+    - name: Check for Git Differences
+      run: |
+        git diff --compact-summary --exit-code || \
+          (echo; echo "Unexpected difference in directories after code generation. Run 'make gen' command and commit."; exit 1)
+
+  go_test:
+    name: go test
+    needs: [go_build]
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-go@v2
+      with:
+        go-version: ${{ env.GO_VERSION }}
+    - name: go env
+      run: |
+        echo "::set-env name=GOCACHE::$(go env GOCACHE)"
+    - uses: actions/cache@v2
+      continue-on-error: true
+      timeout-minutes: 2
+      with:
+        path: ${{ env.GOCACHE }}
+        key: ${{ runner.os }}-GOCACHE-${{ hashFiles('go.sum') }}-${{ hashFiles('aws/**') }}
+    - uses: actions/cache@v2
+      continue-on-error: true
+      timeout-minutes: 2
+      with:
+        path: ~/go/pkg/mod
+        key: ${{ runner.os }}-go-pkg-mod-${{ hashFiles('go.sum') }}
+    - run: go test ./... -timeout=120s
+
+  golangci-lint:
+    needs: [go_build]
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-go@v2
+      with:
+        go-version: ${{ env.GO_VERSION }}
+    - name: go env
+      run: |
+        echo "::set-env name=GOCACHE::$(go env GOCACHE)"
+    - uses: actions/cache@v2
+      continue-on-error: true
+      timeout-minutes: 2
+      with:
+        path: ${{ env.GOCACHE }}
+        key: ${{ runner.os }}-GOCACHE-${{ hashFiles('go.sum') }}-${{ hashFiles('aws/**') }}
+    - uses: actions/cache@v2
+      continue-on-error: true
+      timeout-minutes: 2
+      with:
+        path: ~/go/pkg/mod
+        key: ${{ runner.os }}-go-pkg-mod-${{ hashFiles('go.sum') }}
+    - run: go install github.com/golangci/golangci-lint/cmd/golangci-lint
+    - run: golangci-lint run ./aws/...
+
+  tfproviderdocs:
+    needs: [terraform_providers_schema]
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-go@v2
+      with:
+        go-version: ${{ env.GO_VERSION }}
+    - uses: actions/cache@v2
+      continue-on-error: true
+      timeout-minutes: 2
+      with:
+        path: ~/go/pkg/mod
+        key: ${{ runner.os }}-go-pkg-mod-${{ hashFiles('go.sum') }}
+    - run: go install github.com/bflad/tfproviderdocs
+    - uses: actions/cache@v2
+      timeout-minutes: 2
+      with:
+        path: terraform-providers-schema
+        key: ${{ runner.os }}-terraform-providers-schema-${{ hashFiles('go.sum') }}-${{ hashFiles('aws/**') }}
+    - name: tfproviderdocs check
+      run: |
+        tfproviderdocs check \
+          -allowed-resource-subcategories-file website/allowed-subcategories.txt \
+          -ignore-file-missing-data-sources aws_alb,aws_alb_listener,aws_alb_target_group \
+          -ignore-file-missing-resources aws_alb,aws_alb_listener,aws_alb_listener_certificate,aws_alb_listener_rule,aws_alb_target_group,aws_alb_target_group_attachment \
+          -ignore-side-navigation-data-sources aws_alb,aws_alb_listener,aws_alb_target_group,aws_kms_secret \
+          -provider-name aws \
+          -providers-schema-json terraform-providers-schema/schema.json \
+          -require-resource-subcategory

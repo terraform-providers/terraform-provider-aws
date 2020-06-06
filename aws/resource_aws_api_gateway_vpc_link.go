@@ -33,7 +33,7 @@ func resourceAwsApiGatewayVpcLink() *schema.Resource {
 				Optional: true,
 			},
 			"target_arns": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				MaxItems: 1,
 				Required: true,
 				ForceNew: true,
@@ -54,7 +54,7 @@ func resourceAwsApiGatewayVpcLinkCreate(d *schema.ResourceData, meta interface{}
 
 	input := &apigateway.CreateVpcLinkInput{
 		Name:       aws.String(d.Get("name").(string)),
-		TargetArns: expandStringList(d.Get("target_arns").(*schema.Set).List()),
+		TargetArns: expandStringList(d.Get("target_arns").([]interface{})),
 		Tags:       tags,
 	}
 	if v, ok := d.GetOk("description"); ok {

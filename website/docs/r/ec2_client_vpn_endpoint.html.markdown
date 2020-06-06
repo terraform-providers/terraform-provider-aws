@@ -67,6 +67,7 @@ One of the following arguments must be supplied:
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the Client VPN endpoint.
+* `arn` - The ARN of the Client VPN endpoint.
 * `dns_name` - The DNS name to be used by clients when establishing their VPN session.
 * `status` - The current state of the Client VPN endpoint.
 

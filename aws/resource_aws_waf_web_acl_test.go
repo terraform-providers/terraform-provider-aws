@@ -120,17 +120,16 @@ func TestAccAWSWafWebAcl_basic(t *testing.T) {
 	resourceName := "aws_waf_web_acl.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:            func() { testAccPreCheck(t); testAccPreCheckAWSWaf(t) },
-		Providers:           testAccProviders,
-		CheckDestroy:        testAccCheckAWSWafWebAclDestroy,
-		DisableBinaryDriver: true,
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSWaf(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSWafWebAclDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSWafWebAclConfig_Required(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSWafWebAclExists(resourceName, &webACL),
 					resource.TestCheckResourceAttr(resourceName, "default_action.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "default_action.4234791575.type", "ALLOW"),
+					resource.TestCheckResourceAttr(resourceName, "default_action.0.type", "ALLOW"),
 					resource.TestCheckResourceAttr(resourceName, "metric_name", rName),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
@@ -154,17 +153,16 @@ func TestAccAWSWafWebAcl_changeNameForceNew(t *testing.T) {
 	resourceName := "aws_waf_web_acl.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:            func() { testAccPreCheck(t); testAccPreCheckAWSWaf(t) },
-		Providers:           testAccProviders,
-		CheckDestroy:        testAccCheckAWSWafWebAclDestroy,
-		DisableBinaryDriver: true,
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSWaf(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSWafWebAclDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSWafWebAclConfig_Required(rName1),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSWafWebAclExists(resourceName, &webACL),
 					resource.TestCheckResourceAttr(resourceName, "default_action.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "default_action.4234791575.type", "ALLOW"),
+					resource.TestCheckResourceAttr(resourceName, "default_action.0.type", "ALLOW"),
 					resource.TestCheckResourceAttr(resourceName, "metric_name", rName1),
 					resource.TestCheckResourceAttr(resourceName, "name", rName1),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
@@ -176,7 +174,7 @@ func TestAccAWSWafWebAcl_changeNameForceNew(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSWafWebAclExists(resourceName, &webACL),
 					resource.TestCheckResourceAttr(resourceName, "default_action.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "default_action.4234791575.type", "ALLOW"),
+					resource.TestCheckResourceAttr(resourceName, "default_action.0.type", "ALLOW"),
 					resource.TestCheckResourceAttr(resourceName, "metric_name", rName2),
 					resource.TestCheckResourceAttr(resourceName, "name", rName2),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
@@ -198,17 +196,16 @@ func TestAccAWSWafWebAcl_DefaultAction(t *testing.T) {
 	resourceName := "aws_waf_web_acl.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:            func() { testAccPreCheck(t); testAccPreCheckAWSWaf(t) },
-		Providers:           testAccProviders,
-		CheckDestroy:        testAccCheckAWSWafWebAclDestroy,
-		DisableBinaryDriver: true,
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSWaf(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSWafWebAclDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSWafWebAclConfig_DefaultAction(rName, "ALLOW"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSWafWebAclExists(resourceName, &webACL),
 					resource.TestCheckResourceAttr(resourceName, "default_action.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "default_action.4234791575.type", "ALLOW"),
+					resource.TestCheckResourceAttr(resourceName, "default_action.0.type", "ALLOW"),
 				),
 			},
 			{
@@ -216,7 +213,7 @@ func TestAccAWSWafWebAcl_DefaultAction(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSWafWebAclExists(resourceName, &webACL),
 					resource.TestCheckResourceAttr(resourceName, "default_action.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "default_action.2267395054.type", "BLOCK"),
+					resource.TestCheckResourceAttr(resourceName, "default_action.0.type", "BLOCK"),
 				),
 			},
 			{
@@ -350,17 +347,16 @@ func TestAccAWSWafWebAcl_Tags(t *testing.T) {
 	resourceName := "aws_waf_web_acl.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:            func() { testAccPreCheck(t); testAccPreCheckAWSWaf(t) },
-		Providers:           testAccProviders,
-		CheckDestroy:        testAccCheckAWSWafWebAclDestroy,
-		DisableBinaryDriver: true,
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSWaf(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSWafWebAclDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSWafWebAclConfigTags1(rName, "key1", "value1"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSWafWebAclExists(resourceName, &webACL),
 					resource.TestCheckResourceAttr(resourceName, "default_action.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "default_action.4234791575.type", "ALLOW"),
+					resource.TestCheckResourceAttr(resourceName, "default_action.0.type", "ALLOW"),
 					resource.TestCheckResourceAttr(resourceName, "metric_name", rName),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
@@ -373,7 +369,7 @@ func TestAccAWSWafWebAcl_Tags(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSWafWebAclExists(resourceName, &webACL),
 					resource.TestCheckResourceAttr(resourceName, "default_action.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "default_action.4234791575.type", "ALLOW"),
+					resource.TestCheckResourceAttr(resourceName, "default_action.0.type", "ALLOW"),
 					resource.TestCheckResourceAttr(resourceName, "metric_name", rName),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
@@ -387,7 +383,7 @@ func TestAccAWSWafWebAcl_Tags(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSWafWebAclExists(resourceName, &webACL),
 					resource.TestCheckResourceAttr(resourceName, "default_action.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "default_action.4234791575.type", "ALLOW"),
+					resource.TestCheckResourceAttr(resourceName, "default_action.0.type", "ALLOW"),
 					resource.TestCheckResourceAttr(resourceName, "metric_name", rName),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),

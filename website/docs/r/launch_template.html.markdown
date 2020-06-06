@@ -168,7 +168,7 @@ Each `block_device_mappings` supports the following:
 
 The `ebs` block supports the following:
 
-* `delete_on_termination` - Whether the volume should be destroyed on instance termination (Default: `false`). See [Preserving Amazon EBS Volumes on Instance Termination](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/terminating-instances.html#preserving-volumes-on-termination) for more information.
+* `delete_on_termination` - Whether the volume should be destroyed on instance termination. Defaults to `false` if not set. See [Preserving Amazon EBS Volumes on Instance Termination](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/terminating-instances.html#preserving-volumes-on-termination) for more information.
 * `encrypted` - Enables [EBS encryption](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSEncryption.html)
   on the volume (Default: `false`). Cannot be used with `snapshot_id`.
 * `iops` - The amount of provisioned
@@ -288,7 +288,7 @@ Check limitations for autoscaling group in [Creating an Auto Scaling Group Using
 Each `network_interfaces` block supports the following:
 
 * `associate_public_ip_address` - Associate a public ip address with the network interface.  Boolean value.
-* `delete_on_termination` - Whether the network interface should be destroyed on instance termination.
+* `delete_on_termination` - Whether the network interface should be destroyed on instance termination. Defaults to `false` if not set.
 * `description` - Description of the network interface.
 * `device_index` - The integer index of the network interface attachment.
 * `ipv6_addresses` - One or more specific IPv6 addresses from the IPv6 CIDR block range of your subnet. Conflicts with `ipv6_address_count`

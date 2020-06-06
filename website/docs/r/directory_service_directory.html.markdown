@@ -158,6 +158,9 @@ In addition to all arguments above, the following attributes are exported:
 * `dns_ip_addresses` - A list of IP addresses of the DNS servers for the directory or connector.
 * `security_group_id` - The ID of the security group created by the directory.
 
+`connect_settings` (for `ADConnector`) is also exported with the following attributes:
+
+ * `connect_ips` - The IP addresses of the AD Connector servers.
 
 ## Import
 

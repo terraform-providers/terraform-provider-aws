@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ses"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -437,14 +436,17 @@ func resourceAwsSesReceiptRuleRead(d *schema.ResourceData, meta interface{}) err
 
 	response, err := conn.DescribeReceiptRule(describeOpts)
 	if err != nil {
-		_, ok := err.(awserr.Error)
-		if ok && err.(awserr.Error).Code() == "RuleDoesNotExist" {
+		if isAWSErr(err, ses.ErrCodeRuleDoesNotExistException, "") {
 			log.Printf("[WARN] SES Receipt Rule (%s) not found", d.Id())
 			d.SetId("")
 			return nil
-		} else {
-			return err
 		}
+		if isAWSErr(err, ses.ErrCodeRuleSetDoesNotExistException, "") {
+			log.Printf("[WARN] SES Receipt Rule Set (%s) belonging to SES Receipt Rule (%s) not found, removing from state", aws.StringValue(describeOpts.RuleSetName), d.Id())
+			d.SetId("")
+			return nil
+		}
+		return err
 	}
 
 	d.Set("enabled", response.Rule.Enabled)

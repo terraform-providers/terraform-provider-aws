@@ -306,10 +306,10 @@ func (c *SageMaker) CreateAppRequest(input *CreateAppInput) (req *request.Reques
 
 // CreateApp API operation for Amazon SageMaker Service.
 //
-// Creates a running App for the specified UserProfile. Supported Apps are JupyterServer
-// and KernelGateway. This operation is automatically invoked by Amazon SageMaker
-// Amazon SageMaker Studio (Studio) upon access to the associated Studio Domain,
-// and when new kernel configurations are selected by the user. A user may have
+// Creates a running App for the specified UserProfile. Supported Apps are JupyterServer,
+// KernelGateway, and TensorBoard. This operation is automatically invoked by
+// Amazon SageMaker Studio upon access to the associated Studio Domain, and
+// when new kernel configurations are selected by the user. A user may have
 // multiple Apps active simultaneously. Apps will automatically terminate and
 // be deleted when stopped from within Studio, or when the DeleteApp API is
 // manually called. UserProfiles are limited to 5 concurrently running Apps
@@ -678,15 +678,15 @@ func (c *SageMaker) CreateDomainRequest(input *CreateDomainInput) (req *request.
 
 // CreateDomain API operation for Amazon SageMaker Service.
 //
-// Creates a Domain for Amazon SageMaker Amazon SageMaker Studio (Studio), which
-// can be accessed by end-users in a web browser. A Domain has an associated
-// directory, list of authorized users, and a variety of security, application,
-// policies, and Amazon Virtual Private Cloud configurations. An AWS account
-// is limited to one Domain, per region. Users within a domain can share notebook
-// files and other artifacts with each other. When a Domain is created, an Amazon
-// Elastic File System (EFS) is also created for use by all of the users within
-// the Domain. Each user receives a private home directory within the EFS for
-// notebooks, Git repositories, and data files.
+// Creates a Domain for Amazon SageMaker Studio, which can be accessed by end-users
+// in a web browser. A Domain has an associated directory, list of authorized
+// users, and a variety of security, application, policies, and Amazon Virtual
+// Private Cloud configurations. An AWS account is limited to one Domain, per
+// region. Users within a domain can share notebook files and other artifacts
+// with each other. When a Domain is created, an Amazon Elastic File System
+// (EFS) is also created for use by all of the users within the Domain. Each
+// user receives a private home directory within the EFS for notebooks, Git
+// repositories, and data files.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1941,9 +1941,9 @@ func (c *SageMaker) CreatePresignedDomainUrlRequest(input *CreatePresignedDomain
 //
 // Creates a URL for a specified UserProfile in a Domain. When accessed in a
 // web browser, the user will be automatically signed in to Amazon SageMaker
-// Amazon SageMaker Studio (Studio), and granted access to all of the Apps and
-// files associated with that Amazon Elastic File System (EFS). This operation
-// can only be called when AuthMode equals IAM.
+// Studio, and granted access to all of the Apps and files associated with that
+// Amazon Elastic File System (EFS). This operation can only be called when
+// AuthMode equals IAM.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -2631,13 +2631,15 @@ func (c *SageMaker) CreateUserProfileRequest(input *CreateUserProfileInput) (req
 
 // CreateUserProfile API operation for Amazon SageMaker Service.
 //
-// Creates a new user profile. A user profile represents a single user within
-// a Domain, and is the main way to reference a "person" for the purposes of
-// sharing, reporting and other user-oriented features. This entity is created
-// during on-boarding. If an administrator invites a person by email or imports
-// them from SSO, a new UserProfile is automatically created. This entity is
-// the primary holder of settings for an individual user and has a reference
-// to the user's private Amazon Elastic File System (EFS) home directory.
+// Creates a user profile. A user profile represents a single user within a
+// Domain, and is the main way to reference a "person" for the purposes of sharing,
+// reporting and other user-oriented features. This entity is created during
+// on-boarding to Amazon SageMaker Studio. If an administrator invites a person
+// by email or imports them from SSO, a UserProfile is automatically created.
+//
+// This entity is the primary holder of settings for an individual user and,
+// through the domain, has a reference to the user's private Amazon Elastic
+// File System (EFS) home directory.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -3041,9 +3043,8 @@ func (c *SageMaker) DeleteDomainRequest(input *DeleteDomainInput) (req *request.
 
 // DeleteDomain API operation for Amazon SageMaker Service.
 //
-// Used to delete a domain. If you on-boarded with IAM mode, you will need to
-// delete your domain to on-board again using SSO. Use with caution. All of
-// the members of the domain will lose access to their EFS volume, including
+// Used to delete a domain. Use with caution. If RetentionPolicy is set to Delete,
+// all of the members of the domain will lose access to their EFS volume, including
 // data, notebooks, and other artifacts.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
@@ -15820,7 +15821,8 @@ type CreateAppInput struct {
 	// DomainId is a required field
 	DomainId *string `type:"string" required:"true"`
 
-	// The instance type and quantity.
+	// The instance type and the Amazon Resource Name (ARN) of the SageMaker image
+	// created on the instance.
 	ResourceSpec *ResourceSpec `type:"structure"`
 
 	// Each tag consists of a key and an optional value. Tag keys must be unique
@@ -16404,7 +16406,8 @@ type CreateDomainInput struct {
 	// DomainName is a required field
 	DomainName *string `type:"string" required:"true"`
 
-	// The AWS Key Management Service encryption key ID.
+	// The AWS Key Management Service (KMS) encryption key ID. Encryption with a
+	// customer master key (CMK) is not supported.
 	HomeEfsFileSystemKmsKeyId *string `type:"string"`
 
 	// Security setting to limit to a set of subnets.
@@ -20788,7 +20791,7 @@ type DeleteDomainInput struct {
 	// DomainId is a required field
 	DomainId *string `type:"string" required:"true"`
 
-	// The retention policy for this domain, which specifies which resources will
+	// The retention policy for this domain, which specifies whether resources will
 	// be retained after the Domain is deleted. By default, all resources are retained
 	// (not automatically deleted).
 	RetentionPolicy *RetentionPolicy `type:"structure"`
@@ -21987,7 +21990,8 @@ type DescribeAppOutput struct {
 	// The timestamp of the last user's activity.
 	LastUserActivityTimestamp *time.Time `type:"timestamp"`
 
-	// The instance type and quantity.
+	// The instance type and the Amazon Resource Name (ARN) of the SageMaker image
+	// created on the instance.
 	ResourceSpec *ResourceSpec `type:"structure"`
 
 	// The status.
@@ -26300,7 +26304,7 @@ type DescribeUserProfileOutput struct {
 	// The failure reason.
 	FailureReason *string `type:"string"`
 
-	// The homa Amazon Elastic File System (EFS) Uid.
+	// The home Amazon Elastic File System (EFS) Uid.
 	HomeEfsFileSystemUid *string `type:"string"`
 
 	// The last modified time.
@@ -28817,11 +28821,6 @@ func (s *HumanTaskConfig) Validate() error {
 			invalidParams.AddNested("AnnotationConsolidationConfig", err.(request.ErrInvalidParams))
 		}
 	}
-	if s.UiConfig != nil {
-		if err := s.UiConfig.Validate(); err != nil {
-			invalidParams.AddNested("UiConfig", err.(request.ErrInvalidParams))
-		}
-	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -30392,7 +30391,8 @@ func (s *IntegerParameterRangeSpecification) SetMinValue(v string) *IntegerParam
 type JupyterServerAppSettings struct {
 	_ struct{} `type:"structure"`
 
-	// The instance type and quantity.
+	// The default instance type and the Amazon Resource Name (ARN) of the SageMaker
+	// image created on the instance.
 	DefaultResourceSpec *ResourceSpec `type:"structure"`
 }
 
@@ -30416,7 +30416,8 @@ func (s *JupyterServerAppSettings) SetDefaultResourceSpec(v *ResourceSpec) *Jupy
 type KernelGatewayAppSettings struct {
 	_ struct{} `type:"structure"`
 
-	// The instance type and quantity.
+	// The default instance type and the Amazon Resource Name (ARN) of the SageMaker
+	// image created on the instance.
 	DefaultResourceSpec *ResourceSpec `type:"structure"`
 }
 
@@ -37134,6 +37135,11 @@ func (s *NestedFilters) SetNestedPropertyName(v string) *NestedFilters {
 type NetworkConfig struct {
 	_ struct{} `type:"structure"`
 
+	// Whether to encrypt all communications between distributed processing jobs.
+	// Choose True to encrypt communications. Encryption provides greater security
+	// for distributed processing jobs, but the processing might take longer.
+	EnableInterContainerTrafficEncryption *bool `type:"boolean"`
+
 	// Whether to allow inbound and outbound network calls to and from the containers
 	// used for the processing job.
 	EnableNetworkIsolation *bool `type:"boolean"`
@@ -37169,6 +37175,12 @@ func (s *NetworkConfig) Validate() error {
 		return invalidParams
 	}
 	return nil
+}
+
+// SetEnableInterContainerTrafficEncryption sets the EnableInterContainerTrafficEncryption field's value.
+func (s *NetworkConfig) SetEnableInterContainerTrafficEncryption(v bool) *NetworkConfig {
+	s.EnableInterContainerTrafficEncryption = &v
+	return s
 }
 
 // SetEnableNetworkIsolation sets the EnableNetworkIsolation field's value.
@@ -39216,9 +39228,7 @@ type RenderUiTemplateInput struct {
 	Task *RenderableTask `type:"structure" required:"true"`
 
 	// A Template object containing the worker UI template to render.
-	//
-	// UiTemplate is a required field
-	UiTemplate *UiTemplate `type:"structure" required:"true"`
+	UiTemplate *UiTemplate `type:"structure"`
 }
 
 // String returns the string representation
@@ -39242,9 +39252,6 @@ func (s *RenderUiTemplateInput) Validate() error {
 	}
 	if s.Task == nil {
 		invalidParams.Add(request.NewErrParamRequired("Task"))
-	}
-	if s.UiTemplate == nil {
-		invalidParams.Add(request.NewErrParamRequired("UiTemplate"))
 	}
 	if s.Task != nil {
 		if err := s.Task.Validate(); err != nil {
@@ -39795,16 +39802,16 @@ func (s *ResourceNotFound) RequestID() string {
 	return s.RespMetadata.RequestID
 }
 
-// The instance type and the Amazon Resource Name (ARN) of the image created
-// on the instance. The ARN is stored as metadata in Amazon SageMaker Studio
-// notebooks.
+// The instance type and the Amazon Resource Name (ARN) of the SageMaker image
+// created on the instance. The ARN is stored as metadata in Amazon SageMaker
+// Studio notebooks.
 type ResourceSpec struct {
 	_ struct{} `type:"structure"`
 
 	// The instance type.
 	InstanceType *string `type:"string" enum:"AppInstanceType"`
 
-	// The Amazon Resource Name (ARN) of the image created on the instance.
+	// The Amazon Resource Name (ARN) of the SageMaker image created on the instance.
 	SageMakerImageArn *string `type:"string"`
 }
 
@@ -39830,11 +39837,15 @@ func (s *ResourceSpec) SetSageMakerImageArn(v string) *ResourceSpec {
 	return s
 }
 
-// The retention policy.
+// The retention policy for data stored on an Amazon Elastic File System (EFS)
+// volume.
 type RetentionPolicy struct {
 	_ struct{} `type:"structure"`
 
-	// The home Amazon Elastic File System (EFS).
+	// The default is Retain, which specifies to keep the data stored on the EFS
+	// volume.
+	//
+	// Specify Delete to delete the data stored on the EFS volume.
 	HomeEfsFileSystem *string `type:"string" enum:"RetentionType"`
 }
 
@@ -41574,7 +41585,8 @@ func (s *Tag) SetValue(v string) *Tag {
 type TensorBoardAppSettings struct {
 	_ struct{} `type:"structure"`
 
-	// The instance type and quantity.
+	// The default instance type and the Amazon Resource Name (ARN) of the SageMaker
+	// image created on the instance.
 	DefaultResourceSpec *ResourceSpec `type:"structure"`
 }
 
@@ -44128,9 +44140,7 @@ type UiConfig struct {
 	// The Amazon S3 bucket location of the UI template. For more information about
 	// the contents of a UI template, see Creating Your Custom Labeling Task Template
 	// (https://docs.aws.amazon.com/sagemaker/latest/dg/sms-custom-templates-step2.html).
-	//
-	// UiTemplateS3Uri is a required field
-	UiTemplateS3Uri *string `type:"string" required:"true"`
+	UiTemplateS3Uri *string `type:"string"`
 }
 
 // String returns the string representation
@@ -44141,19 +44151,6 @@ func (s UiConfig) String() string {
 // GoString returns the string representation
 func (s UiConfig) GoString() string {
 	return s.String()
-}
-
-// Validate inspects the fields of the type to determine if they are valid.
-func (s *UiConfig) Validate() error {
-	invalidParams := request.ErrInvalidParams{Context: "UiConfig"}
-	if s.UiTemplateS3Uri == nil {
-		invalidParams.Add(request.NewErrParamRequired("UiTemplateS3Uri"))
-	}
-
-	if invalidParams.Len() > 0 {
-		return invalidParams
-	}
-	return nil
 }
 
 // SetUiTemplateS3Uri sets the UiTemplateS3Uri field's value.

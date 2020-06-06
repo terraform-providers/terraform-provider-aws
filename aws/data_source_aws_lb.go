@@ -122,6 +122,11 @@ func dataSourceAwsLb() *schema.Resource {
 				Computed: true,
 			},
 
+			"ip_address_type": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"tags": tagsSchemaComputed(),
 		},
 	}

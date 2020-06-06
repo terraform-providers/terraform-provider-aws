@@ -24,6 +24,10 @@ type CheckCommandConfig struct {
 	AllowedGuideSubcategoriesFile    string
 	AllowedResourceSubcategories     string
 	AllowedResourceSubcategoriesFile string
+	IgnoreFileMismatchDataSources    string
+	IgnoreFileMismatchResources      string
+	IgnoreFileMissingDataSources     string
+	IgnoreFileMissingResources       string
 	IgnoreSideNavigationDataSources  string
 	IgnoreSideNavigationResources    string
 	LogLevel                         string
@@ -47,6 +51,10 @@ func (*CheckCommand) Help() string {
 	fmt.Fprintf(opts, CommandHelpOptionFormat, "-allowed-guide-subcategories-file", "Path to newline separated file of allowed guide frontmatter subcategories.")
 	fmt.Fprintf(opts, CommandHelpOptionFormat, "-allowed-resource-subcategories", "Comma separated list of allowed data source and resource frontmatter subcategories.")
 	fmt.Fprintf(opts, CommandHelpOptionFormat, "-allowed-resource-subcategories-file", "Path to newline separated file of allowed data source and resource frontmatter subcategories.")
+	fmt.Fprintf(opts, CommandHelpOptionFormat, "-ignore-file-mismatch-data-sources", "Comma separated list of data sources to ignore mismatched/extra files.")
+	fmt.Fprintf(opts, CommandHelpOptionFormat, "-ignore-file-mismatch-resources", "Comma separated list of resources to ignore mismatched/extra files.")
+	fmt.Fprintf(opts, CommandHelpOptionFormat, "-ignore-file-missing-data-sources", "Comma separated list of data sources to ignore missing files.")
+	fmt.Fprintf(opts, CommandHelpOptionFormat, "-ignore-file-missing-resources", "Comma separated list of resources to ignore missing files.")
 	fmt.Fprintf(opts, CommandHelpOptionFormat, "-ignore-side-navigation-data-sources", "Comma separated list of data sources to ignore side navigation validation.")
 	fmt.Fprintf(opts, CommandHelpOptionFormat, "-ignore-side-navigation-resources", "Comma separated list of resources to ignore side navigation validation.")
 	fmt.Fprintf(opts, CommandHelpOptionFormat, "-provider-name", "Terraform Provider name. Automatically determined if current working directory or provided path is prefixed with terraform-provider-*.")
@@ -80,6 +88,10 @@ func (c *CheckCommand) Run(args []string) int {
 	flags.StringVar(&config.AllowedGuideSubcategoriesFile, "allowed-guide-subcategories-file", "", "")
 	flags.StringVar(&config.AllowedResourceSubcategories, "allowed-resource-subcategories", "", "")
 	flags.StringVar(&config.AllowedResourceSubcategoriesFile, "allowed-resource-subcategories-file", "", "")
+	flags.StringVar(&config.IgnoreFileMismatchDataSources, "ignore-file-mismatch-data-sources", "", "")
+	flags.StringVar(&config.IgnoreFileMismatchResources, "ignore-file-mismatch-resources", "", "")
+	flags.StringVar(&config.IgnoreFileMissingDataSources, "ignore-file-missing-data-sources", "", "")
+	flags.StringVar(&config.IgnoreFileMissingResources, "ignore-file-missing-resources", "", "")
 	flags.StringVar(&config.IgnoreSideNavigationDataSources, "ignore-side-navigation-data-sources", "", "")
 	flags.StringVar(&config.IgnoreSideNavigationResources, "ignore-side-navigation-resources", "", "")
 	flags.StringVar(&config.ProviderName, "provider-name", "", "")
@@ -131,8 +143,7 @@ func (c *CheckCommand) Run(args []string) int {
 		return 1
 	}
 
-	var allowedGuideSubcategories, allowedResourceSubcategories, ignoreSideNavigationDataSources, ignoreSideNavigationResources []string
-
+	var allowedGuideSubcategories []string
 	if v := config.AllowedGuideSubcategories; v != "" {
 		allowedGuideSubcategories = strings.Split(v, ",")
 	}
@@ -147,6 +158,7 @@ func (c *CheckCommand) Run(args []string) int {
 		}
 	}
 
+	var allowedResourceSubcategories []string
 	if v := config.AllowedResourceSubcategories; v != "" {
 		allowedResourceSubcategories = strings.Split(v, ",")
 	}
@@ -161,18 +173,68 @@ func (c *CheckCommand) Run(args []string) int {
 		}
 	}
 
+	var ignoreFileMismatchDataSources []string
+	if v := config.IgnoreFileMismatchDataSources; v != "" {
+		ignoreFileMismatchDataSources = strings.Split(v, ",")
+	}
+
+	var ignoreFileMismatchResources []string
+	if v := config.IgnoreFileMismatchResources; v != "" {
+		ignoreFileMismatchResources = strings.Split(v, ",")
+	}
+
+	var ignoreFileMissingDataSources []string
+	if v := config.IgnoreFileMissingDataSources; v != "" {
+		ignoreFileMissingDataSources = strings.Split(v, ",")
+	}
+
+	var ignoreFileMissingResources []string
+	if v := config.IgnoreFileMissingResources; v != "" {
+		ignoreFileMissingResources = strings.Split(v, ",")
+	}
+
+	var ignoreSideNavigationDataSources []string
 	if v := config.IgnoreSideNavigationDataSources; v != "" {
 		ignoreSideNavigationDataSources = strings.Split(v, ",")
 	}
 
+	var ignoreSideNavigationResources []string
 	if v := config.IgnoreSideNavigationResources; v != "" {
 		ignoreSideNavigationResources = strings.Split(v, ",")
+	}
+
+	var schemaDataSources, schemaResources map[string]*tfjson.Schema
+	if config.ProvidersSchemaJson != "" {
+		ps, err := providerSchemas(config.ProvidersSchemaJson)
+
+		if err != nil {
+			c.Ui.Error(fmt.Sprintf("Error enabling Terraform Provider schema checks: %s", err))
+			return 1
+		}
+
+		if config.ProviderName == "" {
+			msg := `Unknown provider name for enabling Terraform Provider schema checks.
+
+Check that the current working directory or provided path is prefixed with terraform-provider-*.`
+			c.Ui.Error(msg)
+			return 1
+		}
+
+		schemaDataSources = providerSchemasDataSources(ps, config.ProviderName)
+		schemaResources = providerSchemasResources(ps, config.ProviderName)
 	}
 
 	fileOpts := &check.FileOptions{
 		BasePath: config.Path,
 	}
 	checkOpts := &check.CheckOptions{
+		DataSourceFileMismatch: &check.FileMismatchOptions{
+			IgnoreFileMismatch: ignoreFileMismatchDataSources,
+			IgnoreFileMissing:  ignoreFileMissingDataSources,
+			ProviderName:       config.ProviderName,
+			ResourceType:       check.ResourceTypeDataSource,
+			Schemas:            schemaDataSources,
+		},
 		LegacyDataSourceFile: &check.LegacyDataSourceFileOptions{
 			FileOptions: fileOpts,
 			FrontMatter: &check.FrontMatterOptions{
@@ -222,32 +284,19 @@ func (c *CheckCommand) Run(args []string) int {
 				RequireSubcategory:   config.RequireResourceSubcategory,
 			},
 		},
+		ResourceFileMismatch: &check.FileMismatchOptions{
+			IgnoreFileMismatch: ignoreFileMismatchResources,
+			IgnoreFileMissing:  ignoreFileMissingResources,
+			ProviderName:       config.ProviderName,
+			ResourceType:       check.ResourceTypeResource,
+			Schemas:            schemaResources,
+		},
 		SideNavigation: &check.SideNavigationOptions{
 			FileOptions:       fileOpts,
 			IgnoreDataSources: ignoreSideNavigationDataSources,
 			IgnoreResources:   ignoreSideNavigationResources,
 			ProviderName:      config.ProviderName,
 		},
-	}
-
-	if config.ProvidersSchemaJson != "" {
-		ps, err := providerSchemas(config.ProvidersSchemaJson)
-
-		if err != nil {
-			c.Ui.Error(fmt.Sprintf("Error enabling Terraform Provider schema checks: %s", err))
-			return 1
-		}
-
-		if config.ProviderName == "" {
-			msg := `Unknown provider name for enabling Terraform Provider schema checks.
-
-Check that the current working directory or provided path is prefixed with terraform-provider-*.`
-			c.Ui.Error(msg)
-			return 1
-		}
-
-		checkOpts.SchemaDataSources = providerSchemasDataSources(ps, config.ProviderName)
-		checkOpts.SchemaResources = providerSchemasResources(ps, config.ProviderName)
 	}
 
 	if err := check.NewCheck(checkOpts).Run(directories); err != nil {

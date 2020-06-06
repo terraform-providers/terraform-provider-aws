@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -27,9 +28,10 @@ func resourceAwsEc2ClientVpnEndpoint() *schema.Resource {
 				Optional: true,
 			},
 			"client_cidr_block": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.IsCIDR,
 			},
 			"dns_servers": {
 				Type:     schema.TypeSet,
@@ -37,8 +39,9 @@ func resourceAwsEc2ClientVpnEndpoint() *schema.Resource {
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"server_certificate_arn": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validateArn,
 			},
 			"split_tunnel": {
 				Type:     schema.TypeBool,
@@ -76,9 +79,10 @@ func resourceAwsEc2ClientVpnEndpoint() *schema.Resource {
 							ForceNew: true,
 						},
 						"root_certificate_chain_arn": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ForceNew: true,
+							Type:         schema.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							ValidateFunc: validateArn,
 						},
 					},
 				},
@@ -113,6 +117,10 @@ func resourceAwsEc2ClientVpnEndpoint() *schema.Resource {
 				Computed: true,
 			},
 			"tags": tagsSchema(),
+			"arn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -238,6 +246,16 @@ func resourceAwsEc2ClientVpnEndpointRead(d *schema.ResourceData, meta interface{
 	if err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
+
+	arn := arn.ARN{
+		Partition: meta.(*AWSClient).partition,
+		Service:   "ec2",
+		Region:    meta.(*AWSClient).region,
+		AccountID: meta.(*AWSClient).accountid,
+		Resource:  fmt.Sprintf("client-vpn-endpoint/%s", d.Id()),
+	}.String()
+
+	d.Set("arn", arn)
 
 	return nil
 }

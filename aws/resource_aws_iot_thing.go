@@ -30,6 +30,7 @@ func resourceAwsIotThing() *schema.Resource {
 			"attributes": {
 				Type:     schema.TypeMap,
 				Optional: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"thing_type_name": {
 				Type:         schema.TypeString,

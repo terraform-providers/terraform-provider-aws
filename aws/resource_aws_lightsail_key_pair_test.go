@@ -46,7 +46,7 @@ func TestAccAWSLightsailKeyPair_publicKey(t *testing.T) {
 		CheckDestroy: testAccCheckAWSLightsailKeyPairDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSLightsailKeyPairConfig_imported(lightsailName, testLightsailKeyPairPubKey1),
+				Config: testAccAWSLightsailKeyPairConfig_imported(lightsailName, lightsailPubKey),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAWSLightsailKeyPairExists("aws_lightsail_key_pair.lightsail_key_pair_test", &conf),
 					resource.TestCheckResourceAttrSet("aws_lightsail_key_pair.lightsail_key_pair_test", "arn"),
@@ -175,14 +175,14 @@ resource "aws_lightsail_key_pair" "lightsail_key_pair_test" {
 `, lightsailName)
 }
 
-func testAccAWSLightsailKeyPairConfig_imported(lightsailName, key string) string {
+func testAccAWSLightsailKeyPairConfig_imported(lightsailName, publicKey string) string {
 	return fmt.Sprintf(`
 resource "aws_lightsail_key_pair" "lightsail_key_pair_test" {
   name = "%s"
 
   public_key = "%s"
 }
-`, lightsailName, lightsailPubKey)
+`, lightsailName, publicKey)
 }
 
 func testAccAWSLightsailKeyPairConfig_encrypted(lightsailName, key string) string {
