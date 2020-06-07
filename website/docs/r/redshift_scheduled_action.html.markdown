@@ -1,7 +1,6 @@
 ---
 layout: "aws"
 page_title: "AWS: aws_redshift_scheduled_action"
-sidebar_current: "docs-aws-resource-redshift-scheduled-action"
 description: |-
   Provides a Redshift Scheduled Action resource.
 ---
