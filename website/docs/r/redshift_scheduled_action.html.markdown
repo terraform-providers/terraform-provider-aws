@@ -12,7 +12,7 @@ description: |-
 
 ```hcl
 resource "aws_iam_role" "redshift_scheduled_action" {
-  name = "redshift_scheduled_action"
+  name               = "redshift_scheduled_action"
   assume_role_policy = <<EOF
 {
   "Version": "2012-10-17",
@@ -33,7 +33,7 @@ EOF
 }
 
 resource "aws_iam_policy" "redshift_scheduled_action" {
-  name = "redshift_scheduled_action"
+  name   = "redshift_scheduled_action"
   policy = <<EOF
 {
   "Version": "2012-10-17",
@@ -55,18 +55,18 @@ EOF
 
 resource "aws_iam_role_policy_attachment" "redshift_scheduled_action" {
   policy_arn = aws_iam_policy.redshift_scheduled_action.arn
-  role = aws_iam_role.redshift_scheduled_action.name
+  role       = aws_iam_role.redshift_scheduled_action.name
 }
 
 resource "aws_redshift_scheduled_action" "default" {
-    name = "tf-redshift-scheduled-action"
-    schedule = "cron(00 23 * * ? *)"
-    iam_role = aws_iam_role.redshift_scheduled_action.arn
+  name     = "tf-redshift-scheduled-action"
+  schedule = "cron(00 23 * * ? *)"
+  iam_role = aws_iam_role.redshift_scheduled_action.arn
 
-    target_action {
-      action = "PauseCluster"
-      cluster_identifier = "tf-redshift001"
-    }
+  target_action {
+    action             = "PauseCluster"
+    cluster_identifier = "tf-redshift001"
+  }
 }
 ```
 
@@ -74,18 +74,18 @@ resource "aws_redshift_scheduled_action" "default" {
 
 ```hcl
 resource "aws_redshift_scheduled_action" "default" {
-    name = "tf-redshift-scheduled-action"
-    schedule = "cron(00 23 * * ? *)"
-    iam_role = aws_iam_role.redshift_scheduled_action.arn
+  name     = "tf-redshift-scheduled-action"
+  schedule = "cron(00 23 * * ? *)"
+  iam_role = aws_iam_role.redshift_scheduled_action.arn
 
-    target_action {
-      action = "ResizeCluster"
-      cluster_identifier = "tf-redshift001"
-	  classic = false
-	  cluster_type = "multi-node"
-	  node_type = "dc1.large"
-	  number_of_nodes = 2
-    }
+  target_action {
+    action             = "ResizeCluster"
+    cluster_identifier = "tf-redshift001"
+    classic            = false
+    cluster_type       = "multi-node"
+    node_type          = "dc1.large"
+    number_of_nodes    = 2
+  }
 }
 ```
 
