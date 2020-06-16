@@ -204,6 +204,7 @@ func Provider() terraform.ResourceProvider {
 			"aws_db_snapshot":                               dataSourceAwsDbSnapshot(),
 			"aws_directory_service_directory":               dataSourceAwsDirectoryServiceDirectory(),
 			"aws_dx_gateway":                                dataSourceAwsDxGateway(),
+			"aws_dx_private_virtual_interface":              dataSourceAwsDxPrivateVirtualInterface(),
 			"aws_dynamodb_table":                            dataSourceAwsDynamoDbTable(),
 			"aws_ebs_default_kms_key":                       dataSourceAwsEbsDefaultKmsKey(),
 			"aws_ebs_encryption_by_default":                 dataSourceAwsEbsEncryptionByDefault(),
