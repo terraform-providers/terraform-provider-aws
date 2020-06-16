@@ -288,6 +288,7 @@ func Provider() terraform.ResourceProvider {
 			"aws_prefix_list":                               dataSourceAwsPrefixList(),
 			"aws_pricing_product":                           dataSourceAwsPricingProduct(),
 			"aws_qldb_ledger":                               dataSourceAwsQLDBLedger(),
+			"aws_quicksight_user":                           dataSourceAwsQuickSightUser(),
 			"aws_ram_resource_share":                        dataSourceAwsRamResourceShare(),
 			"aws_rds_cluster":                               dataSourceAwsRdsCluster(),
 			"aws_redshift_cluster":                          dataSourceAwsRedshiftCluster(),
