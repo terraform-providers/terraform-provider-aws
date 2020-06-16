@@ -726,6 +726,7 @@ func Provider() terraform.ResourceProvider {
 			"aws_organizations_policy":                                resourceAwsOrganizationsPolicy(),
 			"aws_organizations_policy_attachment":                     resourceAwsOrganizationsPolicyAttachment(),
 			"aws_organizations_organizational_unit":                   resourceAwsOrganizationsOrganizationalUnit(),
+			"aws_personalize_dataset_group":                           resourceAwsPersonalizeDatasetGroup(),
 			"aws_placement_group":                                     resourceAwsPlacementGroup(),
 			"aws_proxy_protocol_policy":                               resourceAwsProxyProtocolPolicy(),
 			"aws_qldb_ledger":                                         resourceAwsQLDBLedger(),
