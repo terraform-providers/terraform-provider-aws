@@ -179,6 +179,7 @@ func Provider() terraform.ResourceProvider {
 			"aws_arn":                                       dataSourceAwsArn(),
 			"aws_autoscaling_group":                         dataSourceAwsAutoscalingGroup(),
 			"aws_autoscaling_groups":                        dataSourceAwsAutoscalingGroups(),
+			"aws_appautoscaling_policy":                     dataSourceAwsAppautoscalingPolicy(),
 			"aws_availability_zone":                         dataSourceAwsAvailabilityZone(),
 			"aws_availability_zones":                        dataSourceAwsAvailabilityZones(),
 			"aws_backup_plan":                               dataSourceAwsBackupPlan(),
