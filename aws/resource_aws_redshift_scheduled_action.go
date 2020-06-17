@@ -174,11 +174,11 @@ func resourceAwsRedshiftScheduledActionRead(d *schema.ResourceData, meta interfa
 	d.Set("schedule", scheduledAction.Schedule)
 	d.Set("iam_role", scheduledAction.IamRole)
 
-	if aws.TimeValue(scheduledAction.StartTime).Format(time.RFC3339) != "0001-01-01T00:00:00Z" {
+	if scheduledAction.StartTime != nil {
 		d.Set("start_time", aws.TimeValue(scheduledAction.StartTime).Format(time.RFC3339))
 	}
 
-	if aws.TimeValue(scheduledAction.EndTime).Format(time.RFC3339) != "0001-01-01T00:00:00Z" {
+	if scheduledAction.EndTime != nil {
 		d.Set("end_time", aws.TimeValue(scheduledAction.EndTime).Format(time.RFC3339))
 	}
 
