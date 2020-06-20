@@ -524,7 +524,6 @@ func (c *Config) Client() (interface{}, error) {
 		redshiftconn:                        redshift.New(sess.Copy(&aws.Config{Endpoint: aws.String(c.Endpoints["redshift"])})),
 		region:                              c.Region,
 		resourcegroupsconn:                  resourcegroups.New(sess.Copy(&aws.Config{Endpoint: aws.String(c.Endpoints["resourcegroups"])})),
-		route53domainsconn:                  route53domains.New(sess.Copy(&aws.Config{Endpoint: aws.String(c.Endpoints["route53domains"])})),
 		route53resolverconn:                 route53resolver.New(sess.Copy(&aws.Config{Endpoint: aws.String(c.Endpoints["route53resolver"])})),
 		s3controlconn:                       s3control.New(sess.Copy(&aws.Config{Endpoint: aws.String(c.Endpoints["s3control"])})),
 		sagemakerconn:                       sagemaker.New(sess.Copy(&aws.Config{Endpoint: aws.String(c.Endpoints["sagemaker"])})),
@@ -562,6 +561,9 @@ func (c *Config) Client() (interface{}, error) {
 	route53Config := &aws.Config{
 		Endpoint: aws.String(c.Endpoints["route53"]),
 	}
+	route53DomainsConfig := &aws.Config{
+		Endpoint: aws.String(c.Endpoints["route53domains"]),
+	}
 	shieldConfig := &aws.Config{
 		Endpoint: aws.String(c.Endpoints["shield"]),
 	}
@@ -590,6 +592,7 @@ func (c *Config) Client() (interface{}, error) {
 	case endpoints.AwsPartitionID:
 		globalAcceleratorConfig.Region = aws.String(endpoints.UsWest2RegionID)
 		route53Config.Region = aws.String(endpoints.UsEast1RegionID)
+		route53DomainsConfig.Region = aws.String(endpoints.UsEast1RegionID)
 		shieldConfig.Region = aws.String(endpoints.UsEast1RegionID)
 	case endpoints.AwsCnPartitionID:
 		// The AWS Go SDK is missing endpoint information for Route 53 in the AWS China partition.
@@ -604,6 +607,8 @@ func (c *Config) Client() (interface{}, error) {
 
 	client.globalacceleratorconn = globalaccelerator.New(sess.Copy(globalAcceleratorConfig))
 	client.r53conn = route53.New(sess.Copy(route53Config))
+	client.route53domainsconn = route53domains.New(sess.Copy(route53DomainsConfig))
+
 	client.shieldconn = shield.New(sess.Copy(shieldConfig))
 
 	// Workaround for https://github.com/aws/aws-sdk-go/issues/1472

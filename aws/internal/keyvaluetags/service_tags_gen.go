@@ -63,6 +63,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/rds"
 	"github.com/aws/aws-sdk-go/service/redshift"
 	"github.com/aws/aws-sdk-go/service/route53"
+	"github.com/aws/aws-sdk-go/service/route53domains"
 	"github.com/aws/aws-sdk-go/service/route53resolver"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/sagemaker"
@@ -2068,6 +2069,33 @@ func (tags KeyValueTags) Route53Tags() []*route53.Tag {
 
 // Route53KeyValueTags creates KeyValueTags from route53 service tags.
 func Route53KeyValueTags(tags []*route53.Tag) KeyValueTags {
+	m := make(map[string]*string, len(tags))
+
+	for _, tag := range tags {
+		m[aws.StringValue(tag.Key)] = tag.Value
+	}
+
+	return New(m)
+}
+
+// Route53domainsTags returns route53domains service tags.
+func (tags KeyValueTags) Route53domainsTags() []*route53domains.Tag {
+	result := make([]*route53domains.Tag, 0, len(tags))
+
+	for k, v := range tags.Map() {
+		tag := &route53domains.Tag{
+			Key:   aws.String(k),
+			Value: aws.String(v),
+		}
+
+		result = append(result, tag)
+	}
+
+	return result
+}
+
+// Route53domainsKeyValueTags creates KeyValueTags from route53domains service tags.
+func Route53domainsKeyValueTags(tags []*route53domains.Tag) KeyValueTags {
 	m := make(map[string]*string, len(tags))
 
 	for _, tag := range tags {

@@ -85,6 +85,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/rds"
 	"github.com/aws/aws-sdk-go/service/resourcegroups"
 	"github.com/aws/aws-sdk-go/service/route53"
+	"github.com/aws/aws-sdk-go/service/route53domains"
 	"github.com/aws/aws-sdk-go/service/route53resolver"
 	"github.com/aws/aws-sdk-go/service/sagemaker"
 	"github.com/aws/aws-sdk-go/service/securityhub"
@@ -1484,6 +1485,23 @@ func Route53ListTags(conn *route53.Route53, identifier string, resourceType stri
 	}
 
 	return Route53KeyValueTags(output.ResourceTagSet.Tags), nil
+}
+
+// Route53domainsListTags lists route53domains service tags.
+// The identifier is typically the Amazon Resource Name (ARN), although
+// it may also be a different identifier depending on the service.
+func Route53domainsListTags(conn *route53domains.Route53Domains, identifier string) (KeyValueTags, error) {
+	input := &route53domains.ListTagsForDomainInput{
+		DomainName: aws.String(identifier),
+	}
+
+	output, err := conn.ListTagsForDomain(input)
+
+	if err != nil {
+		return New(nil), err
+	}
+
+	return Route53domainsKeyValueTags(output.TagList), nil
 }
 
 // Route53resolverListTags lists route53resolver service tags.

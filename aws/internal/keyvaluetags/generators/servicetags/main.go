@@ -78,6 +78,7 @@ var sliceServiceNames = []string{
 	"rds",
 	"redshift",
 	"route53",
+	"route53domains",
 	"route53resolver",
 	"s3",
 	"sagemaker",

@@ -769,6 +769,7 @@ func Provider() terraform.ResourceProvider {
 			"aws_route53_zone_association":                            resourceAwsRoute53ZoneAssociation(),
 			"aws_route53_zone":                                        resourceAwsRoute53Zone(),
 			"aws_route53_health_check":                                resourceAwsRoute53HealthCheck(),
+			"aws_route53domains_domain":                               resourceAwsRoute53DomainsDomain(),
 			"aws_route53_resolver_endpoint":                           resourceAwsRoute53ResolverEndpoint(),
 			"aws_route53_resolver_rule_association":                   resourceAwsRoute53ResolverRuleAssociation(),
 			"aws_route53_resolver_rule":                               resourceAwsRoute53ResolverRule(),

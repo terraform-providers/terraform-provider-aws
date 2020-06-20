@@ -103,6 +103,7 @@ var serviceNames = []string{
 	"redshift",
 	"resourcegroups",
 	"route53",
+	"route53domains",
 	"route53resolver",
 	"sagemaker",
 	"secretsmanager",

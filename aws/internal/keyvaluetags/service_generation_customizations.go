@@ -93,6 +93,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/redshift"
 	"github.com/aws/aws-sdk-go/service/resourcegroups"
 	"github.com/aws/aws-sdk-go/service/route53"
+	"github.com/aws/aws-sdk-go/service/route53domains"
 	"github.com/aws/aws-sdk-go/service/route53resolver"
 	"github.com/aws/aws-sdk-go/service/sagemaker"
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
@@ -294,6 +295,8 @@ func ServiceClientType(serviceName string) string {
 		funcType = reflect.TypeOf(resourcegroups.New)
 	case "route53":
 		funcType = reflect.TypeOf(route53.New)
+	case "route53domains":
+		funcType = reflect.TypeOf(route53domains.New)
 	case "route53resolver":
 		funcType = reflect.TypeOf(route53resolver.New)
 	case "sagemaker":
@@ -392,6 +395,8 @@ func ServiceListTagsFunction(serviceName string) string {
 		return "DescribeTags"
 	case "resourcegroups":
 		return "GetTags"
+	case "route53domains":
+		return "ListTagsForDomain"
 	case "sagemaker":
 		return "ListTags"
 	case "sqs":
@@ -495,6 +500,8 @@ func ServiceListTagsOutputTagsField(serviceName string) string {
 		return "TagList"
 	case "route53":
 		return "ResourceTagSet.Tags"
+	case "route53domains":
+		return "TagList"
 	case "ssm":
 		return "TagList"
 	case "waf":
@@ -595,6 +602,8 @@ func ServiceTagFunction(serviceName string) string {
 		return "Tag"
 	case "route53":
 		return "ChangeTagsForResource"
+	case "route53domains":
+		return "UpdateTagsForDomain"
 	case "sagemaker":
 		return "AddTags"
 	case "sqs":
@@ -709,6 +718,8 @@ func ServiceTagInputIdentifierField(serviceName string) string {
 		return "Arn"
 	case "route53":
 		return "ResourceId"
+	case "route53domains":
+		return "DomainName"
 	case "secretsmanager":
 		return "SecretId"
 	case "servicediscovery":
@@ -765,6 +776,8 @@ func ServiceTagInputTagsField(serviceName string) string {
 		return "TagsModel"
 	case "route53":
 		return "AddTags"
+	case "route53domains":
+		return "TagsToUpdate"
 	default:
 		return "Tags"
 	}
@@ -917,6 +930,8 @@ func ServiceUntagFunction(serviceName string) string {
 		return "Untag"
 	case "route53":
 		return "ChangeTagsForResource"
+	case "route53domains":
+		return "DeleteTagsForDomain"
 	case "sagemaker":
 		return "DeleteTags"
 	case "sqs":
@@ -989,6 +1004,8 @@ func ServiceUntagInputTagsField(serviceName string) string {
 		return "Keys"
 	case "route53":
 		return "RemoveTagKeys"
+	case "route53domains":
+		return "TagsToDelete"
 	default:
 		return "TagKeys"
 	}

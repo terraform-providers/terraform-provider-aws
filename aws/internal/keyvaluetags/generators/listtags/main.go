@@ -98,6 +98,7 @@ var serviceNames = []string{
 	"rds",
 	"resourcegroups",
 	"route53",
+	"route53domains",
 	"route53resolver",
 	"sagemaker",
 	"securityhub",
