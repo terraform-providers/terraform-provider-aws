@@ -76,6 +76,19 @@ func (cd containerDefinitions) Reduce(isAWSVPC bool) error {
 			}
 		}
 
+		if def.HealthCheck != nil {
+			if def.HealthCheck.Interval == nil {
+				def.HealthCheck.Interval = aws.Int64(30)
+			}
+			if def.HealthCheck.Retries == nil {
+				def.HealthCheck.Retries = aws.Int64(3)
+			}
+			if def.HealthCheck.Timeout == nil {
+				def.HealthCheck.Timeout = aws.Int64(5)
+			}
+
+		}
+
 		// Deal with fields which may be re-ordered in the API
 		sort.Slice(def.Environment, func(i, j int) bool {
 			return aws.StringValue(def.Environment[i].Name) < aws.StringValue(def.Environment[j].Name)

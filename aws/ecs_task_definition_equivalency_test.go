@@ -437,6 +437,74 @@ func TestAwsEcsContainerDefinitionsAreEquivalent_arrays(t *testing.T) {
 	}
 }
 
+func TestAwsEcsContainerDefinitionsAreEquivalent_healthCheck(t *testing.T) {
+	cfgRepresention := `
+[
+    {
+      "name": "wordpress",
+      "image": "wordpress",
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 80,
+	  "hostPort": 0,
+	  "protocol": "tcp"
+        }
+      ],
+      "memory": 500,
+      "cpu": 10,
+      "healthCheck": {
+	  "command": [
+	      "CMD-SHELL",
+	      "/bin/sh",
+	      "-c",
+	      "\"curl -f http://localhost || exit 1\""
+	  ]
+      }
+    }
+]`
+
+	apiRepresentation := `
+[
+    {
+        "name": "wordpress",
+        "image": "wordpress",
+        "cpu": 10,
+        "memory": 500,
+        "portMappings": [
+            {
+                "containerPort": 80,
+                "hostPort": 0,
+                "protocol": "tcp"
+            }
+        ],
+        "essential": true,
+        "environment": [],
+        "mountPoints": [],
+        "volumesFrom": [],
+        "healthCheck": {
+            "command": [
+                "CMD-SHELL",
+                "/bin/sh",
+                "-c",
+                "\"curl -f http://localhost || exit 1\""
+            ],
+           "interval": 30,
+           "timeout": 5,
+           "retries": 3
+        }
+    }
+]`
+
+	equal, err := EcsContainerDefinitionsAreEquivalent(cfgRepresention, apiRepresentation, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !equal {
+		t.Fatal("Expected definitions to be equal.")
+	}
+}
+
 func TestAwsEcsContainerDefinitionsAreEquivalent_negative(t *testing.T) {
 	cfgRepresention := `
 [
