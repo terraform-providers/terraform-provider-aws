@@ -10,8 +10,6 @@ description: |-
 
 Creates an IoT fleet provisioning template. For more info, see the AWS documentation on [fleet provisioning](https://docs.aws.amazon.com/iot/latest/developerguide/provision-wo-cert.html).
 
-~> **NOTE:** The fleet provisioning feature is in beta and is subject to change.
-
 ## Example Usage
 
 ```hcl
