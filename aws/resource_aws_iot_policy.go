@@ -1,7 +1,9 @@
 package aws
 
 import (
+	"fmt"
 	"log"
+	"strconv"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iot"
@@ -75,6 +77,10 @@ func resourceAwsIotPolicyRead(d *schema.ResourceData, meta interface{}) error {
 func resourceAwsIotPolicyUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).iotconn
 
+	if err := iotPolicyPruneVersions(d.Id(), conn); err != nil {
+		return err
+	}
+
 	if d.HasChange("policy") {
 		_, err := conn.CreatePolicyVersion(&iot.CreatePolicyVersionInput{
 			PolicyName:     aws.String(d.Id()),
@@ -127,5 +133,65 @@ func resourceAwsIotPolicyDelete(d *schema.ResourceData, meta interface{}) error 
 		return err
 	}
 
+	return nil
+}
+
+// iotPolicyPruneVersions deletes the oldest non-default version if the maximum
+// number of versions (5) has been reached.
+func iotPolicyPruneVersions(name string, iotconn *iot.IoT) error {
+	versions, err := iotPolicyListVersions(name, iotconn)
+	if err != nil {
+		return err
+	}
+	if len(versions) < 5 {
+		return nil
+	}
+
+	var oldestVersion *iot.PolicyVersion
+	var oldestVersionId int64
+
+	for _, version := range versions {
+		if *version.IsDefaultVersion {
+			continue
+		}
+
+		versionId, err := strconv.ParseInt(*version.VersionId, 10, 64)
+		if err != nil {
+			log.Printf("[ERROR] Unexpected version id cannot be parsed to an integer. %s", err)
+			return err
+		}
+
+		if oldestVersion == nil || versionId < oldestVersionId {
+			oldestVersion = version
+			oldestVersionId = versionId
+		}
+	}
+
+	err = iotPolicyDeleteVersion(name, *oldestVersion.VersionId, iotconn)
+	return err
+}
+
+func iotPolicyListVersions(name string, iotconn *iot.IoT) ([]*iot.PolicyVersion, error) {
+	request := &iot.ListPolicyVersionsInput{
+		PolicyName: aws.String(name),
+	}
+
+	response, err := iotconn.ListPolicyVersions(request)
+	if err != nil {
+		return nil, fmt.Errorf("Error listing versions for IoT policy %s: %s", name, err)
+	}
+	return response.PolicyVersions, nil
+}
+
+func iotPolicyDeleteVersion(name, versionID string, iotconn *iot.IoT) error {
+	request := &iot.DeletePolicyVersionInput{
+		PolicyName:      aws.String(name),
+		PolicyVersionId: aws.String(versionID),
+	}
+
+	_, err := iotconn.DeletePolicyVersion(request)
+	if err != nil {
+		return fmt.Errorf("Error deleting version %s from IoT policy %s: %s", versionID, name, err)
+	}
 	return nil
 }
