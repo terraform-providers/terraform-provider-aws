@@ -3,7 +3,7 @@
 package namevaluesfilters
 
 import (
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 // NameValuesFilters is a standard implementation for AWS resource filters.
